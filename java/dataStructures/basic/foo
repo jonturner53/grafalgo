@@ -1,0 +1,14 @@
+/** Reset the pair.
+ *  Puts all elements in the the "out-set".
+ */
+void UiSetPair::reset() {
+	inHead = inTail = 0;
+	for (int i = 1; i < nn; i++) {
+		nxt[i] = -(i+1); prv[i+1] = -i;
+	}
+	nxt[nn] = prv[1] = 0;
+	outHead = 1; outTail = nn;
+	numIn = 0; numOut = nn;
+
+	nxt[0] = prv[0] = 0;
+}

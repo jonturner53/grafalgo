@@ -1,0 +1,55 @@
+random graph generation notes
+
+to generate regular graph, setup "bipartite flow problem"
+and find random max size flow; may need to re-direct flow
+around cycles to make graph connected; find non-edge connecting
+random component and push flow from one endpoint to other...
+connectedness may not be that hard to achieve with k-regular
+graphs for k >= 3; random graphs are generally disconnected
+because some vertices have no edges. If each vertex has 3
+neighbors, much less likely that we'll get multiple components;
+each component has at least 4 vertices and 6 edges; I suppose
+we could still get one isolated component like that, but 
+relatively unlikely and should be easy to fix
+
+one problem with this approach is that we need complete bipartite
+flow graph to start; maybe we can over-sample enough to get
+connected base graph and then find subgraph that achieves
+max flow; 2x over-sampling probably enough; could generate
+k edges at every input and k at every output to ensure
+at least k overall
+
+General methods for generating random graphs.
+1. Start with "base graph" and select a subset of its edges
+2. Start with a skeleton graph and select a subset of edges
+   in the graph consisting of vertices with separation <=k
+   in the skeleton
+3. Given partition of vertices into subsets, 1,..,d select
+   random edges between vertices in subsets whose index
+   is within k of one another;
+   could allow reverse option - select only edges where
+   subset index differs by at least k; this 
+   supports generation of d-colorable graphs
+
+Need better ways to generate flow graphs for max flow problem.
+Maybe start with method 3 above and join source to subset 1
+and sink to subset d;
+Or, divide vertices into X,Y (s in X, t in Y) and create a cut
+of specified capacity between X and Y. Add random edges (u,v)
+that do not cross cut and choose capacity so that other cuts
+have higher capacity; may just do breadth-first search from
+source in X and assign capacities from dist i to i+1 so that cut
+exceeds that of (X,Y) cut; then do same from t in Y. More general
+approach is to assign base capacities on max flow in graph
+consisting of X and t (edges crossing cut connect directly to t)
+or s and Y. If we know analytically what this max flow is likely
+to be, we can assign edge capacities. Or, can do this computationally.
+Assign random capacities, compute flow in X+t, s+Y and scale the
+capacities of edges crossing the cut as needed to ensure X,Y
+is min-cut. To make this work well, # of edges crossing cut should
+be consistent with relative sizes of X,Y (can be below average,
+but not too far below); may then be enough to generate edge capacities
+for other edges that are a little above the mean of edges crossing cut.
+Of course, source/sink edges must have higher capacity.
+
+May also want separate variants for directed graphs.

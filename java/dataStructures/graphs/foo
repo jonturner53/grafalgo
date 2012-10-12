@@ -1,0 +1,15 @@
+	/** Copy another Graph to this one.
+	 *  @param original is another graph that is to replace this one.
+	 */
+	public void copyFrom(Graph original) {
+		if (N != original.n() || maxEdge < original.m()) {
+			resize(original.n(), original.m());
+		} else {
+			reset();
+		}
+		N = original.n();
+		for (int e = original.first(); e != 0; e = original.next(e)) {
+			join(original.left(e),original.right(e));
+		}
+		sortAdjLists();
+	}
