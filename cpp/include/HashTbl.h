@@ -1,4 +1,4 @@
-/** \file UiHashTbl.h
+/** \file HashTbl.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -11,10 +11,12 @@
 #define HASHTABLE_H
 
 #include "stdinc.h"
-#include "Util.h"
+#include "Adt.h"
+
+namespace grafalgo {
 
 /** Maintains set of (key, value) pairs where key is a 64 bit value and
- *  value is a positive 32 bit integer in a restricted range.
+ *  value is an index in a specified range.
  *  All (key,value) pairs must be fully disjoint; that is no two pairs may
  *  share the same key and no two pairs may share the same value.
  * 
@@ -28,23 +30,29 @@
  *  range of values (max of 10^6) with a maximum load factor of
  *  50% to minimize the potential for overloading any bucket.
  */
-class UiHashTbl {
+class HashTbl : public Adt {
 public:
-		UiHashTbl(int);
-		~UiHashTbl();
+		HashTbl(int);
+		~HashTbl();
 
-	int	lookup(uint64_t); 		
-	uint64_t getKey(int) const;
+	// common methods
+	void	clear();
+	void	resize(int);
+	void	expand(int);
+	void	copyFrom(const HashTbl&);
 
-	bool	insert(uint64_t, uint32_t); 
-	void	remove(uint64_t); 	
-	void	clear(); 	
+	int	size() const;
+	index	lookup(uint64_t) const; 		
+	uint64_t getKey(index) const;
+
+	bool	insert(uint64_t, index); 
+	int	remove(uint64_t); 	
 
 	string&	toString(string&) const;
 private:
 	static const int BKT_SIZ = 8;		///< # of items per bucket
 	static const int MAXVAL = (1 << 20)-1;	///< largest stored value
-	int	n;			///< range of values is 1..n
+	int	siz;			///< number of entries in the table
 	int	nb;			///< number of hash buckets per section
 	int	bktMsk;			///< mask used to extract bucket index
 	int	valMsk;			///< mask used to extract value
@@ -54,14 +62,23 @@ private:
 	bkt_t	*bkt;			///< vector of hash backets
 	uint64_t *keyVec;		///< vector of keys, indexed by value
 
-	void hashit(uint64_t,int,uint32_t&,uint32_t&);
+	void	makeSpace(int);
+	void	freeSpace();
+	void hashit(uint64_t,int,uint32_t&,uint32_t&) const;
 };
+
+/** Get the number of entries in the table.
+ *  @return the number of elements.
+ */
+inline int HashTbl::size() const { return siz; }
 
 /** Get the key associated with a given value.
  *  @param i is the value whose key is being retrieved
  *  @return the corresponding key; assumes that i is the value for
  *  some key
  */
-inline uint64_t UiHashTbl::getKey(int i) const { return keyVec[i]; }
+inline uint64_t HashTbl::getKey(index i) const { return keyVec[i]; }
+
+} // ends namespace
 
 #endif

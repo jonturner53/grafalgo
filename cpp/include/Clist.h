@@ -1,4 +1,4 @@
-/** @file UiClist.h
+/** @file Clist.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -10,51 +10,60 @@
 #define CLIST_H
 
 #include "stdinc.h"
-#include "Util.h"
+#include "Adt.h"
 
-typedef int item;
+namespace grafalgo {
 
 /** This class represents a collection of lists defined on a set
  *  of unique integers 1..n. Each integer appears in exactly one set
  *  at all times. The lists are doubly linked, enabling fast traversal
  *  in either direction.
  */
-class UiClist {
-public:		UiClist(int);
-		~UiClist();
+class Clist : public Adt {
+public:		Clist(int);
+		~Clist();
+
+	// common methods
+	void	clear();
+	void	resize(int);
+	void	expand(int);
+	void	copyFrom(const Clist&);
 
 	// list traversal methods
-	int	suc(item) const;
-	int	pred(item) const;
+	int	suc(index) const;
+	int	pred(index) const;
 
 	// modifiers
-	void	join(item,item);
-	void	remove(item);
-	void	reset();
+	void	join(index,index);
+	void	remove(index);
 
 	string&	toString(string&) const;
 private:
-	int	N;			// list defined on ints in {1,...,N}
 	struct lnode {
 	int	next;			// index of successor
 	int	prev;			// index of predecessor
 	} *node;
+
+	void	makeSpace(int);
+	void	freeSpace();
 };
 
 /** Get the successor of a list item.
- *  @param i is a list item
- *  @return the item that follows i in its list
+ *  @param i is an index
+ *  @return the index that follows i in its list
  */
-inline item UiClist::suc(item i) const {
-	assert(0 <= i && i <= N); return node[i].next;
+inline index Clist::suc(index i) const {
+	assert(0 <= i && i <= n()); return node[i].next;
 }
 
 /** Get the predecessor of a list item.
- *  @param i is a list item
- *  @return the item that precedes i in its list
+ *  @param i is an index
+ *  @return the index that precedes i in its list
  */
-inline item UiClist::pred(item i) const {
-	assert(0 <= i && i <= N); return node[i].prev;
+inline index Clist::pred(index i) const {
+	assert(0 <= i && i <= n()); return node[i].prev;
 }
+
+} // ends namespace
 
 #endif

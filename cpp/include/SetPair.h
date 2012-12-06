@@ -1,4 +1,4 @@
-/** \file UiSetPair.h
+/** \file SetPair.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -7,12 +7,14 @@
  */
   
 
-#ifndef UISETPAIR_H
-#define UISETPAIR_H
+#ifndef SETPAIR_H
+#define SETPAIR_H
 
 #include "stdinc.h"
 
-#include "Util.h"
+#include "Adt.h"
+
+namespace grafalgo {
 
 /** Data structure that represents a pair of integer sets.
  *  The integer values are stored in a limited range 1..n
@@ -22,11 +24,15 @@
  *  The only way to modify the data structure is to
  *  move an item from one set to the other.
  */
-class UiSetPair {
+class SetPair : public Adt {
 public:
-		UiSetPair(int);
-		~UiSetPair();
-	void	reset();
+		SetPair(int);
+		~SetPair();
+
+	void	clear();
+	void	resize(int);
+	void	expand(int);
+	void 	copyFrom(const SetPair&);
 
 	// predicates
 	bool	isIn(int) const;
@@ -43,7 +49,6 @@ public:
 	int	prevOut(int) const; 	
 
 	// getters
-	int	n() const;
 	int	getNumIn() const;
 	int	getNumOut() const;
 
@@ -53,7 +58,6 @@ public:
 	// produce string representation
 	string&	toString(string&) const;
 private:
-	int nn;			///< largest integer in set pair
 	int numIn;		///< number of elements in in-set
 	int numOut;		///< number of elements in out-set
 
@@ -64,13 +68,16 @@ private:
 
 	int *nxt;		///< nxt[i] defines next value after i
 	int *prv;		///< prv[i] defines value preceding i
+
+	void	makeSpace(int);
+	void	freeSpace();
 };
 
 /** Determine if an integer belongs to the "in-set".
  *  @param is is an integer in the range of values supported by the object
  *  @param return true if i is a member of the "in-set", else false.
  */
-inline bool UiSetPair::isIn(int i) const {
+inline bool SetPair::isIn(int i) const {
 	return 1 <= i && i <= nn && (nxt[i] > 0 || i == inTail);
 }
 
@@ -78,50 +85,45 @@ inline bool UiSetPair::isIn(int i) const {
  *  @param is is an integer in the range of values supported by the object
  *  @param return true if i is a member of the "out-set", else false.
  */
-inline bool UiSetPair::isOut(int i) const {
+inline bool SetPair::isOut(int i) const {
 	return 1 <= i && i <= nn && (nxt[i] < 0 || i == outTail);
 }
 
-/** Get the maximum value that can be stored in either set.
- *  @return the maximum value that can be stored
+/** Get the number of elements in the "in-set".
+ *  @return the number of elements in the in-set
  */
-inline int UiSetPair::n() const { return nn; }
+inline int SetPair::getNumIn() const { return numIn; }
 
 /** Get the number of elements in the "in-set".
  *  @return the number of elements in the in-set
  */
-inline int UiSetPair::getNumIn() const { return numIn; }
-
-/** Get the number of elements in the "in-set".
- *  @return the number of elements in the in-set
- */
-inline int UiSetPair::getNumOut() const { return numOut; }
+inline int SetPair::getNumOut() const { return numOut; }
 
 /** Get the first int in the in-set.
  *  @return the first value on the in-set or 0 if the list is empty.
  */
-inline int UiSetPair::firstIn() const { return inHead; }
+inline int SetPair::firstIn() const { return inHead; }
 
 /** Get the first int in the out-set.
  *  @return the first value on the out-set or 0 if the list is empty.
  */
-inline int UiSetPair::firstOut() const { return outHead; }
+inline int SetPair::firstOut() const { return outHead; }
 
 /** Get the last int in the in-set.
  *  @return the last value on the in-set or 0 if the list is empty.
  */
-inline int UiSetPair::lastIn() const { return inTail; }
+inline int SetPair::lastIn() const { return inTail; }
 
 /** Get the first int in the out-set.
  *  @return the last value on the out-set or 0 if the list is empty.
  */
-inline int UiSetPair::lastOut() const { return outTail; }
+inline int SetPair::lastOut() const { return outTail; }
 
 /** Get the next value in the inlist.
  *  @param i is the "current" value
  *  @return the next value on the in-set or 0 if no more values
  */
-inline int UiSetPair::nextIn(int i) const {
+inline int SetPair::nextIn(int i) const {
 	return (0 <= i && i <= nn && nxt[i] > 0 ? nxt[i] : 0);
 }
 
@@ -129,7 +131,7 @@ inline int UiSetPair::nextIn(int i) const {
  *  @param i is the "current" value
  *  @return the next value on the out-set or 0 if no more values
  */
-inline int UiSetPair::nextOut(int i) const {
+inline int SetPair::nextOut(int i) const {
 	return (0 <= i && i <= nn && nxt[i] < 0 ? -nxt[i] : 0);
 }
 
@@ -137,7 +139,7 @@ inline int UiSetPair::nextOut(int i) const {
  *  @param i is the "current" value
  *  @return the previous value on the in-set or 0 if no more values
  */
-inline int UiSetPair::prevIn(int i) const {
+inline int SetPair::prevIn(int i) const {
 	return (0 <= i && i <= nn && prv[i] > 0 ? prv[i] : 0);
 }
 
@@ -145,8 +147,11 @@ inline int UiSetPair::prevIn(int i) const {
  *  @param i is the "current" value
  *  @return the previous value on the out-set or 0 if no more values
  */
-inline int UiSetPair::prevOut(int i) const {
+inline int SetPair::prevOut(int i) const {
 	return (0 <= i && i <= nn && prv[i] < 0 ? -prv[i] : 0);
 }
 
+} // ends namespace
+
 #endif
+
