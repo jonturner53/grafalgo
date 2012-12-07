@@ -13,6 +13,8 @@
 #include "Util.h"
 #include "Digraph.h"
 
+namespace grafalgo {
+
 typedef int flow;
 
 /** Class that represents a flograph.
@@ -24,29 +26,33 @@ public:		Flograph(int=26,int=100,int=1,int=2);
 		Flograph(const Flograph&);
 		virtual ~Flograph();
 
-	virtual void resize(int,int);
-	virtual void reset();
-        virtual void copyFrom(const Flograph&);
+	void	resize(int,int);
+	void	resize(int numv) { resize(numv, numv); }
+	void	expand(int,int);
+	void	expand(int numv) { resize(numv, max(numv,m())); }
+        void	copyFrom(const Flograph&);
 
 	// methods for accessing, setting source and sink
 	vertex	src() const;
 	vertex	snk() const;	
-	void	setSrcSnk(vertex, vertex);
+	void	setSrc(vertex);
+	void	setSnk(vertex);
 
 	// methods for dealing with flows
 	flow	cap(vertex,edge) const;	
 	flow	f(vertex,edge) const;
 	flow	res(vertex,edge) const;
-	flow	addFlow(vertex,edge,flow); 
+	void	addFlow(vertex,edge,flow); 
+	void	setFlow(edge,flow); 
+	void	clearFlow(); 
 	void	setCapacity(edge,flow);	
-	void	clear();
 
 	virtual edge join(vertex,vertex);
 
-	virtual bool readEdge(istream&);
-	virtual bool read(istream&);
-	virtual string& edge2string(edge,string&) const; 
-	string& toString(string&) const;
+	bool	readAdjList(istream&);
+	//virtual bool readEdge(istream&);
+	//virtual bool read(istream&);
+	string&	adjList2string(edge,string&) const; 
 	string& toDotString(string&) const;
 
 	void	randCapacity(flow, flow);	
@@ -108,21 +114,34 @@ inline flow Flograph::res(vertex v, edge e) const {
 	return tail(e) == v ? floInfo[e].cpy - floInfo[e].flo : floInfo[e].flo;
 }
 
+/** Change the flow on an edge.
+ *  @param e is an edge that is incident to v
+ *  @param fval is the new flow on e from the tail to the head
+ */
+inline void Flograph::setFlow(edge e, flow fval) {
+        assert(1 <= e && e <= m());
+        floInfo[e].flo = fval;
+}
+
 /** Change the capacity of an edge.
  *  @param e is an edge that is incident to v
  *  @param capp is the new edge capacity for e
  */
 inline void Flograph::setCapacity(edge e, flow capp) {
-        assert(1 <= e && e <= M);
+        assert(1 <= e && e <= m());
         floInfo[e].cpy = capp;
 }
 
 /** Set the source and sink vertices.
- *  @param s1 is the new source vertex
- *  @param s2 is the new sink vertex
+ *  @param ss is the new source vertex
  */
-inline void Flograph::setSrcSnk(vertex s1, vertex t1) {
-	s = s1; t = t1;
-}
+inline void Flograph::setSrc(vertex ss) { s = ss; }
+
+/** Set the source and sink vertices.
+ *  @param tt is the new sink vertex
+ */
+inline void Flograph::setSnk(vertex tt) { t = tt; }
+
+} // ends namespace
 
 #endif

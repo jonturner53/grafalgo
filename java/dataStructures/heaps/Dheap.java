@@ -7,10 +7,10 @@
  */
 
 package algoLib.dataStructures.heaps;
-import algoLib.misc.*;
+import algoLib.misc.Util;
 
 /** This class implements a heap data structure.
- *  The heap elements are identified by integers in 1..n where n
+ *  The heap elements are identified by indexes in 1..n where n
  *  is specified when a heap object is constructed.
  */
 public class Dheap {
@@ -18,7 +18,7 @@ public class Dheap {
 	int	N;			///< max number of ints in heap
 	int	n;			///< number of ints in heap
 
-	int []	h;			///< {h[1],...,h[n]} is set of items
+	int []	h;			///< {h[1],...,h[n]} is set of indexes
 	int []	pos;			///< pos[i] gives position of i in h
 	int []	kee;			///< kee[i] is key of int i
 
@@ -63,8 +63,8 @@ public class Dheap {
 	 */
 	public int key(int i) { return kee[i]; }
 	
-	/** Determine if an item is in the heap.
-	 *  @param i is an item number
+	/** Determine if an index is in the heap.
+	 *  @param i is an index
 	 *  @return true if i is in the heap, else false
 	 */
 	public boolean member(int i) { return pos[i] != 0; }
@@ -74,8 +74,8 @@ public class Dheap {
 	 */
 	public boolean empty() { return n == 0; };
 	
-	/** Add item to the heap.
-	 *  @param i is an item that is not in the heap
+	/** Add index to the heap.
+	 *  @param i is an index that is not in the heap
 	 *  @param k is the key value under which i is to be inserted
 	 */
 	public void insert(int i, int k) {
@@ -83,17 +83,10 @@ public class Dheap {
 		kee[i] = k; n++; siftup(i,n);
 	}
 	
-	/** Remove an item from the heap.
-	 *  @param i is an item in the heap
+	/** Remove an index from the heap.
+	 *  @param i is an index in the heap
 	 */
 	public void remove(int i) {
-if (pos[i] <= 0) {
-System.out.println("remove: i=" + i + " pos[i]=" + pos[i]);
-for (int j = 1; j <= n; j++) System.out.print(" " + h[j]);
-System.out.println("\n");
-for (int j = 1; j <= n; j++) System.out.print(" " + pos[h[j]]);
-System.out.println("\n");
-}
 		assert i > 0 : "Dheap:remove: negative argument";
 		int j = h[n--];
 		if (i != j) {
@@ -105,84 +98,50 @@ System.out.println("\n");
 	
 	/** Perform siftup operation to restore heap order.
 	 *  This is a private helper function.
-	 *  @param i is an item to be positioned in the heap
+	 *  @param i is an index to be positioned in the heap
 	 *  @param x is a tentative position for i in the heap
 	 */
 	public void siftup(int i, int x) {
-if (x <= 0) {
-System.out.println("siftup: x=" + x);
-}
 		int px = p(x);
 		while (x > 1 && kee[i] < kee[h[px]]) {
 			h[x] = h[px]; pos[h[x]] = x;
-if (x <= 0) {
-System.out.println("siftup a: x=" + x);
-}
 			x = px; px = p(x);
 		}
-if (x <= 0) {
-System.out.println("siftup b: x=" + x);
-}
 		h[x] = i; pos[i] = x;
 	}
 	
 	/** Perform siftdown operation to restore heap order.
 	 *  This is a private helper function.
-	 *  @param i is an item to be positioned in the heap
+	 *  @param i is an index to be positioned in the heap
 	 *  @param x is a tentative position for i in the heap
 	 */
 	public void siftdown(int i, int x) {
-if (x <= 0) {
-System.out.println("siftdown: x=" + x);
-}
 		int cx = minchild(x);
 		while (cx != 0 && kee[h[cx]] < kee[i]) {
 			h[x] = h[cx]; pos[h[x]] = x;
-if (x <= 0) {
-System.out.println("siftdown a: x=" + x);
-}
 			x = cx; cx = minchild(x);
 		}
-if (x <= 0) {
-System.out.println("siftup b: x=" + x);
-}
 		h[x] = i; pos[i] = x;
 	}
 	
 	/** Find the position of the child with the smallest key.
 	 *  This is a private helper function, used by siftdown.
-	 *  @param x is a position of an item in the heap
+	 *  @param x is a position of an index in the heap
 	 *  @return the position of the child of the int at x, that has
 	 *  the smallest key
 	 */
 	public int minchild(int x) {
-if (x <= 0) {
-System.out.println("x=" + x);
-}
 		int y; int minc = left(x);
-if (minc < 0) {
-System.out.println("x minc=" + minc);
-}
 		if (minc > n) return 0;
 		for (y = minc + 1; y <= right(x) && y <= n; y++) {
-if (y < 0 || h[y] < 0 || minc < 0 || h[minc] < 0) {
-System.out.println("y=" + y);
-System.out.println(toString());
-}
-if (y < 0 || h[y] < 0 || minc < 0 || h[minc] < 0)
-System.out.println("h[y]=" + h[y]);
-if (y < 0 || h[y] < 0 || minc < 0 || h[minc] < 0)
-System.out.println("minc=" + minc);
-if (y < 0 || h[y] < 0 || minc < 0 || h[minc] < 0)
-System.out.println("h[minc]=" + h[minc]);
 			if (kee[h[y]] < kee[h[minc]]) minc = y;
 		}
 		return minc;
 	}
 	
-	/** Change the key of an item in the heap.
-	 *  @param i is an item in the heap
-	 *  @param k is a new key value for item i
+	/** Change the key of an index in the heap.
+	 *  @param i is an index in the heap
+	 *  @param k is a new key value for index i
 	 */
 	public void changekey(int i, int k) {
 		int ki = kee[i]; kee[i] = k;

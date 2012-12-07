@@ -9,6 +9,8 @@
 #include "stdinc.h"
 #include "Digraph.h"
 
+namespace grafalgo {
+
 /** Construct a Digraph with space for a specified number of vertices and edges.
  *  @param numv is the maximum number of vertices in the graph
  *  @param maxe is the maximum number of edges
@@ -17,52 +19,59 @@ Digraph::Digraph(int numv, int maxe) : Graph(numv,maxe) {
 	makeSpace(numv,maxe);
 }
 
-/** Copy constructor - not implemented. */
-Digraph::Digraph(const Digraph& original) : Graph(original) { }
-
-/** Allocate and initialize dynamic storage for graph.
- */
-void Digraph::makeSpace(int numv, edge maxe) {
-	fi = new edge[numv+1];
-	for (vertex u = 0; u <= numv; u++) fi[u] = 0;
-} 
-
-/** Free space used by Digraph */
 Digraph::~Digraph() { freeSpace(); }
 
-void Digraph::freeSpace() {
-	delete [] fi;
-}
-
-/** Copy another Graph to this one.
- *  @param original is another graph that is to replace this one.
+/** Allocate and initialize dynamic storage for Digraph.
+ *  @param numv is the number of vertices to allocate space for
+ *  @param maxe is the number of edges to allocate space for
  */
-void Digraph::copyFrom(const Digraph& original) {
-        if (N != original.n() || maxEdge < original.m()) {
-                resize(original.n(), original.m());
-        } else {
-                reset();
-        }
-        N = original.n();
-        for (edge e = original.first(); e != 0; e = original.next(e)) {
-                join(original.left(e),original.right(e));
-        }
-        sortAdjLists();
+void Digraph::makeSpace(int numv, int maxe) {
+	try {
+		fi = new edge[numv+1];
+	} catch (std::bad_alloc e) {
+		stringstream ss;
+		ss << "Digraph::makeSpace: insufficient space for "
+		   << numv << "vertices and " << maxe << " edges";
+		string s = ss.str();
+		throw OutOfSpaceException(s);
+	}
+	for (vertex u = 0; u <= numv; u++) fi[u] = 0;
 }
 
-/** Discard current graph and allocate space for a new graph.
- *  @param numv is the number of vertices in the new graph
- *  @param maxe is the maximum number of edges in the new graph
+/** Free space used by graph. */
+void Digraph::freeSpace() { delete [] fi; }
+
+/** Resize a Digraph object.
+ *  The old value is discarded.
+ *  @param numv is the number of vertices to allocate space for
+ *  @param maxe is the number of edges to allocate space for
  */
 void Digraph::resize(int numv, int maxe) {
-        Graph::resize(numv, maxe);
-        freeSpace(); makeSpace(numv, maxe);
+	freeSpace();
+	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
+		string s; s = "Digraph::resize:" + e.toString(s);
+		throw OutOfSpaceException(s);
+	}
 }
 
-/** Remove all edges from the graph.  */
-void Digraph::reset() {
-	Graph::reset();
-	for (vertex u = 0; u <= n(); u++) fi[u] = 0;
+/** Expand the space available for this Digraph.
+ *  Rebuilds old value in new space.
+ *  @param size is the size of the resized object.
+ */
+void Digraph::expand(int numv, int maxe) {
+	if (numv <= n() && maxe <= maxEdge) return;
+	Digraph old(this->n(),this->maxEdge); old.copyFrom(*this);
+	resize(numv,maxe); this->copyFrom(old);
+}
+
+/** Copy into Digraph from source. */
+void Digraph::copyFrom(const Digraph& source) {
+	if (&source == this) return;
+	if (source.n() > n()) resize(source.n());
+	else clear();
+	for (edge e = source.first(); e != 0; e = source.next(e))
+		join(source.left(e),source.right(e));
+        sortAdjLists();
 }
 
 /** Join two vertices with an edge.
@@ -99,32 +108,37 @@ edge Digraph::joinWith(vertex u, vertex v, edge e) {
 	if (fe[u] == 0) fe[u] = 2*e;
 	if (fi[v] == 0) fi[v] = 2*e+1;
 
-	M++;
+	mm++;
 
 	return e;
 }
 
+/*
 string& Digraph::edge2string(edge e, string& s) const {
 	return Graph::edge2string(e,s);
 }
+*/
 
 /** Create a string representation of an adjacency list.
  *  @param u is a vertex number
  *  @param s is a reference to a string in which the result is returned
  *  @return a reference to s.
  */
-string& Digraph::alist2string(vertex u, string& s) const {
-        s = "";
-        if (firstAt(u) == 0) return s;
-        int cnt = 0;
-        for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
-                string s1;
-                s += edge2string(e,s1) + " ";
-                cnt++;
-                if (cnt >= 10) { s += "\n"; cnt = 0; }
-        }
-        if (cnt != 0) s += "\n";
-        return s;
+string& Digraph::adjList2string(vertex u, string& s) const {
+	s = "";
+	if (firstAt(u) == 0) return s;
+	int cnt = 0;
+	string s1;
+	s += "[" + Adt::item2string(u,s1) + ":";
+	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
+		vertex v = head(e);
+		s += " " + item2string(v,s1);
+		if (++cnt >= 20 && nextAt(u,e) != 0) {
+			s += "\n"; cnt = 0;
+		}
+	}
+	s += "]\n";
+	return s;
 }
 
 /** Construct a string in dot file format representation 
@@ -137,23 +151,16 @@ string& Digraph::alist2string(vertex u, string& s) const {
  *  @return a reference to the string
  */
 string& Digraph::toDotString(string& s) const {
-	stringstream ss;
-	// directed graph
-	ss << "digraph G { " << endl;
-	for (vertex u = 1; u <= n(); u++) {
-		if (firstAt(u) == 0) break;
-		string su;
-		for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
-                        string s1, s2;
-			vertex v = mate(u,e);
-			su += Util::node2string(u,n(),s1) + " -> ";
-			su += Util::node2string(v,n(),s2);
-			su += " ; "; 
-		}
-                if (!su.empty())   ss << su << endl;
+	s = "digraph G {\n";
+	int cnt = 0;
+	for (edge e = first(); e != 0; e = next(e)) {
+		vertex u = tail(e); vertex v = head(e);
+		string s1;
+		s += Adt::item2string(u,s1) + " -> ";
+		s += Adt::item2string(v,s1) + " ; "; 
+		if (++cnt == 15) { cnt = 0; s += "\n"; }
 	}
-	ss << " } " << endl;
-	s = ss.str();
+	s += "}\n";
 	return s;
 }
 
@@ -161,45 +168,73 @@ string& Digraph::toDotString(string& s) const {
  *  @param in is an open input stream
  *  @return true on success, false on error.
  */
+/*
 bool Digraph::readEdge(istream& in) {
         vertex u, v;
-        if (Util::readNext(in,'(') == 0 || !Util::readNode(in,u,n()) ||
-            Util::readNext(in,',') == 0 || !Util::readNode(in,v,n()) ||
-            Util::readNext(in,')') == 0) {
+        if (!Util::verify(in,'(') || !Adt::readItem(in,u) ||
+            !Util::verify(in,',') || !Adt::readItem(in,v) ||
+            !Util::verify(in,')')) {
                 return false;
         }
-        join(u,v);
-        return true;
+	if (u < 1 || v < 1) return false;
+
+	int numv = n(); int maxe = maxEdge;
+	if (u > n() || v > n()) numv = max(max(u,v),2*n());
+	if (m() >= maxEdge) maxe = 2*maxEdge;
+	if (numv > n() || maxe > maxEdge) resize(numv,maxe);
+
+	join(u,v);
+	return true;
+}
+*/
+
+/** Read adjacency list from an input stream, add it to the graph.
+ *  @param in is an open input stream
+ *  @return true on success, false on error.
+ */
+bool Digraph::readAdjList(istream& in) {
+	if (!Util::verify(in,'[')) return 0;
+	vertex u;
+	if (!Adt::readItem(in,u)) return 0;
+	if (u > n()) expand(max(u,2*n()),m());
+	if (!Util::verify(in,':')) return 0;
+	while (in.good() && !Util::verify(in,']')) {
+		vertex v;
+		if (!Adt::readItem(in,v)) return 0;
+		if (v > n()) expand(max(v,2*n()),m());
+		if (m() >= maxEdge) expand(n(),2*m());
+		join(u,v);
+	}
+	return in.good();
 }
 
 /** Read a graph.
  *  @param in is an open input stream
  *  @return true on success, else false
  */
-bool Digraph::read(istream& in) {
-        int numv, maxe;
-        in >> numv >> maxe;
-	if (N != numv || maxEdge < maxe) resize(numv,maxe);
-	else reset();
-	N = numv;
-        for (int i = 1; i <= maxe; i++) {
-                if (!readEdge(in)) return false;
-        }
-        if (M != maxe) return false;
-        sortAdjLists();
-        return true;
+/*
+istream& operator>>(istream& in, Digraph& dg) {
+	bool ok = Util::verify(in,'{');
+	while (ok && !Util::verify(in,'}')) ok = dg.readEdge(in);
+	if (!ok) {
+		string s = "misformatted input for Graph object";
+		throw InputException(s);
+	}
+	dg.sortAdjLists();
+	return in;
 }
+*/
 
 /** Generate a random digraph.
  *  @param numv is the number of vertices on which the digraph is generated;
- *  if this object has N>numv, the random graph is defined over the first
+ *  if this object has n()>numv, the random graph is defined over the first
  *  numv vertices, leaving the remaining vertices with no edges
  *  @param nume is the number of edges in the generated digraph
  */
 void Digraph::rgraph(int numv, int nume) {
 	numv = max(0,numv); nume = max(0,nume);
-	if (numv > N || nume > maxEdge) resize(numv,nume); 
-        else reset();
+	if (numv > n() || nume > maxEdge) resize(numv,nume); 
+        else clear();
 
 	// build set containing edges already in graph
 	HashSet edgeSet(nume);
@@ -214,8 +249,8 @@ void Digraph::rgraph(int numv, int nume) {
 	// stop early if graph gets so dense that most samples
 	// repeat edges already in graph
 	while (m() < nume && m()/numv < numv/2) {
-		vertex u = randint(1,numv);
-		vertex v = randint(1,numv);
+		vertex u = Util::randint(1,numv);
+		vertex v = Util::randint(1,numv);
 		if (u == v) continue;
 		uint64_t vpair = u; vpair <<= 32; vpair |= v;
 		if (!edgeSet.member(vpair)) {
@@ -238,7 +273,7 @@ void Digraph::rgraph(int numv, int nume) {
 	// sample remaining edges from vector
 	i = 0;
 	while (m() < nume && i < vpVec.size()) {
-		int j = randint(i,vpVec.size()-1);
+		int j = Util::randint(i,vpVec.size()-1);
 		vertex u = vpVec[j] >> 32;
 		vertex v = vpVec[j] & 0xffffffff;
 		join(u,v); vpVec[j] = vpVec[i++];
@@ -248,14 +283,14 @@ void Digraph::rgraph(int numv, int nume) {
 
 /** Generate a random directed acyclic graph.
  *  @param numv is the number of vertices on which the digraph is generated;
- *  if this object has N>numv, the random graph is defined over the first
+ *  if this object has n()>numv, the random graph is defined over the first
  *  numv vertices, leaving the remaining vertices with no edges
  *  @param nume is the number of edges in the generated digraph
  */
 void Digraph::rdag(int numv, int nume) {
 	numv = max(0,numv); nume = max(0,nume);
-	if (N < numv || maxEdge < nume) resize(numv,nume); 
-        else reset();
+	if (n() < numv || maxEdge < nume) resize(numv,nume); 
+        else clear();
 
 	// build set containing edges already in graph
 	HashSet edgeSet(nume);
@@ -270,8 +305,8 @@ void Digraph::rdag(int numv, int nume) {
 	// stop early if graph gets so dense that most samples
 	// repeat edges already in graph
 	while (m() < nume && m()/numv < numv/4) {
-		vertex u = randint(1,numv-1);
-		vertex v = randint(u+1,numv);
+		vertex u = Util::randint(1,numv-1);
+		vertex v = Util::randint(u+1,numv);
 		if (u == v) continue;
 		uint64_t vpair = u; vpair <<= 32; vpair |= v;
 		if (!edgeSet.member(vpair)) {
@@ -294,10 +329,12 @@ void Digraph::rdag(int numv, int nume) {
 	// sample remaining edges from vector
 	i = 0;
 	while (m() < nume && i < vpVec.size()) {
-		int j = randint(i,vpVec.size()-1);
+		int j = Util::randint(i,vpVec.size()-1);
 		vertex u = vpVec[j] >> 32;
 		vertex v = vpVec[j] & 0xffffffff;
 		join(u,v); vpVec[j] = vpVec[i++];
 	}
 	sortAdjLists();
 }
+
+} // ends namespace

@@ -11,70 +11,95 @@
 
 #include "stdinc.h"
 
+using namespace std;
+
+namespace grafalgo {
+
 /** This class contains miscellaneous utility methods.
  */
 class Util {
 public:
-	// basic io helper functions
-	static char readNext(istream&, char);
-	static char skip(istream&, char);
-	static bool verify(istream&, char, int=0);
-	static bool skipBlank(istream&);
-	static bool readNum(istream&, int&);
-	static bool readWord(istream&, string&);
-	static string& num2string(int, string&);
+	static const int32_t BIGINT32 = 0x7ffffff;
 
-	// functions to facilitate use of single character 
-	// node names in small data structures
-	static char nam(int);			
-	static int num(char);			
-	static bool readNode(istream&, int&, int);
-	static bool readAlpha(istream&, int&);	
-	static string& node2string(int, int, string&);
+	// basic input helper functions
+	static bool skipSpace(istream& in, bool=false);
+	static bool skipBlank(istream& in);
+	static bool readWord(istream&, string&, bool= false);
+	static bool readInt(istream&, int&, bool= false);
+	static bool verify(istream&, char c, bool=false);
 
 	// other stuff
 	static bool prefix(string&, string&);	
-	static void genPerm(int, int*);	
 	static int strnlen(char*, int);
+	static void genPerm(int, int*);	
 	static uint32_t getTime();
+	static void warning(const string&);
+	static void fatal(const string&);
+
+	// convenience functions for random number generation
+	// Should eventually replace with C++11 <random> variants
+	static double randfrac();
+	static int randint(int, int);
+	static double randexp(double);
+	static int randgeo(double);
+	static int randTruncGeo(double, int);
+	static double randpar(double, double);
 };
 
-/** Convert a small integer to a lower-case letter.
- *  @param u is an integer in the range 1..26
- *  @return the corresponding lower-case letter
- *  (1 becomes 'a', 2 becomes 'b', etc)
- */
-inline char Util::nam(int u) { return char(u + ('a'-1)); }
-
-/** Convert a lower-case letter to a small integer.
- *  @param c is a lower-case letter
- *  @return the corresponding integer
- *  ('a' becomes 1, 'b' becomes 2, etc)
- */
-inline int Util::num(char c) { return int(c - ('a'-1)); }
-
-/** Create a string representation of a numeric value.
- *  @param i is the integer whose value to be converted to a string
- *  @param s is the string in which the value is returned
- *  @return a reference to the string
- */
-inline string& Util::num2string(int i, string& s) {
-	stringstream ss; ss << i; s = ss.str();
-	return s;
+inline void Util::warning(const string& msg) {
+	cerr << "Warning: " << msg << endl;
 }
 
-/** Create a string representation of a data structure node.
- *  @param u is the node
- *  @param n is the number of nodes in the data structure;
- *  if 1 <= n <= 26, a single lower case character is returned
- *  as the string; otherwise, the numeric value of u is added
- *  @param s points to the string to be in which the value is returned
- *  @param return a reference to the modified string
- */
-inline string& Util::node2string(int u, int n, string& s) {
-        if (1 <= n && n <= 26) s = nam(u);
-        else num2string(u,s);
-	return s;
+inline void Util::fatal(const string& msg) {
+	cerr << "Fatal: " << msg << endl;
+	if (errno != 0) perror("");
+	exit(1);
 }
+
+
+/** Generate a random fraction.
+ *  @return a double in [0,1]
+ */
+inline double Util:: randfrac() { return ((double) random())/BIGINT32; }
+
+/** Generate a random integer in a range.
+ *  @param lo is the low end of the range
+ *  @param hi is the high end of the range
+ *  @return a random integer in [lo,hi]; the distribution is not
+ *  very uniform for ranges larger than 10^7
+ */
+inline int Util::randint(int lo, int hi) {
+	return lo + (random() % (hi + 1 - lo));
+}
+
+// Return a random number from an exponential distribution with mean mu 
+inline double Util::randexp(double mu) { return -mu*log(randfrac()); }
+
+/** Return a random number from a geometric distribution.
+ *  @param p is success probability (so 1/p is mean)
+ *  @return a random value from the distribution
+ */
+inline int Util::randgeo(double p) {
+	return p > .999999 ? 1 :
+		max(1,int(.999999 +log(randfrac())/log(1-p)));
+}
+
+/** Return a random number from a truncated geometric distribution with
+ *  mean 1/p and maximum value k.
+ */
+inline int Util::randTruncGeo(double p, int k) {
+	double x = 1 - exp((k-1)*log(1-p));
+	int r = int(.999999+log(randfrac()/x)/log(1-p));
+	return p > .999999 ? 1 : max(1,min(r,k));
+}
+
+/** Return a random number from a Pareto distribution with mean mu
+ *  and shape s
+ */
+inline double Util::randpar(double mu, double s) {
+	return mu*(1-1/s)/exp((1/s)*log(randfrac()));
+}
+
+} // ends namespace
 
 #endif

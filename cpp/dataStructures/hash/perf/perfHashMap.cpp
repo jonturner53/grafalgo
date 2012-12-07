@@ -3,6 +3,8 @@
 #include "Util.h"
 #include <vector>
 
+using namespace grafalgo;
+
 int64_t cycCnt(void)
 {
  uint32_t hi, lo;
@@ -158,7 +160,7 @@ void perfTest(int n, int ticksPerUs) {
 	if (badCnt > 0) cout << badCnt << " rejected samples\n";
 }
 
-main() {
+int main() {
 	int ticksPerUs = calibrate();
 	perfTest(1 << 8,ticksPerUs);
 	perfTest(1 << 9,ticksPerUs);

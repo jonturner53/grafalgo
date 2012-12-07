@@ -3,6 +3,8 @@
 #include "Util.h"
 #include "Utest.h"
 
+using namespace grafalgo;
+
 void basicTests() {
 	int n = 10; string s1;
 	HashSet set(n);
@@ -15,7 +17,7 @@ void basicTests() {
 		Utest::assertTrue(set.member(perm[i]),
 			"inserted key not a member of set");
 	}
-	cout << "set of 10: " << set.toString(s1) << endl;
+	cout << "set of 10: " << set << endl;
 	Utest::assertTrue(set.size() == n,
 		"set size does not match number of inserted keys");
 	// checking that sample of non-keys are not in set
@@ -30,8 +32,9 @@ void basicTests() {
 		Utest::assertTrue(!set.member(perm[i]),
 			"removed key is still member of set");
 	}
+	cout << "passed basic tests\n";
 }
 
-main() {
+int main() {
 	basicTests();
 }

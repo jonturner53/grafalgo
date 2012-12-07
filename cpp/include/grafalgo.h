@@ -1,4 +1,4 @@
-/** @file stdinc.h
+/** @file grafalgo.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,54 +6,18 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef STDINC_H
-#define STDINC_H
+#ifndef GRAFALGO_H
+#define GRAFALGO_H
 
-#include <iostream>
-#include <sstream>
-#include <stdint.h>
-#include <fstream>
-#include <iomanip>
-#include <cstdlib>
-#include <cstring>
-#include <string>
-#include <cmath>
-#include <cassert>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <signal.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <sys/time.h>
-#include <stdlib.h>
-#include <memory.h>
-#include <poll.h>
-#include <limits.h>
+namespace grafalgo {
 
-#ifdef linux
-#include <linux/sockios.h>
-#endif
-
-using namespace std;
-
-typedef int bit;
-
-const int Null = 0;
-const int BIGINT = INT_MAX;
-const int EOS = '\0';
-
-inline int max(int x, int y) { return x > y ? x : y; }
-inline double max(double x, double y) { return x > y ? x : y; }
-inline int min(int x, int y) { return x < y ? x : y; }
-inline double min(double x, double y) { return x < y ? x : y; }
+typedef long int index;
+typedef long int position
+typedef long int vertex
+typedef long int edge
 
 inline void warning(string msg) { cerr << "Warning: " << msg << endl; }
+
 inline void fatal(string msg) {
 	cerr << "Fatal: " << msg << endl;
 	if (errno != 0) perror("");
@@ -99,6 +63,8 @@ inline long long int randTruncGeo(double p, long long int k) {
 // Return a random number from a Pareto distribution with mean mu and shape s
 inline double randpar(double mu, double s) {
 	return mu*(1-1/s)/exp((1/s)*log(randfrac()));
+}
+
 }
 
 #endif

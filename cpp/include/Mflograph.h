@@ -13,7 +13,7 @@
 #include "Util.h"
 #include "Flograph.h"
 
-typedef int flow;
+namespace grafalgo {
 
 /** Class representing a flow graph with minimum flow constraints.
  *  Inherits many methods from the Flograph class and adds methods
@@ -21,12 +21,13 @@ typedef int flow;
  */
 class Mflograph : public Flograph {
 public:		Mflograph(int=26,int=100,int=1,int=2);
-		Mflograph(const Mflograph&);
 		virtual ~Mflograph();
 
-	virtual void resize(int,int);	
-	virtual void reset();	
-        void virtual copyFrom(const Mflograph&);
+	void	resize(int,int);	
+	void	resize(int numv) { resize(numv,numv); }
+	void	expand(int,int);	
+	void	expand(int numv) { expand(numv,max(numv,m())); }
+        void	copyFrom(const Mflograph&);
 
 	flow 	res(vertex, edge) const;
 	virtual edge join(vertex,vertex);
@@ -35,8 +36,8 @@ public:		Mflograph(int=26,int=100,int=1,int=2);
 	void	setMinFlo(edge,flow);
 	void	randMinFlo(flow,flow);
 
-	virtual bool readEdge(istream&);
-	virtual string& edge2string(edge,string&) const; 
+	bool	readAdjList(istream&);
+	string& adjList2string(vertex,string&) const; 
 	string& toDotString(string&) const;
 
 protected:
@@ -83,5 +84,6 @@ inline flow Mflograph::res(vertex v, edge e) const {
 			    : floInfo[e].flo - mflo[e];
 }
 
+} // ends namespace
 
 #endif

@@ -9,8 +9,9 @@
 #ifndef DIGRAPH_H
 #define DIGRAPH_H
 
-#include "stdinc.h"
 #include "Graph.h"
+
+namespace grafalgo {
 
 /** Data structure for undirected graph with edge weights.
  *
@@ -23,12 +24,13 @@
  */
 class Digraph : public Graph {
 public:		Digraph(int=26,int=50);
-		Digraph(const Digraph&);
 		~Digraph();
 	
-	virtual void resize(int,int);
-	virtual void reset();
-	virtual void copyFrom(const Digraph&);
+	void	resize(int,int);
+	void	resize(int numv) { resize(numv,numv); }
+	void	expand(int,int);
+	void	expand(int numv) { resize(numv,max(numv,m())); }
+	void	copyFrom(const Digraph&);
 
 	vertex  tail(edge) const;       
         vertex  head(edge) const;      
@@ -47,13 +49,13 @@ public:		Digraph(int=26,int=50);
         void    rdag(int,int);     
 
 	// create a string representation
-	string& alist2string(vertex, string&) const;
-	virtual string& edge2string(edge,string&) const;
+	string& adjList2string(vertex, string&) const;
+	//virtual string& edge2string(edge,string&) const;
         virtual string& toDotString(string&) const;
 
 	// input
-	virtual bool readEdge(istream&);
-	virtual bool read(istream&);
+	bool	readAdjList(istream&);
+	//virtual bool read(istream&);
 
 
 protected:
@@ -145,5 +147,7 @@ inline edge Digraph::nextOut(vertex v, edge e) const {
         int ff = adjLists->suc(ee);
         return (fe[v] == ff ? 0 : ff/2);
 }
+
+} // ends namespace
 
 #endif

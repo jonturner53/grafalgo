@@ -2,12 +2,14 @@ IDIR = ../../../include
 LDIR = ../../../lib
 LIBS = ${LDIR}/lib-util.a ${LDIR}/lib-ds.a
 
-CXXFLAGS = -O2 -m64 
+CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 
+
+XFILES = testHashSet testHashMap testIdMap
 
 %.o : %.cpp
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-all : testHashSet testHashMap testIdMap
+all : ${XFILES}
 
 testHashSet: testHashSet.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
@@ -19,4 +21,4 @@ testIdMap: testIdMap.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 clean :
-	rm -f *.o
+	rm -f *.o ${XFILES}

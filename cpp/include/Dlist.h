@@ -24,12 +24,10 @@ namespace grafalgo {
  */
 class Dlist : public List {
 public:		Dlist(int=26);
-		Dlist(Dlist&);
 		~Dlist();
 
 	void	resize(int);
 	void	expand(int);
-	void	clear();
 
 	using   List::copyFrom;
 

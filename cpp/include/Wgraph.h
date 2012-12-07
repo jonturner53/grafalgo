@@ -12,7 +12,7 @@
 #include "stdinc.h"
 #include "Graph.h"
 
-typedef int weight;
+namespace grafalgo {
 
 /** Data structure for undirected graph with edge weights.
  *
@@ -25,22 +25,24 @@ typedef int weight;
  */
 class Wgraph : public Graph {
 public:		Wgraph(int=26,int=50);
-		Wgraph(const Wgraph&);
 		~Wgraph();
 
-	virtual void resize(int, int);
-	virtual void reset();
-	virtual void copyFrom(const Wgraph&);
+	void	resize(int, int);
+	void	resize(int numv) { resize(numv,numv); }
+	void	expand(int, int);
+	void	expand(int numv) { resize(numv,max(numv,m())); }
+	void	copyFrom(const Wgraph&);
 
 	// methods for accessing/changing weight
 	int	weight(edge) const;
 	void	setWeight(edge,int);
 
-	virtual bool readEdge(istream&);
+	bool	readAdjList(istream&);
 
 	// create a string representation
-	virtual string& edge2string(edge,string&) const;
-	virtual string& edge2string(edge,vertex,string&) const;
+	//virtual string& edge2string(edge,string&) const;
+	//virtual string& edge2string(edge,vertex,string&) const;
+	string&	adjList2string(vertex,string&) const;
         virtual string& toDotString(string&) const;
 
 	void randWeight(int, int);
@@ -68,5 +70,7 @@ inline int Wgraph::weight(edge e) const {
 inline void Wgraph::setWeight(edge e, int w) {
 	assert(0 <= e && e <= maxEdge); wt[e] = w;
 }
+
+} // ends namespace
 
 #endif

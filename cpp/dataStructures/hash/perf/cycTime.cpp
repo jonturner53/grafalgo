@@ -1,6 +1,8 @@
 #include "stdinc.h"
 #include "Util.h"
 
+using namespace grafalgo;
+
 int64_t i386_clock64(void)
 {
  uint32_t hi, lo;
@@ -17,7 +19,7 @@ int64_t i386_clock64(void)
  return (int64_t)v64;
 }
 
-main() {
+int main() {
 
 	for (int i = 1; i <= 20; i++) {
 		int64_t cyc0 = i386_clock64(); uint32_t t0 = Util::getTime();

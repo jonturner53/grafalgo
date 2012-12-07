@@ -1,7 +1,28 @@
 Complete documentation of graph algorithms
 
+Replace item terminology with index
+
+Start shifting to C++11.
+
+Rework Utility class and stdinc.
+- is there a better way to do simple parsing?
+- get a token from input, where a token has some recognizable type
+  char, int, float, word, name, string and possibly specific value
+  if what comes next is not what I am looking for, put it back;
+  skip over whitespace, optionally not on end-of-line
+- timing stuff based on C++?
+
+Use namespaces for grafalgo
+
+Put inlines inside class declaration
+
+Use templates for data structures that use keys.
+What about maps? Should I try to do handle strings as keys?
+
 Add unit tests for all data structures; replace old dvr programs
 
 Add unit tests for graph algorithms; when multiple
 algorithms for same problem, can do random generation
 and check values returned as one simple approach
+
+Augment the Java stuff. Maybe do some animations?

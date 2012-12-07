@@ -11,6 +11,8 @@
 #define cpy(x) floInfo[x].cpy
 #define mflo(x) mflo[x]
 
+namespace grafalgo {
+
 /** Construct a Mflograph.
  *  @param numv is the number of vertices in the graph
  *  @param maxe is the max number of edges in the graph
@@ -22,53 +24,157 @@ Mflograph::Mflograph(int numv, int maxe, int s1, int t1)
 	makeSpace(numv,maxe);
 }
 
-/** Copy constructor - not implemented. */
-Mflograph::Mflograph(const Mflograph& original) : Flograph(original) { }
-
 Mflograph::~Mflograph() { freeSpace(); }
 
-/** Allocate and initialize dynamic storage for graph.
- *  @param numv is the number of vertices in the graph
- *  @param maxe is the max number of edges in the graph
- */  
+/** Allocate and initialize dynamic storage for Mflograph.
+ *  @param numv is the number of vertices to allocate space for
+ *  @param maxe is the number of edges to allocate space for
+ */
 void Mflograph::makeSpace(int numv, int maxe) {
-        mflo = new flow[maxe+1];
+	try {
+		mflo = new flow[maxe+1];
+	} catch (std::bad_alloc e) {
+		stringstream ss;
+		ss << "Mflograph::makeSpace: insufficient space for "
+		   << maxe << " min flows";
+		string s = ss.str();
+		throw OutOfSpaceException(s);
+	}
 }
 
-/** Free dynamic storage. */
+/** Free space used by graph. */
 void Mflograph::freeSpace() { delete [] mflo; }
 
-/** Resize the flograph.
- *  The old flograph is discarded and new space allocated.
- *  @param numv is the number of vertices in the graph
- *  @param maxe is the max number of edges in the graph
+/** Resize a Mflograph object.
+ *  The old value is discarded.
+ *  @param numv is the number of vertices to allocate space for
+ *  @param maxe is the number of edges to allocate space for
  */
 void Mflograph::resize(int numv, int maxe) {
-        Flograph::resize(numv, maxe);
-        freeSpace(); makeSpace(numv, maxe);
+	freeSpace();
+	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
+		string s; s = "Mflograph::resize:" + e.toString(s);
+		throw OutOfSpaceException(s);
+	}
 }
 
-/** Remove all the edges from the graph. */
-void Mflograph::reset() { Flograph::reset(); }
-
-/** Copy contents of another Mflograph.
- *  @param original is a weighted flograph to be copied to this object
+/** Expand the space available for this Mflograph.
+ *  Rebuilds old value in new space.
+ *  @param size is the size of the resized object.
  */
-void Mflograph::copyFrom(const Mflograph& original) {
-        if (N != original.n() || maxEdge < original.m()) {
-                resize(original.n(), original.m()); 
-        } else {
-                reset();
-        } 
-        N = original.n();
-        for (edge e = original.first(); e != 0; e = original.next(e)) {
-                edge ee = join(original.left(e),original.right(e));
-                cpy(ee) = original.cpy(e); mflo(ee) = original.mflo(e);
-                flo(ee) = original.flo(e);
-        }
-        setSrcSnk(original.src(),original.snk());
+void Mflograph::expand(int numv, int maxe) {
+	if (numv <= n() && maxe <= maxEdge) return;
+	Mflograph old(this->n(),this->maxEdge); old.copyFrom(*this);
+	resize(numv,maxe); this->copyFrom(old);
+}
+
+/** Copy into list from source. */
+void Mflograph::copyFrom(const Mflograph& source) {
+	if (&source == this) return;
+	if (source.n() > n()) resize(source.n());
+	else clear();
+	for (edge e = source.first(); e != 0; e = source.next(e)) {
+		edge ee = join(source.tail(e),source.head(e));
+		setCapacity(ee,source.cap(source.tail(e),e));
+		setFlow(ee,source.f(source.tail(e),e));
+		setMinFlo(ee,source.minFlo(e));
+	}
         sortAdjLists();
 }
+
+/** Read adjacency list from an input stream, add it to the graph.
+ *  @param in is an open input stream
+ *  @return true on success, false on error.
+ */
+bool Mflograph::readAdjList(istream& in) {
+	if (!Util::verify(in,'[')) return 0;
+	bool isSrc = false; bool isSnk = false;
+	if (Util::verify(in,'-')) {
+		if (!Util::verify(in,'>',true)) return 0;
+		isSnk = true;
+	}
+	vertex u;
+	if (!Adt::readItem(in,u)) return 0;
+	if (Util::verify(in,'-')) {
+		if (!Util::verify(in,'>',true)) return 0;
+		isSrc = true;
+	}
+	if (!Util::verify(in,':')) return 0;
+	if (u > n()) expand(max(u,2*n()),m());
+	if (isSrc) setSrc(u);
+	if (isSnk) setSnk(u);
+	while (in.good() && !Util::verify(in,']')) {
+		vertex v;
+		if (!Adt::readItem(in,v)) return 0;
+		if (v > n()) expand(max(v,2*n()),m());
+		if (m() >= maxEdge) expand(n(),2*m());
+		flow capacity, flow, minflow;
+		if (!Util::verify(in,'(') || !Util::readInt(in,capacity) ||
+		    !Util::verify(in,',') || !Util::readInt(in,minflow) ||
+		    !Util::verify(in,',') || !Util::readInt(in,flow) ||
+		    !Util::verify(in,')'))
+			return 0;
+        	edge e = join(u,v);
+		setCapacity(e,capacity); setFlow(e,flow); setMinFlo(e,minflow);
+	}
+	return in.good();
+}
+
+/** Create a string representation of an adjacency list.
+ *  @param u is a vertex number
+ *  @param s is a reference to a string in which the result is returned
+ *  @return a reference to s.
+ */
+string& Mflograph::adjList2string(vertex u, string& s) const {
+	stringstream ss; s = "";
+	if (firstAt(u) == 0) return s;
+	int cnt = 0;
+	ss << "[";
+	if (u == snk()) ss << "->";
+	ss << Adt::item2string(u,s);
+	if (u == src()) ss << "->";
+	ss << ":";
+	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
+		vertex v = head(e);
+		ss << " " << item2string(v,s) << "(" << cap(u,e) << ","
+		   << minFlo(e) << "," << f(u,e) << ")";
+		if (++cnt >= 15 && nextAt(u,e) != 0) {
+			ss <<  "\n"; cnt = 0;
+		}
+	}
+	ss <<  "]\n";
+	s = ss.str();
+	return s;
+}
+
+/** Create graphviz representation of this flograph.
+ *  @param s is a string in which result is to be returned
+ *  @return a reference to s
+ */
+string& Mflograph::toDotString(string& s) const {
+	stringstream ss;
+	ss << "digraph G { " << endl;
+        ss << Adt::item2string(src(),s) 
+           << " [ style = bold, peripheries = 2, color = red]; "
+           << endl;
+	ss << Adt::item2string(snk(),s) 
+           << " [ style = bold, peripheries = 2, color = blue]; "
+           << endl;
+	int cnt = 0;
+	for (edge e = first(); e != 0; e = next(e)) {
+		vertex u = min(left(e),right(e));
+		vertex v = max(left(e),right(e));
+		ss << Adt::item2string(u,s) << " -> ";
+		ss << Adt::item2string(v,s);
+		ss << " [label = \"(" << cap(u,e) << "," << minFlo(e) << ","
+		   << f(u,e) << ")\"]; ";
+		if (++cnt == 10) { s += "\n"; cnt = 0; }
+	}
+	ss << "}\n" << endl;
+	s = ss.str();
+	return s;
+}
+
 
 /** Join two vertices with an edge.
  *  @param u is a vertex
@@ -76,51 +182,9 @@ void Mflograph::copyFrom(const Mflograph& original) {
  *  @return the number of the new edge
  */
 edge Mflograph::join(vertex u, vertex v) {
-	assert(1 <= u && u <= N && 1 <= v && v <= N && M < maxEdge);
+	assert(1 <= u && u <= n() && 1 <= v && v <= n() && m() < maxEdge);
 	edge e = Flograph::join(u,v); mflo[e] = 0;
 	return e;
-}
-
-/** Read one edge from an input stream and add it to this Mflograph.
- *  @param in is an open input stream
- *  @return true on success, else false
- */
-bool Mflograph::readEdge(istream& in) {
-        vertex u, v; flow capp, ff; flow mc;
-        if (Util::readNext(in,'(') == 0 || !Util::readNode(in,u,N) ||
-            Util::readNext(in,',') == 0 || !Util::readNode(in,v,N) ||
-            Util::readNext(in,',') == 0 || !Util::readNum(in,capp) ||
-            Util::readNext(in,',') == 0 || !Util::readNum(in,mc) ||
-            Util::readNext(in,',') == 0 || !Util::readNum(in,ff) || 
-	    Util::readNext(in,')') == 0)
-		return false;
-
-	if (u < 1 || u > n() || v < 1 || v > n()) return false;
-        edge e = join(u,v);
-	setCapacity(e,capp); setMinFlo(e,mc); addFlow(u,e,ff);
-
-        return true;
-}
-
-/** Create a string representation of an edge.
- *  @param e is an edge
- *  @param s is a string in which the result is returned
- *  @return a reference to s
- */
-string& Mflograph::edge2string(edge e, string& s) const {
-	s = "";
-	vertex u = tail(e); vertex v = head(e);
-        if (e == 0) {
-               s += "-"; 
-	} else {
-		string s1;
-		s += "(" + Util::node2string(u,N,s1); 
-		s += "," + Util::node2string(v,N,s1); 
-		s += "," + Util::num2string(cap(u,e),s1);
-		s += "," + Util::num2string(mflo(e),s1);
-		s += "," + Util::num2string(f(u,e),s1) + ")";
-        }
-	return s;
 }
 
 /** Shuffle the vertices and edges according to given permutations.
@@ -129,11 +193,11 @@ string& Mflograph::edge2string(edge e, string& s) const {
  */
 void Mflograph::shuffle(int vp[], int ep[]) {
         edge e;
-	flow *mflo1 = new flow[M+1];
+	flow *mflo1 = new flow[m()+1];
 
         Flograph::shuffle(vp,ep);
-        for (e = 1; e <= M; e++) mflo1[ep[e]] = mflo[e];
-        for (e = 1; e <= M; e++) mflo[e] = mflo1[e];
+        for (e = 1; e <= m(); e++) mflo1[ep[e]] = mflo[e];
+        for (e = 1; e <= m(); e++) mflo[e] = mflo1[e];
 
         delete [] mflo1;
 }
@@ -145,46 +209,7 @@ void Mflograph::shuffle(int vp[], int ep[]) {
  */
 void Mflograph::randMinFlo(flow lo, flow hi) {
 	for (edge e = first(); e != 0; e = next(e))
-		setMinFlo(e,randint(lo,hi));
+		setMinFlo(e,Util::randint(lo,hi));
 }
 
-
-/** Create graphviz representation of this flograph.
- *  @param s is a string in which result is to be returned
- *  @return a reference to s
- */
-string& Mflograph::toDotString(string& s) const {
-	int i; vertex u; edge e;
-	stringstream ss;
-	ss << "digraph G { " << endl;
-        ss << Util::node2string(src(),n(),s) 
-           << " [ style = bold, peripheries = 2, color = red]; "
-           << endl;
-	ss << Util::node2string(snk(),n(),s) 
-           << " [ style = bold, peripheries = 2, color = blue]; "
-           << endl;
-	for (u = 1; u <= n(); u++) {
-                string su;
-		for (e = firstOut(u); e != 0; e = nextOut(u,e)) {
-                        vertex u = tail(e); vertex v = head(e);
-                        string s1;
-                        if (e != 0) {
-                           su += Util::node2string(u,N,s1) + " -> "; 
-                           s1.clear();
-                           su += Util::node2string(v,N,s1); 
-                           s1.clear(); su += " [label = \" ";
-                           su += "(" + Util::num2string(cap(u,e),s1); 
-                           s1.clear();
-                           su += "," + Util::num2string(f(u,e),s1); 
-                           s1.clear();
-                           su += "," + Util::num2string(minFlo(e),s1) 
-                              +  ") \"];"; 
-                           su += "  "; 
-                        }
-                }
-                if (!su.empty())   ss << su << endl;
-	}
-	ss << " } " << endl;
-	s = ss.str();
-	return s;
-}
+} // ends namespace

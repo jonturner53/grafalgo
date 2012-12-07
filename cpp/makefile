@@ -3,7 +3,7 @@ SHELL := /bin/bash
 IDIR = $(shell pwd)/include
 LDIR = $(shell pwd)/lib
 BIN = ~/bin
-CXXFLAGS = -O2 -m64 -I ${IDIR}
+CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 -I ${IDIR}
 
 all:
 	make -C misc            IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \

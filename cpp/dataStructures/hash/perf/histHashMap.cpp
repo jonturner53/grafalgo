@@ -2,6 +2,8 @@
 #include "HashMap.h"
 #include "Util.h"
 
+using namespace grafalgo;
+
 int64_t cycCnt(void)
 {
  uint32_t hi, lo;
@@ -70,7 +72,7 @@ void computeHistogram(int n, int ticksPerUs) {
 	delete [] hist;
 }
 
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 	int ticksPerUs = calibrate();
 	int n = (1 << 20)-1;
 	if (argc == 2) sscanf(argv[1],"%d",&n);

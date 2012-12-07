@@ -7,13 +7,7 @@ CXXFLAGS = -m64
 %.o : %.cpp
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-all : perfUiDlist perfStlList perfStlSet perfHashMap histHashMap
-
-perfUiDlist: perfUiDlist.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-perfStlList: perfStlList.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+all : perfStlSet perfHashMap histHashMap
 
 perfStlSet: perfStlSet.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@

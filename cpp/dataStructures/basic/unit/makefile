@@ -1,27 +1,24 @@
 IDIR = ../../../include
 LDIR = ../../../lib
-LIBS = ${LDIR}/lib-util.a ${LDIR}/lib-ds.a
+LIBS = ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
-CXXFLAGS = -O2 -m64 
+CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 
 
 %.o : %.cpp
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-all : testUiList testUiDlist testIdMap testUiClist testUiSetPair testPartition
+all : testList testDlist testClist testSetPair testPartition
 
-testUiList: testUiList.o ${LIBS}
+testList: testList.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testUiDlist: testUiDlist.o ${LIBS}
+testDlist: testDlist.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testIdMap: testIdMap.o ${LIBS}
+testClist: testClist.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testUiClist: testUiClist.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-testUiSetPair: testUiSetPair.o ${LIBS}
+testSetPair: testSetPair.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 testPartition: testPartition.o ${LIBS}

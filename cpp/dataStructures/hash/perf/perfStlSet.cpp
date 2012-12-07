@@ -2,6 +2,8 @@
 #include <set>
 #include "Util.h"
 
+using namespace grafalgo;
+
 void perfTest(int n) {
 	set<int> sett;
 	int perm[n+1];
@@ -68,7 +70,7 @@ void perfTest(int n) {
 	cout << endl;
 }
 
-main() {
+int main() {
 	perfTest(100);
 	perfTest(1000);
 	perfTest(10000);

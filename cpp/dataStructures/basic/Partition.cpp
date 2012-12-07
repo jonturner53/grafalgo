@@ -11,32 +11,81 @@
 #define p(x) node[x].p
 #define rank(x) node[x].rank
 
+namespace grafalgo {
+
 /** Initialize partition so that every element is in separate set.
- *  @param N defines the set of integers 1..N on which the partition is defined
+ *  @param nn defines the index range on which the partition is defined
  */
-Partition::Partition(int N, int noOpt1) : n(N), noOpt(noOpt1) {
-	node = new pnode[n+1];
-	clear();
+Partition::Partition(int nn, int noOpt1) : Adt(nn) {
+	makeSpace(n());
 }
 
 /** Destructor for Partition. */
-Partition::~Partition() { delete [] node; }
+Partition::~Partition() { freeSpace(); }
+
+/** Allocate and initialize space for list.
+ *  @param size is number of index values to provide space for
+ */
+void Partition::makeSpace(int size) {
+	try { node = new pnode[size+1]; } catch (std::bad_alloc e) {
+		stringstream ss;
+		ss << "Partition::makeSpace: insufficient space for "
+		   << size << "elements";
+		string s = ss.str();
+		throw OutOfSpaceException(s);
+	}
+	nn = size; clear();
+}
+
+/** Free dynamic storage used by list. */
+void Partition::freeSpace() { delete [] node; }
+
+/** Resize a Partition object.
+ *  The old value is discarded.
+ *  @param size is the size of the resized object.
+ */
+void Partition::resize(int size) {
+	freeSpace();
+	try { makeSpace(size); } catch(OutOfSpaceException e) {
+		string s; s = "Partition::resize:" + e.toString(s);
+		throw OutOfSpaceException(s);
+	}
+}
+
+/** Expand the space available for this Partition.
+ *  Rebuilds old value in new space.
+ *  @param size is the size of the resized object.
+ */
+void Partition::expand(int size) {
+	if (size <= n()) return;
+	Partition old(this->n());
+	old.copyFrom(*this);
+	resize(size);
+	this->copyFrom(old);
+}
 
 /** Inititialize data structure. */
 void Partition::clear() {
-	for (item i = 1; i <= n; i++) { p(i) = i; rank(i) = 0; }
-	nfind = 0; p(0) = 0; rank(0) = 0;
+	for (index x = 0; x <= n(); x++) { p(x) = x; rank(x) = 0; }
+}
+
+/** Copy into list from source. */
+void Partition::copyFrom(const Partition& source) {
+	if (&source == this) return;
+	if (source.n() > n()) resize(source.n());
+	else clear();
+	for (index x = 1; x <= source.n(); x++) {
+		p(x) = source.node[x].p; rank(x) = source.node[x].rank;
+	}
 }
 
 /** Find and return the canonical element of a set.
- *  @param x is an item in some set
+ *  @param x is an index in some set
  *  @return the canonical element of the set containing x
  */
-item Partition::find(item x) {
-	assert(1 <= x && x <= n);
-	int root;
-	for (root = x; p(root) != root; root = p(root)) { nfind++; }
-	if (noOpt == 1 || noOpt == 3) return root;
+index Partition::find(index x) {
+	index root;
+	for (root = x; p(root) != root; root = p(root)) ;
 	while (x != root) { int px = p(x); p(x) = root; x = px; }
 	return p(x);
 }
@@ -47,18 +96,16 @@ item Partition::find(item x) {
  *  @return the canonical element of the set obtained by combining
  *  the given sets
  */
-item Partition::link(item x, item y) {
-	assert(1 <= x && x <= n && 1 <= y && y <= n && x != y);
-	if (noOpt == 2 || noOpt == 3) return p(x) = y;
+index Partition::link(index x, index y) {
 	if (rank(x) > rank(y)) {
-		item t = x; x = y; y = t;
+		index t = x; x = y; y = t;
 	} else if (rank(x) == rank(y))
 		rank(y)++;
 	return p(x) = y;
 }
 
 /** Get the canonical element of a set without restructuring the set.
- *  @param x is an item in some set
+ *  @param x is an index in some set
  *  @return the canonical element of the set containing x
  */
 int Partition::findroot(int x) const {
@@ -71,32 +118,34 @@ int Partition::findroot(int x) const {
  *  @return a reference to s
  */
 string& Partition::toString(string& s) const {
-	stringstream ss;
-	int *root = new int[n+1];
-	for (int i = 1; i <= n; i++) root[i] = findroot(i);
-	int cnt = 0; // count # of elements per line
-	for (int i = 1; i <= n; i++) {
-		if (i == root[i]) { // i is a root
+	s = "{";
+	int *size = new int[n()+1];
+	int *root = new int[n()+1];
+	for (int i = 1; i <= n(); i++) { root[i] = findroot(i); size[i] = 0; }
+	for (int i = 1; i <= n(); i++) size[root[i]]++;
+	// for root nodes x, size[x] is number of nodes in tree
+	bool isFirst = true;
+	for (int i = 1; i <= n(); i++) {
+		if (size[i] > 1) { // i is a root of non-trivial block
 			int j;
 			for (j = 1; root[j] != i; j++) {}
 			string s1;
-			ss << "[" + Util::node2string(j,n,s1);
-			if (j == i) ss << "*";
-			cnt++;
-			for (j++; j <= n; j++) {
+			if (isFirst) isFirst = false;
+			else s += " ";
+			s += "[" + Adt::item2string(j,s1);
+			if (j == i) s += "*";
+			for (j++; j <= n(); j++) {
 				if (root[j] == i) {
-					ss << " " + Util::node2string(j,n,s1);
-					if (j == i) ss << "*";
-					cnt++;
-					if (cnt > 25) { ss << "\n"; cnt = 0; }
+					s += " " + Adt::item2string(j,s1);
+					if (j == i) s += "*";
 				}
 			}
-			ss << "] ";
-			if (cnt > 15) { ss << "\n"; cnt = 0; }
+			s += "]";
 		}
 	}
-	if (cnt > 0) ss << "\n";
-	delete [] root;
-	s = ss.str();
+	s += "}";
+	delete [] size; delete [] root;
 	return s;
 }
+
+} // ends namespace

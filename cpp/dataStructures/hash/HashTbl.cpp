@@ -22,16 +22,16 @@ HashTbl::~HashTbl() { freeSpace(); }
  *  @param size is number of index values to provide space for
  */
 void HashTbl::makeSpace(int size) {
-	if (n() > MAXVAL) {
+	if (size > MAXVAL) {
 		string s = "HashTbl::makeSpace: requested table size "
 			   "exceeds limit";
 		throw IllegalArgumentException(s);
 	}
-	for (nb = 1; 8*nb <= n(); nb <<= 1) {}
+	for (nb = 1; 8*nb <= size; nb <<= 1) {}
 	nb = max(nb,4);
 	bktMsk = nb - 1; valMsk = (8*nb) - 1; fpMsk = ~valMsk;
 	try {
-		bkt = new bkt_t[2*nb]; keyVec = new uint64_t[n()+1];
+		bkt = new bkt_t[2*nb]; keyVec = new uint64_t[size+1];
 	} catch (std::bad_alloc e) {
 		stringstream ss;
 		ss << "HashTbl::makeSpace: insufficient space for "
@@ -39,7 +39,7 @@ void HashTbl::makeSpace(int size) {
 		string s = ss.str();
 		throw OutOfSpaceException(s);
 	}
-	clear();
+	nn = size; clear();
 }
 
 /** Free dynamic storage used by list. */
@@ -50,7 +50,6 @@ void HashTbl::freeSpace() { delete [] bkt; delete [] keyVec; }
  */
 void HashTbl::resize(int size) {
 	freeSpace();
-	Adt::resize(size);
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
 		string s; s = "HashTbl::resize:" + e.toString(s);
 		throw OutOfSpaceException(s);

@@ -1,7 +1,8 @@
 package algoLib.graphAlgorithms.mst;
-import algoLib.misc.*;
-import algoLib.dataStructures.graphs.*;
-import algoLib.dataStructures.heaps.*;
+
+import algoLib.misc.Util;
+import algoLib.dataStructures.graphs.Wgraph;
+import algoLib.dataStructures.heaps.Dheap;
 
 // Find a minimum spanning tree of wg using Prim's
 // algorithm and return its in mstree.

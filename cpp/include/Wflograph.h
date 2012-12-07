@@ -13,7 +13,8 @@
 #include "Util.h"
 #include "Flograph.h"
 
-typedef int flow;
+namespace grafalgo {
+
 typedef int floCost;
 
 /** Class representing a weighted flow graph.
@@ -26,9 +27,11 @@ public:		Wflograph(int=26,int=100,int=1,int=2);
 		Wflograph(const Wflograph&);
 		virtual ~Wflograph();
 
-	virtual void resize(int,int);	
-	virtual void reset();	
-        void virtual copyFrom(const Wflograph&);
+	void	resize(int,int);	
+	void	resize(int numv) { resize(numv,numv); }
+	void	expand(int,int);	
+	void	expand(int numv) { expand(numv,max(numv,m())); }
+        void	copyFrom(const Wflograph&);
 
 	virtual edge join(vertex,vertex);
 
@@ -36,8 +39,8 @@ public:		Wflograph(int=26,int=100,int=1,int=2);
 	void	setCost(edge,floCost);
 	void	randCost(floCost,floCost);
 
-	virtual bool readEdge(istream&);
-	virtual string& edge2string(edge,string&) const; 
+	bool	readAdjList(istream&);
+	string&	adjList2string(vertex,string&) const; 
 	string& toDotString(string&) const;
 
 protected:
@@ -70,5 +73,7 @@ inline void Wflograph::setCost(edge e, floCost c) {
 	assert(1 <= e && e <= m());
 	cst[e] = c;
 }
+
+} // ends namespace
 
 #endif

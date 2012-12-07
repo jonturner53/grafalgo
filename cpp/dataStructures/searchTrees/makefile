@@ -18,9 +18,6 @@ StaircaseFunc.o : ${IDIR}/stdinc.h ${IDIR}/StaircaseFunc.h \
 all:	SortedSets.o BalancedBsts.o SelfAdjBsts.o DualKeyBsts.o StaircaseFunc.o
 	ar -ru ${LIB} SortedSets.o BalancedBsts.o SelfAdjBsts.o DualKeyBsts.o \
 	StaircaseFunc.o
-#	make -C dvr IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
-#                    CXXFLAGS='${CXXFLAGS}' all
 
 clean:
 	rm -f *.o
-	#make -C dvr clean

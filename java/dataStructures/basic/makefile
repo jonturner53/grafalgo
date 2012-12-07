@@ -1,6 +1,6 @@
 JROOT = ~/bin/java
-CLASSFILES = Partition.class UiList.class UiHashTbl.class HashSet.class \
-		UiClist.class UiSetPair.class IdMap.class
+CLASSFILES = Partition.class List.class HashTbl.class HashSet.class \
+		Clist.class SetPair.class IdMap.class
 
 %.class: %.java
 	javac -cp ~/bin/java $<

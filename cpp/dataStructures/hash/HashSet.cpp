@@ -23,7 +23,7 @@ HashSet::~HashSet() { freeSpace(); }
  */
 void HashSet::makeSpace(int size) {
 	try {
-		ht = new HashTbl(n()); elements = new SetPair(n());
+		ht = new HashTbl(size); ex = new SetPair(size);
 	} catch (std::bad_alloc e) {
 		stringstream ss;
 		ss << "HashSet::makeSpace: insufficient space for "
@@ -31,14 +31,15 @@ void HashSet::makeSpace(int size) {
 		string s = ss.str();
 		throw OutOfSpaceException(s);
 	}
+	nn = size;
 }
 
 /** Free dynamic storage used by list. */
-void HashSet::freeSpace() { delete ht; delete elements; }
+void HashSet::freeSpace() { delete ht; delete ex; }
 
 /** Clear the set contents. */
 void HashSet::clear() {
-	while (elements->firstIn() != 0) remove(elements->firstIn());
+	while (ex->firstIn() != 0) remove(val(ex->firstIn()));
 }
 
 /** Resize a HashSet object.
@@ -47,7 +48,6 @@ void HashSet::clear() {
  */
 void HashSet::resize(int size) {
 	freeSpace();
-	Adt::resize(size);
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
 		string s; s = "HashSet::resize:" + e.toString(s);
 		throw OutOfSpaceException(s);
@@ -77,9 +77,12 @@ void HashSet::copyFrom(const HashSet& source) {
  *  @param s is a reference to a string in which the result is returned
  */
 string& HashSet::toString(string& s) const {
-	s = "{ ";
-	for (index x = elements->firstOut(); x!=0; x = elements->nextOut(x)) {
-		string s1; s += Adt::item2string(x,s1) + " ";
+	s = "{";
+	bool isFirst = true;
+	for (index x = ex->firstIn(); x != 0; x = ex->nextIn(x)) {
+		if (isFirst) isFirst = false;
+		else s += " ";
+		string s1; s += Adt::item2string(val(x),s1);
 	}
 	s += "}";
 	return s;

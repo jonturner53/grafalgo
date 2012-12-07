@@ -34,8 +34,10 @@
 // of all other edges.
 
 package algoLib.graphAlgorithms.misc;
-import algoLib.misc.*;
-import algoLib.dataStructures.graphs.*;
+
+import algoLib.misc.Util;
+import algoLib.dataStructures.graphs.Graph;
+import algoLib.dataStructures.graphs.Wgraph;
 
 public class rgraph {
 	public static void main(String [] args) {

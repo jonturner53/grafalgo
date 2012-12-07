@@ -2,6 +2,8 @@
 #include "HashMap.h"
 #include "Util.h"
 
+using namespace grafalgo;
+
 void basicEval(int n) {
 	int t1, t2;
 	HashMap map(n);
@@ -57,7 +59,7 @@ void basicEval(int n) {
 }
 
 
-main() {
+int main() {
 	int n = 1000;
 	cout << "n=" << n << endl;
 	basicEval(n);

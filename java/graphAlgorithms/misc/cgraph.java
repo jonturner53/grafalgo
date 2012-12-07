@@ -7,10 +7,12 @@
 // digraph, wdigraph, flograph, wflograph.
 
 package algoLib.graphAlgorithms.misc;
-import algoLib.misc.*;
-import algoLib.dataStructures.graphs.*;
+
+import algoLib.misc.Util;
+import algoLib.dataStructures.graphs.Graph;
+import algoLib.dataStructures.graphs.Wgraph;
+
 import java.io.*;
-import java.util.*;
 
 public class cgraph {
 	public static void main(String [] args) {

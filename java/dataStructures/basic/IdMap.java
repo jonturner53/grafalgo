@@ -21,8 +21,8 @@ public class IdMap {
 	private static final int MAXID = (1 << 20)-1;  ///< largest possible id
 	private int n;			///< largest identifier in this set
 	private int cnt;		///< number of valid mappings
-	private UiHashTbl ht;		///< hash table to compute mapping
-	private UiSetPair ids;		///< in-use and free ids
+	private HashTbl ht;		///< hash table to compute mapping
+	private SetPair ids;		///< in-use and free ids
 
 	/** Constructor for IdMap, allocates space and initializes table.
 	 *  N1 is the limit on the range of values; it must be less than 2^20.
@@ -30,8 +30,8 @@ public class IdMap {
 	public IdMap(int n) {
 		this.n = n;
 		if (n > MAXID) Util.fatal("IdMap: specified size too large");
-		ht = new UiHashTbl(n);
-		ids = new UiSetPair(n);
+		ht = new HashTbl(n);
+		ids = new SetPair(n);
 		cnt = 0;
 	};
 

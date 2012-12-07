@@ -10,46 +10,43 @@
 #ifndef PARTITION_H
 #define PARTITION_H
 
-#include "stdinc.h"
-#include "Util.h"
+#include "Adt.h"
 
-typedef int item;
+namespace grafalgo {
 
 /** Maintain a partition on positive integers 1..n.
  *  Also known as "disjoint sets" and "union-find".
  */
-class Partition {
+class Partition : public Adt {
 public:		Partition(int=26,int=0);
 		~Partition();
 
-	item	link(item,item);
-	item	find(item);
-	long long int findcount() const;
+	// common methods
 	void	clear();
 	void	clear(int);
+	void	resize(int);
+	void	expand(int);
+	void	copyFrom(const Partition&);
+
+	index	link(index,index);
+	index	find(index);
 
 	string&	toString(string&) const;
 private:
-	int	n;			///< partition defined over {1,...,n}
 	struct	pnode {
-	item	p;			///< parent of node
+	index	p;			///< parent of node
 	int	rank;			///< rank of node
 	} *node;			///< vector of nodes
-	long long int nfind;		///< number of find steps
-	int	noOpt;			///< if =1 skip path compression
-					///< if =2 skip link-by-rank
-					///< if =3 skip both
 
-	item	findroot(int) const;
+	index	findroot(int) const;
+	void	makeSpace(int);
+	void	freeSpace();
 };
-
-/** Get the number of "find steps" that have been performed so far.
- *  @return the number of find steps.
- */
-inline long long int Partition::findcount() const { return nfind; }
 
 inline void Partition::clear(int u) {
 	node[u].p = u; node[u].rank = 0;
 }
+
+} // ends namespace
 
 #endif

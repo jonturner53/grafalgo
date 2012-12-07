@@ -11,6 +11,8 @@
 
 #include "Digraph.h"
 
+namespace grafalgo {
+
 /** Data structure for directed graph with edge lengths.
  *
  *  Wdigraph size (number of vertices and max number of edges) must
@@ -22,11 +24,12 @@
  */
 class Wdigraph : public Digraph {
 public:		Wdigraph(int=26,int=50);
-		Wdigraph(const Wdigraph&);
 		~Wdigraph();
 	
-	virtual void resize(int,int);
-	virtual void reset();
+	void	resize(int, int);
+	void	resize(int numv) { resize(numv, numv); }
+	void	expand(int, int);
+	void	expand(int numv) { expand(numv, max(numv,m())); }
 	virtual void copyFrom(const Wdigraph&);
 
 	// methods for accessing/changing length
@@ -34,11 +37,11 @@ public:		Wdigraph(int=26,int=50);
         void    setLength(edge,int);
 
 	// create a string representation
-        virtual string& edge2string(edge,string&) const;
-        virtual string& toDotString(string&) const;
+        string&	adjList2string(vertex,string&) const;
+        string&	toDotString(string&) const;
 
 	// input
-	virtual bool readEdge(istream&);
+	bool	readAdjList(istream&);
 
 	void randLength(int, int); 
 
@@ -66,5 +69,7 @@ inline int Wdigraph::length(edge e) const {
 inline void Wdigraph::setLength(edge e, int lng) {
 	assert(0 <= e && e <= maxEdge); len[e] = lng;
 }
+
+} // ends namespace
 
 #endif

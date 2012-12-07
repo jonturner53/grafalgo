@@ -7,11 +7,14 @@
  */
 
 package algoLib.dataStructures.graphs;
-import algoLib.misc.*;
-import algoLib.dataStructures.basic.*;
-import algoLib.dataStructures.heaps.*;
+
 import java.io.*;
-import java.util.*;
+import java.util.Vector;
+import algoLib.misc.Util;
+import algoLib.dataStructures.basic.List;
+import algoLib.dataStructures.basic.Clist;
+import algoLib.dataStructures.basic.SetPair;
+import algoLib.dataStructures.heaps.Dheap;
 
 /** Data structure for undirected graph.
  *
@@ -34,8 +37,8 @@ public class Graph {
 	int	r;			///< r is right endpoint of int
 	};
 	EdgeInfo[] evec;		///< array of int structures
-	private UiSetPair edges;	///< sets of in-use and free edges
-	private UiClist adjLists;	///< collection of int adjacency lists
+	private SetPair edges;	///< sets of in-use and free edges
+	private Clist adjLists;	///< collection of int adjacency lists
 					///< stores int e as both 2e and 2e+1
 
 	/** Construct Graph with space for a specified # of vertices and edges.
@@ -50,8 +53,8 @@ public class Graph {
 	private void makeSpace(int numv, int maxe) {
 		fe = new int[numv+1];
 		evec = new EdgeInfo[maxe+1];
-		edges = new UiSetPair(maxe);
-		adjLists = new UiClist(2*maxe+1);
+		edges = new SetPair(maxe);
+		adjLists = new Clist(2*maxe+1);
 		for (int u = 1; u <= numv; u++) fe[u] = 0;
 		for (int e = 0; e <= maxEdge; e++) {
 			evec[e] = new EdgeInfo();
@@ -671,7 +674,7 @@ public class Graph {
 		if (component == null) component = new int[n()+1];
 		for (int u = 1; u <= n(); u++) component[u] = 0;
 		
-		UiList q = new UiList(n());
+		List q = new List(n());
 		int curComp = 0;
 		int s = 1;
 		while (s <= n()) {

@@ -24,18 +24,21 @@ inline bool Utest::assertTrue(bool condition, const char* s) {
 	if (!condition) {
 		cout << s << endl; exit(1);
 	}
+	return true;
 }
 
 inline bool Utest::assertEqual(int x, int y, const char* s) {
 	if (x != y) {
 		cout << s << endl; exit(1);
 	}
+	return true;
 }
 
 inline bool Utest::assertEqual(const string& p, const string& q, const char* s) {
 	if (p.compare(q) != 0) {
 		cout << s << endl; exit(1);
 	}
+	return true;
 }
 
 #endif

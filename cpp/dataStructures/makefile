@@ -11,6 +11,8 @@ CXXFLAGS = $(CXXFLAGS_$(ARCH))
 all:
 	make -C basic       IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
 			    CXXFLAGS='${CXXFLAGS}' all
+	make -C hash       IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+			    CXXFLAGS='${CXXFLAGS}' all
 	make -C graphs      IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
 			    CXXFLAGS='${CXXFLAGS}' all
 	make -C heaps       IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \

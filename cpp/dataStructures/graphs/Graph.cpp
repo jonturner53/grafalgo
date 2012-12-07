@@ -9,18 +9,14 @@
 #include "stdinc.h"
 #include "Graph.h"
 
+namespace grafalgo {
+
 /** Construct a Graph with space for a specified number of vertices and edges.
  *  @param numv is number of vertices in the Graph
  *  @param maxe is the maximum number of edges
  */
-Graph::Graph(int numv, int maxe) : N(numv), maxEdge(maxe) {
-	assert(N > 0 && maxEdge > 0);
-	M = 0;
+Graph::Graph(int numv, int maxe) : Adt(numv), maxEdge(maxe) {
 	makeSpace(numv,maxe); 
-}
-
-Graph::Graph(const Graph& original) {
-	fatal("no copy constructor for graph classes");
 }
 
 Graph::~Graph() { freeSpace(); }
@@ -30,12 +26,21 @@ Graph::~Graph() { freeSpace(); }
  *  @param maxe is the number of edges to allocate space for
  */
 void Graph::makeSpace(int numv, int maxe) {
-	fe = new edge[numv+1];
-	evec = new EdgeInfo[maxe+1];
-	edges = new UiSetPair(maxe);
-	adjLists = new UiClist(2*maxe+1);
+	try {
+		fe = new edge[numv+1];
+		evec = new EdgeInfo[maxe+1];
+		edges = new SetPair(maxe);
+		adjLists = new Clist(2*maxe+1);
+	} catch (std::bad_alloc e) {
+		stringstream ss;
+		ss << "Graph::makeSpace: insufficient space for "
+		   << numv << "vertices and " << maxe << " edges";
+		string s = ss.str();
+		throw OutOfSpaceException(s);
+	}
 	for (vertex u = 0; u <= numv; u++) fe[u] = 0;
 	for (edge e = 0; e <= maxe; e++) evec[e].l = 0;
+	nn = numv; mm = 0; maxEdge = maxe;
 }
 
 /** Free space used by graph. */
@@ -43,36 +48,39 @@ void Graph::freeSpace() {
 	delete [] fe; delete [] evec; delete edges; delete adjLists;
 }
 
-/** Resize the dynamic storage for a graph, discarding old contents.
+/** Resize a Graph object.
+ *  The old value is discarded.
  *  @param numv is the number of vertices to allocate space for
  *  @param maxe is the number of edges to allocate space for
  */
 void Graph::resize(int numv, int maxe) {
-	freeSpace(); makeSpace(numv, maxe);
-	N = numv; maxEdge = maxe; M = 0;
+	freeSpace();
+	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
+		string s; s = "Graph::resize:" + e.toString(s);
+		throw OutOfSpaceException(s);
+	}
 }
 
-/** Remove/initialize all the edges from a graph.  */
-void Graph::reset() {
-	adjLists->reset(); edges->reset();
-	for (vertex u = 1; u <= n(); u++) fe[u] = 0;
-	M = 0;
-}
-
-/** Copy another Graph to this one.
- *  @param original is another graph that is to replace this one.
+/** Expand the space available for this Graph.
+ *  Rebuilds old value in new space.
+ *  @param size is the size of the resized object.
  */
-void Graph::copyFrom(const Graph& original) {
-	if (N != original.n() || maxEdge < original.m()) {
-		resize(original.n(), original.m());
-	} else {
-		reset();
-	}
-	N = original.n();
-	for (edge e = original.first(); e != 0; e = original.next(e)) {
-		join(original.left(e),original.right(e));
-	}
-	sortAdjLists();
+void Graph::expand(int numv, int maxe) {
+	if (numv <= n() && maxe <= maxEdge) return;
+	Graph old(this->n(),this->maxEdge); old.copyFrom(*this);
+	resize(numv,maxe); this->copyFrom(old);
+}
+
+/** Remove all elements from list. */
+void Graph::clear() { while (first() != 0) remove(first()); }
+
+/** Copy into list from source. */
+void Graph::copyFrom(const Graph& source) {
+	if (&source == this) return;
+	if (source.n() > n()) resize(source.n());
+	else clear();
+	for (edge e = source.first(); e != 0; e = source.next(e))
+		join(source.left(e),source.right(e));
 }
 
 /** Join two vertices with an edge.
@@ -111,7 +119,7 @@ edge Graph::joinWith(vertex u, vertex v, edge e) {
 	if (fe[u] == 0) fe[u] = 2*e;
 	if (fe[v] == 0) fe[v] = 2*e+1;
 
-	M++;
+	mm++;
 
 	return e;
 }
@@ -136,7 +144,7 @@ bool Graph::remove(edge e) {
 
 	evec[e].l = 0;
 
-	M--;
+	mm--;
 	return true;
 }
 
@@ -158,12 +166,14 @@ void Graph::sortAlist(vertex u) {
 
 	if (fe[u] == 0) return; // empty list
 
-	int  *elist = new int[N+1];
+	int  *elist = new int[n()+1];
 
 	// copy edges in adjacency list for u into an array
 	k = 1; elist[k++] = fe[u];
 	for (e = adjLists->suc(fe[u]); e != fe[u]; ) {
-		if (k > N) fatal("Graph::sortAlist: adjacency list too long");
+		if (k > n())
+			Util::fatal("Graph::sortAlist: adjacency list "
+				    "too long");
 		elist[k++] = e;
 		edge f = e; e = adjLists->suc(e); adjLists->remove(f);
 	}
@@ -214,7 +224,7 @@ void Graph::sortAlist(vertex u) {
 
 /** Sort all the adjacency lists. */
 void Graph::sortAdjLists() {
-	for (vertex u = 1; u <= N; u++) sortAlist(u);
+	for (vertex u = 1; u <= n(); u++) sortAlist(u);
 }
 
 /** Create a string representation of an edge.
@@ -223,14 +233,16 @@ void Graph::sortAdjLists() {
  *  @param s is a reference to a string in which the result is returned
  *  @return a reference to s.
  */
+/*
 string& Graph::edge2string(edge e, string& s) const {
 	s = "(";
 	string s1;
 	vertex u = left(e); vertex v = right(e);
-	s += Util::node2string(u,n(),s1) + ",";
-	s += Util::node2string(v,n(),s1) + ")";
+	s += Adt::item2string(u,s1) + ",";
+	s += Adt::item2string(v,s1) + ")";
 	return s;
 }
+*/
 
 /** Create a string representation of an edge.
  *  @param e is an edge number
@@ -238,31 +250,36 @@ string& Graph::edge2string(edge e, string& s) const {
  *  @param s is a reference to a string in which the result is returned
  *  @return a reference to s.
  */
+/*
 string& Graph::edge2string(edge e, vertex u, string& s) const {
 	s = "(";
 	string s1;
 	vertex v = mate(u,e);
-	s += Util::node2string(u,n(),s1) + ",";
-	s += Util::node2string(v,n(),s1) + ")";
+	s += Adt::item2string(u,s1) + ",";
+	s += Adt::item2string(v,s1) + ")";
 	return s;
 }
+*/
 
 /** Create a string representation of an adjacency list.
  *  @param u is a vertex number
  *  @param s is a reference to a string in which the result is returned
  *  @return a reference to s.
  */
-string& Graph::alist2string(vertex u, string& s) const {
+string& Graph::adjList2string(vertex u, string& s) const {
 	s = "";
 	if (firstAt(u) == 0) return s;
 	int cnt = 0;
+	string s1;
+	s += "[" + Adt::item2string(u,s1) + ":";
 	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
-		string s1;
-		s += edge2string(e,u,s1) + " ";
-		cnt++;
-		if (cnt >= 10) { s += "\n"; cnt = 0; }
+		vertex v = mate(u,e);
+		s += " " + item2string(v,s1);
+		if (++cnt >= 20 && nextAt(u,e) != 0) {
+			s += "\n"; cnt = 0;
+		}
 	}
-	if (cnt != 0) s += "\n";
+	s += "]\n";
 	return s;
 }
 
@@ -275,12 +292,11 @@ string& Graph::alist2string(vertex u, string& s) const {
  *  @return a reference to the string
  */
 string& Graph::toString(string& s) const {
-	stringstream ss;
-	ss << n() << " " << m() << "\n";
+	s = "{\n";
 	for (vertex u = 1; u <= n(); u++) {
-		ss << alist2string(u,s);
+		string s1; s += adjList2string(u,s1);
 	}
-	s = ss.str();
+	s += "}\n";
 	return s;
 }
 
@@ -294,25 +310,38 @@ string& Graph::toString(string& s) const {
  *  @return a reference to the string
  */
 string& Graph::toDotString(string& s) const {
-	stringstream ss;
-	// undirected graph
-	ss << "graph G { " << endl;
-	for (vertex u = 1; u <= n(); u++) {
-		if (firstAt(u) == 0) break;
-		string su;
-		for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
-			vertex v = mate(u,e);
-                        string s1, s2;
-                        if (v > u)  break;
-			su += Util::node2string(u,n(),s1) + " -- ";
-			su += Util::node2string(v,n(),s2);
-			su += " ; "; 
-		}
-                if (!su.empty())   ss << su << endl;
+	s = "graph G {\n";
+	int cnt = 0;
+	for (edge e = first(); e != 0; e = next(e)) {
+		vertex u = min(left(e),right(e));
+		vertex v = max(left(e),right(e));
+		string s1;
+		s += Adt::item2string(u,s1) + " -- ";
+		s += Adt::item2string(v,s1) + " ; "; 
+		if (++cnt == 15) { cnt = 0; s += "\n"; }
 	}
-	ss << " } " << endl;
-	s = ss.str();
+	s += "}\n";
 	return s;
+}
+
+/** Read adjacency list from an input stream, add it to the graph.
+ *  @param in is an open input stream
+ *  @return true on success, false on error.
+ */
+bool Graph::readAdjList(istream& in) {
+	if (!Util::verify(in,'[')) return 0;
+	vertex u;
+	if (!Adt::readItem(in,u)) return 0;
+	if (u > n()) expand(max(u,2*n()),m());
+	if (!Util::verify(in,':')) return 0;
+	while (in.good() && !Util::verify(in,']')) {
+		vertex v;
+		if (!Adt::readItem(in,v)) return 0;
+		if (v > n()) expand(max(v,2*n()),m());
+		if (m() >= maxEdge) expand(n(),2*m());
+		if (u < v) join(u,v);
+	}
+	return in.good();
 }
 
 /** Read one edge from an input stream, add it to the graph.
@@ -321,41 +350,47 @@ string& Graph::toDotString(string& s) const {
  *  @param in is an open input stream
  *  @return true on success, false on error.
  */
+/*
 bool Graph::readEdge(istream& in) {
-        vertex u, v;
-        if (Util::readNext(in,'(') == 0 || !Util::readNode(in,u,n()) ||
-            Util::readNext(in,',') == 0 || !Util::readNode(in,v,n()) ||
-            Util::readNext(in,')') == 0) {
-                return false;
-        }
-        if (u < 1 || u > n() || v < 1 || v > n()) return false;
-        if (u < v) join(u,v);
-        return true;
+	vertex u, v;
+	if (!Util::verify(in,'(') || !Adt::readItem(in,u) ||
+	    !Util::verify(in,',') || !Adt::readItem(in,v) ||
+	    !Util::verify(in,')')) {
+		return false;
+	}
+	if (u < 1 || v < 1) return false;
+
+	int numv = n(); int maxe = maxEdge;
+	if (u > n() || v > n()) numv = max(max(u,v),2*n());
+	if (m() >= maxEdge) maxe = 2*maxEdge;
+	if (numv > n() || maxe > maxEdge) resize(numv,maxe);
+
+	if (u < v) join(u,v);
+	return true;
 }
+*/
 
 /** Read a graph.
  *  @param in is an open input stream
  *  @return true on success, else false
  */
-bool Graph::read(istream& in) {
-        int numv, nume;
-        in >> numv >> nume;
-	if (N != numv || maxEdge < nume) resize(numv,nume); 
-        else reset();
-	N = numv; M = 0;
-        for (int i = 1; i <= 2*nume; i++) {
-                if (!readEdge(in)) return false;
-        }
-        if (M != nume) return false;
-        sortAdjLists();
-        return true;
+istream& operator>>(istream& in, Graph& g) {
+	g.clear();
+	bool ok = Util::verify(in,'{');
+	while (ok && !Util::verify(in,'}')) ok = g.readAdjList(in);
+	if (!ok) {
+		string s = "misformatted input for Graph object";
+		throw InputException(s);
+	}
+	g.sortAdjLists();
+	return in;
 }
 
-/** Scamble the vertices and edges in the graph.
+/** Scramble the vertices and edges in the graph.
  */
 void Graph::scramble() {
-	int *vp = new int[N+1]; int *ep = new int[maxEdge+1];
-	Util::genPerm(N,vp); Util::genPerm(maxEdge,ep);
+	int *vp = new int[n()+1]; int *ep = new int[maxEdge+1];
+	Util::genPerm(n(),vp); Util::genPerm(maxEdge,ep);
 	shuffle(vp,ep);
 	sortAdjLists();
 }
@@ -369,8 +404,8 @@ void Graph::shuffle(int vp[], int ep[]) {
 
 	for (e = 1; e <= maxEdge; e++) evec1[e].l = evec1[e].r = 0;
 	for (e = first(); e != 0; e = next(e)) evec1[e] = evec[e];
-	adjLists->reset(); edges->reset();
-	for (u = 1; u <= N; u++) fe[u] = 0;
+	adjLists->clear(); edges->clear();
+	for (u = 1; u <= n(); u++) fe[u] = 0;
 	for (e = 1; e <= maxEdge; e++) {
 		if (evec1[e].l != 0)
 			joinWith(vp[evec1[e].l],vp[evec1[e].r],ep[e]);
@@ -379,14 +414,14 @@ void Graph::shuffle(int vp[], int ep[]) {
 
 /** Generate a random graph. 
  *  @param numv is the number of vertices in the random graph;
- *  if this object has N>numv, the graph is generated over the first numv
+ *  if this object has n>numv, the graph is generated over the first numv
  *  vertices, leaving the remaining vertices with no edges
  *  @param nume is the number of edges in the graph
  */  
 void Graph::rgraph(int numv, int nume) {
 	numv = max(0,numv); nume = max(0,nume);
-	if (numv > N || nume > maxEdge) resize(numv,nume); 
-        else reset();
+	if (numv > n() || nume > maxEdge) resize(numv,nume); 
+	else clear();
 	addEdges(numv,nume);
 	sortAdjLists();
 }
@@ -412,8 +447,8 @@ void Graph::addEdges(int numv, int nume) {
 	// stop early if graph gets so dense that most samples
 	// repeat edges already in graph
 	while (m() < nume && m()/numv < numv/4) {
-		vertex u = randint(1,numv);
-		vertex v = randint(1,numv);
+		vertex u = Util::randint(1,numv);
+		vertex v = Util::randint(1,numv);
 		if (u == v) continue;
 		if (u > v) { vertex w = u; u = v; v = w; }
 		uint64_t vpair = u; vpair <<= 32; vpair |= v;
@@ -427,8 +462,7 @@ void Graph::addEdges(int numv, int nume) {
 	// "candidate" edges and then sample from this vector
 	vector<uint64_t> vpVec;
 	for (vertex u = 1; u < numv; u++) {
-		vertex v;
-		for (v = u+1; v <= numv; v++) {
+		for (vertex v = u+1; v <= numv; v++) {
 			uint64_t vpair = u; vpair <<= 32; vpair |= v;
 			if (!edgeSet.member(vpair)) vpVec.push_back(vpair);
 		}
@@ -436,72 +470,24 @@ void Graph::addEdges(int numv, int nume) {
 	// sample remaining edges from vector
 	unsigned int i = 0;
 	while (m() < nume && i < vpVec.size()) {
-		int j = randint(i,vpVec.size()-1);
+		int j = Util::randint(i,vpVec.size()-1);
 		vertex u = vpVec[j] >> 32;
 		vertex v = vpVec[j] & 0xffffffff;
 		join(u,v); vpVec[j] = vpVec[i++];
 	}
 }
 
-
-/** Generate a random graph. 
- *  This variant is being deprecated; will probably drop soon.
- *  @param numv is the number of vertices in the random graph;
- *  if this object has N>numv, the graph is generated over the first numv
- *  vertices, leaving the remaining vertices with no edges
- *  @param nume is the number of edges in the graph
- *  @param span is the max separation between vertices, measured
- *  circularly
- */  
-void Graph::rgraph(int numv, int nume, int span) {
-	numv = max(0,numv); nume = max(0,nume);
-	if (N < numv || maxEdge < nume) resize(numv,nume); 
-        else reset();
-
-	if (span < numv/2) {
-		// mm = # of candidate edges, m = # still to generate
-		long long int mm = numv; mm *= span;
-		long long int m = nume; m = min(m,mm);
-		for (long long int i = 0; m > 0; m--) {
-			// i is index of most recent edge generated
-			// j is index of new edge
-			int k = randTruncGeo(double(m)/(mm-i),mm-((m+i)-1));
-			long long int j = i + k;
-			vertex u = (j-1)/span + 1;
-			vertex v = u + (j - (u-1)*span);
-			if (v > numv) v -= numv;
-			join(u,v);
-			i = j;
-		}
-	}  else {
-		long long int mm = numv; mm *= (numv-1); mm /= 2; 
-		long long int m = nume; m = min(m,mm);
-		for (long long int i = 0; m > 0; m--) {
-			// i is index of most recent edge generated
-			// j is index of new edge
-			int k = randTruncGeo(double(m)/(mm-i),mm-((m+i)-1));
-			long long int j = i + k;
-			long long int lv = int(1 + (1+sqrt(1+8*(j-1)))/2);
-			long long int lu = lv - (((lv*(lv-1)/2) - j) + 1);
-			vertex u = lu; vertex v = lv;
-			join(u,v);
-			i = j;
-		}
-	}
-	sortAdjLists();
-}
-
 /** Generate a random bipartite graph.
  *  @param numv specifies the number of vertices per "part"; so the resulting
- *  graph will have 2*numv vertices; if this object has N>2*numv,
+ *  graph will have 2*numv vertices; if this object has n()>2*numv,
  *  the random graph is generated over the first 2*numv vertices,
  *  leaving the remaining vertices with no edges
  *  @param maxEdge is the max number of edges in the random graph
  */
 void Graph::rbigraph(int numv, int nume) {
 	numv = max(1,numv); nume = max(0,nume);
-	if (N < 2*numv || maxEdge < nume) resize(2*numv,nume); 
-        else reset();
+	if (n() < 2*numv || maxEdge < nume) resize(2*numv,nume); 
+	else clear();
 
 	// build set containing edges already in graph
 	HashSet edgeSet(nume);
@@ -516,8 +502,8 @@ void Graph::rbigraph(int numv, int nume) {
 	// stop early if graph gets so dense that most samples
 	// repeat edges already in graph
 	while (m() < nume && m()/numv < numv/2) {
-		vertex u = randint(1,numv);
-		vertex v = randint(1,numv); v += numv;
+		vertex u = Util::randint(1,numv);
+		vertex v = Util::randint(1,numv); v += numv;
 		uint64_t vpair = u; vpair <<= 32; vpair |= v;
 		if (!edgeSet.member(vpair)) {
 			edgeSet.insert(vpair); join(u,v);
@@ -537,7 +523,7 @@ void Graph::rbigraph(int numv, int nume) {
 	// sample remaining edges from vector
 	unsigned int i = 0;
 	while (m() < nume && i < vpVec.size()) {
-		int j = randint(i,vpVec.size()-1);
+		int j = Util::randint(i,vpVec.size()-1);
 		vertex u = vpVec[j] >> 32;
 		vertex v = vpVec[j] & 0xffffffff;
 		join(u,v); vpVec[j] = vpVec[i++];
@@ -549,7 +535,7 @@ void Graph::rbigraph(int numv, int nume) {
  *  Generates random trees with equal probability assigned to each
  *  labeled tree; method based on Cayley's theorem
  *  @param numv is the number of vertices in the random tree;
- *  if this object has N>numv, the tree is generated over the first numv
+ *  if this object has n()>numv, the tree is generated over the first numv
  *  vertices, leaving the remaining vertices with no edges
  */
 void Graph::rtree(int numv) {
@@ -560,7 +546,7 @@ void Graph::rtree(int numv) {
 	vertex endpoints[numv-1]; int d[numv+1];
 	for (int i = 1; i <= numv; i++) d[i] = 1;
 	for (int i = 1; i <= numv-2; i++) {
-		endpoints[i] = randint(1,numv);
+		endpoints[i] = Util::randint(1,numv);
 		d[endpoints[i]]++;
 	}
 	// now build a heap containing all leaves in the tree
@@ -579,27 +565,6 @@ void Graph::rtree(int numv) {
 	join(degOne.deletemin(),degOne.deletemin());
 	sortAdjLists();
 }
-/* old version
-void Graph::rtree(int numv) {
-	vertex *verts = new vertex[numv+1];
-
-	numv = max(0,numv);
-	if (N < numv || maxEdge < numv-1) resize(numv,numv-1); 
-        else reset();
-
-	// Scan a random permutation of the vertices, joining vertices
-	// on opposite sides of the current "cursor position" i
-	Util::genPerm(numv,verts);
-	for (int i = 2; i <= numv; i++) {
-		int j = randint(1,i-1);
-		int k = randint(i,numv);
-		join(verts[j],verts[k]);
-		int temp = verts[i]; verts[i] = verts[k]; verts[k] = temp;
-	}
-	sortAdjLists();
-	delete [] verts;
-}
-*/
 
 /** Create a random simple, connected graph.
  */
@@ -611,7 +576,7 @@ void Graph::rcgraph(int numv, int nume) {
 	
 	// graph too sparse for standard method to produce connected graph
 	// so start over, adding edges to a random tree
-	reset();
+	clear();
 	rtree(numv); addEdges(numv,nume);
 	sortAdjLists();
 }
@@ -633,7 +598,7 @@ edge Graph::getEdge(vertex u, vertex v) const {
  *  the computation; if component is not NULL, then it is expected to
  *  point to an array with at least n()+1 integers; on return component[u]
  *  is an integer "component number"; vertices with the same component
- *  number are in the same connected of the graph; callers interested
+ *  number are in the same connected component of the graph; callers interested
  *  only in the number of components may use a NULL argument
  *  @return the number of connected components
  */
@@ -642,7 +607,7 @@ int Graph::getComponents(int *component) const {
 	if (noComp) component = new int[n()+1];
 	for (vertex u = 1; u <= n(); u++) component[u] = 0;
 	
-	UiList q(n());
+	List q(n());
 	int curComp = 0;
 	vertex s = 1;
 	while (s <= n()) {
@@ -666,3 +631,5 @@ int Graph::getComponents(int *component) const {
 	if (noComp) delete [] component;
 	return curComp;
 }
+
+} // ends namespace

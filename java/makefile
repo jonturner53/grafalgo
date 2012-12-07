@@ -6,10 +6,6 @@ all:
 	make -C misc            JROOT='${JROOT}' all
 	make -C dataStructures  JROOT='${JROOT}' all
 	make -C graphAlgorithms JROOT='${JROOT}' all
-	make -C dataStructures  IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
-				CXXFLAGS='${CXXFLAGS}' all
-	make -C graphAlgorithms IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
-				CXXFLAGS='${CXXFLAGS}' all
 
 clean:
 	make -C misc            clean

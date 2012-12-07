@@ -22,13 +22,14 @@ IdMap::~IdMap() { freeSpace(); }
  *  @param size is number of index values to provide space for
  */
 void IdMap::makeSpace(int size) {
-	try { hset = new HashSet(n()); } catch (std::bad_alloc e) {
+	try { hset = new HashSet(size); } catch (std::bad_alloc e) {
 		stringstream ss;
 		ss << "IdMap::makeSpace: insufficient space for "
 		   << size << "index values";
 		string s = ss.str();
 		throw OutOfSpaceException(s);
 	}
+	nn = size;
 }
 
 /** Free dynamic storage used by list. */
@@ -39,7 +40,6 @@ void IdMap::freeSpace() { delete hset; }
  *  @param size is the size of the resized object.
  */
 void IdMap::resize(int size) {
-	Adt::resize(size);
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
 		string s; s = "IdMap::resize:" + e.toString(s);
@@ -88,9 +88,12 @@ void IdMap::dropPair(uint64_t key) { hset->remove(key); }
  *  @param s is the string in which the result is returned.
  */
 string& IdMap::toString(string& s) const {
-	stringstream ss; ss << "{ ";
+	stringstream ss; ss << "{";
+	bool isFirst = true;
 	for (index x = hset->first(); x != 0; x = hset->next(x)) {
-		ss << "(" << hset->val(x) << "," << x << ") ";
+		if (isFirst) isFirst = false;
+		else ss << " ";
+		ss << "(" << hset->val(x) << "," << x << ")";
 	}	
 	ss << "}"; s = ss.str(); return s;
 }

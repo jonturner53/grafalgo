@@ -6,8 +6,8 @@
 //
 
 package algoLib.graphAlgorithms.mst;
-import algoLib.misc.*;
-import algoLib.dataStructures.graphs.*;
+import algoLib.misc.Util;
+import algoLib.dataStructures.graphs.Wgraph;
 import java.io.*;
 
 public class Mst {

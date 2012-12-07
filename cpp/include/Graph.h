@@ -9,14 +9,18 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include "stdinc.h"
+#include "Adt.h"
 #include "Util.h"
-#include "UiList.h"
-#include "UiClist.h"
-#include "UiSetPair.h"
+#include "List.h"
+#include "Clist.h"
+#include "SetPair.h"
 #include "HashSet.h"
 #include "Dheap.h"
 #include <vector>
+
+namespace grafalgo {
+
+using namespace std;
 
 typedef int vertex;
 typedef int edge;
@@ -30,18 +34,19 @@ typedef int edge;
  *  either by iterating through all edges of the graph
  *  or all edges incident to a specific vertex.
  */
-class Graph {
+class Graph : public Adt {
 public:		Graph(int=26,int=50);
-		Graph(const Graph&);
 		~Graph();
 
-	// methods for resizing, resetting and assignment
-	virtual void resize(int, int);
-	virtual void reset();
-	virtual void copyFrom(const Graph&);
+	// common methods
+	void	clear();
+	void	resize(int numv) { resize(numv, numv); }
+	void	resize(int, int);
+	void	expand(int numv) { expand(numv, max(numv,m())); }
+	void	expand(int, int);
+	void	copyFrom(const Graph&);
 
-	// number of vertices and edges
-	int	n() const;		
+	// number of edges
 	int	m() const;	
 
 	// predicates
@@ -68,13 +73,13 @@ public:		Graph(int=26,int=50);
 	int	getComponents(int*) const;
 
 	// input
-	virtual bool readEdge(istream&);
-	virtual bool read(istream&);
+	bool readAdjList(istream&);
+	friend istream& operator>>(istream&, Graph&);
 
 	// create a string representation
-	virtual string& edge2string(edge,string&) const;
-	virtual string& edge2string(edge,vertex,string&) const;
-	virtual string& alist2string(vertex,string&) const;
+	//virtual string& edge2string(edge,string&) const;
+	//virtual string& edge2string(edge,vertex,string&) const;
+	virtual string& adjList2string(vertex,string&) const;
 	string&	toString(string&) const;
         virtual string& toDotString(string&) const;
 
@@ -89,8 +94,7 @@ public:		Graph(int=26,int=50);
 	void 	rtree(int);
 	void 	rcgraph(int,int);
 protected:
-	int	N;			///< number of vertices
-	int	M;			///< number of edges
+	int	mm;			///< number of edges
 	int	maxEdge;		///< max number of edges
 
 	edge	*fe;			///< fe[v] is first edge incident to v
@@ -101,10 +105,12 @@ protected:
 	};
 	EdgeInfo *evec;			///< array of edge structures
 
-	UiSetPair *edges;		///< sets of in-use and free edges
+	SetPair *edges;			///< sets of in-use and free edges
 
-	UiClist	*adjLists;		///< collection of edge adjacency lists
-					///< stores edge e as both 2e and 2e+1
+	Clist	*adjLists;		///< collection of edge adjacency lists
+					///< each "edge endpoint" appears
+					///< on one list; the endpoints
+					///< for edge e are 2e and 2e+1
 
 	// internal helper methods
 	void	makeSpace(int, int);
@@ -115,26 +121,18 @@ protected:
 	// methods for sorting ajacency lists
 	int	ecmp(edge, edge, vertex) const;
 	void	sortAlist(vertex);
-
-private:
-	Graph& 	operator=(const Graph&);
 };
-
-/** Get the number of vertices.
- *  @return the number of vertices in the graph.
- */
-inline int Graph::n() const { return N; }
 
 /** Get the number of edges.
  *  @return the number of edges in the graph.
  */
-inline int Graph::m() const { return M; }
+inline int Graph::m() const { return m(); }
 
 /** Determine if a vertex number is valid.
  *  @param u is the vertex number to be verified
  *  @return true if u is a valid vertex number, else false.
  */
-inline bool Graph::validVertex(int u) const { return 1 <= u && u <= N; }
+inline bool Graph::validVertex(int u) const { return 1 <= u && u <= n(); }
 
 /** Determine if an edge number corresponds to a valid edge.
  *  @param e is the edge number to be verified
@@ -159,7 +157,7 @@ inline edge Graph::next(edge e) const { return edges->nextIn(e); }
  *  @return the first edge incident to v
  */
 inline edge Graph::firstAt(vertex v) const { 
-	assert(1 <= v && v <= N);
+	assert(1 <= v && v <= n());
 	return fe[v]/2;
 }
 
@@ -170,7 +168,7 @@ inline edge Graph::firstAt(vertex v) const {
  *  or 0 if e is not incident to v or is the last edge on the list
  */
 inline edge Graph::nextAt(vertex v, edge e) const {
-	assert(1 <= v && v <= N && 1 <= e && e <= maxEdge);
+	assert(1 <= v && v <= n() && 1 <= e && e <= maxEdge);
 	if (v != evec[e].l && v != evec[e].r) return 0;
 	int ee = (v == evec[e].l ? 2*e : 2*e+1);
 	int ff = adjLists->suc(ee);
@@ -202,10 +200,12 @@ inline vertex Graph::right(edge e) const {
  *  or it is not incident to v.
  */
 inline vertex Graph::mate(vertex v, edge e) const {
-	assert(1 <= v && v <= N && 1 <= e && e <= maxEdge);
+	assert(1 <= v && v <= n() && 1 <= e && e <= maxEdge);
 	return (evec[e].l == 0 ?
 		0 : (v == evec[e].l ?
 		     evec[e].r : (v == evec[e].r ? evec[e].l : 0)));
 }
+
+} // ends namespace
 
 #endif

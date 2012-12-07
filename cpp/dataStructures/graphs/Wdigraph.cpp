@@ -8,6 +8,8 @@
 
 #include "Wdigraph.h"
 
+namespace grafalgo {
+
 /** Construct a Wdigraph with space for a specified number of vertices and edges.
  *  @param numv is number of vertices in the graph
  *  @param maxe is the maximum number of edges
@@ -16,46 +18,107 @@ Wdigraph::Wdigraph(int numv, int maxe) : Digraph(numv,maxe) {
 	makeSpace(numv,maxe);
 }
 
-/** Copy constructor - not implemented. */
-Wdigraph::Wdigraph(const Wdigraph& original) : Digraph(original) { }
-
-/** Allocate and initialize dynamic storage for graph.
- */
-void Wdigraph::makeSpace(int numv, int maxe) {
-	len = new int[maxe+1];
-	for (edge e = 0; e <= maxe; e++) len[e] = 0;
-} 
-
-/** Free space used by Wdigraph */
 Wdigraph::~Wdigraph() { freeSpace(); }
 
-void Wdigraph::freeSpace() {
-delete [] len;
+/** Allocate and initialize dynamic storage for Wdigraph.
+ *  @param numv is the number of vertices to allocate space for
+ *  @param maxe is the number of edges to allocate space for
+ */
+void Wdigraph::makeSpace(int numv, int maxe) {
+	try {
+		len = new int[maxe+1];
+	} catch (std::bad_alloc e) {
+		stringstream ss;
+		ss << "Wdigraph::makeSpace: insufficient space for "
+		   << maxe << " edge lengths";
+		string s = ss.str();
+		throw OutOfSpaceException(s);
+	}
 }
 
-/** Copy another Wdigraph to this one.
- *  @param original is another graph that is to replace this one.
+/** Free space used by graph. */
+void Wdigraph::freeSpace() { delete [] len; }
+
+/** Resize a Wdigraph object.
+ *  The old value is discarded.
+ *  @param numv is the number of vertices to allocate space for
+ *  @param maxe is the number of edges to allocate space for
  */
-void Wdigraph::copyFrom(const Wdigraph& original) {
-        if (N < original.n() || maxEdge < original.m()) {
-                resize(original.n(), original.m());
-        } else {
-                reset();
-        }
-        N = original.n();
-        for (edge e = original.first(); e != 0; e = original.next(e)) {
-                edge ee = join(original.left(e),original.right(e));
-                setLength(ee,original.length(e));
-        }
+void Wdigraph::resize(int numv, int maxe) {
+	freeSpace();
+	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
+		string s; s = "Wdigraph::resize:" + e.toString(s);
+		throw OutOfSpaceException(s);
+	}
+}
+
+/** Expand the space available for this Wdigraph.
+ *  Rebuilds old value in new space.
+ *  @param size is the size of the resized object.
+ */
+void Wdigraph::expand(int numv, int maxe) {
+	if (numv <= n() && maxe <= maxEdge) return;
+	Wdigraph old(this->n(),this->maxEdge); old.copyFrom(*this);
+	resize(numv,maxe); this->copyFrom(old);
+}
+
+/** Copy into list from source. */
+void Wdigraph::copyFrom(const Wdigraph& source) {
+	if (&source == this) return;
+	if (source.n() > n()) resize(source.n());
+	else clear();
+	for (edge e = source.first(); e != 0; e = source.next(e)) {
+		edge ee = join(source.tail(e),source.head(e));
+		setLength(ee,source.length(e));
+	}
         sortAdjLists();
 }
 
-void Wdigraph::resize(int numv, int maxe) {
-        Digraph::resize(numv, maxe);
-        freeSpace(); makeSpace(numv, maxe);
+/** Read adjacency list from an input stream, add it to the graph.
+ *  @param in is an open input stream
+ *  @return true on success, false on error.
+ */
+bool Wdigraph::readAdjList(istream& in) {
+	if (!Util::verify(in,'[')) return 0;
+	vertex u;
+	if (!Adt::readItem(in,u)) return 0;
+	if (u > n()) expand(max(u,2*n()),m());
+	if (!Util::verify(in,':')) return 0;
+	while (in.good() && !Util::verify(in,']')) {
+		vertex v;
+		if (!Adt::readItem(in,v)) return 0;
+		if (v > n()) expand(max(v,2*n()),m());
+		if (m() >= maxEdge) expand(n(),2*m());
+		int w;
+		if (!Util::verify(in,'(') || !Util::readInt(in,w) ||
+		    !Util::verify(in,')'))
+			return 0;
+        	edge e = join(u,v); setLength(e,w);
+	}
+	return in.good();
 }
 
-void Wdigraph::reset() { Digraph::reset(); }
+/** Create a string representation of an adjacency list.
+ *  @param u is a vertex number
+ *  @param s is a reference to a string in which the result is returned
+ *  @return a reference to s.
+ */
+string& Wdigraph::adjList2string(vertex u, string& s) const {
+	stringstream ss; s = "";
+	if (firstAt(u) == 0) return s;
+	int cnt = 0;
+	ss << "[" << Adt::item2string(u,s) << ":";
+	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
+		vertex v = head(e);
+		ss <<  " " << item2string(v,s) << "(" << length(e) << ")";
+		if (++cnt >= 15 && nextOut(u,e) != 0) {
+			ss <<  "\n"; cnt = 0;
+		}
+	}
+	ss <<  "]\n";
+	s = ss.str();
+	return s;
+}
 
 
 /** Create a string representation of an edge.
@@ -64,6 +127,7 @@ void Wdigraph::reset() { Digraph::reset(); }
  *  @param s is a reference to a string in which the result is returned
  *  @return a reference to s.
  */
+/*
 string& Wdigraph::edge2string(edge e, string& s) const {
         s = "(";
         string s1;
@@ -73,6 +137,7 @@ string& Wdigraph::edge2string(edge e, string& s) const {
         s += Util::num2string(length(e),s1) + ")";
         return s;
 }
+*/
 
 /** Construct a string in dot file format representation 
  * of the Weighted Directed Graph object.
@@ -85,26 +150,16 @@ string& Wdigraph::edge2string(edge e, string& s) const {
  */
 string& Wdigraph::toDotString(string& s) const {
 	stringstream ss;
-	// undirected graph
 	ss << "digraph G { " << endl;
-	for (vertex u = 1; u <= n(); u++) {
-		if (firstAt(u) == 0) break;
-		string su;
-		for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
-			vertex v = mate(u,e);
-                        string s1, s2;
-			if (v > u)  break;
-			su += Util::node2string(u,n(),s1) + " -> ";
-			su += Util::node2string(v,n(),s1);
-			su += " [label = \" ";
-                        ostringstream convert;
-                        convert << length(e);
-                        su += convert.str();
-                        su += " \"]; "; 
-		}
-                if (!su.empty())   ss << su << endl;
+	int cnt = 0;
+	for (edge e = first(); e != 0; e = next(e)) {
+		vertex u = tail(e); vertex v = head(e);
+		ss << Adt::item2string(u,s) << " -> ";
+		ss << Adt::item2string(v,s);
+		ss << " [label = \" " << length(e) << " \"] ; "; 
+		if (++cnt == 10) { s += "\n"; cnt = 0; }
 	}
-	ss << " } " << endl;
+	ss << "}\n" << endl;
 	s = ss.str();
 	return s;
 }
@@ -113,12 +168,13 @@ string& Wdigraph::toDotString(string& s) const {
  *  @param in is an open input stream
  *  @return true on success, false on error.
  */
+/*
 bool Wdigraph::readEdge(istream& in) {
         vertex u, v; int len;
-        if (Util::readNext(in,'(') == 0 || !Util::readNode(in,u,n()) ||
-            Util::readNext(in,',') == 0 || !Util::readNode(in,v,n()) ||
-            Util::readNext(in,',') == 0 || !Util::readNum(in,len) ||
-            Util::readNext(in,')') == 0) {
+        if (!Util::verify(in,'(') || !Util::readNode(in,u,n()) ||
+            !Util::verify(in,',') || !Util::readNode(in,v,n()) ||
+            !Util::verify(in,',') || !Util::readNum(in,len) ||
+            !Util::verify(in,')')) {
                 return false;
         }
         edge e = join(u,v);
@@ -126,6 +182,7 @@ bool Wdigraph::readEdge(istream& in) {
 
         return true;
 }
+*/
 
 /** Assign edges a random lengths in given range.
  *  @param lo is the low end of the range
@@ -133,5 +190,7 @@ bool Wdigraph::readEdge(istream& in) {
  */
 void Wdigraph::randLength(int lo, int hi) {
         for (edge e = first(); e != 0; e = next(e))
-                setLength(e,randint(lo,hi));
+                setLength(e,Util::randint(lo,hi));
 }
+
+} // ends namespace
