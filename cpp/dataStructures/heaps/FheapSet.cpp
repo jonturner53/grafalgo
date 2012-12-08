@@ -1,11 +1,11 @@
-/** @file Fheaps.h
+/** @file FheapSet.h
  *
  *  @author Jon Turner
  *  @date 2011
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-#include "Fheaps.h"
+#include "FheapSet.h"
 
 namespace grafalgo {
 
@@ -17,18 +17,18 @@ namespace grafalgo {
 #define p(x) node[x].p
 #define c(x) node[x].c
 
-/** Constructor for Fheaps class.
+/** Constructor for FheapSet class.
  *  @param size is the number of items in the constructed object
  */
-Fheaps::Fheaps(int size) : Adt(size) { makeSpace(size); }
+FheapSet::FheapSet(int size) : Adt(size) { makeSpace(size); }
 
-/** Destructor for Fheaps class. */
-Fheaps::~Fheaps() { freeSpace(); }
+/** Destructor for FheapSet class. */
+FheapSet::~FheapSet() { freeSpace(); }
 
-/** Allocate and initialize space for Fheaps.
+/** Allocate and initialize space for FheapSet.
  *  @param size is number of index values to provide space for
  */
-void Fheaps::makeSpace(int size) {
+void FheapSet::makeSpace(int size) {
 	try {
 		node = new Fnode[size+1];
 		sibs = new Clist(size);
@@ -43,11 +43,11 @@ void Fheaps::makeSpace(int size) {
 	nn = size; clear();
 }
 
-/** Free dynamic storage used by Fheaps. */
-void Fheaps::freeSpace() { delete [] node; delete sibs; delete tmpq; }
+/** Free dynamic storage used by FheapSet. */
+void FheapSet::freeSpace() { delete [] node; delete sibs; delete tmpq; }
 
-/** Copy into Fheaps from source. */
-void Fheaps::copyFrom(const Fheaps& source) {
+/** Copy into FheapSet from source. */
+void FheapSet::copyFrom(const FheapSet& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
 	else clear();
@@ -61,36 +61,36 @@ void Fheaps::copyFrom(const Fheaps& source) {
 	}
 }
 
-/** Resize a Fheaps object.
+/** Resize a FheapSet object.
  *  The old value is discarded.
  *  @param size is the size of the resized object.
  */
-void Fheaps::resize(int size) {
+void FheapSet::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "Fheaps::resize::" + e.toString(s);
+		string s; s = "FheapSet::resize::" + e.toString(s);
 		throw OutOfSpaceException(s);
 	}
 }
 
-/** Expand the space available for this Fheaps.
+/** Expand the space available for this FheapSet.
  *  Rebuilds old value in new space.
  *  @param size is the size of the resized object.
  */
-void Fheaps::expand(int size) {
+void FheapSet::expand(int size) {
 	if (size <= n()) return;
-	Fheaps old(this->n()); old.copyFrom(*this);
+	FheapSet old(this->n()); old.copyFrom(*this);
 	resize(size); this->copyFrom(old);
 }
 
 /** Remove all elements from heap. */
-void Fheaps::clear() {
+void FheapSet::clear() {
 	for (index x = 1; x <= n(); x++) {
 		c(x) = p(x) = 0;
 		rank(x) = 0; kee(x) = 0;
 		mark(x) = false;
 	}
-	for (index x = 0; x <= Fheaps::MAXRANK; x++) rvec[x] = 0;
+	for (index x = 0; x <= FheapSet::MAXRANK; x++) rvec[x] = 0;
 	kee(0) = rank(0) = mark(0) = 0;
 	p(0) = c(0) = 0;
 }
@@ -101,7 +101,7 @@ void Fheaps::clear() {
  *  @param return the canonical element of the heap obtained
  *  by combining h1 and h2
  */
-fheap Fheaps::meld(fheap h1, fheap h2) {
+fheap FheapSet::meld(fheap h1, fheap h2) {
 	assert(0 <= h1 && h1 <= n() && 0 <= h2 && h2 <= n());
 	if (h1 == 0) return h2;
 	if (h2 == 0) return h1;
@@ -116,7 +116,7 @@ fheap Fheaps::meld(fheap h1, fheap h2) {
  *  @return the canonical element of the heap that results from inserting
  *  i into h
  */
-fheap Fheaps::insert(index i, fheap h, keytyp x) {
+fheap FheapSet::insert(index i, fheap h, keytyp x) {
 	assert(0 <= i && i <= n() && 0 <= h && h <= n());
 	assert(left(i) == i && right(i) == i && c(i) == 0 && p(i) == 0);
 	kee(i) = x;
@@ -130,7 +130,7 @@ fheap Fheaps::insert(index i, fheap h, keytyp x) {
  *  @return the canonical element of the heap that results from reducing
  *  i's key by delta
  */
-fheap Fheaps::decreasekey(index i, keytyp delta, fheap h) {
+fheap FheapSet::decreasekey(index i, keytyp delta, fheap h) {
 	assert(0 <= i && i <= n() && 0 <= h && h <= n() && delta >= 0);
 	fheap pi = p(i);
 	kee(i) -= delta;
@@ -151,7 +151,7 @@ fheap Fheaps::decreasekey(index i, keytyp delta, fheap h) {
  *  @return the canonical element of the heap that results from
  *  removing the item with the smallest key
  */
-fheap Fheaps::deletemin(fheap h) {
+fheap FheapSet::deletemin(fheap h) {
 	assert(1 <= h && h <= n());
 	index i,j; int k,mr;
 
@@ -171,7 +171,7 @@ fheap Fheaps::deletemin(fheap h) {
 	while (!tmpq->empty()) {
 		// scan roots, merging trees of equal rang
 		i = tmpq->first(); tmpq->removeFirst();
-		if (rank(i) > Fheaps::MAXRANK)
+		if (rank(i) > FheapSet::MAXRANK)
 			Util::fatal("deletemin: rank too large");
 		j = rvec[rank(i)];
 		if (mr < rank(i)) {
@@ -205,7 +205,7 @@ fheap Fheaps::deletemin(fheap h) {
  *  @param h is the canonical element of the heap containing i
  *  @return the heap that results from removing i from h
  */
-fheap Fheaps::remove(index i, fheap h) {
+fheap FheapSet::remove(index i, fheap h) {
 	assert(1 <= i && i <= n() && 1 <= h && h <= n());
 	keytyp k;
 	k = kee(i);
@@ -219,7 +219,7 @@ fheap Fheaps::remove(index i, fheap h) {
  *  @param s is a string in which the result is returned
  *  @return a reference to s
  */
-string& Fheaps::toString(string& s) const {
+string& FheapSet::toString(string& s) const {
 	s = "";
 	bool *pmark = new bool[n()+1];
 	for (int i = 1; i <= n(); i++) pmark[i] = false;
@@ -240,7 +240,7 @@ string& Fheaps::toString(string& s) const {
  *  @param s is a string in which the result is returned
  *  @return a reference to s
  */
-string& Fheaps::heap2string(fheap h, string& s) const {
+string& FheapSet::heap2string(fheap h, string& s) const {
 	s = "";
 	if (h == 0) return s;
 	stringstream ss;

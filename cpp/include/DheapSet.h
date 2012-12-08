@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef HEAPSET_H
-#define HEAPSET_H
+#ifndef DHEAPSET_H
+#define DHEAPSET_H
 
 #include <list>
 #include "stdinc.h"

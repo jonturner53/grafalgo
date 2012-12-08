@@ -1,4 +1,4 @@
-/** \file Llheaps.h
+/** \file LlheapSet.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,13 +6,15 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef LLHEAPS_H
-#define LLHEAPS_H
+#ifndef LLHEAPSET_H
+#define LLHEAPSET_H
 
-#include "Lheaps.h"
-#include "UiList.h"
+#include "LheapSet.h"
+#include "List.h"
 
-typedef bool (*delftyp)(item);
+namespace grafalgo {
+
+typedef bool (*delftyp)(index);
 typedef int lheap;
 
 /** Lazy Collection of leftist heaps
@@ -21,23 +23,35 @@ typedef int lheap;
  *  true if that item has been removed from a heap. Deleted items should not
  *  be re-inserted into another heap.
  */
-class Llheaps : public Lheaps {
-public:		Llheaps(int=26,delftyp=NULL);
-		~Llheaps();
+class LlheapSet : public LheapSet {
+public:		LlheapSet(int=26,delftyp=NULL);
+		~LlheapSet();
 
-	item	findmin(lheap);		
+	// common methods
+	void	clear();
+	void	resize(int);
+	void	expand(int);
+	void	copyFrom(const LlheapSet&);
+
+	index	findmin(lheap);		
 	lheap	lmeld(lheap,lheap);
-	lheap	insert(item,lheap);
+	lheap	insert(index,lheap);
 
-	lheap   makeheap(UiList&);
+	lheap   makeheap(List&);
 
 	string& toString(string&) const;
-	string& heap2string(item,string&) const;
+	string& heap2string(index,string&) const;
 private:
 	int	dummy;			///< head of free dummy node list
 	delftyp	delf;			///< pointer to deleted function
-	UiList	*tmpL;			///< pointer to temporary list
-	void	purge(lheap,UiList&);
-	lheap	heapify(UiList&);	
+	List	*tmplst;		///< pointer to temporary list
+	void	purge(lheap,List&);
+	lheap	heapify(List&);	
+
+	void	makeSpace(int);
+	void	freeSpace();
 };
+
+} // ends namespace
+
 #endif

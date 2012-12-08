@@ -1,4 +1,4 @@
-/** @file Llheaps.cpp 
+/** @file LlheapSet.cpp 
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,35 +6,90 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#include "Llheaps.h"
+#include "LlheapSet.h"
 
 #define kee(x) node[x].kee
 #define rank(x) node[x].rank
 #define left(x) node[x].left
 #define right(x) node[x].right
 
-#define deleted(x)((x > n) || (delf != 0 && (*delf)(x)))
+#define deleted(x)((x > n()) || (delf != 0 && (*delf)(x)))
 
-/** Constructor for the Llheaps class.
- *  @param N is the number of items in the constructed object
+namespace grafalgo {
+
+/** Constructor for the LlheapSet class.
+ *  @param size is the number of items in the constructed object
  *  @param delftyp is pointer to a "deleted function"
  *  which takes a single item as its argment and returns true
  *  if that item should be considered deleted from the heap
  *  in which it is present
  */
-Llheaps::Llheaps(int N, delftyp f) : Lheaps(2*N) {
-	int i;
-	n = N; // note lheaps constructor provides space for 2N nodes
-	delf = f;
-	// build list of dummy nodes linked using left pointers
-	for (i = n+1; i <= 2*n ; i++) left(i) = i+1;
-	dummy = n+1; left(2*n) = 0;
-	rank(0) = 0; left(0) = right(0) = 0;
-	tmpL = new UiList(n);
+LlheapSet::LlheapSet(int size, delftyp f) : LheapSet(2*size) {
+	makeSpace(size); delf = f;
 }
 
-/** Destructor for the Llheaps class. */
-Llheaps::~Llheaps() { delete tmpL; }
+/** Destructor for the LlheapSet class. */
+LlheapSet::~LlheapSet() { freeSpace(); delete tmplst; }
+
+/** Allocate and initialize space for LlheapSet.
+ *  @param size is number of index values to provide space for
+ */
+void LlheapSet::makeSpace(int size) {
+	try {
+		tmplst = new List(size);
+	} catch (std::bad_alloc e) {
+		stringstream ss;
+		ss << "makeSpace:: insufficient space for "
+		   << size << "index values";
+		string s = ss.str();
+		throw OutOfSpaceException(s);
+	}
+	nn = size; clear();
+}
+
+/** Free dynamic storage used by LlheapSet. */
+void LlheapSet::freeSpace() { delete [] tmplst; }
+
+/** Copy into LlheapSet from source. */
+void LlheapSet::copyFrom(const LlheapSet& source) {
+	if (&source == this) return;
+	if (source.n() > n()) resize(source.n());
+	else clear();
+	for (index i = n()+1; i <= 2*n() ; i++)
+		node[i] = source.node[i];
+	dummy = source.dummy; delf = source.delf;
+}
+
+/** Resize a LlheapSet object.
+ *  The old value is discarded.
+ *  @param size is the size of the resized object.
+ */
+void LlheapSet::resize(int size) {
+	freeSpace(); LheapSet::resize(size);
+	try { makeSpace(size); } catch(OutOfSpaceException e) {
+		string s; s = "LlheapSet::resize::" + e.toString(s);
+		throw OutOfSpaceException(s);
+	}
+}
+
+/** Expand the space available for this LlheapSet.
+ *  Rebuilds old value in new space.
+ *  @param size is the size of the resized object.
+ */
+void LlheapSet::expand(int size) {
+	if (size <= n()) return;
+	LlheapSet old(this->n()); old.copyFrom(*this);
+	resize(size); this->copyFrom(old);
+}
+
+/** Remove all elements from heap. */
+void LlheapSet::clear() {
+	// build list of dummy nodes linked using left pointers
+	LheapSet::clear(); tmplst->clear();
+	for (index i = n()+1; i <= 2*n() ; i++) left(i) = i+1;
+	dummy = n()+1; left(2*n()) = 0;
+	rank(0) = 0; left(0) = right(0) = 0;
+}
 
 /** Perform a lazy meld on two heaps.
  *  The lazy meld simply inserts a dummy node at the root of a new heap
@@ -42,8 +97,8 @@ Llheaps::~Llheaps() { delete tmpL; }
  *  @param h2 is the canonical element of a heap
  *  @return the canonical element of the heap obtained by combining h1 and h2
  */
-lheap Llheaps::lmeld(lheap h1, lheap h2) {
-	assert(0 <= h1 && h1 <= 2*n && 0 <= h2 && h2 <= 2*n && dummy != 0);
+lheap LlheapSet::lmeld(lheap h1, lheap h2) {
+	assert(0 <= h1 && h1 <= 2*n() && 0 <= h2 && h2 <= 2*n() && dummy != 0);
 	int i = dummy; dummy = left(dummy);
 	left(i) = h1; right(i) = h2;
 	return i;
@@ -54,10 +109,10 @@ lheap Llheaps::lmeld(lheap h1, lheap h2) {
  *  @param h is the caonical element of some heap
  *  @return the canonical element of the heap obtained by inserting i into h
  */
-lheap Llheaps::insert(item i, lheap h) {
-	assert(0 <= i && i <= n && 0 <= h && h <= 2*n);
+lheap LlheapSet::insert(index i, lheap h) {
+	assert(0 <= i && i <= n() && 0 <= h && h <= 2*n());
 	assert(left(i) == 0 && right(i) == 0 && rank(i) ==1);
-	tmpL->clear(); purge(h,*tmpL); h = heapify(*tmpL);
+	tmplst->clear(); purge(h,*tmplst); h = heapify(*tmplst);
 	return meld(i,h);
 }
 
@@ -65,9 +120,9 @@ lheap Llheaps::insert(item i, lheap h) {
  *  @param h is the canonical element of some heap
  *  @return the item in h that has the smallest key
  */
-item Llheaps::findmin(lheap h) {
-	assert(0 <= h && h <= 2*n);
-	tmpL->clear(); purge(h,*tmpL); return heapify(*tmpL);
+index LlheapSet::findmin(lheap h) {
+	assert(0 <= h && h <= 2*n());
+	tmplst->clear(); purge(h,*tmplst); return heapify(*tmplst);
 }
 
 /** Combine a list of heaps into a single heap.
@@ -75,7 +130,7 @@ item Llheaps::findmin(lheap h) {
  *  @return the new heap obtained by combining all the heaps
  *  in the list into one heap
  */
-lheap Llheaps::heapify(UiList& hlst) {
+lheap LlheapSet::heapify(List& hlst) {
 	if (hlst.empty()) return 0;
 	while (hlst.get(2) != 0) {
 		lheap h = meld(hlst.get(1), hlst.get(2));
@@ -92,13 +147,13 @@ lheap Llheaps::heapify(UiList& hlst) {
  *  if h is a non-deleted node, it is removed and its children are
  *  purged.
  */
-void Llheaps::purge(lheap h, UiList& hlst) {
+void LlheapSet::purge(lheap h, List& hlst) {
 	if (h == 0) return;
 	if (!deleted(h)) {
 		hlst.addLast(h);
 	} else {
 		purge(left(h),hlst); purge(right(h),hlst);
-		if (h > n) {
+		if (h > n()) {
 			left(h) = dummy; dummy = h; right(h) = 0;
 		} else {
 			left(h) = right(h) = 0; rank(h) = 1;
@@ -110,24 +165,24 @@ void Llheaps::purge(lheap h, UiList& hlst) {
  *  @param hlst is a list of singleton items (that is, single item heaps)
  *  @return the heap obtained by combining all the items into a single heap
  */
-lheap Llheaps::makeheap(UiList& hlst) {
-	assert(hlst.n() <= tmpL->n());
-	tmpL->clear();
+lheap LlheapSet::makeheap(List& hlst) {
+	assert(hlst.n() <= tmplst->n());
+	tmplst->clear();
 	for (int i = hlst.first(); i != 0; i = hlst.next(i))
-		tmpL->addLast(i);
-	return heapify(*tmpL);
+		tmplst->addLast(i);
+	return heapify(*tmplst);
 }
 
 /** Create a string representation of this object.
  *  @param s is a string in which the result is returned
  *  @return a reference to s
  */
-string& Llheaps::toString(string& s) const {
-        int i; bool *mark = new bool[n+1];
-        for (i = 1; i <= n; i++) mark[i] = true;
-        for (i = 1; i <= n; i++)
+string& LlheapSet::toString(string& s) const {
+        int i; bool *mark = new bool[n()+1];
+        for (i = 1; i <= n(); i++) mark[i] = true;
+        for (i = 1; i <= n(); i++)
                 mark[left(i)] = mark[right(i)] = false;
-        for (i = 1; i <= n; i++)
+        for (i = 1; i <= n(); i++)
                 if (mark[i]) { string s1; s += heap2string(i,s1) + " "; }
         delete [] mark;
         return s;
@@ -138,16 +193,18 @@ string& Llheaps::toString(string& s) const {
  *  @param s is a string in which the result is returned
  *  @return a reference to s
  */
-string& Llheaps::heap2string(lheap h, string& s) const {
+string& LlheapSet::heap2string(lheap h, string& s) const {
         if (h == 0) { s = ""; return s; }
         stringstream ss;
 	ss << "(";
 	if (deleted(h)) ss << "- ";
         else {
-		ss << Util::node2string(h,n,s) << "/" << kee(h) << " ";
+		ss << Adt::item2string(h,s) << "/" << kee(h) << " ";
 	}
         ss << heap2string(left(h),s);
 	ss << heap2string(right(h),s) << ")";
 	s = ss.str();
 	return s;
 }
+
+} // ends namespace
