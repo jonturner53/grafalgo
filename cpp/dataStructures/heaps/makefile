@@ -1,18 +1,21 @@
 IDIR = ../../include
 LDIR = ../../lib
 LIB = ${LDIR}/lib-ds.a
-CC = g++
-CXXFLAGS = -O2 -m64 -Wall -I ${IDIR}
+CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 -Wall -I ${IDIR}
+
+OFILES = Dheap.o Lheaps.o Llheaps.o FheapSet.o 
+
 .cpp.o:
 	${CXX} ${CXXFLAGS} -c $<
 
-Dheap.o :   ${IDIR}/stdinc.h ${IDIR}/Dheap.h
-Lheaps.o :  ${IDIR}/stdinc.h ${IDIR}/Lheaps.h
+Dheap.o : ${IDIR}/stdinc.h ${IDIR}/Dheap.h
+DheapSet.o : ${IDIR}/stdinc.h ${IDIR}/DheapSet.h
+Lheaps.o : ${IDIR}/stdinc.h ${IDIR}/Lheaps.h
 Llheaps.o : ${IDIR}/stdinc.h ${IDIR}/Llheaps.h
-Fheaps.o :  ${IDIR}/stdinc.h ${IDIR}/Fheaps.h
+FheapSet.o : ${IDIR}/stdinc.h ${IDIR}/FheapSet.h
 
-all :	Dheap.o Lheaps.o Llheaps.o Fheaps.o 
-	ar -ru ${LIB} Dheap.o Lheaps.o Llheaps.o Fheaps.o 
+all :	${OFILES}
+	ar -ru ${LIB} ${OFILES}
 
 clean:
 	rm -f *.o

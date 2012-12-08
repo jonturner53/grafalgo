@@ -8,37 +8,95 @@
 
 #include "Dheap.h"
 
-#define p(x) (((x)+(D-2))/D)
-#define left(x) (D*((x)-1)+2)
-#define right(x) (D*(x)+1)
+#define p(x) (((x)+(d-2))/d)
+#define left(x) (d*((x)-1)+2)
+#define right(x) (d*(x)+1)
+
+namespace grafalgo {
 
 /** Constructor for Dheap class.
- *  @param N1 is the number of items in the contructed object
+ *  @param size is the number of items in the contructed object
  *  @param D1 is the degree of the underlying heap-ordered tree
  */
-Dheap::Dheap(int N1, int D1) : D(D1), N(N1) {
-	n = 0;
-	h = new item[N+1]; pos = new int[N+1]; kee = new keytyp[N+1];
-	for (int i = 1; i <= N; i++) pos[i] = 0;
-	h[0] = pos[0] = 0; kee[0] = 0;
+Dheap::Dheap(int size, int dd) : Adt(size), d(dd) {
+	makeSpace(size);
 }
 
 /** Destructor for Dheap class. */
-Dheap::~Dheap() { delete [] h; delete [] pos; delete [] kee; }
+Dheap::~Dheap() { freeSpace(); }
+
+/** Allocate and initialize space for Dheap.
+ *  @param size is number of index values to provide space for
+ */
+void Dheap::makeSpace(int size) {
+	try {
+		h = new index[size+1]; pos = new int[size+1];
+		kee = new keytyp[size+1];
+	} catch (std::bad_alloc e) {
+		stringstream ss;
+		ss << "makeSpace:: insufficient space for "
+		   << size << "index values";
+		string s = ss.str();
+		throw OutOfSpaceException(s);
+	}
+	for (int i = 1; i <= size; i++) pos[i] = 0;
+	h[0] = pos[0] = 0; kee[0] = 0;
+	hn = 0; nn = size;
+}
+
+/** Free dynamic storage used by Dheap. */
+void Dheap::freeSpace() { delete [] h; delete [] pos; delete [] kee; }
+
+/** Copy into Dheap from source. */
+void Dheap::copyFrom(const Dheap& source) {
+	if (&source == this) return;
+	if (source.n() > n()) resize(source.n());
+	else clear();
+	d = source.d;
+	for (int p = 1; p <= source.hn; p--) {
+		index x = source.h[p];
+		h[p] = x; pos[x] = p; kee[x] = source.key(x);
+	}
+}
+
+/** Resize a Dheap object.
+ *  The old value is discarded.
+ *  @param size is the size of the resize
+ */
+void Dheap::resize(int size) {
+	freeSpace();
+	try { makeSpace(size); } catch(OutOfSpaceException e) {
+		string s; s = "Dheap::resize::" + e.toString(s);
+		throw OutOfSpaceException(s);
+	}
+}
+
+/** Expand the space available for this Dheap.
+ *  Rebuilds old value in new space.
+ *  @param size is the size of the resized object.
+ */
+void Dheap::expand(int size) {
+	if (size <= n()) return;
+	Dheap old(this->n(),d); old.copyFrom(*this);
+	resize(size); this->copyFrom(old);
+}
+
+/** Remove all elements from heap. */
+void Dheap::clear() { while (!empty()) remove(h[hn]); }
 
 /** Add item to the heap.
- *  @param i is an item that is not in the heap
+ *  @param i is the index of an item that is not in the heap
  *  @param k is the key value under which i is to be inserted
  */
-void Dheap::insert(item i, keytyp k) {
-	kee[i] = k; n++; siftup(i,n);
+void Dheap::insert(index i, keytyp k) {
+	kee[i] = k; hn++; siftup(i,hn);
 }
 
 /** Remove an item from the heap.
  *  @param i is an item in the heap
  */
-void Dheap::remove(item i) {
-	int j = h[n--];
+void Dheap::remove(index i) {
+	int j = h[hn--];
 	if (i != j) {
 		if (kee[j] <= kee[i]) siftup(j,pos[i]);
 		else siftdown(j,pos[i]);
@@ -48,10 +106,10 @@ void Dheap::remove(item i) {
 
 /** Perform siftup operation to restore heap order.
  *  This is a private helper function.
- *  @param i is an item to be positioned in the heap
+ *  @param i is the index of an item to be positioned in the heap
  *  @param x is a tentative position for i in the heap
  */
-void Dheap::siftup(item i, int x) {
+void Dheap::siftup(index i, int x) {
 	int px = p(x);
 	while (x > 1 && kee[i] < kee[h[px]]) {
 		h[x] = h[px]; pos[h[x]] = x;
@@ -63,15 +121,15 @@ void Dheap::siftup(item i, int x) {
 
 /** Perform siftdown operation to restore heap order.
  *  This is a private helper function.
- *  @param i is an item to be positioned in the heap
+ *  @param i is an index to be positioned in the heap
  *  @param x is a tentative position for i in the heap
  */
-void Dheap::siftdown(item i, int x) {
+void Dheap::siftdown(index i, int x) {
 	int cx = minchild(x);
 	while (cx != 0 && kee[h[cx]] < kee[i]) {
 		h[x] = h[cx]; pos[h[x]] = x;
 		x = cx; cx = minchild(x);
-		siftdownCount += D;
+		siftdownCount += d;
 	}
 	h[x] = i; pos[i] = x;
 }
@@ -84,18 +142,18 @@ void Dheap::siftdown(item i, int x) {
  */
 int Dheap::minchild(int x) {
 	int y; int minc = left(x);
-	if (minc > n) return 0;
-	for (y = minc + 1; y <= right(x) && y <= n; y++) {
+	if (minc > hn) return 0;
+	for (y = minc + 1; y <= right(x) && y <= hn; y++) {
 		if (kee[h[y]] < kee[h[minc]]) minc = y;
 	}
 	return minc;
 }
 
 /** Change the key of an item in the heap.
- *  @param i is an item in the heap
+ *  @param i is the index of an item in the heap
  *  @param k is a new key value for item i
  */
-void Dheap::changekey(item i, keytyp k) {
+void Dheap::changekey(index i, keytyp k) {
 	changekeyCount++;
 	keytyp ki = kee[i]; kee[i] = k;
 	if (k == ki) return;
@@ -109,13 +167,13 @@ void Dheap::changekey(item i, keytyp k) {
  */
 string& Dheap::toString(string& s) const {
 	s = "";
-	for (int i = 1; i <= n; i++) {
+	for (int i = 1; i <= hn; i++) {
 		string s1;
-		s += "(" + Util::node2string(h[i],N,s1);
-		s += "," + Util::node2string(kee[h[i]],N,s1) + ") ";
+		s += "(" + Adt::item2string(h[i],s1);
+		s += "," + Adt::item2string(kee[h[i]],s1) + ") ";
 		if ((i%10) == 0) s += "\n";
 	}
-	if ((n%10) != 0) s += "\n";
+	if ((hn%10) != 0) s += "\n";
 	return s;
 }
 
@@ -136,3 +194,5 @@ string& Dheap::stats2string(string& s) const {
 	s = ss.str();
 	return s;
 }
+
+} // ends namespace
