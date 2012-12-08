@@ -1,4 +1,4 @@
-/** @file Rlist.h
+/** @file RlistSet.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef RLIST_H
-#define RLIST_H
+#ifndef RLISTSET_H
+#define RLISTSET_H
 
 #include "Adt.h"
 
@@ -23,15 +23,15 @@ namespace grafalgo {
  *  the role of the two pointers is fixed, but for all others,
  *  it can be reversed.
  */
-class Rlist : public Adt {
-public:		Rlist(int=26);
-		~Rlist();
+class RlistSet : public Adt {
+public:		RlistSet(int=26);
+		~RlistSet();
 
 	// common methods
 	void	clear();
 	void	resize(int);
 	void	expand(int);
-	void	copyFrom(const Rlist&);
+	void	copyFrom(const RlistSet&);
 
 	index	first(index) const;
 	index	last(index) const;
@@ -63,20 +63,20 @@ private:
  *  @param t is the index of the canonical item of a list
  *  @return the first index on the list containing t
  */
-inline index Rlist::first(index x) const { return node[x].p1; }
+inline index RlistSet::first(index x) const { return node[x].p1; }
 
 /** Get the index of the last item on a list.
  *  @param x is the index of the canonical item of a list
  *  @return the last index on the list containing t
  */
-inline index Rlist::last(index x) const { return x; }
+inline index RlistSet::last(index x) const { return x; }
 
 /** Get the index of the next item on a list.
  *  @param x is the index of some item of a list
  *  @param prev is the index of the item that comes before x on its list
  *  @return the last index on the list containing x
  */
-inline index Rlist::suc(index x, index prev) const {
+inline index RlistSet::suc(index x, index prev) const {
 	return (prev == node[x].p2 ? node[x].p1 : node[x].p2);
 }
 
@@ -85,7 +85,7 @@ inline index Rlist::suc(index x, index prev) const {
  *  @param next is the index of the item that comes after x on its list
  *  @return the index of the previous item on the list containing x
  */
-inline index Rlist::pred(index x, index next) const {
+inline index RlistSet::pred(index x, index next) const {
 	return (next == node[x].p2 ? node[x].p1 : node[x].p2);
 }
 
@@ -95,7 +95,7 @@ inline index Rlist::pred(index x, index next) const {
  *  @param y is a reference to the index of the predecessor of x;
  *  on return, y is the original value of x
  */
-inline void Rlist::advance(index& x, index& y) const {
+inline void RlistSet::advance(index& x, index& y) const {
 	index xx = x; x = suc(x,y); y = xx;
 }
 
@@ -105,7 +105,7 @@ inline void Rlist::advance(index& x, index& y) const {
  *  @param y is a reference to the index of the successor of x;
  *  on return, y is the original value of x
  */
-inline void Rlist::retreat(index& x, index& y) const {
+inline void RlistSet::retreat(index& x, index& y) const {
 	index xx = x; x = pred(x,y); y = xx;
 }
 

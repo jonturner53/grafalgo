@@ -1,29 +1,29 @@
-/** @file Clist.cpp
+/** @file ClistSet.cpp
  *
  *  @author Jon Turner
  *  @date 2011
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-#include "Clist.h"
+#include "ClistSet.h"
 
 namespace grafalgo {
 
-/** Constructor for Clist. 
+/** Constructor for ClistSet. 
  *  @param n1 defines the set of integers 1..n on which this object is defined
  */
-Clist::Clist(int n1) : Adt(n1) { makeSpace(n()); }
+ClistSet::ClistSet(int n1) : Adt(n1) { makeSpace(n()); }
 
-/** Destructor for Clist */
-Clist::~Clist() { freeSpace(); }
+/** Destructor for ClistSet */
+ClistSet::~ClistSet() { freeSpace(); }
 
-/** Allocate and initialize space for Clist.
+/** Allocate and initialize space for ClistSet.
  *  @param size is number of index values to provide space for
  */
-void Clist::makeSpace(int size) {
+void ClistSet::makeSpace(int size) {
 	try { node = new lnode[size+1]; } catch (std::bad_alloc e) {
 		stringstream ss;
-		ss << "Clist::makeSpace: insufficient space for "
+		ss << "ClistSet::makeSpace: insufficient space for "
 		   << size << "index values";
 		string s = ss.str();
 		throw OutOfSpaceException(s);
@@ -31,41 +31,41 @@ void Clist::makeSpace(int size) {
 	nn = size; clear();
 }
 
-/** Free dynamic storage used by Clist. */
-void Clist::freeSpace() { delete [] node; }
+/** Free dynamic storage used by ClistSet. */
+void ClistSet::freeSpace() { delete [] node; }
 
-/** Resize a Clist object.
+/** Resize a ClistSet object.
  *  The old value is discarded.
  *  @param size is the size of the resized object.
  */
-void Clist::resize(int size) {
+void ClistSet::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "Clist::resize:" + e.toString(s);
+		string s; s = "ClistSet::resize:" + e.toString(s);
 		throw OutOfSpaceException(s);
 	}
 }
 
-/** Expand the space available for this Clist.
+/** Expand the space available for this ClistSet.
  *  Rebuilds old value in new space.
  *  @param size is the size of the resized object.
  */
-void Clist::expand(int size) {
+void ClistSet::expand(int size) {
 	if (size <= n()) return;
-	Clist old(this->n()); old.copyFrom(*this);
+	ClistSet old(this->n()); old.copyFrom(*this);
 	resize(size); this->copyFrom(old);
 }
 
 /** Clear the data structure, moving all index values into single node lists.
  */
-void Clist::clear() {
+void ClistSet::clear() {
 	for (index i = 0; i <= n(); i++) {
 		node[i].next = node[i].prev = i;
 	}
 }
 
-/** Copy into Clist from source. */
-void Clist::copyFrom(const Clist& source) {
+/** Copy into ClistSet from source. */
+void ClistSet::copyFrom(const ClistSet& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
 	else clear();
@@ -79,7 +79,7 @@ void Clist::copyFrom(const Clist& source) {
  *  This method turns the index into a singleton list.
  *  @param i is an index
  */
-void Clist::remove(index i) {
+void ClistSet::remove(index i) {
 	assert(0 <= i && i <= n());
 	node[node[i].prev].next = node[i].next;
 	node[node[i].next].prev = node[i].prev;
@@ -94,7 +94,7 @@ void Clist::remove(index i) {
  *  i and j already belong to the same list; it's the caller's
  *  responsiblity to ensure this doesn't happen
  */
-void Clist::join(index i, index j) {
+void ClistSet::join(index i, index j) {
 	assert(0 <= i && i <= n() && 0 <= j && j <= n());
 	if (i == 0 || j == 0) return;
 	node[node[i].next].prev = node[j].prev;
@@ -106,7 +106,7 @@ void Clist::join(index i, index j) {
  *  @param s is a string in which the result will be returned
  *  @return a reference to s
  */
-string& Clist::toString(string& s) const {
+string& ClistSet::toString(string& s) const {
 	index i, j; string s1;
 	int *mark = new int[n()+1];
 	s = "{";

@@ -2,8 +2,8 @@ IDIR = ../../include
 LDIR = ../../lib
 CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64  -I ${IDIR}
 
-LIBFILES = List.o Dlist.o ListSet.o Clist.o SetPair.o \
-	Partition.o Rlist.o
+LIBFILES = List.o Dlist.o ListSet.o ClistSet.o SetPair.o \
+	Partition.o RlistSet.o
 
 .cpp.o : %.cpp %.h ${IDIR}/stdinc.h
 	${CXX} ${CXXFLAGS} -c $<

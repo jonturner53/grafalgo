@@ -1,4 +1,4 @@
-/** @file Clist.h
+/** @file ClistSet.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef CLIST_H
-#define CLIST_H
+#ifndef CLISTSET_H
+#define CLISTSET_H
 
 #include "stdinc.h"
 #include "Adt.h"
@@ -19,15 +19,15 @@ namespace grafalgo {
  *  at all times. The lists are doubly linked, enabling fast traversal
  *  in either direction.
  */
-class Clist : public Adt {
-public:		Clist(int);
-		~Clist();
+class ClistSet : public Adt {
+public:		ClistSet(int);
+		~ClistSet();
 
 	// common methods
 	void	clear();
 	void	resize(int);
 	void	expand(int);
-	void	copyFrom(const Clist&);
+	void	copyFrom(const ClistSet&);
 
 	// list traversal methods
 	int	suc(index) const;
@@ -52,7 +52,7 @@ private:
  *  @param i is an index
  *  @return the index that follows i in its list
  */
-inline index Clist::suc(index i) const {
+inline index ClistSet::suc(index i) const {
 	assert(0 <= i && i <= n()); return node[i].next;
 }
 
@@ -60,7 +60,7 @@ inline index Clist::suc(index i) const {
  *  @param i is an index
  *  @return the index that precedes i in its list
  */
-inline index Clist::pred(index i) const {
+inline index ClistSet::pred(index i) const {
 	assert(0 <= i && i <= n()); return node[i].prev;
 }
 

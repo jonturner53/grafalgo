@@ -1,31 +1,31 @@
-/** @file Rlist.cpp
+/** @file RlistSet.cpp
  *
  *  @author Jon Turner
  *  @date 2011
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-#include "Rlist.h"
+#include "RlistSet.h"
 
 namespace grafalgo {
 
-/** Constructor for Rlist class.
+/** Constructor for RlistSet class.
  *  @param nn defines the set of integers 1..nn on which the lists are defined.
  */
-Rlist::Rlist(int nn) : Adt(nn) { makeSpace(n()); }
+RlistSet::RlistSet(int nn) : Adt(nn) { makeSpace(n()); }
 
-/** Destructor for Rlist class. */
-Rlist::~Rlist() { freeSpace(); }
+/** Destructor for RlistSet class. */
+RlistSet::~RlistSet() { freeSpace(); }
 
 /** Allocate and initialize space for list.
  *  @param size is number of index values to provide space for
  */
-void Rlist::makeSpace(int size) {
+void RlistSet::makeSpace(int size) {
 	try {
 		node = new ListNode[size+1]; canon = new bool[size+1];
 	} catch (std::bad_alloc e) {
 		stringstream ss;
-		ss << "Rlist::makeSpace: insufficient space for "
+		ss << "RlistSet::makeSpace: insufficient space for "
 		   << size << "index values";
 		string s = ss.str();
 		throw OutOfSpaceException(s);
@@ -34,39 +34,39 @@ void Rlist::makeSpace(int size) {
 }
 
 /** Free dynamic storage used by list. */
-void Rlist::freeSpace() { delete [] node; }
+void RlistSet::freeSpace() { delete [] node; }
 
-/** Resize a Rlist object.
+/** Resize a RlistSet object.
  *  The old value is discarded.
  *  @param size is the size of the resized object.
  */
-void Rlist::resize(int size) {
+void RlistSet::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "Rlist::resize:" + e.toString(s);
+		string s; s = "RlistSet::resize:" + e.toString(s);
 		throw OutOfSpaceException(s);
 	}
 }
 
-/** Expand the space available for this Rlist.
+/** Expand the space available for this RlistSet.
  *  Rebuilds old value in new space.
  *  @param size is the size of the resized object.
  */
-void Rlist::expand(int size) {
+void RlistSet::expand(int size) {
 	if (size <= n()) return;
-	Rlist old(this->n()); old.copyFrom(*this);
+	RlistSet old(this->n()); old.copyFrom(*this);
 	resize(size); this->copyFrom(old);
 }
 
 /** Return all elements into singleton lists. */
-void Rlist::clear() {
+void RlistSet::clear() {
 	for (index x = 0; x <= n(); x++) {
 		node[x].p1 = node[x].p2 = x; canon[x] = true;
 	}
 }
 
 /** Copy into list from source. */
-void Rlist::copyFrom(const Rlist& source) {
+void RlistSet::copyFrom(const RlistSet& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
 	else clear();
@@ -83,7 +83,7 @@ void Rlist::copyFrom(const Rlist& source) {
  *  @param t is the index of the canonical element of some list
  *  @return the last index of the canonical element of the modified list
  */
-index Rlist::pop(index t) {
+index RlistSet::pop(index t) {
 	index h = first(t);
 	if (h == t) return h;
 	index nuHead = suc(h,t);
@@ -102,7 +102,7 @@ index Rlist::pop(index t) {
  *  @return the index of the canonical item of the list formed by appending
  *  the second list to the end of the first
  */
-index Rlist::join(index t1, index t2) {
+index RlistSet::join(index t1, index t2) {
 	if (t1 == 0) return t2;
 	else if (t2 == 0 || t2 == t1) return t1;
 
@@ -122,7 +122,7 @@ index Rlist::join(index t1, index t2) {
  *  @return the index of the canonical item on the list obtained by
  *  reversing the original list.
  */
-index Rlist::reverse(index t) {
+index RlistSet::reverse(index t) {
 	index h = first(t);
 	if (t == 0 || h == t) return t;
 	if (t == node[h].p2) node[h].p2 = node[h].p1;
@@ -136,7 +136,7 @@ index Rlist::reverse(index t) {
  *  @param s is the string in which the result is returned
  *  @return a reference to s
  */
-string& Rlist::toString(string& s) const {
+string& RlistSet::toString(string& s) const {
 	s = "";
 	for (index x = 1; x <= n(); x++) {
 		if (canon[x] && first(x) != x) {
@@ -151,7 +151,7 @@ string& Rlist::toString(string& s) const {
  *  @param s is the string in which the result is returned
  *  @return a reference to s
  */
-string& Rlist::toString(index t, string& s) const {
+string& RlistSet::toString(index t, string& s) const {
 	index h = first(t);
 	s = "[ "; string s1;
 	if (t == 0) s += "-";
