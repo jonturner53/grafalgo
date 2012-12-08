@@ -46,6 +46,7 @@ void Wdigraph::freeSpace() { delete [] len; }
  */
 void Wdigraph::resize(int numv, int maxe) {
 	freeSpace();
+	Digraph::resize(numv,maxe);
 	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
 		string s; s = "Wdigraph::resize:" + e.toString(s);
 		throw OutOfSpaceException(s);

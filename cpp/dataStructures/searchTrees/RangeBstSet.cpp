@@ -1,4 +1,4 @@
-/** @file IntervalSets.cpp
+/** @file RangeBstSet.cpp
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 #include "stdinc.h"
-#include "IntervalSets.h"
+#include "RangeBstSet.h"
 
 #define left(x) vec[x].lchild
 #define right(x) vec[x].rchild
@@ -15,7 +15,7 @@
 #define hi(x) vec[x].hival
 
 // The partition is defined on {1,...,N}.
-IntervalSets::IntervalSets(int N) {
+RangeBstSet::RangeBstSet(int N) {
 	n = N; vec = new spnode[n+1];
 	for (item i = 1; i <= n; i++) {
 		left(i) = i+1;
@@ -26,16 +26,16 @@ IntervalSets::IntervalSets(int N) {
 	lo(0) = hi(0) = 0;
 }
 
-IntervalSets::~IntervalSets() { delete [] vec; }
+RangeBstSet::~RangeBstSet() { delete [] vec; }
 
 // Splay at item i. Return root of resulting tree.
-item IntervalSets::splay(item x) {
+item RangeBstSet::splay(item x) {
 	while (p(x) != Null) splaystep(x);
 	return x;
 }
 
 // Perform a single splay step at x.
-void IntervalSets::splaystep(item x) {
+void RangeBstSet::splaystep(item x) {
 	item y = p(x);
 	if (y == Null) return;
 	item z = p(y);
@@ -48,7 +48,7 @@ void IntervalSets::splaystep(item x) {
 }
 
 // Left rotation.
-void IntervalSets::lrotate(item y) {
+void RangeBstSet::lrotate(item y) {
 	item x = right(y);
 	if (x == Null) return;
 	p(x) = p(y);
@@ -59,7 +59,7 @@ void IntervalSets::lrotate(item y) {
 }
 
 // Right rotation.
-void IntervalSets::rrotate(item y) {
+void RangeBstSet::rrotate(item y) {
 	item x = left(y);
 	if (x == Null) return;
 	p(x) = p(y);
@@ -70,7 +70,7 @@ void IntervalSets::rrotate(item y) {
 }
 
 // Splay at node containing i or one of its neighbors if i not in set.
-iset IntervalSets::find(int i, iset s) {
+iset RangeBstSet::find(int i, iset s) {
 	if (s == Null) return Null;
 	while (1) {
 		     if (i < lo(s) &&  left(s) != Null) s = left(s);
@@ -81,21 +81,21 @@ iset IntervalSets::find(int i, iset s) {
 }
 
 // Splay at node containing smallest integer in set.
-iset IntervalSets::min( iset s) {
+iset RangeBstSet::min( iset s) {
 	if (s == Null) return Null;
 	while (left(s) != Null) s = left(s);
 	return splay(s);
 }
 
 // Splay at node containing largest integer in set.
-iset IntervalSets::max(iset s) {
+iset RangeBstSet::max(iset s) {
 	if (s == Null) return Null;
 	while (right(s) != Null) s = right(s);
 	return splay(s);
 }
 
 // Recover the nodes in s.
-void IntervalSets::recover(iset s) {
+void RangeBstSet::recover(iset s) {
 	if (s != Null) {
 		recover(left(s)); recover(right(s));
 		left(s) = free; free = s;
@@ -103,7 +103,7 @@ void IntervalSets::recover(iset s) {
 }
 
 // Return the largest interval containing i or an empty inteval.
-interval IntervalSets::search(int i, iset s) {
+interval RangeBstSet::search(int i, iset s) {
 	interval p;
 	s = find(i,s);
 	if (s != Null && lo(s) <= i && i <= hi(s)) {
@@ -115,14 +115,14 @@ interval IntervalSets::search(int i, iset s) {
 }
 
 // Insert interval [i,j] into set s.
-iset IntervalSets::insert(int i, int j, iset s) {
+iset RangeBstSet::insert(int i, int j, iset s) {
 	s = remove(i,j,s);
 	ispair sp = split(i,s);
 	return join(sp.s1,i,j,sp.s2);
 }
 
 // Remove interval [i,j] from set s.
-iset IntervalSets::remove(int i, int j, iset s) {
+iset RangeBstSet::remove(int i, int j, iset s) {
 	ispair sp = split(i,s);
 	s = max(sp.s1);
 	sp = split(j,sp.s2);
@@ -133,7 +133,7 @@ iset IntervalSets::remove(int i, int j, iset s) {
 
 // Return the set formed by joining s1, the interval [i,j] and s2.
 // It is assumed that i > max(s1) and j < min(s2).
-iset IntervalSets::join(iset s1, int i, int j, iset s2) {
+iset RangeBstSet::join(iset s1, int i, int j, iset s2) {
 	s1 = max(s1); s2 = min(s2);
 	if (hi(s1) >= i || lo(s2) <= j) fatal("join: overlapping sets");
 	if (hi(s1) == i-1 && lo(s2) > j+1) {
@@ -154,7 +154,7 @@ iset IntervalSets::join(iset s1, int i, int j, iset s2) {
 
 // Split s on i, yielding two sets, s1 containing integers smaller than i
 // and s2 with keys larger than i. Return the pair [s1,s2]
-ispair IntervalSets::split(int i, iset s) {
+ispair RangeBstSet::split(int i, iset s) {
 	ispair sp;
 	s = find(i,s);
 	if (hi(s) < i) {
@@ -188,21 +188,21 @@ ispair IntervalSets::split(int i, iset s) {
 }
 
 // Print the contents of all the sets in the collection
-void IntervalSets::print() {
+void RangeBstSet::print() {
 	for (iset i = 1; i <= n; i++) {
 		if (p(i) == Null) { sprint(i); putchar('\n'); }
 	}
 }
 
 // Print the contents of the set s.
-void IntervalSets::sprint(iset s) {
+void RangeBstSet::sprint(iset s) {
 	if (s == Null) return;
 	printf("(%d,%d-%d) ",s,lo(s),hi(s));
 	sprint(left(s)); sprint(right(s));
 }
 
 // Print the set s in in-order; j is the depth of i
-void IntervalSets::tprint(iset s, int j) {
+void RangeBstSet::tprint(iset s, int j) {
 	const int MAXDEPTH = 20;
 	static char tabstring[] = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 	if (s == Null) return;

@@ -1,11 +1,11 @@
-/** @file DualKeyBsts.cpp
+/** @file DkBstSet.cpp
  *
  *  @author Jon Turner
  *  @date 2011
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-#include "DualKeyBsts.h"
+#include "DkBstSet.h"
 
 #define left(x) node[x].left
 #define right(x) node[x].right
@@ -14,22 +14,22 @@
 #define dmin(x) dmin[x]
 #define dkey(x) dkey[x]
 
-/** Constructor for DualKeyBsts class.
+/** Constructor for DkBstSet class.
  *  @param N is the number of vertices in the constructed object
  */
-DualKeyBsts::DualKeyBsts(int N) : SelfAdjBsts(N) { 
+DkBstSet::DkBstSet(int N) : SelfAdjBsts(N) { 
 	dmin = new keytyp[N+1]; dkey = new keytyp[N+1];
 	for (int i = 0; i <= N; i++) dmin(i) = dkey(i) = 0; 
 } 
 
-/** Destructor for DualKeyBsts class. */
-DualKeyBsts::~DualKeyBsts() { delete [] dmin; delete [] dkey; }
+/** Destructor for DkBstSet class. */
+DkBstSet::~DkBstSet() { delete [] dmin; delete [] dkey; }
 
 /** Get the value of the second key of an item.
  *  @param i is an item in a search tree
  *  @return the value of the second key at i
  */
-keytyp DualKeyBsts::key2(item i) {
+keytyp DkBstSet::key2(item i) {
 	assert(1 <= i && i <= n);
 	splay(i);
 	return dmin(i) + dkey(i);
@@ -40,7 +40,7 @@ keytyp DualKeyBsts::key2(item i) {
  *  @param s is the canonical element of some set
  *  @return the item with smallest key1 value in s
  */
-item DualKeyBsts::first(sset s) const {
+item DkBstSet::first(sset s) const {
 	while (left(s) != 0) s = left(s);
 	return s;
 }
@@ -50,7 +50,7 @@ item DualKeyBsts::first(sset s) const {
  *  @param i is an item in some set
  *  @return the item with largest key1 value in the set
  */
-item DualKeyBsts::next(item i) const {
+item DkBstSet::next(item i) const {
 	if (right(i) != 0) {
 		for (i = right(i); left(i) != 0; i = left(i)) {}
 	} else {
@@ -65,7 +65,7 @@ item DualKeyBsts::next(item i) const {
  *  a rotation at the parent of x, moving x up into its parent's place
  */
 // moving x up to take its parent's place.
-void DualKeyBsts::rotate(item x) {
+void DkBstSet::rotate(item x) {
 	item y = p(x); if (y == 0) return;
 	item a, b, c;
 	if (x == left(y)) { a = left(x);  b = right(x); c = right(y); }
@@ -92,7 +92,7 @@ void DualKeyBsts::rotate(item x) {
  *  @return the item in the set that has k as its key1 value, or 0 if there
  *  is no such element
  */
-item DualKeyBsts::access(keytyp k, sset s)  {
+item DkBstSet::access(keytyp k, sset s)  {
 	assert (0 <= s && s <= n);
 	item v = 0;
 	while (true) {
@@ -114,7 +114,7 @@ item DualKeyBsts::access(keytyp k, sset s)  {
  *  @param s is the canonical element of some set
  *  @return the new set that results from adding i to s
  */
-item DualKeyBsts::insert(item i, sset s) {
+item DkBstSet::insert(item i, sset s) {
 	assert (1 <= i && i <= n && 1 <= s && s <= n && i != s);
 	assert (left(0) == 0 && right(0) == 0 && p(0) == 0);
 	sset x = s; keytyp key2i = dmin(i);
@@ -127,7 +127,7 @@ item DualKeyBsts::insert(item i, sset s) {
 	}
 	     if (kee1(i) < kee1(x))  left(x) = i;
 	else if (kee1(i) > kee1(x)) right(x) = i;
-	else fatal("DualKeyBsts::insert: inserting item with duplicate key");
+	else fatal("DkBstSet::insert: inserting item with duplicate key");
 	p(i) = x;
 	splay(i); // note: apparent key value of i is >= that of any node on
 		  // path back to root; this ensures correct dmin, dkey values
@@ -149,7 +149,7 @@ item DualKeyBsts::insert(item i, sset s) {
  *  @return the canonical element of the new set that results from removing
  *  i from s
  */
-item DualKeyBsts::remove(item i, sset s) {
+item DkBstSet::remove(item i, sset s) {
 	assert(1 <= i && i <= n && 1 <= s && s <= n);
 	assert (left(0) == 0 && right(0) == 0 && p(0) == 0);
 
@@ -195,7 +195,7 @@ item DualKeyBsts::remove(item i, sset s) {
  *  and smaller than that of any item in s2
  *  @return the new set formed by combining s1, i and s2
  */
-sset DualKeyBsts::join(sset s1, item i, sset s2) {
+sset DkBstSet::join(sset s1, item i, sset s2) {
 	SelfAdjBsts::join(s1,i,s2);
 	keytyp key2i = dmin(i) + dkey(i);
 	if (s1 != 0) dmin(i) = min(dmin(i),dmin(s1));
@@ -213,7 +213,7 @@ sset DualKeyBsts::join(sset s1, item i, sset s2) {
  *  s1,i and s2, where the keys of the items in s1 are smaller than the key
  *  of i and keys of items in s2 are larger than the key of i
  */
-setPair DualKeyBsts::split(item i, sset s) {
+setPair DkBstSet::split(item i, sset s) {
 	setPair pair = SelfAdjBsts::split(i,s);
 	if (pair.s1 != 0) dmin(pair.s1) += dmin(i);
 	if (pair.s2 != 0) dmin(pair.s2) += dmin(i);
@@ -226,7 +226,7 @@ setPair DualKeyBsts::split(item i, sset s) {
  *  @param s is a string in which the result is returned
  *  @return a reference to s
  */
-string& DualKeyBsts::item2string(item i, string& s) const {
+string& DkBstSet::item2string(item i, string& s) const {
 	string s1;
 	s = "";
 	if (i == 0) return s;

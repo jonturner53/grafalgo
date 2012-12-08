@@ -1,4 +1,4 @@
-/** @file DualKeyBsts.h
+/** @file DkBstSet.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef DKST_H
-#define DKST_H
+#ifndef DKBSTSET_H
+#define DKBSTSET_H
 
 #include "SelfAdjBsts.h"
 
@@ -15,26 +15,26 @@
  *  nodes have two different keys. The first key is used to order the
  *  BST nodes in the usual way.
  */
-class DualKeyBsts : public SelfAdjBsts {
-public: 	DualKeyBsts(int);
-		~DualKeyBsts();
+class DkBstSet : public SaBstSet {
+public: 	DkBstSet(int);
+		~DkBstSet();
 	static	const int MAX2 = BIGINT-1;  ///< maximum allowed key2 value
 
 	// access methods
 	keytyp	key1(item);		   
 	keytyp	key2(item);		  
-	item	first(sset) const;	 
+	item	first(bst) const;	 
 	item	next(item) const;	
-	item	access(keytyp,sset);
-	keytyp	min2(sset);		
+	item	access(keytyp,bst);
+	keytyp	min2(bst);		
 
 	// modifiers
 	void	setkey(item,keytyp,keytyp); 
-	void	change2(keytyp,sset); 
-	sset	insert(item,sset);
-	sset	remove(item,sset);	  
-	sset	join(sset,item,sset);	 
-	setPair	split(item,sset);	
+	void	change2(keytyp,bst); 
+	bst	insert(item,bst);
+	bst	remove(item,bst);	  
+	bst	join(bst,item,bst);	 
+	setPair	split(item,bst);	
 
 	// string representations
 	virtual string& item2string(item, string&) const;
@@ -47,7 +47,7 @@ private:
 /** Set key values of a node
  *  @param i is an isolated node (that is, it's a single node BST)
  */
-void inline DualKeyBsts::setkey(item i,keytyp k1,keytyp k2) {
+void inline DkBstSet::setkey(item i,keytyp k1,keytyp k2) {
 	assert(0 <= i && i <= n && k2 <= MAX2);
 	assert(node[i].p == 0 && node[i].left == 0 && node[i].right == 0);
 	node[i].kee = k1; dmin[i] = k2; dkey[i] = 0;
@@ -57,7 +57,7 @@ void inline DualKeyBsts::setkey(item i,keytyp k1,keytyp k2) {
  *  @param i is a node in a BST
  *  @return the value of the first key of i
  */
-keytyp inline DualKeyBsts::key1(item i) {
+keytyp inline DkBstSet::key1(item i) {
 	assert(1 <= i && i <= n);
 	return node[i].kee;
 }
@@ -66,7 +66,7 @@ keytyp inline DualKeyBsts::key1(item i) {
  *  @param s is a canonical element of some set (root of the BST)
  *  @return the smallest key2 value for any element in the set
  */
-keytyp inline DualKeyBsts::min2(sset s) {
+keytyp inline DkBstSet::min2(bst s) {
 	assert(1 <= s && s <= n);
 	return dmin[s];
 }
@@ -76,7 +76,7 @@ keytyp inline DualKeyBsts::min2(sset s) {
  *  @param s is a canonical element of some set (root of the BST);
  *  the opertion adds diff to all the key2 values in s
  */
-void inline DualKeyBsts::change2(keytyp diff, sset s) {
+void inline DkBstSet::change2(keytyp diff, bst s) {
 	assert(1 <= s && s <= n);
 	dmin[s] += diff;
 }

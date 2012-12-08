@@ -52,6 +52,7 @@ void Mflograph::freeSpace() { delete [] mflo; }
  */
 void Mflograph::resize(int numv, int maxe) {
 	freeSpace();
+	Flograph::resize(numv,maxe);
 	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
 		string s; s = "Mflograph::resize:" + e.toString(s);
 		throw OutOfSpaceException(s);

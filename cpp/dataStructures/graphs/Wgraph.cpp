@@ -48,6 +48,7 @@ void Wgraph::freeSpace() { delete [] wt; }
  */
 void Wgraph::resize(int numv, int maxe) {
 	freeSpace();
+	Graph::resize(numv,maxe);
 	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
 		string s; s = "Wgraph::resize:" + e.toString(s);
 		throw OutOfSpaceException(s);

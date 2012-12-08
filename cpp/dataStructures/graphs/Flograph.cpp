@@ -53,6 +53,7 @@ void Flograph::freeSpace() { delete [] floInfo; }
  */
 void Flograph::resize(int numv, int maxe) {
 	freeSpace();
+	Digraph::resize(numv,maxe);
 	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
 		string s; s = "Flograph::resize:" + e.toString(s);
 		throw OutOfSpaceException(s);

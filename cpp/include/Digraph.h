@@ -42,7 +42,6 @@ public:		Digraph(int=26,int=50);
         edge    firstOut(vertex) const; 
         edge    nextOut(vertex,edge) const;
 
-	virtual edge join(vertex,vertex);
 	virtual edge joinWith(vertex,vertex,edge);
 
         void    rgraph(int,int);    

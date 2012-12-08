@@ -1,23 +1,25 @@
 IDIR = ../../include
 LDIR = ../../lib
 LIB = ${LDIR}/lib-ds.a
-CXXFLAGS = -O2 -m64 -I ${IDIR}
+CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 -I ${IDIR}
+
+OFILES = BstSet.o BalBstSet.o SaBstSet.o DkBstSet.o StaircaseFunc.o
+
 .cpp.o:
 	${CXX} ${CXXFLAGS} -c $<
 
-SortedSets.o : ${IDIR}/stdinc.h ${IDIR}/SortedSets.h
-BalancedBsts.o : ${IDIR}/stdinc.h ${IDIR}/BalancedBsts.h
-SelfAdjBsts.o :  ${IDIR}/stdinc.h ${IDIR}/SelfAdjBsts.h \
-		 ${IDIR}/SortedSets.h
-DualKeyBsts.o :  ${IDIR}/stdinc.h ${IDIR}/DualKeyBsts.h \
-		 ${IDIR}/SelfAdjBsts.h ${IDIR}/SortedSets.h
+BstSet.o : ${IDIR}/stdinc.h ${IDIR}/BstSet.h
+BalBstSet.o : ${IDIR}/stdinc.h ${IDIR}/BalBstSet.h
+SaBstSet.o :  ${IDIR}/stdinc.h ${IDIR}/SaBstSet.h \
+		 ${IDIR}/BstSet.h
+DkBstSet.o :  ${IDIR}/stdinc.h ${IDIR}/DkBstSet.h \
+		 ${IDIR}/SaBstSet.h ${IDIR}/BstSet.h
 StaircaseFunc.o : ${IDIR}/stdinc.h ${IDIR}/StaircaseFunc.h \
-		  ${IDIR}/DualKeyBsts.h ${IDIR}/SelfAdjBsts.h \
-	  	  ${IDIR}/SortedSets.h
+		  ${IDIR}/DkBstSet.h ${IDIR}/SaBstSet.h \
+	  	  ${IDIR}/BstSet.h
 
-all:	SortedSets.o BalancedBsts.o SelfAdjBsts.o DualKeyBsts.o StaircaseFunc.o
-	ar -ru ${LIB} SortedSets.o BalancedBsts.o SelfAdjBsts.o DualKeyBsts.o \
-	StaircaseFunc.o
+all:	$(OFILES)
+	ar -ru ${LIB} $(OFILES)
 
 clean:
 	rm -f *.o

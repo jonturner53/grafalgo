@@ -1,31 +1,31 @@
-/** @file SelfAdjBsts.cpp
+/** @file SaBstSet.cpp
  *
  *  @author Jon Turner
  *  @date 2011
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-#include "SelfAdjBsts.h"
+#include "SaBstSet.h"
 
 #define left(x) node[x].left
 #define right(x) node[x].right
 #define p(x) node[x].p
 #define kee(x) node[x].kee
 
-/** Constructor for SelfAdjBsts class.
+/** Constructor for SaBstSet class.
  *  @param N is the number of nodes in the constructed object
  */
-SelfAdjBsts::SelfAdjBsts(int N) : SortedSets(N) { }
+SaBstSet::SaBstSet(int N) : SortedSets(N) { }
 
-/** Destructor for SelfAdjBsts class. */
-SelfAdjBsts::~SelfAdjBsts() { }
+/** Destructor for SaBstSet class. */
+SaBstSet::~SaBstSet() { }
 
 /** Splay a search tree.
  *  @param x is an item in a set (equivalently, node in a search tree);
  *  the operation restructures the tree, moving x to the root
  *  @return the canonical element of the set following the restructuring
  */
-item SelfAdjBsts::splay(item x) {
+item SaBstSet::splay(item x) {
 	while (p(x) != 0) splaystep(x);
 	return x;
 }
@@ -33,7 +33,7 @@ item SelfAdjBsts::splay(item x) {
 /** Perform a single splay step.
  *  @param x is a node in a search tree
  */
-void SelfAdjBsts::splaystep(item x) {
+void SaBstSet::splaystep(item x) {
 	item y = p(x);
 	if (y == 0) return;
 	item z = p(y);
@@ -52,7 +52,7 @@ void SelfAdjBsts::splaystep(item x) {
  *  the operation restructures the tree possibly changing the canonical
  *  element
  */
-sset SelfAdjBsts::find(item i) { return splay(i); }
+sset SaBstSet::find(item i) { return splay(i); }
 
 /** Get the item with a specified key value.
  *  @param k is a key value
@@ -61,7 +61,7 @@ sset SelfAdjBsts::find(item i) { return splay(i); }
  *  @return the item in the tree with the specified key, or 0 if
  *  no item has that key
  */
-item SelfAdjBsts::access(keytyp k, sset& s) {
+item SaBstSet::access(keytyp k, sset& s) {
 	assert (0 <= s && s <= n);
 	item x = s;
 	while (true) {
@@ -79,7 +79,7 @@ item SelfAdjBsts::access(keytyp k, sset& s) {
  *  if the operation changes the canonical element, s is changed
  *  @return true on success, false on failure
  */
-bool SelfAdjBsts::insert(item i, sset& s) {
+bool SaBstSet::insert(item i, sset& s) {
 	if (s == 0) { s = i; return true; }
 	item x = s;
         while (1) {
@@ -101,7 +101,7 @@ bool SelfAdjBsts::insert(item i, sset& s) {
  *  @return the canonical element of the set that results from removing i
  *  from s
  */
-void SelfAdjBsts::remove(item i, sset& s) {
+void SaBstSet::remove(item i, sset& s) {
 	assert(1 <= i && i <= n && 1 <= s && s <= n);
         item j;
         if (left(i) != 0 && right(i) != 0) {
@@ -129,7 +129,7 @@ void SelfAdjBsts::remove(item i, sset& s) {
  *  parts; s1 (containing ityems with keys smaller than that of i), i itself,
  *  and s2 (contining items with keys larger than that of i)
  */
-setPair SelfAdjBsts::split(item i, sset s) {
+setPair SaBstSet::split(item i, sset s) {
 	assert(1 <= i && i <= n && 1 <= s && s <= n);
 	setPair pair;
 	splay(i);

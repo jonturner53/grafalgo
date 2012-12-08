@@ -48,6 +48,7 @@ void Digraph::freeSpace() { delete [] fi; }
  */
 void Digraph::resize(int numv, int maxe) {
 	freeSpace();
+	Graph::resize(numv,maxe);
 	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
 		string s; s = "Digraph::resize:" + e.toString(s);
 		throw OutOfSpaceException(s);
@@ -63,23 +64,6 @@ void Digraph::expand(int numv, int maxe) {
 	Digraph old(this->n(),this->maxEdge); old.copyFrom(*this);
 	resize(numv,maxe); this->copyFrom(old);
 }
-
-/** Copy into Digraph from source. */
-void Digraph::copyFrom(const Digraph& source) {
-	if (&source == this) return;
-	if (source.n() > n()) resize(source.n());
-	else clear();
-	for (edge e = source.first(); e != 0; e = source.next(e))
-		join(source.left(e),source.right(e));
-        sortAdjLists();
-}
-
-/** Join two vertices with an edge.
- *  @param u is the tail of the new edge
- *  @param v is the head of the new edge
- *  @return the edge number for the new edge, or 0 on failure
- */
-edge Digraph::join(vertex u, vertex v) { return Graph::join(u,v); }
 
 /** Join two vertices with a specific edge.
  *  @param u is the tail of the new edge

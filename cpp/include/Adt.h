@@ -62,7 +62,7 @@ public:
 
 	// input/output
 	static bool readItem(istream&, index&);
-	string& item2string(index, string&) const;
+	virtual	string& item2string(index, string&) const;
 	virtual string& toString(string&) const = 0;
 	friend ostream& operator<<(ostream& out, Adt& a) {
 		string s; return out << a.toString(s);

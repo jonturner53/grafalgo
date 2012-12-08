@@ -12,7 +12,7 @@
 #include "Adt.h"
 #include "Util.h"
 #include "List.h"
-#include "Clist.h"
+#include "ClistSet.h"
 #include "SetPair.h"
 #include "HashSet.h"
 #include "Dheap.h"
@@ -107,7 +107,7 @@ protected:
 
 	SetPair *edges;			///< sets of in-use and free edges
 
-	Clist	*adjLists;		///< collection of edge adjacency lists
+	ClistSet *adjLists;		///< set of edge adjacency lists
 					///< each "edge endpoint" appears
 					///< on one list; the endpoints
 					///< for edge e are 2e and 2e+1

@@ -52,6 +52,7 @@ void Wflograph::freeSpace() { delete [] cst; }
  */
 void Wflograph::resize(int numv, int maxe) {
 	freeSpace();
+	Flograph::resize(numv,maxe);
 	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
 		string s; s = "Wflograph::resize:" + e.toString(s);
 		throw OutOfSpaceException(s);
