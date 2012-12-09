@@ -2,6 +2,9 @@
 #include "TreeMap.h"
 #include "Util.h"
 
+using namespace grafalgo;
+using namespace std;
+
 void basicTests() {
 	int n = 13; string s;
 	TreeMap map(n);
@@ -19,7 +22,7 @@ void basicTests() {
 	cout << endl;
 	cout << "changing values in key order\n";
 	for (int i = 1; i <= n; i++) {
-		map.put(i,randint(n+1,5*n));
+		map.put(i,Util::randint(n+1,5*n));
 		cout << map.toString(s) << endl;
 	}
 	cout << "getting in key order\n";
@@ -36,6 +39,6 @@ void basicTests() {
 }
 
 
-main() {
+int main() {
 	basicTests();
 }

@@ -1,4 +1,4 @@
-/** @file Pathset.h
+/** @file PathSet.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -13,50 +13,69 @@
 #define PATHSET_H
 
 #include "stdinc.h"
+#include "Adt.h"
 #include "Util.h"
 
+namespace grafalgo {
+
 typedef int path;		// path
-typedef int node;		// node in path
 typedef int cost;
-struct PathCostPair { node s; cost c;};	// pair returned by findpathcost
-struct PathPair { path s1, s2;};	// pair returned by split
 
 /** Data structure that represents a collection of paths.
- *  Paths are defined on nodes numbered 1..n where n is specified when
- *  the object is constructed.  Each path has a "canonical element" which
+ *  Paths are defined on nodes identified by index values.
+ *  Each path has a "canonical element" which
  *  serves to represent the path in method calls. Internally, paths are
  *  represented as binary search trees and the roots of the BSTs serve
  *  as the canonical elements. Note that the canonical element of a tree
  *  may change if method calls restructure the underlying tree.
  */
-class Pathset {
-public: 	Pathset(int);
-		~Pathset();
+class PathSet : public Adt {
+public: 	PathSet(int);
+		~PathSet();
 
-	path	findpath(node);		
-	node	findtail(path);	
+	struct PathCostPair {
+		index x; cost c;
+		PathCostPair(index xx, cost cc) : x(xx), c(cc) {}
+	}; 
+	struct PathPair {
+		path p1, p2;
+		PathPair(path pp1, path pp2) : p1(pp2), p2(pp2) {}
+	}; 
+
+	// common methods
+	void	clear();
+	void	resize(int);
+	void	expand(int);
+	void	copyFrom(const PathSet&);
+
+	path	findpath(index);		
+	index	findtail(path);	
 	PathCostPair findpathcost(path); 
-	node	findtreeroot(node);	
-	cost	nodeCost(node) const;
+	index	findtreeroot(index);	
+	cost	nodeCost(index) const;
 
 	void	addpathcost(path,cost);
-	path	join(path,node,path);
-	PathPair split(node);	
+	path	join(path,index,path);
+	PathPair split(index);	
 
 	string& path2string(path, string&) const;
 	string& pathTree2string(path, string&) const;
 	string& toString(string&) const;
 protected:
-	int	n;			///< Pathset defined on {1,...,n}
 	struct PathNode {
-	node	left, right, p;		// /<left child, right child, parent
+	index	left, right, p;		// /<left child, right child, parent
 	cost	dcost, dmin;		// /<delta cost and delta min
 	};
 	PathNode *pnode;		///< pnode[u] contains info for node u
 
-	node	splay(node);
-	void	splaystep(node);
-	void	rotate(node);
+	index	splay(index);
+	void	splaystep(index);
+	void	rotate(index);
+
+	void	makeSpace(int);
+	void	freeSpace();
 };
+
+} // ends namespace
 
 #endif

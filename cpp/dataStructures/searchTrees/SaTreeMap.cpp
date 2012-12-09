@@ -8,29 +8,77 @@
 
 #include "SaTreeMap.h"
 
-/** Constructor for SaTreeMap, allocates space and initializes map.
- *  N1 is the max number of key-value pairs that can be stored.
- */
-SaTreeMap::SaTreeMap(int n1) : n(n1) {
-	st = new SelfAdjBsts(n);
-	values = new uint32_t[n+1];
-	nodes = new UiSetPair(n);
-	root = 0;
+namespace grafalgo {
 
-	clear();
-};
-	
-/** Destructor for SaTreeMap. */
-SaTreeMap::~SaTreeMap() {
+/** Constructor for SaTreeMap class.
+ *  @param size defines the index range for the constructed object.
+ */
+SaTreeMap::SaTreeMap(int size) : Adt(size) {
+	makeSpace(size);
+}
+
+/** Destructor for SaTreeMap class. */
+SaTreeMap::~SaTreeMap() { freeSpace(); }
+
+/** Allocate and initialize space for SaTreeMap.
+ *  @param size is number of index values to provide space for
+ */
+void SaTreeMap::makeSpace(int size) {
+	try {
+		st = new SaBstSet(size);
+		values = new uint32_t[size+1];
+		nodes = new SetPair(size);
+	} catch (std::bad_alloc e) {
+		stringstream ss;
+		ss << "makeSpace:: insufficient space for "
+		   << size << "index values";
+		string s = ss.str();
+		throw OutOfSpaceException(s);
+	}
+	root = 0; nn = size; clear();
+}
+
+/** Free dynamic storage used by SaTreeMap. */
+void SaTreeMap::freeSpace() {
 	delete st; delete [] values; delete nodes;
 }
 
-/** Clear the TreeMap contents. */
-// could speed this up with a post-order traversal
-// but would really need to do this in the search tree object
+/** Reinitialize data structure, creating single node trees. */
 void SaTreeMap::clear() {
-	while (root != 0) {
-		nodes->swap(root); st->remove(root,root);
+	while (root != 0) remove(st->key(root));
+}
+
+/** Resize a SaTreeMap object, discarding old value.
+ *  @param size is the size of the resized object.
+ */
+void SaTreeMap::resize(int size) {
+	freeSpace();
+	try { makeSpace(size); } catch(OutOfSpaceException e) {
+		string s; s = "SaTreeMap::resize::" + e.toString(s);
+		throw OutOfSpaceException(s);
+	}
+}
+
+/** Expand the space available for this ojbect.
+ *  Rebuilds old value in new space.
+ *  @param size is the size of the expanded object.
+ */
+void SaTreeMap::expand(int size) {
+	if (size <= n()) return;
+	SaTreeMap old(this->n()); old.copyFrom(*this);
+	resize(size); this->copyFrom(old);
+}
+/** Copy another object to this one.
+ *  @param source is object to be copied to this one
+ */
+void SaTreeMap::copyFrom(const SaTreeMap& source) {
+	if (&source == this) return;
+	if (source.n() > n()) resize(source.n());
+	else clear();
+
+	for (index x = source.nodes->firstIn(); x != 0;
+		   x = source.nodes->nextIn(x)) {
+		put(source.st->key(x),source.values[x]);
 	}
 }
 
@@ -40,7 +88,7 @@ void SaTreeMap::clear() {
  */
 int SaTreeMap::get(keytyp key) {
 	if (root == 0) return UNDEF_VAL;
-	item x = st->access(key,root);
+	index x = st->access(key,root);
 	if (x == 0) return UNDEF_VAL;
 	return values[x];
 }
@@ -53,7 +101,7 @@ int SaTreeMap::get(keytyp key) {
  *  @return true on success, false on failure.
  */
 bool SaTreeMap::put(uint64_t key, uint32_t val) {
-	item x;
+	index x;
 	if (root == 0 || (x = st->access(key,root)) == 0) {
 		x = nodes->firstOut();
 		if (x == 0) return false;
@@ -70,10 +118,9 @@ bool SaTreeMap::put(uint64_t key, uint32_t val) {
  *  @param key is the key of the pair to be removed
  */
 void SaTreeMap::remove(uint64_t key) {
-	item x;
+	index x;
 	if (root != 0 && (x = st->access(key,root)) != 0) {
-		st->remove(x,root);
-		nodes->swap(x);
+		st->remove(x,root); nodes->swap(x);
 	}
 	return;
 }
@@ -84,9 +131,11 @@ void SaTreeMap::remove(uint64_t key) {
  */
 string& SaTreeMap::toString(string& s) const {
 	stringstream ss;
-	for (item u = nodes->firstIn(); u != 0; u = nodes->nextIn(u)) {
+	for (index u = nodes->firstIn(); u != 0; u = nodes->nextIn(u)) {
 		ss << " " << st->key(u) << "," << values[u];
 	}
 	s = ss.str();
 	return s;
 }
+
+} // ends namespace

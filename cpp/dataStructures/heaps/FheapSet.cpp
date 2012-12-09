@@ -31,7 +31,7 @@ FheapSet::~FheapSet() { freeSpace(); }
 void FheapSet::makeSpace(int size) {
 	try {
 		node = new Fnode[size+1];
-		sibs = new Clist(size);
+		sibs = new ClistSet(size);
 		tmpq = new List(size);
 	} catch (std::bad_alloc e) {
 		stringstream ss;

@@ -107,9 +107,9 @@ void BstSet::rotate(index x) {
 	p(y) = x;
 }
 
-/** Get the canonical element of a bst.
- *  @param i is the index of an item in some bst
- *  @return the canonical element of the bst containing i; this method
+/** Get the root of a bst.
+ *  @param i is the index of a node in some bst
+ *  @return the root of the bst containing i; this method
  *  does not restructure the search tree
  */
 bst BstSet::find(index i) const {
@@ -120,8 +120,8 @@ bst BstSet::find(index i) const {
 
 /** Get the item with a specified key value.
  *  @param k is a key value
- *  @param t is a reference to the canonical element of some bst;
- *  if the operation modifies the canonical element, then s will change
+ *  @param t is a reference to the root of some bst;
+ *  if the operation modifies the root, then s will change
  *  @return the item in s that has key value k, or 0 if there is no such item
  */
 index BstSet::access(keytyp k, bst& t) const {
@@ -134,10 +134,60 @@ index BstSet::access(keytyp k, bst& t) const {
 	return x;
 }
 
+/** Return the "first" node in a bst.
+ *  This operation does not restructure the underlying search tree.
+ *  @param t is the root of some bst
+ *  @return the node with smallest key1 value in s
+ */
+index BstSet::first(bst t) const {
+	while (left(t) != 0) t = left(t);
+	return t;
+}
+
+/** Return the "last" node in a bst.
+ *  This operation does not restructure the underlying search tree.
+ *  @param t is the root of some bst
+ *  @return the node with smallest key1 value in s
+ */
+index BstSet::last(bst t) const {
+	while (right(t) != 0) t = right(t);
+	return t;
+}
+
+/** Return the successor of a node in a bst.
+ *  This operation does not restructure the underlying search tree.
+ *  @param i is a node in some bst
+ *  @return the node with largest key1 value in the bst
+ */
+index BstSet::suc(index i) const {
+	if (right(i) != 0) {
+		for (i = right(i); left(i) != 0; i = left(i)) {}
+	} else {
+		index c = i; i = p(i); 
+		while (i != 0 && right(i) == c) { c = i; i = p(i); }
+	}
+	return i;
+}
+
+/** Return the predecessor of a node in a bst.
+ *  This operation does not restructure the underlying search tree.
+ *  @param i is a node in some bst
+ *  @return the node with largest key1 value in the bst
+ */
+index BstSet::pred(index i) const {
+	if (left(i) != 0) {
+		for (i = left(i); right(i) != 0; i = right(i)) {}
+	} else {
+		index c = i; i = p(i); 
+		while (i != 0 && left(i) == c) { c = i; i = p(i); }
+	}
+	return i;
+}
+
 /** Insert item into a bst.
- *  @param i is a singleton item
- *  @param t is a reference to the canonical element of some bst; if
- *  the insertion operation changes the canonical element, t will be changed
+ *  @param i is a singleton bst
+ *  @param t is a reference to the root of some bst; if
+ *  the insertion operation changes the root, t will be changed
  *  @return true on success, false on failure
  */
 bool BstSet::insert(index i, bst& t) {
@@ -195,10 +245,10 @@ void BstSet::swap(index i, index j) {
 	else if (j == ri) { right(j) = i; p(i) = j; }
 }
 
-/** Remove an item from a bst.
- *  @param i is an item in some bst
- *  @param t is a reference to the canonical element of some bst; if
- *  the operation changes the canonical element, t will be changed
+/** Remove an node from a bst.
+ *  @param i is a node in some bst
+ *  @param t is a reference to the root of some bst; if
+ *  the operation changes the root, t will be changed
  */
 void BstSet::remove(index i, bst& t) {
 	assert(1 <= i && i <= n() && 1 <= t && t <= n());
@@ -221,9 +271,9 @@ void BstSet::remove(index i, bst& t) {
 	return;
 }
 
-/** Form new bst by combining two bsts at an item.
- *  @param t1 is the canonical element of some bst
- *  @param t2 is the canonical element of some bst
+/** Form new bst by combining two bsts at a node.
+ *  @param t1 is the root of some bst
+ *  @param t2 is the root of some bst
  *  @param i is a singleton item with key value larger than those of the
  *  items in t1 and smaller than those of the items in t2
  *  @return new bst formed by merging t1, i and t2
@@ -237,9 +287,9 @@ bst BstSet::join(bst t1, index i, bst t2) {
 	return i;
 }
 
-/** Divide a bst at an item
- *  @param i is an item in some bst
- *  @param s is the canonical element of the bst containing i
+/** Divide a bst at a node.
+ *  @param i is a node in some bst
+ *  @param s is the root of the bst containing i
  *  @return the pair of bsts [t1,t2] that results from splitting s into three
  *  parts; t1 (containing ityems with keys smaller than that of i), i itself,
  *  and t2 (contining items with keys larger than that of i)
@@ -257,8 +307,8 @@ BstSet::BstPair BstSet::split(index i, bst s) {
 	return pair;
 }
 
-/** Create a string representation of an item in a bst.
- *  @param i is an item in some bst
+/** Create a string representation of a node in a bst.
+ *  @param i is a node in some bst
  *  @param s is a string in which the result will be returned
  *  @return a reference to s
  */
@@ -266,14 +316,15 @@ string& BstSet::node2string(index i, string& s) const {
 	stringstream ss;
 	s = "";
 	if (i == 0) return s;
-	ss << Adt::item2string(i,s) << ":" << key(i);
+	ss << Adt::item2string(i,s);
 	if (p(i) == 0) ss << "*";
+	ss << ":" << key(i);
 	s = ss.str();
 	return s;
 }
 
 /** Create a string representation of a bst.
- *  @param t is the canonical element of some bst
+ *  @param t is the root of some bst
  *  @param s is a string in which the result will be returned
  *  @return a reference to s
  */

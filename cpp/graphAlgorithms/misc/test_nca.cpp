@@ -8,10 +8,11 @@
 
 #include "Nca.h"
 
+namespace grafalgo {
+
 const int maxP = 100;
 
-main()
-{
+int main() {
 	int np; vertex x, y;
 	Graph tree; tree.read(cin);
 	VertexPair pairs[maxP];
@@ -38,3 +39,5 @@ main()
 	}
 	if (np%5 != 0) cout << endl;
 }
+
+} // ends namespace

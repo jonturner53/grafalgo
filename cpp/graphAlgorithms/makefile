@@ -1,12 +1,9 @@
 BIN = ~/bin
 SHELL = /bin/bash
-IDIR = $(shell cd ..; pwd)/include
-LDIR = $(shell cd ..; pwd)/lib
-ARCH := $(shell getconf LONG_BIT)
-CXXFLAGS_32 = -O2 -m32 -I ${IDIR}
-CXXFLAGS_64 = -O2 -m64 -I ${IDIR}
-CXXFLAGS = $(CXXFLAGS_$(ARCH)) 
-#CXXFLAGS = -O2 -m64 -I ${IDIR}
+IDIR = ../include
+LDIR = ../lib
+CXXFLAGS = -Wall -Wno-c++11-extensions -O2 \
+	   -m$(shell getconf LONG_BIT) -I ${IDIR}
 
 all:
 	make -C misc    IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \

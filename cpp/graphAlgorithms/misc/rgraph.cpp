@@ -34,6 +34,7 @@
 // of all other edges.
 
 #include "stdinc.h"
+#include "Adt.h"
 #include "Wgraph.h"
 #include "Wdigraph.h"
 #include "Wflograph.h"
@@ -43,8 +44,10 @@
 //extern void randLeng(int, int, Wdigraph&);
 //extern void rflograph(int, int, int, bool, Flograph&);
 
-main(int argc, char* argv[]) {
-	int i, n, m, mss, scram, lo, hi, ecap1, ecap2, seed;
+using namespace grafalgo;
+
+int main(int argc, char* argv[]) {
+	int n, m, mss, scram, lo, hi, ecap1, ecap2, seed;
 	char *gtyp = argv[1];
 
 	if (argc < 6 || argc > 11 ||
@@ -54,100 +57,101 @@ main(int argc, char* argv[]) {
 	    sscanf(argv[argc-3],"%d",&lo) != 1 ||
 	    sscanf(argv[argc-2],"%d",&hi) != 1 ||
 	    sscanf(argv[argc-1],"%d",&seed) != 1)
-		fatal("usage: rgraph type n m scram [..] seed");
+		Util::fatal("usage: rgraph type n m scram [..] seed");
 	if (argc >= 9 && (
 	    sscanf(argv[5],"%d",&mss) != 1 ||
 	    sscanf(argv[6],"%d",&ecap1) != 1 ||
 	    sscanf(argv[7],"%d",&ecap2) != 1))
-		fatal("usage: rgraph type n m scram [..] seed");
+		Util::fatal("usage: rgraph type n m scram [..] seed");
 
 	srandom(seed); string s;
 	if (strcmp(gtyp,"graph") == 0 && argc == 6) {
 		Graph g(n,m);
 		g.rgraph(n,m);
 		if (scram) g.scramble();
-		cout << g.toString(s);
+		cout << g;
 	} else if (strcmp(gtyp,"bigraph") == 0 && argc == 6) {
 		Graph bg(2*n,m);
 		bg.rbigraph(n,m);
 		if (scram) bg.scramble();
-		cout << bg.toString(s);
+		cout << bg;
 	} else if (strcmp(gtyp,"cgraph") == 0 && argc == 6) {
 		Graph cg(n,m);
 		cg.rcgraph(n,m);
 		if (scram) cg.scramble();
-		cout << cg.toString(s);
+		cout << cg;
 	} else if (strcmp(gtyp,"tree") == 0 && argc == 6) {
 		Graph tree(n,n-1);
 		tree.rtree(n);
 		if (scram) tree.scramble();
-		cout << tree.toString(s);
+		cout << tree;
 	} else if (strcmp(gtyp,"wgraph") == 0 && argc == 8) {
 		Wgraph wg(n,m);
 		wg.rgraph(n,m);
 		wg.randWeight(lo,hi);
 		if (scram) wg.scramble();
-		cout << wg.toString(s);
+		cout << wg;
 	} else if (strcmp(gtyp,"wbigraph") == 0 && argc == 8) {
 		Wgraph wbg(2*n,m);
 		wbg.rbigraph(n,m);
 		wbg.randWeight(lo,hi);
 		if (scram) wbg.scramble();
-		cout << wbg.toString(s);
+		cout << wbg;
 	} else if (strcmp(gtyp,"wcgraph") == 0 && argc == 8) {
 		Wgraph wcg(n,m);
 		wcg.rcgraph(n,m);
 		wcg.randWeight(lo,hi);
 		if (scram) wcg.scramble();
-		cout << wcg.toString(s);
+		cout << wcg;
 	} else if (strcmp(gtyp,"wtree") == 0 && argc == 8) {
 		Wgraph wtree(n,n-1);
 		wtree.rtree(n);
 		wtree.randWeight(lo,hi);
 		if (scram) wtree.scramble();
-		cout << wtree.toString(s);
+		cout << wtree;
 	} else if (strcmp(gtyp,"digraph") == 0 && argc == 6) {
 		Digraph dg(n,m);
 		dg.rgraph(n,m);
 		if (scram) dg.scramble();
-		cout << dg.toString(s);
+		cout << dg;
 	} else if (strcmp(gtyp,"dag") == 0 && argc == 6) {
 		Digraph dag(n,m);
 		dag.rdag(n,m);
 		if (scram) dag.scramble();
-		cout << dag.toString(s);
+		cout << dag;
 	} else if (strcmp(gtyp,"wdigraph") == 0 && argc == 8) {
 		Wdigraph wD(n,m);
 		wD.rgraph(n,m);
 		wD.randLength(lo,hi);
 		if (scram) wD.scramble();
-		cout << wD.toString(s);
+		cout << wD;
 	} else if (strcmp(gtyp,"wdag") == 0 && argc == 8) {
 		Wdigraph waD(n,m);
 		waD.rdag(n,m);
 		waD.randLength(lo,hi);
 		if (scram) waD.scramble();
-		cout << waD.toString(s);
+		cout << waD;
 	} else if (strcmp(gtyp,"flograph") == 0 && argc == 9) {
 		Flograph fg(n,m,1,2);
 		fg.rgraph(n,m,mss);
 		fg.randCapacity(ecap1,ecap2);
 		if (scram) fg.scramble();
-		cout << fg.toString(s);
+		cout << fg;
 	} else if (strcmp(gtyp,"wflograph") == 0 && argc == 11) {
 		Wflograph wfg(n,m,1,2);
 		wfg.rgraph(n,m,mss);
 		wfg.randCapacity(ecap1,ecap2);
 		wfg.randCost(lo,hi);
 		if (scram) wfg.scramble();
-		cout << wfg.toString(s);
+		cout << wfg;
 	} else if (strcmp(gtyp,"mflograph") == 0 && argc == 11) {
 		Mflograph mfg(n,m,1,2);
 		mfg.rgraph(n,m,mss);
 		mfg.randCapacity(ecap1,ecap2);
 		mfg.randMinFlo(lo,hi);
 		if (scram) mfg.scramble();
-		cout << mfg.toString(s);
+		cout << mfg;
 	} else 
-		fatal("usage: rgraph type n m scram [..] seed");
+		Util::fatal("usage: rgraph type n m scram [..] seed");
+	exit(0);
 }

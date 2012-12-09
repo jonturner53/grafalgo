@@ -10,8 +10,10 @@
 #define SATREEMAP_H
 
 #include "stdinc.h"
-#include "SelfAdjBsts.h"
-#include "UiSetPair.h"
+#include "SaBstSet.h"
+#include "SetPair.h"
+
+namespace grafalgo {
 
 /** Maintains set of (key, value) pairs where key is a 64 bit value and
  *  value is a positive 32 bit integer. All keys must be distinct.
@@ -23,23 +25,33 @@
  * 
  *  The implementation uses a balanced binary search tree.
  */
-class SaTreeMap {
+class SaTreeMap : public Adt {
 public:
 		SaTreeMap(int);
 		~SaTreeMap();
 
+	// common methods
+	void	clear();
+	void	resize(int);
+	void	expand(int);
+	void	copyFrom(const SaTreeMap&);
+
 	int	get(keytyp); 		
 	bool	put(keytyp, uint32_t); 
 	void	remove(keytyp); 	
-	void	clear(); 	
+
 	string& toString(string&) const;
 private:
 	static const int UNDEF_VAL = INT_MIN;   ///< undefined value
-	int	n;			///< max number of pairs in map
-	sset	root;			///< root of search tree
-	SelfAdjBsts *st;		///< search tree storing keys
+	bst	root;			///< root of search tree
+	SaBstSet *st;			///< search tree storing keys
 	uint32_t *values;		///< vector of values
-	UiSetPair *nodes;		///< in-use and free nodes
+	SetPair *nodes;			///< in-use and free nodes
+
+	void	makeSpace(int);
+	void	freeSpace();
 };
+
+} // ends namespace
 
 #endif

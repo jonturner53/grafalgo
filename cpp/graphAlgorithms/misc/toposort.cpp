@@ -8,9 +8,12 @@
 // This program is not bullet-proof. Caveat emptor.
 
 #include "stdinc.h"
+#include "Adt.h"
 #include "Util.h"
-#include "UiList.h"
+#include "List.h"
 #include "Digraph.h"
+
+namespace grafalgo {
 
 void toposort(Digraph&, vertex*, vertex*);
 
@@ -41,7 +44,7 @@ void toposort(Digraph& dg, int *pos, int *vert) {
 // is the position of vertex u in the ordering and vert[i]
 // is the vertex in the i-th position in the ordering.
 	int i; vertex u,v; edge e;
-	UiList q(dg.n());
+	List q(dg.n());
 	int *nin = new int[dg.n()+1];
 
 	// Let nin[u]=in-degree of u and put nodes u with nin[u]=0 on q
@@ -62,3 +65,5 @@ void toposort(Digraph& dg, int *pos, int *vert) {
 	}
 	if (i < dg.n()) fatal("toposort: graph has cycle");
 }
+
+} // ends namespace

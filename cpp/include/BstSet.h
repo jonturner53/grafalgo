@@ -41,10 +41,14 @@ public:
 	void	copyFrom(const BstSet&);
 
 	keytyp	key(index) const;	
-	void	setkey(index,keytyp);
 	bst	find(index) const;
+	index	first(bst) const;	
+	index	last(bst) const;	
+	index	suc(index) const;	
+	index	pred(index) const;	
 	index	access(keytyp,bst&) const;
 
+	void	setkey(index,keytyp);
 	bool	insert(index,bst&);	
 	void	remove(index,bst&);
 	bst	join(bst,index,bst);	

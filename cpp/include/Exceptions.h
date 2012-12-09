@@ -9,8 +9,6 @@
 #ifndef EXCEPTIONS_H
 #define EXCEPTIONS_H
 
-#include "stdinc.h"
-
 using namespace std;
 
 namespace grafalgo {

@@ -13,7 +13,7 @@
 #include "Adt.h"
 #include "Util.h"
 #include "List.h"
-#include "Clist.h"
+#include "ClistSet.h"
 
 namespace grafalgo {
 
@@ -53,7 +53,7 @@ private:
 	fheap	p, c;			///< parent and child pointers
 	};
  	Fnode	*node;			///< node[u] contains fields for node u
-	Clist	*sibs;			///< collection of sibling lists
+	ClistSet *sibs;			///< collection of sibling lists
 	int	rvec[MAXRANK+1];	///< temporary vector of ranks
 	List	*tmpq;			///< temporary queue used
 

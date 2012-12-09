@@ -10,9 +10,12 @@
 #define NCA_H
 
 #include "stdinc.h"
+#include "Adt.h"
 #include "Util.h"
 #include "Partition.h"
 #include "Graph.h"
+
+using namespace grafalgo;
 
 struct VertexPair { vertex v1, v2; };
 
@@ -36,7 +39,7 @@ private:
 	enum state_t { unreached, open, closed };
 	state_t	*state;		// states of vertices in search
 
-	void	compute_nca(int, int); // recursive search routine
+	void	compute_nca(vertex, vertex); // recursive search routine
 };
 
 #endif

@@ -2,21 +2,22 @@ IDIR = ../../../include
 LDIR = ../../../lib
 LIBS = ${LDIR}/lib-util.a ${LDIR}/lib-ds.a
 
-CXXFLAGS = -O2 -m64 
+CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 
+
+XFILES = testBstSet testBalBstSet testSaBstSet testTreeMap testSaTreeMap
 
 .cpp.o :
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-all : testSortedSets testBalancedBsts testSelfAdjBsts testTreeMap \
-	testSaTreeMap
+all : ${XFILES}
 
-testSortedSets: testSortedSets.o ${LIBS}
+testBstSet: testBstSet.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testBalancedBsts: testBalancedBsts.o ${LIBS}
+testBalBstSet: testBalBstSet.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testSelfAdjBsts: testSelfAdjBsts.o ${LIBS}
+testSaBstSet: testSaBstSet.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 testTreeMap: testTreeMap.o ${LIBS}

@@ -9,9 +9,11 @@
 #ifndef TREEMAP_H
 #define TREEMAP_H
 
-#include "stdinc.h"
-#include "BalancedBsts.h"
-#include "UiSetPair.h"
+#include "Adt.h"
+#include "BalBstSet.h"
+#include "SetPair.h"
+
+namespace grafalgo {
 
 /** Maintains set of (key, value) pairs where key is a 64 bit value and
  *  value is a positive 32 bit integer. All keys must be distinct.
@@ -23,23 +25,32 @@
  * 
  *  The implementation uses a balanced binary search tree.
  */
-class TreeMap {
+class TreeMap : Adt {
 public:
 		TreeMap(int);
 		~TreeMap();
 
+	// common methods
+	void	clear();
+	void	resize(int);
+	void	expand(int);
+	void	copyFrom(const TreeMap&);
+
 	int	get(keytyp); 		
 	bool	put(keytyp, uint32_t); 
 	void	remove(keytyp); 	
-	void	clear(); 	
 	string& toString(string&) const;
 private:
 	static const int UNDEF_VAL = INT_MIN;   ///< undefined value
-	int	n;			///< max number of pairs in map
-	sset	root;			///< root of search tree
-	BalancedBsts *st;		///< search tree storing keys
+	bst	root;			///< root of search tree
+	BalBstSet *st;			///< search tree storing keys
 	uint32_t *values;		///< vector of values
-	UiSetPair *nodes;		///< in-use and free nodes
+	SetPair *nodes;			///< in-use and free nodes
+
+	void	makeSpace(int);
+	void	freeSpace();
 };
+
+} //ends namespace
 
 #endif

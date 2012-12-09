@@ -20,8 +20,6 @@
 
 namespace grafalgo {
 
-using namespace std;
-
 typedef int vertex;
 typedef int edge;
 

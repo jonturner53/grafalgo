@@ -236,8 +236,9 @@ string& BalBstSet::node2string(index i, string& s) const {
 	s = "";
 	if (i == 0) return s;
 	stringstream ss;
-	ss << Adt::item2string(i,s) << ":" << key(i) + ":" << rank(i);
-	if (p(i) == 0) s += "*";
+	ss << Adt::item2string(i,s);
+	if (p(i) == 0) ss << "*";
+	ss << ":" << key(i) << ":" << rank(i);
 	s = ss.str();
 	return s;
 }

@@ -12,7 +12,10 @@
 #include "stdinc.h"
 #include "Exceptions.h"
 #include "Util.h"
+
 using namespace std;
+
+using std::string;
 
 namespace grafalgo {
 

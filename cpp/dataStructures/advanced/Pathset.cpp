@@ -1,11 +1,11 @@
-/** @file Pathset.cpp
+/** @file PathSet.cpp
  *
  *  @author Jon Turner
  *  @date 2011
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-#include "Pathset.h"
+#include "PathSet.h"
 
 #define left(x) pnode[x].left
 #define right(x) pnode[x].right
@@ -13,27 +13,85 @@
 #define dcost(x) pnode[x].dcost
 #define dmin(x) pnode[x].dmin
 
-/** Constructor for Pathset class.
- *  @param N is the number of vertices in the object
+namespace grafalgo {
+
+/** Constructor for PathSet class.
+ *  @param size defines the index range for the constructed object.
  */
-Pathset::Pathset(int N) : n(N) {
-	node i;
-	pnode = new PathNode[n+1];
-	for (i = 0; i <= n; i++) {
-		left(i) = right(i) = p(i) = 0;
-		dcost(i) = dmin(i) = 0;
+PathSet::PathSet(int size) : Adt(size) {
+	makeSpace(size);
+}
+
+/** Destructor for PathSet class. */
+PathSet::~PathSet() { freeSpace(); }
+
+/** Allocate and initialize space for PathSet.
+ *  @param size is number of index values to provide space for
+ */
+void PathSet::makeSpace(int size) {
+	try {
+		pnode = new PathNode[size+1];
+	} catch (std::bad_alloc e) {
+		stringstream ss;
+		ss << "makeSpace:: insufficient space for "
+		   << size << "index values";
+		string s = ss.str();
+		throw OutOfSpaceException(s);
+	}
+	nn = size; clear();
+}
+
+/** Free dynamic storage used by PathSet. */
+void PathSet::freeSpace() {
+	delete [] pnode;
+}
+
+/** Reinitialize data structure, creating single node trees. */
+void PathSet::clear() {
+	for (index i = 0; i <= n(); i++) {
+		left(i) = right(i) = p(i) = dcost(i) = dmin(i) = 0;
 	}
 }
 
-/** Destructor for Pathset class. */
-Pathset::~Pathset() { delete [] pnode; }
+/** Resize a PathSet object, discarding old value.
+ *  @param size is the size of the resized object.
+ */
+void PathSet::resize(int size) {
+	freeSpace();
+	try { makeSpace(size); } catch(OutOfSpaceException e) {
+		string s; s = "PathSet::resize::" + e.toString(s);
+		throw OutOfSpaceException(s);
+	}
+}
+
+/** Expand the space available for this ojbect.
+ *  Rebuilds old value in new space.
+ *  @param size is the size of the expanded object.
+ */
+void PathSet::expand(int size) {
+	if (size <= n()) return;
+	PathSet old(this->n()); old.copyFrom(*this);
+	resize(size); this->copyFrom(old);
+}
+/** Copy another object to this one.
+ *  @param source is object to be copied to this one
+ */
+void PathSet::copyFrom(const PathSet& source) {
+	if (&source == this) return;
+	if (source.n() > n()) resize(source.n());
+	else clear();
+
+	for (index x = 1; x <= n(); x++) {
+		pnode[x] = source.pnode[x];
+	}
+}
 
 /** Perform a splay operation on the binary search tree representing a path.
  *  @param x is a node in some path; the operation does a splay operation
  *  that moves x to the root of the search tree that represents the path
  *  containing x
  */
-node Pathset::splay(node x) {
+index PathSet::splay(index x) {
 	while (p(x) != 0) splaystep(x);
 	return x;
 }
@@ -41,10 +99,10 @@ node Pathset::splay(node x) {
 /** Perform a single splay step.
  *  @param x is a node in some path
  */
-void Pathset::splaystep(node x) {
-        node y = p(x);
+void PathSet::splaystep(index x) {
+        index y = p(x);
         if (y == 0) return;
-        node z = p(y);
+        index z = p(y);
         if (x == left(left(z)) || x == right(right(z)))
                 rotate(y);
         else if (z != 0) // x is "inner grandchild"
@@ -56,9 +114,9 @@ void Pathset::splaystep(node x) {
  *  @param x is a node in some path; the operation performs a rotation
  *  at the parent of x, moving x up into its parent's position.
  */
-void Pathset::rotate(node x) {
-        node y = p(x); if (y == 0) return;
-        node a, b, c;
+void PathSet::rotate(index x) {
+        index y = p(x); if (y == 0) return;
+        index a, b, c;
         if (x == left(y)) { a = left(x);  b = right(x); c = right(y); }
         else              { a = right(x); b = left(x);  c = left(y);  }
 
@@ -98,8 +156,8 @@ void Pathset::rotate(node x) {
  *  start of the operation; the operation performs a splay at i,
  *  so after the operation i is the canonical element.
  */
-path Pathset::findpath(node i) { 
-	node x;
+path PathSet::findpath(index i) { 
+	index x;
 	for (x = i; p(x) != 0; x = p(x)) {}
 	splay(i);
 	return x;
@@ -109,7 +167,7 @@ path Pathset::findpath(node i) {
  *  @param q is the canonical element of some path
  *  @return the last node in the path containing q
  */
-path Pathset::findtail(path q) {
+path PathSet::findtail(path q) {
 	if (q == 0) return 0;
 	while (right(q) != 0) q = right(q);
 	return splay(q);
@@ -120,14 +178,14 @@ path Pathset::findtail(path q) {
  *  @param x is the amount to be added to the costs of the nodes in
  *  the path
  */
-void Pathset::addpathcost(path q, cost x) { dmin(q) += x; }
+void PathSet::addpathcost(path q, cost x) { dmin(q) += x; }
 
 /** Find the the last node on a path that has minimum cost.
  *  @param q is the canonical element of some path
  *  @return a pair containing the last node on the path that has minimum
  *  cost and its cost
  */
-PathCostPair Pathset::findpathcost(path q) {
+PathSet::PathCostPair PathSet::findpathcost(path q) {
 	while (1) {
 		if (right(q) != 0 && dmin(right(q)) == 0)
 			q = right(q);
@@ -137,7 +195,7 @@ PathCostPair Pathset::findpathcost(path q) {
 			break;
 	}
 	q = splay(q);
-	PathCostPair cp = { q, dmin(q) };
+	PathCostPair cp(q,dmin(q));
 	return cp;
 }
 
@@ -146,7 +204,7 @@ PathCostPair Pathset::findpathcost(path q) {
  *  @param i is a node in some path
  *  @return the root of the search tree containing i
  */
-path Pathset::findtreeroot(node i) {
+path PathSet::findtreeroot(index i) {
 	while (p(i) != 0) i = p(i);
 	return i;
 }
@@ -159,7 +217,7 @@ path Pathset::findtreeroot(node i) {
  *  part of the resultant path, then i, then q); this new path replaces
  *  the original paths
  */
-path Pathset::join(path r, node i, path q) {
+path PathSet::join(path r, index i, path q) {
 	cost dmin_i = dmin(i);
 	left(i) = r; right(i) = q;
 	if (r == 0 && q == 0) {
@@ -187,21 +245,21 @@ path Pathset::join(path r, node i, path q) {
  *  the portion of the original path that follows i
  *  @return the a pair consisting of the two new path segments
  */
-PathPair Pathset::split(node i) {
-	PathPair pair;
+PathSet::PathPair PathSet::split(index i) {
+	PathPair pair(0,0);
 
 	splay(i);
 	if (left(i) == 0) 
-		pair.s1 = 0;
+		pair.p1 = 0;
 	else {
-		pair.s1 = left(i); p(pair.s1) = 0; left(i) = 0;
-		dmin(pair.s1) += dmin(i);
+		pair.p1 = left(i); p(pair.p1) = 0; left(i) = 0;
+		dmin(pair.p1) += dmin(i);
 	} 
 	if (right(i) == 0) 
-		pair.s2 = 0;
+		pair.p2 = 0;
 	else {
-		pair.s2 = right(i); p(pair.s2) = 0; right(i) = 0;
-		dmin(pair.s2) += dmin(i);
+		pair.p2 = right(i); p(pair.p2) = 0; right(i) = 0;
+		dmin(pair.p2) += dmin(i);
 	} 
 	dmin(i) += dcost(i);
 	dcost(i) = 0;
@@ -215,7 +273,7 @@ PathPair Pathset::split(node i) {
  *  @param i is a node in some path
  *  @return the cost of node i
  */
-cost Pathset::nodeCost(node i) const {
+cost PathSet::nodeCost(index i) const {
 	cost s;
 	s = dcost(i);
 	while (i != 0) { s += dmin(i); i = p(i); }
@@ -227,13 +285,14 @@ cost Pathset::nodeCost(node i) const {
  *  @param s is a string in which the result is returned
  *  @return a referece to s
  */
-string& Pathset::path2string(path q, string& s) const {
-	s = ""; string s1;
+string& PathSet::path2string(path q, string& s) const {
+	s = "";
 	if (q == 0) return s;
-	s += path2string(left(q),s1);
-	s += Util::node2string(q,n,s1) + ":";
-	s += Util::num2string(nodeCost(q),s1) + " ";
-	s += path2string(right(q),s1);
+	stringstream ss;
+	ss << path2string(left(q),s);
+	ss << Adt::item2string(q,s) << ":" << nodeCost(q) << " ";
+	ss << path2string(right(q),s);
+	s = ss.str();
 	return s;
 }
 
@@ -242,14 +301,14 @@ string& Pathset::path2string(path q, string& s) const {
  *  @param s is a string in which the result is returned
  *  @return a referece to s
  */
-string& Pathset::pathTree2string(path q, string& s) const {
+string& PathSet::pathTree2string(path q, string& s) const {
 	stringstream ss;
 	s = "";
 	if (q == 0) return s;
 	bool singleton = (left(q) = 0 && right(q) == 0);
 	if (!singleton) ss << "(";
 	ss << pathTree2string(left(q),s);
-	ss << Util::node2string(q,n,s) << ":" << nodeCost(q) << " ";
+	ss << Adt::item2string(q,s) << ":" << nodeCost(q) << " ";
 	ss << pathTree2string(right(q),s);
 	if (!singleton) ss << ")";
 	s = ss.str();
@@ -260,10 +319,12 @@ string& Pathset::pathTree2string(path q, string& s) const {
  *  @param s is a string in which the result is returned
  *  @return a referece to s
  */
-string& Pathset::toString(string& s) const {
+string& PathSet::toString(string& s) const {
 	s = ""; string s1;
-	for (node i = 1; i <= n; i++) {
+	for (index i = 1; i <= n(); i++) {
 		if (p(i) == 0) s += path2string(i,s1) + "\n";
 	}
 	return s;
 }
+
+} // ends namespace

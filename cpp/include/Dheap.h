@@ -9,7 +9,7 @@
 #ifndef DHEAP_H
 #define DHEAP_H
 
-#include "stdinc.h"
+//#include "stdinc.h"
 #include "Adt.h"
 
 namespace grafalgo {
