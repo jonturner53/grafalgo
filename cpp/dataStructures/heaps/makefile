@@ -1,22 +1,21 @@
-IDIR = ../../include
-LDIR = ../../lib
-LIB = ${LDIR}/lib-ds.a
-CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 -Wall -I ${IDIR}
+SHELL := /bin/bash
+ARCH := -m$(shell getconf LONG_BIT)
+IDIR := ../../include
+LDIR := ../../lib
+BIN := ~/bin
+WARN := -Wall -Wno-c++11-extensions
+CXXFLAGS := ${WARN} ${ARCH} -O2
 
+HFILES = ${IDIR}/Adt.h ${IDIR}/ClistSet.h ${IDIR}/Dheap.h ${IDIR}/LheapSet.h \
+	${IDIR}/LlheapSet.h ${IDIR}/FheapSet.h 
 OFILES = Dheap.o LheapSet.o LlheapSet.o FheapSet.o 
+${OFILES} : ${HFILES}
 
 .cpp.o:
-	${CXX} ${CXXFLAGS} -c $<
-
-Dheap.o : ${IDIR}/stdinc.h ${IDIR}/Dheap.h
-DheapSet.o : ${IDIR}/stdinc.h ${IDIR}/DheapSet.h
-LheapSet.o : ${IDIR}/stdinc.h ${IDIR}/LheapSet.h
-LlheapSet.o : ${IDIR}/stdinc.h ${IDIR}/LlheapSet.h
-FheapSet.o : ${IDIR}/stdinc.h ${IDIR}/FheapSet.h
+	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
 all :	${OFILES}
-	ar -ru ${LIB} ${OFILES}
+	ar -ru ${LDIR}/lib-ds.a ${OFILES}
 
 clean:
 	rm -f *.o
-	#make -C dvr clean

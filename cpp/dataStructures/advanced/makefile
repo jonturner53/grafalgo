@@ -1,22 +1,23 @@
-IDIR = ../../include
-LDIR = ../../lib
-LIB = ${LDIR}/lib-ds.a
-ARCH := $(shell getconf LONG_BIT)
-CXXFLAGS_32 = -O2 -m32 -I ${IDIR}
-CXXFLAGS_64 = -O2 -m64 -I ${IDIR}
-#CXXFLAGS = $(CXXFLAGS_$(ARCH)) 
-CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 -I ${IDIR}
+SHELL := /bin/bash
+ARCH := -m$(shell getconf LONG_BIT)
+IDIR := ../../include
+LDIR := ../../lib
+BIN := ~/bin
+WARN := -Wall -Wno-c++11-extensions
+CXXFLAGS := ${WARN} ${ARCH} -O2
 
+HFILES = ${IDIR}/Adt.h ${IDIR}/PathSet.h ${IDIR}/Dtrees.h
 OFILES = PathSet.o Dtrees.o
+${OFILES} : ${HFILES}
 
 .cpp.o:
-	${CXX} ${CXXFLAGS} -c $<
+	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
 PathSet.o : ${IDIR}/stdinc.h ${IDIR}/PathSet.h
 Dtrees.o :  ${IDIR}/stdinc.h ${IDIR}/Dtrees.h
 
 all:	${OFILES}
-	ar -ru ${LIB} ${OFILES}
+	ar -ru ${LDIR}/lib-ds.a ${OFILES}
 
 clean:
 	rm -f *.o

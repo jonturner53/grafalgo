@@ -69,7 +69,7 @@ private:
 inline int HashSet::size() const { return ex->getNumIn(); }
 
 /** Determine if an element is in the set.
- *  @param e is an element to be tested for set membership
+ *  @parmam e is an element to be tested for set membership
  *  @return true if e is a member of the set, else false
  */
 inline bool HashSet::member(uint64_t e) const { return getIndex(e) != 0; }

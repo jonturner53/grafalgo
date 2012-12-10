@@ -1,9 +1,20 @@
+/** @file augPath.cpp
+ *
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
 #include "augPath.h"
 
+using namespace grafalgo
+
+/** Find maximum flow in a flow graph.
+ *  Base class constructor initializes dynamic data common to all algorithms.
+ *  Constructors for derived classes actually implement specific algorithms.
+ */
 augPath::augPath(Flograph& fg1, int& flow_value) : fg(&fg1) {
-// Find maximum flow in fg. Base class constructor initializes
-// dynamic data common to all algorithms. Constructors
-// for derived class actually implement algorithm.
 	pEdge = new edge[fg->n()+1];
 }
 
@@ -29,8 +40,4 @@ int augPath::augment() {
 		u = v; e = pEdge[u];
 	}
 	return f;
-}
-
-bool augPath::findPath() {
-	fatal("augPathC::findPath(): this should never be called");
 }

@@ -1,29 +1,28 @@
-BIN = ~/bin
 SHELL := /bin/bash
-IDIR = $(shell cd ..; pwd)/include
-LDIR = $(shell cd ..; pwd)/lib
-ARCH := $(shell getconf LONG_BIT)
-CXXFLAGS_32 = -O2 -m32 -I ${IDIR}
-CXXFLAGS_64 = -O2 -m64 -I ${IDIR}
-#CXXFLAGS = $(CXXFLAGS_$(ARCH)) 
-CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 -I ${IDIR}
+ARCH := -m$(shell getconf LONG_BIT)
+IDIR := ../include
+LDIR := ../lib
+BIN := ~/bin
+WARN := -Wall -Wno-c++11-extensions
+CXXFLAGS := ${WARN} ${ARCH} -O2
 
 all:
-	make -C basic       IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+	make -C basic       IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 			    CXXFLAGS='${CXXFLAGS}' all
-	make -C hash       IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+	make -C hash       IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 			    CXXFLAGS='${CXXFLAGS}' all
-	make -C graphs      IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+	make -C graphs      IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 			    CXXFLAGS='${CXXFLAGS}' all
-	make -C heaps       IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+	make -C heaps       IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 			    CXXFLAGS='${CXXFLAGS}' all
-	make -C searchTrees IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+	make -C searchTrees IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 			    CXXFLAGS='${CXXFLAGS}' all
-	make -C advanced    IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+	make -C advanced    IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 			    CXXFLAGS='${CXXFLAGS}' all
 
 clean:
 	make -C basic       clean
+	make -C hash        clean
 	make -C graphs      clean
 	make -C heaps       clean
 	make -C searchTrees clean

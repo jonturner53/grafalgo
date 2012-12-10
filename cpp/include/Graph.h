@@ -124,7 +124,7 @@ protected:
 /** Get the number of edges.
  *  @return the number of edges in the graph.
  */
-inline int Graph::m() const { return m(); }
+inline int Graph::m() const { return mm; }
 
 /** Determine if a vertex number is valid.
  *  @param u is the vertex number to be verified

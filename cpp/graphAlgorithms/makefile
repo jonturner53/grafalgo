@@ -1,22 +1,23 @@
-BIN = ~/bin
-SHELL = /bin/bash
-IDIR = ../include
-LDIR = ../lib
-CXXFLAGS = -Wall -Wno-c++11-extensions -O2 \
-	   -m$(shell getconf LONG_BIT) -I ${IDIR}
+SHELL := /bin/bash
+ARCH := -m$(shell getconf LONG_BIT)
+IDIR := ../include
+LDIR := ../lib
+BIN := ~/bin
+WARN := -Wall -Wno-c++11-extensions
+CXXFLAGS := ${WARN} ${ARCH} -O2
 
 all:
-	make -C misc    IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+	make -C misc    IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
-	make -C mst    IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+	make -C mst    IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
-	make -C sPath  IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+	make -C sPath  IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
-	make -C maxFlo IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+	make -C maxFlo IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
-	make -C mcFlo  IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+	make -C mcFlo  IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
-	make -C match  IDIR='${IDIR}' LDIR='${LDIR}' BIN='${BIN}' \
+	make -C match  IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
 
 clean:

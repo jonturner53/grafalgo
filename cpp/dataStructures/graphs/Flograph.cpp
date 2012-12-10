@@ -276,19 +276,20 @@ string& Flograph::toString(string& s) const {
  *  @return a reference to s.
  */
 string& Flograph::adjList2string(vertex u, string& s) const {
-	stringstream ss; s = "";
-	if (firstAt(u) == 0) return s;
-	int cnt = 0;
+	s = "";
+	if (firstOut(u) == 0) return s;
+	stringstream ss;
 	ss << "[";
 	if (u == snk()) ss << "->";
 	ss << Adt::item2string(u,s);
 	if (u == src()) ss << "->";
 	ss << ":";
-	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
+	int cnt = 0;
+	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
-		ss << " " << item2string(v,s) << "(" << cap(u,e) << ","
+		ss << " " << Adt::item2string(v,s) << "(" << cap(u,e) << ","
 		   << f(u,e) << ")";
-		if (++cnt >= 15 && nextAt(u,e) != 0) {
+		if (++cnt >= 15 && nextOut(u,e) != 0) {
 			ss <<  "\n"; cnt = 0;
 		}
 	}
@@ -357,9 +358,7 @@ void Flograph::rgraph(int numv, int nume, int mss) {
 
 	if (n() != numv || maxEdge < nume) resize(numv,nume); 
 	else clear();
-
 	Digraph::rgraph(numv-2,nume-2*mss);
-	nn = numv;
 	setSrc(numv-1); setSnk(numv);
 
 	vertex *neighbors = new vertex[2*mss+1];
@@ -369,7 +368,7 @@ void Flograph::rgraph(int numv, int nume, int mss) {
 	}
 	Util::genPerm(2*mss,neighbors);
 	for (int i = 1; i <= mss; i++) {
-		join(((numv-2)/2)+neighbors[i],snk());
+		join((numv-2)-neighbors[i],snk());
 	}
 	sortAdjLists();
 

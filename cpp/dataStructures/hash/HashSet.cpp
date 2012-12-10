@@ -77,14 +77,15 @@ void HashSet::copyFrom(const HashSet& source) {
  *  @param s is a reference to a string in which the result is returned
  */
 string& HashSet::toString(string& s) const {
-	s = "{";
+	stringstream ss; ss << "{";
 	bool isFirst = true;
 	for (index x = ex->firstIn(); x != 0; x = ex->nextIn(x)) {
 		if (isFirst) isFirst = false;
-		else s += " ";
-		string s1; s += Adt::item2string(val(x),s1);
+		else ss << " ";
+		ss << val(x);
 	}
-	s += "}";
+	ss << "}";
+	s = ss.str();
 	return s;
 }
 

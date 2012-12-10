@@ -15,15 +15,18 @@
 #include "Partition.h"
 #include "Graph.h"
 
-using namespace grafalgo;
-
-struct VertexPair { vertex v1, v2; };
+namespace grafalgo {
 
 /** Class that computes nearest common ancestors in a tree.
  *  The computation is invoked using the constructor.
  */
 class Nca {
 public:
+	struct VertexPair {
+		vertex v1, v2;
+		VertexPair(vertex u, vertex v) : v1(u), v2(v) {}
+	};
+
 		Nca(Graph&, vertex, VertexPair[], int, vertex[]);
 private:
 	Graph 	*tp;		// pointer to tree
@@ -41,5 +44,7 @@ private:
 
 	void	compute_nca(vertex, vertex); // recursive search routine
 };
+
+} // ends namespace
 
 #endif

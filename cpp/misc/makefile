@@ -1,11 +1,14 @@
-IDIR = ../include
-LDIR = ../lib
-ARCH := $(shell getconf LONG_BIT)
-CXXFLAGS = -Wall -Wno-c++11-extensions -I $(IDIR) -O2 -m64
+SHELL := /bin/bash
+ARCH := -m$(shell getconf LONG_BIT)
+IDIR := ../include
+LDIR := ../lib
+BIN := ~/bin
+WARN := -Wall -Wno-c++11-extensions
+CXXFLAGS := ${WARN} ${ARCH} -O2
 
-LIBFILES = Adt.o Util.o 
+LIBFILES := Adt.o Util.o 
 
-%.o : %.cpp %.h ../include/stdinc.h
+.cpp.o:
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
 all : ${LIBFILES} ${CLASSFILES}

@@ -71,7 +71,7 @@ void Graph::expand(int numv, int maxe) {
 	resize(numv,maxe); this->copyFrom(old);
 }
 
-/** Remove all elements from list. */
+/** Remove all edges from graph. */
 void Graph::clear() { while (first() != 0) remove(first()); }
 
 /** Copy into list from source. */

@@ -110,14 +110,14 @@ string& Digraph::edge2string(edge e, string& s) const {
  */
 string& Digraph::adjList2string(vertex u, string& s) const {
 	s = "";
-	if (firstAt(u) == 0) return s;
+	if (firstOut(u) == 0) return s;
 	int cnt = 0;
 	string s1;
 	s += "[" + Adt::item2string(u,s1) + ":";
 	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
-		s += " " + item2string(v,s1);
-		if (++cnt >= 20 && nextAt(u,e) != 0) {
+		s += " " + Adt::item2string(v,s1);
+		if (++cnt >= 20 && nextOut(u,e) != 0) {
 			s += "\n"; cnt = 0;
 		}
 	}
@@ -302,16 +302,15 @@ void Digraph::rdag(int numv, int nume) {
 	// if more edges needed, build a vector containing remaining 
 	// "candidate" edges and then sample from this vector
 	vector<uint64_t> vpVec;
-	unsigned int i = 0;
 	for (vertex u = 1; u < numv; u++) {
 		for (vertex v = u+1; v <= numv; v++) {
 			if (v == u) continue;
 			uint64_t vpair = u; vpair <<= 32; vpair |= v;
-			if (!edgeSet.member(vpair)) vpVec[i++] = vpair;
+			if (!edgeSet.member(vpair)) vpVec.push_back(vpair);
 		}
 	}
 	// sample remaining edges from vector
-	i = 0;
+	int i = 0;
 	while (m() < nume && i < vpVec.size()) {
 		int j = Util::randint(i,vpVec.size()-1);
 		vertex u = vpVec[j] >> 32;

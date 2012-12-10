@@ -30,7 +30,6 @@ public:		Digraph(int=26,int=50);
 	void	resize(int numv) { resize(numv,numv); }
 	void	expand(int,int);
 	void	expand(int numv) { resize(numv,max(numv,m())); }
-	void	copyFrom(const Digraph&);
 
 	vertex  tail(edge) const;       
         vertex  head(edge) const;      

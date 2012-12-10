@@ -1,16 +1,40 @@
-// usage: badCase k1 k2
-//
-// BadCase generates a flow graph that requires a long time
-// to complete, using most max flow algorithms.
-// k1 and k2 are parameters that control the size of the
-// instance. The graphs have approximately 24*k1 + 2*k2
-// vertices and 18*k1 + k2^2 edges. Keep k1=k2 to get
-// dense graphs. Use k2<k1 to get more sparse graphs.
-//
-// This program is not bullet-proof. Caveat emptor.
+/** @file badcase.cpp
+ *
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ *
+ *  usage: badCase k1 k2
+ * 
+ *  BadCase generates a flow graph that requires a long time
+ *  to complete, using most max flow algorithms.
+ *  k1 and k2 are parameters that control the size of the
+ *  instance. The graphs have approximately 24*k1 + 2*k2
+ *  vertices and 18*k1 + k2^2 edges. Keep k1=k2 to get
+ *  dense graphs. Use k2<k1 to get more sparse graphs.
+ */
 
-#include "stdinc.h"
+#include "Util.h"
 #include "Flograph.h"
+
+using namespace grafalgo;
+
+void badcase(int, int, Flograph&);
+
+int main(int argc, char* argv[]) {
+	int k1, k2;
+
+	if (argc != 3 || (sscanf(argv[1],"%d",&k1)) != 1 ||
+			 (sscanf(argv[2],"%d",&k2)) != 1)
+		Util::fatal("usage badCase k1 k2");
+
+	Flograph fg(10,20);
+	badcase(k1,k2,fg);
+
+	string s;
+	cout << fg;
+}
 
 void badcase(int k1, int k2, Flograph& fg) {
 	int i,j, n, m, c1, c2, c3, c4, bl, br;
@@ -27,7 +51,7 @@ void badcase(int k1, int k2, Flograph& fg) {
 	n = c4 + 4*(k1-1)+1;
 	m = 16*(k1-1) + k2*k2 + 8*k1 + 4;	
 	fg.resize(n,m);
-	fg.setSrcSnk(1,n);
+	fg.setSrc(1); fg.setSnk(n);
 
 	// build short chain from source
 	for (i = 0; c1+i < c2; i++) {
@@ -87,17 +111,3 @@ void badcase(int k1, int k2, Flograph& fg) {
 	}
 }
 
-
-main(int argc, char* argv[]) {
-	int k1, k2;
-
-	if (argc != 3 || (sscanf(argv[1],"%d",&k1)) != 1 ||
-			 (sscanf(argv[2],"%d",&k2)) != 1)
-		fatal("usage badCase k1 k2");
-
-	Flograph fg(10,20);
-	badcase(k1,k2,fg);
-
-	string s;
-	cout << fg.toString(s);
-}

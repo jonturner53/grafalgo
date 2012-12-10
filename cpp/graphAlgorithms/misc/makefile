@@ -27,7 +27,7 @@ all:	${LIBGA} ${XFILES}
 clean:
 	rm -f *.o ${XFILES}
 
-${LIBGA}:Nca.o
+${LIBGA}: Nca.o
 	ar -ru ${LIBGA} Nca.o
 
 bfs: bfs.o ${LIBS}

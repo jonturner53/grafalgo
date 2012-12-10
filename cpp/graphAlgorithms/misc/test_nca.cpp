@@ -8,7 +8,7 @@
 
 #include "Nca.h"
 
-namespace grafalgo {
+using namespace grafalgo;
 
 const int maxP = 100;
 
@@ -39,5 +39,3 @@ int main() {
 	}
 	if (np%5 != 0) cout << endl;
 }
-
-} // ends namespace

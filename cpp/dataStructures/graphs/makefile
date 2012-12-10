@@ -1,34 +1,24 @@
-ALGOLIBROOT = ../..
-IDIR = ${ALGOLIBROOT}/include
-LDIR = ${ALGOLIBROOT}/lib
-LIB = ${LDIR}/lib-ds.a
-ARCH := $(shell getconf LONG_BIT)
-CXXFLAGS_32 = -O2 -m32 -I ${IDIR}
-CXXFLAGS_64 = -O2 -m64 -I ${IDIR}
-#CXXFLAGS = $(CXXFLAGS_$(ARCH)) 
-CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 -I ${IDIR}
+SHELL := /bin/bash
+ARCH := -m$(shell getconf LONG_BIT)
+IDIR := ../../include
+LDIR := ../../lib
+BIN := ~/bin
+WARN := -Wall -Wno-c++11-extensions
+CXXFLAGS := ${WARN} ${ARCH} -O2
 
-LIBFILES = Graph.o Wgraph.o Digraph.o Wdigraph.o Flograph.o Wflograph.o \
-	Mflograph.o
+HFILES = ${IDIR}/stdinc.h ${IDIR}/Adt.h ${IDIR}/SetPair.h ${IDIR}/ClistSet.h \
+	 ${IDIR}/HashSet.h ${IDIR}/Graph.h ${IDIR}/Digraph.h \
+	 ${IDIR}/Flograph.h ${IDIR}/Wflograph.h ${IDIR}/Mflograph.h 
+OFILES = Graph.o Wgraph.o Digraph.o Wdigraph.o Flograph.o Wflograph.o \
+	 Mflograph.o
+${OFILES} : ${HFILES}
 
 .cpp.o:
-	${CXX} ${CXXFLAGS} -c $<
+	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-Graph.o :     ${IDIR}/stdinc.h ${IDIR}/Graph.h
-Wgraph.o :    ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/Wgraph.h
-Digraph.o :   ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/Digraph.h
-Wdigraph.o :  ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/Digraph.h \
-	      ${IDIR}/Wdigraph.h
-Flograph.o :  ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/Digraph.h \
-	      ${IDIR}/Flograph.h
-Wflograph.o : ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/Digraph.h \
-	      ${IDIR}/Flograph.h ${IDIR}/Wflograph.h
-Mflograph.o : ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/Digraph.h \
-	      ${IDIR}/Flograph.h ${IDIR}/Wflograph.h ${IDIR}/Mflograph.h 
-
-all:	${LIBFILES} 
-	ar -ru ${LIB} ${LIBFILES}
+all:	${OFILES} 
+	ar -ru ${LDIR}/lib-ds.a ${OFILES}
 
 clean:
-	rm -f *.o *.class
+	rm -f *.o
 	#make -C unit clean

@@ -5,8 +5,12 @@ LIBGA = ${LDIR}/lib-ga.a
 ARCH := $(shell getconf LONG_BIT)
 CXXFLAGS_32 = -O2 -m32 -I ${IDIR}
 CXXFLAGS_64 = -O2 -m64 -I ${IDIR}
-CXXFLAGS = $(CXXFLAGS_$(ARCH)) 
-#CXXFLAGS = -O2 -m64 -I ${IDIR}
+#CXXFLAGS = $(CXXFLAGS_$(ARCH)) 
+CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 -I ${IDIR}
+
+OFILES = kruskal.o prim.o primF.o rrobin.o
+
+XFILES:	mst mstRep check mstUpdate mstUpdate2
 
 .cpp.o:
 	${CXX} ${CXXFLAGS} -c $<
