@@ -1,12 +1,14 @@
 #include "edmonds.h"
 
+using namespace grafalgo;
+
 // Find a maximum size matching in the graph graf and
 // return it as a list of edges.
-edmonds::edmonds(Graph& graf1, UiDlist& match1, int &size)
+edmonds::edmonds(Graph& graf1, Dlist& match1, int &size)
 		 : graf(&graf1), match(&match1) {
 	vertex u, v; edge e;
 	blossoms = new Partition(graf->n()); // set per blossom
-	augpath = new UiRlist(graf->m());    // reversible list
+	augpath = new RlistSet(graf->m());    // reversible list
 	origin = new vertex[graf->n()+1];    // original vertex for each blossom
 	bridge = new BridgePair[graf->n()+1];// edge that formed a blossom
 	state = new stype[graf->n()+1];	     // state used in path search
@@ -45,10 +47,8 @@ edmonds::edmonds(Graph& graf1, UiDlist& match1, int &size)
 void edmonds::augment(edge e) {
 // Modify the matching by augmenting along the path defined by
 // the list in the augpath data structure whose last element is e.
-
-	vertex u, v; edge e1;
 	while (true) {
-		e1 = augpath->first(e);
+		edge e1 = augpath->first(e);
 		if (match->member(e1)) match->remove(e1);
 		else {
 			match->addLast(e1);
@@ -143,7 +143,7 @@ edge edmonds::findpath() {
 		u = graf->left(e); v = graf->right(e);
 		state[u] = state[v] = unreached;
 	}
-	UiList q(graf->m()); // list of edges to be processed in main loop
+	List q(graf->m()); // list of edges to be processed in main loop
 	for (e = 1; e <= graf->m(); e++) {
 		if (state[graf->left(e)] == even ||
 		    state[graf->right(e)] == even)
@@ -237,25 +237,22 @@ edge edmonds::findpath() {
  *  @param s is reference to string in which result is returned
  */
 string& edmonds::statString(bool verbose, string& s) {
-	string s1;
+	stringstream ss;
 	if (verbose) {
-		s  = "iSize=" + Util::num2string(iSize,s1) + " ";
-		s += "mSize=" + Util::num2string(mSize,s1) + " ";
-		s += "stepCount=" + Util::num2string(stepCount,s1) + " ";
-		s += "blossomCount=" + Util::num2string(blossomCount,s1) + " ";
-		s += "imatchTime=" + Util::num2string(imatchTime,s1) + " ";
-		s += "rmatchTime=" + Util::num2string(rmatchTime,s1) + " ";
-		s += "pathInitTime=" + Util::num2string(pathInitTime,s1) + " ";
-		s += "pathFindTime=" + Util::num2string(pathFindTime,s1);
+		ss << "iSize=" << iSize << " ";
+		ss << "mSize=" << mSize << " ";
+		ss << "stepCount=" << stepCount << " ";
+		ss << "blossomCount=" << blossomCount << " ";
+		ss << "imatchTime=" << imatchTime << " ";
+		ss << "rmatchTime=" << rmatchTime << " ";
+		ss << "pathInitTime=" << pathInitTime << " ";
+		ss << "pathFindTime=" << pathFindTime;
 	} else {
-		s  = Util::num2string(iSize,s1) + " ";
-		s += Util::num2string(mSize,s1) + " ";
-		s += Util::num2string(stepCount,s1) + " ";
-		s += Util::num2string(blossomCount,s1) + " ";
-		s += Util::num2string(imatchTime,s1) + " ";
-		s += Util::num2string(rmatchTime,s1) + " ";
-		s += Util::num2string(pathInitTime,s1) + " ";
-		s += Util::num2string(pathFindTime,s1);
+		ss << iSize << " " << mSize << " ";
+		ss << stepCount << " " << blossomCount << " ";
+		ss << imatchTime << " "<< rmatchTime << " ";
+		ss << pathInitTime << " " << pathFindTime;
 	}
+	s = ss.str();
 	return s;
 }

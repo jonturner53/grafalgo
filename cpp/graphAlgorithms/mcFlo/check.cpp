@@ -6,11 +6,13 @@
 
 #include "stdinc.h"
 #include "Wflograph.h"
-#include "UiList.h"
+#include "List.h"
 
-main() {
+using namespace grafalgo;
+
+int main() {
 	vertex u,v,w; edge e; int s;
-	Wflograph wfg; wfg.read(cin);
+	Wflograph wfg; cin >> wfg;
 
 	// Check that capacity constraints are respected.
 	for (e = 1; e <= wfg.m(); e++) {
@@ -39,7 +41,7 @@ main() {
 	int *d = new int[wfg.n()+1];
 	for (u = 1; u <= wfg.n(); u++) d[u] = wfg.n();
 	d[1] = 0;
-	UiList q(wfg.n()); q.addLast(1);
+	List q(wfg.n()); q.addLast(1);
 	while (!q.empty()) {
 		u = q.first(); q.removeFirst();
 		for (e = wfg.firstAt(u); e != 0; e = wfg.nextAt(u,e)) {
@@ -60,7 +62,7 @@ main() {
 	for (u = 1; u <= wfg.n(); u++) {
 		for (v = 1; v <= wfg.n(); v++) {
 			if (u == v) cst[u][v] = 0;
-			else cst[u][v] = BIGINT;
+			else cst[u][v] = Util::BIGINT32;
 		}
 	}
 	for (u = 1; u <= wfg.n(); u++) {
@@ -77,8 +79,9 @@ main() {
 		}
 		for (u = 1; u <= wfg.n(); u++) {
 			for (w = 1; w <= wfg.n(); w++) {
-				if (cst[u][v] != BIGINT && cst[v][w] != BIGINT
-				    && cst[u][w] > cst[u][v] + cst[v][w]) {
+				if (cst[u][v] != Util::BIGINT32 &&
+				    cst[v][w] != Util::BIGINT32 &&
+				    cst[u][w] > cst[u][v] + cst[v][w]) {
 					cst[u][w] = cst[u][v] + cst[v][w];
 				}
 			}

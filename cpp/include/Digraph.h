@@ -23,7 +23,7 @@ namespace grafalgo {
  *  or all edges incident to a specific vertex.
  */
 class Digraph : public Graph {
-public:		Digraph(int=26,int=50);
+public:		Digraph(int=1,int=1);
 		~Digraph();
 	
 	void	resize(int,int);
@@ -41,24 +41,24 @@ public:		Digraph(int=26,int=50);
         edge    firstOut(vertex) const; 
         edge    nextOut(vertex,edge) const;
 
-	virtual edge joinWith(vertex,vertex,edge);
+	edge	joinWith(vertex,vertex,edge);
+	bool	remove(edge);
 
         void    rgraph(int,int);    
         void    rdag(int,int);     
 
 	// create a string representation
-	string& adjList2string(vertex, string&) const;
 	//virtual string& edge2string(edge,string&) const;
         virtual string& toDotString(string&) const;
 
 	// input
-	bool	readAdjList(istream&);
-	//virtual bool read(istream&);
 
 
 protected:
 	void makeSpace(int,int);
 	void freeSpace();
+	string& adjList2string(vertex, string&) const;
+	bool	readAdjList(istream&);
 
 private:
 	edge	*fi;		///< fi[u] is first in edge

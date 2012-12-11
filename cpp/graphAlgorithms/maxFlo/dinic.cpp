@@ -1,5 +1,6 @@
 #include "dinic.h"
 
+using namespace grafalgo;
 
 dinic::dinic(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
         level = new int[fg->n()+1];
@@ -7,7 +8,7 @@ dinic::dinic(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
 
 	floVal = 0;
         while (newPhase()) {
-        	while (findPath(fg->src())) floVal += augment();
+        	while (findPath()) floVal += augment();
         }
 	delete [] level; delete [] nextEdge;
 }
@@ -47,7 +48,7 @@ dinic::dinic(Flograph& fg1, int& floVal, string& stats) : augPath(fg1,floVal) {
 bool dinic::newPhase() {
 // Prepare for new phase. Return true if there is a source/sink path.
 	vertex u,v; edge e;
-	UiList q(fg->n());
+	List q(fg->n());
 
 	for (u = 1; u <= fg->n(); u++) {
 		level[u] = fg->n(); nextEdge[u] = fg->firstAt(u);
@@ -78,5 +79,5 @@ bool dinic::findPath(vertex u) {
 			pEdge[v] = e; nextEdge[u] = e; return true;
 		}
 	}
-	nextEdge[u] = Null; return false;
+	nextEdge[u] = 0; return false;
 }

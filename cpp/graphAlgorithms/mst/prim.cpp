@@ -2,6 +2,8 @@
 #include "Dheap.h"
 #include "Wgraph.h"
 
+using namespace grafalgo;
+
 void prim(Wgraph& wg, Wgraph& mstree) {
 // Find a minimum spanning tree of wg using Prim's
 // algorithm and return its in mstree.

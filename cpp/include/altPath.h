@@ -6,15 +6,17 @@
 
 #include "stdinc.h"
 #include "Graph.h"
-#include "UiList.h"
-#include "UiDlist.h"
+#include "List.h"
+#include "Dlist.h"
+
+using namespace grafalgo;
 
 class altPath {
 public:
-	altPath(Graph&,UiDlist&,int&);
+	altPath(Graph&,Dlist&,int&);
 private:
 	Graph* graf;		// graph we're finding matching for
-	UiDlist* match;		// matching we're building
+	Dlist* match;		// matching we're building
 	edge* pEdge;		// pEdge[u] is edge to parent of u in forest
 	
 	void augment(edge);	// augment the matching

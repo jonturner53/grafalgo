@@ -52,7 +52,7 @@ void ppHiLab::doit(bool batch) {
 	// vertices on the same list are unbalanced and have the same
 	// distance label; balanced vertices each form singleton lists
 	ubVec = new int[2*fg->n()];
-	unbal = new UiClist(fg->n());
+	unbal = new ClistSet(fg->n());
 
 	// initialization
 	for (int i = 0; i < 2*fg->n(); i++) ubVec[i] = 0;
@@ -63,7 +63,7 @@ void ppHiLab::doit(bool batch) {
                 if (v != fg->snk()) addUnbal(v);
         }
 
-	vertex u, v;
+	vertex u;
 	if (!batch) { // incremental relabeling
      		while (top > 0) {
 			u = removeUnbal();

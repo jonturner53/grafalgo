@@ -23,7 +23,7 @@ typedef int floCost;
  *  for dealing with edge costs.
  */
 class Wflograph : public Flograph {
-public:		Wflograph(int=26,int=100,int=1,int=2);
+public:		Wflograph(int=3,int=2,int=1,int=2);
 		Wflograph(const Wflograph&);
 		virtual ~Wflograph();
 
@@ -39,8 +39,6 @@ public:		Wflograph(int=26,int=100,int=1,int=2);
 	void	setCost(edge,floCost);
 	void	randCost(floCost,floCost);
 
-	bool	readAdjList(istream&);
-	string&	adjList2string(vertex,string&) const; 
 	string& toDotString(string&) const;
 
 protected:
@@ -50,6 +48,8 @@ protected:
         void    makeSpace(int,int);    		
         void    freeSpace();    	
 	void    virtual shuffle(int*, int*);
+	bool	readAdjList(istream&);
+	string&	adjList2string(vertex,string&) const; 
 
 private:
 	Wflograph& operator=(const Wflograph&); 

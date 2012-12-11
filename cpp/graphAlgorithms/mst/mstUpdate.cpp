@@ -13,16 +13,18 @@
 #include "stdinc.h"
 #include "Partition.h"
 #include "Wgraph.h"
-#include "UiList.h"
-#include "UiClist.h"
+#include "List.h"
+#include "ClistSet.h"
 
-extern void kruskal(Wgraph&, UiList&);
+using namespace grafalgo;
 
-void buildpp(Wgraph&, UiList&, edge*);
+extern void kruskal(Wgraph&, List&);
+
+void buildpp(Wgraph&, List&, edge*);
 int mstUpdate(Wgraph&, edge*, edge, int);
 void check(Wgraph&, Wgraph&);
 
-main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 	int i, n, m, maxWt, repCount, checkIt, retVal, seed;
 	int notZero, minCyc, maxCyc, avgCyc;
 	double p;
@@ -38,11 +40,11 @@ main(int argc, char* argv[]) {
 	    sscanf(argv[4],"%d",&repCount) != 1 ||
 	    sscanf(argv[5],"%d",&checkIt) != 1 ||
 	    sscanf(argv[6],"%d",&seed) != 1)
-		fatal("usage: mstUpdate n m maxWt repCount check seed");
+		Util::fatal("usage: mstUpdate n m maxWt repCount check seed");
 
 	srandom(seed);
 	wg.rgraph(n,m,n); wg.randWeight(0,maxWt);
-	UiList mstree(wg.m());
+	List mstree(wg.m());
 	kruskal(wg,mstree);
 
 	pe = new edge[wg.m()+1];
@@ -79,7 +81,7 @@ main(int argc, char* argv[]) {
 		notZero,minCyc,double(avgCyc)/notZero,maxCyc);
 }
 
-void buildpp(Wgraph&wg, UiList& mstree, edge *pe) {
+void buildpp(Wgraph&wg, List& mstree, edge *pe) {
 // Given a weighted graph data structure wg and a list of edges
 // representing a spanning tree of wg, compute a vector of
 // parent pointers that represents the same tree. The parent
@@ -88,7 +90,7 @@ void buildpp(Wgraph&wg, UiList& mstree, edge *pe) {
 // and its weight.
 // 
 	vertex u, v; edge e;
-	UiList q(wg.n());
+	List q(wg.n());
 
 	pe[1] = 0; for (u = 2; u <= wg.n(); u++) pe[u] = wg.m()+1;
 
@@ -187,11 +189,11 @@ int mstUpdate(Wgraph& wg, edge *pe, edge modEdge, int nuWt) {
 }
 
 void verify(Wgraph&, Wgraph&);
-void rverify(Wgraph&, Wgraph&, vertex, vertex, vertex*, UiClist&, vertex*, int*);
+void rverify(Wgraph&, Wgraph&, vertex, vertex, vertex*, ClistSet&, vertex*, int*);
 int max_wt(vertex, vertex, vertex*, vertex*);
-void nca(Wgraph&, Wgraph&, vertex*, UiClist&);
+void nca(Wgraph&, Wgraph&, vertex*, ClistSet&);
 void nca_search(Wgraph&, Wgraph&, vertex, vertex, vertex*,
-	UiClist&, Partition&, vertex*, int*);
+	ClistSet&, Partition&, vertex*, int*);
 
 void check(Wgraph& wg, Wgraph& mstree) {
 // Verify that mstree is a minimum spanning tree of wg.
@@ -199,7 +201,7 @@ void check(Wgraph& wg, Wgraph& mstree) {
 
 	// check that mstree is a subgraph of wg
 	if (mstree.n() != wg.n() || mstree.m() != mstree.n()-1) {
-		fatal("check: size error, aborting");
+		Util::fatal("check: size error, aborting");
 	}
 	vertex* edgeTo = new vertex[mstree.n()+1];
 	for (u = 1; u <= wg.n(); u++) edgeTo[u] = 0;
@@ -210,7 +212,7 @@ void check(Wgraph& wg, Wgraph& mstree) {
 			v = mstree.mate(u,f);
 			e = edgeTo[v];
 			if (e == 0 || mstree.weight(f) != wg.weight(e))
-				fatal("check: edge in mstree is not in wg");
+				Util::fatal("check: edge in mstree is not in wg");
 		}
 		for (e = wg.firstAt(u); e != 0; e = wg.nextAt(u,e))
 			edgeTo[wg.mate(u,e)] = 0;
@@ -220,7 +222,7 @@ void check(Wgraph& wg, Wgraph& mstree) {
 	int* mark = new int[mstree.n()+1]; int marked;
 	for (u = 1; u <= mstree.n(); u++) mark[u] = 0;
 	mark[1] = 1; marked = 1;
-	UiList q(wg.n()); q.addLast(1);
+	List q(wg.n()); q.addLast(1);
 	while (!q.empty()) {
 		u = q.first(); q.removeFirst();
 		for (e = mstree.firstAt(u); e != 0; e = mstree.nextAt(u,e)) {
@@ -231,7 +233,7 @@ void check(Wgraph& wg, Wgraph& mstree) {
 		}
 	}
 	if (marked != mstree.n()) {
-		fatal("check: mstree does not reach all vertices\n");
+		Util::fatal("check: mstree does not reach all vertices\n");
 	}
 	// check that there is no cheaper spanning tree
 	verify(wg,mstree);
@@ -244,7 +246,7 @@ void verify(Wgraph& wg, Wgraph& mstree) {
 
 	// Determine nearest common ancestor for each edge.
 	vertex* first_edge = new edge[wg.n()+1];
-	UiClist edge_sets(wg.m());
+	ClistSet edge_sets(wg.m());
 	nca(wg,mstree,first_edge,edge_sets);
 
 	// Check paths from endpoints to nca, and compress.
@@ -257,7 +259,7 @@ void verify(Wgraph& wg, Wgraph& mstree) {
 
 // Recursively verify the subtree rooted at u with parent pu.
 void rverify(Wgraph& wg, Wgraph& mstree, vertex u, vertex pu,
-	    vertex first_edge[], UiClist& edge_sets, vertex a[], int mw[]) {
+	    vertex first_edge[], ClistSet& edge_sets, vertex a[], int mw[]) {
 	vertex v; edge e; int m;
 	for (e = mstree.firstAt(u); e != 0; e = mstree.nextAt(u,e)) {
 		v = mstree.mate(u,e);
@@ -270,7 +272,7 @@ void rverify(Wgraph& wg, Wgraph& mstree, vertex u, vertex pu,
 	while (1) {
 		m = max( max_wt(wg.left(e),u,a,mw),
 			 max_wt(wg.right(e),u,a,mw) );
-		if (m > wg.weight(e)) fatal("mst violation");
+		if (m > wg.weight(e)) Util::fatal("mst violation");
 		e = edge_sets.suc(e);
 		if (e == first_edge[u]) break;
 	}
@@ -291,7 +293,7 @@ int max_wt(vertex u, vertex v, vertex a[], int mw[]) {
 // appearing on the same list if they have the same nearest common ancestor.
 // On return, first_edge[u] is an edge for which u is the nearest common
 // ancestor, or null if there is no such edge.
-void nca(Wgraph& wg, Wgraph& mstree, vertex *first_edge, UiClist& edge_sets) {
+void nca(Wgraph& wg, Wgraph& mstree, vertex *first_edge, ClistSet& edge_sets) {
 	Partition npap(wg.n());
 	vertex *npa = new vertex[wg.n()+1];
 	int *mark = new int[wg.m()+1];
@@ -305,7 +307,7 @@ void nca(Wgraph& wg, Wgraph& mstree, vertex *first_edge, UiClist& edge_sets) {
 }
 
 void nca_search(Wgraph& wg, Wgraph& mstree, vertex u, vertex pu, vertex first_edge[],
-	UiClist& edge_sets, Partition& npap, vertex npa[], int mark[]) {
+	ClistSet& edge_sets, Partition& npap, vertex npa[], int mark[]) {
 	vertex v, w; edge e;
 
 	for (e = mstree.firstAt(u); e != 0; e = mstree.nextAt(u,e)) {

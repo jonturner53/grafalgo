@@ -1,9 +1,11 @@
 #include "altPath.h"
 
+using namespace grafalgo;
+
 // Find a maximum size matching in the bipartite graph graf and
 // return it as a list of edges. Return the number of edges
 // in the matching in size.
-altPath::altPath(Graph& graf1, UiDlist& match1, int& size)
+altPath::altPath(Graph& graf1, Dlist& match1, int& size)
 		 : graf(&graf1), match(&match1) {
 	pEdge = new edge[graf->n()+1];
 	
@@ -17,7 +19,7 @@ altPath::altPath(Graph& graf1, UiDlist& match1, int& size)
 // Modify the matching by augmenting along the path defined by
 // the edge e and the pEdge pointers.
 void altPath::augment(edge e) {
-	vertex u, v; edge ee;
+	vertex u; edge ee;
 
 	u = graf->left(e);
 	while (pEdge[u] != 0) {
@@ -52,7 +54,7 @@ edge altPath::findPath() {
 		state[u] = state[v] = unreached;
 		mEdge[u] = mEdge[v] = e;
 	}
-	UiList q(graf->m());
+	List q(graf->m());
 	for (e = graf->first(); e != 0; e = graf->next(e)) {
 		if (state[graf->left(e)] == even ||
 		    state[graf->right(e)] == even)
@@ -76,7 +78,7 @@ edge altPath::findPath() {
 		} else if (state[w] == even) {
 			for (x = w; pEdge[x] != 0; x = graf->mate(x,pEdge[x])){}
 			for (y = v; pEdge[y] != 0; y = graf->mate(y,pEdge[y])){}
-			if (x == y) fatal("findpath: graph not bipartite");
+			if (x == y) Util::fatal("findpath: graph not bipartite");
 			return e;
 		}
 	}

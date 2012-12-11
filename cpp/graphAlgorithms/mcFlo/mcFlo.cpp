@@ -10,11 +10,13 @@
 #include "cycRed.h"
 #include "lcap.h"
 
-main(int argc, char *argv[]) {
+using namespace grafalgo;
+
+int main(int argc, char *argv[]) {
 	flow floVal; cost floCost;
-	Wflograph wfg; wfg.read(cin);
+	Wflograph wfg; cin >> wfg;
 	
-	if (argc != 2) fatal("usage: mcFlo method");
+	if (argc != 2) Util::fatal("usage: mcFlo method");
 
 	if (strcmp(argv[1],"cycRed") == 0)
 		cycRed(wfg,floVal,floCost);
@@ -23,7 +25,7 @@ main(int argc, char *argv[]) {
 	else if (strcmp(argv[1],"mostNeg") == 0)
 		lcap(wfg,floVal,floCost,true);
 	else
-		fatal("mcFlo: undefined method");
+		Util::fatal("mcFlo: undefined method");
 
 	string s;
 	cout << wfg.toString(s);

@@ -36,6 +36,7 @@ void Digraph::makeSpace(int numv, int maxe) {
 		throw OutOfSpaceException(s);
 	}
 	for (vertex u = 0; u <= numv; u++) fi[u] = 0;
+	nn = numv;
 }
 
 /** Free space used by graph. */
@@ -83,25 +84,39 @@ edge Digraph::joinWith(vertex u, vertex v, edge e) {
 	// add edge to the adjacency lists
 	// in the adjLists data structure, each edge appears twice,
 	// as 2*e and 2*e+1
-	if (fe[u] != 0) {
-		adjLists->join(2*e,fe[u]);
-	}
-	if (fi[v] != 0) {
-		adjLists->join(2*e+1,fi[v]);
-	}
 	if (fe[u] == 0) fe[u] = 2*e;
+	else adjLists->join(2*e,fe[u]);
 	if (fi[v] == 0) fi[v] = 2*e+1;
+	else adjLists->join(2*e+1,fi[v]);
 
 	mm++;
 
 	return e;
 }
 
-/*
-string& Digraph::edge2string(edge e, string& s) const {
-	return Graph::edge2string(e,s);
+/** Remove an edge from the Diraph.
+ *  @param e is the edge to be removed.
+ *  @return true on success, false on failure
+ */
+bool Digraph::remove(edge e) {
+	assert(validEdge(e));
+	edges->swap(e);
+
+	vertex u = evec[e].l;
+	if (fe[u] == 2*e)
+		fe[u] = (adjLists->suc(2*e) == 2*e ? 0 : adjLists->suc(2*e));
+	u = evec[e].r;
+	if (fi[u] == 2*e+1)
+		fi[u] = (adjLists->suc(2*e+1) == 2*e+1 ?
+				0 : adjLists->suc(2*e+1));
+
+	adjLists->remove(2*e); adjLists->remove(2*e+1);
+
+	evec[e].l = 0;
+
+	mm--;
+	return true;
 }
-*/
 
 /** Create a string representation of an adjacency list.
  *  @param u is a vertex number
@@ -180,13 +195,13 @@ bool Digraph::readAdjList(istream& in) {
 	if (!Util::verify(in,'[')) return 0;
 	vertex u;
 	if (!Adt::readItem(in,u)) return 0;
-	if (u > n()) expand(max(u,2*n()),m());
+	if (u > n()) expand(u,m());
 	if (!Util::verify(in,':')) return 0;
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v;
 		if (!Adt::readItem(in,v)) return 0;
-		if (v > n()) expand(max(v,2*n()),m());
-		if (m() >= maxEdge) expand(n(),2*m());
+		if (v > n()) expand(v,m());
+		if (m() >= maxEdge) expand(n(),max(1,2*m()));
 		join(u,v);
 	}
 	return in.good();

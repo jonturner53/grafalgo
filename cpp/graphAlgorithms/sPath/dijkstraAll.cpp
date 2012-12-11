@@ -1,6 +1,8 @@
 #include "stdinc.h"
 #include "Wdigraph.h"
 
+using namespace grafalgo;
+
 extern void dijkstra(Wdigraph&, vertex, vertex*, int*);
 extern void bfScan(Wdigraph&, vertex, vertex*, int*);
 

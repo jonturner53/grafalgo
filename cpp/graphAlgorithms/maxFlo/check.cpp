@@ -13,11 +13,13 @@
 
 #include "stdinc.h"
 #include "Flograph.h"
-#include "UiList.h"
+#include "List.h"
 
-main() {
+using namespace grafalgo;
+
+int main() {
 	vertex u,v; edge e; int sum;
-	Flograph fg; fg.read(cin);
+	Flograph fg; cin >> fg;
 
 	// verify that capacity constraints are respected
 	for (e = fg.first(); e != 0; e = fg.next(e)) {
@@ -47,7 +49,7 @@ main() {
 	int *d = new int[fg.n()+1];
 	for (u = 1; u <= fg.n(); u++) d[u] = fg.n();
 	d[fg.src()] = 0;
-	UiList q(fg.n()); q.addLast(fg.src());
+	List q(fg.n()); q.addLast(fg.src());
 	while (!q.empty()) {
 		u = q.first(); q.removeFirst();
 		for (e = fg.firstAt(u); e != 0; e = fg.nextAt(u,e)) {

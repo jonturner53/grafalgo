@@ -14,13 +14,14 @@
 #include "Wgraph.h"
 #include "Util.h"
 
+using namespace grafalgo;
+
 extern void kruskal(Wgraph&, Wgraph&);
 extern void prim(Wgraph&, Wgraph&);
 extern void primF(Wgraph&, Wgraph&);
 extern void rrobin(Wgraph&, Wgraph&);
 
-main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
 	int i, reps, n, m, maxkey;
 	int time1, time2, maxtime, mintime, totaltime;
 	if (argc != 6 ||
@@ -28,11 +29,11 @@ main(int argc, char* argv[])
 	    sscanf(argv[3],"%d",&n) != 1 ||
 	    sscanf(argv[4],"%d",&m) != 1 ||
 	    sscanf(argv[5],"%d",&maxkey) != 1)
-		fatal("usage: mstRep method reps n m maxkey");
+		Util::fatal("usage: mstRep method reps n m maxkey");
 
 	srand(1);
 	Wgraph wg(n,m), *mstree;
-	mintime = BIGINT; maxtime = 0; totaltime = 0;
+	mintime = Util::BIGINT32; maxtime = 0; totaltime = 0;
 	for (i = 1; i <= reps; i++) {
 		wg.rcgraph(n,m); 
 		wg.randWeight(0,maxkey);
@@ -51,11 +52,11 @@ main(int argc, char* argv[])
 			time1 = Util::getTime();
 			rrobin(wg,*mstree);
 		} else {
-			fatal("mstRep: undefined method");
+			Util::fatal("mstRep: undefined method");
 		}
 		time2 = Util::getTime();
 		if (time1 == -1 || time2 == -1) {
-			fatal("mstRep: can't read time values");
+			Util::fatal("mstRep: can't read time values");
 		}
 		clock_t diff = time2 - time1;
 		mintime = min(diff,mintime);

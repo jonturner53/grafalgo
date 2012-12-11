@@ -8,6 +8,8 @@
 #include "stdinc.h"
 #include "Wgraph.h"
 
+using namespace grafalgo;
+
 extern void kruskal(Wgraph&, Wgraph&);
 extern void prim(Wgraph&, Wgraph&);
 extern void primF(Wgraph&, Wgraph&);
@@ -17,7 +19,7 @@ main(int argc, char *argv[]) {
 	Wgraph wg; wg.read(cin);
 	Wgraph mstree(wg.n(),wg.n()-1);
 	
-	if (argc < 2) fatal("usage: mst method ..");
+	if (argc < 2) Util::fatal("usage: mst method ..");
 
 	int t1 = Util::getTime();
 	if (strcmp(argv[1],"kruskal") == 0) {
@@ -29,7 +31,7 @@ main(int argc, char *argv[]) {
 	else if (strcmp(argv[1],"rrobin") == 0)
 		rrobin(wg,mstree);
 	else
-		fatal("mst: undefined method");
+		Util::fatal("mst: undefined method");
 	int t2 = Util::getTime();
 
 

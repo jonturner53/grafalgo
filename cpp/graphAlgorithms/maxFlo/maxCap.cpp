@@ -11,9 +11,9 @@ bool maxCap::findPath() {
         vertex u, v; edge e;
         Dheap nheap(fg->n(),2+fg->m()/fg->n()); int bcap[fg->n()+1];
 
-        for (u = 1; u <= fg->n(); u++) { pEdge[u] = Null; bcap[u] = 0; }
-        bcap[fg->src()] = BIGINT;
-        nheap.insert(fg->src(),-BIGINT); // store negative values, 
+        for (u = 1; u <= fg->n(); u++) { pEdge[u] = 0; bcap[u] = 0; }
+        bcap[fg->src()] = Util::BIGINT32;
+        nheap.insert(fg->src(),-Util::BIGINT32); // store negative values, 
 				    // so deletemin gives max cap
         while (!nheap.empty()) {
                 u = nheap.deletemin();

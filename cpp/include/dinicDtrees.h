@@ -9,7 +9,9 @@
 #include "Flograph.h"
 #include "Pathset.h"
 #include "Dtrees.h"
-#include "UiList.h"
+#include "List.h"
+
+using namespace grafalgo;
 
 class dinicDtrees {
 public:	

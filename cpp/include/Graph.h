@@ -33,15 +33,15 @@ typedef int edge;
  *  or all edges incident to a specific vertex.
  */
 class Graph : public Adt {
-public:		Graph(int=26,int=50);
+public:		Graph(int=1,int=1);
 		~Graph();
 
 	// common methods
 	void	clear();
 	void	resize(int numv) { resize(numv, numv); }
-	void	resize(int, int);
+	virtual void resize(int, int);
 	void	expand(int numv) { expand(numv, max(numv,m())); }
-	void	expand(int, int);
+	virtual void expand(int, int);
 	void	copyFrom(const Graph&);
 
 	// number of edges
@@ -71,13 +71,11 @@ public:		Graph(int=26,int=50);
 	int	getComponents(int*) const;
 
 	// input
-	bool readAdjList(istream&);
 	friend istream& operator>>(istream&, Graph&);
 
 	// create a string representation
-	//virtual string& edge2string(edge,string&) const;
-	//virtual string& edge2string(edge,vertex,string&) const;
-	virtual string& adjList2string(vertex,string&) const;
+	string& edge2string(edge,string&) const;
+	string& edge2string(edge,vertex,string&) const;
 	string&	toString(string&) const;
         virtual string& toDotString(string&) const;
 
@@ -115,6 +113,8 @@ protected:
 	void	freeSpace();
 	virtual edge joinWith(vertex,vertex,edge); 	
 	void 	shuffle(int*, int*);
+	virtual bool readAdjList(istream&);
+	virtual string& adjList2string(vertex,string&) const;
 
 	// methods for sorting ajacency lists
 	int	ecmp(edge, edge, vertex) const;

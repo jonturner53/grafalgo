@@ -2,6 +2,8 @@
 #include "Dheap.h"
 #include "Wdigraph.h"
 
+using namespace grafalgo;
+
 void dijkstra(Wdigraph& dig, vertex u, vertex p[], int d[]) {
 // Find a shortest path tree of dig using Dijkstra's algorithm
 // and return it in p as an array of parent pointers, with
@@ -9,7 +11,7 @@ void dijkstra(Wdigraph& dig, vertex u, vertex p[], int d[]) {
 	vertex v,w; edge e;
 	Dheap nheap(dig.n(),4);
 
-	for (v = 1; v <= dig.n(); v++) { p[v] = 0; d[v] = BIGINT; }
+	for (v = 1; v <= dig.n(); v++) { p[v] = 0; d[v] = Util::BIGINT32; }
 	d[u] = 0; nheap.insert(u,0);
 	while (!nheap.empty()) {
 		v = nheap.deletemin();

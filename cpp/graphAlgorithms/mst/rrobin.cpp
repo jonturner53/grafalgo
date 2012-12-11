@@ -1,14 +1,16 @@
 #include "stdinc.h"
-#include "UiDlist.h"
+#include "Dlist.h"
 #include "Partition.h"
-#include "Llheaps.h"
+#include "LlheapSet.h"
 #include "Wgraph.h"
 
-class Wgraph *gp;
-class Partition *pp;
+using namespace grafalgo;
+
+Wgraph *gp;
+Partition *pp;
 
 // Return true if the endpoints of e are in same tree.
-bool delf(item e) {
+bool delf(edge e) {
 	return (*pp).find((*gp).left((e+1)/2)) ==
 	       (*pp).find((*gp).right((e+1)/2));
 }
@@ -17,9 +19,9 @@ bool delf(item e) {
 // return it in mstree. Actually finds a spanning forest, if no tree.
 void rrobin(Wgraph& wg, Wgraph& mstree) {
 	edge e; vertex u,v,cu,cv; weight w;
-	UiDlist q(wg.n()); UiList elist(2*wg.m());
+	Dlist q(wg.n()); List elist(2*wg.m());
 	lheap *h = new lheap[wg.n()+1];
-	Partition prtn(wg.n()); Llheaps heapSet(2*wg.m(),delf);
+	Partition prtn(wg.n()); LlheapSet heapSet(2*wg.m(),delf);
 	gp = &wg; pp = &prtn;
 	for (e = 1; e <= wg.m(); e++) {
 		heapSet.setkey(2*e,wg.weight(e));

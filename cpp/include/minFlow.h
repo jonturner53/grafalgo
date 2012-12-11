@@ -7,8 +7,10 @@
 
 #include "stdinc.h"
 #include "Mflograph.h"
-#include "UiList.h"
+#include "List.h"
 #include "Dheap.h"
+
+using namespace grafalgo;
 
 class minFlow {
 public: 

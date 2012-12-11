@@ -1,5 +1,7 @@
 #include "cycRed.h"
 
+using namespace grafalgo;
+
 // Find minimum cost, maximum flow in wfg using
 // the cycle reduction algorithm. 
 cycRed::cycRed(Wflograph& wfg1, flow& floVal, cost& floCost) : wfg(&wfg1) {
@@ -24,7 +26,7 @@ void cycRed::augment(vertex z) {
 	vertex u, v; edge e; flow f;
 
         // determine residual capacity of cycle
-        f = BIGINT;
+        f = Util::BIGINT32;
         u = z; e = pEdge[u];
         do {
                 v = wfg->mate(u,e);
@@ -49,7 +51,7 @@ vertex cycRed::findCyc() {
 
 	vertex u,v,last; edge e;
 	int c[wfg->n()+1];
-	UiList q(wfg->n());
+	List q(wfg->n());
 
 	for (u = 1; u <= wfg->n(); u++) { 
 		pEdge[u] = 0; c[u] = 0; q.addLast(u);

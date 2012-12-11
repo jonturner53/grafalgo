@@ -8,24 +8,25 @@
 // This program is not bullet-proof. Caveat emptor.
 
 #include "stdinc.h"
-#include "UiList.h"
-#include "UiClist.h"
+#include "List.h"
+#include "ClistSet.h"
 #include "Wgraph.h"
 #include "Partition.h"
+
+using namespace grafalgo;
 
 void check(Wgraph&, Wgraph&);
 void verify(Wgraph&, Wgraph&);
 void rverify(Wgraph&, Wgraph&, vertex, vertex, vertex*,
-	     UiClist&, vertex*, int*);
+	     ClistSet&, vertex*, int*);
 int max_wt(vertex, vertex, vertex*, vertex*);
-void nca(Wgraph&, Wgraph&, vertex*, UiClist&);
+void nca(Wgraph&, Wgraph&, vertex*, ClistSet&);
 void nca_search(Wgraph&, Wgraph&, vertex, vertex, vertex*,
-	UiClist&, Partition&, vertex*, int*);
+	ClistSet&, Partition&, vertex*, int*);
 
-main()
-{
-	Wgraph wg; wg.read(cin);
-	Wgraph mstree; mstree.read(cin);
+int main() {
+	Wgraph wg; cin >> wg;
+	Wgraph mstree; cin >> mstree;
 	check(wg,mstree);
 }
 
@@ -60,7 +61,7 @@ void check(Wgraph& wg, Wgraph& mstree) {
 	int* mark = new int[mstree.n()+1]; int marked;
 	for (u = 1; u <= mstree.n(); u++) mark[u] = 0;
 	mark[1] = 1; marked = 1;
-	UiList q(wg.n()); q.addLast(1);
+	List q(wg.n()); q.addLast(1);
 	while (!q.empty()) {
 		u = q.first(); q.removeFirst();
 		for (e = mstree.firstAt(u); e != 0; e = mstree.nextAt(u,e)) {
@@ -84,7 +85,7 @@ void verify(Wgraph& wg, Wgraph& mstree) {
 
 	// Determine nearest common ancestor for each edge.
 	vertex* first_edge = new edge[wg.n()+1];
-	UiClist edge_sets(wg.m());
+	ClistSet edge_sets(wg.m());
 	nca(wg,mstree,first_edge,edge_sets);
 
 	// Check paths from endpoints to nca, and compress.
@@ -96,7 +97,7 @@ void verify(Wgraph& wg, Wgraph& mstree) {
 
 // Recursively verify the subtree rooted at u with parent pu.
 void rverify(Wgraph& wg, Wgraph& mstree, vertex u, vertex pu,
-	    vertex first_edge[], UiClist& edge_sets, vertex a[], int mw[]) {
+	    vertex first_edge[], ClistSet& edge_sets, vertex a[], int mw[]) {
 	vertex v; edge e; int m;
 	for (e = mstree.firstAt(u); e != 0; e = mstree.nextAt(u,e)) {
 		v = mstree.mate(u,e);
@@ -134,7 +135,7 @@ int max_wt(vertex u, vertex v, vertex a[], int mw[]) {
 // appearing on the same list if they have the same nearest common ancestor.
 // On return, first_edge[u] is an edge for which u is the nearest common
 // ancestor, or null if there is no such edge.
-void nca(Wgraph& wg, Wgraph& mstree, vertex *first_edge, UiClist& edge_sets) {
+void nca(Wgraph& wg, Wgraph& mstree, vertex *first_edge, ClistSet& edge_sets) {
 	Partition npap(wg.n());
 	vertex *npa = new vertex[wg.n()+1];
 	int *mark = new int[wg.m()+1];
@@ -148,7 +149,7 @@ void nca(Wgraph& wg, Wgraph& mstree, vertex *first_edge, UiClist& edge_sets) {
 
 void nca_search(Wgraph& wg, Wgraph& mstree, vertex u, vertex pu,
 		vertex first_edge[],
-	UiClist& edge_sets, Partition& npap, vertex npa[], int mark[]) {
+	ClistSet& edge_sets, Partition& npap, vertex npa[], int mark[]) {
 	vertex v, w; edge e;
 
 	for (e = mstree.firstAt(u); e != 0; e = mstree.nextAt(u,e)) {

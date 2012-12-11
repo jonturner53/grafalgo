@@ -1,43 +1,35 @@
-IDIR = ../../include
-LDIR = ../../lib
-LIBS = ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
-LIBGA = ${LDIR}/lib-ga.a
-ARCH := $(shell getconf LONG_BIT)
-CXXFLAGS_32 = -O2 -m32 -I ${IDIR}
-CXXFLAGS_64 = -O2 -m64 -I ${IDIR}
-CXXFLAGS = $(CXXFLAGS_$(ARCH)) 
-#CXXFLAGS = -O2 -m64 -I ${IDIR}
-LIBFILES = altPath.o faltPath.o edmonds.o fastEdmonds.o flowMatch.o
+SHELL := /bin/bash
+ARCH := -m$(shell getconf LONG_BIT)
+IDIR := ../../include
+LDIR := ../../lib
+BIN := ~/bin
+WARN := -Wall -Wno-c++11-extensions
+CXXFLAGS := ${WARN} ${ARCH} -O2
+
+LIBGA := ${LDIR}/lib-ga.a
+LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
+
+HFILES = ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/List.h \
+	 ${IDIR}/RlistSet.h ${IDIR}/Partition.h ${IDIR}/altPath.h \
+	 ${IDIR}/faltPath.h ${IDIR}/edmonds.h ${IDIR}/fastEdmonds.h
+OFILES = flowMatch.o altPath.o faltPath.o edmonds.o fastEdmonds.o
+XFILES = match matchRep
+
+${OFILES} : ${HFILES}
 
 .cpp.o:
-	${CXX} ${CXXFLAGS} -c $*.cpp 
+	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-altPath.o :   ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h \
-	      ${IDIR}/UiDlist.h ${IDIR}/altPath.h
-faltPath.o :  ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h \
-	      ${IDIR}/UiDlist.h ${IDIR}/faltPath.h
-edmonds.o :   ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h \
-	      ${IDIR}/UiRlist.h ${IDIR}/Partition.h ${IDIR}/edmonds.h
-fastEdmonds.o : ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h \
-	      ${IDIR}/UiRlist.h ${IDIR}/Partition.h ${IDIR}/fastEdmonds.h
-flowMatch.o : ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h \
-	      ${IDIR}/UiDlist.h \
-	      ${IDIR}/Wflograph.h ${IDIR}/Dheap.h 
-match.o :     ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiDlist.h
-matchRep.o :  ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiDlist.h
+all:	${LIBS} ${XFILES}
 
-all: ${LIBGA} xfiles
-
-clean:
-	rm -f *.o *.exe
-
-${LIBGA} : ${LIBFILES}
-	ar -ru ${LIBGA} ${LIBFILES}
-
-xfiles:	match matchRep
+${LIBGA}: ${OFILES}
+	ar -ru ${LIBGA} ${OFILES}
 
 match: match.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 matchRep: matchRep.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+
+clean:
+	rm -f *.o ${XFILES}

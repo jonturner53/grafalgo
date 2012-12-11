@@ -7,14 +7,16 @@
 #include "stdinc.h"
 #include "Wdigraph.h"
 
+using namespace grafalgo;
+
 extern void dijkstraAll(Wdigraph&, int**, vertex**);
 extern void floyd(Wdigraph&, int**, vertex**); 
 
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 	vertex u, v; string s;
-	Wdigraph dig; dig.read(cin);
+	Wdigraph dig; cin >> dig;
 	
-	if (argc != 2) fatal("usage: allPairs method");
+	if (argc != 2) Util::fatal("usage: allPairs method");
 
 	if (strcmp(argv[1],"floyd") == 0) {
 		int** dist = new int*[dig.n()+1];
@@ -28,11 +30,11 @@ main(int argc, char *argv[]) {
 	
 		cout << "distances\n\n    ";
 		for (v = 1; v <= dig.n(); v++) {
-			cout << Util::node2string(v,dig.n(),s) << " ";
+			cout << dig.item2string(v,s) << " ";
 		}
 		printf("\n");
 		for (u = 1; u <= dig.n(); u++) {
-			cout << "  " << Util::node2string(v,dig.n(),s) << ": ";
+			cout << "  " << dig.item2string(v,s) << ": ";
 			for (v = 1; v <= dig.n(); v++) {
 				cout << setw(3) << dist[u][v] << " ";
 			}
@@ -40,14 +42,13 @@ main(int argc, char *argv[]) {
 		}
 		cout << "\n\nmidpoint array\n\n    ";
 		for (v = 1; v <= dig.n(); v++)  {
-			cout << "  " << Util::node2string(v,dig.n(),s) << " ";
+			cout << "  " << dig.item2string(v,s) << " ";
 		}
 		cout << endl;
 		for (u = 1; u <= dig.n(); u++) {
-			cout << " " << Util::node2string(v,dig.n(),s) << ": ";
+			cout << " " << dig.item2string(v,s) << ": ";
 			for (v = 1; v <= dig.n(); v++) {
-				cout << setw(3) << Util::node2string(
-						     mid[u][v],dig.n(),s)
+				cout << setw(3) << dig.item2string(mid[u][v],s)
 				     << " ";
 			}
 			cout << endl;
@@ -64,11 +65,11 @@ main(int argc, char *argv[]) {
 	
 		cout << "distances\n\n    ";
 		for (v = 1; v <= dig.n(); v++) {
-			cout << "  "<< Util::node2string(v,dig.n(),s) << " ";
+			cout << "  "<< dig.item2string(v,s) << " ";
 		}
 		cout << endl;
 	        for (u = 1; u <= dig.n(); u++) {
-			cout << " " << Util::node2string(v,dig.n(),s) << ": ";
+			cout << " " << dig.item2string(v,s) << ": ";
 	                for (v = 1; v <= dig.n(); v++) {
 				cout << setw(3) << dist[u][v] << " ";
 	                }
@@ -77,19 +78,19 @@ main(int argc, char *argv[]) {
 	
 		cout << "\n\nshortest path trees\n\n    ";
 	        for (v = 1; v <= dig.n(); v++)  {
-			cout << "  " << Util::node2string(v,dig.n(),s);
+			cout << "  " << dig.item2string(v,s);
 	        }
 		cout << endl;
 		for (u = 1; u <= dig.n(); u++) {
-			cout << " " << Util::node2string(v,dig.n(),s) << ": ";
+			cout << " " << dig.item2string(v,s) << ": ";
 			for (v = 1; v <= dig.n(); v++) {
-				cout << setw(3) << Util::node2string(
-						     parent[u][v],dig.n(),s)
+				cout << setw(3) << dig.item2string(
+						     parent[u][v],s)
 				     << " ";
 			}
 			cout << endl;
 		}
 	} else {
-		fatal("allPairs: undefined method");
+		Util::fatal("allPairs: undefined method");
 	}
 }

@@ -1,12 +1,13 @@
-IDIR = ../../include
-LDIR = ../../lib
-LIBS = ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
-LIBGA = ${LDIR}/lib-ga.a
-ARCH := $(shell getconf LONG_BIT)
-CXXFLAGS_32 = -O2 -m32 -I ${IDIR}
-CXXFLAGS_64 = -O2 -m64 -I ${IDIR}
-#CXXFLAGS = $(CXXFLAGS_$(ARCH)) 
-CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 -I ${IDIR}
+SHELL := /bin/bash
+ARCH := -m$(shell getconf LONG_BIT)
+IDIR := ../../include
+LDIR := ../../lib
+BIN := ~/bin
+WARN := -Wall -Wno-c++11-extensions
+CXXFLAGS := ${WARN} ${ARCH} -O2
+
+LIBGA := ${LDIR}/lib-ga.a
+LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Flograph.h ${IDIR}/Dheap.h \
 	 ${IDIR}/List.h ${IDIR}/augPath.h ${IDIR}/shortPath.h \
@@ -16,14 +17,14 @@ HFILES = ${IDIR}/stdinc.h ${IDIR}/Flograph.h ${IDIR}/Dheap.h \
 OFILES = augPath.o shortPath.o maxCap.o capScale.o dinic.o dinicDtrees.o \
 	 prePush.o ppFifo.o ppHiLab.o
 
+${OFILES} : ${HFILES}
+
 XFILES = maxFlo maxFloRep check badCase 
 
 .cpp.o:
-	${CXX} ${CXXFLAGS} -c $<
+	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-${OFILES} : ${HFILES}
-
-all:	${LIBGA} ${XFILES}
+all:	${LIBS} ${XFILES}
 
 ${LIBGA}: ${OFILES}
 	ar -ru ${LIBGA} ${OFILES}

@@ -8,18 +8,19 @@
 // This program is not bullet-proof. Caveat emptor.
 
 #include "stdinc.h"
-#include "UiList.h"
+#include "List.h"
 #include "Wdigraph.h"
+
+using namespace grafalgo;
 
 void check(int, Wdigraph&, Wdigraph&);
 
-main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	int s = 1;
 	if (argc == 2 && sscanf(argv[1],"%d",&s) != 1)
-		fatal("usage: check [src]");
-	Wdigraph dig; dig.read(cin);
-	Wdigraph sptree; sptree.read(cin);
+		Util::fatal("usage: check [src]");
+	Wdigraph dig; cin >> dig;
+	Wdigraph sptree; cin >> sptree;
 	check(s,dig,sptree);
 }
 
@@ -29,7 +30,7 @@ void check(int s, Wdigraph& dig, Wdigraph& sptree) {
 
 	// check size of sptree matches dig
 	if (sptree.n() != dig.n() || sptree.m() != sptree.n()-1)
-		fatal("spt_check: size error, aborting");
+		Util::fatal("spt_check: size error, aborting");
 
 	// check that sptree is a subgraph of dig
 	for (v = 1; v <= sptree.n(); v++) {
@@ -52,7 +53,7 @@ void check(int s, Wdigraph& dig, Wdigraph& sptree) {
 	bool* mark = new bool[sptree.n()+1]; int marked;
 	for (u = 1; u <= sptree.n(); u++) mark[u] = false;
 	mark[s] = true; marked = 1;
-	UiList q(dig.n()); q.addLast(s);
+	List q(dig.n()); q.addLast(s);
 	while (!q.empty()) {
 		u = q.first(); q.removeFirst();
 		for (e = sptree.firstOut(u); e != 0; e = sptree.nextOut(u,e)) {

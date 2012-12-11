@@ -10,17 +10,19 @@
 
 #include "stdinc.h"
 #include "Wflograph.h"
-#include "UiList.h"
+#include "List.h"
 #include "Dheap.h"
 #include "dinic.h"
+
+using namespace grafalgo;
 
 void scale(flograph&);
 void initLabels(flograph&, int*);
 void findpath(flograph&, int*, list&);
 
-main() {
-	Wflograph wfg;
-	wfg.get(stdin); lcap(wfg); wfg.put(stdout);
+int main() {
+	Wflograph wfg; cin >> wfg;
+	lcap(wfg); cout << wfg;
 }
 
 class scale {
@@ -51,7 +53,7 @@ void scale(flograph& wfg) {
 
         wfg = &wfg1;
 	lab = new int[wfg.n+1]; excess = new int[wfg.n+1];
-	slist = new UiList(wfg.n); tlist = new UiList(wfg.n);
+	slist = new List(wfg.n); tlist = new List(wfg.n);
 
 	for (u = 1; u <= wfg.n; u++) lab[u] = excess[u] = 0;
 
@@ -92,7 +94,7 @@ void initLabels() {
         int pass;
 	vertex v, w,last; edge e;
 	vertex *p = new vertex[wfg.n+1];
-        UiList q(wfg.n);
+        List q(wfg.n);
 
         for (v = 1; v <= wfg.n; v++) {
 		p[v] = 0; lab[v] = 0; q &= v;
@@ -111,7 +113,7 @@ void initLabels() {
                         }
                 }
                 if (v == last && !q.empty()) { pass++; last = q.last(); }
-                if (pass == wfg.n) fatal("initLabels: negative cost cycle");
+                if (pass == wfg.n) Util::fatal("initLabels: negative cost cycle");
         }
 }
 

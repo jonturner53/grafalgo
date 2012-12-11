@@ -1,12 +1,14 @@
 #include "edmonds.h"
 
+using namespace grafalgo;
+
 // Find a maximum size matching in the graph graf and
 // return it as a list of edges.
-edmonds::edmonds(Graph& graf1, UiDlist& match1, int &size)
+edmonds::edmonds(Graph& graf1, Dlist& match1, int &size)
 		 : graf(&graf1), match(&match1) {
 	vertex u, v; edge e;
 	blossoms = new Partition(graf->n()); // set per blossom
-	augpath = new UiRlist(graf->m());    // reversible list
+	augpath = new RlistSet(graf->m());    // reversible list
 	origin = new vertex[graf->n()+1];    // original vertex for each blossom
 	bridge = new BridgePair[graf->n()+1];// edge that formed a blossom
 	state = new stype[graf->n()+1];	     // state used in path search
@@ -143,7 +145,7 @@ edge edmonds::findpath() {
 		u = graf->left(e); v = graf->right(e);
 		state[u] = state[v] = unreached;
 	}
-	UiList q(graf->m()); // list of edges to be processed in main loop
+	List q(graf->m()); // list of edges to be processed in main loop
 	for (e = 1; e <= graf->m(); e++) {
 		if (state[graf->left(e)] == even ||
 		    state[graf->right(e)] == even)

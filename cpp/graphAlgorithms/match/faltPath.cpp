@@ -1,6 +1,8 @@
 #include "faltPath.h"
 
-faltPath::faltPath(Graph& graf1, UiDlist& match1, int& size) : graf(&graf1), match(&match1) {
+using namespace grafalgo;
+
+faltPath::faltPath(Graph& graf1, Dlist& match1, int& size) : graf(&graf1), match(&match1) {
 // Find a maximum size matching in the bipartite graph graf and
 // return it as a list of edges. Return the number of edges
 // in the mapping in size.
@@ -8,7 +10,7 @@ faltPath::faltPath(Graph& graf1, UiDlist& match1, int& size) : graf(&graf1), mat
 
 	state = new stype[graf->n()+1]; visit = new int[graf->n()+1];
 	mEdge = new edge[graf->n()+1]; pEdge = new edge[graf->n()+1];
-	free = new UiDlist(graf->n()); leaves = new UiList(graf->n());
+	free = new Dlist(graf->n()); leaves = new List(graf->n());
 
 	match->clear(); size = 0;
 	for (u = 1; u <= graf->n(); u++) { visit[u] = 0; mEdge[u] = 0; }
@@ -92,7 +94,7 @@ edge faltPath::expand(vertex v) {
 		} else if (state[w] == even) {
 			for (x = w; pEdge[x] != 0; x = graf->mate(x,pEdge[x])){}
 			for (y = v; pEdge[y] != 0; y = graf->mate(y,pEdge[y])){}
-			if (x == y) fatal("findPath: graph not bipartite");
+			if (x == y) Util::fatal("findPath: graph not bipartite");
 			return e;
 		} 
 	}

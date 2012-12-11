@@ -27,7 +27,7 @@ protected:
 	int	*ubVec;		// ubVec[i] is an unbalanced vertex
 				// with label i
 	int	top;		// highest index into ubVec with ubVec[i]!=0
-	UiClist *unbal;		// collection of circular lists of vertices
+	ClistSet *unbal;	// collection of circular lists of vertices
 
 	void	newUnbal(vertex);
 	void	addUnbal(vertex);

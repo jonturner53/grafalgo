@@ -45,7 +45,7 @@ ppFifo::ppFifo(Flograph& fg1, int& floVal, bool batch, string& stats)
  *  batch relabeling (batch=true) or incremental relabeling (batch=false)
  */
 void ppFifo::doit(bool batch) {
-	unbal = new UiList(fg->n());
+	unbal = new List(fg->n());
 
 	// initialization
 	vertex s = fg->src();

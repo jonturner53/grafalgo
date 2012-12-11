@@ -73,7 +73,8 @@ void Flograph::expand(int numv, int maxe) {
 /** Copy into list from source. */
 void Flograph::copyFrom(const Flograph& source) {
 	if (&source == this) return;
-	if (source.n() > n()) resize(source.n());
+	if (source.n() > n() || source.m() > maxEdge)
+		resize(source.n(),source.m());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
 		edge ee = join(source.tail(e),source.head(e));
@@ -101,14 +102,14 @@ bool Flograph::readAdjList(istream& in) {
 		isSrc = true;
 	}
 	if (!Util::verify(in,':')) return 0;
-	if (u > n()) expand(max(u,2*n()),m());
+	if (u > n()) expand(u,m());
 	if (isSrc) setSrc(u);
 	if (isSnk) setSnk(u);
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v;
 		if (!Adt::readItem(in,v)) return 0;
-		if (v > n()) expand(max(v,2*n()),m());
-		if (m() >= maxEdge) expand(n(),2*m());
+		if (v > n()) expand(v,m());
+		if (m() >= maxEdge) expand(n(),max(1,2*m()));
 		int capacity, flow;
 		if (!Util::verify(in,'(') || !Util::readInt(in,capacity) ||
 		    !Util::verify(in,',') || !Util::readInt(in,flow) ||

@@ -8,16 +8,18 @@
 #include "stdinc.h"
 #include "Wdigraph.h"
 
+using namespace grafalgo;
+
 extern void dijkstra(Wdigraph&, vertex, vertex*, int*);
 extern void bfScan(Wdigraph&, vertex, vertex*, int*);
 
-main(int argc, char *argv[]) {
-	int s; Wdigraph dig; dig.read(cin);
+int main(int argc, char *argv[]) {
+	int s; Wdigraph dig; cin >> dig;
 	
 	s = 1;
 	if (argc < 2 || argc > 3 ||
-	    argc == 3 && sscanf(argv[2],"%d",&s) != 1)
-		fatal("usage: spt method [src]");
+	    (argc == 3 && sscanf(argv[2],"%d",&s) != 1))
+		Util::fatal("usage: spt method [src]");
 
 	int *p = new vertex[dig.n()+1];
 	int *d = new int[dig.n()+1];
@@ -27,7 +29,7 @@ main(int argc, char *argv[]) {
 	else if (strcmp(argv[1],"bfScan") == 0)
 		bfScan(dig,s,p,d);
 	else
-		fatal("spt: undefined method");
+		Util::fatal("spt: undefined method");
 
 	Wdigraph sptree(dig.n(),dig.n()-1);
 	int sum = 0;

@@ -11,13 +11,18 @@
 #include "List.h"
 #include "Graph.h"
 
-namespace grafalgo {
+using namespace grafalgo;
 
-void bfs(Graph&, vertex);
+void bfs(Graph&, vertex, List&);
 
-main() { Graph g; g.read(cin); bfs(g,1); }
+int main() {
+	Graph g; cin >> g;
+	List vlist(g.n());
+	bfs(g,1,vlist);
+	cout << vlist << endl;
+}
 
-void bfs(Graph& g, vertex s) {
+void bfs(Graph& g, vertex s, List& vlist) {
 	vertex u,v; edge e; List q(g.n());
 	bool *mark = new bool[g.n()+1];
 	for (u = 1; u <= g.n(); u++) mark[u] = false;
@@ -25,7 +30,7 @@ void bfs(Graph& g, vertex s) {
 	while (!q.empty()) {
 		u = q.first(); q.removeFirst();
 		string s1;
-		cout << Util::node2string(u,g.n(),s1) << " ";
+		vlist.addLast(u);
 		for (e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			v = g.mate(u,e);
 			if (!mark[v]) { q.addLast(v); mark[v] = 1; }
@@ -34,5 +39,3 @@ void bfs(Graph& g, vertex s) {
 	cout << endl;
 	delete [] mark;
 }
-
-} // ends namespace

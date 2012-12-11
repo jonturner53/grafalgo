@@ -66,7 +66,8 @@ void Wdigraph::expand(int numv, int maxe) {
 /** Copy into list from source. */
 void Wdigraph::copyFrom(const Wdigraph& source) {
 	if (&source == this) return;
-	if (source.n() > n()) resize(source.n());
+	if (source.n() > n() || source.m() > maxEdge)
+		resize(source.n(),source.m());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
 		edge ee = join(source.tail(e),source.head(e));
@@ -83,13 +84,13 @@ bool Wdigraph::readAdjList(istream& in) {
 	if (!Util::verify(in,'[')) return 0;
 	vertex u;
 	if (!Adt::readItem(in,u)) return 0;
-	if (u > n()) expand(max(u,2*n()),m());
+	if (u > n()) expand(u,m());
 	if (!Util::verify(in,':')) return 0;
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v;
 		if (!Adt::readItem(in,v)) return 0;
-		if (v > n()) expand(max(v,2*n()),m());
-		if (m() >= maxEdge) expand(n(),2*m());
+		if (v > n()) expand(v,m());
+		if (m() >= maxEdge) expand(n(),max(1,2*m()));
 		int w;
 		if (!Util::verify(in,'(') || !Util::readInt(in,w) ||
 		    !Util::verify(in,')'))

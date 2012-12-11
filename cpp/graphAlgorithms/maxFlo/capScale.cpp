@@ -1,4 +1,7 @@
+#include "Flograph.h"
 #include "capScale.h"
+
+using namespace grafalgo;
 
 capScale::capScale(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
 // Find maximum flow in fg using the shortest augment path algorithm.
@@ -15,16 +18,16 @@ capScale::capScale(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
 bool capScale::findPath() {
 // Find a path with sufficient unused residual capacity.
 	vertex u,v; edge e;
-	UiList queue(fg->n());
+	List queue(fg->n());
 
 	while (scale > 0) {
-		for (u = 1; u <= fg->n(); u++) pEdge[u] = Null;
+		for (u = 1; u <= fg->n(); u++) pEdge[u] = 0;
 		queue.addLast(fg->src());
 		while (!queue.empty()) {
 			u = queue.first(); queue.removeFirst();
 			for (e = fg->firstAt(u); e != 0; e=fg->nextAt(u,e)) {
 				v = fg->mate(u,e);
-				if (fg->res(u,e) >= scale && pEdge[v] == Null 
+				if (fg->res(u,e) >= scale && pEdge[v] == 0 
 				    && v != fg->src()) {
 					pEdge[v] = e; 
 					if (v == fg->snk()) return true;

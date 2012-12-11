@@ -6,9 +6,10 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+#include "Adt.h"
 #include "augPath.h"
 
-using namespace grafalgo
+using namespace grafalgo;
 
 /** Find maximum flow in a flow graph.
  *  Base class constructor initializes dynamic data common to all algorithms.
@@ -25,7 +26,7 @@ int augPath::augment() {
 	vertex u, v; edge e; flow f;
 
 	// determine residual capacity of path
-	f = BIGINT;
+	f = Util::BIGINT32;
 	u = fg->snk(); e = pEdge[u];
 	while (u != fg->src()) {
 		v = fg->mate(u,e);

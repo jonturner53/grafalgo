@@ -24,7 +24,7 @@ public:
 		ppFifo(Flograph&, int&, bool, string&);
 protected:
 	void	doit(bool);
-	UiList	*unbal;	
+	List	*unbal;	
 	void	newUnbal(vertex); 
 };
 

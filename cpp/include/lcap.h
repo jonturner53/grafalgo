@@ -6,8 +6,10 @@
 
 #include "stdinc.h"
 #include "Wflograph.h"
-#include "UiList.h"
+#include "List.h"
 #include "Dheap.h"
+
+using namespace grafalgo;
 
 class lcap {
 public:

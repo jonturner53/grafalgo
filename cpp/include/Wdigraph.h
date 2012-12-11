@@ -23,7 +23,7 @@ namespace grafalgo {
  *  or all edges incident to a specific vertex.
  */
 class Wdigraph : public Digraph {
-public:		Wdigraph(int=26,int=50);
+public:		Wdigraph(int=1,int=1);
 		~Wdigraph();
 	
 	void	resize(int, int);
@@ -37,11 +37,7 @@ public:		Wdigraph(int=26,int=50);
         void    setLength(edge,int);
 
 	// create a string representation
-        string&	adjList2string(vertex,string&) const;
         string&	toDotString(string&) const;
-
-	// input
-	bool	readAdjList(istream&);
 
 	void randLength(int, int); 
 
@@ -50,6 +46,8 @@ private:
 
 	void makeSpace(int,int);
 	void freeSpace();
+	bool	readAdjList(istream&);
+        string&	adjList2string(vertex,string&) const;
 
 	Wdigraph& operator=(const Wdigraph&);
 };

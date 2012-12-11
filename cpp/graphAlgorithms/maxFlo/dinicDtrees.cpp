@@ -5,7 +5,7 @@ dinicDtrees::dinicDtrees(Flograph& fg1, int& floVal) : fg(&fg1) {
 	upEdge = new int[fg->n()+1]; dt = new Dtrees(fg->n());
 
 	for (vertex u = 1; u <= fg->n(); u++) {
-		dt->addcost(u,BIGINT);
+		dt->addcost(u,Util::BIGINT32);
 		level[u] = nextEdge[u] = upEdge[u] = 0;
 	}
 
@@ -21,7 +21,7 @@ dinicDtrees::dinicDtrees(Flograph& fg1, int& floVal, string& stats) : fg(&fg1) {
 	upEdge = new int[fg->n()+1]; dt = new Dtrees(fg->n());
 
 	for (vertex u = 1; u <= fg->n(); u++) {
-		dt->addcost(u,BIGINT);
+		dt->addcost(u,Util::BIGINT32);
 		level[u] = nextEdge[u] = upEdge[u] = 0;
 	}
 
@@ -79,7 +79,7 @@ bool dinicDtrees::findPath() {
 			dt->cut(v); upEdge[v] = 0;
 			fg->addFlow(v,e,
 				(fg->cap(v,e)-dt->nodeCost(v)) - fg->f(v,e));
-			dt->addcost(v,BIGINT - dt->nodeCost(v));
+			dt->addcost(v,Util::BIGINT32 - dt->nodeCost(v));
 		}
 	}
 	return false;
@@ -88,16 +88,16 @@ bool dinicDtrees::findPath() {
 int dinicDtrees::augment() {
 // Add flow to the source-sink path defined by the path in the
 // dynamic trees data structure
-	vertex u; edge e; NodeCostPair p;
+	vertex u; edge e;
 
-	p = dt->findcost(fg->src());
+	NodeCostPair p = dt->findcost(fg->src());
 	int flo = p.c;
 	dt->addcost(fg->src(),-flo);
 	for (p = dt->findcost(fg->src()); p.c==0; p = dt->findcost(fg->src())) {
-		u = p.s; e = upEdge[u];
+		u = p.x; e = upEdge[u];
 		fg->addFlow(u,e,fg->cap(u,e) - fg->f(u,e));
 		dt->cut(u);
-		dt->addcost(u,BIGINT);
+		dt->addcost(u,Util::BIGINT32);
 		upEdge[u] = 0;
 	}
 	return flo;
@@ -107,14 +107,15 @@ bool dinicDtrees::newPhase() {
 // Prepare for a new phase. Return the number of edges in the source/sink
 // path, or 0 if none exists.
 	vertex u, v; edge e;
-	UiList q(fg->n());
+	List q(fg->n());
 	for (u = 1; u <= fg->n(); u++) {
 		nextEdge[u] = fg->firstAt(u);
 		if (dt->parent(u) != 0) { // cleanup from previous phase
 			e = upEdge[u];
 			fg->addFlow(u,e,
 				(fg->cap(u,e)-dt->nodeCost(u)) - fg->f(u,e));
-			dt->cut(u); dt->addcost(u,BIGINT - dt->nodeCost(u));
+			dt->cut(u);
+			dt->addcost(u,Util::BIGINT32 - dt->nodeCost(u));
 			upEdge[u] = 0;
 		}
 		level[u] = fg->n();

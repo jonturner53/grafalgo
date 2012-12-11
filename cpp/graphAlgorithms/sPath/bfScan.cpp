@@ -1,13 +1,15 @@
 #include "stdinc.h"
-#include "UiList.h"
+#include "List.h"
 #include "Wdigraph.h"
+
+using namespace grafalgo;
 
 void bfScan(Wdigraph& dig, vertex s, vertex p[], int d[]) {
 // Compute shortest path tree using breadth-first scanning algorithm.
 	int pass; vertex v,w,last; edge e;
-	UiList q(dig.n());
+	List q(dig.n());
 
-	for (v = 1; v <= dig.n(); v++) { p[v] = 0; d[v] = BIGINT; }
+	for (v = 1; v <= dig.n(); v++) { p[v] = 0; d[v] = Util::BIGINT32; }
 	d[s] = 0; q.addLast(s); pass = 0; last = s;
 
 	while (!q.empty()) {
@@ -20,6 +22,7 @@ void bfScan(Wdigraph& dig, vertex s, vertex p[], int d[]) {
 			}
 		}
 		if (v == last && !q.empty()) { pass++; last = q.last(); }
-		if (pass == dig.n()) fatal("bfScan: graph has negative cycle");
+		if (pass == dig.n())
+			Util::fatal("bfScan: graph has negative cycle");
 	}
 }

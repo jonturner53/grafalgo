@@ -15,6 +15,7 @@
  *  dense graphs. Use k2<k1 to get more sparse graphs.
  */
 
+#include "Adt.h"
 #include "Util.h"
 #include "Flograph.h"
 

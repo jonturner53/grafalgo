@@ -1,7 +1,9 @@
 #include "stdinc.h"
 #include "Partition.h"
 #include "Wgraph.h"
-#include "UiList.h"
+#include "List.h"
+
+using namespace grafalgo;
 
 // Sort edges according to weight, using heap-sort.
 void sortEdges(edge *elist, const Wgraph& wg) {
@@ -121,7 +123,7 @@ void kruskal(Wgraph& wg, Wgraph& mstree,
 	setupTime = t2-t1; treeTime = t3-t2; findCount = vsets.findcount();
 }
 
-void kruskal(Wgraph& wg, UiList& mstree) {
+void kruskal(Wgraph& wg, List& mstree) {
 // Find a minimum spanning tree of wg using Kruskal's algorithm and
 // return it in mstree. This version returns a list of the edges using
 // the edge numbers in wg, rather than a separate Wgraph data structure.

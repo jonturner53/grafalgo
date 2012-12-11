@@ -1,5 +1,7 @@
 #include "lcap.h"
 
+using namespace grafalgo;
+
 lcap::lcap(Wflograph& wfg1, flow& flowVal, floCost& flowCost, bool mostNeg) : wfg(&wfg1) {
 // Find minimum cost, flow in wfg using the least-cost augmenting path
 // algorithm.  If the mostNeg flag is true, the algorithm finds a
@@ -30,7 +32,7 @@ void lcap::initLabels() {
 // paths.
         int pass;
 	vertex u, v,last; edge e;
-        UiList q(wfg->n());
+        List q(wfg->n());
 
         for (u = 1; u <= wfg->n(); u++) {
 		pEdge[u] = 0; lab[u] = 0; q.addLast(u);
@@ -47,7 +49,8 @@ void lcap::initLabels() {
                         }
                 }
                 if (u == last && !q.empty()) { pass++; last = q.last(); }
-                if (pass == wfg->n()) fatal("initLabels: negative cost cycle");
+                if (pass == wfg->n())
+			Util::fatal("initLabels: negative cost cycle");
         }
 }
 
@@ -56,7 +59,7 @@ bool lcap::findpath() {
 	vertex u,v; edge e;
 	int c[wfg->n()+1]; Dheap S(wfg->n(),4);
 
-	for (u = 1; u <= wfg->n(); u++) { pEdge[u] = 0; c[u] = BIGINT; }
+	for (u = 1; u <= wfg->n(); u++) { pEdge[u] = 0; c[u] = Util::BIGINT32; }
 	c[wfg->src()] = 0; S.insert(wfg->src(),0);
 	while (!S.empty()) {
 		u = S.deletemin();
@@ -81,7 +84,7 @@ void lcap::pathRcapCost(flow& rcap, floCost& pc) {
 // in rcap and pc.
         vertex u, v; edge e;
 
-	rcap = BIGINT; pc = 0;
+	rcap = Util::BIGINT32; pc = 0;
         u = wfg->snk(); e = pEdge[u];
         while (u != wfg->src()) {
                 v = wfg->mate(u,e);

@@ -1,8 +1,8 @@
 #include "stdinc.h"
 #include "Wgraph.h"
-#include "UiClist.h"
-#include "UiList.h"
-#include "Fheaps.h"
+#include "FheapSet.h"
+
+using namespace grafalgo;
 
 /** Find a minimum spanning tree using Prim's algorithm.
  *  This version uses a Fibonacci heap
@@ -13,7 +13,7 @@
 void primF(Wgraph& wg, Wgraph& mstree) {
         vertex u,v; edge e;
         edge* cheap = new edge[wg.n()+1];
-        Fheaps nheap(wg.n()); fheap root;
+        FheapSet nheap(wg.n()); fheap root;
         bool *inHeap = new bool[wg.n()+1]; // inHeap[u]=true if u is in heap
         int numInHeap = 0;
 

@@ -20,8 +20,8 @@
 #include "prePush.h"
 #include "ppFifo.h"
 
-main(int argc, char* argv[]) {
-	int i, reps, n, m, mss, ec1, ec2, span, floVal;
+int main(int argc, char* argv[]) {
+	int i, reps, n, m, mss, ec1, ec2, floVal;
 	if (argc != 8 ||
 	    sscanf(argv[2],"%d",&reps) != 1 ||
 	    sscanf(argv[3],"%d",&n) != 1 ||
@@ -29,7 +29,7 @@ main(int argc, char* argv[]) {
 	    sscanf(argv[5],"%d",&mss) != 1 ||
 	    sscanf(argv[6],"%d",&ec1) != 1 ||
 	    sscanf(argv[7],"%d",&ec2) != 1)
-		fatal("usage: maxFloRep method reps n m mss ec1 ec2");
+		Util::fatal("usage: maxFloRep method reps n m mss ec1 ec2");
 
 	Flograph fg(n,m,1,2); 
 	for (i = 1; i <= reps; i++) {
@@ -50,6 +50,6 @@ main(int argc, char* argv[]) {
 		else if (strcmp(argv[1],"ppFifoBatch") == 0)
 			ppFifo(fg,floVal,true);
 		else
-			fatal("maxFloRep: undefined method");
+			Util::fatal("maxFloRep: undefined method");
 	}
 }

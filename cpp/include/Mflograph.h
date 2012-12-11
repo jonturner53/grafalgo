@@ -20,7 +20,7 @@ namespace grafalgo {
  *  for dealing with min flow constraints.
  */
 class Mflograph : public Flograph {
-public:		Mflograph(int=26,int=100,int=1,int=2);
+public:		Mflograph(int=3,int=2,int=1,int=2);
 		virtual ~Mflograph();
 
 	void	resize(int,int);	
@@ -36,8 +36,6 @@ public:		Mflograph(int=26,int=100,int=1,int=2);
 	void	setMinFlo(edge,flow);
 	void	randMinFlo(flow,flow);
 
-	bool	readAdjList(istream&);
-	string& adjList2string(vertex,string&) const; 
 	string& toDotString(string&) const;
 
 protected:
@@ -47,6 +45,8 @@ protected:
         void    makeSpace(int,int);    		
         void    freeSpace();    	
 	void    virtual shuffle(int*, int*);
+	bool	readAdjList(istream&);
+	string& adjList2string(vertex,string&) const; 
 
 private:
 	Mflograph& operator=(const Mflograph&); 

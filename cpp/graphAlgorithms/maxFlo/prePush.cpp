@@ -27,7 +27,7 @@ prePush::prePush(Flograph& fg1, int& floVal) : fg(&fg1) {
 prePush::~prePush() { delete [] d; delete [] excess; delete [] nextedge; }
 
 void prePush::newUnbal(vertex u) {
-	fatal("prePush::newUnbal: execution should never reach here");
+	Util::fatal("prePush::newUnbal: execution should never reach here");
 }
 
 bool prePush::balance(vertex u) {
@@ -54,7 +54,7 @@ void prePush::initdist() {
 // Compute exact distance labels and return in d.
 // For vertices that can't reach t, compute labels to s.
 	vertex u,v; edge e;
-	UiList queue(fg->n());
+	List queue(fg->n());
 
 	newDistCount++;
 	for (u = 1; u < fg->n(); u++) d[u] = 2*fg->n();
@@ -74,7 +74,7 @@ void prePush::initdist() {
 	}
 
 	if (d[fg->src()] < fg->n()) 
-		fatal("initdist: path present from source to sink");
+		Util::fatal("initdist: path present from source to sink");
 
 	// compute distance labels for remaining vertices
 	d[fg->src()] = fg->n();

@@ -16,11 +16,11 @@
 #include "ppFifo.h"
 #include "ppHiLab.h"
 
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 	int floVal;
-	Flograph fg; fg.read(cin);
+	Flograph fg; cin >> fg;
 
-	if (argc != 2) fatal("usage: maxFlo method");
+	if (argc != 2) Util::fatal("usage: maxFlo method");
 
 	if (strcmp(argv[1],"maxCap") == 0)
 		maxCap(fg,floVal);
@@ -41,9 +41,9 @@ main(int argc, char *argv[]) {
 	else if (strcmp(argv[1],"ppHiLabBatch") == 0)
 		ppHiLab(fg,floVal,true);
 	else
-		fatal("maxFlo: undefined method");
+		Util::fatal("maxFlo: undefined method");
 
 	string s;
-	cout << fg.toString(s) << "total flow of " << floVal << endl;
+	cout << fg << "total flow of " << floVal << endl;
 	exit(0);
 }

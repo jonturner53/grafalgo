@@ -11,12 +11,14 @@
 #include "stdinc.h"
 #include "Wdigraph.h"
 
+using namespace grafalgo;
+
 extern void dijkstraAll(Wdigraph&, int**, vertex**);
 extern void floyd(Wdigraph&, int**, vertex**);
 
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 	int i, reps, n, m, lo, hi;
-	vertex u, v; Wdigraph dig; 
+	vertex u; Wdigraph dig; 
 	int** dist; vertex** parent; vertex** mid;
 
 	if (argc != 7 ||
@@ -25,9 +27,9 @@ main(int argc, char *argv[]) {
 	    sscanf(argv[4],"%d",&m) != 1 ||
 	    sscanf(argv[5],"%d",&lo) != 1  ||
 	    sscanf(argv[6],"%d",&hi) != 1)
-		fatal("usage: allPairsRep method reps n p lo hi");
+		Util::fatal("usage: allPairsRep method reps n p lo hi");
 	
-	if (argc != 2) fatal("usage: allPairs method");
+	if (argc != 2) Util::fatal("usage: allPairs method");
 
 	if (strcmp(argv[1],"floyd") == 0) {
 		dist = new int*[dig.n()+1];
@@ -44,7 +46,7 @@ main(int argc, char *argv[]) {
 			parent[u] = new vertex[dig.n()+1];
 		}
 	} else {
-		fatal("allPairs: undefined method");
+		Util::fatal("allPairs: undefined method");
 	}
 
 	for (i = 1; i <= reps; i++) {

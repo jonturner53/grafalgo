@@ -16,8 +16,9 @@
 #include "cycRed.h"
 #include "lcap.h"
 
-main(int argc, char* argv[])
-{
+using namespace grafalgo;
+
+int main(int argc, char* argv[]) {
 	int i, reps, n, m, mss, ec1, ec2, lo, hi;
 	if (argc != 10 ||
 	    sscanf(argv[2],"%d",&reps) != 1 ||
@@ -28,7 +29,7 @@ main(int argc, char* argv[])
 	    sscanf(argv[7],"%d",&ec2) != 1 ||
 	    sscanf(argv[8],"%d",&lo) != 1 ||
 	    sscanf(argv[9],"%d",&hi) != 1)
-		fatal("usage: mcFloRep method reps n m mss ec1 ec2 lo hi");
+		Util::fatal("usage: mcFloRep method reps n m mss ec1 ec2 lo hi");
 
 	Wflograph wfg; flow floVal; cost floCost;
 	for (i = 1; i <= reps; i++) {
@@ -43,6 +44,6 @@ main(int argc, char* argv[])
 		else if (strcmp(argv[1],"mostNeg") == 0)
 			lcap(wfg,floVal,floCost,true);
 		else
-			fatal("mcFloRep: undefined method");
+			Util::fatal("mcFloRep: undefined method");
 	}
 }

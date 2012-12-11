@@ -14,7 +14,9 @@ private:
         int*    nextEdge;       // ignore edges before nextEdge[u] in adj. list
         int*    level;          // level[u]=# of edges in path from source
 
-        bool    findPath(vertex); // find augmenting path
+        bool    findPath() { return findPath(fg->src()); }
+        bool	findPath(vertex); // find augmenting path
+
         bool    newPhase();     // prepare for a new phase
 
 	// statistics

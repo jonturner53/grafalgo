@@ -14,7 +14,7 @@ shortPath::shortPath(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
 bool shortPath::findPath() {
 // Find a shortest path with unused residual capacity.
 	vertex u,v; edge e;
-	UiList queue(fg->n());
+	List queue(fg->n());
 
 	pathCount++;
 

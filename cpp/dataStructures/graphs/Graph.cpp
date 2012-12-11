@@ -77,7 +77,8 @@ void Graph::clear() { while (first() != 0) remove(first()); }
 /** Copy into list from source. */
 void Graph::copyFrom(const Graph& source) {
 	if (&source == this) return;
-	if (source.n() > n()) resize(source.n());
+	if (source.n() > n() || source.m() > maxEdge)
+		resize(source.n(),source.m());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e))
 		join(source.left(e),source.right(e));
@@ -233,7 +234,6 @@ void Graph::sortAdjLists() {
  *  @param s is a reference to a string in which the result is returned
  *  @return a reference to s.
  */
-/*
 string& Graph::edge2string(edge e, string& s) const {
 	s = "(";
 	string s1;
@@ -242,7 +242,6 @@ string& Graph::edge2string(edge e, string& s) const {
 	s += Adt::item2string(v,s1) + ")";
 	return s;
 }
-*/
 
 /** Create a string representation of an edge.
  *  @param e is an edge number
@@ -250,7 +249,6 @@ string& Graph::edge2string(edge e, string& s) const {
  *  @param s is a reference to a string in which the result is returned
  *  @return a reference to s.
  */
-/*
 string& Graph::edge2string(edge e, vertex u, string& s) const {
 	s = "(";
 	string s1;
@@ -259,7 +257,6 @@ string& Graph::edge2string(edge e, vertex u, string& s) const {
 	s += Adt::item2string(v,s1) + ")";
 	return s;
 }
-*/
 
 /** Create a string representation of an adjacency list.
  *  @param u is a vertex number
@@ -332,14 +329,14 @@ bool Graph::readAdjList(istream& in) {
 	if (!Util::verify(in,'[')) return 0;
 	vertex u;
 	if (!Adt::readItem(in,u)) return 0;
-	if (u > n()) expand(max(u,2*n()),m());
+	if (u > n()) expand(u,m());
 	if (!Util::verify(in,':')) return 0;
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v;
 		if (!Adt::readItem(in,v)) return 0;
-		if (v > n()) expand(max(v,2*n()),m());
-		if (m() >= maxEdge) expand(n(),2*m());
-		if (u < v) join(u,v);
+		if (v > n()) expand(v,m());
+		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (u > v) join(u,v);
 	}
 	return in.good();
 }

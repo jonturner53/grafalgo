@@ -1,40 +1,28 @@
-IDIR = ../../include
-LDIR = ../../lib
-LIBS = ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
-LIBGA = ${LDIR}/lib-ga.a
-ARCH := $(shell getconf LONG_BIT)
-CXXFLAGS_32 = -O2 -m32 -I ${IDIR}
-CXXFLAGS_64 = -O2 -m64 -I ${IDIR}
-CXXFLAGS = $(CXXFLAGS_$(ARCH)) 
-#CXXFLAGS = -O2 -m64 -I ${IDIR}
-LIBFILES = dijkstra.o bfScan.o dijkstraAll.o floyd.o
+SHELL := /bin/bash
+ARCH := -m$(shell getconf LONG_BIT)
+IDIR := ../../include
+LDIR := ../../lib
+BIN := ~/bin
+WARN := -Wall -Wno-c++11-extensions
+CXXFLAGS := ${WARN} ${ARCH} -O2
+
+LIBGA := ${LDIR}/lib-ga.a
+LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
+
+HFILES = ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h ${IDIR}/List.h \
+	 ${IDIR}/Dheap.h
+OFILES = dijkstra.o bfScan.o dijkstraAll.o floyd.o
+XFILES = badCase spt sptRep allPairs allPairsRep check sptUpdate
+
+${OFILES} : ${HFILES}
 
 .cpp.o:
-	${CXX} ${CXXFLAGS} -c $<
+	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-dijkstra.o:    ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h ${IDIR}/Dheap.h 
-badCase.o:     ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h
-bfScan.o:      ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h ${IDIR}/UiList.h \
-	       ${IDIR}/Dheap.h
-dijkstraAll.o: ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h ${IDIR}/Dheap.h 
-floyd.o:       ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h
-spt.o:         ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h ${IDIR}/UiList.h
-sptRep.o:      ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h ${IDIR}/UiList.h
-allPairs.o:    ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h ${IDIR}/UiList.h
-allPairsRep.o: ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h ${IDIR}/UiList.h
-sptUpdate.o:   ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h ${IDIR}/UiList.h
-sptUpdate2.o:  ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h ${IDIR}/UiList.h
-check.o:       ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h ${IDIR}/UiList.h
+all:	${LIBS} ${XFILES}
 
-all : ${LIBGA} xfiles
-
-clean:
-	rm -f *.o *.exe
-
-${LIBGA}: ${LIBFILES}
-	ar -ru ${LIBGA} ${LIBFILES}
-
-xfiles:	badCase spt sptRep allPairs allPairsRep check sptUpdate
+${LIBGA}: ${OFILES}
+	ar -ru ${LIBGA} ${OFILES}
 
 spt: spt.o ${LIBS} 
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
@@ -57,3 +45,5 @@ check: check.o ${LIBS}
 sptUpdate: sptUpdate.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
+clean:
+	rm -f *.o ${XFILES}

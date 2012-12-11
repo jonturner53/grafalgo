@@ -22,7 +22,7 @@ typedef int flow;
  *  methods for dealing with flows and edge capcities
  */
 class Flograph : public Digraph {
-public:		Flograph(int=26,int=100,int=1,int=2);
+public:		Flograph(int=3,int=2,int=1,int=2);
 		Flograph(const Flograph&);
 		virtual ~Flograph();
 
@@ -49,10 +49,8 @@ public:		Flograph(int=26,int=100,int=1,int=2);
 
 	virtual edge join(vertex,vertex);
 
-	bool	readAdjList(istream&);
 	//virtual bool readEdge(istream&);
 	//virtual bool read(istream&);
-	string&	adjList2string(edge,string&) const; 
 	string& toDotString(string&) const;
 
 	void	randCapacity(flow, flow);	
@@ -70,6 +68,8 @@ protected:
         void    makeSpace(int,int);    	
         void    freeSpace();    		
 	void    virtual shuffle(int*, int*);   
+	string&	adjList2string(edge,string&) const; 
+	bool	readAdjList(istream&);
 
 	Flograph& operator=(const Flograph&); 
 };

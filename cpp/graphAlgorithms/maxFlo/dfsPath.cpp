@@ -1,4 +1,7 @@
+#include "Adt.h"
 #include "dfsPath.h"
+
+using namespace grafalgo;
 
 dfsPath::dfsPath(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
 // Find maximum flow in fg using the shortest augment path algorithm.

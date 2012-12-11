@@ -6,23 +6,25 @@
 
 #include "stdinc.h"
 #include "Graph.h"
-#include "UiList.h"
-#include "UiDlist.h"
+#include "List.h"
+#include "Dlist.h"
+
+using namespace grafalgo;
 
 class faltPath {
 public:
-	faltPath(Graph&,UiDlist&,int&);
+	faltPath(Graph&,Dlist&,int&);
 private:
 	Graph* graf;		// graph we're finding matching for
-	UiDlist* match;		// matching we're building
+	Dlist* match;		// matching we're building
 
 	enum stype {odd, even};
 	stype* state;		// odd/even status of vertices
 	int* visit;		// visit[u]=# of most recent search to visit u
 	edge* mEdge;		// mEdge[u]=matching edge incident to u
 	edge* pEdge;		// pEdge[u]=edge to parent of u in forest
-	UiDlist* free;		// list of free vertices
-	UiList* leaves;		// list of leaves in current forest
+	Dlist* free;		// list of free vertices
+	List* leaves;		// list of leaves in current forest
 
 	int	sNum;		// index of current search
 	

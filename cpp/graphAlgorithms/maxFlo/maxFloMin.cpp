@@ -11,7 +11,7 @@
 #include "Mflograph.h"
 #include "minFlow.h"
 
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 	Mflograph fg; fg.read(cin);
 
 	if (argc != 1) fatal("usage: maxFloMin method");

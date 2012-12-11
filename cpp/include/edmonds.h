@@ -7,19 +7,21 @@
 
 #include "stdinc.h"
 #include "Graph.h"
-#include "UiList.h"
-#include "UiDlist.h"
-#include "UiRlist.h"
+#include "List.h"
+#include "Dlist.h"
+#include "RlistSet.h"
 #include "Partition.h"
 
+using namespace grafalgo;
+
 class edmonds {
-public: edmonds(Graph&,UiDlist&,int&);
+public: edmonds(Graph&,Dlist&,int&);
 	string& statString(bool, string&);
 private:
 	Graph* graf;		// graph we're finding matching for
-	UiDlist* match;		// matching we're building
+	Dlist* match;		// matching we're building
 	Partition *blossoms;	// partition of the vertices into blossoms
-	UiRlist* augpath;	// reversible list used to construct path
+	RlistSet* augpath;	// reversible list used to construct path
 	vertex* origin;		// origin[u] is the original vertex
 				// corresponding to a blossom
 	struct BridgePair {	// for an odd vertex u inside a blossom,

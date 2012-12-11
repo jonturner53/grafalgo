@@ -12,6 +12,8 @@
 #include "stdinc.h"
 #include "Graph.h"
 
+typedef int weight;
+
 namespace grafalgo {
 
 /** Data structure for undirected graph with edge weights.
@@ -24,7 +26,7 @@ namespace grafalgo {
  *  or all edges incident to a specific vertex.
  */
 class Wgraph : public Graph {
-public:		Wgraph(int=26,int=50);
+public:		Wgraph(int=1,int=1);
 		~Wgraph();
 
 	void	resize(int, int);
@@ -37,12 +39,10 @@ public:		Wgraph(int=26,int=50);
 	int	weight(edge) const;
 	void	setWeight(edge,int);
 
-	bool	readAdjList(istream&);
 
 	// create a string representation
 	//virtual string& edge2string(edge,string&) const;
 	//virtual string& edge2string(edge,vertex,string&) const;
-	string&	adjList2string(vertex,string&) const;
         virtual string& toDotString(string&) const;
 
 	void randWeight(int, int);
@@ -50,8 +50,8 @@ private:
 	int	*wt;			///< weight of the edge
 	void makeSpace(int,int);
 	void freeSpace();
-
-	Wgraph& operator=(const Wgraph&);
+	bool	readAdjList(istream&);
+	string&	adjList2string(vertex,string&) const;
 };
 
 /** Get the weight of an edge.

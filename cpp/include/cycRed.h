@@ -6,10 +6,12 @@
 
 #include "stdinc.h"
 #include "Wflograph.h"
-#include "UiList.h"
+#include "List.h"
 #include "Pathset.h"
 #include "Dtrees.h"
 #include "dinicDtrees.h"
+
+using namespace grafalgo;
 
 class cycRed {
 public: 	

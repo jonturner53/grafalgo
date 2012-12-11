@@ -13,14 +13,16 @@
 #include "stdinc.h"
 #include "Partition.h"
 #include "Wgraph.h"
-#include "UiList.h"
+#include "List.h"
 
-extern void kruskal(Wgraph&, UiList&);
+using namespace grafalgo;
 
-void buildpp(Wgraph&, UiList&, edge*);
+extern void kruskal(Wgraph&, List&);
+
+void buildpp(Wgraph&, List&, edge*);
 int mstUpdate(Wgraph&, edge*, edge, int);
 
-main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 	int i, n, m, maxWt, repCount, retVal, seed;
 	int notZero, minCyc, maxCyc, avgCyc;
 	edge e, modEdge;
@@ -34,12 +36,12 @@ main(int argc, char* argv[]) {
 	    sscanf(argv[3],"%d",&maxWt) != 1 ||
 	    sscanf(argv[4],"%d",&repCount) != 1 ||
 	    sscanf(argv[5],"%d",&seed) != 1)
-		fatal("usage: mstUpdate2 n m maxWt repCount seed");
+		Util::fatal("usage: mstUpdate2 n m maxWt repCount seed");
 
 	srandom(seed);
 
 	wg.rgraph(n,m,n); wg.randWeight(0,maxWt);
-	UiList mstree(wg.m());
+	List mstree(wg.m());
 
 	for (i = 1; i <= repCount; i++) {
 		e = randint(1,wg.m());

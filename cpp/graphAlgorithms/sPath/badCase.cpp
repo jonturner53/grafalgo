@@ -11,11 +11,13 @@
 #include "stdinc.h"
 #include "Wdigraph.h"
 
-main(int argc, char* argv[]) {
+using namespace grafalgo;
+
+int main(int argc, char* argv[]) {
 	vertex u,v; edge e; int n;
 
 	if (argc != 2 || sscanf(argv[1],"%d",&n) != 1)
-		fatal("usage badCase n");
+		Util::fatal("usage badCase n");
 
 	Wdigraph dig(n,n*n/2);
 

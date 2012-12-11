@@ -1,43 +1,28 @@
-IDIR = ../../include
-LDIR = ../../lib
-LIBS = ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
-LIBGA = ${LDIR}/lib-ga.a
-ARCH := $(shell getconf LONG_BIT)
-CXXFLAGS_32 = -O2 -m32 -I ${IDIR}
-CXXFLAGS_64 = -O2 -m64 -I ${IDIR}
-#CXXFLAGS = $(CXXFLAGS_$(ARCH)) 
-CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 -I ${IDIR}
+SHELL := /bin/bash
+ARCH := -m$(shell getconf LONG_BIT)
+IDIR := ../../include
+LDIR := ../../lib
+BIN := ~/bin
+WARN := -Wall -Wno-c++11-extensions
+CXXFLAGS := ${WARN} ${ARCH} -O2
 
+LIBGA := ${LDIR}/lib-ga.a
+LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
+
+HFILES = ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/List.h \
+	 ${IDIR}/LlheapSet.h ${IDIR}/Partition.h 
 OFILES = kruskal.o prim.o primF.o rrobin.o
-
 XFILES:	mst mstRep check mstUpdate mstUpdate2
 
+${OFILES} : ${HFILES}
+
 .cpp.o:
-	${CXX} ${CXXFLAGS} -c $<
+	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-kruskal.o:    ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h \
-	      ${IDIR}/Partition.h
-prim.o:       ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h \
-	      ${IDIR}/Dheap.h
-primF.o:      ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h \
-	      ${IDIR}/Fheaps.h
-rrobin.o:     ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h \
-	      ${IDIR}/Llheaps.h ${IDIR}/Partition.h
+all:	${LIBS} ${XFILES}
 
-mst.o:        ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h
-mstRep.o:     ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h
-mstUpdate.o:  ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h
-mstUpdate2.o: ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/UiList.h
-
-all:	${LIBGA} xfiles
-
-clean:
-	rm -f *.o *.exe
-
-${LIBGA}:kruskal.o prim.o primF.o rrobin.o
-	ar -ru ${LIBGA} kruskal.o prim.o primF.o rrobin.o
-
-xfiles:	mst mstRep check mstUpdate mstUpdate2
+${LIBGA}: ${OFILES}
+	ar -ru ${LIBGA} ${OFILES}
 
 mst: mst.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
@@ -53,3 +38,6 @@ mstUpdate: mstUpdate.o ${LIBS}
 
 mstUpdate2: mstUpdate2.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+
+clean:
+	rm -f *.o ${XFILES}

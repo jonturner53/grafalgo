@@ -8,19 +8,20 @@
 // This program is not bullet-proof. Caveat emptor.
 
 #include "stdinc.h"
-#include "UiList.h"
+#include "List.h"
 #include "Dheap.h"
 #include "Wdigraph.h"
+
+using namespace grafalgo;
 
 void dijkstra(Wdigraph&, vertex, vertex*, int*);
 int sptUpdate(Wdigraph&, vertex*, int*, edge, int);
 void check(Wdigraph&, Wdigraph&);
 
-main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 	int i, n, m, maxLen, repCount, retVal, seed;
 	int notZero, minTsiz, maxTsiz, avgTsiz;
-	edge e; vertex u, v;
-	Wdigraph dig, *sptree;
+	edge e; Wdigraph dig;
 
 	if (argc != 6 ||
 	    sscanf(argv[1],"%d",&n) != 1 ||
@@ -28,7 +29,7 @@ main(int argc, char* argv[]) {
 	    sscanf(argv[3],"%d",&maxLen) != 1 ||
 	    sscanf(argv[4],"%d",&repCount) != 1 ||
 	    sscanf(argv[5],"%d",&seed) != 1)
-		fatal("usage: sptUpdate n m maxLen repCount seed");
+		Util::fatal("usage: sptUpdate n m maxLen repCount seed");
 
 	srandom(seed);
 	dig.rgraph(n,m); dig.randLength(0,maxLen);
@@ -38,23 +39,14 @@ main(int argc, char* argv[]) {
 
 	notZero = 0; minTsiz = dig.n(); maxTsiz = 0; avgTsiz = 0;
 	for (i = 1; i <= repCount; i++) {
-		e = randint(1,dig.m());
-		retVal = sptUpdate(dig,p,d,e,randint(1,maxLen));
+		e = Util::randint(1,dig.m());
+		retVal = sptUpdate(dig,p,d,e,Util::randint(1,maxLen));
 		if (retVal > 0) {
 			notZero++;
 			minTsiz = min(retVal,minTsiz);
 			avgTsiz += retVal;
 			maxTsiz = max(retVal,maxTsiz);
 		}
-		/* for verification only
-		sptree = new Wdigraph(dig.n,dig.n-1);
-		for (e = dig.first(); e != 0; e = dig.nextOut(e)) {
-			u = dig.tail(e); v = dig.head(e);
-			if (p[v] == u) sptree->join(u,v,d[v]);
-		}
-		check(1,dig,*sptree);
-		delete sptree;
-		*/
 	}
 
 	cout << setw(6) << notZero << " " << setw(2) << minTsiz
@@ -68,16 +60,16 @@ int sptUpdate(Wdigraph& dig, vertex p[], int d[], edge e, int nuLen) {
 // Return 0 if no change is needed. Otherwise, return the number
 // of vertices in the subtree affected by the update.
 	vertex u, v, x, y; edge f;
-	int oldLen, diff, tSiz;
-	static int n=0; static Dheap *nheap; static UiList *stList;
+	int oldLen, tSiz;
+	static int n=0; static Dheap *nheap; static List *stList;
 
-	// Allocate new heap and UiList if necessary.
+	// Allocate new heap and List if necessary.
 	// For repeated calls on same graph, this is only done once.
 	if (dig.n() > n) { 
 		if (n > 0) { delete nheap; delete stList; }
 		n = dig.n();
 		nheap = new Dheap(dig.n(),2);
-		stList = new UiList(dig.n());
+		stList = new List(dig.n());
 	}
 
 	u = dig.tail(e); v = dig.head(e);
@@ -148,7 +140,7 @@ int sptUpdate(Wdigraph& dig, vertex p[], int d[], edge e, int nuLen) {
 	// Insert vertices in the subtree with incoming edges into heap.
 	for (x = stList->first(); x != 0; x = stList->next(x)) {
 		// find best incoming edge for vertex x
-		p[x] = 0; d[x] = BIGINT;
+		p[x] = 0; d[x] = Util::BIGINT32;
 		for (f = dig.firstIn(x); f != 0; f = dig.nextIn(x,f)) {
 			y = dig.tail(f);
 			if (!stList->member(y) && d[y] + dig.length(f) < d[x]) {
@@ -175,6 +167,7 @@ int sptUpdate(Wdigraph& dig, vertex p[], int d[], edge e, int nuLen) {
 	// Same as earlier case. The outer loop is executed nv times,
 	// the inner loop mv times. So the overall running time is
 	// O(mv log nv).
+	return tSiz;
 }
 
 void check(int s, Wdigraph& dig, Wdigraph& sptree) {
@@ -183,7 +176,7 @@ void check(int s, Wdigraph& dig, Wdigraph& sptree) {
 
 	// check size of sptree matches dig
 	if (sptree.n() != dig.n() || sptree.m() != sptree.n()-1)
-		fatal("spt_check: size error, aborting");
+		Util::fatal("spt_check: size error, aborting");
 
 	// check that sptree is a subgraph of dig
 	for (v = 1; v <= sptree.n(); v++) {
@@ -206,7 +199,7 @@ void check(int s, Wdigraph& dig, Wdigraph& sptree) {
 	bool* mark = new bool[sptree.n()+1]; int marked;
 	for (u = 1; u <= sptree.n(); u++) mark[u] = false;
 	mark[s] = true; marked = 1;
-	UiList q(dig.n()); q.addLast(s);
+	List q(dig.n()); q.addLast(s);
 	while (!q.empty()) {
 		u = q.first(); q.removeFirst();
 		for (e = sptree.firstOut(u); e != 0; e = sptree.nextOut(u,e)) {
