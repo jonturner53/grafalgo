@@ -21,4 +21,3 @@ all:	${OFILES}
 
 clean:
 	rm -f *.o
-	#make -C unit clean

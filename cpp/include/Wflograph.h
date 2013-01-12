@@ -39,6 +39,7 @@ public:		Wflograph(int=3,int=2,int=1,int=2);
 	void	setCost(edge,floCost);
 	void	randCost(floCost,floCost);
 
+	string& edge2string(edge, string&) const;
 	string& toDotString(string&) const;
 
 protected:

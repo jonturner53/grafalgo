@@ -39,11 +39,9 @@ public:		Wgraph(int=1,int=1);
 	int	weight(edge) const;
 	void	setWeight(edge,int);
 
-
 	// create a string representation
-	//virtual string& edge2string(edge,string&) const;
-	//virtual string& edge2string(edge,vertex,string&) const;
-        virtual string& toDotString(string&) const;
+	string& edge2string(edge, vertex, string&) const;
+        string& toDotString(string&) const;
 
 	void randWeight(int, int);
 private:

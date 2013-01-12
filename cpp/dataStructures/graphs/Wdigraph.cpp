@@ -129,17 +129,14 @@ string& Wdigraph::adjList2string(vertex u, string& s) const {
  *  @param s is a reference to a string in which the result is returned
  *  @return a reference to s.
  */
-/*
 string& Wdigraph::edge2string(edge e, string& s) const {
-        s = "(";
-        string s1;
+        stringstream ss;
         vertex u = tail(e); vertex v = head(e);
-        s += Util::node2string(u,n(),s1) + ",";
-        s += Util::node2string(v,n(),s1) + ",";
-        s += Util::num2string(length(e),s1) + ")";
+        ss << "(" << item2string(u,s) << ",";
+        ss << item2string(v,s) << "," << length(e) + ")";
+	s = ss.str();
         return s;
 }
-*/
 
 /** Construct a string in dot file format representation 
  * of the Weighted Directed Graph object.

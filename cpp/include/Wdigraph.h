@@ -37,6 +37,7 @@ public:		Wdigraph(int=1,int=1);
         void    setLength(edge,int);
 
 	// create a string representation
+        string&	edge2string(edge, string&) const;
         string&	toDotString(string&) const;
 
 	void randLength(int, int); 

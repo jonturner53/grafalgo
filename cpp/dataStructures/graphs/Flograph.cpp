@@ -160,116 +160,24 @@ void Flograph::addFlow(vertex v, edge e, flow ff) {
 	}
 }
 
-/** Read an edge from the input stream and add it to the flograph.
- *  @param in is an open input stream
- *  @return true if the operation is successful, else false
- */
-/*
-bool Flograph::readEdge(istream& in) {
-        vertex u, v; flow capp, ff;
-        if (!Util::verify(in,'(') || !Adt::readItem(in,u) ||
-            !Util::verify(in,',') || !Adt::readItem(in,v) ||
-            !Util::verify(in,',') || !Util::readNum(in,capp) ||
-            !Util::verify(in,',') || !Util::readNum(in,ff) || 
-	    !Util::verify(in,')'))
-		return false;
-	if (u < 1 || v < 1) return false;
-
-	int numv = n(); int maxe = maxEdge;
-	if (u > n() || v > n()) numv = max(max(u,v),2*n());
-	if (m() >= maxEdge) maxe = 2*maxEdge;
-	if (numv > n() || maxe > maxEdge) resize(numv,maxe);
-
-        edge e; e = join(u,v);
-	if (e == 0) return false;
-	setCapacity(e,capp); addFlow(u,e,ff);
-
-        return true;
-}
-*/
-
-/** Read a flograph from an input stream and assign to this object.
- *  @param in is an open input stream
- *  @return true on success, false on failure
- */
-/*
-istream& operator>>(istream& in, Flograph& fg) {
-	bool ok = Util::verify(in,'{');
-	while (ok && !Util::verify(in,'}')) ok = fg.readEdge(in);
-	if (!ok) {
-		string s = "misformatted input for Flograph object";
-		throw InputException(s);
-	}
-	fg.sortAdjLists();
-	return in;
-}
-*/
-
-/*
-bool Flograph::read(istream& in) {
-        int numv, nume;
-        in >> numv >> nume;
-        if (numv != n() || nume > maxEdge) resize(numv,nume);
-	else clear();
-        nn = numv;
-
-	vertex src, snk;
-	if (!Util::readNode(in,src,N) || !Util::readNode(in,snk,N))
-		return false;
-	setSrc(src); setSnk(snk);
-
-	for (int i = 1; i <= nume; i++)
-		if (!readEdge(in)) return false;
-	if (m() != nume) return false;
-        return true;
-}
-*/
-
 /** Create readable representation of an edge.
  *  @param e is an edge
  *  @param s is a string in which result is to be returned
  *  @return a reference to s
  */
-/*
 string& Flograph::edge2string(edge e, string& s) const {
-	s = "";
+	stringstream ss;
 	vertex u = tail(e); vertex v = head(e);
         if (e == 0) {
-               s += "-"; 
+               ss << "-"; 
 	} else {
-		string s1;
-		s += "(" + Util::node2string(u,N,s1); 
-		s += "," + Util::node2string(v,N,s1); 
-		s += "," + Util::num2string(cap(u,e),s1);
-		s += "," + Util::num2string(f(u,e),s1) + ")";
+		ss << "(" << item2string(u,s);
+		ss << "," << item2string(v,s)
+		   << "," << cap(u,e) << "," <<  f(u,e) << ")";
         }
-	return s;
-}
-*/
-
-/** Create readable representation of this flograph.
- *  @param s is a string in which result is to be returned
- *  @return a reference to s
- */
-/*
-string& Flograph::toString(string& s) const {
-	int i; vertex u; edge e;
-	stringstream ss;
-	ss << n() << " " << m() << " ";
-	ss << Util::node2string(src(),n(),s) << " ";
-	ss << Util::node2string(snk(),n(),s) << "\n";
-	for (u = 1; u <= n(); u++) {
-		i = 0;
-		for (e = firstOut(u); e != 0; e = nextOut(u,e)) {
-			ss << edge2string(e,s) << " ";
-                        if ((++i)%5 == 0) ss << "\n";
-                }
-                if (i>0 && i%5 != 0) ss << "\n";
-	}
 	s = ss.str();
 	return s;
 }
-*/
 
 /** Create a string representation of an adjacency list.
  *  @param u is a vertex number

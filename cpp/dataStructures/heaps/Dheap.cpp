@@ -82,7 +82,10 @@ void Dheap::expand(int size) {
 }
 
 /** Remove all elements from heap. */
-void Dheap::clear() { while (!empty()) remove(h[hn]); }
+void Dheap::clear() {
+	for (int x = 1; x <= hn; x++) pos[h[x]] = 0;
+	hn = 0;
+}
 
 /** Add item to the heap.
  *  @param i is the index of an item that is not in the heap
@@ -114,7 +117,6 @@ void Dheap::siftup(index i, int x) {
 	while (x > 1 && kee[i] < kee[h[px]]) {
 		h[x] = h[px]; pos[h[x]] = x;
 		x = px; px = p(x);
-		siftupCount++;
 	}
 	h[x] = i; pos[i] = x;
 }
@@ -129,7 +131,6 @@ void Dheap::siftdown(index i, int x) {
 	while (cx != 0 && kee[h[cx]] < kee[i]) {
 		h[x] = h[cx]; pos[h[x]] = x;
 		x = cx; cx = minchild(x);
-		siftdownCount += d;
 	}
 	h[x] = i; pos[i] = x;
 }
@@ -154,7 +155,6 @@ int Dheap::minchild(int x) {
  *  @param k is a new key value for item i
  */
 void Dheap::changekey(index i, keytyp k) {
-	changekeyCount++;
 	keytyp ki = kee[i]; kee[i] = k;
 	if (k == ki) return;
 	if (k < ki) siftup(i,pos[i]);
@@ -174,24 +174,6 @@ string& Dheap::toString(string& s) const {
 		if ((i%10) == 0) s += "\n";
 	}
 	if ((hn%10) != 0) s += "\n";
-	return s;
-}
-
-/** Clear the statistics counters */
-void Dheap::clearStats() {
-	siftupCount = siftdownCount = changekeyCount = 0;
-}
-
-/** Return a string representation of the statistics counters.
- *  @param s is a string in which the result is returned
- *  @return a reference to s
- */
-string& Dheap::stats2string(string& s) const {
-	stringstream ss;
-	ss << "changekeyCount = " << changekeyCount << "  ";
-	ss << "siftupCount = " << siftupCount << "  ";
-	ss << "siftdownCount = " << siftdownCount;
-	s = ss.str();
 	return s;
 }
 

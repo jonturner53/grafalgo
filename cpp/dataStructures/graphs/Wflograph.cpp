@@ -177,6 +177,24 @@ string& Wflograph::toDotString(string& s) const {
 	return s;
 }
 
+/** Create readable representation of an edge.
+ *  @param e is an edge
+ *  @param s is a string in which result is to be returned
+ *  @return a reference to s
+ */
+string& Wflograph::edge2string(edge e, string& s) const {
+	stringstream ss;
+	vertex u = tail(e); vertex v = head(e);
+        if (e == 0) {
+               ss << "-"; 
+	} else {
+		ss << "(" << item2string(u,s);
+		ss << "," << item2string(v,s) << "," << cap(u,e)
+		   << "," << cost(u,e) << "," <<  f(u,e) << ")";
+        }
+	s = ss.str();
+	return s;
+}
 
 /** Join two vertices with an edge.
  *  @param u is a vertex

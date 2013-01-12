@@ -10,7 +10,7 @@ using namespace grafalgo;
  *  @param mstree is a second weighted graph data structure in which the
  *  the result is to be returned; it is assumed to have no edges
  */
-void primF(Wgraph& wg, Wgraph& mstree) {
+void primF(Wgraph& wg, list<edge>& mstree) {
         vertex u,v; edge e;
         edge* cheap = new edge[wg.n()+1];
         FheapSet nheap(wg.n()); fheap root;
@@ -33,8 +33,7 @@ void primF(Wgraph& wg, Wgraph& mstree) {
         while (numInHeap > 0) {
                 u = root; root = nheap.deletemin(root);
                 inHeap[u] = false; numInHeap--;
-                e = mstree.join(wg.left(cheap[u]),wg.right(cheap[u]));
-                mstree.setWeight(e,wg.weight(cheap[u]));
+		mstree.push_back(cheap[u]);
                 for (e = wg.firstAt(u); e != 0; e = wg.nextAt(u,e)) {
                         v = wg.mate(u,e);
                         if (inHeap[v] && wg.weight(e) < nheap.key(v)) {

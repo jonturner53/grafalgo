@@ -36,6 +36,7 @@ public:		Mflograph(int=3,int=2,int=1,int=2);
 	void	setMinFlo(edge,flow);
 	void	randMinFlo(flow,flow);
 
+	string& edge2string(edge, string&) const;
 	string& toDotString(string&) const;
 
 protected:

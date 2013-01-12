@@ -52,7 +52,7 @@ private:
 	int	p2;			// index of the other
 	};
 	ListNode *node;
-	bool	*canon;			///< canon[t] is true if t is the
+	bool	*canon;			///< canon[x] is true if x is the
 					///< canonical item on its list
 
 	void	makeSpace(int);
@@ -60,14 +60,14 @@ private:
 };
 
 /** Get the index of the first item on a list.
- *  @param t is the index of the canonical item of a list
- *  @return the first index on the list containing t
+ *  @param x is the index of the canonical item of a list
+ *  @return the first index on the list containing x
  */
 inline index RlistSet::first(index x) const { return node[x].p1; }
 
 /** Get the index of the last item on a list.
  *  @param x is the index of the canonical item of a list
- *  @return the last index on the list containing t
+ *  @return the last index on the list containing x
  */
 inline index RlistSet::last(index x) const { return x; }
 

@@ -102,82 +102,20 @@ bool Wgraph::readAdjList(istream& in) {
 	return in.good();
 }
 
-
-/** Read a graph.
- *  @param in is an open input stream
- *  @return true on success, else false
- */
-/*
-istream& operator>>(istream& in, Wgraph& wg) {
-	wg.clear();
-	bool ok = Util::verify(in,'{');
-	while (ok && !Util::verify(in,'}')) ok = wg.readAdjList(in);
-	if (!ok) {
-		string s = "misformatted input for Wgraph object";
-		throw InputException(s);
-	}
-	g.sortAdjLists();
-	return in;
-}
-*/
-
-/** Read one edge from an input stream, add it to the graph.
- *  Since for undirected graphs, edges appear on both adjacency lists,
- *  ignore an edge if its second vertex is larger than the first.
- *  @param in is an open input stream
- *  @return true on success, false on error.
- */
-/*
-bool Wgraph::readEdge(istream& in) {
-        vertex u, v; int w;
-        if (!Util::verify(in,'(') || !Util::readNode(in,u,n()) ||
-            !Util::verify(in,',') || !Util::readNode(in,v,n()) ||
-            !Util::verify(in,',') || !Util::readNum(in,w)      ||
-	    !Util::verify(in,')'))
-                return false;
-        if (u < 1 || u > n() || v < 1 || v > n()) return false;
-	edge e;
-        if (u < v) { e = join(u,v); setWeight(e,w); }
-
-        return true;
-}
-*/
-
-/** Create a string representation of an edge.
- *  In the returned string, the "left" endpoint of the edge appears first.
- *  @param e is an edge number
- *  @param s is a reference to a string in which the result is returned
- *  @return a reference to s.
- */
-/*
-string& Wgraph::edge2string(edge e, string& s) const {
-        s = "(";
-        string s1;
-        vertex u = left(e); vertex v = right(e);
-        s += Adt::item2string(u,s1) + ",";
-        s += Adt::item2string(v,s1) + ",";
-	s += Util::num2string(wt[e],s1) + ")";
-        return s;
-}
-*/
-
 /** Create a string representation of an edge.
  *  @param e is an edge number
  *  @param u is one of the endponts of e; it will appear first in the string
  *  @param s is a reference to a string in which the result is returned
  *  @return a reference to s.
  */
-/*
 string& Wgraph::edge2string(edge e, vertex u, string& s) const {
-        s = "(";
-        string s1;
+	stringstream ss;
         vertex v = mate(u,e);
-        s += Util::node2string(u,n(),s1) + ",";
-        s += Util::node2string(v,n(),s1) + ",";
-	s += Util::num2string(wt[e],s1) + ")";
+        ss << "(" << item2string(u,s);
+	ss << "," << item2string(v,s) + "," << wt[e] + ")";
+	s = ss.str();
         return s;
 }
-*/
 
 /** Create a string representation of an adjacency list.
  *  @param u is a vertex number

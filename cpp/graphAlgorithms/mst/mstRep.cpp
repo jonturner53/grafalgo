@@ -16,10 +16,10 @@
 
 using namespace grafalgo;
 
-extern void kruskal(Wgraph&, Wgraph&);
-extern void prim(Wgraph&, Wgraph&);
-extern void primF(Wgraph&, Wgraph&);
-extern void rrobin(Wgraph&, Wgraph&);
+extern void kruskal(Wgraph&, list<int>&);
+extern void prim(Wgraph&, list<int>&);
+extern void primF(Wgraph&, list<int>&);
+extern void rrobin(Wgraph&, list<int>&);
 
 int main(int argc, char* argv[]) {
 	int i, reps, n, m, maxkey;
@@ -32,29 +32,30 @@ int main(int argc, char* argv[]) {
 		Util::fatal("usage: mstRep method reps n m maxkey");
 
 	srand(1);
-	Wgraph wg(n,m), *mstree;
+	Wgraph wg(n,m)
+	list<edge> mstree;
 	mintime = Util::BIGINT32; maxtime = 0; totaltime = 0;
 	for (i = 1; i <= reps; i++) {
 		wg.rcgraph(n,m); 
 		wg.randWeight(0,maxkey);
-		mstree = new Wgraph(n,n-1);
 
 		if (strcmp(argv[1],"kruskal") == 0) {
 			time1 = Util::getTime();
-			kruskal(wg,*mstree);
+			kruskal(wg,mstree);
 		} else if (strcmp(argv[1],"prim") == 0) {
 			time1 = Util::getTime();
-			prim(wg,*mstree);
+			prim(wg,mstree);
 		} else if (strcmp(argv[1],"primF") == 0) {
 			time1 = Util::getTime();
-			primF(wg,*mstree);
+			primF(wg,mstree);
 		} else if (strcmp(argv[1],"rrobin") == 0) {
 			time1 = Util::getTime();
-			rrobin(wg,*mstree);
+			rrobin(wg,mstree);
 		} else {
 			Util::fatal("mstRep: undefined method");
 		}
 		time2 = Util::getTime();
+		mstree.clear();
 		if (time1 == -1 || time2 == -1) {
 			Util::fatal("mstRep: can't read time values");
 		}

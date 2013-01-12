@@ -235,12 +235,7 @@ void Graph::sortAdjLists() {
  *  @return a reference to s.
  */
 string& Graph::edge2string(edge e, string& s) const {
-	s = "(";
-	string s1;
-	vertex u = left(e); vertex v = right(e);
-	s += Adt::item2string(u,s1) + ",";
-	s += Adt::item2string(v,s1) + ")";
-	return s;
+	return edge2string(e,left(e),s);
 }
 
 /** Create a string representation of an edge.
@@ -253,8 +248,21 @@ string& Graph::edge2string(edge e, vertex u, string& s) const {
 	s = "(";
 	string s1;
 	vertex v = mate(u,e);
-	s += Adt::item2string(u,s1) + ",";
-	s += Adt::item2string(v,s1) + ")";
+	s += item2string(u,s1) + ",";
+	s += item2string(v,s1) + ")";
+	return s;
+}
+
+/** Create a string representation of an edge list.
+ *  @param elist is a reference to a list of edge numbers
+ *  @param s is a reference to a string in which the result is returned
+ *  @return a reference to s.
+ */
+string& Graph::elist2string(list<int>& elist, string& s) const {
+	s = "";
+	for (edge e : elist) {
+		string s1; s += edge2string(e,s1);
+	}
 	return s;
 }
 

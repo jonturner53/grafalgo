@@ -15,9 +15,12 @@ bool delf(edge e) {
 	       (*pp).find((*gp).right((e+1)/2));
 }
 
-// Find a minimum spanning tree of wg using the round robin algorithm and
-// return it in mstree. Actually finds a spanning forest, if no tree.
-void rrobin(Wgraph& wg, Wgraph& mstree) {
+/** Find a minimum spanning tree of wg using the round robin algorithm.
+ *  @param wg is a weighted graph
+ *  @param mstree is a list in which the edges of the mst are returned;
+ *  it is assumed to be empty, initially
+ */
+void rrobin(Wgraph& wg, list<edge>& mstree) {
 	edge e; vertex u,v,cu,cv; weight w;
 	Dlist q(wg.n()); List elist(2*wg.m());
 	lheap *h = new lheap[wg.n()+1];
@@ -40,10 +43,9 @@ void rrobin(Wgraph& wg, Wgraph& mstree) {
 		vertex q1 = q.first();	
 		h[q1] = heapSet.findmin(h[q1]);
 		if (h[q1] == 0) { q.removeFirst(); continue; }
-		e = (h[q1]+1)/2;
-		u = wg.left(e); v = wg.right(e); w = wg.weight(e);
+		e = (h[q1]+1)/2; mstree.push_back(e);
+		u = wg.left(e); v = wg.right(e);
 		cu = prtn.find(u); cv = prtn.find(v);
-		e = mstree.join(u,v); mstree.setWeight(e,w);
 		q.remove(cu); q.remove(cv);
 		h[prtn.link(cu,cv)] = heapSet.lmeld(h[cu],h[cv]);
 		q.addLast(prtn.find(u));

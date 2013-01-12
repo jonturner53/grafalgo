@@ -5,8 +5,13 @@
 
 using namespace grafalgo;
 
-// Sort edges according to weight, using heap-sort.
-void sortEdges(edge *elist, const Wgraph& wg) {
+/** Sort edges according to weight, using heap-sort.
+ *  @param wg is a weighted graph
+ *  @param elist is a pointer to an array of containing all the
+ *  edge numbers in wg; on return the edges in elist are sorted
+ *  by weight; that is, wg.weight(elist[i]) <= wg.weight(elist[i+1])
+ */
+void sortEdges(const Wgraph& wg, edge *elist) {
         int i, p, c; edge e; weight w;
 
         for (i = wg.m()/2; i >= 1; i--) {
@@ -44,42 +49,24 @@ void sortEdges(edge *elist, const Wgraph& wg) {
         }
 }
 
-// Find a minimum spanning tree of wg using Kruskal's algorithm and
-// return it in mstree.
-void kruskal(Wgraph& wg, Wgraph& mstree) {
-	edge e, e1; vertex u,v,cu,cv; weight w;
-	class Partition vsets(wg.n());
-	edge *elist = new edge[wg.m()+1];
-	int i = 1;
-	for (e = wg.first(); e != 0; e = wg.next(e)) elist[i++] = e;
-	sortEdges(elist,wg);
-	for (e1 = 1; e1 <= wg.m(); e1++) {
-		e = elist[e1];
-		u = wg.left(e); v = wg.right(e); w = wg.weight(e);
-		cu = vsets.find(u); cv = vsets.find(v);
-		if (cu != cv) {
-			vsets.link(cu,cv);
-			e = mstree.join(u,v); mstree.setWeight(e,w);
-		}
-	}
-}
-
-void kruskal(Wgraph& wg, List& mstree) {
-// Find a minimum spanning tree of wg using Kruskal's algorithm and
-// return it in mstree. This version returns a list of the edges using
-// the edge numbers in wg, rather than a separate Wgraph data structure.
+/** Find a minimum spanning tree of wg using Kruskal's algorithm.
+ *  @param wg is a weighted graph
+ *  @param mstree is a list in which the mst is returned; it is assumed
+ *  to be empty
+ */
+void kruskal(Wgraph& wg, list<edge>& mstree) {
 	edge e, e1; vertex u,v,cu,cv; weight w;
 	Partition vsets(wg.n());
 	edge *elist = new edge[wg.m()+1];
 	int i = 1;
 	for (e = wg.first(); e != 0; e = wg.next(e)) elist[i++] = e;
-	sortEdges(elist,wg);
+	sortEdges(wg,elist);
 	for (e1 = wg.first(); e1 != 0; e1 = wg.next(e1)) {
 		e = elist[e1];
-		u = wg.left(e); v = wg.right(e); w = wg.weight(e);
+		u = wg.left(e); v = wg.right(e);
 		cu = vsets.find(u); cv = vsets.find(v);
 		if (cu != cv) {
-			 vsets.link(cu,cv); mstree.addLast(e);
+			 vsets.link(cu,cv); mstree.push_back(e);
 		}
 	}
 }

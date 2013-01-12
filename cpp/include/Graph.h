@@ -16,6 +16,7 @@
 #include "SetPair.h"
 #include "HashSet.h"
 #include "Dheap.h"
+#include <list>
 #include <vector>
 
 namespace grafalgo {
@@ -74,10 +75,11 @@ public:		Graph(int=1,int=1);
 	friend istream& operator>>(istream&, Graph&);
 
 	// create a string representation
-	string& edge2string(edge,string&) const;
-	string& edge2string(edge,vertex,string&) const;
-	string&	toString(string&) const;
-        virtual string& toDotString(string&) const;
+	virtual	string& edge2string(edge,string&) const;
+	virtual	string& edge2string(edge,vertex,string&) const;
+	virtual	string&	toString(string&) const;
+        virtual	string& toDotString(string&) const;
+	virtual	string& elist2string(list<int>&, string&) const;
 
 	void	sortAdjLists();
 

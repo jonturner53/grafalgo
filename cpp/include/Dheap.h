@@ -44,10 +44,6 @@ public:		Dheap(int,int);
 	index 	deletemin();
 	void	changekey(index,keytyp);	
 
-	// stats methods
-	void	clearStats();
-	string& stats2string(string&) const;
-
 	string& toString(string&) const;
 private:
 	int 	d;			///< base of heap
@@ -56,11 +52,6 @@ private:
 	index	*h;			///< {h[1],...,h[hn]} is set of items
 	int	*pos;			///< pos[i] gives position of i in h
 	keytyp	*kee;			///< kee[i] is key of item i
-
-	// statistics counters
-	int	changekeyCount;
-	int	siftupCount;
-	int	siftdownCount;
 
 	index	minchild(index);		
 	void	siftup(index,int);
