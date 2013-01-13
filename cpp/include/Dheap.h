@@ -37,6 +37,7 @@ public:		Dheap(int,int);
 	// predicates
 	bool	member(index) const;
 	bool	empty() const;	
+	int	size() const;
 
 	// modifiers
 	void	insert(index,keytyp);
@@ -92,6 +93,10 @@ inline bool Dheap::member(index i) const { return pos[i] != 0; }
  *  @return true if heap is empty, else false
  */
 inline bool Dheap::empty() const { return hn == 0; };
+
+/** Return size of heap.
+ */
+inline int Dheap::size() const { return hn; };
 
 } // ends namespace
 

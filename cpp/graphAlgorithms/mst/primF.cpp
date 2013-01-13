@@ -15,6 +15,7 @@ void primF(Wgraph& wg, list<edge>& mstree) {
         edge* cheap = new edge[wg.n()+1];
         FheapSet nheap(wg.n()); fheap root;
         bool *inHeap = new bool[wg.n()+1]; // inHeap[u]=true if u is in heap
+        bool *inTree = new bool[wg.n()+1]; // inTree[u]=true if u is in tree
         int numInHeap = 0;
 
         for (u = 1; u <= wg.n(); u++) inHeap[u] = false;
@@ -29,18 +30,20 @@ void primF(Wgraph& wg, list<edge>& mstree) {
                 inHeap[u] = true; numInHeap++;
                 e = wg.nextAt(1,e);
         } while (e != 0);
+	inTree[1] = true;
+	for (u = 2; u <= wg.n(); u++) inTree[u] = false;
 
         while (numInHeap > 0) {
                 u = root; root = nheap.deletemin(root);
                 inHeap[u] = false; numInHeap--;
-		mstree.push_back(cheap[u]);
+		inTree[u] = true; mstree.push_back(cheap[u]);
                 for (e = wg.firstAt(u); e != 0; e = wg.nextAt(u,e)) {
                         v = wg.mate(u,e);
                         if (inHeap[v] && wg.weight(e) < nheap.key(v)) {
                                 root = nheap.decreasekey(v,nheap.key(v) -
                                                              wg.weight(e),root);
                                 cheap[v] = e;
-                        } else if (!inHeap[v] && mstree.firstAt(v) == 0) {
+                        } else if (!inHeap[v] && !inTree[v]) {
                                 root = nheap.insert(v,root,wg.weight(e));
                                 cheap[v] = e;
                                 inHeap[v] = true; numInHeap++;

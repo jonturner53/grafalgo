@@ -15,8 +15,8 @@ extern void prim(Wgraph&, list<edge>&);
 extern void primF(Wgraph&, list<edge>&);
 extern void rrobin(Wgraph&, list<edge>&);
 
-main(int argc, char *argv[]) {
-	Wgraph wg; wg.read(cin);
+int main(int argc, char *argv[]) {
+	Wgraph wg; cin >> wg;
 	list<edge> mstree;
 	
 	if (argc < 2) Util::fatal("usage: mst method ..");
@@ -32,10 +32,16 @@ main(int argc, char *argv[]) {
 	else
 		Util::fatal("mst: undefined method");
 
-	string s; cout << wg.elist2string(mstree,s) << endl;
+	Wgraph mst(wg.n(), wg.n()-1);
 	int treeweight = 0;
-	for (edge e : mstree) treeweight += wg.weight(e)
-	cout << "mst weight: " << weight << endl;
+	for (edge e : mstree) {
+		edge ee = mst.join(wg.left(e),wg.right(e));
+		mst.setWeight(ee, wg.weight(e));
+		treeweight += wg.weight(e);
+	}
+	cout << wg << endl << mst << endl;
+
+	cout << "mst weight: " << treeweight << endl;
 	
 	exit(0);
 }

@@ -52,6 +52,7 @@ void FheapSet::copyFrom(const FheapSet& source) {
 	if (source.n() > n()) resize(source.n());
 	else clear();
 
+	(*sibs).copyFrom(*source.sibs);
 	for (index x = 1; x <= source.n(); x++) {
 		c(x) = source.node[x].c;
 		p(x) = source.node[x].p;
@@ -83,16 +84,13 @@ void FheapSet::expand(int size) {
 	resize(size); this->copyFrom(old);
 }
 
-/** Remove all elements from heap. */
+/** Convert all heaps to singletons. */
 void FheapSet::clear() {
-	for (index x = 1; x <= n(); x++) {
-		c(x) = p(x) = 0;
-		rank(x) = 0; kee(x) = 0;
-		mark(x) = false;
+	sibs->clear();
+	for (index x = 0; x <= n(); x++) {
+		c(x) = p(x) = rank(x) = kee(x) = 0; mark(x) = false;
 	}
 	for (index x = 0; x <= FheapSet::MAXRANK; x++) rvec[x] = 0;
-	kee(0) = rank(0) = mark(0) = 0;
-	p(0) = c(0) = 0;
 }
 
 /** Combine two heaps.
@@ -118,8 +116,7 @@ fheap FheapSet::meld(fheap h1, fheap h2) {
  */
 fheap FheapSet::insert(index i, fheap h, keytyp x) {
 	assert(0 <= i && i <= n() && 0 <= h && h <= n());
-	assert(left(i) == i && right(i) == i && c(i) == 0 && p(i) == 0);
-	kee(i) = x;
+	setKey(i,x);
 	return meld(i,h);
 }
 
@@ -225,10 +222,17 @@ string& FheapSet::toString(string& s) const {
 	for (int i = 1; i <= n(); i++) pmark[i] = false;
 	for (int i = 1; i <= n(); i++) {
 		if (p(i) == 0 && !pmark[i]) {
-			s += heap2string(i,s) + "\n";
+			// i is a root in a new heap
+			if (c(i) == 0 && left(i) == i) continue;
+			// find minkey item, mark all tree roots in this heap
 			pmark[i] = true;
-			for (int j = sibs->suc(i); j != i; j = sibs->suc(j))
+			int k = i;
+			for (int j = sibs->suc(i); j != i; j = sibs->suc(j)) {
+				if (key(j) < key(k)) k = j; 
 				pmark[j] = true;
+			}
+			string s1;
+			s += heap2string(k,s1) + "\n";
 		}
 	}
 	delete [] pmark;
@@ -242,13 +246,15 @@ string& FheapSet::toString(string& s) const {
  */
 string& FheapSet::heap2string(fheap h, string& s) const {
 	s = "";
-	if (h == 0) return s;
+	if (h == 0 || (p(h) == 0 && c(h) == 0 && left(h) == h)) return s;
 	stringstream ss;
-	ss << "[" << Adt::item2string(h,s) << ":";
-	ss << kee(h) << ":" << rank(h) << " " << heap2string(c(h),s);
+	ss << "[" << item2string(h,s) << ":" << kee(h) << "," << rank(h);
+	if (mark(h)) ss << "*";
+	ss << heap2string(c(h),s);
 	for (index i = right(h); i != h; i = right(i)) {
-		ss << Adt::item2string(i,s) + ":" << kee(i) << ":";
-		ss << rank(h) << " " << heap2string(c(i),s);
+		ss << " " << item2string(i,s) << ":" << kee(i) << "," <<rank(i);
+		if (mark(i)) ss << "*";
+		ss << heap2string(c(i),s);
 	}
 	ss << "]";
 	s = ss.str();

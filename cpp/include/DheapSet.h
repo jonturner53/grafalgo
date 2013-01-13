@@ -80,7 +80,7 @@ public:		DheapSet(int,int,int=8);
 	int	heapSize(int) const;
 
 	// predicates 
-	bool	empty(int);	
+	bool	empty(int) const;	
 
 	// modifiers 
 	bool	insert(index, keytyp, int);
@@ -135,7 +135,7 @@ inline int DheapSet::findMin(int h) const {
 inline keytyp DheapSet::getKey(index i) const { return key[i]; }
 
 // Return true if heap is empty, else false.
-inline bool DheapSet::empty(int h) { return hSize[h] == 0; };
+inline bool DheapSet::empty(int h) const { return hSize[h] == 0; };
 
 // Return the size of a heap.
 inline int DheapSet::heapSize(int h) const { return hSize[h]; };

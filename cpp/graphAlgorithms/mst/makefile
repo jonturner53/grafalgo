@@ -15,6 +15,7 @@ OFILES = kruskal.o prim.o primF.o rrobin.o
 XFILES:	mst mstRep check mstUpdate mstUpdate2
 
 ${OFILES} : ${HFILES}
+${LIBGA} : ${OFILES}
 
 .cpp.o:
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<

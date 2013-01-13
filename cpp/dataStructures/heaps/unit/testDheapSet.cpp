@@ -1,4 +1,4 @@
-/** \file TestHeapSet.cpp
+/** \file TestDheapSet.cpp
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,11 +6,13 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#include "HeapSet.h"
+#include "DheapSet.h"
 #include "Utest.h"
 
+using namespace grafalgo;
+
 void basicTests() {
-	HeapSet hs(20,3); string s;
+	DheapSet hs(20,3); string s;
 
 	cout << "writing empty heap: " << hs.toString(1,s) << endl;
 	cout << "starting insertions\n";
@@ -37,7 +39,7 @@ void basicTests() {
 /**
  *  Unit test for HeapSet data structure.
  */
-main() {
+int main() {
 	cout << "running basic tests\n";
 	basicTests();
 	cout << "basic tests passed\n";

@@ -1,40 +1,24 @@
 IDIR = ../../../include
 LDIR = ../../../lib
-LIBS = ${LDIR}/lib-util.a ${LDIR}/lib-ds.a
+LIBS = ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
-CXXFLAGS = -O2 -m64 -I ${IDIR}
+CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 
 
 %.o : %.cpp
-	${CXX} ${CXXFLAGS} -c $<
+	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-all : testUiList testUiDlist testIdMap testUiClist testUiSetPair testPartition \
-	perfUiDlist perfStlList perfStlSet
+all : testDheap testDheapSet testFheapSet testLheapSet
 
-testUiList: testUiList.o ${LIBS}
+testDheap: testDheap.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testUiDlist: testUiDlist.o ${LIBS}
+testDheapSet: testDheapSet.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testIdMap: testIdMap.o ${LIBS}
+testFheapSet: testFheapSet.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testUiClist: testUiClist.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-testUiSetPair: testUiSetPair.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-testPartition: testPartition.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-perfUiDlist: perfUiDlist.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-perfStlList: perfStlList.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-perfStlSet: perfStlSet.o ${LIBS}
+testLheapSet: testLheapSet.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 clean :

@@ -35,10 +35,12 @@ public:		FheapSet(int=26);
 	void	copyFrom(const FheapSet&);
 
 	keytyp	key(index) const;		
+	void	setKey(index,keytyp);
 	fheap	findmin(fheap) const;	
 	fheap	meld(fheap,fheap);
 	fheap	decreasekey(index,keytyp,fheap);
 	fheap	deletemin(fheap);	
+	fheap	insert(index,fheap);
 	fheap	insert(index,fheap,keytyp);
 	fheap	remove(index, fheap);	
 
@@ -57,6 +59,7 @@ private:
 	int	rvec[MAXRANK+1];	///< temporary vector of ranks
 	List	*tmpq;			///< temporary queue used
 
+	string& heap2string(fheap,bool,string&) const;
 	void	makeSpace(int);
 	void	freeSpace();
 };
@@ -65,13 +68,28 @@ private:
  *  @param i is the index of an item in some heap
  *  @return the key of i
  */
-inline keytyp FheapSet::key(index i) const { return node[i].kee; };
+inline keytyp FheapSet::key(index i) const { return node[i].kee; }
+
+/** Set the key of a singleton item.
+ *  @param i is the index of a singleton item.
+ *  @return the key of i
+ */
+inline void FheapSet::setKey(index i, keytyp k) {
+	assert(sibs->suc(i) == i && node[i].p == 0 && node[i].c == 0);
+	node[i].kee = k;
+}
+
+/** Insert an item into a heap.
+ *  @param i is the index of a singleton item.
+ *  @return the key of i
+ */
+inline fheap FheapSet::insert(index i, fheap h) { return meld(i,h); }
 	
 /** Find the item with smallest key in a heap.
  *  @param h is the canonical element of some heap
  *  @return the the index of item in h that has the smallest key
  */
-inline fheap FheapSet::findmin(fheap h) const { return h; };
+inline fheap FheapSet::findmin(fheap h) const { return h; }
 
 } // ends namespace
 

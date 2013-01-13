@@ -55,7 +55,7 @@ void sortEdges(const Wgraph& wg, edge *elist) {
  *  to be empty
  */
 void kruskal(Wgraph& wg, list<edge>& mstree) {
-	edge e, e1; vertex u,v,cu,cv; weight w;
+	edge e, e1; vertex u,v,cu,cv;
 	Partition vsets(wg.n());
 	edge *elist = new edge[wg.m()+1];
 	int i = 1;

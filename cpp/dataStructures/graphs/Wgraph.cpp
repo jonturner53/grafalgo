@@ -112,7 +112,7 @@ string& Wgraph::edge2string(edge e, vertex u, string& s) const {
 	stringstream ss;
         vertex v = mate(u,e);
         ss << "(" << item2string(u,s);
-	ss << "," << item2string(v,s) + "," << wt[e] + ")";
+	ss << "," << item2string(v,s) << "," << weight(e) << ")";
 	s = ss.str();
         return s;
 }

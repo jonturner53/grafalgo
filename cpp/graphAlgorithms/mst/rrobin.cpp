@@ -21,7 +21,7 @@ bool delf(edge e) {
  *  it is assumed to be empty, initially
  */
 void rrobin(Wgraph& wg, list<edge>& mstree) {
-	edge e; vertex u,v,cu,cv; weight w;
+	edge e; vertex u,v,cu,cv;
 	Dlist q(wg.n()); List elist(2*wg.m());
 	lheap *h = new lheap[wg.n()+1];
 	Partition prtn(wg.n()); LlheapSet heapSet(2*wg.m(),delf);

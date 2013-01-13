@@ -166,14 +166,13 @@ void Dheap::changekey(index i, keytyp k) {
  *  @return a reference to s
  */
 string& Dheap::toString(string& s) const {
-	s = "";
+	stringstream ss;
 	for (int i = 1; i <= hn; i++) {
-		string s1;
-		s += "(" + Adt::item2string(h[i],s1);
-		s += "," + Adt::item2string(kee[h[i]],s1) + ") ";
+		ss << "(" << item2string(h[i],s) << "," << kee[h[i]] << ") ";
 		if ((i%10) == 0) s += "\n";
 	}
 	if ((hn%10) != 0) s += "\n";
+	s = ss.str();
 	return s;
 }
 

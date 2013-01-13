@@ -200,6 +200,15 @@ void DheapSet::changeKeyMin(keytyp k, int h) {
 	siftdown(i,p);
 }
 
+string& DheapSet::toString(string& s) const {
+	s = "";
+	for (int h = 1; h <= maxHeap; h++) {
+		string s1;
+		if (!empty(h)) s += toString(h,s1) + "\n";
+	}
+	return s;
+}
+
 string& DheapSet::toString(int h, string& s) const {
 	if (hSize[h] == 0) { s = "[]"; return s; }
 	stringstream ss;
@@ -216,7 +225,7 @@ string& DheapSet::toString(int h, string& s) const {
 		while (q < p+d && heaps[q] != 0) {
 			if (q > p) ss << " ";
 			index i = heaps[q++];
-			ss << i + ":" << key[i];
+			ss << i << ":" << key[i];
 		}
 		ss << "] ";
 		if (++cnt == numPerRow) {

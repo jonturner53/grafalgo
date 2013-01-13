@@ -119,13 +119,12 @@ lheap LheapSet::insert(index i, lheap h) {
 
 /** Remove the item with smallest key from a heap.
  *  @param h is the canonical element of some heap
- *  @return the item in h with the smallest key, after removing
- *  it from the heap
+ *  @return the canonical element of the resulting heap
  */
 index LheapSet::deletemin(lheap h) {
-	(void) meld(left(h),right(h));
+	lheap h1 = meld(left(h),right(h));
 	left(h) = right(h) = 0; rank(h) = 1;
-	return h;
+	return h1;
 }
 
 /** Construct a string representation of this object.
@@ -133,27 +132,40 @@ index LheapSet::deletemin(lheap h) {
  *  @return a reference to s
  */
 string& LheapSet::toString(string& s) const {
-	int i; bool *mark = new bool[n()+1];
-	for (i = 1; i <= n(); i++) mark[i] = true;
+	s = "";
+	int i; bool *isroot = new bool[n()+1];
+	for (i = 1; i <= n(); i++) isroot[i] = true;
 	for (i = 1; i <= n(); i++)
-		mark[left(i)] = mark[right(i)] = false;
-	for (i = 1; i <= n(); i++)
-		if (mark[i]) { string s1; s += heap2string(i,s1); }
-	delete [] mark;
+		isroot[left(i)] = isroot[right(i)] = false;
+	for (i = 1; i <= n(); i++) {
+		if (isroot[i] && (left(i) != 0 || right(i) != 0)) {
+			string s1; s += heap2string(i,s1) + "\n";
+		}
+	}
+	delete [] isroot;
 	return s;
 }
 
-/** Construct a string representation of a heap.
- *  @param h is the canonical element of some heap
+/** Recursive helper for constructing a string representation of a heap.
+ *  @param h is a node in one of the trees of the heap
+ *  @param isroot is true if h is the canonical element of the heap
  *  @param s is a string in which the result is returned
  *  @return a reference to s
  */
-string& LheapSet::heap2string(lheap h, string& s) const {
+string& LheapSet::heap2string(lheap h, bool isroot, string& s) const {
+	s = "";
+	if (h == 0) return s;
 	stringstream ss;
-	if (h == 0) { s = ""; return s; }
-	ss << "(" << Adt::item2string(h,s) << "/" << kee(h) << " ";
-	ss << heap2string(left(h),s);
-	ss << heap2string(right(h),s) << ")";
+	if (left(h) == 0 && right(h) == 0) {
+		ss << item2string(h,s) << ":" << kee(h) << "," << rank(h);
+	} else {
+		ss << "(";
+		if (left(h) != 0) ss << heap2string(left(h),false,s) << " ";
+		ss << item2string(h,s) << ":" << kee(h) << "," << rank(h);
+		if (isroot) ss << "*";
+		if (right(h) != 0) ss << " " << heap2string(right(h),false,s);
+		ss << ")";
+	}
 	s = ss.str();
 	return s;
 }

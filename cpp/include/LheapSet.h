@@ -51,6 +51,7 @@ protected:
 	int	right;		///< right[i] = right child of i
 	} *node;
 
+	string&	heap2string(lheap, bool, string&) const;
 	void	makeSpace(int);
 	void	freeSpace();
 };
@@ -72,6 +73,15 @@ inline void LheapSet::setkey(index i,keytyp k) { node[i].kee = k; };
  *  @return the index of the item in h with the smallest key
  */
 inline lheap LheapSet::findmin(lheap h) const { return h; };
+
+/** Create a string representation of a single heap.
+ *  @param h is the canonical element of some heap
+ *  @param s is a reference to a string in which result is returned
+ *  @return s
+ */
+inline string& LheapSet::heap2string(lheap h, string& s) const {
+	return heap2string(h,true,s);
+}
 
 } // ends namespace
 
