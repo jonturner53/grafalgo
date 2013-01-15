@@ -7,7 +7,7 @@
 #include "stdinc.h"
 #include "Wflograph.h"
 #include "List.h"
-#include "Pathset.h"
+#include "PathSet.h"
 #include "Dtrees.h"
 #include "dinicDtrees.h"
 
