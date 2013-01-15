@@ -22,7 +22,10 @@ IdMap::~IdMap() { freeSpace(); }
  *  @param size is number of index values to provide space for
  */
 void IdMap::makeSpace(int size) {
-	try { hset = new HashSet(size); } catch (std::bad_alloc e) {
+	try {
+		ht = new HashTbl(size);
+		ids = new SetPair(size);
+	} catch (std::bad_alloc e) {
 		stringstream ss;
 		ss << "IdMap::makeSpace: insufficient space for "
 		   << size << "index values";
@@ -33,7 +36,7 @@ void IdMap::makeSpace(int size) {
 }
 
 /** Free dynamic storage used by list. */
-void IdMap::freeSpace() { delete hset; }
+void IdMap::freeSpace() { delete ht; delete ids; }
 
 /** Resize a IdMap object.
  *  The old value is discarded.
@@ -58,17 +61,30 @@ void IdMap::expand(int size) {
 }
 
 /** Remove all elements from map. */
-void IdMap::clear() { hset->clear(); }
+void IdMap::clear() {
+	while (firstId() != 0) dropPair(getKey(firstId()));
+}
 
 /** Copy into this from source. */
-void IdMap::copyFrom(const IdMap& source) { hset->copyFrom(*source.hset); }
+void IdMap::copyFrom(const IdMap& source) {
+	if (&source == this) return;
+	if (source.n() > n()) resize(source.n());
+	else clear();
+	for (index x = source.firstId(); x != 0; x = source.nextId(x))
+		addPair(source.getKey(x),x);
+}
 
 /** Add a new key->id pair.
  *  @param key is the key for which an id is required
  *  @return the new id or 0 if the key is already mapped or the
  *  operation fails
  */
-int IdMap::addPair(uint64_t key) { return hset->insert(key); }
+int IdMap::addPair(uint64_t key) {
+	index x = ids->firstOut();
+	if (x == 0 || !ht->insert(key,x)) return 0;
+	ids->swap(x);
+	return x;
+}
 
 /** Add a new key->id pair.
  *  @param key is the key for which an id is required
@@ -76,24 +92,29 @@ int IdMap::addPair(uint64_t key) { return hset->insert(key); }
  *  @return the new id or 0 if the key is already mapped or the
  *  id is already in use or the operation fails
  */
-int IdMap::addPair(uint64_t key, int id) { return hset->insertPair(key,id); }
+int IdMap::addPair(uint64_t key, int id) {
+	if (ids->isIn(id) || !ht->insert(key,id)) return 0;
+	ids->swap(id);
+	return id;
+}
 
 /** Remove a pair from the mapping.
  *  This operation removes a (key,id) pair from the mapping.
  *  @param key is the key whose id is to be released
  */
-void IdMap::dropPair(uint64_t key) { hset->remove(key); }
+void IdMap::dropPair(uint64_t key) {
+	index x = ht->remove(key);
+	if (ids->isIn(x)) ids->swap(x);
+}
 
 /** Create a string representation of the IdMap.
  *  @param s is the string in which the result is returned.
  */
 string& IdMap::toString(string& s) const {
 	stringstream ss; ss << "{";
-	bool isFirst = true;
-	for (index x = hset->first(); x != 0; x = hset->next(x)) {
-		if (isFirst) isFirst = false;
-		else ss << " ";
-		ss << "(" << hset->val(x) << "," << x << ")";
+	for (index x = firstId(); x != 0; x = nextId(x)) {
+		if (x != firstId()) ss << " ";
+		ss << getKey(x) << ":" << x;
 	}	
 	ss << "}"; s = ss.str(); return s;
 }

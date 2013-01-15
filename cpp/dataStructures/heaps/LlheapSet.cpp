@@ -29,7 +29,7 @@ LlheapSet::LlheapSet(int size, delftyp f) : LheapSet(2*size) {
 }
 
 /** Destructor for the LlheapSet class. */
-LlheapSet::~LlheapSet() { freeSpace(); delete tmplst; }
+LlheapSet::~LlheapSet() { freeSpace(); }
 
 /** Allocate and initialize space for LlheapSet.
  *  @param size is number of index values to provide space for
@@ -48,7 +48,7 @@ void LlheapSet::makeSpace(int size) {
 }
 
 /** Free dynamic storage used by LlheapSet. */
-void LlheapSet::freeSpace() { delete [] tmplst; }
+void LlheapSet::freeSpace() { delete tmplst; }
 
 /** Copy into LlheapSet from source. */
 void LlheapSet::copyFrom(const LlheapSet& source) {
@@ -173,36 +173,51 @@ lheap LlheapSet::makeheap(List& hlst) {
 	return heapify(*tmplst);
 }
 
-/** Create a string representation of this object.
+/** Construct a string representation of this object.
  *  @param s is a string in which the result is returned
  *  @return a reference to s
  */
 string& LlheapSet::toString(string& s) const {
-        int i; bool *mark = new bool[n()+1];
-        for (i = 1; i <= n(); i++) mark[i] = true;
-        for (i = 1; i <= n(); i++)
-                mark[left(i)] = mark[right(i)] = false;
-        for (i = 1; i <= n(); i++)
-                if (mark[i]) { string s1; s += heap2string(i,s1) + " "; }
-        delete [] mark;
-        return s;
+	s = "";
+	int i; bool *isroot = new bool[n()+1];
+	for (i = 1; i <= n(); i++) isroot[i] = true;
+	for (i = 1; i <= n(); i++)
+		isroot[left(i)] = isroot[right(i)] = false;
+	for (i = 1; i <= n(); i++) {
+		if (isroot[i] && (left(i) != 0 || right(i) != 0)) {
+			string s1; s += heap2string(i,s1) + "\n";
+		}
+	}
+	delete [] isroot;
+	return s;
 }
 
-/** Create a string representation of a heap.
- *  @param h is the canonical element of some heap
+/** Recursive helper for constructing a string representation of a heap.
+ *  @param h is a node in one of the trees of the heap
+ *  @param isroot is true if h is the canonical element of the heap
  *  @param s is a string in which the result is returned
  *  @return a reference to s
  */
-string& LlheapSet::heap2string(lheap h, string& s) const {
-        if (h == 0) { s = ""; return s; }
-        stringstream ss;
-	ss << "(";
-	if (deleted(h)) ss << "- ";
-        else {
-		ss << Adt::item2string(h,s) << "/" << kee(h) << " ";
+string& LlheapSet::heap2string(lheap h, bool isroot, string& s) const {
+	s = "";
+	if (h == 0) return s;
+	stringstream ss;
+	if (left(h) == 0 && right(h) == 0) {
+		if (deleted(h)) ss << "- ";
+		else ss << item2string(h,s) << ":" << kee(h) << "," << rank(h);
+	} else {
+		ss << "(";
+		if (left(h) != 0) ss << heap2string(left(h),false,s) << " ";
+		if (deleted(h)) {
+			ss << "- ";
+		} else {
+			ss << item2string(h,s) << ":" << kee(h) << ","
+			   << rank(h);
+			if (isroot) ss << "*";
+		}
+		if (right(h) != 0) ss << " " << heap2string(right(h),false,s);
+		ss << ")";
 	}
-        ss << heap2string(left(h),s);
-	ss << heap2string(right(h),s) << ")";
 	s = ss.str();
 	return s;
 }

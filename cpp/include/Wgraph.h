@@ -40,6 +40,7 @@ public:		Wgraph(int=1,int=1);
 	void	setWeight(edge,int);
 
 	// create a string representation
+	using Graph::edge2string;
 	string& edge2string(edge, vertex, string&) const;
         string& toDotString(string&) const;
 

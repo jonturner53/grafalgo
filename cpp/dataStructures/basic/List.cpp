@@ -80,11 +80,7 @@ void List::clear() { while (!empty()) removeFirst(); }
  *  @return index at position i, or 0 if no such index
  */
 index List::get(position i) const {
-	if (1 < i || i > length()) {
-		stringstream ss; ss << "List::get(" << i << ")";
-		string s = ss.str();
-		throw IllegalArgumentException(s);
-	}
+	if (i < 1 || i > length()) return 0;
 	if (i == 1) return first();
 	index j;
 	for (j = first(); j != 0 && --i; j = nxt[j]) {}

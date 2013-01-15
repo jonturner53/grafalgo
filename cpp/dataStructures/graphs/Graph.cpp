@@ -260,8 +260,10 @@ string& Graph::edge2string(edge e, vertex u, string& s) const {
  */
 string& Graph::elist2string(list<int>& elist, string& s) const {
 	s = "";
+	int i = elist.size();
 	for (edge e : elist) {
 		string s1; s += edge2string(e,s1);
+		if (--i) s += " ";
 	}
 	return s;
 }
@@ -427,18 +429,16 @@ void Graph::rgraph(int numv, int nume) {
 	numv = max(0,numv); nume = max(0,nume);
 	if (numv > n() || nume > maxEdge) resize(numv,nume); 
 	else clear();
-	addEdges(numv,nume);
-	sortAdjLists();
+	addEdges(nume);
 }
 
 /** Add random edges to a graph.
- *  @param numv is the number of vertices; edges are generated
- *  joining vertices with vertex numbers in 1..numv
  *  @param nume is the target number of edges; if the graph already
  *  has some edges, additional edges will be added until the
  *  graph has nume edges
  */
-void Graph::addEdges(int numv, int nume) {
+void Graph::addEdges(int nume) {
+	if (nume <= m()) return;
 	// build set containing edges already in graph
 	HashSet edgeSet(nume);
 	for (edge e = first(); e != 0; e = next(e)) {
@@ -451,9 +451,9 @@ void Graph::addEdges(int numv, int nume) {
 	// add edges using random sampling of vertex pairs
 	// stop early if graph gets so dense that most samples
 	// repeat edges already in graph
-	while (m() < nume && m()/numv < numv/4) {
-		vertex u = Util::randint(1,numv);
-		vertex v = Util::randint(1,numv);
+	while (m() < nume && m()/n() < n()/4) {
+		vertex u = Util::randint(1,n());
+		vertex v = Util::randint(1,n());
 		if (u == v) continue;
 		if (u > v) { vertex w = u; u = v; v = w; }
 		uint64_t vpair = u; vpair <<= 32; vpair |= v;
@@ -466,8 +466,8 @@ void Graph::addEdges(int numv, int nume) {
 	// if more edges needed, build a vector containing remaining 
 	// "candidate" edges and then sample from this vector
 	vector<uint64_t> vpVec;
-	for (vertex u = 1; u < numv; u++) {
-		for (vertex v = u+1; v <= numv; v++) {
+	for (vertex u = 1; u < n(); u++) {
+		for (vertex v = u+1; v <= n(); v++) {
 			uint64_t vpair = u; vpair <<= 32; vpair |= v;
 			if (!edgeSet.member(vpair)) vpVec.push_back(vpair);
 		}
@@ -480,6 +480,7 @@ void Graph::addEdges(int numv, int nume) {
 		vertex v = vpVec[j] & 0xffffffff;
 		join(u,v); vpVec[j] = vpVec[i++];
 	}
+	sortAdjLists();
 }
 
 /** Generate a random bipartite graph.
@@ -582,8 +583,8 @@ void Graph::rcgraph(int numv, int nume) {
 	// graph too sparse for standard method to produce connected graph
 	// so start over, adding edges to a random tree
 	clear();
-	rtree(numv); addEdges(numv,nume);
-	sortAdjLists();
+	rtree(numv);
+	addEdges(nume);
 }
 
 /** Get an edge joining two vertices.

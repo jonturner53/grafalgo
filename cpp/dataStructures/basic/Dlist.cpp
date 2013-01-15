@@ -25,7 +25,13 @@ Dlist::~Dlist() { freeSpace(); }
  *  @param size is the number of elements for which space is to be allocated
  */
 void Dlist::makeSpace(int size) {
-        prv = new index[size+1];
+	try { prv = new index[size+1]; } catch (std::bad_alloc e) {
+		stringstream ss;
+		ss << "makeSpace:: insufficient space for "
+		   << size << "index values";
+		string s = ss.str();
+		throw OutOfSpaceException(s);
+	}
         for (index i = 1; i <= size; i++) prv[i] = -1;
         prv[0] = 0;
 	nn = size;

@@ -10,10 +10,9 @@
 #ifndef IDSET_H
 #define IDSET_H
 
-#include "stdinc.h"
-
 #include "Adt.h"
-#include "HashSet.h"
+#include "HashTbl.h"
+#include "SetPair.h"
 
 namespace grafalgo {
 
@@ -56,7 +55,8 @@ public:
 	string&	toString(string&) const;
 private:
 	static const int MAXID = (1 << 20)-1;  ///< largest possible identifier
-	HashSet *hset;
+	HashTbl *ht;
+	SetPair	*ids;
 
 	void	makeSpace(int);
 	void	freeSpace();
@@ -65,44 +65,44 @@ private:
 /** Get the first assigned identifier, in some arbitrary order.
  *  @return number of the first identfier
  */
-inline int IdMap::firstId() const { return hset->first(); }
+inline int IdMap::firstId() const { return ids->firstIn(); }
 
 /** Get the next assigned identifier, in some arbitrary order.
  *  @param id is an identifer in the set
  *  @return number of the next identfier
  */
-inline int IdMap::nextId(int id) const { return hset->next(id); }
+inline int IdMap::nextId(int id) const { return ids->nextIn(id); }
 
 /** Determine if a given key has been mapped to an identfier.
  *  @param key is the key to be checked
  *  @return true if the key has been mapped, else false
  */
-inline bool IdMap::validKey(uint64_t key) const { return hset->member(key); }
+inline bool IdMap::validKey(uint64_t key) const { return ht->lookup(key) != 0; }
 
 /** Determine if a given identifier has been assigned to a key.
  *  @param id is the identifier to be checked
  *  @return true if the key has been mapped, else false
  */
-inline bool IdMap::validId(int id) const { return hset->isValid(id); }
+inline bool IdMap::validId(int id) const { return ids->isIn(id); }
 
 /** The size of the mapping.
  *  @return the number of mapped identifiers.
  */
-inline int IdMap::size() const { return hset->size(); }
+inline int IdMap::size() const { return ids->getNumIn(); }
 
 /** Get the id for a given key.
  *  @param key is the key for which the id is required
  *  @return the corresponding id or 0 if the key is not
  *  mapped or the operation fails
  */
-inline int IdMap::getId(uint64_t key) const { return hset->getIndex(key); }
+inline int IdMap::getId(uint64_t key) const { return ht->lookup(key); }
 
 /** Get the key that was mapped to the given identifier
  *  @param id is the identifier whose key is to be returned
  *  @return the key that maps to id, or 0 if there is none
  */
 inline uint64_t IdMap::getKey(int id) const {
-	return (validId(id) ? hset->val(id) : 0); 
+	return (validId(id) ? ht->getKey(id) : 0); 
 }
 
 } // ends namespace

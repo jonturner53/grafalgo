@@ -51,7 +51,9 @@ public:
 	 *  triggered the exception.
 	 */
 	IllegalArgumentException(string& s) :
-		Exception("IllegalArgumentException: " + s) {}
+		Exception("IllegalArgumentException: " + s) {
+			cerr << s;
+		}
 };
 
 /** This exception is thrown by constructors (and other methods) that
@@ -65,7 +67,9 @@ public:
 	 *  triggered the exception.
 	 */
 	OutOfSpaceException(string& s) :
-		Exception("OutOfSpaceException: " + s) {}
+		Exception("OutOfSpaceException: " + s) {
+			cerr << s;
+		}
 };
 
 /** This exception is thrown by methods that encounter an error while
@@ -77,7 +81,9 @@ public:
 	 *  @param s is a reference to a string describing the condition that
 	 *  triggered the exception.
 	 */
-	InputException(string& s) : Exception("InputException: " + s) {}
+	InputException(string& s) : Exception("InputException: " + s) {
+			cerr << s;
+		}
 };
 
 } // ending namespace

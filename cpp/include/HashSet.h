@@ -15,7 +15,7 @@
 
 namespace grafalgo {
 
-/** Maintains a set, where an element is a 64 bit value unsigned integer.
+/** Maintains a set, where an element is a 64 bit integer.
  * 
  *  Main methods
  *    member - tests an element for membership in the set
@@ -26,9 +26,8 @@ namespace grafalgo {
  *  through the set.
  * 
  *  The implementation uses a 2-left hash table with eight items
- *  in each bucket. The number of elements is limited to 2^20 - 1.
- *  This ensures ensures a  maximum load factor of 50%
- *  to minimize the potential for overloading any bucket.
+ *  in each bucket. The table is dimensioned for a load factor of
+ *  no more than 50%.
  */
 class HashSet : public Adt {
 public:
@@ -42,23 +41,28 @@ public:
 	void	copyFrom(const HashSet&);
 
 	int	size() const;
-	bool	member(uint64_t) const; 		
+	bool	member(int64_t) const; 		
 
 	index	first() const;
 	index	next(index) const;
 	bool	isValid(index) const;
 	uint64_t val(index) const;
-	index	getIndex(uint64_t) const;
+	index	getIndex(int64_t) const;
 
-	index	insert(uint64_t); 
-	index	insertPair(uint64_t,index); 
-	void	remove(uint64_t); 	
+	index	insert(int64_t); 
+	void	remove(int64_t); 	
 
 	string& toString(string&) const;
 private:
-	HashTbl *ht;			///< underlying hash table
+	static const int BKT_SIZ = 8;	///< # of elements per bucket
+	typedef uint32_t bkt_t[BKT_SIZ]; ///< bucket type
+
+	int	nb;			///< # of buckets in each half
+	uint32_t bktMsk;		///< mask used by hash function
+	bkt_t	*bkt;			///< buckets for hash table
 	SetPair	*ex;			///< indexes of in-set elements and out
 
+	uint32_t hashit(int64_t, int) const;
 	void	makeSpace(int);
 	void	freeSpace();
 };
@@ -72,7 +76,7 @@ inline int HashSet::size() const { return ex->getNumIn(); }
  *  @parmam e is an element to be tested for set membership
  *  @return true if e is a member of the set, else false
  */
-inline bool HashSet::member(uint64_t e) const { return getIndex(e) != 0; }
+inline bool HashSet::member(int64_t e) const { return getIndex(e) != 0; }
 
 /** Get the index of the first element in the set.
  *  @return the index of the first element in the set; the order
@@ -86,12 +90,6 @@ inline index HashSet::first() const { return ex->firstIn(); }
  */
 inline index HashSet::next(index x) const { return ex->nextIn(x); }
 
-/** Find the index associated with a given set element.
- *  @param e is the value to be looked up in the set
- *  @return the index of the set element, or 0 if it's not in the set
- */
-inline index HashSet::getIndex(uint64_t e) const { return ht->lookup(e); }
-
 /** Determine if an index corresponds to a set element.
  *  @param x is an index
  *  @return true if there is some element with x as its index, else false
@@ -102,41 +100,8 @@ inline bool HashSet::isValid(index x) const { return ex->isIn(x); }
  *  @param x is an index of a set element
  *  @return the element value
  */
-inline uint64_t HashSet::val(index x) const { return ht->getKey(x); }
-
-/** Add an element to the set.
- *  @param e is the element to be added; if already present in set
- *  no change is made to the set
- *  @return the index of the inserted element on success, 0 on failure.
- */
-inline index HashSet::insert(uint64_t e) {
-	index x = ex->firstOut();
-	if (x == 0) return 0;
-	return insertPair(e,x);
-}
-
-/** Add an element to the set, using a specific index.
- *  @param e is the element to be added; if already present in set
- *  no change is made to the set
- *  @param x is the index that e is to be paired with
- *  @return the index of the inserted element on success, 0 on failure.
- */
-inline index HashSet::insertPair(uint64_t e, index x) {
-	if (ex->isIn(x)) return 0;
-	if (!ht->insert(e,x)) return 0;
-	ex->swap(x);
-	return x;
-}
-
-/** Remove an element from the set.
- *  @param e is the element to be removed
- */
-inline void HashSet::remove(uint64_t e) {
-cout << "remove " << e << endl;
-//cout << (*ht) << endl;
-	index x = ht->remove(e);
-cout << "x=" << x << endl;
-	if (x != 0) ex->swap(x);
+inline uint64_t HashSet::val(index x) const {
+	return bkt[(x-1)/BKT_SIZ][(x-1)%BKT_SIZ];
 }
 
 } // ends namespace

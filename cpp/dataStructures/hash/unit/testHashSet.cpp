@@ -1,4 +1,3 @@
-#include "stdinc.h"
 #include "HashSet.h"
 #include "Util.h"
 #include "Utest.h"

@@ -87,7 +87,7 @@ public:		Graph(int=1,int=1);
 	void	scramble();
 	void	rgraph(int, int, int);
 	void	rgraph(int, int);
-	void	addEdges(int, int);
+	void	addEdges(int);
 	void	rbigraph(int, int);
 	void 	rtree(int);
 	void 	rcgraph(int,int);

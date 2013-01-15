@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 		Util::fatal("usage: mstRep method reps n m maxkey");
 
 	srand(1);
-	Wgraph wg(n,m)
+	Wgraph wg(n,m);
 	list<edge> mstree;
 	mintime = Util::BIGINT32; maxtime = 0; totaltime = 0;
 	for (i = 1; i <= reps; i++) {
@@ -59,11 +59,10 @@ int main(int argc, char* argv[]) {
 		if (time1 == -1 || time2 == -1) {
 			Util::fatal("mstRep: can't read time values");
 		}
-		clock_t diff = time2 - time1;
+		int diff = time2 - time1;
 		mintime = min(diff,mintime);
 		maxtime = max(diff,maxtime);
 		totaltime += diff;
-		delete mstree;
 	}
 	double avgtime = ((double) totaltime/reps);
 	cout << "avgtime=" << avgtime << " us  ";

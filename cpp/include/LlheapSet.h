@@ -48,9 +48,19 @@ private:
 	void	purge(lheap,List&);
 	lheap	heapify(List&);	
 
+	string& heap2string(index,bool,string&) const;
 	void	makeSpace(int);
 	void	freeSpace();
 };
+
+/** Create a string representation of a single heap.
+ *  @param h is the canonical element of some heap
+ *  @param s is a reference to a string in which result is returned
+ *  @return a reference to s
+ */
+inline string& LlheapSet::heap2string(lheap h, string& s) const {
+	return heap2string(h,true,s);
+}
 
 } // ends namespace
 

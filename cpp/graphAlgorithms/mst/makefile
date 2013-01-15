@@ -12,7 +12,7 @@ LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/List.h \
 	 ${IDIR}/LlheapSet.h ${IDIR}/Partition.h 
 OFILES = kruskal.o prim.o primF.o rrobin.o
-XFILES:	mst mstRep check mstUpdate mstUpdate2
+XFILES = mst mstRep check
 
 ${OFILES} : ${HFILES}
 ${LIBGA} : ${OFILES}

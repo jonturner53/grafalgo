@@ -36,7 +36,7 @@ void check(Wgraph& wg, Wgraph& mstree) {
 
 	// check that mstree is a subgraph of wg
 	if (mstree.n() != wg.n() || mstree.m() != mstree.n()-1) {
-		fatal("check: size error, aborting\n");
+		Util::fatal("check: size error, aborting\n");
 	}
 	vertex* edgeTo = new vertex[mstree.n()+1];
 	for (u = 1; u <= wg.n(); u++) edgeTo[u] = 0;
@@ -49,7 +49,7 @@ void check(Wgraph& wg, Wgraph& mstree) {
 			if (e == 0 || mstree.weight(f) != wg.weight(e)) {
 				string s;
 				cout << "check: edge " << f << "="
-				     << wg.edge2string(f,s)
+				     << mstree.edge2string(f,s)
 				     << " is not in wg\n";
 			}
 		}
@@ -81,8 +81,6 @@ void check(Wgraph& wg, Wgraph& mstree) {
 
 // Verify that there is no cheaper spanning tree than mstree.
 void verify(Wgraph& wg, Wgraph& mstree) {
-	int i, m; vertex u, v; edge e;
-
 	// Determine nearest common ancestor for each edge.
 	vertex* first_edge = new edge[wg.n()+1];
 	ClistSet edge_sets(wg.m());

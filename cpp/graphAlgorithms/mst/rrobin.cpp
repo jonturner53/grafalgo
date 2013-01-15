@@ -24,7 +24,8 @@ void rrobin(Wgraph& wg, list<edge>& mstree) {
 	edge e; vertex u,v,cu,cv;
 	Dlist q(wg.n()); List elist(2*wg.m());
 	lheap *h = new lheap[wg.n()+1];
-	Partition prtn(wg.n()); LlheapSet heapSet(2*wg.m(),delf);
+	Partition prtn(wg.n());
+	LlheapSet heapSet(2*wg.m(),delf);
 	gp = &wg; pp = &prtn;
 	for (e = 1; e <= wg.m(); e++) {
 		heapSet.setkey(2*e,wg.weight(e));
@@ -36,7 +37,8 @@ void rrobin(Wgraph& wg, list<edge>& mstree) {
 			elist.addLast(2*e - (u == wg.left(e)));
 		}
 		if (!elist.empty()) {
-			h[u] = heapSet.makeheap(elist); q.addLast(u);
+			h[u] = heapSet.makeheap(elist);
+			q.addLast(u);
 		}
 	}
 	while (q.get(2) != 0) {
