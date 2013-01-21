@@ -32,5 +32,5 @@ void prim(Wgraph& wg, list<int>& mstree) {
 			}
 		}
 	}
-	delete [] cheap;
+	delete [] cheap; delete [] intree;
 }

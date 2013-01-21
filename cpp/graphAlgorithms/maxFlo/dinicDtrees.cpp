@@ -1,5 +1,19 @@
+/** @file dinicDtrees.cpp
+ *
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
 #include "dinicDtrees.h"
 
+/** Find maximum flow using Dinic's algorithm with dynamic trees.
+ *  @param fg1 is a reference to the flograph for which a max flow is
+ *  required; on return, the flow fields of the flow graph contain
+ *  the max flow
+ *  @param floVal is a reference to an integer in which the value of
+ *  the resulting flow is returned
+ */
 dinicDtrees::dinicDtrees(Flograph& fg1, int& floVal) : fg(&fg1) {
 	level  = new int[fg->n()+1]; nextEdge = new int[fg->n()+1];
 	upEdge = new int[fg->n()+1]; dt = new Dtrees(fg->n());
@@ -16,44 +30,12 @@ dinicDtrees::dinicDtrees(Flograph& fg1, int& floVal) : fg(&fg1) {
 	delete [] level; delete[] upEdge; delete [] nextEdge; delete dt;
 }
 
-dinicDtrees::dinicDtrees(Flograph& fg1, int& floVal, string& stats) : fg(&fg1) {
-	level  = new int[fg->n()+1]; nextEdge = new int[fg->n()+1];
-	upEdge = new int[fg->n()+1]; dt = new Dtrees(fg->n());
-
-	for (vertex u = 1; u <= fg->n(); u++) {
-		dt->addcost(u,Util::BIGINT32);
-		level[u] = nextEdge[u] = upEdge[u] = 0;
-	}
-
-	floVal = 0;
-	numPhase = numPaths = 0; avgPathLength = 0; phaseTime = pathTime = 0;
-	uint32_t t1, t2, t3;
-	t1 = Util::getTime();
-        while (newPhase()) {
-		t2 = Util::getTime(); phaseTime += (t2-t1);
-		numPhase++;
-                while (findPath()) {
-			t3 = Util::getTime(); pathTime += (t3-t2);
-			numPaths++; avgPathLength += level[fg->snk()];
-
-                        floVal += augment();
-			t2 = Util::getTime();
-                }
-		t3 = Util::getTime(); pathTime += (t3-t2);
-		t1 = Util::getTime();
-        }
-	t2 = Util::getTime(); phaseTime += (t2-t1);
-	avgPathLength /= numPaths;
-	stringstream ss;
-	ss << numPhase << " " << numPaths << " " << avgPathLength
-	   << " " << phaseTime << " " << pathTime;
-	stats = ss.str();
-
-	delete [] level; delete[] upEdge; delete [] nextEdge; delete dt;
-}
-
+/** Find an augmenting path.
+ *  Uses the dynamic trees data structure to find an augmenting path.
+ *  On return, the dynamic trees data structure includes a tree path
+ *  from the source to the sink.
+ */
 bool dinicDtrees::findPath() {
-// Find an augmenting path.
         vertex u, v; edge e;
 
 	while (nextEdge[fg->src()] != 0) {
@@ -85,9 +67,11 @@ bool dinicDtrees::findPath() {
 	return false;
 }
 
+/** Add flow to source-sink path defined by the dynamic trees data structure.
+ *  After adding flow, the dynamic trees data structure is modified
+ *  to remove edges that no longer have positive residual capacity.
+ */
 int dinicDtrees::augment() {
-// Add flow to the source-sink path defined by the path in the
-// dynamic trees data structure
 	vertex u; edge e;
 
 	NodeCostPair p = dt->findcost(fg->src());
@@ -103,9 +87,10 @@ int dinicDtrees::augment() {
 	return flo;
 }
 
+/** Prepare for a new phase. 
+ *  @return true if there is an augmenting path, else false.
+ */
 bool dinicDtrees::newPhase() {
-// Prepare for a new phase. Return the number of edges in the source/sink
-// path, or 0 if none exists.
 	vertex u, v; edge e;
 	List q(fg->n());
 	for (u = 1; u <= fg->n(); u++) {

@@ -1,6 +1,10 @@
-// DinicDtrees class. Encapsulates data and routines
-// used to implement Dinic's algorithm with dynamic trees.
-// Use constructor to invoke algorithm.
+/** @file dinicDtrees.h
+ *
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
 
 #ifndef DINICDTREES_H
 #define DINICDTREES_H
@@ -13,27 +17,25 @@
 
 using namespace grafalgo;
 
+/** This class encapsulates data and methods used by the version
+ *  of Dinic's algorithm that uses dynamic trees.
+ *
+ *  The algorithm is invoked using the constructor.
+ */
 class dinicDtrees {
 public:	
 		dinicDtrees(Flograph&,int&);
 		dinicDtrees(Flograph&,int&,string&);
 private:
-	Flograph* fg;		// graph we're finding flow on
-	int*	nextEdge;	// pointer into adjacency list
-	int*	upEdge;		// upEdge[u] is edge for dtrees link from u
-	int*	level;		// level[u]=# of edges in path from source
-	Dtrees*	dt;		// dynamic trees data structure
+	Flograph* fg;		///< graph we're finding flow on
+	int*	nextEdge;	///< pointer into adjacency list
+	int*	upEdge;		///< upEdge[u] is edge for dtrees link from u
+	int*	level;		///< level[u]=# of edges in path from source
+	Dtrees*	dt;		///< dynamic trees data structure
 
-	bool	findPath();	// find augmenting path
-	int	augment();	// add flow to augmenting path
-	bool	newPhase();	// prepare for a new phase
-
-	// statistics
-	int	numPhase;
-	int	numPaths;
-	long long int avgPathLength;
-	uint32_t phaseTime;
-	uint32_t pathTime;
+	bool	findPath();
+	int	augment();
+	bool	newPhase();	
 };
 
 #endif

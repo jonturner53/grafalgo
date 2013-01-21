@@ -15,11 +15,11 @@ HFILES = ${IDIR}/stdinc.h ${IDIR}/Flograph.h ${IDIR}/Dheap.h \
 	 ${IDIR}/ppFifo.h ${IDIR}/ppHiLab.h
 
 OFILES = augPath.o shortPath.o maxCap.o capScale.o dinic.o dinicDtrees.o \
-	 prePush.o ppFifo.o ppHiLab.o
+	 prePush.o ppFifo.o ppHiLab.o badCase.o minFlow.o
 
 ${OFILES} : ${HFILES}
 
-XFILES = maxFlo maxFloRep check badCase 
+XFILES = maxFlo maxFloRep check genBadCase maxFloMin
 
 .cpp.o:
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
@@ -38,7 +38,10 @@ maxFloRep: maxFloRep.o ${LIBS}
 check: check.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-badCase: badCase.o ${LIBS}
+genBadCase: genBadCase.o ${LIBS}
+	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+
+maxFloMin: maxFloMin.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 clean:
