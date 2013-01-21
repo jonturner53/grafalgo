@@ -81,6 +81,7 @@ void Flograph::copyFrom(const Flograph& source) {
 		setCapacity(ee,source.cap(source.tail(e),e));
 		setFlow(ee,source.f(source.tail(e),e));
 	}
+	setSrc(source.src()); setSnk(source.snk());
         sortAdjLists();
 }
 
@@ -186,7 +187,7 @@ string& Flograph::edge2string(edge e, string& s) const {
  */
 string& Flograph::adjList2string(vertex u, string& s) const {
 	s = "";
-	if (firstOut(u) == 0) return s;
+	if (firstOut(u) == 0 && u != src() && u != snk()) return s;
 	stringstream ss;
 	ss << "[";
 	if (u == snk()) ss << "->";
