@@ -1,41 +1,27 @@
-/** @file maxFloMin.cpp
- *
- *  @author Jon Turner
- *  @date 2011
- *  This is open source software licensed under the Apache 2.0 license.
- *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
- *
- *  usage: maxFloMin
- * 
- *  MaxFloMin reads a Flograph from stdin, followed by a list of minimum
- *  flow requirements. It then computes a max flow for the graph,
- *  respecting the specified minimum flow constraints,
- *  then prints the flograph, showing the resulting max flow.
- *
- *  The min flow requirements must be separated by white space.
- *  There must be a min flow requirement for every edge (they may be 0)
- *  and they must appear in the same order as the edges in the flow graph.
- * 
- *  If there is no feasible flow, it simply prints a message to that effect.
- */
+// usage: maxFloMin method
+//
+// MaxFloMin reads a Mflograph from stdin, computes a maximum flow
+// for the graph, respecting the specified minimum flow constraints,
+// then prints the Mflograph, showing the resulting max flow.
+//
+// If there is no feasilbe flow, it simply prints a message to that effect.`
+//
 
-#include "Flograph.h"
+#include "stdinc.h"
+#include "Mflograph.h"
+#include "minFlow.h"
 
-using namespace grafalgo;
+int main(int argc, char *argv[]) {
+	Mflograph fg; fg.read(cin);
 
-extern void minFlow(Flograph&, flow*, flow&);
-
-int main() {
-	Flograph fg; cin >> fg;
-	flow minFlo[fg.m()+1];
-
-	for (edge e = 1; e <= fg.m(); e++) cin >> minFlo[e];
+	if (argc != 1) fatal("usage: maxFloMin method");
 
 	int floVal;
-	minFlow(fg,minFlo,floVal);
+	minFlow(fg,floVal);
 
 	if (floVal >= 0) {
-		cout << fg << "total flow of " << floVal << endl;
+		string s;
+		cout << fg.toString(s) << "total flow of " << floVal << endl;
 	} else {
 		cout << "no feasible flow" << endl;
 	}

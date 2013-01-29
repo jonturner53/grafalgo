@@ -172,9 +172,10 @@ void Graph::sortAlist(vertex u) {
 	// copy edges in adjacency list for u into an array
 	k = 1; elist[k++] = fe[u];
 	for (e = adjLists->suc(fe[u]); e != fe[u]; ) {
-		if (k > n())
+		if (k > n()) {
 			Util::fatal("Graph::sortAlist: adjacency list "
 				    "too long");
+		}
 		elist[k++] = e;
 		edge f = e; e = adjLists->suc(e); adjLists->remove(f);
 	}

@@ -131,12 +131,12 @@ inline void Flograph::setCapacity(edge e, flow capp) {
         floInfo[e].cpy = capp;
 }
 
-/** Set the source and sink vertices.
+/** Set the source vertex.
  *  @param ss is the new source vertex
  */
 inline void Flograph::setSrc(vertex ss) { s = ss; }
 
-/** Set the source and sink vertices.
+/** Set the sink vertex.
  *  @param tt is the new sink vertex
  */
 inline void Flograph::setSnk(vertex tt) { t = tt; }

@@ -24,7 +24,7 @@ SetPair::~SetPair() { freeSpace(); }
  */
 void SetPair::makeSpace(int size) {
 	try {
-		nxt = new index[size+1]; prv = new index[n()+1];
+		nxt = new index[size+1]; prv = new index[size+1];
 	} catch (std::bad_alloc e) {
 		stringstream ss;
 		ss << "SetPair::makeSpace: insufficient space for "
@@ -38,15 +38,15 @@ void SetPair::makeSpace(int size) {
 	for (index i = 1; i < size; i++) {
 		nxt[i] = -(i+1); prv[i+1] = -i;
 	}
-	nxt[n()] = prv[1] = 0;
+	nxt[size] = prv[1] = 0;
 	outHead = 1; outTail = n();
-	numIn = 0; numOut = n();
+	numIn = 0; numOut = size;
 
 	nxt[0] = prv[0] = 0;
 }
 
 /** Free dynamic storage used by list. */
-void SetPair::freeSpace() { delete [] nxt; }
+void SetPair::freeSpace() { delete [] nxt; delete [] prv; }
 
 /** Resize a SetPair object.
  *  The old value is discarded.

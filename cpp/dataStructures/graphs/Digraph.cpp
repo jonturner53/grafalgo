@@ -266,7 +266,7 @@ void Digraph::rgraph(int numv, int nume) {
 		for (vertex v = 1; v <= numv; v++) {
 			if (v == u) continue;
 			uint64_t vpair = u; vpair <<= 32; vpair |= v;
-			if (!edgeSet.member(vpair)) vpVec[i++] = vpair;
+			if (!edgeSet.member(vpair)) vpVec.push_back(vpair);
 		}
 	}
 	// sample remaining edges from vector

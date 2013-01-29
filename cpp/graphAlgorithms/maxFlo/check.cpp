@@ -7,8 +7,8 @@
  *
  *  usage: check
  *
- *  Check reads a Flograph from stdin, with a flow and checks
- *  that it's a legal maximum flow.
+ * Check reads a Flograph from stdin, with a flow and checks
+ * that it's a legal maximum flow.
  */
 
 #include "stdinc.h"

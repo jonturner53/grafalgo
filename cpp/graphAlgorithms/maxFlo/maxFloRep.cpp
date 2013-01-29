@@ -1,21 +1,14 @@
-/** @file maxFloRep.cpp
- *
- *  @author Jon Turner
- *  @date 2011
- *  This is open source software licensed under the Apache 2.0 license.
- *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
- *
- *  usage:
- * 	maxFloRep method reps n m mss ec1 ec2 
- * 
- *  MaxFloRep repeatedly generates a random graph and computes
- *  a maximum flow using the specified method.
- *  Reps is the number of repetitions.
- *  n is the number of vertices, p is the edge probability,
- *  mss is the number of source and sink edges
- *  ec1 is the mean edge capacity for the source/sink edges,
- *  ec2 is the mean edge capacity of the other edges.
- */
+// usage:
+//	maxFloRep method reps n m mss ec1 ec2 
+//
+// MaxFloRep repeatedly generates a random graph and computes
+// a maximum flow using the specified method.
+// Reps is the number of repetitions.
+// n is the number of vertices, p is the edge probability,
+// mss is the number of source and sink edges
+// ec1 is the mean edge capacity for the source/sink edges,
+// ec2 is the mean edge capacity of the other edges.
+//
 
 #include "stdinc.h"
 #include "Flograph.h"

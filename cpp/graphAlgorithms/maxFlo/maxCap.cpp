@@ -1,29 +1,13 @@
-/** @file maxCap.cpp
- *
- *  @author Jon Turner
- *  @date 2011
- *  This is open source software licensed under the Apache 2.0 license.
- *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
- */
 #include "maxCap.h"
 
-/** Find maximum flow using the max capacity variant of the
- *  augmenting path algorithm.
- *  @param fg1 is a reference to the flograph for which a max flow is
- *  required; on return, the flow fields of the flow graph contain
- *  the max flow
- *  @param floVal is a reference to an integer in which the value of
- *  the resulting flow is returned
- */
 maxCap::maxCap(Flograph& fg1,int& floVal) : augPath(fg1,floVal) {
+// Find maximum flow in fg using the shortest augment path algorithm.
 	floVal = 0;
 	while(findPath()) floVal += augment(); 
 }
 
-/** Find a path with unused residual capacity.
- *  @return true if a path was found, else false
- */
 bool maxCap::findPath() {
+// Find a path with unused residual capacity.
         vertex u, v; edge e;
         Dheap nheap(fg->n(),2+fg->m()/fg->n()); int bcap[fg->n()+1];
 

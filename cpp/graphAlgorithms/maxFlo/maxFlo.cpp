@@ -1,19 +1,9 @@
-/** @file maxFlo.cpp
- *
- *  @author Jon Turner
- *  @date 2011
- *  This is open source software licensed under the Apache 2.0 license.
- *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
- *
- *  usage: maxFlo method
- *  
- *  MaxFlo reads a flograph from stdin, computes a maximum flow
- *  using the method specified by the argument and then prints the
- *  flograph with the max flow.
- *
- *  Recognized methods include maxCap, capScale, shortPath, dinic,
- *  dinicDtrees, ppFifo, ppFifoBatch, ppHiLab, ppHiLabBatch
- */
+// usage: maxFlo method
+//
+// MaxFlo reads a flograph from stdin, computes a maximum flow
+// using the method specified by the argument and then prints the
+// flograph with the max flow.
+//
 
 #include "stdinc.h"
 #include "Flograph.h"

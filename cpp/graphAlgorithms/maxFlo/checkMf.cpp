@@ -1,4 +1,4 @@
-/** @file checkMf.cpp
+/** @file check.cpp
  *
  *  @author Jon Turner
  *  @date 2011

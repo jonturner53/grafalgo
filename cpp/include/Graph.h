@@ -66,7 +66,7 @@ public:		Graph(int=1,int=1);
 
 	// methods for adding/removing edges
 	virtual edge join(vertex,vertex); 	
-	bool	remove(edge);	
+	virtual bool remove(edge);	
 
 	// methods for computing properties
 	int	getComponents(int*) const;

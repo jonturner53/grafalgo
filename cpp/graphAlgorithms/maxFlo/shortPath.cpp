@@ -1,29 +1,18 @@
-/** @file shortPath.cpp
- *
- *  @author Jon Turner
- *  @date 2011
- *  This is open source software licensed under the Apache 2.0 license.
- *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
- */
 #include "shortPath.h"
 
-/** Find maximum flow using the shortest augmenting path algorithm.
- *  @param fg1 is a reference to the flograph for which a max flow is
- *  required; on return, the flow fields of the flow graph contain
- *  the max flow
- *  @param floVal is a reference to an integer in which the value of
- *  the resulting flow is returned
+/** Find maximum flow using the shortest augment path algorithm.
+ *  @param fg1 is a reference to a flow graph
+ *  @param floVal is a reference to an integer used to return the
+ *  amount of flow added to the flow graph.
  */
 shortPath::shortPath(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
-// Find maximum flow in fg using the shortest augment path algorithm.
 	floVal = 0;
 	while(findPath()) {
 		floVal += augment(); 
 	}
 }
 
-/** Find a shortest augmenting path.
- *  @return true if there is an augmenting path, else false
+/** Find a shortest path with unused residual capacity.
  */
 bool shortPath::findPath() {
 	vertex u,v; edge e;
@@ -38,7 +27,9 @@ bool shortPath::findPath() {
 			if (fg->res(u,e) > 0 && pEdge[v] == 0 && 
 			    v != fg->src()) {
 				pEdge[v] = e;
-				if (v == fg->snk()) return true;
+				if (v == fg->snk()) {
+					return true;
+				}
 				queue.addLast(v);
 			}
 		}
