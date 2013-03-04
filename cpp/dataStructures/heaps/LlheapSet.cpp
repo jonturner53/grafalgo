@@ -125,20 +125,6 @@ index LlheapSet::findmin(lheap h) {
 	tmplst->clear(); purge(h,*tmplst); return heapify(*tmplst);
 }
 
-/** Combine a list of heaps into a single heap.
- *  @param hlst is a list of heaps (more precisely, their canonical elements)
- *  @return the new heap obtained by combining all the heaps
- *  in the list into one heap
- */
-lheap LlheapSet::heapify(List& hlst) {
-	if (hlst.empty()) return 0;
-	while (hlst.get(2) != 0) {
-		lheap h = meld(hlst.get(1), hlst.get(2));
-		hlst.removeFirst(); hlst.removeFirst(); hlst.addLast(h);
-	}
-	return hlst.first();
-}
-
 /** Remove "deleted nodes" from the top of a heap and construct a
  *  list of "sub-heaps" whose root nodes have not been deleted.
  *  This is a private helper function.

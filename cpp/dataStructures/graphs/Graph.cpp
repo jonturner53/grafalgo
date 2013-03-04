@@ -259,12 +259,21 @@ string& Graph::edge2string(edge e, vertex u, string& s) const {
  *  @param s is a reference to a string in which the result is returned
  *  @return a reference to s.
  */
-string& Graph::elist2string(list<int>& elist, string& s) const {
+string& Graph::elist2string(list<edge>& elist, string& s) const {
 	s = "";
 	int i = elist.size();
 	for (edge e : elist) {
 		string s1; s += edge2string(e,s1);
 		if (--i) s += " ";
+	}
+	return s;
+}
+
+string& Graph::elist2string(List& elist, string& s) const {
+	s = "";
+	for (edge e = elist.first(); e != 0; e = elist.next(e)) {
+		string s1; s += edge2string(e,s1);
+		if (e != elist.last()) s += " ";
 	}
 	return s;
 }
@@ -485,17 +494,26 @@ void Graph::addEdges(int nume) {
 }
 
 /** Generate a random bipartite graph.
- *  @param numv specifies the number of vertices per "part"; so the resulting
- *  graph will have 2*numv vertices; if this object has n()>2*numv,
- *  the random graph is generated over the first 2*numv vertices,
- *  leaving the remaining vertices with no edges
- *  @param maxEdge is the max number of edges in the random graph
+ *  @param n1 specifies the number of vertices in the "left part"
+ *  @param n2 specifies the number of vertices in the "right part"
+ *  @param nume is the desired number of edges in the random graph;
+ *  cannot exceed n1*n2
  */
-void Graph::rbigraph(int numv, int nume) {
-	numv = max(1,numv); nume = max(0,nume);
-	if (n() < 2*numv || maxEdge < nume) resize(2*numv,nume); 
+void Graph::rbigraph(int n1, int n2, int nume) {
+	n1 = max(1,n1); n2 = max(1,n2);
+	nume = min(n1*n2,nume);
+	if (n() < n1+n2 || maxEdge < nume) resize(n1+n2,nume); 
 	else clear();
+	addEdges(n1,n2,nume);
+}
 
+/** Add edges to form a random bipartite graph.
+ *  @param n1 specifies the number of vertices in the "left part"
+ *  @param n2 specifies the number of vertices in the "right part"
+ *  @param nume is the desired number of edges in the graph
+ */
+void Graph::addEdges(int n1, int n2, int nume) {
+	if (nume <= m()) return;
 	// build set containing edges already in graph
 	HashSet edgeSet(nume);
 	for (edge e = first(); e != 0; e = next(e)) {
@@ -508,9 +526,9 @@ void Graph::rbigraph(int numv, int nume) {
 	// add edges using random sampling of vertex pairs
 	// stop early if graph gets so dense that most samples
 	// repeat edges already in graph
-	while (m() < nume && m()/numv < numv/2) {
-		vertex u = Util::randint(1,numv);
-		vertex v = Util::randint(1,numv); v += numv;
+	while (m() < nume && m()/n1 < n2/2) {
+		vertex u = Util::randint(1,n1);
+		vertex v = Util::randint(n1+1,n1+n2);
 		uint64_t vpair = u; vpair <<= 32; vpair |= v;
 		if (!edgeSet.member(vpair)) {
 			edgeSet.insert(vpair); join(u,v);
@@ -521,8 +539,8 @@ void Graph::rbigraph(int numv, int nume) {
 	// if more edges needed, build a vector containing remaining 
 	// "candidate" edges and then sample from this vector
 	vector<uint64_t> vpVec;
-	for (vertex u = 1; u <= numv; u++) {
-		for (vertex v = numv+1; v <= 2*numv; v++) {
+	for (vertex u = 1; u <= n1; u++) {
+		for (vertex v = n1+1; v <= n1+n2; v++) {
 			uint64_t vpair = u; vpair <<= 32; vpair |= v;
 			if (!edgeSet.member(vpair)) vpVec.push_back(vpair);
 		}

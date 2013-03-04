@@ -43,10 +43,13 @@ public:		FheapSet(int=26);
 	fheap	insert(index,fheap);
 	fheap	insert(index,fheap,keytyp);
 	fheap	remove(index, fheap);	
+	fheap	makeheap(const List&);
 
 	string& toString(string&) const;
-	string& heap2string(fheap,string&) const;
-private:
+	virtual string& heap2string(fheap,string&) const;
+
+	int	mrCount;	// performance counter
+protected:
 	static const int MAXRANK = 32;
 	struct Fnode {			///< node object
 	keytyp	kee;			///< key values
@@ -59,9 +62,10 @@ private:
 	int	rvec[MAXRANK+1];	///< temporary vector of ranks
 	List	*tmpq;			///< temporary queue used
 
-	string& heap2string(fheap,bool,string&) const;
+	// internal helper methods
 	void	makeSpace(int);
 	void	freeSpace();
+	fheap	mergeRoots(fheap);
 };
 
 /** Get the key of an item in a heap.

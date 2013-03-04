@@ -80,6 +80,7 @@ public:		Graph(int=1,int=1);
 	virtual	string&	toString(string&) const;
         virtual	string& toDotString(string&) const;
 	virtual	string& elist2string(list<int>&, string&) const;
+	virtual	string& elist2string(List&, string&) const;
 
 	void	sortAdjLists();
 
@@ -88,7 +89,8 @@ public:		Graph(int=1,int=1);
 	void	rgraph(int, int, int);
 	void	rgraph(int, int);
 	void	addEdges(int);
-	void	rbigraph(int, int);
+	void	rbigraph(int, int, int);
+	void	addEdges(int, int, int);
 	void 	rtree(int);
 	void 	rcgraph(int,int);
 protected:

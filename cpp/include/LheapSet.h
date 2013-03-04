@@ -40,9 +40,12 @@ public:		LheapSet(int=100);
 	lheap	meld(lheap,lheap);
 	lheap	insert(index,lheap);
 	index	deletemin(lheap);	
+	lheap	heapify(List&);	
 
 	string&	toString(string&) const;
 	string&	heap2string(lheap, string&) const;
+
+	int	meldCount;	// performance counter
 protected:
 	struct hnode {
 	keytyp	kee;		///< kee[i] = key of item i

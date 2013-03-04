@@ -9,8 +9,7 @@
 
 namespace grafalgo {
 
-#define left(x) sibs->pred(x)
-#define right(x) sibs->suc(x)
+#define sib(x) sibs->suc(x)
 #define kee(x) node[x].kee
 #define rank(x) node[x].rank
 #define mark(x) node[x].mark
@@ -20,7 +19,7 @@ namespace grafalgo {
 /** Constructor for FheapSet class.
  *  @param size is the number of items in the constructed object
  */
-FheapSet::FheapSet(int size) : Adt(size) { makeSpace(size); }
+FheapSet::FheapSet(int size) : Adt(size) { makeSpace(size); mrCount = 0; }
 
 /** Destructor for FheapSet class. */
 FheapSet::~FheapSet() { freeSpace(); }
@@ -93,6 +92,20 @@ void FheapSet::clear() {
 	for (index x = 0; x <= FheapSet::MAXRANK; x++) rvec[x] = 0;
 }
 
+/** Build a heap from a list of nodes.
+ *  @param lst is a list of heaps.
+ */
+fheap FheapSet::makeheap(const List& lst) {
+	fheap h = lst.first();
+	if (h == 0) return 0;
+	fheap minh = h;
+	for (fheap h1 = lst.next(h); h1 != 0; h1 = lst.next(h1)) {
+		if (kee(h1) < kee(h)) minh = h1;
+		sibs->join(h,h1);
+	}
+	return minh;
+}
+
 /** Combine two heaps.
  *  @param h1 is the canonical element of a heap
  *  @param h2 is the canonical element of a heap
@@ -132,15 +145,64 @@ fheap FheapSet::decreasekey(index i, keytyp delta, fheap h) {
 	fheap pi = p(i);
 	kee(i) -= delta;
 	if (pi == 0) return kee(i) < kee(h) ? i : h;
-	c(pi) = rank(pi) == 1 ? 0: left(i);
-	rank(pi)--;
-	sibs->remove(i);
-	p(i) = 0;
-	h = meld(i,h);
-	if (p(pi) == 0) return h;
-	if (!mark(pi))	mark(pi) = true;
-	else		h = decreasekey(pi,0,h);
+	if (kee(i) >= kee(pi)) return h;
+	do {
+		c(pi) = rank(pi) == 1 ? 0: sib(i);
+		rank(pi)--;
+		sibs->remove(i);
+		p(i) = 0; mark(i) = false;
+		h = meld(i,h);
+		i = pi; pi = p(i);
+	} while (mark(i)); // note: if i is marked, it's not a root
+	if (pi != 0) mark(i) = true;
+
 	return h;
+}
+
+/** Merge the tree roots in heap, to eliminate repeated ranks.
+ *  @param h is a tree root in a heap; all tree roots are assumed
+ *  to be non-deleted nodes
+ *  @return the resulting root with the smallest key
+ */
+fheap FheapSet::mergeRoots(fheap h) {
+	// Build queue of roots and find root with smallest key
+	mrCount++;
+	fheap minRoot = h;
+	tmpq->addLast(h); p(h) = 0;
+	for (fheap sh = sib(h); sh != h; sh = sib(sh)) {
+		if (kee(sh) < kee(minRoot)) minRoot = sh;
+		tmpq->addLast(sh); p(sh) = 0; mark(sh) = false;
+	}
+	int maxr = -1; // maxr = maximum rank seen so far
+	while (!tmpq->empty()) {
+		mrCount++;
+		// scan roots, merging trees of equal rank
+		fheap h1 = tmpq->first(); tmpq->removeFirst();
+		if (rank(h1) > FheapSet::MAXRANK)
+			Util::fatal("deletemin: rank too large");
+		fheap h2 = rvec[rank(h1)];
+		if (maxr < rank(h1)) {
+			for (maxr++; maxr < rank(h1); maxr++) rvec[maxr] = 0;
+			rvec[rank(h1)] = h1;
+		} else if (h2 == 0) {
+			rvec[rank(h1)] = h1;
+		} else if (kee(h1) < kee(h2)) {
+			sibs->remove(h2);
+			sibs->join(c(h1),h2); c(h1) = h2;
+			rvec[rank(h1)] = 0;
+			rank(h1)++; p(h2) = h1;
+			tmpq->addLast(h1);
+		} else {
+			sibs->remove(h1);
+			sibs->join(c(h2),h1); c(h2) = h1;
+			rvec[rank(h1)] = 0;
+			rank(h2)++; p(h1) = h2; 
+			if (h == h1) h = h2;
+			tmpq->addLast(h2);
+		}
+	}
+	for (int k = 0; k <= maxr; k++) rvec[k] = 0;
+	return minRoot;
 }
 
 /** Remove the item with smallest key from a heap.
@@ -150,51 +212,16 @@ fheap FheapSet::decreasekey(index i, keytyp delta, fheap h) {
  */
 fheap FheapSet::deletemin(fheap h) {
 	assert(1 <= h && h <= n());
-	index i,j; int k,mr;
 
 	// Merge h's children into root list and remove it
-	sibs->join(h,c(h)); c(h) = 0; rank(h) = 0;
-	if (left(h) == h) return 0;
-	i = left(h);
+	fheap x = c(h);
+	if (x != 0) sibs->join(h,x);
+	c(h) = 0; rank(h) = 0;
+	x = sib(h);
+	if (x == h) return 0;
 	sibs->remove(h);
-	
-	// Build queue of roots and find root with smallest key
-	h = i; tmpq->addLast(i); p(i) = 0;
-	for (j = right(i); j != i; j = right(j)) {
-		if (kee(j) < kee(h)) h = j;
-		tmpq->addLast(j); p(j) = 0;
-	}
-	mr = -1;
-	while (!tmpq->empty()) {
-		// scan roots, merging trees of equal rang
-		i = tmpq->first(); tmpq->removeFirst();
-		if (rank(i) > FheapSet::MAXRANK)
-			Util::fatal("deletemin: rank too large");
-		j = rvec[rank(i)];
-		if (mr < rank(i)) {
-			for (mr++; mr < rank(i); mr++) rvec[mr] = 0;
-			rvec[rank(i)] = i;
-		} else if (j == 0) {
-			rvec[rank(i)] = i;
-		} else if (kee(i) < kee(j)) {
-			sibs->remove(j);
-			sibs->join(c(i),j); c(i) = j;
-			rvec[rank(i)] = 0;
-			rank(i)++;
-			p(j) = i; mark(j) = false;
-			tmpq->addLast(i);
-		} else {
-			sibs->remove(i);
-			sibs->join(c(j),i); c(j) = i;
-			rvec[rank(i)] = 0;
-			rank(j)++;
-			p(i) = j; mark(i) = false;
-			if (h == i) h = j;
-			tmpq->addLast(j);
-		}
-	}
-	for (k = 0; k <= mr; k++) rvec[k] = 0;
-	return h;
+
+	return mergeRoots(x);
 }
 
 /** Remove an item from a heap.
@@ -219,20 +246,20 @@ fheap FheapSet::remove(index i, fheap h) {
 string& FheapSet::toString(string& s) const {
 	s = "";
 	bool *pmark = new bool[n()+1];
-	for (int i = 1; i <= n(); i++) pmark[i] = false;
-	for (int i = 1; i <= n(); i++) {
-		if (p(i) == 0 && !pmark[i]) {
-			// i is a root in a new heap
-			if (c(i) == 0 && left(i) == i) continue;
+	for (fheap h = 1; h <= n(); h++) pmark[h] = false;
+	for (fheap h = 1; h <= n(); h++) {
+		if (p(h) == 0 && !pmark[h]) {
+			// h is a root in a new heap
+			if (c(h) == 0 && sib(h) == h) continue;
 			// find minkey item, mark all tree roots in this heap
-			pmark[i] = true;
-			int k = i;
-			for (int j = sibs->suc(i); j != i; j = sibs->suc(j)) {
-				if (key(j) < key(k)) k = j; 
-				pmark[j] = true;
+			pmark[h] = true;
+			fheap minroot = h;
+			for (fheap sh = sib(h); sh != h; sh = sib(sh)) {
+				if (key(sh) < key(minroot)) minroot = sh; 
+				pmark[sh] = true;
 			}
 			string s1;
-			s += heap2string(k,s1) + "\n";
+			s += heap2string(minroot,s1) + "\n";
 		}
 	}
 	delete [] pmark;
@@ -246,15 +273,19 @@ string& FheapSet::toString(string& s) const {
  */
 string& FheapSet::heap2string(fheap h, string& s) const {
 	s = "";
-	if (h == 0 || (p(h) == 0 && c(h) == 0 && left(h) == h)) return s;
+	if (h == 0 || (p(h) == 0 && c(h) == 0 && sib(h) == h)) return s;
 	stringstream ss;
-	ss << "[" << item2string(h,s) << ":" << kee(h) << "," << rank(h);
-	if (mark(h)) ss << "*";
+	ss << "[" << item2string(h,s);
+	if (mark(h)) ss << "!";
+	else ss << ":";
+	ss << kee(h) << "," << rank(h);
 	ss << heap2string(c(h),s);
-	for (index i = right(h); i != h; i = right(i)) {
-		ss << " " << item2string(i,s) << ":" << kee(i) << "," <<rank(i);
-		if (mark(i)) ss << "*";
-		ss << heap2string(c(i),s);
+	for (fheap sh = sib(h); sh != h; sh = sib(sh)) {
+		ss << " " << item2string(sh,s);
+		if (mark(sh)) ss << "!";
+		else ss << ":";
+		ss << kee(sh) << "," <<rank(sh);
+		ss << heap2string(c(sh),s);
 	}
 	ss << "]";
 	s = ss.str();

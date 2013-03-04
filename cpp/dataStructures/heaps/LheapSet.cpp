@@ -19,6 +19,7 @@ namespace grafalgo {
  */
 LheapSet::LheapSet(int size) : Adt(size) {
 	makeSpace(size);
+	meldCount = 0;
 }
 
 /** Destructor for LheapSet class. */
@@ -83,6 +84,20 @@ void LheapSet::clear() {
 	rank(0) = 0; left(0) = right(0) = 0;
 }
 
+/** Combine a list of heaps into a single heap.
+ *  @param hlst is a list of heaps (more precisely, their canonical elements)
+ *  @return the new heap obtained by combining all the heaps
+ *  in the list into one heap
+ */
+lheap LheapSet::heapify(List& hlst) {
+	if (hlst.empty()) return 0;
+	while (hlst.get(2) != 0) {
+		lheap h = meld(hlst.get(1), hlst.get(2));
+		hlst.removeFirst(); hlst.removeFirst(); hlst.addLast(h);
+	}
+	return hlst.first();
+}
+
 /** Combine two heaps.
  *  @param h1 is the canonical element of a heap
  *  @param h2 is the canonical element of a heap
@@ -91,6 +106,7 @@ void LheapSet::clear() {
  */
 lheap LheapSet::meld(lheap h1, lheap h2) {
 	assert(0 <= h1 && h1 <= n() && 0 <= h2 && h2 <= n());
+	meldCount++;
 	     if (h1 == 0) return h2;
 	else if (h2 == 0) return h1;
 	if (kee(h1) > kee(h2)) {

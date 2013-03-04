@@ -41,12 +41,12 @@ public:		LlheapSet(int=26,delftyp=NULL);
 
 	string& toString(string&) const;
 	string& heap2string(index,string&) const;
+
 private:
 	int	dummy;			///< head of free dummy node list
 	delftyp	delf;			///< pointer to deleted function
 	List	*tmplst;		///< pointer to temporary list
 	void	purge(lheap,List&);
-	lheap	heapify(List&);	
 
 	string& heap2string(index,bool,string&) const;
 	void	makeSpace(int);
