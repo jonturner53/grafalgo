@@ -147,18 +147,6 @@ void LlheapSet::purge(lheap h, List& hlst) {
 	}
 }
 
-/** Buidl a heap from the items on a list.
- *  @param hlst is a list of singleton items (that is, single item heaps)
- *  @return the heap obtained by combining all the items into a single heap
- */
-lheap LlheapSet::makeheap(List& hlst) {
-	assert(hlst.n() <= tmplst->n());
-	tmplst->clear();
-	for (int i = hlst.first(); i != 0; i = hlst.next(i))
-		tmplst->addLast(i);
-	return heapify(*tmplst);
-}
-
 /** Construct a string representation of this object.
  *  @param s is a string in which the result is returned
  *  @return a reference to s

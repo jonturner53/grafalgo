@@ -1,6 +1,12 @@
 Complete documentation of graph algorithms
 
-Replace item terminology with index
+Add Ddheap, edmondsBW.. to repository after 542 done
+
+Rework matching stuff
+- integrate fast initialization, drop separate "fast" versions
+- make class hierarchy for edmonds variants
+
+Separate random graph stuff into separate static class.
 
 Start shifting to C++11.
 
@@ -12,14 +18,12 @@ Rework Utility class and stdinc.
   skip over whitespace, optionally not on end-of-line
 - timing stuff based on C++?
 
-Use namespaces for grafalgo
+Use templates for keys in heaps and search trees.
 
-Put inlines inside class declaration
+Think about templates for sets and maps. More complicated.
+Should I try to do handle strings as keys?
 
-Use templates for data structures that use keys.
-What about maps? Should I try to do handle strings as keys?
-
-Add unit tests for all data structures; replace old dvr programs
+Add unit tests for all data structures.
 
 Add unit tests for graph algorithms; when multiple
 algorithms for same problem, can do random generation

@@ -55,7 +55,7 @@ public:
 	string& toString(string&) const;
 private:
 	static const int BKT_SIZ = 8;	///< # of elements per bucket
-	typedef uint32_t bkt_t[BKT_SIZ]; ///< bucket type
+	typedef uint64_t bkt_t[BKT_SIZ]; ///< bucket type
 
 	int	nb;			///< # of buckets in each half
 	uint32_t bktMsk;		///< mask used by hash function

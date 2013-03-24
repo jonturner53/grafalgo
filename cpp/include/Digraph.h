@@ -71,7 +71,7 @@ private:
  */
 inline edge Digraph::tail(edge e) const { return left(e); }
 
-/** Get the head (starting point) of a directed edge.
+/** Get the head (ending point) of a directed edge.
  *  @param e is an edge
  *  @return the head of the edge (if e=(u,v), v is the head)
  */
