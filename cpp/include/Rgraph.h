@@ -20,15 +20,18 @@ namespace grafalgo {
 class RandomGraph : {
 public:
 
-	static void	scramble();
-	static void	rgraph(int, int, int);
-	static void	rgraph(int, int);
-	static void	addEdges(int);
-	static void	rbigraph(int, int, int);
-	static void	addEdges(int, int, int);
-	static void 	rtree(int);
-	static void 	rcgraph(int,int);
-	static void 	shuffle(int*, int*);
+	static void rgraph(Graph&, int, int, int);
+	static void rgraph(Graph&, int, int);
+	static void rbigraph(Graph&, int, int, int);
+	static void rtree(Graph& int);
+	static void rcgraph(Graph& int,int);
+	static void addEdges(Graph&, int);
+	static void addEdges(Graph&, int, int, int);
+	static void scramble();
+	static void shuffle(int*, int*);
+
+	static void rdag(Digraph& int, int);
+	static void randomWeights(int, int):
 };
 
 #endif

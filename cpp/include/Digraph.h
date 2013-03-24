@@ -51,8 +51,6 @@ public:		Digraph(int=1,int=1);
 	//virtual string& edge2string(edge,string&) const;
         virtual string& toDotString(string&) const;
 
-	// input
-
 
 protected:
 	void makeSpace(int,int);

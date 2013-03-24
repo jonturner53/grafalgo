@@ -47,6 +47,7 @@ public:		Graph(int=1,int=1);
 
 	// number of edges
 	int	m() const;	
+	int	maxEdgeNum() const;	
 
 	// predicates
 	bool	validVertex(int) const;
@@ -129,6 +130,11 @@ protected:
  *  @return the number of edges in the graph.
  */
 inline int Graph::m() const { return mm; }
+
+/** Get the maximum allowed edge number.
+ *  @return the maximum allowed edge number
+ */
+inline int Graph::maxEdgeNum() const { return maxEdge; }
 
 /** Determine if a vertex number is valid.
  *  @param u is the vertex number to be verified
