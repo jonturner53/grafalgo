@@ -25,8 +25,8 @@ typedef uint64_t keytyp;
  */
 class BstSet : public Adt {
 public:
-		BstSet(int);
-		~BstSet();
+		BstSet(int=26);
+		virtual ~BstSet();
 
 	// pair of bsts, returned by split
 	struct BstPair {
@@ -51,20 +51,21 @@ public:
 	void	setkey(index,keytyp);
 	bool	insert(index,bst&);	
 	void	remove(index,bst&);
-	bst	join(bst,index,bst);	
-	BstSet::BstPair split(index,bst);	
+	virtual bst join(bst,index,bst);	
+	virtual BstSet::BstPair split(index,bst);	
 
 	string& bst2string(bst, string&) const;
 	string& toString(string&) const;
 protected:
 	struct BstNode {
-	index	left, right, p;		// left child, right child, parent
-	keytyp 	kee;			// key values
+	index left, right, p;	///< left child, right, parent
+	keytyp 	kee;		///< key value
 	};
 	BstNode *node;
 
 	void virtual swap(index,index);
 	void virtual rotate(index);	
+	void rotate2(index);	
 	index 	sibling(index, index);
 	index	remove(index);	
 

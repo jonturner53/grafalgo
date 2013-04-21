@@ -40,8 +40,6 @@ public:		Wdigraph(int=1,int=1);
         string&	edge2string(edge, string&) const;
         string&	toDotString(string&) const;
 
-	void randLength(int, int); 
-
 private:
 	int	*len;			///< len[e] is length of edge e
 

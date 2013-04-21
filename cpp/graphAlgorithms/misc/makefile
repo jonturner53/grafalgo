@@ -11,8 +11,8 @@ LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/Partition.h \
 	 ${IDIR}/Nca.h
-XFILES = cgraph bfs toposort rgraph
-OFILES = Nca.o
+XFILES = cgraph bfs toposort randGraph
+OFILES = Rgraph.o Nca.o
 
 ${OFILES} : ${HFILES}
 
@@ -20,7 +20,7 @@ ${OFILES} : ${HFILES}
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
 all:	${LIBS} ${XFILES}
-	cp bfs toposort rgraph ${BIN}
+	cp bfs toposort randGraph ${BIN}
 
 ${LIBGA}: ${OFILES}
 	ar -ru ${LIBGA} ${OFILES}
@@ -37,7 +37,7 @@ test_nca: test_nca.o ${LIBS}
 cgraph: cgraph.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-rgraph: rgraph.o ${LIBS}
+randGraph: randGraph.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 clean:

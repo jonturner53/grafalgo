@@ -22,7 +22,7 @@ namespace grafalgo {
  */
 class BalBstSet : public BstSet {
 public:
-		BalBstSet(int);
+		BalBstSet(int=26);
 		~BalBstSet();
 
 	// common methods
@@ -34,11 +34,11 @@ public:
 	bool	insert(index,bst&);
 	void	remove(index,bst&);
 	bst	join(bst,index,bst);
-	BstSet::BstPair split(index,bst);
 protected:
 	int	*rvec;			///< rvec[x] is the "rank" of node x
 
 	void	swap(index,index);
+	void	rebalance(index);
 	string& node2string(index,string&) const;
 
 	void	makeSpace(int);

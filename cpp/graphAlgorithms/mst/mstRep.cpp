@@ -12,6 +12,7 @@
 #include <sys/times.h>
 #include <unistd.h>
 #include "Wgraph.h"
+#include "Rgraph.h"
 #include "Util.h"
 
 using namespace grafalgo;
@@ -36,8 +37,8 @@ int main(int argc, char* argv[]) {
 	list<edge> mstree;
 	mintime = Util::BIGINT32; maxtime = 0; totaltime = 0;
 	for (i = 1; i <= reps; i++) {
-		wg.rcgraph(n,m); 
-		wg.randWeight(0,maxkey);
+		Rgraph::connected(wg,n,m); 
+		Rgraph::edgeWeight(wg,0,maxkey);
 
 		if (strcmp(argv[1],"kruskal") == 0) {
 			time1 = Util::getTime();

@@ -207,29 +207,4 @@ edge Wflograph::join(vertex u, vertex v) {
 	return e;
 }
 
-/** Shuffle the vertices and edges according to given permutations.
- *  @param vp is a permutation on 1..(# of vertices)
- *  @param ep is a permutation on 1..(# of edges)
- */
-void Wflograph::shuffle(int vp[], int ep[]) {
-        edge e;
-	floCost *cst1 = new floCost[m()+1];
-
-        Flograph::shuffle(vp,ep);
-        for (e = 1; e <= m(); e++) cst1[ep[e]] = cst[e];
-        for (e = 1; e <= m(); e++) cst[e] = cst1[e];
-
-        delete [] cst1;
-}
-
-/** Generate random edge costs.
- *  @param lo is the low end of the range of costs
- *  @param hi is the high end of the range of costs
- *  costs are generated uniformly in [lo,hi]
- */
-void Wflograph::randCost(floCost lo, floCost hi) {
-	for (edge e = first(); e != 0; e = next(e))
-		setCost(e,Util::randint(lo,hi));
-}
-
 } // ends namespace

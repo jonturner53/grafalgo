@@ -7,11 +7,18 @@
  */
 #include "BalBstSet.h"
 
-#define left(x) node[x].left
-#define right(x) node[x].right
-#define p(x) node[x].p
+#define left(x) (node[x].left)
+#define right(x) (node[x].right)
+#define p(x) (node[x].p)
 #define kee(x) node[x].kee
-#define rank(x) rvec[x]
+#define rank(x) (rvec[x])
+#define p2(x) (p(p(x)))
+#define sib(x) (x == left(p(x)) ? right(p(x)) : left(p(x)))
+#define uncle(x) (sib(p(x)))
+#define nephew(x) (x == left(p(x)) ? right(right(p(x))) : left(left(p(x))))
+#define niece(x) (x == left(p(x)) ? left(right(p(x))) : right(left(p(x))))
+#define inner(x) (x!=0 && (x == left(right(p2(x))) || x == right(left(p2(x)))))
+#define outer(x) (x!=0 && (x == left(left(p2(x))) || x == right(right(p2(x)))))
 
 namespace grafalgo {
 
@@ -49,10 +56,10 @@ void BalBstSet::freeSpace() {
 /** Reinitialize data structure, creating single node trees. */
 void BalBstSet::clear() {
 	BstSet::clear();
-	for (index i = 0; i <= n(); i++) {
+	for (index i = 1; i <= n(); i++) {
 		rank(i) = 1;
 	}
-	rank(0) = 0;
+	rank(0) = 0; // note: null node has rank 0
 }
 
 /** Resize a BalBstSet object, discarding old value.
@@ -103,42 +110,46 @@ void BalBstSet::swap(index i, index j) {
 
 /** Insert a singleton tree into a bst (bst) in the collection.
  *  @param i is an item (node) to be inserted; it must be a singleton
- *  @param t is a reference to the root of the bst that i
+ *  @param root is a reference to the root of the bst that i
  *  is to be added to; if the operation changes the root
- *  then t will be changed
+ *  then root will be changed
  *  @return true on success, false on failure
  */
-bool BalBstSet::insert(index i, bst& t) {
+bool BalBstSet::insert(index i, bst& root) {
 	assert(rank(0) == 0);
-	BstSet::insert(i,t);
-	if (t == i) return true;
-	// rank(i) = 1;
-	// go up the tree correcting rank violations using promotion
-	index x = i; index gpx = p(p(x));
-	while (gpx != 0 && rank(x) == rank(gpx) &&
-	       rank(left(gpx)) == rank(right(gpx))) {
-		rank(gpx)++; x = gpx; gpx = p(p(x));
-	}
-	if (gpx == 0 || rank(x) != rank(gpx)) return true;
-	// finish off with a rotation or two
-	if (x == left(left(gpx)) || x == right(right(gpx))) rotate(p(x));
-	else { rotate(x); rotate(x); }
-	if (p(t) != 0) t = p(t);
+	if (!BstSet::insert(i,root)) return false;
+	if (root == i) return true;
+	rebalance(i);
+	if (p(root) != 0) root = p(root); // rebalancing might move root down 1
 	return true;
+}
+
+/** Rebalance the tree after a node rank increases.
+ *  x is a node whose rank may equal that of its grandparent,
+ *  in violation of the rank invariant.
+ */
+void BalBstSet::rebalance(index x) {
+	while (rank(p2(x)) == rank(x) && rank(uncle(x)) == rank(x)) {
+		x = p2(x); rank(x)++;
+	}
+	if (rank(x) != rank(p2(x))) return;
+	if (outer(x)) rotate(p(x));
+	else rotate2(x);
 }
 
 /** Remove an item from a bst.
  *  @param i is the item to be removed
- *  @param t is a reference to the root of the bst
+ *  @param root is a reference to the root of the bst
  *  containing i; if the operation changes the root,
  *  s will be changed to reflect that
  */
-void BalBstSet::remove(index i, bst& t) {
+void BalBstSet::remove(index i, bst& root) {
 	assert(rank(0) == 0);
-	index r, x, px, y, z;
-	r = (t != i ? t : (right(t) != 0 ? right(t) : left(t)));
-	// r is a node that will remain close to the root after
-	// all changes are made
+	if (i == 0 || root == 0) return;
+	index top = (root != i ? root :
+			(right(root) != 0 ? right(root) : left(root)));
+	// top is a node that will remain close to the root even
+	// after deletion and rebalancing
 
 	// remove i from the tree
         index j;
@@ -149,58 +160,42 @@ void BalBstSet::remove(index i, bst& t) {
         // now, i has at most one child
         j = (left(i) != 0 ? left(i) : right(i));
         // j is now the index of the only child that could be non-null
-        if (j != 0) p(j) = p(i);
-        if (p(i) != 0) {
-                     if (i ==  left(p(i)))  left(p(i)) = j;
-                else if (i == right(p(i))) right(p(i)) = j;
-                j = p(i);
-        }
-        p(i) = left(i) = right(i) = 0;
+	index pj = p(i);
+	if (pj != 0) {
+		if (i == left(pj)) left(pj) = j;
+		else 		   right(pj) = j;
+	}
+	if (j != 0) p(j) = pj;
+        p(i) = left(i) = right(i) = 0; rank(i) = 1;
 
 	// now rebalance as needed, by checking for and fixing
-	// violations on the rank invariant
-        px = j; rank(i) = 1;
-	// px is now i's former parent just before i was removed
-	// or the child of i, if i had no parent
-	if (px == 0) { t = find(r); return; } // arises if i is only node in s
-	     if (rank(left(px))  < rank(px)-1) x = left(px);
-	else if (rank(right(px)) < rank(px)-1) x = right(px);
-	else { t = find(r); return; }
-	// if we reach here x is a child of px and rank(x) < rank(px)-1
-	// note: x may be 0
-	// now move up the tree checking for and fixing
-	// rank violations between x and its parent
-	y = sibling(x,px);
-	// note: rank(x) >= 0, so rank(px) >= 2 and rank(y) >= 1
-	while (px != 0 && rank(x) < rank(px)-1 && 
-		(y == 0 || (rank(y) < rank(px) &&
-		rank(left(y)) < rank(y) && rank(right(y)) < rank(y)))) {
-		rank(px)--; // creates no violations with y or y's children
-		x = px; px = p(x); y = sibling(x,px);
-	}
-	if (px == 0) { t = find(r); return; }
-	// note: x can still be null
-	if (rank(x) >= rank(px)-1) { t = find(r); return; }
-	// now, do a few rotations to finish up
-	if (rank(y) == rank(px)) {
-		rotate(y); y = sibling(x,px);
-		if (left(y) == 0 && right(y) == 0) {
-			rank(px)--; t = find(r); return;
+	// violations of the rank invariant
+	// note: j may be 0 on first iteration
+	while (rank(pj) == rank(j)+2) {
+		int r = rank(j);
+		index sj, nef, nees;
+		if (j != 0) {
+			sj = sib(j); nef = nephew(j); nees = niece(j);
+		} else if (left(pj) != 0) { // && j == 0
+			sj = left(pj); nef = left(sj); nees = right(sj);
+		} else { // j == 0 && right(pj) != 0
+			sj = right(pj); nef = right(sj); nees = left(sj);
+		}
+		if (rank(sj) == r+2) {
+			rotate(sj);
+		} else { // rank(sj) == r+1
+			if (rank(nef) == r && rank(nees) == r) {
+				j = pj; rank(j) = r+1; pj = p(j);
+			} else {
+				if (rank(nef) == r+1) rotate(sj);
+				else 		      rotate2(nees);
+				rank(pj) = r+1; rank(p(pj)) = r+2;
+				break;
+			}
 		}
 	}
-	z = (x == right(px) ? left(y) : right(y)); // z is furthest nephew of x
-	if (rank(z) == rank(y)) {
-		rotate(y);
-		if (y != 0) rank(y) = rank(px);
-		rank(px)--;
-	} else {
-		z = sibling(z,y);
-		// now z is closest nephew of x
-		rotate(z); rotate(z);
-		if (z != 0) rank(z) = rank(px);
-		rank(px)--;
-	}
-	t = find(r); if (rank(0) != 0) cerr << "f\n"; return;
+	// top is 0 or is within 2 steps of the root
+	root = (p(top) == 0 ? top : (p2(top) == 0 ? p(top) : p2(top)));
 }
 
 /** Join two bsts at an item.
@@ -211,20 +206,52 @@ void BalBstSet::remove(index i, bst& t) {
  *  @return the new bst that results from merging t1, i and t2
  */
 bst BalBstSet::join(bst t1, index i, bst t2) {
-	Util::fatal("BalBstSet: join not implemented");
-	return i;
-}
-
-/** Divide a bst on an item (not implemented at this time).
- *  @param i is an item in some bst
- *  @param t is the root of the bst containing i
- *  @return the pair of bst that results from splitting t into three
- *  parts; the part with keys smaller than i, i itself, and the
- *  part with keys larger than i
- */
-BstSet::BstPair BalBstSet::split(index i, bst t) {
-	Util::fatal("BalBstSet: split not implemented");
-	return BstPair(0,0);
+	if (i == 0) return 0;
+	// first, detach t1, t2 if necessary
+	if (p(t1) != 0) { // implies t1 != 0
+		if (t1 == left(p(t1)))	left(p(t1)) = 0;
+		else			right(p(t1)) = 0;
+		p(t1) = 0;
+	} 
+	if (p(t2) != 0) { // implies t2 != 0
+		if (t2 == left(p(t2)))	left(p(t2)) = 0;
+		else			right(p(t2)) = 0;
+		p(t2) = 0;
+	}
+	// ensure i is a singleton
+	left(i) = right(i) = p(i) = 0; rank(i) = 1;
+	// handle cases of null subtrees
+	if (t1 == 0 && t2 == 0) {
+		return i;
+	} else if (t1 == 0) {
+		insert(i,t2); return t2;
+	} else if (t2 == 0) {
+		insert(i,t1); return t1;
+	}
+	// now proceed to typical cases
+	if (rank(t1) == rank(t2)) {
+		left(i) = t1; right(i) = t2; p(i) = 0; p(t1) = p(t2) = i;
+		rank(i) = rank(t1) + 1;
+		return i;
+	} else if (rank(t1) < rank(t2)) {
+		index x;
+		for (x = left(t2); rank(t1) < rank(x); x = left(x)) {}
+		left(i) = t1; right(i) = x; p(i) = p(x);
+		left(p(i)) = i; p(x) = p(t1) = i;
+		rank(i) = rank(t1) + 1; // this may violate rank invariant
+		rebalance(i);
+		if (p(t2) != 0) t2 = p(t2);
+		return t2;
+	} else { // rank(t1) > rank(t2);
+		index x;
+		for (x = right(t1); rank(x) > rank(t2); x = right(x)) {}
+		left(i) = x; right(i) = t2; p(i) = p(x);
+		right(p(i)) = i; p(x) = p(t2) = i;
+		rank(i) = rank(t2) + 1; // this may violate rank invariant
+		rebalance(i);
+		if (p(t1) != 0) t1 = p(t1);
+		return t1;
+	}
 }
 
 /** Create a string representing an item.
@@ -237,8 +264,9 @@ string& BalBstSet::node2string(index i, string& s) const {
 	if (i == 0) return s;
 	stringstream ss;
 	ss << Adt::item2string(i,s);
-	if (p(i) == 0) ss << "*";
-	ss << ":" << key(i) << ":" << rank(i);
+	if (p(i) == 0)	ss << "*";
+	else 		ss << ":";
+	ss << key(i) << ":" << rank(i);
 	s = ss.str();
 	return s;
 }

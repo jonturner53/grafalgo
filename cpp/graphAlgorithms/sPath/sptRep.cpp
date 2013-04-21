@@ -10,6 +10,7 @@
 
 #include "stdinc.h"
 #include "Wdigraph.h"
+#include "Rgraph.h"
 
 using namespace grafalgo;
 
@@ -30,8 +31,8 @@ int main(int argc, char *argv[]) {
 	vertex *p = new vertex[n+1]; vertex *d = new vertex[n+1];
 	Wdigraph dig; Wdigraph *sptree;
 	for (i = 1; i <= reps; i++) {
-		dig.rgraph(n,m); 
-		dig.randLength(lo,hi);
+		Rgraph::digraph(dig,n,m); 
+		Rgraph::edgeLength(dig,lo,hi);
 		sptree = new Wdigraph(dig.n(),dig.n()-1);
 		if (strcmp(argv[1],"dijkstra") == 0)
 			dijkstra(dig,1,p,d);

@@ -11,6 +11,7 @@
 #include "List.h"
 #include "Dheap.h"
 #include "Wdigraph.h"
+#include "Rgraph.h"
 
 using namespace grafalgo;
 
@@ -32,7 +33,7 @@ int main(int argc, char* argv[]) {
 		Util::fatal("usage: sptUpdate n m maxLen repCount seed");
 
 	srandom(seed);
-	dig.rgraph(n,m); dig.randLength(0,maxLen);
+	Rgraph::digraph(dig,n,m); Rgraph::edgeLength(dig,0,maxLen);
 
 	vertex *p = new int[n+1]; int *d = new int[n+1];
 	dijkstra(dig,1,p,d);

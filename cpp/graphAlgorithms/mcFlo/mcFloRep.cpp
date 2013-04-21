@@ -13,6 +13,7 @@
 
 #include "stdinc.h"
 #include "Wflograph.h"
+#include "Rgraph.h"
 #include "cycRed.h"
 #include "lcap.h"
 
@@ -33,9 +34,9 @@ int main(int argc, char* argv[]) {
 
 	Wflograph wfg; flow floVal; cost floCost;
 	for (i = 1; i <= reps; i++) {
-		wfg.rgraph(n,m-2*mss,mss);
-		wfg.randCapacity(ec1,ec2);
-		wfg.randCost(lo,hi);
+		Rgraph::flograph(wfg,n,m-2*mss,mss);
+		Rgraph::edgeCapacity(wfg,ec1,ec2);
+		Rgraph::edgeCost(wfg,lo,hi);
 
 		if (strcmp(argv[1],"cycRed") == 0)
 			cycRed(wfg,floVal,floCost);

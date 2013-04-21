@@ -139,15 +139,6 @@ string& Wgraph::adjList2string(vertex u, string& s) const {
 	return s;
 }
 
-/** Assign edges a random weight in given range.
- *  @param lo is the low end of the range
- *  @param hi is the high end of the range
- */
-void Wgraph::randWeight(int lo, int hi) {
-        for (edge e = first(); e != 0; e = next(e))
-		setWeight(e,Util::randint(lo,hi));
-}
-
 /** Construct a string in dot file format representation 
  * of the Weighted Graph object.
  *  For small graphs (at most 26 vertices), vertices are

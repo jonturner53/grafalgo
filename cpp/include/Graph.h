@@ -67,6 +67,7 @@ public:		Graph(int=1,int=1);
 
 	// methods for adding/removing edges
 	virtual edge join(vertex,vertex); 	
+	virtual edge joinWith(vertex,vertex,edge); 	
 	virtual bool remove(edge);	
 
 	// methods for computing properties
@@ -84,16 +85,6 @@ public:		Graph(int=1,int=1);
 	virtual	string& elist2string(List&, string&) const;
 
 	void	sortAdjLists();
-
-	// methods for creating random graphs
-	void	scramble();
-	void	rgraph(int, int, int);
-	void	rgraph(int, int);
-	void	addEdges(int);
-	void	rbigraph(int, int, int);
-	void	addEdges(int, int, int);
-	void 	rtree(int);
-	void 	rcgraph(int,int);
 protected:
 	int	mm;			///< number of edges
 	int	maxEdge;		///< max number of edges
@@ -116,8 +107,6 @@ protected:
 	// internal helper methods
 	void	makeSpace(int, int);
 	void	freeSpace();
-	virtual edge joinWith(vertex,vertex,edge); 	
-	void 	shuffle(int*, int*);
 	virtual bool readAdjList(istream&);
 	virtual string& adjList2string(vertex,string&) const;
 

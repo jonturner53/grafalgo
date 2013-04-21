@@ -10,6 +10,7 @@
 
 #include "stdinc.h"
 #include "Wdigraph.h"
+#include "Rgraph.h"
 
 using namespace grafalgo;
 
@@ -50,7 +51,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	for (i = 1; i <= reps; i++) {
-		dig.rgraph(n,m); dig.randLength(lo,hi);
+		Rgraph::digraph(dig,n,m); Rgraph::edgeLength(dig,lo,hi);
 		if (strcmp(argv[1],"floyd") == 0) {
 			floyd(dig,dist,mid);
 		} else if (strcmp(argv[1],"dijkstra") == 0) {

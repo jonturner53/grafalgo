@@ -7,10 +7,17 @@
  */
 #include "BstSet.h"
 
-#define left(x) node[x].left
-#define right(x) node[x].right
-#define p(x) node[x].p
+#define left(x) (node[x].left)
+#define right(x) (node[x].right)
+#define p(x) (node[x].p)
 #define kee(x) node[x].kee
+#define p2(x) (p(p(x)))
+#define sib(x) (x == left(p(x)) ? right(p(x)) : left(p(x)))
+#define uncle(x) (sib(p(x))
+#define nephew(x) (x == left(p(x)) ? right(right(p(x))) : left(left(p(x))))
+#define niece(x) (x == left(p(x)) ? left(right(p(x))) : right(left(p(x))))
+#define inner(x) (x!=0 && (x == left(right(p2(x))) || x == right(left(p2(x)))))
+#define outer(x) (x!=0 && (x == left(left(p2(x))) || x == right(right(p2(x)))))
 
 namespace grafalgo {
 
@@ -50,6 +57,7 @@ void BstSet::clear() {
 	for (index i = 0; i <= n(); i++) {
 		left(i) = right(i) = p(i) = kee(i) = 0;
 	}
+	// note that null node (0) has null pointers
 }
 
 /** Resize a BstSet object, discarding old value.
@@ -86,25 +94,27 @@ void BstSet::copyFrom(const BstSet& source) {
 }
 
 /** Perform a rotation in a search tree.
- *  @param x is a node in some search tree; this method does a rotation
- *  at the parent of x, moving x up into it's parent's position
+ *  @param x is a node in some search tree; this method
+ *  moves x up into its parent's position
  */
 void BstSet::rotate(index x) {
 	index y = p(x);
 	if (y == 0) return;
-	p(x) = p(y);
-	     if (y == left(p(y)))  left(p(x)) = x;
-	else if (y == right(p(y))) right(p(x)) = x;
-	if (x == left(y)) {
-		left(y) = right(x);
-		if (left(y) != 0) p(left(y)) = y;
-		right(x) = y;
+	index z;
+	if (x == left(y)) { 
+		z = right(x); left(y) = z; right(x) = y;
 	} else {
-		right(y) = left(x);
-		if (right(y) != 0) p(right(y)) = y;
-		left(x) = y;
+		z = left(x); right(y) = z; left(x) = y;
 	}
-	p(y) = x;
+	if (y == left(p(y))) left(p(y)) = x;
+	else if (y == right(p(y))) right(p(y)) = x;
+	p(x) = p(y); p(y) = x;
+	if (z != 0) p(z) = y;
+}
+
+void BstSet::rotate2(index x) {
+	if (outer(x))	   { rotate(p(x)); rotate(x); }
+	else if (inner(x)) { rotate(x); rotate(x); }
 }
 
 /** Get the root of a bst.
@@ -188,7 +198,8 @@ index BstSet::pred(index i) const {
  *  @param i is a singleton bst
  *  @param t is a reference to the root of some bst; if
  *  the insertion operation changes the root, t will be changed
- *  @return true on success, false on failure
+ *  @return true on success (that is, i was inserted), false on failure
+ *  (because key clashed with existing item)
  */
 bool BstSet::insert(index i, bst& t) {
 	assert (1 <= i && i <= n() && 0 <= t && t <= n());
@@ -245,7 +256,7 @@ void BstSet::swap(index i, index j) {
 	else if (j == ri) { right(j) = i; p(i) = j; }
 }
 
-/** Remove an node from a bst.
+/** Remove a node from a bst.
  *  @param i is a node in some bst
  *  @param t is a reference to the root of some bst; if
  *  the operation changes the root, t will be changed
@@ -296,11 +307,13 @@ bst BstSet::join(bst t1, index i, bst t2) {
  */
 BstSet::BstPair BstSet::split(index i, bst s) {
 	assert(1 <= i && i <= n() && 1 <= s && s <= n());
-	bst y = i; BstPair pair(left(i),right(i));
-	for (bst x = p(y); x != 0; x = p(y)) {
-		     if (y ==  left(x)) pair.t2 = join(pair.t2,x,right(x));
-		else if (y == right(x)) pair.t1 = join(left(x),x,pair.t1);
-		y = x;
+	bst y = i; bst x = p(y);
+	BstPair pair(left(i),right(i));
+	while (x != 0) {
+		bst px = p(x); // get this now, since join may change it
+		if (y == left(x)) pair.t2 = join(pair.t2,x,right(x));
+		else 		  pair.t1 = join(left(x),x,pair.t1);
+		y = x; x = px;
 	}
 	left(i) = right(i) = p(i) = 0;
 	p(pair.t1) = p(pair.t2) = 0;
@@ -317,8 +330,9 @@ string& BstSet::node2string(index i, string& s) const {
 	s = "";
 	if (i == 0) return s;
 	ss << Adt::item2string(i,s);
-	if (p(i) == 0) ss << "*";
-	ss << ":" << key(i);
+	if (p(i) == 0)	ss << "*";
+	else 		ss << ":";
+	ss << key(i);
 	s = ss.str();
 	return s;
 }

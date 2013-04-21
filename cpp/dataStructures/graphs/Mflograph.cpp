@@ -207,29 +207,4 @@ edge Mflograph::join(vertex u, vertex v) {
 	return e;
 }
 
-/** Shuffle the vertices and edges according to given permutations.
- *  @param vp is a permutation on 1..(# of vertices)
- *  @param ep is a permutation on 1..(# of edges)
- */
-void Mflograph::shuffle(int vp[], int ep[]) {
-        edge e;
-	flow *mflo1 = new flow[m()+1];
-
-        Flograph::shuffle(vp,ep);
-        for (e = 1; e <= m(); e++) mflo1[ep[e]] = mflo[e];
-        for (e = 1; e <= m(); e++) mflo[e] = mflo1[e];
-
-        delete [] mflo1;
-}
-
-/** Generate random min capacities.
- *  @param lo is the low end of the range of min capacities
- *  @param hi is the high end of the range of min capacities
- *  min capacities are generated uniformly in [lo,hi]
- */
-void Mflograph::randMinFlo(flow lo, flow hi) {
-	for (edge e = first(); e != 0; e = next(e))
-		setMinFlo(e,Util::randint(lo,hi));
-}
-
 } // ends namespace

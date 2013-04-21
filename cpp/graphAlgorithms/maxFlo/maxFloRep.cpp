@@ -12,6 +12,7 @@
 
 #include "stdinc.h"
 #include "Flograph.h"
+#include "Rgraph.h"
 #include "maxCap.h"
 #include "capScale.h"
 #include "shortPath.h"
@@ -33,7 +34,7 @@ int main(int argc, char* argv[]) {
 
 	Flograph fg(n,m,1,2); 
 	for (i = 1; i <= reps; i++) {
-		fg.rgraph(n,m,mss); fg.randCapacity(ec1,ec2);
+		Rgraph::flograph(fg,n,m,mss); Rgraph::edgeCapacity(fg,ec1,ec2);
 
 		if (strcmp(argv[1],"maxCap") == 0)
 			maxCap(fg,floVal);

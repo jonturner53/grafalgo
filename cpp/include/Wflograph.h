@@ -37,7 +37,6 @@ public:		Wflograph(int=3,int=2,int=1,int=2);
 
 	floCost	cost(vertex,edge) const;
 	void	setCost(edge,floCost);
-	void	randCost(floCost,floCost);
 
 	string& edge2string(edge, string&) const;
 	string& toDotString(string&) const;
@@ -48,7 +47,7 @@ protected:
 	// various helper methods
         void    makeSpace(int,int);    		
         void    freeSpace();    	
-	void    virtual shuffle(int*, int*);
+	//void    virtual shuffle(int*, int*);
 	bool	readAdjList(istream&);
 	string&	adjList2string(vertex,string&) const; 
 

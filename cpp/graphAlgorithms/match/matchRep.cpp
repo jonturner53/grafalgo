@@ -12,6 +12,7 @@
 #include "stdinc.h"
 #include "Dlist.h"
 #include "Wgraph.h"
+#include "Rgraph.h"
 #include "altPath.h"
 #include "faltPath.h"
 #include "edmonds.h"
@@ -48,7 +49,7 @@ int main(int argc, char* argv[]) {
 	for (i = 1; i <= reps; i++) {
 		match = new Dlist(m);
 		if (size && bipartite) { 
-			graf.rbigraph(n,m);
+			Rgraph::bigraph(graf,n,n,m);
 			if (strcmp(argv[3],"altPath") == 0) {
 				altPath(graf,*match,mSize);
 			} else if (strcmp(argv[3],"faltPath") == 0) {
@@ -59,14 +60,15 @@ int main(int argc, char* argv[]) {
 				Util::fatal("match: invalid method");
 			}
 		} else if (!size && bipartite) {
-			wg.rbigraph(n,m); wg.randWeight(0,maxwt);
+			Rgraph::bigraph(wg,n,n,m);
+			Rgraph::edgeWeight(wg,0,maxwt);
 			if (strcmp(argv[3],"flowMatch") == 0) {
 				flowMatch(wg,*match,mSize,mSize);
 			} else {
 				Util::fatal("match: invalid method");
 			}
 		} else if (size & !bipartite) {
-			graf.rgraph(n,m);
+			Rgraph::ugraph(graf,n,m);
 			if (strcmp(argv[3],"edmonds") == 0) {
 				edmonds(graf,*match,mSize);
 			} else {

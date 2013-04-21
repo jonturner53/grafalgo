@@ -48,7 +48,6 @@ public:		Digraph(int=1,int=1);
         void    rdag(int,int);     
 
 	// create a string representation
-	//virtual string& edge2string(edge,string&) const;
         virtual string& toDotString(string&) const;
 
 

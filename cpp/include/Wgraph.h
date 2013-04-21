@@ -44,7 +44,6 @@ public:		Wgraph(int=1,int=1);
 	string& edge2string(edge, vertex, string&) const;
         string& toDotString(string&) const;
 
-	void randWeight(int, int);
 private:
 	int	*wt;			///< weight of the edge
 	void makeSpace(int,int);

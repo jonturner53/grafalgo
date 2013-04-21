@@ -37,7 +37,7 @@ void rrobin(Wgraph& wg, list<edge>& mstree) {
 			elist.addLast(2*e - (u == wg.left(e)));
 		}
 		if (!elist.empty()) {
-			h[u] = heapSet.makeheap(elist);
+			h[u] = heapSet.heapify(elist);
 			q.addLast(u);
 		}
 	}

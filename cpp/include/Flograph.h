@@ -19,7 +19,7 @@ typedef int flow;
 
 /** Class that represents a flograph.
  *  Inherits methods from the Digraph class and adds information and
- *  methods for dealing with flows and edge capcities
+ *  methods for dealing with flows and edge capacities
  */
 class Flograph : public Digraph {
 public:		Flograph(int=3,int=2,int=1,int=2);
@@ -52,8 +52,6 @@ public:		Flograph(int=3,int=2,int=1,int=2);
 	string& edge2string(edge, string&) const;
 	string& toDotString(string&) const;
 
-	void	randCapacity(flow, flow);	
-	void	rgraph(int, int, int);
 protected:
 	vertex	s, t;			///< source and sink vertices
 	struct FloInfo {		///< flow and capacity of an edge
@@ -66,7 +64,7 @@ protected:
 	// various helper methods
         void    makeSpace(int,int);    	
         void    freeSpace();    		
-	void    virtual shuffle(int*, int*);   
+	//void    virtual shuffle(int*, int*);   
 	string&	adjList2string(edge,string&) const; 
 	bool	readAdjList(istream&);
 

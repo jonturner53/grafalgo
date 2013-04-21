@@ -163,33 +163,4 @@ string& Wdigraph::toDotString(string& s) const {
 	return s;
 }
 
-/** Read one edge from an input stream, add it to the graph.
- *  @param in is an open input stream
- *  @return true on success, false on error.
- */
-/*
-bool Wdigraph::readEdge(istream& in) {
-        vertex u, v; int len;
-        if (!Util::verify(in,'(') || !Util::readNode(in,u,n()) ||
-            !Util::verify(in,',') || !Util::readNode(in,v,n()) ||
-            !Util::verify(in,',') || !Util::readNum(in,len) ||
-            !Util::verify(in,')')) {
-                return false;
-        }
-        edge e = join(u,v);
-	setLength(e,len);
-
-        return true;
-}
-*/
-
-/** Assign edges a random lengths in given range.
- *  @param lo is the low end of the range
- *  @param hi is the high end of the range
- */
-void Wdigraph::randLength(int lo, int hi) {
-        for (edge e = first(); e != 0; e = next(e))
-                setLength(e,Util::randint(lo,hi));
-}
-
 } // ends namespace

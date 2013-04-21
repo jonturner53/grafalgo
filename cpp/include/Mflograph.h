@@ -34,7 +34,6 @@ public:		Mflograph(int=3,int=2,int=1,int=2);
 
 	flow	minFlo(edge) const;
 	void	setMinFlo(edge,flow);
-	void	randMinFlo(flow,flow);
 
 	string& edge2string(edge, string&) const;
 	string& toDotString(string&) const;
@@ -45,7 +44,7 @@ protected:
 	// various helper methods
         void    makeSpace(int,int);    		
         void    freeSpace();    	
-	void    virtual shuffle(int*, int*);
+//	void    virtual shuffle(int*, int*);
 	bool	readAdjList(istream&);
 	string& adjList2string(vertex,string&) const; 
 
