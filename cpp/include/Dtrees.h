@@ -46,6 +46,7 @@ public: 	Dtrees(int=100);
 
 	string& path2string(path,string&) const;
 	string& toString(string&) const;
+
 private:
 	index	*parentOf;		///< parentOf[i] is logical parent of i
 	index	*successor;		///< successor[i] is link to next path

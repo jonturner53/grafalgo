@@ -9,7 +9,7 @@
 #ifndef DKBSTSET_H
 #define DKBSTSET_H
 
-#include "SaBstSet.h"
+#include "BalBstSet.h"
 
 namespace grafalgo {
 
@@ -17,7 +17,7 @@ namespace grafalgo {
  *  nodes have two different keys. The first key is used to order the
  *  BST nodes in the usual way.
  */
-class DkBstSet : public SaBstSet {
+class DkBstSet : public BalBstSet {
 public: 	DkBstSet(int);
 		~DkBstSet();
 	static	const int MAX2 = Util::BIGINT32-1;  ///< max allowed key2 value

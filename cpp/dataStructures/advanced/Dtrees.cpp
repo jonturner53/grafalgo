@@ -27,9 +27,9 @@ Dtrees::~Dtrees() { freeSpace(); }
  */
 void Dtrees::makeSpace(int size) {
 	try {
-		ps = new PathSet(size);
-		parentOf = new index[size+1];
 		successor = new index[size+1];
+		ps = new PathSet(size,successor);
+		parentOf = new index[size+1];
 	} catch (std::bad_alloc e) {
 		stringstream ss;
 		ss << "makeSpace:: insufficient space for "

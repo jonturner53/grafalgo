@@ -30,7 +30,7 @@ typedef int cost;
  *  may change if method calls restructure the underlying tree.
  */
 class PathSet : public Adt {
-public: 	PathSet(int);
+public: 	PathSet(int,int*);
 		~PathSet();
 
 	struct PathCostPair {
@@ -67,7 +67,10 @@ protected:
 	cost	dcost, dmin;		// /<delta cost and delta min
 	};
 	PathNode *pnode;		///< pnode[u] contains info for node u
-
+	int	*pvals;			///< pointer to vector of "path values"
+					///< maintained by using application;
+					///< PathSet updates whenever handle of
+					///< a path changes
 	index	splay(index);
 	void	splaystep(index);
 	void	rotate(index);

@@ -19,7 +19,7 @@ namespace grafalgo {
 /** Constructor for DkBstSet class.
  *  @param size defines the index range for the constructed object.
  */
-DkBstSet::DkBstSet(int size) : SaBstSet(size) {
+DkBstSet::DkBstSet(int size) : BalBstSet(size) {
 	makeSpace(size);
 }
 
@@ -100,18 +100,19 @@ keytyp DkBstSet::key2(index i) {
 
 /** Perform a rotation.
  *  @param x is a node in a bst (node in a search tree); the operation does
- *  a rotation at the parent of x, moving x up into its parent's place
+ *  moves x up into its parent's place
  */
 void DkBstSet::rotate(index x) {
 	index y = p(x); if (y == 0) return;
 	index a, b, c;
 	if (x == left(y)) { a = left(x);  b = right(x); c = right(y); }
 	else 		  { a = right(x); b = left(x);  c = left(y);  }
-	SaBstSet::rotate(x);
+	BalBstSet::rotate(x);
 
-	dmin(a) += dmin(x); dmin(b) += dmin(x);
+	if (a != 0) dmin(a) += dmin(x); 
+	if (b != 0) dmin(b) += dmin(x);
 
-	dkey(x) = dkey(x) + dmin(x);
+	dkey(x) += dmin(x);
 	keytyp dmx = dmin(x);
 	dmin(x) = dmin(y);
 
@@ -143,7 +144,6 @@ index DkBstSet::access(keytyp k, bst t)  {
 			t = right(t);
 		}
 	}
-	splay(t);
 	return (kee1(t) == k ? t : v);
 }
 
@@ -152,6 +152,11 @@ index DkBstSet::access(keytyp k, bst t)  {
  *  @param t is the root of some bst
  *  @return the new bst that results from adding i to t
  */
+
+rework for balanced trees
+or, could revert to self-adjusting and provide
+implementation of suc with splay - also ugly
+
 index DkBstSet::insert(index i, bst t) {
 	assert (1 <= i && i <= n() && 1 <= t && t <= n() && i != t);
 	assert (left(0) == 0 && right(0) == 0 && p(0) == 0);

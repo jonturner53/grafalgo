@@ -18,7 +18,7 @@ namespace grafalgo {
  *  by a tree node.
  */
 class SaBstSet : public BstSet {
-public: 	SaBstSet(int=100);
+public: 	SaBstSet(int=26);
 		~SaBstSet();
 	bst	find(index);		
 	index	access(keytyp,bst&);
@@ -26,6 +26,11 @@ public: 	SaBstSet(int=100);
 	bool	insert(index,bst&);
 	void	remove(index,bst&);
 	BstPair	split(index,bst);
+
+	index	first(bst) = delete;
+	index	last(bst) = delete;
+	index	suc(index) = delete;
+	index	pred(index) = delete;
 protected:
 	index	splay(index);
 	void	splaystep(index);

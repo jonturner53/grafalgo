@@ -17,8 +17,15 @@ namespace grafalgo {
 
 /** Constructor for PathSet class.
  *  @param size defines the index range for the constructed object.
+ *  @param pathVals is a vector of integer values, which is defined for
+ *  each path in the set; that is if u is the handle of some path,
+ *  then pathVals[u] will be an integer which the application using
+ *  the PathSet has defined for the path; since the PathSet object
+ *  may change the handle of a path as a side effect of any operation,
+ *  the PathSet object updates pathVals whenever the handle for a path
+ *  changes
  */
-PathSet::PathSet(int size) : Adt(size) {
+PathSet::PathSet(int size, int *pathVals) : Adt(size), pvals(pathVals) {
 	makeSpace(size);
 }
 
@@ -70,9 +77,10 @@ void PathSet::resize(int size) {
  */
 void PathSet::expand(int size) {
 	if (size <= n()) return;
-	PathSet old(this->n()); old.copyFrom(*this);
+	PathSet old(this->n(),pvals); old.copyFrom(*this);
 	resize(size); this->copyFrom(old);
 }
+
 /** Copy another object to this one.
  *  @param source is object to be copied to this one
  */
@@ -83,6 +91,7 @@ void PathSet::copyFrom(const PathSet& source) {
 
 	for (index x = 1; x <= n(); x++) {
 		pnode[x] = source.pnode[x];
+		pvals[x] = source.pvals[x];
 	}
 }
 
@@ -148,6 +157,8 @@ void PathSet::rotate(index x) {
         dcost(y) = dcost(y) - dmin(y);
 
         dmin(b) -= dmin(y); dmin(c) -= dmin(y);
+
+	pvals[x] = pvals[y]; // ensures that root node always has path value
 }
 
 /** Return the canonical element of some path.
@@ -156,12 +167,7 @@ void PathSet::rotate(index x) {
  *  start of the operation; the operation performs a splay at i,
  *  so after the operation i is the canonical element.
  */
-path PathSet::findpath(index i) { 
-	index x;
-	for (x = i; p(x) != 0; x = p(x)) {}
-	splay(i);
-	return x;
-}
+path PathSet::findpath(index i) { return splay(i); }
 
 /** Return the last node in a path.
  *  @param q is the canonical element of some path
