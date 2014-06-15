@@ -7,7 +7,6 @@
  */
 #include "Dtrees.h"
 
-#define p(x) parentOf[x]
 #define succ(x) successor[x]
 
 namespace grafalgo {
@@ -29,7 +28,6 @@ void Dtrees::makeSpace(int size) {
 	try {
 		successor = new index[size+1];
 		ps = new PathSet(size,successor);
-		parentOf = new index[size+1];
 	} catch (std::bad_alloc e) {
 		stringstream ss;
 		ss << "makeSpace:: insufficient space for "
@@ -42,15 +40,14 @@ void Dtrees::makeSpace(int size) {
 
 /** Free dynamic storage used by Dtrees. */
 void Dtrees::freeSpace() {
-	delete ps; delete [] parentOf; delete [] successor;
+	delete ps; //delete [] parentOf; 
+	delete [] successor;
 }
 
 /** Reinitialize data structure, creating single node trees. */
 void Dtrees::clear() {
 	ps->clear();
-	for (index x = 1; x <= n(); x++) {
-		p(x) = succ(x) = 0;
-	}
+	for (index x = 1; x <= n(); x++) succ(x) = 0;
 }
 
 /** Resize a Dtrees object, discarding old value.
@@ -59,7 +56,7 @@ void Dtrees::clear() {
 void Dtrees::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "Dtrees::resize::" + e.toString(s);
+		string s = "Dtrees::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -83,7 +80,6 @@ void Dtrees::copyFrom(const Dtrees& source) {
 
 	ps->copyFrom(*(source.ps));
 	for (index x = 1; x <= n(); x++) {
-		p(x) = source.parentOf[x];
 		succ(x) = source.successor[x];
 	}
 }
@@ -155,8 +151,7 @@ void Dtrees::addcost(index i, cost x) {
  *  This operation makes i the parent of t.
  */
 void Dtrees::link(tree t, index i) {
-	p(t) = i;
-	succ(ps->join(0,expose(t),expose(i))) = 0;
+	succ(ps->findpath(t)) = i;
 }
 
 /** Divide a tree into two subtrees.
@@ -164,37 +159,32 @@ void Dtrees::link(tree t, index i) {
  *  The operation removes the edge from i to its parent.
  */
 void Dtrees::cut(index i) {
-	p(i) = 0;
-	expose(i);
 	PathSet::PathPair pp = ps->split(i);
+	if (pp.p2 != 0) succ(pp.p2) = succ(i); 
+	if (pp.p1 != 0) succ(pp.p1) = i;
 	succ(i) = 0;
-	if (pp.p2 != 0) succ(pp.p2) = 0;
 	return;
 }
 
 /** Create a string representing a path.
  *  @param q is a path in some tree
- *  @param s is a string in which the result is returned
- *  @return a reference to s
+ *  @return the string
  */
-string& Dtrees::path2string(path q, string& s) const {
-	string s1;
-	s = ps->path2string(q,s1);
-	s += " succ(" + Adt::item2string(q,s1);
-	s += ")=" + Adt::item2string(succ(q),s1) + "\n";
+string Dtrees::path2string(path q) const {
+	string s = ps->path2string(q);
+	s += " succ(" + Adt::item2string(q);
+	s += ")=" + Adt::item2string(succ(q)) + "\n";
 	return s;
 }
 
 /** Create a string representing all the trees in this Dtrees object.
- *  @param s is a string in which the result is returned
- *  @return a reference to s
+ *  @return the string
  */
-string& Dtrees::toString(string& s) const {
-	string s1;
-	s = "";
+string Dtrees::toString() const {
+	string s;
 	for (index i = 1; i <= n(); i++) {
 		index j = ps->findtreeroot(i);
-		if (i == j) s += path2string(i,s1);
+		if (i == j) s += path2string(i);
 	}
 	return s;
 }

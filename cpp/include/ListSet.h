@@ -47,7 +47,9 @@ public:		ListSet(int=26,int=5);
 
 	// input/output
 	string& toString(string&) const;
+	string  toString() const;
 	string& list2string(alist, string&) const;
+	string  list2string(alist) const;
 private:
 	int	nlst;			// lists 1..nlst
 	struct listhdr {

@@ -29,10 +29,8 @@ void TreeMap::makeSpace(int size) {
 		values = new uint32_t[size+1];
 		nodes = new SetPair(size);
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "makeSpace:: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "makeSpace:: insufficient space for "
+			   + to_string(size) + "index values";
 		throw OutOfSpaceException(s);
 	}
 	root = 0;
@@ -55,7 +53,7 @@ void TreeMap::clear() {
 void TreeMap::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "TreeMap::resize::" + e.toString(s);
+		string s = "TreeMap::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -127,12 +125,11 @@ void TreeMap::remove(uint64_t key) {
 }
 
 // Construct string listing the key,value pairs in the map
-string& TreeMap::toString(string& s) const {
-	stringstream ss;
+string TreeMap::toString() const {
+	string s;
 	for (index u = nodes->firstIn(); u != 0; u = nodes->nextIn(u)) {
-		ss << " " << st->key(u) << "," << values[u];
+		s += " " + to_string(st->key(u)) + "," + to_string(values[u]);
 	}
-	s = ss.str();
 	return s;
 }
 

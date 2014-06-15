@@ -49,6 +49,7 @@ public:
 	int	remove(uint64_t); 	
 
 	string&	toString(string&) const;
+	string 	toString() const;
 private:
 	static const int BKT_SIZ = 8;		///< # of items per bucket
 	static const int MAXVAL = (1 << 20)-1;	///< largest stored value

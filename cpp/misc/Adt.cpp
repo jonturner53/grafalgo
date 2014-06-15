@@ -36,12 +36,11 @@ bool Adt::readItem(istream& in, index& x) {
 	return false;
 }
 
-string& Adt::item2string(index x, string& s) const {
-	stringstream ss;
-	if (n() <= 26) ss << ((char) ((x-1) + 'a'));
-	else ss << x;
-	s = ss.str(); return s;
+string Adt::item2string(index x) const {
+	string s = "";
+	if (n() <= 26) s += ((char) ((x-1) + 'a'));
+	else s += to_string(x);
+	return s;
 }
-
 
 } // ends namespace

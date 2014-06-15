@@ -38,8 +38,8 @@ public:		Wflograph(int=3,int=2,int=1,int=2);
 	floCost	cost(vertex,edge) const;
 	void	setCost(edge,floCost);
 
-	string& edge2string(edge, string&) const;
-	string& toDotString(string&) const;
+	string	edge2string(edge) const;
+	string	toDotString() const;
 
 protected:
 	floCost	*cst;				///< cst[e] is cost of e
@@ -49,7 +49,7 @@ protected:
         void    freeSpace();    	
 	//void    virtual shuffle(int*, int*);
 	bool	readAdjList(istream&);
-	string&	adjList2string(vertex,string&) const; 
+	string	adjList2string(vertex) const; 
 
 private:
 	Wflograph& operator=(const Wflograph&); 

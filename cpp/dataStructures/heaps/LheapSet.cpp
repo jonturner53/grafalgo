@@ -32,10 +32,8 @@ void LheapSet::makeSpace(int size) {
 	try {
 		node = new hnode[size+1];
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "makeSpace:: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "makeSpace:: insufficient space for "
+		    	+ to_string(size) + "index values";
 		throw OutOfSpaceException(s);
 	}
 	nn = size; clear();
@@ -61,7 +59,7 @@ void LheapSet::copyFrom(const LheapSet& source) {
 void LheapSet::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "LheapSet::resize::" + e.toString(s);
+		string s = "LheapSet::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -144,18 +142,17 @@ index LheapSet::deletemin(lheap h) {
 }
 
 /** Construct a string representation of this object.
- *  @param s is a string in which the result is returned
- *  @return a reference to s
+ *  @return the string
  */
-string& LheapSet::toString(string& s) const {
-	s = "";
+string LheapSet::toString() const {
+	string s = "";
 	int i; bool *isroot = new bool[n()+1];
 	for (i = 1; i <= n(); i++) isroot[i] = true;
 	for (i = 1; i <= n(); i++)
 		isroot[left(i)] = isroot[right(i)] = false;
 	for (i = 1; i <= n(); i++) {
 		if (isroot[i] && (left(i) != 0 || right(i) != 0)) {
-			string s1; s += heap2string(i,s1) + "\n";
+			s += heap2string(i) + "\n";
 		}
 	}
 	delete [] isroot;
@@ -165,24 +162,23 @@ string& LheapSet::toString(string& s) const {
 /** Recursive helper for constructing a string representation of a heap.
  *  @param h is a node in one of the trees of the heap
  *  @param isroot is true if h is the canonical element of the heap
- *  @param s is a string in which the result is returned
- *  @return a reference to s
+ *  @return the string
  */
-string& LheapSet::heap2string(lheap h, bool isroot, string& s) const {
-	s = "";
+string LheapSet::heap2string(lheap h, bool isroot) const {
+	string s = "";
 	if (h == 0) return s;
-	stringstream ss;
 	if (left(h) == 0 && right(h) == 0) {
-		ss << item2string(h,s) << ":" << kee(h) << "," << rank(h);
+		s += item2string(h) + ":" + to_string(kee(h)) + ","
+			+ to_string(rank(h));
 	} else {
-		ss << "(";
-		if (left(h) != 0) ss << heap2string(left(h),false,s) << " ";
-		ss << item2string(h,s) << ":" << kee(h) << "," << rank(h);
-		if (isroot) ss << "*";
-		if (right(h) != 0) ss << " " << heap2string(right(h),false,s);
-		ss << ")";
+		s += "(";
+		if (left(h) != 0) s += heap2string(left(h),false) + " ";
+		s += item2string(h) + ":" + to_string(kee(h)) + ","
+		     + to_string(rank(h));
+		if (isroot) s += "*";
+		if (right(h) != 0) s += " " + heap2string(right(h),false);
+		s += ")";
 	}
-	s = ss.str();
 	return s;
 }
 

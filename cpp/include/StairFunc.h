@@ -37,6 +37,7 @@ public: 	StairFunc(int);
 	void	change(int,int,int);	    // change values in range by delta
 
 	string&	toString(string&) const;
+	string 	toString() const;
 protected:
 	DkBstSet *points;		// data structure for "change points"
 	List	*free;			// list of unused items in points

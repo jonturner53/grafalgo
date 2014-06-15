@@ -55,6 +55,7 @@ public:
 	void	remove(uint64_t); 	
 
 	string& toString(string&) const;
+	string  toString() const;
 private:
 	int	*values;		///< array of values
 	HashTbl *ht;			///< underlying hash table

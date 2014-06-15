@@ -28,10 +28,8 @@ void Wdigraph::makeSpace(int numv, int maxe) {
 	try {
 		len = new int[maxe+1];
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "Wdigraph::makeSpace: insufficient space for "
-		   << maxe << " edge lengths";
-		string s = ss.str();
+		string s = "Wdigraph::makeSpace: insufficient space for "
+			   + to_string(maxe) + " edge lengths";
 		throw OutOfSpaceException(s);
 	}
 }
@@ -48,7 +46,7 @@ void Wdigraph::resize(int numv, int maxe) {
 	freeSpace();
 	Digraph::resize(numv,maxe);
 	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
-		string s; s = "Wdigraph::resize:" + e.toString(s);
+		string s = "Wdigraph::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -102,23 +100,21 @@ bool Wdigraph::readAdjList(istream& in) {
 
 /** Create a string representation of an adjacency list.
  *  @param u is a vertex number
- *  @param s is a reference to a string in which the result is returned
- *  @return a reference to s.
+ *  @return the string
  */
-string& Wdigraph::adjList2string(vertex u, string& s) const {
-	stringstream ss; s = "";
+string Wdigraph::adjList2string(vertex u) const {
+	string s = "";
 	if (firstAt(u) == 0) return s;
 	int cnt = 0;
-	ss << "[" << Adt::item2string(u,s) << ":";
+	s += "[" + Adt::item2string(u) + ":";
 	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
-		ss <<  " " << item2string(v,s) << "(" << length(e) << ")";
+		s +=  " " + item2string(v) + "(" + to_string(length(e)) + ")";
 		if (++cnt >= 15 && nextOut(u,e) != 0) {
-			ss <<  "\n"; cnt = 0;
+			s +=  "\n"; cnt = 0;
 		}
 	}
-	ss <<  "]\n";
-	s = ss.str();
+	s +=  "]\n";
 	return s;
 }
 
@@ -126,40 +122,33 @@ string& Wdigraph::adjList2string(vertex u, string& s) const {
 /** Create a string representation of an edge.
  *  In the returned string, the "left" endpoint of the edge appears first.
  *  @param e is an edge number
- *  @param s is a reference to a string in which the result is returned
- *  @return a reference to s.
+ *  @return the string
  */
-string& Wdigraph::edge2string(edge e, string& s) const {
-        stringstream ss;
+string Wdigraph::edge2string(edge e) const {
         vertex u = tail(e); vertex v = head(e);
-        ss << "(" << item2string(u,s) << ",";
-        ss << item2string(v,s) << "," << length(e) + ")";
-	s = ss.str();
+        string s = "(" + item2string(u) + "," + item2string(v) + ","
+		   + to_string(length(e)) + ")";
         return s;
 }
 
 /** Construct a string in dot file format representation 
- * of the Weighted Directed Graph object.
+ *  of the Weighted Directed Graph object.
  *  For small graphs (at most 26 vertices), vertices are
  *  represented in the string as lower case letters.
  *  For larger graphs, vertices are represented by integers.
- *  @param s is a string object provided by the caller which
- *  is modified to provide a representation of the Graph.
- *  @return a reference to the string
+ *  @return the string
  */
-string& Wdigraph::toDotString(string& s) const {
-	stringstream ss;
-	ss << "digraph G { " << endl;
+string Wdigraph::toDotString() const {
+	string s = "digraph G {\n";
 	int cnt = 0;
 	for (edge e = first(); e != 0; e = next(e)) {
 		vertex u = tail(e); vertex v = head(e);
-		ss << Adt::item2string(u,s) << " -> ";
-		ss << Adt::item2string(v,s);
-		ss << " [label = \" " << length(e) << " \"] ; "; 
+		s += Adt::item2string(u) + " -> ";
+		s += Adt::item2string(v);
+		s += " [label = \" " + to_string(length(e)) + " \"] ; "; 
 		if (++cnt == 10) { s += "\n"; cnt = 0; }
 	}
-	ss << "}\n" << endl;
-	s = ss.str();
+	s += "}\n\n";
 	return s;
 }
 

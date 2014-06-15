@@ -38,8 +38,9 @@ protected:
 	int	*rvec;			///< rvec[x] is the "rank" of node x
 
 	void	swap(index,index);
-	void	rebalance(index);
-	string& node2string(index,string&) const;
+	void	rebalance1(index);
+	void	rebalance2(index, index);
+	string	node2string(index) const;
 
 	void	makeSpace(int);
 	void	freeSpace();

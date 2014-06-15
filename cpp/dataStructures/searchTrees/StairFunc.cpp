@@ -27,10 +27,8 @@ void StairFunc::makeSpace(int size) {
 	try {
 		points = new DkBstSet(2*size+1); free = new List(2*size+1);
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "makeSpace:: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "makeSpace:: insufficient space for "
+		   	   + to_string(size) +  "index values";
 		throw OutOfSpaceException(s);
 	}
 	nn = size; clear();
@@ -55,7 +53,7 @@ void StairFunc::clear() {
 void StairFunc::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "StairFunc::resize::" + e.toString(s);
+		string s = "StairFunc::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -185,13 +183,13 @@ void StairFunc::change(int lo, int hi, int diff) {
 	points->join(pairA.t1, lowNode, hiPortion);
 }
 
-string& StairFunc::toString(string& s) const {
-	stringstream ss;
+string StairFunc::toString() const {
+	string 2;
 	for (index i = 1; i != 0; i = points->suc(i)) {
-		ss << "(" << points->key1(i) << "," << points->key2(i) << ") ";
+		s += "(" + to_string(points->key1(i)) + ","
+		     + to_string(points->key2(i)) + ") ";
 	}
-	ss << "\n";
-	s = ss.str();
+	s += "\n";
 	return s;
 }
 

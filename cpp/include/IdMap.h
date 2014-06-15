@@ -53,6 +53,7 @@ public:
 
 	// produce readable IdMaps
 	string&	toString(string&) const;
+	string 	toString() const;
 private:
 	static const int MAXID = (1 << 20)-1;  ///< largest possible identifier
 	HashTbl *ht;

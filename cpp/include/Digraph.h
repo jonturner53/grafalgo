@@ -48,13 +48,13 @@ public:		Digraph(int=1,int=1);
         void    rdag(int,int);     
 
 	// create a string representation
-        virtual string& toDotString(string&) const;
+        virtual string toDotString() const;
 
 
 protected:
 	void makeSpace(int,int);
 	void freeSpace();
-	string& adjList2string(vertex, string&) const;
+	string	adjList2string(vertex) const;
 	bool	readAdjList(istream&);
 
 private:

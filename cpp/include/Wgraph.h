@@ -41,15 +41,15 @@ public:		Wgraph(int=1,int=1);
 
 	// create a string representation
 	using Graph::edge2string;
-	string& edge2string(edge, vertex, string&) const;
-        string& toDotString(string&) const;
+	string edge2string(edge, vertex) const;
+        string toDotString() const;
 
 private:
 	int	*wt;			///< weight of the edge
 	void makeSpace(int,int);
 	void freeSpace();
 	bool	readAdjList(istream&);
-	string&	adjList2string(vertex,string&) const;
+	string	adjList2string(vertex) const;
 };
 
 /** Get the weight of an edge.

@@ -87,8 +87,8 @@ public:		DheapSet(int,int,int=8);
 	index 	deleteMin(int);
 	void	changeKeyMin(keytyp, int);
 
-	string& toString(int, string&) const;
-	string& toString(string&) const;
+	string toString(int) const;
+	string  toString() const;
 private:
 	int	maxHeap;		///< max number of heaps
 	int	d = 8;			///< base of heap

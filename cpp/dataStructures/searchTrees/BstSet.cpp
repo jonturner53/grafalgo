@@ -38,10 +38,8 @@ void BstSet::makeSpace(int size) {
 	try {
 		node = new BstNode[size+1];
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "makeSpace:: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "makeSpace:: insufficient space for "
+			   + to_string(size) + "index values";
 		throw OutOfSpaceException(s);
 	}
 	nn = size; clear();
@@ -66,7 +64,7 @@ void BstSet::clear() {
 void BstSet::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "BstSet::resize::" + e.toString(s);
+		string s = "BstSet::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -322,47 +320,40 @@ BstSet::BstPair BstSet::split(index i, bst s) {
 
 /** Create a string representation of a node in a bst.
  *  @param i is a node in some bst
- *  @param s is a string in which the result will be returned
- *  @return a reference to s
+ *  @return the string
  */
-string& BstSet::node2string(index i, string& s) const {
-	stringstream ss;
-	s = "";
+string BstSet::node2string(index i) const {
+	string s;
 	if (i == 0) return s;
-	ss << Adt::item2string(i,s);
-	if (p(i) == 0)	ss << "*";
-	else 		ss << ":";
-	ss << key(i);
-	s = ss.str();
+	s += Adt::item2string(i);
+	if (p(i) == 0)	s += "*";
+	else 		s += ":";
+	s += to_string(key(i));
 	return s;
 }
 
 /** Create a string representation of a bst.
  *  @param t is the root of some bst
- *  @param s is a string in which the result will be returned
- *  @return a reference to s
+ *  @return the string
  */
-string& BstSet::bst2string(bst t, string& s) const {
-	s = "";
+string BstSet::bst2string(bst t) const {
+	string s;
 	if (t == 0) return s;
-	string s1;
-	if (left(t) != 0) s += "(" + bst2string(left(t),s1) + ") ";
-	s += node2string(t,s1);
-	if (right(t) != 0) s += " (" + bst2string(right(t),s1) + ")";
+	if (left(t) != 0) s += "(" + bst2string(left(t)) + ") ";
+	s += node2string(t);
+	if (right(t) != 0) s += " (" + bst2string(right(t)) + ")";
 	return s;
 }
 
 /** Create a string representation of this object.
  *  Omits singleton trees.
- *  @param s is a string in which the result will be returned
- *  @return a reference to s
+ *  @return the string
  */
-string& BstSet::toString(string& s) const {
-	string s1;
-	s = "";
+string BstSet::toString() const {
+	string s;
 	for (index i = 1; i <= n(); i++) {
 		if (p(i) == 0 && (left(i) != 0 || right(i) != 0)) {
-			s += bst2string(i,s1) + "\n";
+			s += bst2string(i) + "\n";
 		}
 	}
 	return s;

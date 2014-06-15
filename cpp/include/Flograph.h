@@ -49,8 +49,8 @@ public:		Flograph(int=3,int=2,int=1,int=2);
 
 	virtual edge join(vertex,vertex);
 
-	string& edge2string(edge, string&) const;
-	string& toDotString(string&) const;
+	string edge2string(edge) const;
+	string toDotString() const;
 
 protected:
 	vertex	s, t;			///< source and sink vertices
@@ -65,7 +65,7 @@ protected:
         void    makeSpace(int,int);    	
         void    freeSpace();    		
 	//void    virtual shuffle(int*, int*);   
-	string&	adjList2string(edge,string&) const; 
+	string	adjList2string(edge) const; 
 	bool	readAdjList(istream&);
 
 	Flograph& operator=(const Flograph&); 

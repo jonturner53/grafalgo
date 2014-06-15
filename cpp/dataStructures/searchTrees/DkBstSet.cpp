@@ -33,10 +33,8 @@ void DkBstSet::makeSpace(int size) {
 	try {
 		dmin = new keytyp[size+1]; dkey = new keytyp[size+1];
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "makeSpace:: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "makeSpace:: insufficient space for "
+			   + to_string(size) + "index values";
 		throw OutOfSpaceException(s);
 	}
 	nn = size; clear();
@@ -60,7 +58,7 @@ void DkBstSet::resize(int size) {
 	freeSpace();
 	SaBstSet::resize(size);
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "DkBstSet::resize::" + e.toString(s);
+		string s = "DkBstSet::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -74,6 +72,7 @@ void DkBstSet::expand(int size) {
 	DkBstSet old(this->n()); old.copyFrom(*this);
 	resize(size); this->copyFrom(old);
 }
+
 /** Copy another object to this one.
  *  @param source is object to be copied to this one
  */
@@ -124,8 +123,8 @@ void DkBstSet::rotate(index x) {
 	dmin(b) -= dmin(y); dmin(c) -= dmin(y);
 }
 
-/** Get the node in a bst with a specified key value.
- *  @param k is a key value
+/** Get the node in a bst with a specified key1 value.
+ *  @param k is a key1 value
  *  @param t is the root of some bst
  *  @return the node with the largest key1 value that is <=k;
  *  if there is no such node, return the node with the smallest key1
@@ -147,43 +146,112 @@ index DkBstSet::access(keytyp k, bst t)  {
 	return (kee1(t) == k ? t : v);
 }
 
+/** Change the key2 value at one node in a bst.
+ *  @param diff is a key value to be added to key2(i)
+ *  @param i is a node in a search tree
+ *  @param t is the root of a search tree
+ */
+void inline DkBstSet::change2(keytyp diff, index i, bst t) {
+        assert(1 <= t && t <= n());
+
+	mc = mincost(i);
+
+	if (diff > 0) {
+		if (dmin(i) == 0) {
+			if (either child has dmin <= dcost(i)) {
+				dcost(i) += diff; diff = 0;
+			} else {
+				// i was the mincost node in its subtree
+
+
+
+
+
+
+				delta = diff;
+				if (left(i)  != 0)
+					delta = min(delta, dmin(left(i)));
+				if (right(i) != 0)
+					delta = min(delta, dmin(right(i)));
+				dmin(i) += delta; dcost(i) += (diff - delta);
+				if (left(i)  != 0) dmin(left(i))  -= delta;
+				if (right(i) != 0) dmin(right(i)) -= delta;
+			}
+		}
+		while dmin == 0
+			determine new mincost and let delta be difference from old
+			if delta == 0 break
+			add delta to dmin and subtract it from dmin of other child
+	else if (diff < 0) {
+		while (diff < 0) {
+			delta = min(-diff, dmin(x))
+			dmin(x) -= delta; dmin(other child) += delta;
+			diff += delta;
+		}
+	}
+		
+
+
+
+	if (dcost(i) > 0 && dcost(i) + diff >= 0) {
+		dcost += diff; return;
+	}
+
+	keytyp key2i = key2(i);
+	index x = i; keytyp dmx = 0;
+	while (x != 0) { dmx += dmin(x); x = p(x); }
+	
+
+	dmin(i) = max(0,key2i - mcx); // dcost(i) = 0 already
+	// adjust dmin, dcost values on path back up the tree
+	while (mcx > key2i) {
+		dcost(x) += (mcx - key2i); dmin(x) = 0;
+not enough - off-path nodes need their dmin values fixed up
+		x = p(x); mcx -= dmin(x);
+	}
+}
+
 /** Insert a node into a bst.
  *  @param i is a singleton node
  *  @param t is the root of some bst
- *  @return the new bst that results from adding i to t
+ *  @return the new bst that results from adding i to t, or 0 if there is
+ *  already a node with the same key1 value
  */
 
 rework for balanced trees
-or, could revert to self-adjusting and provide
-implementation of suc with splay - also ugly
+
+1. find insert point, remembering first node x with mincost(x)>kee2(i).
+   let dx=mincost(x)-kee2(i). 
+   let dcost(x) += dx, let 
+   for nodes y on path to x, dcost(y)+=mincost(y), dmin(y)=0
+2. Insert x and rebalance as normal.   
+
+
 
 index DkBstSet::insert(index i, bst t) {
 	assert (1 <= i && i <= n() && 1 <= t && t <= n() && i != t);
-	assert (left(0) == 0 && right(0) == 0 && p(0) == 0);
-	bst x = t; keytyp key2i = dmin(i);
-	// save key2 value of i and correct dmin, dkey values
-	// of i after splay brings it to the root
+	keytyp key2i = dmin(i);
+
+	// find insert point and compute mincost along path
+	index x = t; keytyp mcx = 0;
 	while (true) {
+		mcx += dmin(x);
 		     if (kee1(i) < kee1(x) &&  left(x) != 0) x = left(x);
 		else if (kee1(i) > kee1(x) && right(x) != 0) x = right(x);
 		else break;
 	}
 	     if (kee1(i) < kee1(x))  left(x) = i;
 	else if (kee1(i) > kee1(x)) right(x) = i;
-	else Util::fatal("DkBstSet::insert: inserting node with duplicate key");
-	p(i) = x;
-	splay(i); // note: apparent key value of i is >= that of any node on
-		  // path back to root; this ensures correct dmin, dkey values
-		  // assigned to other nodes during rotations
-	index l = left(i); index r = right(i);
-	keytyp dmi = key2i;
-	if (l != 0 && dmin(l) + dmin(i) < dmi) dmi = dmin(l) + dmin(i);
-	if (r != 0 && dmin(r) + dmin(i) < dmi) dmi = dmin(r) + dmin(i);
-	if (l != 0) dmin(l) += (dmin(i) - dmi);
-	if (r != 0) dmin(r) += (dmin(i) - dmi);
-	dmin(i) = dmi;
-	dkey(i) = key2i - dmi;
-	return i;
+	else return 0;
+
+	dmin(i) = max(0,key2i - mcx); // dcost(i) = 0 already
+	// adjust dmin, dcost values on path back up the tree
+	while (mcx > key2i) {
+		dcost(x) += (mcx - key2i); dmin(x) = 0;
+		x = p(x); mcx -= dmin(x);
+	}
+	rebalance(i);
+	return (p(t) == 0 ? t : p(t));
 }
 
 /** Remove a node from a bst.
@@ -192,6 +260,26 @@ index DkBstSet::insert(index i, bst t) {
  *  @return the root of the new bst that results from removing
  *  i from t
  */
+
+What if we increase cost of i by large amount, so not
+the mincost node of any subtree?
+- do this by increasing dcost(i) and adjusting dmins
+  all along the root path.
+- then delete i, with no affect on dmin, dcost of
+  anything else
+- then restore correct values at i
+
+- could take same approach on insert
+
+
+if dmin(i)=0, may need to adjust going up the tree,
+   new mincost at i's position is kee2(node) mincost(subtrees)
+
+case 1. node x with no children
+	if dmin(x) = 0, 
+case 2. node with one child; if 
+
+
 index DkBstSet::remove(index i, bst t) {
 	assert(1 <= i && i <= n() && 1 <= t && t <= n());
 	assert (left(0) == 0 && right(0) == 0 && p(0) == 0);
@@ -266,17 +354,15 @@ BstSet::BstPair DkBstSet::split(index i, bst t) {
 
 /** Construct a string representation of a single node.
  *  @param i is a node in some bst
- *  @param t is a string in which the result is returned
- *  @return a reference to t
+ *  @return the string
  */
-string& DkBstSet::node2string(index i, string& s) const {
-	s = "";
+string DkBstSet::node2string(index i) const {
+	string s;
 	if (i == 0) return s;
-	stringstream ss;
-	ss << Adt::item2string(i,s);
-	if (p(i) == 0) ss << "*";
-	ss << ":" << kee1(i) << ":" << dmin(i) << ":" << dkey(i);
-	s = ss.str();
+	s += Adt::item2string(i);
+	if (p(i) == 0) s += "*";
+	s += ":" + to_string(kee1(i)) + ":" + to_string(dmin(i)) + ":"
+	     + to_string(dkey(i));
 	return s;
 }
 

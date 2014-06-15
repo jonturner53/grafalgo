@@ -39,10 +39,8 @@ void PathSet::makeSpace(int size) {
 	try {
 		pnode = new PathNode[size+1];
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "makeSpace:: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "makeSpace:: insufficient space for "
+			    + to_string(size) + "index values";
 		throw OutOfSpaceException(s);
 	}
 	nn = size; clear();
@@ -66,7 +64,7 @@ void PathSet::clear() {
 void PathSet::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "PathSet::resize::" + e.toString(s);
+		string s = "PathSet::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -288,47 +286,40 @@ cost PathSet::nodeCost(index i) const {
 
 /** Create a string representation of a path.
  *  @param q is the canonical element of some path
- *  @param s is a string in which the result is returned
- *  @return a referece to s
+ *  @return the string
  */
-string& PathSet::path2string(path q, string& s) const {
-	s = "";
+string PathSet::path2string(path q) const {
+	string s;
 	if (q == 0) return s;
-	stringstream ss;
-	ss << path2string(left(q),s);
-	ss << Adt::item2string(q,s) << ":" << nodeCost(q) << " ";
-	ss << path2string(right(q),s);
-	s = ss.str();
+	s += path2string(left(q));
+	s += Adt::item2string(q) + ":" + to_string(nodeCost(q)) + " ";
+	s += path2string(right(q));
 	return s;
 }
 
 /** Create a string representation of the tree representing a path.
  *  @param q is the canonical element of some path
- *  @param s is a string in which the result is returned
- *  @return a referece to s
+ *  @return the string
  */
-string& PathSet::pathTree2string(path q, string& s) const {
-	stringstream ss;
-	s = "";
+string PathSet::pathTree2string(path q) const {
+	string s;
 	if (q == 0) return s;
 	bool singleton = (left(q) = 0 && right(q) == 0);
-	if (!singleton) ss << "(";
-	ss << pathTree2string(left(q),s);
-	ss << Adt::item2string(q,s) << ":" << nodeCost(q) << " ";
-	ss << pathTree2string(right(q),s);
-	if (!singleton) ss << ")";
-	s = ss.str();
+	if (!singleton) s += "(";
+	s += pathTree2string(left(q));
+	s += Adt::item2string(q) + ":" + to_string(nodeCost(q)) + " ";
+	s += pathTree2string(right(q));
+	if (!singleton) s += ")";
 	return s;
 }
 
 /** Create a string representation of this object.
- *  @param s is a string in which the result is returned
- *  @return a referece to s
+ *  @return the string
  */
-string& PathSet::toString(string& s) const {
-	s = ""; string s1;
+string PathSet::toString() const {
+	string s;
 	for (index i = 1; i <= n(); i++) {
-		if (p(i) == 0) s += path2string(i,s1) + "\n";
+		if (p(i) == 0) s += path2string(i) + "\n";
 	}
 	return s;
 }

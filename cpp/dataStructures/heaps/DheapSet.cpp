@@ -40,10 +40,8 @@ void DheapSet::makeSpace(int size, int maxh, int dd) {
 		bot = new index[maxh+1];	// ditto
 		hSize = new int[maxh+1];
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "makeSpace:: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "makeSpace:: insufficient space for "
+				+ to_string(size) + " index values";
 		throw OutOfSpaceException(s);
 	}
 
@@ -69,7 +67,7 @@ void DheapSet::copyFrom(const DheapSet& source) {
 void DheapSet::resize(int size, int maxh, int dd) {
 	freeSpace();
 	try { makeSpace(size,maxh,dd); } catch(OutOfSpaceException e) {
-		string s; s = "DheapSet::resize::" + e.toString(s);
+		string s = "DheapSet::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -200,40 +198,37 @@ void DheapSet::changeKeyMin(keytyp k, int h) {
 	siftdown(i,p);
 }
 
-string& DheapSet::toString(string& s) const {
-	s = "";
+string DheapSet::toString() const {
+	string s;
 	for (int h = 1; h <= maxHeap; h++) {
-		string s1;
-		if (!empty(h)) s += toString(h,s1) + "\n";
+		if (!empty(h)) s += toString(h) + "\n";
 	}
 	return s;
 }
 
-string& DheapSet::toString(int h, string& s) const {
+string DheapSet::toString(int h) const {
+	string s;
 	if (hSize[h] == 0) { s = "[]"; return s; }
-	stringstream ss;
 
 	list<int> nodeList;
 	for (int p = bot[h]; p != -1; p = pred[p/d])
 		nodeList.push_front(p);
 	int cnt = 0; int numPerRow = 1;
-	list<int>::iterator lp;
-	for (lp = nodeList.begin(); lp != nodeList.end(); lp++) {
+	for (auto lp = nodeList.begin(); lp != nodeList.end(); lp++) {
 		int p = *lp;
 		int q = p;
-		ss << "[";
+		s += "[";
 		while (q < p+d && heaps[q] != 0) {
-			if (q > p) ss << " ";
+			if (q > p) s += " ";
 			index i = heaps[q++];
-			ss << i << ":" << key[i];
+			s += to_string(i) + ":" + to_string(key[i]);
 		}
-		ss << "] ";
+		s += "] ";
 		if (++cnt == numPerRow) {
-			ss << "\n"; cnt = 0; numPerRow *= d;
+			s += "\n"; cnt = 0; numPerRow *= d;
 		}
 	}
-	if (cnt != 0) ss << "\n";
-	s = ss.str();
+	if (cnt != 0) s += "\n";
 	return s;
 }
 

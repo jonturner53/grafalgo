@@ -65,10 +65,11 @@ public:
 
 	// input/output
 	static bool readItem(istream&, index&);
-	virtual	string& item2string(index, string&) const;
-	virtual string& toString(string&) const = 0;
+	virtual	string  item2string(index) const;
+	virtual string toString() const = 0;
 	friend ostream& operator<<(ostream& out, Adt& a) {
-		string s; return out << a.toString(s);
+		return out << a.toString();
+		//string s; return out << a.toString(s);
 	}
 
 protected:

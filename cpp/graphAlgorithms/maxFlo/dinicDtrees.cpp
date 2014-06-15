@@ -56,7 +56,8 @@ bool dinicDtrees::findPath() {
 		// prune dead-end
 		for (e = fg->firstAt(u); e != 0; e = fg->nextAt(u,e)) {
 			v = fg->mate(u,e);
-			if (u != dt->parent(v) || e != upEdge[v]) continue;
+			//if (u != dt->parent(v) || e != upEdge[v]) continue;
+			if (e != upEdge[v]) continue;
 			dt->cut(v); upEdge[v] = 0;
 			fg->addFlow(v,e,
 				(fg->cap(v,e)-dt->nodeCost(v)) - fg->f(v,e));
@@ -77,9 +78,8 @@ int dinicDtrees::augment() {
 	for (p = dt->findcost(fg->src()); p.c==0; p = dt->findcost(fg->src())) {
 		u = p.x; e = upEdge[u];
 		fg->addFlow(u,e,fg->cap(u,e) - fg->f(u,e));
-		dt->cut(u);
+		dt->cut(u); upEdge[u] = 0;
 		dt->addcost(u,Util::BIGINT32);
-		upEdge[u] = 0;
 	}
 	return flo;
 }
@@ -91,7 +91,8 @@ bool dinicDtrees::newPhase() {
 	List q(fg->n());
 	for (u = 1; u <= fg->n(); u++) {
 		nextEdge[u] = fg->firstAt(u);
-		if (dt->parent(u) != 0) { // cleanup from previous phase
+		//if (dt->parent(u) != 0) { // cleanup from previous phase
+		if (upEdge[u] != 0) { // cleanup from previous phase
 			e = upEdge[u];
 			fg->addFlow(u,e,
 				(fg->cap(u,e)-dt->nodeCost(u)) - fg->f(u,e));

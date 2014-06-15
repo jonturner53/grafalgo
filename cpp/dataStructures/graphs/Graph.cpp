@@ -32,10 +32,9 @@ void Graph::makeSpace(int numv, int maxe) {
 		edges = new SetPair(maxe);
 		adjLists = new ClistSet(2*maxe+1);
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "Graph::makeSpace: insufficient space for "
-		   << numv << "vertices and " << maxe << " edges";
-		string s = ss.str();
+		string s = "Graph::makeSpace: insufficient space for "
+			   + to_string(numv) + "vertices and "
+			   + to_string(maxe) + " edges";
 		throw OutOfSpaceException(s);
 	}
 	for (vertex u = 0; u <= numv; u++) fe[u] = 0;
@@ -56,7 +55,7 @@ void Graph::freeSpace() {
 void Graph::resize(int numv, int maxe) {
 	freeSpace();
 	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
-		string s; s = "Graph::resize:" + e.toString(s);
+		string s = "Graph::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -232,47 +231,43 @@ void Graph::sortAdjLists() {
 /** Create a string representation of an edge.
  *  In the returned string, the "left" endpoint of the edge appears first.
  *  @param e is an edge number
- *  @param s is a reference to a string in which the result is returned
- *  @return a reference to s.
+ *  @return the string
  */
-string& Graph::edge2string(edge e, string& s) const {
-	return edge2string(e,left(e),s);
+string Graph::edge2string(edge e) const {
+	return edge2string(e,left(e));
 }
 
 /** Create a string representation of an edge.
  *  @param e is an edge number
  *  @param u is one of the endponts of e; it will appear first in the string
- *  @param s is a reference to a string in which the result is returned
- *  @return a reference to s.
+ *  @return the string
  */
-string& Graph::edge2string(edge e, vertex u, string& s) const {
-	s = "(";
-	string s1;
+string Graph::edge2string(edge e, vertex u) const {
+	string s = "(";
 	vertex v = mate(u,e);
-	s += item2string(u,s1) + ",";
-	s += item2string(v,s1) + ")";
+	s += item2string(u) + ",";
+	s += item2string(v) + ")";
 	return s;
 }
 
 /** Create a string representation of an edge list.
  *  @param elist is a reference to a list of edge numbers
- *  @param s is a reference to a string in which the result is returned
- *  @return a reference to s.
+ *  @return the string
  */
-string& Graph::elist2string(list<edge>& elist, string& s) const {
-	s = "";
+string Graph::elist2string(list<edge>& elist) const {
+	string s;
 	int i = elist.size();
 	for (edge e : elist) {
-		string s1; s += edge2string(e,s1);
+		s += edge2string(e);
 		if (--i) s += " ";
 	}
 	return s;
 }
 
-string& Graph::elist2string(List& elist, string& s) const {
-	s = "";
+string Graph::elist2string(List& elist) const {
+	string s = "";
 	for (edge e = elist.first(); e != 0; e = elist.next(e)) {
-		string s1; s += edge2string(e,s1);
+		s += edge2string(e);
 		if (e != elist.last()) s += " ";
 	}
 	return s;
@@ -280,18 +275,16 @@ string& Graph::elist2string(List& elist, string& s) const {
 
 /** Create a string representation of an adjacency list.
  *  @param u is a vertex number
- *  @param s is a reference to a string in which the result is returned
- *  @return a reference to s.
+ *  @return the string
  */
-string& Graph::adjList2string(vertex u, string& s) const {
-	s = "";
+string Graph::adjList2string(vertex u) const {
+	string s = "";
 	if (firstAt(u) == 0) return s;
 	int cnt = 0;
-	string s1;
-	s += "[" + Adt::item2string(u,s1) + ":";
+	s += "[" + Adt::item2string(u) + ":";
 	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
 		vertex v = mate(u,e);
-		s += " " + item2string(v,s1);
+		s += " " + item2string(v);
 		if (++cnt >= 20 && nextAt(u,e) != 0) {
 			s += "\n"; cnt = 0;
 		}
@@ -304,14 +297,12 @@ string& Graph::adjList2string(vertex u, string& s) const {
  *  For small graphs (at most 26 vertices), vertices are
  *  represented in the string as lower case letters.
  *  For larger graphs, vertices are represented by integers.
- *  @param s is a string object provided by the caller which
- *  is modified to provide a representation of the Graph.
- *  @return a reference to the string
+ *  @return the string
  */
-string& Graph::toString(string& s) const {
-	s = "{\n";
+string Graph::toString() const {
+	string s = "{\n";
 	for (vertex u = 1; u <= n(); u++) {
-		string s1; s += adjList2string(u,s1);
+		s += adjList2string(u);
 	}
 	s += "}\n";
 	return s;
@@ -322,19 +313,16 @@ string& Graph::toString(string& s) const {
  *  For small graphs (at most 26 vertices), vertices are
  *  represented in the string as lower case letters.
  *  For larger graphs, vertices are represented by integers.
- *  @param s is a string object provided by the caller which
- *  is modified to provide a representation of the Graph.
- *  @return a reference to the string
+ *  @return the string
  */
-string& Graph::toDotString(string& s) const {
-	s = "graph G {\n";
+string Graph::toDotString() const {
+	string s = "graph G {\n";
 	int cnt = 0;
 	for (edge e = first(); e != 0; e = next(e)) {
 		vertex u = min(left(e),right(e));
 		vertex v = max(left(e),right(e));
-		string s1;
-		s += Adt::item2string(u,s1) + " -- ";
-		s += Adt::item2string(v,s1) + " ; "; 
+		s += Adt::item2string(u) + " -- ";
+		s += Adt::item2string(v) + " ; "; 
 		if (++cnt == 15) { cnt = 0; s += "\n"; }
 	}
 	s += "}\n";

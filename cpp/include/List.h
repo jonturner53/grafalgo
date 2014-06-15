@@ -59,6 +59,7 @@ public:		List(int=26);
 
 	// input/output
 	string&	toString(string&) const;
+	string	toString() const;
 	friend istream& operator>>(istream&, List&);
 
 protected:

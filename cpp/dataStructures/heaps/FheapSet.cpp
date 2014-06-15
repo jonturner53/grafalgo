@@ -33,10 +33,8 @@ void FheapSet::makeSpace(int size) {
 		sibs = new ClistSet(size);
 		tmpq = new List(size);
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "makeSpace:: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "makeSpace:: insufficient space for "
+			+ to_string(size) + " index values";
 		throw OutOfSpaceException(s);
 	}
 	nn = size; clear();
@@ -68,7 +66,7 @@ void FheapSet::copyFrom(const FheapSet& source) {
 void FheapSet::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "FheapSet::resize::" + e.toString(s);
+		string s = "FheapSet::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -240,11 +238,10 @@ fheap FheapSet::remove(index i, fheap h) {
 }
 
 /** Create a string representation of this object.
- *  @param s is a string in which the result is returned
- *  @return a reference to s
+ *  @return the string
  */
-string& FheapSet::toString(string& s) const {
-	s = "";
+string FheapSet::toString() const {
+	string s = "";
 	bool *pmark = new bool[n()+1];
 	for (fheap h = 1; h <= n(); h++) pmark[h] = false;
 	for (fheap h = 1; h <= n(); h++) {
@@ -258,8 +255,7 @@ string& FheapSet::toString(string& s) const {
 				if (key(sh) < key(minroot)) minroot = sh; 
 				pmark[sh] = true;
 			}
-			string s1;
-			s += heap2string(minroot,s1) + "\n";
+			s += heap2string(minroot) + "\n";
 		}
 	}
 	delete [] pmark;
@@ -268,27 +264,24 @@ string& FheapSet::toString(string& s) const {
 
 /** Create a string representation of a heap.
  *  @param h is the canonical element of some heap
- *  @param s is a string in which the result is returned
  *  @return a reference to s
  */
-string& FheapSet::heap2string(fheap h, string& s) const {
-	s = "";
+string FheapSet::heap2string(fheap h) const {
+	string s = "";
 	if (h == 0 || (p(h) == 0 && c(h) == 0 && sib(h) == h)) return s;
-	stringstream ss;
-	ss << "[" << item2string(h,s);
-	if (mark(h)) ss << "!";
-	else ss << ":";
-	ss << kee(h) << "," << rank(h);
-	ss << heap2string(c(h),s);
+	s += "[" + item2string(h);
+	if (mark(h)) s += "!";
+	else s += ":";
+	s += to_string(kee(h)) + "," + to_string(rank(h));
+	s += heap2string(c(h));
 	for (fheap sh = sib(h); sh != h; sh = sib(sh)) {
-		ss << " " << item2string(sh,s);
-		if (mark(sh)) ss << "!";
-		else ss << ":";
-		ss << kee(sh) << "," <<rank(sh);
-		ss << heap2string(c(sh),s);
+		s += " " + item2string(sh);
+		if (mark(sh)) s += "!";
+		else s += ":";
+		s += to_string(key(sh)) + "," + to_string(rank(sh));
+		s += heap2string(c(sh));
 	}
-	ss << "]";
-	s = ss.str();
+	s += "]";
 	return s;
 }
 

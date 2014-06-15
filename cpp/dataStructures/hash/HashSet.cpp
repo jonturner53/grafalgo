@@ -31,10 +31,8 @@ void HashSet::makeSpace(int size) {
 		bkt = new bkt_t[2*nb];
 		ex = new SetPair(n());
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "HashSet::makeSpace: insufficient space for "
-		   << size << " values";
-		string s = ss.str();
+		string s = "HashSet::makeSpace: insufficient space for "
+		   	   + to_string(size) + " values";
 		throw OutOfSpaceException(s);
 	}
 	clear();
@@ -49,7 +47,7 @@ void HashSet::freeSpace() { delete [] bkt; }
 void HashSet::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "HashSet::resize:" + e.toString(s);
+		string s = "HashSet::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -187,19 +185,15 @@ void HashSet::remove(int64_t val) {
 }
 
 /** Create a string representation of the set.
- *  @param s is a reference to a string in whcih result is returned
- *  @return a reference to s
+ *  @return the string
  */ 
-string& HashSet::toString(string& s) const {
-	stringstream ss;
-	ss << "{";
+string HashSet::toString() const {
+	string s = "{";
 	for (index x = first(); x != 0; x = next(x)) {
-		if (x != first()) ss << " ";
-		ss << bkt[(x-1)/BKT_SIZ][(x-1)%BKT_SIZ];
+		if (x != first()) s += " ";
+		s += to_string(bkt[(x-1)/BKT_SIZ][(x-1)%BKT_SIZ]);
 	}
-	ss << "}";
-	s = ss.str();
-	return s;
+	s += "}"; return s;
 }
 
 } // ends namespace

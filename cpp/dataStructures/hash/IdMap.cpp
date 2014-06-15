@@ -26,10 +26,8 @@ void IdMap::makeSpace(int size) {
 		ht = new HashTbl(size);
 		ids = new SetPair(size);
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "IdMap::makeSpace: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "IdMap::makeSpace: insufficient space for "
+		   	 + to_string(size) + "index values";
 		throw OutOfSpaceException(s);
 	}
 	nn = size;
@@ -45,7 +43,7 @@ void IdMap::freeSpace() { delete ht; delete ids; }
 void IdMap::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "IdMap::resize:" + e.toString(s);
+		string s = "IdMap::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -108,15 +106,15 @@ void IdMap::dropPair(uint64_t key) {
 }
 
 /** Create a string representation of the IdMap.
- *  @param s is the string in which the result is returned.
+ *  @return the string
  */
-string& IdMap::toString(string& s) const {
-	stringstream ss; ss << "{";
+string IdMap::toString() const {
+	string s = "{";
 	for (index x = firstId(); x != 0; x = nextId(x)) {
-		if (x != firstId()) ss << " ";
-		ss << getKey(x) << ":" << x;
+		if (x != firstId()) s += " ";
+		s += to_string(getKey(x)) + ":" + to_string(x);
 	}	
-	ss << "}"; s = ss.str(); return s;
+	s += "}"; return s;
 }
 
 } // ends namespace

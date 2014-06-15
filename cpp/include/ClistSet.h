@@ -38,6 +38,7 @@ public:		ClistSet(int);
 	void	remove(index);
 
 	string&	toString(string&) const;
+	string	toString() const;
 private:
 	struct lnode {
 	int	next;			// index of successor

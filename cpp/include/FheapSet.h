@@ -45,8 +45,8 @@ public:		FheapSet(int=26);
 	fheap	remove(index, fheap);	
 	fheap	makeheap(const List&);
 
-	string& toString(string&) const;
-	virtual string& heap2string(fheap,string&) const;
+	string  toString() const;
+	virtual string heap2string(fheap) const;
 
 	int	mrCount;	// performance counter
 protected:

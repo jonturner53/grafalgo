@@ -32,6 +32,7 @@ public:		Partition(int=26,int=0);
 	index	find(index);
 
 	string&	toString(string&) const;
+	string 	toString() const;
 private:
 	struct	pnode {
 	index	p;			///< parent of node

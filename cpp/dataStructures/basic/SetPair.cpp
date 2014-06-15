@@ -26,10 +26,8 @@ void SetPair::makeSpace(int size) {
 	try {
 		nxt = new index[size+1]; prv = new index[size+1];
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "SetPair::makeSpace: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "SetPair::makeSpace: insufficient space for "
+		   		+ to_string(size) + " index values";
 		throw OutOfSpaceException(s);
 	}
 
@@ -55,7 +53,7 @@ void SetPair::freeSpace() { delete [] nxt; delete [] prv; }
 void SetPair::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "SetPair::resize:" + e.toString(s);
+		string s = "SetPair::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -122,18 +120,17 @@ void SetPair::swap(index i) {
 }
 
 /** Create a string representation of a given string.
- *  @param s is string used to return value
- *  @return a reference to s
+ *  @return the string
  */
-string& SetPair::toString(string& s) const {
-	s = "{";
+string SetPair::toString() const {
+	string s = "{";
 	for (index i = firstIn(); i != 0; i = nextIn(i)) {
-		string s1; s += Adt::item2string(i,s1);
+		s += Adt::item2string(i);
 		if (i != lastIn()) s += " ";
 	}
 	s += "} {";
 	for (index i = firstOut(); i != 0; i = nextOut(i)) {
-		string s1; s += Adt::item2string(i,s1);
+		s += Adt::item2string(i);
 		if (i != lastOut()) s += " ";
 	}
 	s += "}";

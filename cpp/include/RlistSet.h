@@ -45,7 +45,9 @@ public:		RlistSet(int=26);
 	index	reverse(index);	
 
 	string&	toString(string&) const;
+	string 	toString() const;
 	string&	toString(index, string&) const;
+	string	toString(index) const;
 private:
 	struct ListNode {
 	int	p1;			// index of predecessor or successor

@@ -5,7 +5,7 @@
 using namespace grafalgo;
 
 void basicTests() {
-	int n = 10; string s1;
+	int n = 10;
 	HashSet set(n);
 	int *perm = new int[2*n+1];
 	Util::genPerm(2*n,perm);

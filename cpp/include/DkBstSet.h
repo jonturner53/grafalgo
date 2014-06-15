@@ -39,6 +39,7 @@ public: 	DkBstSet(int);
 	// modifiers
 	void	setkey(index,keytyp,keytyp); 
 	void	change2(keytyp,bst); 
+	void	change2(keytyp,index,bst); 
 	bst	insert(index,bst);
 	bst	remove(index,bst);	  
 	bst	join(bst,index,bst);	 
@@ -74,22 +75,22 @@ keytyp inline DkBstSet::key1(index i) {
 }
 
 /** Get the item in a given bst that has the smallest key2 value.
- *  @param s is a canonical element of some bst (root of the BST)
+ *  @param t is a canonical element of some bst (root of the BST)
  *  @return the smallest key2 value for any element in the bst
  */
-keytyp inline DkBstSet::min2(bst s) {
-	assert(1 <= s && s <= n());
-	return dmin[s];
+keytyp inline DkBstSet::min2(bst t) {
+	assert(1 <= t && t <= n());
+	return dmin[t];
 }
 
 /** Change the key2 values of all items in a bst.
  *  @param diff is a key value
- *  @param s is a canonical element of some bst (root of the BST);
+ *  @param t is a canonical element of some bst (root of the BST);
  *  the opertion adds diff to all the key2 values in s
  */
-void inline DkBstSet::change2(keytyp diff, bst s) {
-	assert(1 <= s && s <= n());
-	dmin[s] += diff;
+void inline DkBstSet::change2(keytyp diff, bst t) {
+	assert(1 <= t && t <= n());
+	dmin[t] += diff;
 }
 
 } // ends namespace

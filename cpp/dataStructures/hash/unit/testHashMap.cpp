@@ -5,14 +5,14 @@
 using namespace grafalgo;
 
 void basicTests() {
-	int n = 13; string s;
+	int n = 13;
 	HashMap map(n);
 	int *perm = new int[n+1];
 	Util::genPerm(n,perm);
 	cout << "putting in key order\n";
 	for (int i = 1; i <= n; i++) {
 		map.put(i,perm[i]);
-		cout << map.toString(s) << endl;
+		cout << map.toString() << endl;
 	}
 	cout << "getting in key order\n";
 	for (int i = 1; i <= n; i++) {
@@ -22,7 +22,7 @@ void basicTests() {
 	cout << "changing values in key order\n";
 	for (int i = 1; i <= n; i++) {
 		map.put(i,Util::randint(n+1,5*n));
-		cout << map.toString(s) << endl;
+		cout << map.toString() << endl;
 	}
 	cout << "getting in key order\n";
 	for (int i = 1; i <= n; i++) {
@@ -32,7 +32,7 @@ void basicTests() {
 	cout << "removing in key order\n";
 	for (int i = 1; i <= n; i++) {
 		map.remove(i);
-		cout << map.toString(s) << endl;
+		cout << map.toString() << endl;
 	}
 	cout << endl;
 }

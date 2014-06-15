@@ -28,10 +28,8 @@ Partition::~Partition() { freeSpace(); }
  */
 void Partition::makeSpace(int size) {
 	try { node = new pnode[size+1]; } catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "Partition::makeSpace: insufficient space for "
-		   << size << "elements";
-		string s = ss.str();
+		string s = "Partition::makeSpace: insufficient space for "
+			   + to_string(size) + "elements";
 		throw OutOfSpaceException(s);
 	}
 	nn = size; clear();
@@ -47,7 +45,7 @@ void Partition::freeSpace() { delete [] node; }
 void Partition::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "Partition::resize:" + e.toString(s);
+		string s = "Partition::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -117,8 +115,8 @@ int Partition::findroot(int x) const {
  *  @param s is a reference to a string in which the partition is returned.
  *  @return a reference to s
  */
-string& Partition::toString(string& s) const {
-	s = "{";
+string Partition::toString() const {
+	string s = "{";
 	int *size = new int[n()+1];
 	int *root = new int[n()+1];
 	for (int i = 1; i <= n(); i++) { root[i] = findroot(i); size[i] = 0; }
@@ -129,14 +127,13 @@ string& Partition::toString(string& s) const {
 		if (size[i] > 1) { // i is a root of non-trivial block
 			int j;
 			for (j = 1; root[j] != i; j++) {}
-			string s1;
 			if (isFirst) isFirst = false;
 			else s += " ";
-			s += "[" + Adt::item2string(j,s1);
+			s += "[" + Adt::item2string(j);
 			if (j == i) s += "*";
 			for (j++; j <= n(); j++) {
 				if (root[j] == i) {
-					s += " " + Adt::item2string(j,s1);
+					s += " " + Adt::item2string(j);
 					if (j == i) s += "*";
 				}
 			}

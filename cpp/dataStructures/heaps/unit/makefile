@@ -7,7 +7,7 @@ CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64
 %.o : %.cpp
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-all : testDheap testDdheap testDheapSet testFheapSet testLheapSet testLfheapSet
+all : testDheap testDheapSet testFheapSet testLheapSet
 
 testDheap: testDheap.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@

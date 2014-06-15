@@ -34,9 +34,10 @@ public:
 	 *  @return a reference to s;
 	 */
 	string& toString(string& s) { s = xStr; return s; }
+	string toString() { string s = xStr; return s; }
 
 	friend ostream& operator<<(ostream& out, Exception& e) {
-                string s; return out << e.toString(s);
+                return out << e.toString();
         }
 
 protected:

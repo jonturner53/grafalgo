@@ -33,10 +33,8 @@ void HashTbl::makeSpace(int size) {
 	try {
 		bkt = new bkt_t[2*nb]; keyVec = new uint64_t[size+1];
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "HashTbl::makeSpace: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "HashTbl::makeSpace: insufficient space for "
+		   	   + to_string(size) + "index values";
 		throw OutOfSpaceException(s);
 	}
 	nn = size; clear();
@@ -51,7 +49,7 @@ void HashTbl::freeSpace() { delete [] bkt; delete [] keyVec; }
 void HashTbl::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "HashTbl::resize:" + e.toString(s);
+		string s = "HashTbl::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -222,30 +220,32 @@ int HashTbl::remove(uint64_t key) {
 	return 0;
 }
 
-/** Print out all key,value pairs stored in the hash table,
+/** Create string representation of hash table.
+ *  Includes all key,value pairs stored in the hash table,
  *  along with their bucket index, offset within the bucket
  *  and fingerprint.
+ *  @return the string
  */
-string& HashTbl::toString(string& s) const {
+string HashTbl::toString() const {
 	int i, j, shift; uint32_t vm, val, fp; uint32_t *bucket;
 
 	// Determine amount to shift to right-justify fingerprints
 	vm = valMsk; shift = 0; while (vm != 0) { vm >>= 1; shift++; }
 
-	stringstream ss;
+	string s;
 	for (i = 0; i < 2*nb; i++) {
 		bucket = &bkt[i][0];
 		for (j = 0; j < BKT_SIZ; j++) {
 			if (bucket[j] != 0) {
-				ss << i << "," << j << ": ";
+				s += to_string(i) + "," + to_string(j) + ": ";
 				val =  bucket[j] & valMsk;
 				fp  = (bucket[j] &  fpMsk) >> shift;
-				ss << keyVec[val] + " " << val + " "
-				   << fp + "\n";
+				s += to_string(keyVec[val]) + " "
+				   + to_string(val) + " "
+				   + to_string(fp) + "\n";
 			}
 		}
 	}
-	s = ss.str();
 	return s;
 }
 

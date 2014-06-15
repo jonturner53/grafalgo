@@ -26,10 +26,8 @@ void HashMap::makeSpace(int size) {
 		values = new int[size+1];
 		ht = new HashTbl(size); kvx = new SetPair(size);
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "HashMap::makeSpace: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "HashMap::makeSpace: insufficient space for "
+		   	   + to_string(size) + "index values";
 		throw OutOfSpaceException(s);
 	}
 	nn = size;
@@ -45,7 +43,7 @@ void HashMap::freeSpace() { delete [] values; delete ht; delete kvx; }
 void HashMap::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "HashMap::resize::" + e.toString(s);
+		string s = "HashMap::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -74,16 +72,19 @@ void HashMap::copyFrom(const HashMap& src) {
 		put(src.key(x), src.val(x));
 }
 
-// Construct string listing the key,value pairs in the map
-string& HashMap::toString(string& s) const {
-	stringstream ss; ss << "{";
+/** Construct string listing the key,value pairs in the map
+ *  @return the string
+ */
+string HashMap::toString() const {
+	string s = "{";
 	bool isFirst = true;
         for (int kvi = kvx->firstIn(); kvi != 0; kvi = kvx->nextIn(kvi)) {
 		if (isFirst) isFirst = false;
-		else ss << " ";
-                ss << "(" << key(kvi) << "," << val(kvi) << ")";
+		else s += " ";
+                s += "(" + to_string(key(kvi)) + ","
+			 + to_string(val(kvi)) + ")";
         }
-	ss << "}"; s = ss.str(); return s;
+	s  += "}"; return s;
 }
 
 } // ends namespace

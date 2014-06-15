@@ -29,10 +29,8 @@ void SaTreeMap::makeSpace(int size) {
 		values = new uint32_t[size+1];
 		nodes = new SetPair(size);
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "makeSpace:: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "makeSpace:: insufficient space for "
+			   + to_string(size) + "index values";
 		throw OutOfSpaceException(s);
 	}
 	root = 0; nn = size; clear();
@@ -54,7 +52,7 @@ void SaTreeMap::clear() {
 void SaTreeMap::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "SaTreeMap::resize::" + e.toString(s);
+		string s = "SaTreeMap::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -126,15 +124,13 @@ void SaTreeMap::remove(uint64_t key) {
 }
 
 /** Construct string listing the key,value pairs in the map.
- *  @param s is a reference to a string in which result is to be returned
- *  @return a reference to s
+ *  @return the string
  */
-string& SaTreeMap::toString(string& s) const {
-	stringstream ss;
+string SaTreeMap::toString() const {
+	string s;
 	for (index u = nodes->firstIn(); u != 0; u = nodes->nextIn(u)) {
-		ss << " " << st->key(u) << "," << values[u];
+		s += " " + to_string(st->key(u)) + "," + to_string(values[u]);
 	}
-	s = ss.str();
 	return s;
 }
 

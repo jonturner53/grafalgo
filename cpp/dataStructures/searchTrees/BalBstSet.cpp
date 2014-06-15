@@ -39,10 +39,8 @@ void BalBstSet::makeSpace(int size) {
 	try {
 		rvec = new int[size+1];
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "makeSpace:: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "makeSpace:: insufficient space for "
+			   + to_string(size) + "index values";
 		throw OutOfSpaceException(s);
 	}
 	nn = size; clear();
@@ -69,7 +67,7 @@ void BalBstSet::resize(int size) {
 	freeSpace();
 	BstSet::resize(size);
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "BalBstSet::resize::" + e.toString(s);
+		string s = "BalBstSet::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -119,7 +117,7 @@ bool BalBstSet::insert(index i, bst& root) {
 	assert(rank(0) == 0);
 	if (!BstSet::insert(i,root)) return false;
 	if (root == i) return true;
-	rebalance(i);
+	rebalance1(i);
 	if (p(root) != 0) root = p(root); // rebalancing might move root down 1
 	return true;
 }
@@ -128,7 +126,7 @@ bool BalBstSet::insert(index i, bst& root) {
  *  x is a node whose rank may equal that of its grandparent,
  *  in violation of the rank invariant.
  */
-void BalBstSet::rebalance(index x) {
+void BalBstSet::rebalance1(index x) {
 	while (rank(p2(x)) == rank(x) && rank(uncle(x)) == rank(x)) {
 		x = p2(x); rank(x)++;
 	}
@@ -168,34 +166,40 @@ void BalBstSet::remove(index i, bst& root) {
 	if (j != 0) p(j) = pj;
         p(i) = left(i) = right(i) = 0; rank(i) = 1;
 
-	// now rebalance as needed, by checking for and fixing
-	// violations of the rank invariant
-	// note: j may be 0 on first iteration
-	while (rank(pj) == rank(j)+2) {
-		int r = rank(j);
-		index sj, nef, nees;
-		if (j != 0) {
-			sj = sib(j); nef = nephew(j); nees = niece(j);
-		} else if (left(pj) != 0) { // && j == 0
-			sj = left(pj); nef = left(sj); nees = right(sj);
-		} else { // j == 0 && right(pj) != 0
-			sj = right(pj); nef = right(sj); nees = left(sj);
+	rebalance2(j,pj);
+	// top is 0 or is within 2 steps of the root
+	root = (p(top) == 0 ? top : (p2(top) == 0 ? p(top) : p2(top)));
+}
+
+/** Rebalance the tree after a node rank decreases.
+ *  x is a node in a tree or 0
+ *  px is the parent of x, or a node with a null child, if x=0
+ *  in violation of the rank invariant.
+ */
+void BalBstSet::rebalance2(index x, index px) {
+	while (rank(px) == rank(x)+2) {
+		int r = rank(x);
+		index sx, nefu, nece;
+		if (x != 0) {
+			sx = sib(x); nefu = nephew(x); nece = niece(x);
+		} else if (left(px) != 0) { // && x == 0
+			sx = left(px); nefu = left(sx); nece = right(sx);
+		} else { // x == 0 && right(px) != 0
+			sx = right(px); nefu = right(sx); nece = left(sx);
 		}
-		if (rank(sj) == r+2) {
-			rotate(sj);
-		} else { // rank(sj) == r+1
-			if (rank(nef) == r && rank(nees) == r) {
-				j = pj; rank(j) = r+1; pj = p(j);
+		if (rank(sx) == r+2) {
+			rotate(sx);
+		} else { // rank(sx) == r+1
+			if (rank(nefu) == r && rank(nece) == r) {
+				rank(px) = r+1; x = px; px = p(x);
 			} else {
-				if (rank(nef) == r+1) rotate(sj);
-				else 		      rotate2(nees);
-				rank(pj) = r+1; rank(p(pj)) = r+2;
+				if (rank(nefu) == r+1) rotate(sx);
+				else 		      rotate2(nece);
+				rank(px) = r+1; rank(p(px)) = r+2;
 				break;
 			}
 		}
 	}
-	// top is 0 or is within 2 steps of the root
-	root = (p(top) == 0 ? top : (p2(top) == 0 ? p(top) : p2(top)));
 }
 
 /** Join two bsts at an item.
@@ -239,7 +243,7 @@ bst BalBstSet::join(bst t1, index i, bst t2) {
 		left(i) = t1; right(i) = x; p(i) = p(x);
 		left(p(i)) = i; p(x) = p(t1) = i;
 		rank(i) = rank(t1) + 1; // this may violate rank invariant
-		rebalance(i);
+		rebalance1(i);
 		if (p(t2) != 0) t2 = p(t2);
 		return t2;
 	} else { // rank(t1) > rank(t2);
@@ -248,7 +252,7 @@ bst BalBstSet::join(bst t1, index i, bst t2) {
 		left(i) = x; right(i) = t2; p(i) = p(x);
 		right(p(i)) = i; p(x) = p(t2) = i;
 		rank(i) = rank(t2) + 1; // this may violate rank invariant
-		rebalance(i);
+		rebalance1(i);
 		if (p(t1) != 0) t1 = p(t1);
 		return t1;
 	}
@@ -256,18 +260,15 @@ bst BalBstSet::join(bst t1, index i, bst t2) {
 
 /** Create a string representing an item.
  *  @param i is an item in some bst
- *  @param s is a string in which the result is to be returned
- *  @return a reference to s
+ *  @return the string
  */
-string& BalBstSet::node2string(index i, string& s) const {
-	s = "";
+string BalBstSet::node2string(index i) const {
+	string s;
 	if (i == 0) return s;
-	stringstream ss;
-	ss << Adt::item2string(i,s);
-	if (p(i) == 0)	ss << "*";
-	else 		ss << ":";
-	ss << key(i) << ":" << rank(i);
-	s = ss.str();
+	s += Adt::item2string(i);
+	if (p(i) == 0)	s += "*";
+	else 		s += ":";
+	s += to_string(key(i)) + ":" + to_string(rank(i));
 	return s;
 }
 

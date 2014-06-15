@@ -41,7 +41,7 @@ void ClistSet::freeSpace() { delete [] node; }
 void ClistSet::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "ClistSet::resize:" + e.toString(s);
+		string s = "ClistSet::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -103,11 +103,10 @@ void ClistSet::join(index i, index j) {
 }
 
 /** Produce a string representation of the object.
- *  @param s is a string in which the result will be returned
- *  @return a reference to s
+ *  @return the string
  */
-string& ClistSet::toString(string& s) const {
-	index i, j; string s1;
+string ClistSet::toString() const {
+	index i, j; string s;
 	int *mark = new int[n()+1];
 	s = "{";
 	int cnt = 0;
@@ -118,11 +117,11 @@ string& ClistSet::toString(string& s) const {
 		if (node[i].next == i) continue;
 		if (++cnt > 1) s += ", ";
 		s += "[";
-		s += Adt::item2string(i,s1);
+		s += Adt::item2string(i);
 		for (j = node[i].next; j != i; j = node[j].next) {
 			mark[j] = 1;
 			s += " ";
-			s += Adt::item2string(j,s1);
+			s += Adt::item2string(j);
 		}
 		s += "]";
 	}

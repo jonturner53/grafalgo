@@ -13,7 +13,7 @@ namespace grafalgo {
 /** Create a list with space for index values in 1..nn1 */
 List::List(int nn1) : Adt(nn1), len(0) {
 	try { makeSpace(n()); } catch(OutOfSpaceException e) {
-		string s; s = "List::" + e.toString(s);
+		string s; s = "List::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -56,7 +56,7 @@ void List::copyFrom(const List& source) {
 void List::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "List::resize::" + e.toString(s);
+		string s = "List::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -175,16 +175,15 @@ bool List::isConsistent() const {
 }
 
 /** Create a string representation of a given string.
- *
- *  @param s is string used to return value
+ *  @return the string
  */
-string& List::toString(string& s) const {
-	s = "[";
+string List::toString() const {
+	string s = "[";
 	bool isFirst = true;
 	for (index i = first(); i != 0; i = next(i)) {
 		if (isFirst) isFirst = false;
 		else s += " ";
-		string s1; s += item2string(i,s1);
+		s += item2string(i);
 	}
 	s += "]";
 	return s;
@@ -209,7 +208,7 @@ istream& operator>>(istream& in, List& lst) {
 			in >> x;
 		} else {
 			string s = "List::operator>>: unexpected input "
-				   "character " + c;
+				   "character "; s += c;
 			throw InputException(s);
 		}
 		if (lst.n() < x) lst.expand(max(x,2*lst.n()));

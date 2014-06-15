@@ -42,8 +42,8 @@ public:		LheapSet(int=100);
 	index	deletemin(lheap);	
 	lheap	heapify(List&);	
 
-	string&	toString(string&) const;
-	string&	heap2string(lheap, string&) const;
+	string 	toString() const;
+	string 	heap2string(lheap) const;
 
 	int	meldCount;	// performance counter
 protected:
@@ -54,7 +54,7 @@ protected:
 	int	right;		///< right[i] = right child of i
 	} *node;
 
-	string&	heap2string(lheap, bool, string&) const;
+	string 	heap2string(lheap, bool) const;
 	void	makeSpace(int);
 	void	freeSpace();
 };
@@ -82,8 +82,8 @@ inline lheap LheapSet::findmin(lheap h) const { return h; };
  *  @param s is a reference to a string in which result is returned
  *  @return s
  */
-inline string& LheapSet::heap2string(lheap h, string& s) const {
-	return heap2string(h,true,s);
+inline string LheapSet::heap2string(lheap h) const {
+	return heap2string(h,true);
 }
 
 } // ends namespace

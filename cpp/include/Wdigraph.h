@@ -37,8 +37,8 @@ public:		Wdigraph(int=1,int=1);
         void    setLength(edge,int);
 
 	// create a string representation
-        string&	edge2string(edge, string&) const;
-        string&	toDotString(string&) const;
+        string	edge2string(edge) const;
+        string	toDotString() const;
 
 private:
 	int	*len;			///< len[e] is length of edge e
@@ -46,7 +46,7 @@ private:
 	void makeSpace(int,int);
 	void freeSpace();
 	bool	readAdjList(istream&);
-        string&	adjList2string(vertex,string&) const;
+        string	adjList2string(vertex) const;
 
 	Wdigraph& operator=(const Wdigraph&);
 };

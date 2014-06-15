@@ -35,8 +35,8 @@ public:		Mflograph(int=3,int=2,int=1,int=2);
 	flow	minFlo(edge) const;
 	void	setMinFlo(edge,flow);
 
-	string& edge2string(edge, string&) const;
-	string& toDotString(string&) const;
+	string	edge2string(edge) const;
+	string	toDotString() const;
 
 protected:
 	flow	*mflo;				///< mflo[e] is min flow for e
@@ -46,7 +46,7 @@ protected:
         void    freeSpace();    	
 //	void    virtual shuffle(int*, int*);
 	bool	readAdjList(istream&);
-	string& adjList2string(vertex,string&) const; 
+	string	adjList2string(vertex) const; 
 
 private:
 	Mflograph& operator=(const Mflograph&); 

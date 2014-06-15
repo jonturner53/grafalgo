@@ -39,8 +39,8 @@ public:		LlheapSet(int=26,delftyp=NULL);
 
 	lheap   makeheap(List&);
 
-	string& toString(string&) const;
-	string& heap2string(index,string&) const;
+	string  toString() const;
+	string  heap2string(index) const;
 
 private:
 	int	dummy;			///< head of free dummy node list
@@ -48,7 +48,7 @@ private:
 	List	*tmplst;		///< pointer to temporary list
 	void	purge(lheap,List&);
 
-	string& heap2string(index,bool,string&) const;
+	string  heap2string(index,bool) const;
 	void	makeSpace(int);
 	void	freeSpace();
 };
@@ -58,8 +58,8 @@ private:
  *  @param s is a reference to a string in which result is returned
  *  @return a reference to s
  */
-inline string& LlheapSet::heap2string(lheap h, string& s) const {
-	return heap2string(h,true,s);
+inline string LlheapSet::heap2string(lheap h) const {
+	return heap2string(h,true);
 }
 
 } // ends namespace

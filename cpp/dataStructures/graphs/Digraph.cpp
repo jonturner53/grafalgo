@@ -51,7 +51,7 @@ void Digraph::resize(int numv, int maxe) {
 	freeSpace();
 	Graph::resize(numv,maxe);
 	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
-		string s; s = "Digraph::resize:" + e.toString(s);
+		string s = "Digraph::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -120,18 +120,16 @@ bool Digraph::remove(edge e) {
 
 /** Create a string representation of an adjacency list.
  *  @param u is a vertex number
- *  @param s is a reference to a string in which the result is returned
- *  @return a reference to s.
+ *  @return the string
  */
-string& Digraph::adjList2string(vertex u, string& s) const {
-	s = "";
+string Digraph::adjList2string(vertex u) const {
+	string s;
 	if (firstOut(u) == 0) return s;
 	int cnt = 0;
-	string s1;
-	s += "[" + Adt::item2string(u,s1) + ":";
+	s += "[" + Adt::item2string(u) + ":";
 	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
-		s += " " + Adt::item2string(v,s1);
+		s += " " + Adt::item2string(v);
 		if (++cnt >= 20 && nextOut(u,e) != 0) {
 			s += "\n"; cnt = 0;
 		}
@@ -145,18 +143,15 @@ string& Digraph::adjList2string(vertex u, string& s) const {
  *  For small graphs (at most 26 vertices), vertices are
  *  represented in the string as lower case letters.
  *  For larger graphs, vertices are represented by integers.
- *  @param s is a string object provided by the caller which
- *  is modified to provide a representation of the Graph.
- *  @return a reference to the string
+ *  @return the string
  */
-string& Digraph::toDotString(string& s) const {
-	s = "digraph G {\n";
+string Digraph::toDotString() const {
+	string s = "digraph G {\n";
 	int cnt = 0;
 	for (edge e = first(); e != 0; e = next(e)) {
 		vertex u = tail(e); vertex v = head(e);
-		string s1;
-		s += Adt::item2string(u,s1) + " -> ";
-		s += Adt::item2string(v,s1) + " ; "; 
+		s += Adt::item2string(u) + " -> ";
+		s += Adt::item2string(v) + " ; "; 
 		if (++cnt == 15) { cnt = 0; s += "\n"; }
 	}
 	s += "}\n";

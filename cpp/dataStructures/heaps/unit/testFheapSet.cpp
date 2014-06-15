@@ -30,12 +30,12 @@ public:
 
 bool run(testcase tc) {
 	int rv;
-	string s, before, after;
+	string before, after;
 	stringstream ss;
 	if (tc.method == "setKey") {
-		before = tc.hset->toString(s);
+		before = tc.hset->toString();
 		tc.hset->setKey(tc.arg1,tc.arg2);
-		after = tc.hset->toString(s);
+		after = tc.hset->toString();
 		if (after == tc.expected) return true;
 		cerr << "Error: on setKey("
 		     << tc.arg1 << "," << tc.arg2 << ")\n"
@@ -44,9 +44,9 @@ bool run(testcase tc) {
 		     << "expected:\n" << tc.expected << endl;
 		return false;
 	} else if (tc.method == "meld") {
-		before = tc.hset->toString(s);
+		before = tc.hset->toString();
 		rv = tc.hset->meld(tc.arg1,tc.arg2);
-		after = tc.hset->toString(s);
+		after = tc.hset->toString();
 		if (rv == tc.rval && after == tc.expected) return true;
 		cerr << "Error: on meld("
 		     << tc.arg1 << "," << tc.arg2 << ")\n"
@@ -56,9 +56,9 @@ bool run(testcase tc) {
 		     << "expected:\n" << tc.expected << endl;
 		return false;
 	} else if (tc.method == "decreasekey") {
-		before = tc.hset->toString(s);
+		before = tc.hset->toString();
 		rv = tc.hset->decreasekey(tc.arg1,tc.arg2,tc.arg3);
-		after = tc.hset->toString(s);
+		after = tc.hset->toString();
 		if (rv == tc.rval && after == tc.expected) return true;
 		cerr << "Error: on decreasekey("
 		     << tc.arg1 << "," << tc.arg2 << "," << tc.arg3 << ")\n"
@@ -68,9 +68,9 @@ bool run(testcase tc) {
 		     << "expected:\n" << tc.expected << endl;
 		return false;
 	} else if (tc.method == "insert") {
-		before = tc.hset->toString(s);
+		before = tc.hset->toString();
 		rv = tc.hset->insert(tc.arg1,tc.arg2,tc.arg3);
-		after = tc.hset->toString(s);
+		after = tc.hset->toString();
 		if (rv == tc.rval && after == tc.expected) return true;
 		cerr << "Error: on insert("
 		     << tc.arg1 << "," << tc.arg2 << "," << tc.arg3 << ")\n"
@@ -80,9 +80,9 @@ bool run(testcase tc) {
 		     << "expected:\n" << tc.expected << endl;
 		return false;
 	} else if (tc.method == "deletemin") {
-		before = tc.hset->toString(s);
+		before = tc.hset->toString();
 		rv = tc.hset->deletemin(tc.arg1);
-		after = tc.hset->toString(s);
+		after = tc.hset->toString();
 		if (rv == tc.rval && after == tc.expected) return true;
 		cerr << "Error: on deletemin(" << tc.arg1 << ")\n"
 		     << "returned " << rv << " expected " << tc.rval << endl
@@ -91,9 +91,9 @@ bool run(testcase tc) {
 		     << "expected:\n" << tc.expected << endl;
 		return false;
 	} else if (tc.method == "remove") {
-		before = tc.hset->toString(s);
+		before = tc.hset->toString();
 		rv = tc.hset->remove(tc.arg1,tc.arg2);
-		after = tc.hset->toString(s);
+		after = tc.hset->toString();
 		if (rv == tc.rval && after == tc.expected) return true;
 		cerr << "Error: on remove("
 		     << tc.arg1 << "," << tc.arg2 << ")\n"

@@ -24,10 +24,8 @@ void RlistSet::makeSpace(int size) {
 	try {
 		node = new ListNode[size+1]; canon = new bool[size+1];
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "RlistSet::makeSpace: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
+		string s = "RlistSet::makeSpace: insufficient space for "
+		   		+ to_string(size) + "index values";
 		throw OutOfSpaceException(s);
 	}
 	nn = size; clear();
@@ -43,7 +41,7 @@ void RlistSet::freeSpace() { delete [] node; }
 void RlistSet::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "RlistSet::resize:" + e.toString(s);
+		string s = "RlistSet::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -133,14 +131,13 @@ index RlistSet::reverse(index t) {
 
 /** Build a string representation of the set of lists.
  *  All lists with at least two items are printed, one per line.
- *  @param s is the string in which the result is returned
- *  @return a reference to s
+ *  @return the stri
  */
-string& RlistSet::toString(string& s) const {
-	s = "";
+string RlistSet::toString() const {
+	string s = "";
 	for (index x = 1; x <= n(); x++) {
 		if (canon[x] && first(x) != x) {
-			string s1; s += toString(x,s1) + "\n";
+			s += toString(x) + "\n";
 		}
 	}
 	return s;
@@ -148,18 +145,17 @@ string& RlistSet::toString(string& s) const {
 
 /** Build a string representation of a list.
  *  @param t is the index of the canonical item of some list
- *  @param s is the string in which the result is returned
- *  @return a reference to s
+ *  @return the string
  */
-string& RlistSet::toString(index t, string& s) const {
+string RlistSet::toString(index t) const {
 	index h = first(t);
-	s = "[ "; string s1;
+	string s = "[ ";
 	if (t == 0) s += "-";
-	else if (h == t) s += Adt::item2string(h,s1) + " ";
+	else if (h == t) s += Adt::item2string(h) + " ";
 	else {
 		index x = h; index y = t;
 		do {
-			s += item2string(x,s1) + " ";
+			s += item2string(x) + " ";
 			advance(x,y);
 		} while (x != h);
 	}

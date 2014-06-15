@@ -34,10 +34,8 @@ void Mflograph::makeSpace(int numv, int maxe) {
 	try {
 		mflo = new flow[maxe+1];
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "Mflograph::makeSpace: insufficient space for "
-		   << maxe << " min flows";
-		string s = ss.str();
+		string s = "Mflograph::makeSpace: insufficient space for "
+		   	   + to_string(maxe) + " min flows";
 		throw OutOfSpaceException(s);
 	}
 }
@@ -54,7 +52,7 @@ void Mflograph::resize(int numv, int maxe) {
 	freeSpace();
 	Flograph::resize(numv,maxe);
 	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
-		string s; s = "Mflograph::resize:" + e.toString(s);
+		string s = "Mflograph::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -124,75 +122,68 @@ bool Mflograph::readAdjList(istream& in) {
 
 /** Create a string representation of an adjacency list.
  *  @param u is a vertex number
- *  @param s is a reference to a string in which the result is returned
- *  @return a reference to s.
+ *  @return the string
  */
-string& Mflograph::adjList2string(vertex u, string& s) const {
-	stringstream ss; s = "";
+string Mflograph::adjList2string(vertex u) const {
+	string s = "";
 	if (firstAt(u) == 0) return s;
 	int cnt = 0;
-	ss << "[";
-	if (u == snk()) ss << "->";
-	ss << Adt::item2string(u,s);
-	if (u == src()) ss << "->";
-	ss << ":";
+	s += "[";
+	if (u == snk()) s += "->";
+	s += Adt::item2string(u);
+	if (u == src()) s += "->";
+	s += ":";
 	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
 		vertex v = head(e);
-		ss << " " << item2string(v,s) << "(" << cap(u,e) << ","
-		   << minFlo(e) << "," << f(u,e) << ")";
+		s += " " + item2string(v) + "(" + to_string(cap(u,e)) + ","
+		   + to_string(minFlo(e)) + "," + to_string(f(u,e)) + ")";
 		if (++cnt >= 15 && nextAt(u,e) != 0) {
-			ss <<  "\n"; cnt = 0;
+			s +=  "\n"; cnt = 0;
 		}
 	}
-	ss <<  "]\n";
-	s = ss.str();
+	s +=  "]\n";
 	return s;
 }
 
 /** Create readable representation of an edge.
  *  @param e is an edge
- *  @param s is a string in which result is to be returned
- *  @return a reference to s
+ *  @return the string
  */
-string& Mflograph::edge2string(edge e, string& s) const {
-	stringstream ss;
+string Mflograph::edge2string(edge e) const {
+	string s;
 	vertex u = tail(e); vertex v = head(e);
         if (e == 0) {
-               ss << "-"; 
+               s += "-"; 
 	} else {
-		ss << "(" << item2string(u,s);
-		ss << "," << item2string(v,s) << "," << cap(u,e)
-		   << "," << minFlo(e) << "," <<  f(u,e) << ")";
+		s += "(" + item2string(u);
+		s += "," + item2string(v) + "," + to_string(cap(u,e))
+		     + "," + to_string(minFlo(e)) + ","
+		     +  to_string(f(u,e)) + ")";
         }
-	s = ss.str();
 	return s;
 }
 
 /** Create graphviz representation of this flograph.
- *  @param s is a string in which result is to be returned
- *  @return a reference to s
+ *  @return the string
  */
-string& Mflograph::toDotString(string& s) const {
-	stringstream ss;
-	ss << "digraph G { " << endl;
-        ss << Adt::item2string(src(),s) 
-           << " [ style = bold, peripheries = 2, color = red]; "
-           << endl;
-	ss << Adt::item2string(snk(),s) 
-           << " [ style = bold, peripheries = 2, color = blue]; "
-           << endl;
+string Mflograph::toDotString() const {
+	string s = "digraph G {\n";
+        s += Adt::item2string(src()) 
+           + " [ style = bold, peripheries = 2, color = red];\n";
+	s += Adt::item2string(snk()) 
+           + " [ style = bold, peripheries = 2, color = blue];\n";
 	int cnt = 0;
 	for (edge e = first(); e != 0; e = next(e)) {
 		vertex u = min(left(e),right(e));
 		vertex v = max(left(e),right(e));
-		ss << Adt::item2string(u,s) << " -> ";
-		ss << Adt::item2string(v,s);
-		ss << " [label = \"(" << cap(u,e) << "," << minFlo(e) << ","
-		   << f(u,e) << ")\"]; ";
+		s += Adt::item2string(u) + " -> ";
+		s += Adt::item2string(v);
+		s += " [label = \"(" + to_string(cap(u,e)) + ","
+		     + to_string(minFlo(e)) + ","
+		     + to_string(f(u,e)) + ")\"]; ";
 		if (++cnt == 10) { s += "\n"; cnt = 0; }
 	}
-	ss << "}\n" << endl;
-	s = ss.str();
+	s += "}\n\n";
 	return s;
 }
 

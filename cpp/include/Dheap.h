@@ -45,7 +45,7 @@ public:		Dheap(int,int);
 	index 	deletemin();
 	void	changekey(index,keytyp);	
 
-	string& toString(string&) const;
+	string toString() const;
 private:
 	int 	d;			///< base of heap
 	int	hn;			///< number of items in the heap

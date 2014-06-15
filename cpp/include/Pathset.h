@@ -58,9 +58,9 @@ public: 	PathSet(int,int*);
 	path	join(path,index,path);
 	PathPair split(index);	
 
-	string& path2string(path, string&) const;
-	string& pathTree2string(path, string&) const;
-	string& toString(string&) const;
+	string	path2string(path) const;
+	string	pathTree2string(path) const;
+	string  toString() const;
 protected:
 	struct PathNode {
 	index	left, right, p;		// /<left child, right child, parent

@@ -30,12 +30,11 @@ public:
 
 bool run(testcase tc) {
 	int rv;
-	string s, before, after;
-	stringstream ss;
+	string before, after;
 	if (tc.method == "empty") {
-		before = tc.dheap->toString(s);
+		before = tc.dheap->toString();
 		rv = tc.dheap->empty();
-		after = tc.dheap->toString(s);
+		after = tc.dheap->toString();
 		if (after == before && rv == tc.rval) return true;
 		cerr << "Error: on empty()\n"
 		     << "returned " << rv << " expected " << tc.rval << endl
@@ -43,9 +42,9 @@ bool run(testcase tc) {
 		     << "final state:\n" << after << endl;
 		return false;
 	} else if (tc.method == "member") {
-		before = tc.dheap->toString(s);
+		before = tc.dheap->toString();
 		rv = tc.dheap->member(tc.arg1);
-		after = tc.dheap->toString(s);
+		after = tc.dheap->toString();
 		if (after == before && rv == tc.rval) return true;
 		cerr << "Error: on member("
 		     << tc.arg1 << ")\n"
@@ -54,9 +53,9 @@ bool run(testcase tc) {
 		     << "final state:\n" << after << endl;
 		return false;
 	} else if (tc.method == "size") {
-		before = tc.dheap->toString(s);
+		before = tc.dheap->toString();
 		rv = tc.dheap->size();
-		after = tc.dheap->toString(s);
+		after = tc.dheap->toString();
 		if (after == before && rv == tc.rval) return true;
 		cerr << "Error: on size()\n"
 		     << "returned " << rv << " expected " << tc.rval << endl
@@ -64,9 +63,9 @@ bool run(testcase tc) {
 		     << "final state:\n" << after << endl;
 		return false;
 	} else if (tc.method == "findmin") {
-		before = tc.dheap->toString(s);
+		before = tc.dheap->toString();
 		rv = tc.dheap->findmin();
-		after = tc.dheap->toString(s);
+		after = tc.dheap->toString();
 		if (after == before && rv == tc.rval) return true;
 		cerr << "Error: on findmin()\n"
 		     << "returned " << rv << " expected " << tc.rval << endl
@@ -74,9 +73,9 @@ bool run(testcase tc) {
 		     << "final state:\n" << after << endl;
 		return false;
 	} else if (tc.method == "key") {
-		before = tc.dheap->toString(s);
+		before = tc.dheap->toString();
 		rv = tc.dheap->key(tc.arg1);
-		after = tc.dheap->toString(s);
+		after = tc.dheap->toString();
 		if (after == before && rv == tc.rval) return true;
 		cerr << "Error: on key(" << tc.arg1 << ")\n"
 		     << "returned " << rv << " expected " << tc.rval << endl
@@ -84,9 +83,9 @@ bool run(testcase tc) {
 		     << "final state:\n" << after << endl;
 		return false;
 	} else if (tc.method == "changekey") {
-		before = tc.dheap->toString(s);
+		before = tc.dheap->toString();
 		tc.dheap->changekey(tc.arg1,tc.arg2);
-		after = tc.dheap->toString(s);
+		after = tc.dheap->toString();
 		if (after == tc.expected) return true;
 		cerr << "Error: on changekey("
 		     << tc.arg1 << "," << tc.arg2 << "," << tc.arg3 << ")\n"
@@ -95,9 +94,9 @@ bool run(testcase tc) {
 		     << "expected:\n" << tc.expected << endl;
 		return false;
 	} else if (tc.method == "insert") {
-		before = tc.dheap->toString(s);
+		before = tc.dheap->toString();
 		tc.dheap->insert(tc.arg1,tc.arg2);
-		after = tc.dheap->toString(s);
+		after = tc.dheap->toString();
 		if (after == tc.expected) return true;
 		cerr << "Error: on insert("
 		     << tc.arg1 << "," << tc.arg2 << ")\n"
@@ -106,9 +105,9 @@ bool run(testcase tc) {
 		     << "expected:\n" << tc.expected << endl;
 		return false;
 	} else if (tc.method == "deletemin") {
-		before = tc.dheap->toString(s);
+		before = tc.dheap->toString();
 		rv = tc.dheap->deletemin();
-		after = tc.dheap->toString(s);
+		after = tc.dheap->toString();
 		if (rv == tc.rval && after == tc.expected) return true;
 		cerr << "Error: on deletemin(" << ")\n"
 		     << "returned " << rv << " expected " << tc.rval << endl
@@ -117,9 +116,9 @@ bool run(testcase tc) {
 		     << "expected:\n" << tc.expected << endl;
 		return false;
 	} else if (tc.method == "remove") {
-		before = tc.dheap->toString(s);
+		before = tc.dheap->toString();
 		tc.dheap->remove(tc.arg1);
-		after = tc.dheap->toString(s);
+		after = tc.dheap->toString();
 		if (after == tc.expected) return true;
 		cerr << "Error: on remove("
 		     << tc.arg1 << ")\n"

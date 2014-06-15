@@ -57,6 +57,7 @@ public:
 
 	// produce string representation
 	string&	toString(string&) const;
+	string 	toString() const;
 private:
 	int numIn;		///< number of elements in in-set
 	int numOut;		///< number of elements in out-set

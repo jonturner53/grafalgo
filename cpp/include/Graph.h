@@ -77,12 +77,12 @@ public:		Graph(int=1,int=1);
 	friend istream& operator>>(istream&, Graph&);
 
 	// create a string representation
-	virtual	string& edge2string(edge,string&) const;
-	virtual	string& edge2string(edge,vertex,string&) const;
-	virtual	string&	toString(string&) const;
-        virtual	string& toDotString(string&) const;
-	virtual	string& elist2string(list<int>&, string&) const;
-	virtual	string& elist2string(List&, string&) const;
+	virtual	string edge2string(edge) const;
+	virtual	string edge2string(edge,vertex) const;
+	virtual	string toString() const;
+        virtual	string toDotString() const;
+	virtual	string elist2string(list<int>&) const;
+	virtual	string elist2string(List&) const;
 
 	void	sortAdjLists();
 protected:
@@ -108,7 +108,7 @@ protected:
 	void	makeSpace(int, int);
 	void	freeSpace();
 	virtual bool readAdjList(istream&);
-	virtual string& adjList2string(vertex,string&) const;
+	virtual string adjList2string(vertex) const;
 
 	// methods for sorting ajacency lists
 	int	ecmp(edge, edge, vertex) const;

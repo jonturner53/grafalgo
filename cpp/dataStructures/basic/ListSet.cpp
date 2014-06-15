@@ -59,7 +59,7 @@ void ListSet::clear() {
 void ListSet::resize(int nitems, int nlists) {
 	freeSpace();
 	try { makeSpace(nitems,nlists); } catch(OutOfSpaceException e) {
-		string s; s = "ListSet::resize:" + e.toString(s);
+		string s; s = "ListSet::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -120,31 +120,28 @@ void ListSet::addFirst(index i, alist j) {
 
 /** Build a string representation of a list.
  *  @param j is a list number
- *  @param s is a string in which the result is returned
- *  @return a reference to s
+ *  @return the string
  */
-string& ListSet::list2string(alist j, string& s) const {
+string ListSet::list2string(alist j) const {
 	int i;
-	s = "";
-	s += j + ": ";
+	string s = "";
+	s += to_string(j) + ": ";
 	for (i = first(j); i != 0; i = next(i)) {
 		string s1;
-		s += item2string(i,s1) + " ";
+		s += item2string(i) + " ";
 	}
 	s += "\n";
 	return s;
 }
 
 /** Build a string representation of a set of lists.
- *  @param s is a string in which the result is returned
- *  @return a reference to s
+ *  @return the string
  */
-string& ListSet::toString(string& s) const {
+string ListSet::toString() const {
 	alist j;
-	s = "";
+	string s = "";
 	for (j = 1; j <= nlst; j++) {
-		string s1;
-		if (lh[j].head != 0) s += list2string(j,s1);
+		if (lh[j].head != 0) s += list2string(j);
 	}
 	return s;
 }

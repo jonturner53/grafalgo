@@ -42,13 +42,11 @@ public: 	Dtrees(int=100);
 	void	cut(index);
 
 	cost	nodeCost(index) const;
-	index	parent(index) const;
 
-	string& path2string(path,string&) const;
-	string& toString(string&) const;
+	string	path2string(path) const;
+	string 	toString() const;
 
 private:
-	index	*parentOf;		///< parentOf[i] is logical parent of i
 	index	*successor;		///< successor[i] is link to next path
 	PathSet *ps;			///< underlying path set data structure
 	
@@ -62,12 +60,6 @@ private:
 	void	makeSpace(int);
 	void	freeSpace();
 };
-
-/** Get the parent of a node.
- *  @param i is a node in a tree
- *  @return the parent of i or 0 if i is at tree root
- */
-inline index Dtrees::parent(index i) const { return parentOf[i]; }
 
 /** Get the cost of a node.
  *  @param i is a node in a tree

@@ -53,6 +53,7 @@ public:
 	void	remove(int64_t); 	
 
 	string& toString(string&) const;
+	string  toString() const;
 private:
 	static const int BKT_SIZ = 8;	///< # of elements per bucket
 	typedef uint64_t bkt_t[BKT_SIZ]; ///< bucket type

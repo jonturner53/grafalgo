@@ -66,7 +66,7 @@ void Dheap::copyFrom(const Dheap& source) {
 void Dheap::resize(int size) {
 	freeSpace();
 	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s; s = "Dheap::resize::" + e.toString(s);
+		string s = "Dheap::resize::" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -165,14 +165,13 @@ void Dheap::changekey(index i, keytyp k) {
  *  @param s is a string in which the result is returned
  *  @return a reference to s
  */
-string& Dheap::toString(string& s) const {
-	stringstream ss;
+string Dheap::toString() const {
+	string s;
 	for (int i = 1; i <= hn; i++) {
-		ss << "(" << item2string(h[i],s) << "," << kee[h[i]] << ") ";
-		if ((i%10) == 0) s += "\n";
+		if (i != 1) s += " ";
+		s += "(" + item2string(h[i]) + ","
+			+ to_string(kee[h[i]]) + ")";
 	}
-	if ((hn%10) != 0) s += "\n";
-	s = ss.str();
 	return s;
 }
 

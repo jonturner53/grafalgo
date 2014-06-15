@@ -54,8 +54,8 @@ public:
 	virtual bst join(bst,index,bst);	
 	virtual BstSet::BstPair split(index,bst);	
 
-	string& bst2string(bst, string&) const;
-	string& toString(string&) const;
+	string	bst2string(bst) const;
+	string	toString() const;
 protected:
 	struct BstNode {
 	index left, right, p;	///< left child, right, parent
@@ -69,7 +69,7 @@ protected:
 	index 	sibling(index, index);
 	index	remove(index);	
 
-	virtual	string& node2string(index, string&) const;
+	virtual	string node2string(index) const;
 
 	void	makeSpace(int);
 	void	freeSpace();

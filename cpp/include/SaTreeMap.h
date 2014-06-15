@@ -41,6 +41,7 @@ public:
 	void	remove(keytyp); 	
 
 	string& toString(string&) const;
+	string  toString() const;
 private:
 	static const int UNDEF_VAL = INT_MIN;   ///< undefined value
 	bst	root;			///< root of search tree

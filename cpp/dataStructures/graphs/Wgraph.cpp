@@ -30,10 +30,8 @@ void Wgraph::makeSpace(int numv, int maxe) {
 	try {
 		wt = new int[maxe+1];
 	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "Wgraph::makeSpace: insufficient space for "
-		   << maxe << " edge weights";
-		string s = ss.str();
+		string s = "Wgraph::makeSpace: insufficient space for "
+		   + to_string(maxe) + " edge weights";
 		throw OutOfSpaceException(s);
 	}
 }
@@ -50,7 +48,7 @@ void Wgraph::resize(int numv, int maxe) {
 	freeSpace();
 	Graph::resize(numv,maxe);
 	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
-		string s; s = "Wgraph::resize:" + e.toString(s);
+		string s = "Wgraph::resize:" + e.toString();
 		throw OutOfSpaceException(s);
 	}
 }
@@ -105,37 +103,33 @@ bool Wgraph::readAdjList(istream& in) {
 /** Create a string representation of an edge.
  *  @param e is an edge number
  *  @param u is one of the endponts of e; it will appear first in the string
- *  @param s is a reference to a string in which the result is returned
- *  @return a reference to s.
+ *  @return the string
  */
-string& Wgraph::edge2string(edge e, vertex u, string& s) const {
-	stringstream ss;
+string Wgraph::edge2string(edge e, vertex u) const {
+	string s;
         vertex v = mate(u,e);
-        ss << "(" << item2string(u,s);
-	ss << "," << item2string(v,s) << "," << weight(e) << ")";
-	s = ss.str();
+        s += "(" + item2string(u);
+	s += "," + item2string(v) + "," + to_string(weight(e)) + ")";
         return s;
 }
 
 /** Create a string representation of an adjacency list.
  *  @param u is a vertex number
- *  @param s is a reference to a string in which the result is returned
- *  @return a reference to s.
+ *  @return the string
  */
-string& Wgraph::adjList2string(vertex u, string& s) const {
-	stringstream ss; s = "";
+string Wgraph::adjList2string(vertex u) const {
+	string s;
 	if (firstAt(u) == 0) return s;
 	int cnt = 0;
-	ss << "[" << Adt::item2string(u,s) << ":";
+	s += "[" + Adt::item2string(u) + ":";
 	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
 		vertex v = mate(u,e);
-		ss <<  " " << item2string(v,s) << "(" << weight(e) << ")";
+		s +=  " " + item2string(v) + "(" + to_string(weight(e)) + ")";
 		if (++cnt >= 15 && nextAt(u,e) != 0) {
-			ss <<  "\n"; cnt = 0;
+			s +=  "\n"; cnt = 0;
 		}
 	}
-	ss <<  "]\n";
-	s = ss.str();
+	s +=  "]\n";
 	return s;
 }
 
@@ -144,24 +138,20 @@ string& Wgraph::adjList2string(vertex u, string& s) const {
  *  For small graphs (at most 26 vertices), vertices are
  *  represented in the string as lower case letters.
  *  For larger graphs, vertices are represented by integers.
- *  @param s is a string object provided by the caller which
- *  is modified to provide a representation of the Graph.
- *  @return a reference to the string
+ *  @return the string
  */
-string& Wgraph::toDotString(string& s) const {
-	stringstream ss;
-	ss << "graph G { " << endl;
+string Wgraph::toDotString() const {
+	string s = "graph G {\n";
 	int cnt = 0;
 	for (edge e = first(); e != 0; e = next(e)) {
 		vertex u = min(left(e),right(e));
 		vertex v = max(left(e),right(e));
-		ss << Adt::item2string(u,s) << " -- ";
-		ss << Adt::item2string(v,s);
-		ss << " [label = \" " << weight(e) << " \"] ; "; 
+		s += Adt::item2string(u) + " -- ";
+		s += Adt::item2string(v);
+		s += " [label = \" " + to_string(weight(e)) + " \"] ; "; 
 		if (++cnt == 10) { s += "\n"; cnt = 0; }
 	}
-	ss << "}\n" << endl;
-	s = ss.str();
+	s += "}\n\n";
 	return s;
 }
 
