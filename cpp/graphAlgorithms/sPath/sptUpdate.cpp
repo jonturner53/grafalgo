@@ -29,8 +29,10 @@ int main(int argc, char* argv[]) {
 	    sscanf(argv[2],"%d",&m) != 1 ||
 	    sscanf(argv[3],"%d",&maxLen) != 1 ||
 	    sscanf(argv[4],"%d",&repCount) != 1 ||
-	    sscanf(argv[5],"%d",&seed) != 1)
+	    sscanf(argv[5],"%d",&seed) != 1) {
 		Util::fatal("usage: sptUpdate n m maxLen repCount seed");
+		exit(1); // redundant exit to shutup compiler
+	}
 
 	srandom(seed);
 	Rgraph::digraph(dig,n,m); Rgraph::edgeLength(dig,0,maxLen);
@@ -128,7 +130,7 @@ int sptUpdate(Wdigraph& dig, vertex p[], int d[], edge e, int nuLen) {
 					string s1;
 					cout <<  "u=" << u << " v=" << v
 					     << " x=" << x << " y=" << y 
-					     << endl << stList->toString(s1);
+					     << endl << *stList;
 				}
 				stList->addLast(y);
 			}
@@ -216,7 +218,7 @@ void check(int s, Wdigraph& dig, Wdigraph& sptree) {
 	}
 
 	// check that tree is minimum
-	int du, dv; string s1;
+	int du, dv; 
 	for (u = 1; u <= dig.n(); u++) {
 		du = sptree.firstIn(u) == 0 ?
 		     0 : sptree.length(sptree.firstIn(u));
@@ -224,12 +226,12 @@ void check(int s, Wdigraph& dig, Wdigraph& sptree) {
 			v = dig.head(e); edge vpe = sptree.firstIn(v);
 			dv = vpe == 0 ?  0 : sptree.length(vpe);
 			if (dv > du + dig.length(e))
-				cout << "check: " << dig.edge2string(e,s1)
+				cout << "check: " << dig.edge2string(e)
 			      	     << " violates spt condition\n";
 			if (vpe != 0 && sptree.tail(vpe) == u && 
 			    dv != du + dig.length(e))
 				cout << "check: tree edge "
-				     << sptree.edge2string(vpe,s1)
+				     << sptree.edge2string(vpe)
 			      	     << " violates spt condition\n";
 		}
 	}

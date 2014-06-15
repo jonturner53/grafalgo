@@ -20,7 +20,6 @@ int main(int argc, char *argv[]) {
 
 	if (argc != 2) Util::fatal("usage: cgraph type");
 
-	string s;
 	if (strcmp(argv[1],"graph") == 0) {
 		Graph g; cin >>g; Graph g1;
 		g1.copyFrom(g); cout << g1;
@@ -35,7 +34,7 @@ int main(int argc, char *argv[]) {
 		wdig1.copyFrom(wdig); cout << wdig1;
 	} else if (strcmp(argv[1],"flograph") == 0) {
 		Flograph fg; cin >> fg; Flograph fg1;
-		fg1.copyFrom(fg); cout << fg1.toString(s);
+		fg1.copyFrom(fg); cout << fg1.toString();
 	} else if (strcmp(argv[1],"wflograph") == 0) {
 		Wflograph wfg; cin >> wfg; Wflograph wfg1;
 		wfg1.copyFrom(wfg); cout << wfg1;

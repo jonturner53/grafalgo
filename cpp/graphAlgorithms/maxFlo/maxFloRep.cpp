@@ -29,8 +29,10 @@ int main(int argc, char* argv[]) {
 	    sscanf(argv[4],"%d",&m) != 1 ||
 	    sscanf(argv[5],"%d",&mss) != 1 ||
 	    sscanf(argv[6],"%d",&ec1) != 1 ||
-	    sscanf(argv[7],"%d",&ec2) != 1)
+	    sscanf(argv[7],"%d",&ec2) != 1) {
 		Util::fatal("usage: maxFloRep method reps n m mss ec1 ec2");
+		exit(1); // redundant exit to shutup compiler
+	}
 
 	Flograph fg(n,m,1,2); 
 	for (i = 1; i <= reps; i++) {

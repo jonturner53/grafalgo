@@ -29,8 +29,10 @@ int main(int argc, char* argv[]) {
 	    sscanf(argv[6],"%d",&ec1) != 1 ||
 	    sscanf(argv[7],"%d",&ec2) != 1 ||
 	    sscanf(argv[8],"%d",&lo) != 1 ||
-	    sscanf(argv[9],"%d",&hi) != 1)
+	    sscanf(argv[9],"%d",&hi) != 1) {
 		Util::fatal("usage: mcFloRep method reps n m mss ec1 ec2 lo hi");
+		exit(1); // redundant exit to shutup compiler
+	}
 
 	Wflograph wfg; flow floVal; cost floCost;
 	for (i = 1; i <= reps; i++) {

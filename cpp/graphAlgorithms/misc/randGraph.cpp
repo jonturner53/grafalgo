@@ -41,7 +41,7 @@
 using namespace grafalgo;
 
 int main(int argc, char* argv[]) {
-	int n, m, mss, scram, lo, hi, ecap1, ecap2, seed;
+	int n, m, mss, scram, lo, hi, ecap1, ecap2, seed = 0;
 	char *gtyp = argv[1];
 
 	if (argc < 6 || argc > 11 ||

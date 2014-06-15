@@ -17,7 +17,7 @@
 #include "ppHiLab.h"
 
 int main(int argc, char *argv[]) {
-	int floVal;
+	int floVal=0;
 	Flograph fg; cin >> fg;
 
 	if (argc != 2) Util::fatal("usage: maxFlo method");

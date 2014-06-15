@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 
 	if (floVal >= 0) {
 		string s;
-		cout << fg.toString(s) << "total flow of " << floVal << endl;
+		cout << fg << "total flow of " << floVal << endl;
 	} else {
 		cout << "no feasible flow" << endl;
 	}

@@ -33,9 +33,11 @@ int main(int argc, char* argv[]) {
 	    sscanf(argv[5],"%d",&n) != 1 ||
 	    sscanf(argv[6],"%d",&m) != 1 ||
 	    sscanf(argv[7],"%d",&maxwt) != 1 ||
-	    sscanf(argv[8],"%d",&seed) != 1)
+	    sscanf(argv[8],"%d",&seed) != 1) {
 		Util::fatal("usage: match {size|weight} {bipartite|general} "
 		      "method reps n p maxwt seed");
+		exit(1); // redundant exit to shutup compiler
+	}
 
 	if (strcmp(argv[1],"size") == 0)  size = true;
 	else if (strcmp(argv[1],"weight") == 0)  size = false;

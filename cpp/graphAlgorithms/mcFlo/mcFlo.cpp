@@ -13,7 +13,7 @@
 using namespace grafalgo;
 
 int main(int argc, char *argv[]) {
-	flow floVal; cost floCost;
+	flow floVal = 0; cost floCost = 0;
 	Wflograph wfg; cin >> wfg;
 	
 	if (argc != 2) Util::fatal("usage: mcFlo method");
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 		Util::fatal("mcFlo: undefined method");
 
 	string s;
-	cout << wfg.toString(s);
+	cout << wfg;
 	cout << "flow value is " << floVal
 	     << " and flow cost is " << floCost << endl;
 }

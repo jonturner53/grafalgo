@@ -23,13 +23,13 @@ int main() {
 
 	// verify that capacity constraints are respected
 	for (e = fg.first(); e != 0; e = fg.next(e)) {
-		u = fg.tail(e); v = fg.head(e); string s;
+		u = fg.tail(e); v = fg.head(e);
 		if (fg.f(u,e) < 0)
 			cout << "Negative flow on edge " 
-			     << e << "=" << fg.edge2string(e,s) << endl;
+			     << e << "=" << fg.edge2string(e) << endl;
 		if (fg.f(u,e) > fg.cap(u,e))
 			cout << "Flow exceeds capacity on edge "
-			     << e << "=" << fg.edge2string(e,s) << endl;
+			     << e << "=" << fg.edge2string(e) << endl;
 	}
 
 	// verify that flow at each node is balanced

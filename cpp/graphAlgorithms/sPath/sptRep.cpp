@@ -25,8 +25,10 @@ int main(int argc, char *argv[]) {
 	    sscanf(argv[3],"%d",&n) != 1 ||
 	    sscanf(argv[4],"%d",&m) != 1 ||
 	    sscanf(argv[5],"%d",&lo) != 1 ||
-	    sscanf(argv[6],"%d",&hi) != 1)
+	    sscanf(argv[6],"%d",&hi) != 1) {
 		Util::fatal("usage: mstRep method reps n m span lo hi");
+		exit(1); // redundant exit to shutup compiler
+	}
 
 	vertex *p = new vertex[n+1]; vertex *d = new vertex[n+1];
 	Wdigraph dig; Wdigraph *sptree;

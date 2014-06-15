@@ -69,7 +69,7 @@ void check(int s, Wdigraph& dig, Wdigraph& sptree) {
 	}
 
 	// check that tree is minimum
-	int du, dv; string s1;
+	int du, dv; 
 	for (u = 1; u <= dig.n(); u++) {
 		du = sptree.firstIn(u) == 0 ?
 		     0 : sptree.length(sptree.firstIn(u));
@@ -78,13 +78,13 @@ void check(int s, Wdigraph& dig, Wdigraph& sptree) {
 			dv = sptree.firstIn(v) == 0 ?
 			     0 : sptree.length(sptree.firstIn(v));
 			if (dv > du + dig.length(e))
-				cout << "check: " << dig.edge2string(e,s1)
+				cout << "check: " << dig.edge2string(e)
 				     << ") violates spt condition\n";
 			if (sptree.firstIn(v) != 0 && 
 			    sptree.tail(sptree.firstIn(v)) == u && 
 			    dv != du + dig.length(e))
 				cout << "check: tree edge "
-				     << dig.edge2string(e,s1)
+				     << dig.edge2string(e)
 				     << " violates spt condition\n";
 		}
 	}

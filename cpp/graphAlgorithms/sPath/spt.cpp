@@ -41,9 +41,8 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	sptree.sortAdjLists();
-	string s1;
-	cout << dig.toString(s1) << endl;
-	cout << sptree.toString(s1) << endl;
+	cout << dig << endl;
+	cout << sptree << endl;
 	cout << "total cost=" << sum << endl;
 	delete [] p; delete [] d;
 	exit(0);

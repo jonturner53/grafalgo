@@ -25,8 +25,8 @@ extern void flowMatch(Graph&,Dlist&,int&);
 extern void flowMatch(Wgraph&,Dlist&,int&,int&);
 
 int main(int argc, char *argv[]) {
-	edge e; int i, mSize, mWeight;
-	bool size, bipartite;
+	edge e=0; int i=0, mSize=0, mWeight=0;
+	bool size=false, bipartite=false;
 	Graph graf; Wgraph wg;
 	
 	if (argc != 4)
@@ -88,13 +88,12 @@ int main(int argc, char *argv[]) {
 	if (n > 100) exit(0); // don't print out really big matchings
 	i = 0;
 	for (e = match.first(); e != 0; e = match.next(e)) {
-		string s;
 		if (size) {
-			cout << "(" << graf.item2string(graf.left(e),s);
-			cout << "," << graf.item2string(graf.right(e),s);
+			cout << "(" << graf.item2string(graf.left(e));
+			cout << "," << graf.item2string(graf.right(e));
 		} else {
-			cout << "(" << wg.item2string(wg.left(e),s);
-			cout << "," << wg.item2string(wg.right(e),s);
+			cout << "(" << wg.item2string(wg.left(e));
+			cout << "," << wg.item2string(wg.right(e));
 			cout << "," << wg.weight(e);
 		}
 		cout << ") ";

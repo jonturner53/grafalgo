@@ -47,9 +47,8 @@ void check(Wgraph& wg, Wgraph& mstree) {
 			v = mstree.mate(u,f);
 			e = edgeTo[v];
 			if (e == 0 || mstree.weight(f) != wg.weight(e)) {
-				string s;
 				cout << "check: edge " << f << "="
-				     << mstree.edge2string(f,s)
+				     << mstree.edge2string(f)
 				     << " is not in wg\n";
 			}
 		}
@@ -109,9 +108,8 @@ void rverify(Wgraph& wg, Wgraph& mstree, vertex u, vertex pu,
 		m = max( max_wt(wg.left(e),u,a,mw),
 			 max_wt(wg.right(e),u,a,mw) );
 		if (m > wg.weight(e)) {
-			string s;
 			cout << "mst violation: edge " << e << "="
-			     << wg.edge2string(e,s) << " in wg\n";
+			     << wg.edge2string(e) << " in wg\n";
 		}
 		e = edge_sets.suc(e);
 		if (e == first_edge[u]) break;

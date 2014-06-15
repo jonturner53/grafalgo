@@ -29,8 +29,10 @@ int main(int argc, char* argv[]) {
 	    sscanf(argv[2],"%d",&reps) != 1 ||
 	    sscanf(argv[3],"%d",&n) != 1 ||
 	    sscanf(argv[4],"%d",&m) != 1 ||
-	    sscanf(argv[5],"%d",&maxkey) != 1)
+	    sscanf(argv[5],"%d",&maxkey) != 1) {
 		Util::fatal("usage: mstRep method reps n m maxkey");
+		exit(1); // redundant exit to shutup compiler
+	}
 
 	srand(1);
 	Wgraph wg(n,m);

@@ -13,7 +13,7 @@ extern void dijkstraAll(Wdigraph&, int**, vertex**);
 extern void floyd(Wdigraph&, int**, vertex**); 
 
 int main(int argc, char *argv[]) {
-	vertex u, v; string s;
+	vertex u, v;
 	Wdigraph dig; cin >> dig;
 	
 	if (argc != 2) Util::fatal("usage: allPairs method");
@@ -30,11 +30,11 @@ int main(int argc, char *argv[]) {
 	
 		cout << "distances\n\n    ";
 		for (v = 1; v <= dig.n(); v++) {
-			cout << dig.item2string(v,s) << " ";
+			cout << dig.item2string(v) << " ";
 		}
 		printf("\n");
 		for (u = 1; u <= dig.n(); u++) {
-			cout << "  " << dig.item2string(v,s) << ": ";
+			cout << "  " << dig.item2string(v) << ": ";
 			for (v = 1; v <= dig.n(); v++) {
 				cout << setw(3) << dist[u][v] << " ";
 			}
@@ -42,13 +42,13 @@ int main(int argc, char *argv[]) {
 		}
 		cout << "\n\nmidpoint array\n\n    ";
 		for (v = 1; v <= dig.n(); v++)  {
-			cout << "  " << dig.item2string(v,s) << " ";
+			cout << "  " << dig.item2string(v) << " ";
 		}
 		cout << endl;
 		for (u = 1; u <= dig.n(); u++) {
-			cout << " " << dig.item2string(v,s) << ": ";
+			cout << " " << dig.item2string(v) << ": ";
 			for (v = 1; v <= dig.n(); v++) {
-				cout << setw(3) << dig.item2string(mid[u][v],s)
+				cout << setw(3) << dig.item2string(mid[u][v])
 				     << " ";
 			}
 			cout << endl;
@@ -65,11 +65,11 @@ int main(int argc, char *argv[]) {
 	
 		cout << "distances\n\n    ";
 		for (v = 1; v <= dig.n(); v++) {
-			cout << "  "<< dig.item2string(v,s) << " ";
+			cout << "  "<< dig.item2string(v) << " ";
 		}
 		cout << endl;
 	        for (u = 1; u <= dig.n(); u++) {
-			cout << " " << dig.item2string(v,s) << ": ";
+			cout << " " << dig.item2string(v) << ": ";
 	                for (v = 1; v <= dig.n(); v++) {
 				cout << setw(3) << dist[u][v] << " ";
 	                }
@@ -78,14 +78,13 @@ int main(int argc, char *argv[]) {
 	
 		cout << "\n\nshortest path trees\n\n    ";
 	        for (v = 1; v <= dig.n(); v++)  {
-			cout << "  " << dig.item2string(v,s);
+			cout << "  " << dig.item2string(v);
 	        }
 		cout << endl;
 		for (u = 1; u <= dig.n(); u++) {
-			cout << " " << dig.item2string(v,s) << ": ";
+			cout << " " << dig.item2string(v) << ": ";
 			for (v = 1; v <= dig.n(); v++) {
-				cout << setw(3) << dig.item2string(
-						     parent[u][v],s)
+				cout << setw(3) << dig.item2string(parent[u][v])
 				     << " ";
 			}
 			cout << endl;

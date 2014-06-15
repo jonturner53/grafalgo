@@ -23,7 +23,7 @@ using namespace grafalgo;
 extern void hardFlograph(int, int, Flograph&);
 
 int main(int argc, char* argv[]) {
-	int k1, k2;
+	int k1=0, k2=0;
 
 	if (argc != 3 || (sscanf(argv[1],"%d",&k1)) != 1 ||
 			 (sscanf(argv[2],"%d",&k2)) != 1)
