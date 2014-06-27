@@ -11,7 +11,7 @@
 
 #include "Adt.h"
 #include "BalBstSet.h"
-#include "SetPair.h"
+#include "ListPair.h"
 
 namespace grafalgo {
 
@@ -46,7 +46,7 @@ private:
 	bst	root;			///< root of search tree
 	BalBstSet *st;			///< search tree storing keys
 	uint32_t *values;		///< vector of values
-	SetPair *nodes;			///< in-use and free nodes
+	ListPair *nodes;		///< in-use and free nodes
 
 	void	makeSpace(int);
 	void	freeSpace();

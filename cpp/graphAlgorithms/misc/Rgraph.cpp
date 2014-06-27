@@ -160,7 +160,7 @@ void Rgraph::tree(Graph& graf, int numv) {
 	}
 	// now build a heap containing all leaves in the tree
 	// being generated
-	Dheap degOne(numv,2);		// vertices with one more edge to go
+	Dheap<int> degOne(numv,2);	// vertices with one more edge to go
 	for (vertex u = 1; u <= numv; u++) {
 		if (d[u] == 1) degOne.insert(u,u);
 	}

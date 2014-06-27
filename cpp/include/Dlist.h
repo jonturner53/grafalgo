@@ -24,12 +24,17 @@ namespace grafalgo {
  */
 class Dlist : public List {
 public:		Dlist(int=26);
+		Dlist(const Dlist&);
+		Dlist(Dlist&&);
 		~Dlist();
 
 	void	resize(int);
 	void	expand(int);
 
-	using   List::copyFrom;
+	// operators
+	Dlist&	operator=(const Dlist&);
+	Dlist&	operator=(Dlist&&);
+	using	List::operator==;
 
 	// index access
 	index	get(index) const;
@@ -37,13 +42,15 @@ public:		Dlist(int=26);
 
 	// modifiers
 	bool    insert(index,index);
+	bool	addFirst(index);
+	bool	addLast(index);
         bool    remove(index);
-        bool    removeNext(index);
 	bool	removeLast();
+	using	List::clear;
 
 protected:
 	// handle dynamic storage
-        void    makeSpace(int);   
+        void    makeSpace();   
 	void	freeSpace();
 private:
 	index	*prv;			// prv[i] is previous index in list
@@ -57,14 +64,17 @@ inline index Dlist::prev(index i) const {
         assert(valid(i) && member(i)); return prv[i];
 }
 
-/** Remove the index following a specified index.
- *  @param i is index whose successor is to be removed;
- *  if zero, the first index is removed
+/** Add index to the front of the list.
+ *  @param index to be added.
  *  @return true if the list was modified, else false
  */
-inline bool Dlist::removeNext(index i) {
-        return remove(i == 0 ? first() : next(i));
-}
+inline bool Dlist::addFirst(index i) { return insert(i,0); }
+
+/** Add index to the end of the list.
+ *  @param index to be added.
+ *  @return true if the list was modified, else false
+ */
+inline bool Dlist::addLast(index i) { return insert(i,last()); }
 
 /** Remove the last index on the list.
  *  @return true if the list was modified, else false

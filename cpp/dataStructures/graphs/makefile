@@ -6,7 +6,7 @@ BIN := ~/bin
 WARN := -Wall -Wno-c++11-extensions
 CXXFLAGS := ${WARN} ${ARCH} -O2
 
-HFILES = ${IDIR}/stdinc.h ${IDIR}/Adt.h ${IDIR}/SetPair.h ${IDIR}/ClistSet.h \
+HFILES = ${IDIR}/stdinc.h ${IDIR}/Adt.h ${IDIR}/ListPair.h ${IDIR}/ClistSet.h \
 	 ${IDIR}/HashSet.h ${IDIR}/Graph.h ${IDIR}/Digraph.h \
 	 ${IDIR}/Flograph.h ${IDIR}/Wflograph.h ${IDIR}/Mflograph.h 
 OFILES = Graph.o Wgraph.o Digraph.o Wdigraph.o Flograph.o Wflograph.o \

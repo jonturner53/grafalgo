@@ -29,7 +29,7 @@ void Graph::makeSpace(int numv, int maxe) {
 	try {
 		fe = new edge[numv+1];
 		evec = new EdgeInfo[maxe+1];
-		edges = new SetPair(maxe);
+		edges = new ListPair(maxe);
 		adjLists = new ClistSet(2*maxe+1);
 	} catch (std::bad_alloc e) {
 		string s = "Graph::makeSpace: insufficient space for "

@@ -57,7 +57,7 @@ void lcap::initLabels() {
 bool lcap::findpath() {
 // Find a least cost augmenting path.
 	vertex u,v; edge e;
-	int c[wfg->n()+1]; Dheap S(wfg->n(),4);
+	int c[wfg->n()+1]; Dheap<int> S(wfg->n(),4);
 
 	for (u = 1; u <= wfg->n(); u++) { pEdge[u] = 0; c[u] = Util::BIGINT32; }
 	c[wfg->src()] = 0; S.insert(wfg->src(),0);

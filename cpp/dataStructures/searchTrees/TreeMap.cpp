@@ -27,7 +27,7 @@ void TreeMap::makeSpace(int size) {
 	try {
 		st = new BalBstSet(size);
 		values = new uint32_t[size+1];
-		nodes = new SetPair(size);
+		nodes = new ListPair(size);
 	} catch (std::bad_alloc e) {
 		string s = "makeSpace:: insufficient space for "
 			   + to_string(size) + "index values";

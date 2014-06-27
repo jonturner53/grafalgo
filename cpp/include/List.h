@@ -23,18 +23,22 @@ namespace grafalgo {
  *  data structures. They are also compact, efficient and support
  *  constant-time membership tests (based on the index).
  *
- *  Note: List has several virtual members, insert() and removeNext()
- *  to allow facilitate extension by other classes.
+ *  Note: List has several no virtual members, so should not be used
+ *  in contexts requiring polymorphic types.
  */
 class List : public Adt {
 public:		List(int=26);
+		List(const List&);
+		List(List&&);
 		~List();
 
-	void	clear();
 	void	resize(int);
 	void	expand(int);
 
-	void	copyFrom(const List&);
+	// operators
+	List&	operator=(const List&);
+	List&	operator=(List&&);
+	bool	operator==(const List&);
 
 	// methods to access items
 	index 	get(position) const;
@@ -51,27 +55,29 @@ public:		List(int=26);
 	bool	isConsistent() const;
 	
 	// modifiers
-	virtual bool insert(index,index);
-	virtual bool removeNext(index);
+	bool	insert(index,index);
 	bool	addFirst(index);
 	bool	addLast(index);
 	bool	removeFirst();
+	bool	removeNext(index);
+	void	clear();
 
 	// input/output
-	string&	toString(string&) const;
 	string	toString() const;
 	friend istream& operator>>(istream&, List&);
-
-protected:
-	// managing dynamic storage
-        void    makeSpace(int);   
-	void	freeSpace();
 
 private:
 	int	len;			///< number of elements in list
 	index	head;			///< first index in list
 	index	tail;			///< last index in list
 	index	*nxt;			///< nxt[i] is successor of i in list
+
+	// managing dynamic storage
+        void    makeSpace();   
+	void	freeSpace();
+
+	void	init();
+	void	copyContents(const List&);
 };
 
 /** Get the next index in a list.
@@ -112,8 +118,7 @@ inline int List::length() const { return len; }
  */
 inline bool List::member(index i) const {
 	if (!valid(i)) {
-                stringstream ss; ss << "get(" << i << ")";
-                string s = ss.str();
+                string s = "get(" + to_string(i) + ") ";
                 throw IllegalArgumentException(s);
         }
 	return nxt[i] != -1;

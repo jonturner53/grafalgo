@@ -13,7 +13,7 @@
 #include "Util.h"
 #include "List.h"
 #include "ClistSet.h"
-#include "SetPair.h"
+#include "ListPair.h"
 #include "HashSet.h"
 #include "Dheap.h"
 #include <list>
@@ -97,7 +97,7 @@ protected:
 	};
 	EdgeInfo *evec;			///< array of edge structures
 
-	SetPair *edges;			///< sets of in-use and free edges
+	ListPair *edges; 		///< sets of in-use and free edges
 
 	ClistSet *adjLists;		///< set of edge adjacency lists
 					///< each "edge endpoint" appears

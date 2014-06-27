@@ -128,7 +128,7 @@ string ListSet::list2string(alist j) const {
 	s += to_string(j) + ": ";
 	for (i = first(j); i != 0; i = next(i)) {
 		string s1;
-		s += item2string(i) + " ";
+		s += index2string(i) + " ";
 	}
 	s += "\n";
 	return s;

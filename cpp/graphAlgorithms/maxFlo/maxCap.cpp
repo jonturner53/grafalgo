@@ -9,7 +9,7 @@ maxCap::maxCap(Flograph& fg1,int& floVal) : augPath(fg1,floVal) {
 bool maxCap::findPath() {
 // Find a path with unused residual capacity.
         vertex u, v; edge e;
-        Dheap nheap(fg->n(),2+fg->m()/fg->n()); int bcap[fg->n()+1];
+        Dheap<int> nheap(fg->n(),2+fg->m()/fg->n()); int bcap[fg->n()+1];
 
         for (u = 1; u <= fg->n(); u++) { pEdge[u] = 0; bcap[u] = 0; }
         bcap[fg->src()] = Util::BIGINT32;

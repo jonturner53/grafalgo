@@ -129,11 +129,11 @@ string Partition::toString() const {
 			for (j = 1; root[j] != i; j++) {}
 			if (isFirst) isFirst = false;
 			else s += " ";
-			s += "[" + Adt::item2string(j);
+			s += "[" + Adt::index2string(j);
 			if (j == i) s += "*";
 			for (j++; j <= n(); j++) {
 				if (root[j] == i) {
-					s += " " + Adt::item2string(j);
+					s += " " + Adt::index2string(j);
 					if (j == i) s += "*";
 				}
 			}

@@ -7,7 +7,7 @@ CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64
 %.o : %.cpp
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-all : testList testDlist testClistSet testSetPair testPartition
+all : testList testDlist testClistSet testListPair testPartition testGlist
 
 testList: testList.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
@@ -15,10 +15,13 @@ testList: testList.o ${LIBS}
 testDlist: testDlist.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
+testGlist: testGlist.o ${LIBS}
+	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+
 testClistSet: testClistSet.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testSetPair: testSetPair.o ${LIBS}
+testListPair: testListPair.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 testPartition: testPartition.o ${LIBS}

@@ -7,9 +7,9 @@ WARN := -Wall -Wno-c++11-extensions
 CXXFLAGS := ${WARN} ${ARCH} -O2
 
 HFILES = ${IDIR}/Adt.h ${IDIR}/stdinc.h ${IDIR}/List.h ${IDIR}/Dlist.h \
-	${IDIR}/ListSet.h ${IDIR}/ClistSet.h ${IDIR}/SetPair.h \
+	${IDIR}/ListSet.h ${IDIR}/ClistSet.h ${IDIR}/ListPair.h \
 	${IDIR}/Partition.h ${IDIR}/RlistSet.h
-OFILES = List.o Dlist.o ListSet.o ClistSet.o SetPair.o \
+OFILES = List.o Dlist.o ListSet.o ClistSet.o ListPair.o \
 	Partition.o RlistSet.o
 ${OFILES} : ${HFILES}
 

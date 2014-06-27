@@ -117,11 +117,11 @@ string ClistSet::toString() const {
 		if (node[i].next == i) continue;
 		if (++cnt > 1) s += ", ";
 		s += "[";
-		s += Adt::item2string(i);
+		s += Adt::index2string(i);
 		for (j = node[i].next; j != i; j = node[j].next) {
 			mark[j] = 1;
 			s += " ";
-			s += Adt::item2string(j);
+			s += Adt::index2string(j);
 		}
 		s += "]";
 	}

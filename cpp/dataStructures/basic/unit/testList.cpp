@@ -96,7 +96,7 @@ bool basicTests() {
 		"empty list reported as non-empty");
 
 	l1.addFirst(1); l1.addFirst(2); l1.addFirst(3);
-	List l2(n1); l2.copyFrom(l1);
+	List l2(n1); l2 = l1;
 	Utest::assertEqual(l2.toString(), "[c b a]",
 		"mismatch on list [c b a]");
 	int n2 = 27; l2.expand(n2);

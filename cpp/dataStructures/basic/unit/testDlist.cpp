@@ -1,4 +1,4 @@
-/** @file TestList.cpp
+/** @file TestDlist.cpp
  *
  *  @author Jon Turner
  *  @date 2011
@@ -48,6 +48,7 @@ void basicTests() {
 		"mismatch on list [c e g i]");
 	Utest::assertTrue(!l1.member(1),
 		"non-member 1 is reported in list");
+
 	l1.removeLast();
 	Utest::assertEqual(l1.toString(), "[c e g]",
 		"mismatch on list [c e g]");

@@ -16,9 +16,19 @@
  */
 class Utest {
 public:	static bool assertTrue(bool, const char*);
+	static bool assertTrue(bool, const string&);
 	static bool assertEqual(int, int, const char*);
+	static bool assertEqual(int, int, const string&);
 	static bool assertEqual(const string&, const string&, const char*);
+	static bool assertEqual(const string&, const string&, const string&);
 };
+
+inline bool Utest::assertTrue(bool condition, const string& s) {
+	if (!condition) {
+		cout << s << endl; exit(1);
+	}
+	return true;
+}
 
 inline bool Utest::assertTrue(bool condition, const char* s) {
 	if (!condition) {
@@ -27,8 +37,23 @@ inline bool Utest::assertTrue(bool condition, const char* s) {
 	return true;
 }
 
+inline bool Utest::assertEqual(int x, int y, const string& s) {
+	if (x != y) {
+		cout << s << endl; exit(1);
+	}
+	return true;
+}
+
 inline bool Utest::assertEqual(int x, int y, const char* s) {
 	if (x != y) {
+		cout << s << endl; exit(1);
+	}
+	return true;
+}
+
+inline bool Utest::assertEqual(const string& p, const string& q,
+			       const string& s) {
+	if (p.compare(q) != 0) {
 		cout << s << endl; exit(1);
 	}
 	return true;

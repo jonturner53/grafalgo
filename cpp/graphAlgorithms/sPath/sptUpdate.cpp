@@ -64,14 +64,14 @@ int sptUpdate(Wdigraph& dig, vertex p[], int d[], edge e, int nuLen) {
 // of vertices in the subtree affected by the update.
 	vertex u, v, x, y; edge f;
 	int oldLen, tSiz;
-	static int n=0; static Dheap *nheap; static List *stList;
+	static int n=0; static Dheap<int> *nheap; static List *stList;
 
 	// Allocate new heap and List if necessary.
 	// For repeated calls on same graph, this is only done once.
 	if (dig.n() > n) { 
 		if (n > 0) { delete nheap; delete stList; }
 		n = dig.n();
-		nheap = new Dheap(dig.n(),2);
+		nheap = new Dheap<int>(dig.n(),2);
 		stList = new List(dig.n());
 	}
 

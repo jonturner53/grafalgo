@@ -13,7 +13,7 @@ void prim(Wgraph& wg, list<int>& mstree) {
 	vertex u,v; edge e;
 	edge *cheap = new edge[wg.n()+1];
 	bool *intree = new bool[wg.n()+1];
-	Dheap nheap(wg.n(),2+wg.m()/wg.n());
+	Dheap<int> nheap(wg.n(),2+wg.m()/wg.n());
 
 	for (e = wg.firstAt(1); e != 0; e = wg.nextAt(1,e)) {
 		u = wg.mate(1,e); nheap.insert(u,wg.weight(e)); cheap[u] = e;

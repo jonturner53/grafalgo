@@ -9,7 +9,7 @@ void dijkstra(Wdigraph& dig, vertex u, vertex p[], int d[]) {
 // and return it in p as an array of parent pointers, with
 // d giving the shortest path distances.
 	vertex v,w; edge e;
-	Dheap nheap(dig.n(),4);
+	Dheap<int> nheap(dig.n(),4);
 
 	for (v = 1; v <= dig.n(); v++) { p[v] = 0; d[v] = Util::BIGINT32; }
 	d[u] = 0; nheap.insert(u,0);

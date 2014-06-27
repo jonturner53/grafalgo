@@ -151,11 +151,11 @@ string RlistSet::toString(index t) const {
 	index h = first(t);
 	string s = "[ ";
 	if (t == 0) s += "-";
-	else if (h == t) s += Adt::item2string(h) + " ";
+	else if (h == t) s += Adt::index2string(h) + " ";
 	else {
 		index x = h; index y = t;
 		do {
-			s += item2string(x) + " ";
+			s += index2string(x) + " ";
 			advance(x,y);
 		} while (x != h);
 	}

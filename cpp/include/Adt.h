@@ -53,23 +53,22 @@ public:
 
 	index n() const { return nn; }
 
-	// disallow copy constructors, assignments
-	Adt(const Adt&) = delete;
-	Adt& operator=(const Adt&) = delete;
-	Adt& operator=( Adt&&) = delete;
+	// disallow copy, move constructors, assignments
+	Adt(Adt&) = delete;
+	Adt(Adt&&) = delete;
+	Adt& operator=(Adt&) = delete;
+	Adt& operator=(Adt&&) = delete;
 
 	// derived classes must provide these methods
-	virtual void clear() = 0;
-	virtual void resize(int size) = 0;
-	virtual void expand(int size) = 0;
+	void resize(int size) { nn = size; }
+	void expand(int size) { nn = size; }
 
 	// input/output
 	static bool readItem(istream&, index&);
-	virtual	string  item2string(index) const;
+	string index2string(index) const;
 	virtual string toString() const = 0;
 	friend ostream& operator<<(ostream& out, Adt& a) {
 		return out << a.toString();
-		//string s; return out << a.toString(s);
 	}
 
 protected:

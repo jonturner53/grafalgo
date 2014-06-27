@@ -18,7 +18,7 @@
 namespace grafalgo {
 
 typedef int keytyp;
-typedef int fheap;
+typedef index fheap;
 
 /** The FheapSet class represents a collection of Fibonacci heaps.
  *  The heaps are defined over nodes numbered 1..n where n is specified
