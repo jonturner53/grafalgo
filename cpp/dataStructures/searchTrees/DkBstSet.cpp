@@ -359,7 +359,7 @@ BstSet::BstPair DkBstSet::split(index i, bst t) {
 string DkBstSet::node2string(index i) const {
 	string s;
 	if (i == 0) return s;
-	s += Adt::item2string(i);
+	s += Adt::index2string(i);
 	if (p(i) == 0) s += "*";
 	s += ":" + to_string(kee1(i)) + ":" + to_string(dmin(i)) + ":"
 	     + to_string(dkey(i));

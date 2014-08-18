@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef UILISTSET_H
-#define UILISTSET_H
+#ifndef LISTSET_H
+#define LISTSET_H
 
 #include "Adt.h"
 
@@ -46,9 +46,7 @@ public:		ListSet(int=26,int=5);
 	index	removeFirst(alist);
 
 	// input/output
-	string& toString(string&) const;
 	string  toString() const;
-	string& list2string(alist, string&) const;
 	string  list2string(alist) const;
 private:
 	int	nlst;			// lists 1..nlst

@@ -83,12 +83,12 @@ void Wgraph::copyFrom(const Wgraph& source) {
 bool Wgraph::readAdjList(istream& in) {
 	if (!Util::verify(in,'[')) return 0;
 	vertex u;
-	if (!Adt::readItem(in,u)) return 0;
+	if (!Adt::readIndex(in,u)) return 0;
 	if (u > n()) expand(u,m());
 	if (!Util::verify(in,':')) return 0;
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v;
-		if (!Adt::readItem(in,v)) return 0;
+		if (!Adt::readIndex(in,v)) return 0;
 		if (v > n()) expand(v,m());
 		if (m() >= maxEdge) expand(n(),max(1,2*m()));
 		int w;
@@ -108,8 +108,8 @@ bool Wgraph::readAdjList(istream& in) {
 string Wgraph::edge2string(edge e, vertex u) const {
 	string s;
         vertex v = mate(u,e);
-        s += "(" + item2string(u);
-	s += "," + item2string(v) + "," + to_string(weight(e)) + ")";
+        s += "(" + index2string(u);
+	s += "," + index2string(v) + "," + to_string(weight(e)) + ")";
         return s;
 }
 
@@ -121,10 +121,10 @@ string Wgraph::adjList2string(vertex u) const {
 	string s;
 	if (firstAt(u) == 0) return s;
 	int cnt = 0;
-	s += "[" + Adt::item2string(u) + ":";
+	s += "[" + Adt::index2string(u) + ":";
 	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
 		vertex v = mate(u,e);
-		s +=  " " + item2string(v) + "(" + to_string(weight(e)) + ")";
+		s +=  " " + index2string(v) + "(" + to_string(weight(e)) + ")";
 		if (++cnt >= 15 && nextAt(u,e) != 0) {
 			s +=  "\n"; cnt = 0;
 		}
@@ -146,8 +146,8 @@ string Wgraph::toDotString() const {
 	for (edge e = first(); e != 0; e = next(e)) {
 		vertex u = min(left(e),right(e));
 		vertex v = max(left(e),right(e));
-		s += Adt::item2string(u) + " -- ";
-		s += Adt::item2string(v);
+		s += Adt::index2string(u) + " -- ";
+		s += Adt::index2string(v);
 		s += " [label = \" " + to_string(weight(e)) + " \"] ; "; 
 		if (++cnt == 10) { s += "\n"; cnt = 0; }
 	}

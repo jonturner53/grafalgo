@@ -39,7 +39,7 @@ void Graph::makeSpace(int numv, int maxe) {
 	}
 	for (vertex u = 0; u <= numv; u++) fe[u] = 0;
 	for (edge e = 0; e <= maxe; e++) evec[e].l = 0;
-	nn = numv; mm = 0; maxEdge = maxe;
+	nn = numv; maxEdge = maxe;
 }
 
 /** Free space used by graph. */
@@ -76,11 +76,12 @@ void Graph::clear() { while (first() != 0) remove(first()); }
 /** Copy into list from source. */
 void Graph::copyFrom(const Graph& source) {
 	if (&source == this) return;
-	if (source.n() > n() || source.m() > maxEdge)
-		resize(source.n(),source.m());
+	if (source.n() > n() || source.maxEdge > maxEdge)
+		resize(source.n(),source.maxEdge);
 	else clear();
-	for (edge e = source.first(); e != 0; e = source.next(e))
+	for (edge e = source.first(); e != 0; e = source.next(e)) {
 		join(source.left(e),source.right(e));
+	}
 }
 
 /** Join two vertices with an edge.
@@ -119,8 +120,6 @@ edge Graph::joinWith(vertex u, vertex v, edge e) {
 	if (fe[u] == 0) fe[u] = 2*e;
 	if (fe[v] == 0) fe[v] = 2*e+1;
 
-	mm++;
-
 	return e;
 }
 
@@ -144,7 +143,6 @@ bool Graph::remove(edge e) {
 
 	evec[e].l = 0;
 
-	mm--;
 	return true;
 }
 
@@ -245,8 +243,8 @@ string Graph::edge2string(edge e) const {
 string Graph::edge2string(edge e, vertex u) const {
 	string s = "(";
 	vertex v = mate(u,e);
-	s += item2string(u) + ",";
-	s += item2string(v) + ")";
+	s += index2string(u) + ",";
+	s += index2string(v) + ")";
 	return s;
 }
 
@@ -281,10 +279,10 @@ string Graph::adjList2string(vertex u) const {
 	string s = "";
 	if (firstAt(u) == 0) return s;
 	int cnt = 0;
-	s += "[" + Adt::item2string(u) + ":";
+	s += "[" + Adt::index2string(u) + ":";
 	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
 		vertex v = mate(u,e);
-		s += " " + item2string(v);
+		s += " " + index2string(v);
 		if (++cnt >= 20 && nextAt(u,e) != 0) {
 			s += "\n"; cnt = 0;
 		}
@@ -321,8 +319,8 @@ string Graph::toDotString() const {
 	for (edge e = first(); e != 0; e = next(e)) {
 		vertex u = min(left(e),right(e));
 		vertex v = max(left(e),right(e));
-		s += Adt::item2string(u) + " -- ";
-		s += Adt::item2string(v) + " ; "; 
+		s += Adt::index2string(u) + " -- ";
+		s += Adt::index2string(v) + " ; "; 
 		if (++cnt == 15) { cnt = 0; s += "\n"; }
 	}
 	s += "}\n";
@@ -336,14 +334,14 @@ string Graph::toDotString() const {
 bool Graph::readAdjList(istream& in) {
 	if (!Util::verify(in,'[')) return 0;
 	vertex u;
-	if (!Adt::readItem(in,u)) return 0;
-	if (u > n()) expand(u,m());
+	if (!Adt::readIndex(in,u)) return 0;
+	if (u > n()) expand(max(u,2*n()),maxEdge);
 	if (!Util::verify(in,':')) return 0;
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v;
-		if (!Adt::readItem(in,v)) return 0;
-		if (v > n()) expand(v,m());
-		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (!Adt::readIndex(in,v)) return 0;
+		if (v > n()) expand(max(u,2*n()),maxEdge);
+		if (m() >= maxEdge) expand(n(),max(1,2*maxEdge));
 		if (u > v) join(u,v);
 	}
 	return in.good();
@@ -356,9 +354,11 @@ bool Graph::readAdjList(istream& in) {
 istream& operator>>(istream& in, Graph& g) {
 	g.clear();
 	bool ok = Util::verify(in,'{');
-	while (ok && !Util::verify(in,'}')) ok = g.readAdjList(in);
+	while (ok && !Util::verify(in,'}')) {
+		ok = g.readAdjList(in);
+	}
 	if (!ok) {
-		string s = "misformatted input for Graph object";
+		string s = "misformatted input for Graph object\n";
 		throw InputException(s);
 	}
 	g.sortAdjLists();

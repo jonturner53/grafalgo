@@ -12,7 +12,8 @@ LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/List.h \
 	 ${IDIR}/RlistSet.h ${IDIR}/Partition.h ${IDIR}/altPath.h \
 	 ${IDIR}/faltPath.h ${IDIR}/edmonds.h ${IDIR}/fastEdmonds.h
-OFILES = flowMatch.o altPath.o faltPath.o edmonds.o fastEdmonds.o
+OFILES = flowMatch.o altPath.o faltPath.o edmonds.o fastEdmonds.o \
+	maxdMatch.o fmaxdMatch.o
 XFILES = match matchRep
 
 ${OFILES} : ${HFILES}

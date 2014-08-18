@@ -95,7 +95,7 @@ bool Flograph::readAdjList(istream& in) {
 		isSnk = true;
 	}
 	vertex u;
-	if (!Adt::readItem(in,u)) return 0;
+	if (!Adt::readIndex(in,u)) return 0;
 	if (Util::verify(in,'-')) {
 		if (!Util::verify(in,'>',true)) return 0;
 		isSrc = true;
@@ -106,7 +106,7 @@ bool Flograph::readAdjList(istream& in) {
 	if (isSnk) setSnk(u);
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v;
-		if (!Adt::readItem(in,v)) return 0;
+		if (!Adt::readIndex(in,v)) return 0;
 		if (v > n()) expand(v,m());
 		if (m() >= maxEdge) expand(n(),max(1,2*m()));
 		int capacity, flow;
@@ -169,8 +169,8 @@ string Flograph::edge2string(edge e) const {
         if (e == 0) {
                s += "-"; 
 	} else {
-		s += "(" + item2string(u);
-		s += "," + item2string(v) + "," + to_string(cap(u,e))
+		s += "(" + index2string(u);
+		s += "," + index2string(v) + "," + to_string(cap(u,e))
 		     + "," +  to_string(f(u,e)) + ")";
         }
 	return s;
@@ -185,13 +185,13 @@ string Flograph::adjList2string(vertex u) const {
 	if (firstOut(u) == 0 && u != src() && u != snk()) return s;
 	s += "[";
 	if (u == snk()) s += "->";
-	s += Adt::item2string(u);
+	s += Adt::index2string(u);
 	if (u == src()) s += "->";
 	s += ":";
 	int cnt = 0;
 	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
-		s += " " + Adt::item2string(v) + "(" + to_string(cap(u,e)) + ","
+		s += " " + Adt::index2string(v) + "(" + to_string(cap(u,e)) + ","
 		   + to_string(f(u,e)) + ")";
 		if (++cnt >= 15 && nextOut(u,e) != 0) {
 			s +=  "\n"; cnt = 0;
@@ -206,16 +206,16 @@ string Flograph::adjList2string(vertex u) const {
  */
 string Flograph::toDotString() const {
 	string s = "digraph G {\n";
-        s += Adt::item2string(src()) 
+        s += Adt::index2string(src()) 
            + " [ style = bold, peripheries = 2, color = red]; " + "\n";
-	s += Adt::item2string(snk()) 
+	s += Adt::index2string(snk()) 
              + " [ style = bold, peripheries = 2, color = blue]; " + "\n";
 	int cnt = 0;
 	for (edge e = first(); e != 0; e = next(e)) {
 		vertex u = min(left(e),right(e));
 		vertex v = max(left(e),right(e));
-		s += Adt::item2string(u) + " -> ";
-		s += Adt::item2string(v);
+		s += Adt::index2string(u) + " -> ";
+		s += Adt::index2string(v);
 		s += " [label = \"(" + to_string(cap(u,e)) + ","
 		     + to_string(f(u,e)) + ")\"]; ";
 		if (++cnt == 10) { s += "\n"; cnt = 0; }

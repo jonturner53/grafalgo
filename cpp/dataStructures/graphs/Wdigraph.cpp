@@ -81,12 +81,12 @@ void Wdigraph::copyFrom(const Wdigraph& source) {
 bool Wdigraph::readAdjList(istream& in) {
 	if (!Util::verify(in,'[')) return 0;
 	vertex u;
-	if (!Adt::readItem(in,u)) return 0;
+	if (!Adt::readIndex(in,u)) return 0;
 	if (u > n()) expand(u,m());
 	if (!Util::verify(in,':')) return 0;
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v;
-		if (!Adt::readItem(in,v)) return 0;
+		if (!Adt::readIndex(in,v)) return 0;
 		if (v > n()) expand(v,m());
 		if (m() >= maxEdge) expand(n(),max(1,2*m()));
 		int w;
@@ -106,10 +106,10 @@ string Wdigraph::adjList2string(vertex u) const {
 	string s = "";
 	if (firstAt(u) == 0) return s;
 	int cnt = 0;
-	s += "[" + Adt::item2string(u) + ":";
+	s += "[" + Adt::index2string(u) + ":";
 	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
-		s +=  " " + item2string(v) + "(" + to_string(length(e)) + ")";
+		s +=  " " + index2string(v) + "(" + to_string(length(e)) + ")";
 		if (++cnt >= 15 && nextOut(u,e) != 0) {
 			s +=  "\n"; cnt = 0;
 		}
@@ -126,7 +126,7 @@ string Wdigraph::adjList2string(vertex u) const {
  */
 string Wdigraph::edge2string(edge e) const {
         vertex u = tail(e); vertex v = head(e);
-        string s = "(" + item2string(u) + "," + item2string(v) + ","
+        string s = "(" + index2string(u) + "," + index2string(v) + ","
 		   + to_string(length(e)) + ")";
         return s;
 }
@@ -143,8 +143,8 @@ string Wdigraph::toDotString() const {
 	int cnt = 0;
 	for (edge e = first(); e != 0; e = next(e)) {
 		vertex u = tail(e); vertex v = head(e);
-		s += Adt::item2string(u) + " -> ";
-		s += Adt::item2string(v);
+		s += Adt::index2string(u) + " -> ";
+		s += Adt::index2string(v);
 		s += " [label = \" " + to_string(length(e)) + " \"] ; "; 
 		if (++cnt == 10) { s += "\n"; cnt = 0; }
 	}

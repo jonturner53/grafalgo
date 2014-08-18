@@ -24,7 +24,9 @@ public:
 	// basic input helper functions
 	static bool skipSpace(istream& in, bool=false);
 	static bool skipBlank(istream& in);
+	static bool nextLine(istream& in);
 	static bool readWord(istream&, string&, bool= false);
+	static bool readString(istream&, string&, bool= false);
 	static bool readInt(istream&, int&, bool= false);
 	static bool verify(istream&, char c, bool=false);
 

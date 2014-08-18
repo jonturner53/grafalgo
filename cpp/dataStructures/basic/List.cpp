@@ -13,12 +13,15 @@ namespace grafalgo {
 /** Constructor for list.
  *  @param nn1 specifies the maximum index
  */
-List::List(int nn1) : Adt(nn1) { makeSpace(); init(); }
+List::List(int nn1, bool autoX) : Adt(nn1), autoExpand(autoX) {
+	makeSpace(); init();
+}
 
 /** Copy constructor.
  *  @param src is a List whose contents are copied to this List.
  */
-List::List(const List& src) : Adt(src.n()) { makeSpace(); copyContents(src); }
+List::List(const List& src) : Adt(src.n()) {
+	makeSpace(); copyContents(src); }
 
 /** Move constructor.
  *  @param src is a List whose contents may be re-used
@@ -26,6 +29,7 @@ List::List(const List& src) : Adt(src.n()) { makeSpace(); copyContents(src); }
 List::List(List&& src) : Adt(src.n()) {
 	freeSpace();
 	head = src.head; tail = src.tail; len = src.len; nxt = src.nxt;
+	autoExpand = src.autoExpand;
 	src.nxt = nullptr;
 }
 
@@ -57,6 +61,7 @@ void List::init() {
   */
 void List::copyContents(const List& src) {
 	head = src.head; tail = src.tail; len = src.len;
+	autoExpand = src.autoExpand;
 	std::copy(src.nxt, src.nxt+src.n()+1, nxt);
 	std::fill(nxt+src.n()+1, nxt+n()+1, -1);
 }
@@ -100,8 +105,9 @@ List& List::operator=(const List& src) {
 List& List::operator=(List&& src) {
 	if (this == &src) return *this;
 	freeSpace(); Adt::resize(src.n());
-	head = src.head; tail = src.tail; len = src.len; nxt = src.nxt;
-	src.nxt = nullptr;
+	head = src.head; tail = src.tail; len = src.len;
+	autoExpand = src.autoExpand;
+	nxt = src.nxt; src.nxt = nullptr;
 	return *this;
 }
 
@@ -141,12 +147,13 @@ index List::get(position i) const {
  *  @return true if list was modified, else false
  */
 bool List::insert(index i, index j) {
-	if (!((i == 0 || valid(i)) && (j == 0 || valid(j)))) {
+	if ((i < 0 || (i > n() && !autoExpand)) || (j < 0 || j > n())) {
 		string s = "List::insert(" + to_string(i) + ","
-			   + to_string(j) + ")";
+			   + to_string(j) + ")\n";
 		throw IllegalArgumentException(s);
 	}
 	if (i == 0 || member(i)) return false;
+	if (i > n() && autoExpand) expand(max(i,2*n()));
 	len++;
 	if (j == 0) {
 		if (empty()) tail = i;
@@ -176,6 +183,8 @@ bool List::removeNext(index i) {
 	if (tail == j) tail = i;
 	nxt[j] = -1;
 	len--;
+	// shrink empty list back to default size
+	if (len == 0 && autoExpand) resize(10);
 	return true;
 }
 

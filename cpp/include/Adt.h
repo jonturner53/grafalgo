@@ -54,20 +54,20 @@ public:
 	index n() const { return nn; }
 
 	// disallow copy, move constructors, assignments
-	Adt(Adt&) = delete;
-	Adt(Adt&&) = delete;
-	Adt& operator=(Adt&) = delete;
-	Adt& operator=(Adt&&) = delete;
+//	Adt(Adt&) = delete;
+//	Adt(Adt&&) = delete;
+//	Adt& operator=(Adt&) = delete;
+//	Adt& operator=(Adt&&) = delete;
 
 	// derived classes must provide these methods
 	void resize(int size) { nn = size; }
 	void expand(int size) { nn = size; }
 
 	// input/output
-	static bool readItem(istream&, index&);
+	static bool readIndex(istream&, index&);
 	string index2string(index) const;
 	virtual string toString() const = 0;
-	friend ostream& operator<<(ostream& out, Adt& a) {
+	friend ostream& operator<<(ostream& out, const Adt& a) {
 		return out << a.toString();
 	}
 

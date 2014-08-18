@@ -12,7 +12,7 @@
 using namespace grafalgo;
 
 void basicTests() {
-	DheapSet hs(20,3);
+	DheapSet<int> hs(20,3,2);
 
 	cout << "writing empty heap: " << hs.toString(1) << endl;
 	cout << "starting insertions\n";
@@ -32,7 +32,7 @@ void basicTests() {
 	cout << "starting deleteMins\n";
 	for (int i = 1; i <= 15; i++) {
 		int j = hs.deleteMin(1);
-		cout << j << "  " << hs.toString(1) << endl;
+		cout << j << "\n" << hs.toString(1) << endl;
 	}
 }
 

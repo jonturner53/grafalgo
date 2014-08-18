@@ -24,7 +24,7 @@ namespace grafalgo {
  *  returned
  *  @return true on success, else false
  */
-bool Adt::readItem(istream& in, index& x) {
+bool Adt::readIndex(istream& in, index& x) {
 	Util::skipSpace(in);
 	char c = in.peek();
 	if (!in.good()) return false;

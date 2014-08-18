@@ -31,26 +31,31 @@ namespace grafalgo {
  *  Requires a user-supplied hash function to compute 32 bit hash values
  *  from keys.
  */
-template<class K, class V>
-class HashMap : public HashSet<K> {
+template<class K, class V, uint32_t (*H)(const K&, int)>
+class HashMap : public HashSet<K,H> {
 public:
-		HashMap(uint32_t (*)(const K&,int), int=15);
+		HashMap(int=10, bool=true);
+		HashMap(const HashMap&);
+		HashMap(HashMap&&);
 		~HashMap();
 
-	// common methods
-	void	clear(); 	
+	// operators
+	HashMap& operator=(const HashMap&);
+	HashMap& operator=(HashMap&&);
+
+	// adjusting size
 	void	resize(int); 	
 	void	expand(int); 	
-	void	copyFrom(const HashMap&);
 
 	// inherited methods
 	using	Adt::n;
-	using	HashSet<K>::first;
-	using	HashSet<K>::next;
-	using	HashSet<K>::find;
-	using	HashSet<K>::valid;
-	using	HashSet<K>::size;
-	using	HashSet<K>::remove;
+	using	HashSet<K,H>::first;
+	using	HashSet<K,H>::next;
+	using	HashSet<K,H>::find;
+	using	HashSet<K,H>::contains;
+	using	HashSet<K,H>::valid;
+	using	HashSet<K,H>::size;
+	using	HashSet<K,H>::retrieve;
 
 	// methods for accessing pairs
 	V&	get(const K&) const;
@@ -60,93 +65,120 @@ public:
 	// modifiers
 	index	put(const K&, const V&); 		
 	index	put(const K&, const V&, index); 		
+	void	remove(const K&);
+	bool	rekey(index, const K&);
+	void	clear(); 	
 
 	string  toString() const;
 private:
 	V	*values;		///< array of values
 
-	void makeSpace(int);
+	void makeSpace();
 	void freeSpace();
-
-	// inherited methods
-	using	HashSet<K>::retrieve;
-	using	HashSet<K>::contains;
-	using	HashSet<K>::insert;
-	using	HashSet<K>::hashit;
 };
 
-/** Constructor for HashMap, allocates space and initializes table.
+/** Constructor for HashMap, allocates space.
  *  @param hf is a pointer to a hash function that hashes a key to
  *  a 32 bit hash value
- *  @param N1 is the maximum number of elements in the map;
- *  it must be less than 2^24.
+ *  @param n1 is the maximum number of elements in the map;
+ *  it must be less than 2^24; default=10
+ *  @param autoX determines if the data structure is automatically expanded
+ *  when necessary or not; default=true
  */
-template<class K, class V>
-HashMap<K,V>::HashMap(uint32_t (*hf)(const K&,int),int n1) : HashSet<K>(hf,n1) {
-	makeSpace(n1);
+template<class K, class V, uint32_t (*H)(const K&, int)>
+HashMap<K,V,H>::HashMap(int n1, bool autoX) : HashSet<K,H>(n1,autoX) {
+	makeSpace();
 }
-	
-/** Destructor for HashMap. */
-template<class K, class V>
-HashMap<K,V>::~HashMap() { freeSpace(); }
 
-/** Allocate and initialize space for map.
+/** Copy constructor */
+template<class K, class V, uint32_t (*H)(const K&, int)>
+HashMap<K,V,H>::HashMap(const HashMap<K,V,H>& src) : HashSet<K,H>(src) {
+	makeSpace(); 
+}
+
+/** Move constructor */
+template<class K, class V, uint32_t (*H)(const K&, int)>
+HashMap<K,V,H>::HashMap(HashMap<K,V,H>&& src) : HashSet<K,H>(src) {
+	values = src.values; src.values = nullptr;
+} 
+
+/** Destructor for HashMap. */
+template<class K, class V, uint32_t (*H)(const K&, int)>
+HashMap<K,V,H>::~HashMap() { freeSpace(); }
+
+/** Allocate space for map.
  *  @param size is number of index values to provide space for
  */
-template<class K, class V>
-void HashMap<K,V>::makeSpace(int size) {
+template<class K, class V, uint32_t (*H)(const K&, int)>
+void HashMap<K,V,H>::makeSpace() {
 	try {
-		values = new V[size+1];
+		values = new V[n()+1];
 	} catch (std::bad_alloc e) {
 		string s = "HashMap::makeSpace: insufficient space for "
-		   	   + to_string(size) + " index values";
+		   	   + to_string(n()) + " index values";
 		throw OutOfSpaceException(s);
 	}
 }
 
 /** Free dynamic storage used by map. */
-template<class K, class V>
-void HashMap<K,V>::freeSpace() { delete [] values; }
+template<class K, class V, uint32_t (*H)(const K&, int)>
+void HashMap<K,V,H>::freeSpace() { delete [] values; }
+
+/** Assignment operator (copy version).
+ *  @return a reference to this object.
+ */
+template<class K, class V, uint32_t (*H)(const K&, int)>
+HashMap<K,V,H>& HashMap<K,V,H>::operator=(const HashMap<K,V,H>& src) {
+	if (this == &src) return *this;
+	int old_n = n();
+	HashSet<K,H>::operator=(src);
+	if (n() != old_n) { // parent class re-sized object
+		freeSpace(); makeSpace();
+	}
+	for (index x = src.first(); x != 0; x = src.next(x))
+		values[x] = src.values[x];
+	return *this;
+}
+
+/** Assignment operator (move version).
+ *  @return a reference to this object.
+ */
+template<class K, class V, uint32_t (*H)(const K&, int)>
+HashMap<K,V,H>& HashMap<K,V,H>::operator=(HashMap<K,V,H>&& src) {
+	if (this == &src) return *this;
+	HashSet<K,H>::operator=(src);
+	delete [] values; values = src.values; src.values = nullptr;
+	return *this;
+}
 
 /** Resize a HashMap object.
  *  The old value is discarded.
  *  @param size is the size of the resized object.
  */
-template<class K, class V>
-void HashMap<K,V>::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "HashMap::resize::" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+template<class K, class V, uint32_t (*H)(const K&, int)>
+void HashMap<K,V,H>::resize(int size) {
+	freeSpace(); HashSet<K,H>::resize(size); makeSpace();
 }
 
 /** Expand the space available for this map.
  *  Rebuilds old value in new space.
  *  @param size is the size of the resized object.
  */
-template<class K, class V>
-void HashMap<K,V>::expand(int size) {
-	if (size <= n()) return;
-	HashMap<K,V> old(hashit,this->n()); old.copyFrom(*this);
-	HashSet<K>::resize(size);
-	resize(size); this->copyFrom(old);
+template<class K, class V, uint32_t (*H)(const K&, int)>
+void HashMap<K,V,H>::expand(int size) {
+	int old_n = n();
+	HashSet<K,H>::expand(size);
+	if (n() == old_n) return;
+	V *old_values = values; makeSpace();
+	for (index x = first(); x != 0; x = next(x))
+		values[x] = old_values[x];
+	delete[] old_values;
 }
 
-/** Clear the hashtable contents. */
-template<class K, class V>
-void HashMap<K,V>::clear() {
+/** Clear the hash map contents. */
+template<class K, class V, uint32_t (*H)(const K&, int)>
+void HashMap<K,V,H>::clear() {
 	while (first() != 0) remove(getKey(first()));
-}
-
-/** Copy into map from src. */
-template<class K, class V>
-void HashMap<K,V>::copyFrom(const HashMap& src) {
-	if (&src == this) return;
-	if (src.n() > n()) resize(src.n());
-	else clear();
-        for (index x = src.first(); x != 0; x = src.next(x))
-		put(src.getKey(x), src.getValue(x), x);
 }
 
 /** Get the key of the (key,value) pair with a given index.
@@ -154,8 +186,8 @@ void HashMap<K,V>::copyFrom(const HashMap& src) {
  *  @return a const reference to the key part of the pair with index x
  *  throws an illegal argument exception if x is not a valid index
  */
-template<class K, class V>
-inline const K& HashMap<K,V>::getKey(index x) const {
+template<class K, class V, uint32_t (*H)(const K&, int)>
+inline const K& HashMap<K,V,H>::getKey(index x) const {
 	if (!valid(x)) {
 		string s = "HashMap::getValue: invalid index " + to_string(x);
 		throw IllegalArgumentException(s);
@@ -168,8 +200,8 @@ inline const K& HashMap<K,V>::getKey(index x) const {
  *  @return a reference to the value part of the pair with index x
  *  throws an illegal argument exception if x is not a valid index
  */
-template<class K, class V>
-inline V& HashMap<K,V>::getValue(index x) const {
+template<class K, class V, uint32_t (*H)(const K&, int)>
+inline V& HashMap<K,V,H>::getValue(index x) const {
 	if (!valid(x)) {
 		string s = "HashMap::getValue: invalid index " + to_string(x);
 		throw IllegalArgumentException(s);
@@ -182,8 +214,8 @@ inline V& HashMap<K,V>::getValue(index x) const {
  *  @return a reference to the value part of the corresponding (key,value) pair;
  *  throws an illegal argument exception if no such key
  */
-template<class K, class V>
-inline V& HashMap<K,V>::get(const K& key) const {
+template<class K, class V, uint32_t (*H)(const K&, int)>
+inline V& HashMap<K,V,H>::get(const K& key) const {
 	return getValue(find(key));
 }
 
@@ -192,9 +224,16 @@ inline V& HashMap<K,V>::get(const K& key) const {
  *  @param value is the value of the pair to be added/modified
  *  @return true on success, false on failure.
  */
-template<class K, class V>
-inline index HashMap<K,V>::put(const K& key, const V& val) {
-	index x = this->insert(key);
+template<class K, class V, uint32_t (*H)(const K&, int)>
+index HashMap<K,V,H>::put(const K& key, const V& val) {
+	int old_n = n();
+	index x = HashSet<K,H>::insert(key);
+	if (n() != old_n) { // parent class expanded space
+		V *old_values = values; makeSpace();
+		for (index z = first(); z != 0; z = next(z))
+			values[z] = old_values[z];
+		delete[] old_values;
+	}
 	if (x != 0) values[x] = val;
 	return x;
 }
@@ -205,19 +244,50 @@ inline index HashMap<K,V>::put(const K& key, const V& val) {
  *  @param x is the index to be assigned to the new pair
  *  @return true on success, false on failure.
  */
-template<class K, class V>
-inline index HashMap<K,V>::put(const K& key, const V& val, index x) {
-	x = insert(key,x);  // note if key already in map, may get new x
-	if (x == 0) return 0;
-	values[x] = val;
+template<class K, class V, uint32_t (*H)(const K&, int)>
+index HashMap<K,V,H>::put(const K& key, const V& val, index x) {
+	int old_n = n();
+	x = HashSet<K,H>::insert(key,x);
+	if (n() != old_n) { // parent class expanded space
+		V *old_values = values; makeSpace();
+		for (index z = first(); z != 0; z = next(z))
+			values[z] = old_values[z];
+		delete[] old_values;
+	}
+	if (x != 0) values[x] = val;
 	return x;
+}
+
+template<class K, class V, uint32_t (*H)(const K&, int)>
+void HashMap<K,V,H>::remove(const K& key) {
+	int old_n = n();
+	HashSet<K,H>::remove(key);
+	if (n() != old_n) { // parent class shrunk set
+		freeSpace(); makeSpace();
+	}
+}
+
+/** Change the key for a specific (key,value) pair.
+ *  @param x is the index of a pair that is to be re-keyed
+ *  @param key is the new key for the pair
+ *  @return true on success, false on failure.
+ */
+template<class K, class V, uint32_t (*H)(const K&, int)>
+bool HashMap<K,V,H>::rekey(index x, const K& key) {
+	if (!valid(x)) return false;
+	K oldkey = getKey(x);
+	remove(oldkey);
+	if (HashSet<K,H>::insert(key,x) == 0) {
+		HashSet<K,H>::insert(oldkey,x); return false;
+	}
+	return true;
 }
 
 /** Construct string listing the key,value pairs in the map
  *  @return the string
  */
-template<class K, class V>
-string HashMap<K,V>::toString() const {
+template<class K, class V, uint32_t (*H)(const K&, int)>
+string HashMap<K,V,H>::toString() const {
 	stringstream ss; ss << "{";
         for (int x = first(); x != 0; x = next(x)) {
 		if (x != first()) ss << " ";

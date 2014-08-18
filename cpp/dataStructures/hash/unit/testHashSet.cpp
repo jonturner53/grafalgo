@@ -6,42 +6,14 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+#include "Hash.h"
 #include "HashSet.h"
 #include "Utest.h"
 
 using namespace grafalgo;
 
-uint32_t hash1(const uint32_t& key, int hf) {
-	const uint32_t A0 = 0xa96347c5;
-	const uint32_t A1 = 0xe65ac2d3;
-
-	uint64_t z = key;
-	z *= (hf == 0 ? A0 : A1);
-	return ((uint32_t) (z >> 16));
-}
-
-uint32_t hash2(const string& key, int hf) {
-	const uint32_t A0 = 0xa96347c5;
-	const uint32_t A1 = 0xe65ac2d3;
-
-	uint64_t z = 0;
-	const char* p = key.data();
-	int n = key.length();
-	while (n >= 8) {
-		z += *((const uint64_t*) p);
-		p += 8; n -= 8;
-	}
-	for (int i = 0; i < 8; i++) {
-		z += (*p << 8*i); p++; n--;
-		if (n == 0) { p = key.data(); n = key.length(); }
-	}
-	z = (z >> 32) + (z & 0xffffffff);
-	z *= (hf == 0 ? A0 : A1);
-	return ((uint32_t) (z >> 16));
-}
-
 void basicTests() {
-	HashSet<uint32_t> map1(hash1);
+	HashSet<uint32_t,Hash::u32> map1;
 
 	Utest::assertEqual(map1.first(), 0, "initial map not empty");
 	cout << "writing empty indexMap: " << map1 << endl;
@@ -71,12 +43,32 @@ void basicTests() {
 		"{(1234,3) (3456," + to_string(x) + ") " +
 		"(4567," + to_string(y) + ")}",
 		"mismatch on adding after removing pair");
+	
+	// force map to expand
+	for (int i = 20; i < 30; i++) map1.insert(i);
+	for (int i = 20; i < 30; i++) 
+		Utest::assertTrue(map1.contains(i),"mismatch on membership test");
+
+	// force map to expand again
+	for (int i = 30; i < 80; i++) map1.insert(i);
+	for (int i = 30; i < 80; i++) 
+		Utest::assertTrue(map1.contains(i),"mismatch on membership test");
+
+	HashSet<uint32_t,Hash::u32> copy1(map1);
+	for (grafalgo::index x = map1.first(); x != 0; x = map1.next(x))
+		Utest::assertTrue(copy1.contains(map1.retrieve(x)),
+			"mismatch on membership test in copy1");
+	HashSet<uint32_t,Hash::u32> copy2;
+	copy2 = copy1;
+	for (grafalgo::index x = map1.first(); x != 0; x = map1.next(x))
+		Utest::assertTrue(copy2.contains(map1.retrieve(x)),
+			"mismatch on membership test in copy2");
 
 	map1.clear();
 	Utest::assertEqual(map1.toString(), "{}",
 			   "mismatch after clearing map");
 
-	HashSet<string> map2(hash2);
+	HashSet<string,Hash::string> map2;
 	map2.insert("abc", 5);
 	map2.insert("abc def", 4);
 	map2.insert("xyz",2);

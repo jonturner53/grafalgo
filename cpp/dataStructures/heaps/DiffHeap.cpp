@@ -184,8 +184,8 @@ string DiffHeap::toString() const {
 	string s = "";
 	for (int i = 1; i <= hn; i++) {
 		string s1;
-		s += "(" + Adt::item2string(h[i],s1);
-		s += "," + Adt::item2string(kee[h[i]],s1) + ") ";
+		s += "(" + Adt::index2string(h[i],s1);
+		s += "," + Adt::index2string(kee[h[i]],s1) + ") ";
 		if ((i%10) == 0) s += "\n";
 	}
 	if ((hn%10) != 0) s += "\n";

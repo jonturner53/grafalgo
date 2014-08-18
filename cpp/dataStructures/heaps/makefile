@@ -8,7 +8,7 @@ CXXFLAGS := ${WARN} ${ARCH} -O2
 
 HFILES = ${IDIR}/Adt.h ${IDIR}/ClistSet.h \
 	${IDIR}/LheapSet.h ${IDIR}/LlheapSet.h ${IDIR}/FheapSet.h 
-OFILES = DheapSet.o LheapSet.o LlheapSet.o FheapSet.o 
+OFILES = LheapSet.o LlheapSet.o FheapSet.o 
 ${OFILES} : ${HFILES}
 
 .cpp.o:

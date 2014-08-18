@@ -7,6 +7,8 @@
  */
 
 #include "stdinc.h"
+#include "Hash.h"
+#include "Pair.h"
 #include "Rgraph.h"
 
 namespace grafalgo {
@@ -33,11 +35,11 @@ void Rgraph::ugraph(Graph& graf, int numv, int nume) {
 void Rgraph::addEdges(Graph& graf, int nume) {
 	if (nume <= graf.m()) return;
 	// build set containing edges already in graph
-	HashSet edgeSet(nume);
+	HashSet<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
 	for (edge e = graf.first(); e != 0; e = graf.next(e)) {
-		vertex u = min(graf.left(e), graf.right(e));
-		vertex v = max(graf.left(e), graf.right(e));
-		uint64_t vpair = u; vpair <<= 32; vpair |= v;
+		Pair<vertex,vertex> vpair;
+		vpair.first =  min(graf.left(e), graf.right(e));
+		vpair.second = max(graf.left(e), graf.right(e));
 		edgeSet.insert(vpair);
 	}
 
@@ -49,8 +51,8 @@ void Rgraph::addEdges(Graph& graf, int nume) {
 		vertex v = Util::randint(1,graf.n());
 		if (u == v) continue;
 		if (u > v) { vertex w = u; u = v; v = w; }
-		uint64_t vpair = u; vpair <<= 32; vpair |= v;
-		if (!edgeSet.member(vpair)) {
+		Pair<vertex,vertex> vpair(u,v);
+		if (!edgeSet.contains(vpair)) {
 			edgeSet.insert(vpair); graf.join(u,v);
 		}
 	}
@@ -58,19 +60,19 @@ void Rgraph::addEdges(Graph& graf, int nume) {
 
 	// if more edges needed, build a vector containing remaining 
 	// "candidate" edges and then sample from this vector
-	vector<uint64_t> vpVec;
+	vector<Pair<vertex,vertex>> vpVec;
 	for (vertex u = 1; u < graf.n(); u++) {
 		for (vertex v = u+1; v <= graf.n(); v++) {
-			uint64_t vpair = u; vpair <<= 32; vpair |= v;
-			if (!edgeSet.member(vpair)) vpVec.push_back(vpair);
+			Pair<vertex,vertex> vpair(u,v);
+			if (!edgeSet.contains(vpair)) vpVec.push_back(vpair);
 		}
 	}
 	// sample remaining edges from vector
 	unsigned int i = 0;
 	while (graf.m() < nume && i < vpVec.size()) {
 		int j = Util::randint(i,vpVec.size()-1);
-		vertex u = vpVec[j] >> 32;
-		vertex v = vpVec[j] & 0xffffffff;
+		vertex u = vpVec[j].first;
+		vertex v = vpVec[j].second;
 		graf.join(u,v); vpVec[j] = vpVec[i++];
 	}
 	graf.sortAdjLists();
@@ -99,11 +101,11 @@ void Rgraph::bigraph(Graph& graf, int n1, int n2, int nume) {
 void Rgraph::addEdges(Graph& graf, int n1, int n2, int nume) {
 	if (nume <= graf.m()) return;
 	// build set containing edges already in graph
-	HashSet edgeSet(nume);
+	HashSet<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
 	for (edge e = graf.first(); e != 0; e = graf.next(e)) {
-		vertex u = min(graf.left(e), graf.right(e));
-		vertex v = max(graf.left(e), graf.right(e));
-		uint64_t vpair = u; vpair <<= 32; vpair |= v;
+		Pair<vertex,vertex> vpair;
+		vpair.first =  min(graf.left(e), graf.right(e));
+		vpair.second = max(graf.left(e), graf.right(e));
 		edgeSet.insert(vpair);
 	}
 
@@ -113,8 +115,8 @@ void Rgraph::addEdges(Graph& graf, int n1, int n2, int nume) {
 	while (graf.m() < nume && graf.m()/n1 < n2/2) {
 		vertex u = Util::randint(1,n1);
 		vertex v = Util::randint(n1+1,n1+n2);
-		uint64_t vpair = u; vpair <<= 32; vpair |= v;
-		if (!edgeSet.member(vpair)) {
+		Pair<vertex,vertex> vpair(u,v);
+		if (!edgeSet.contains(vpair)) {
 			edgeSet.insert(vpair); graf.join(u,v);
 		}
 	}
@@ -122,19 +124,18 @@ void Rgraph::addEdges(Graph& graf, int n1, int n2, int nume) {
 
 	// if more edges needed, build a vector containing remaining 
 	// "candidate" edges and then sample from this vector
-	vector<uint64_t> vpVec;
+	vector<Pair<vertex,vertex>> vpVec;
 	for (vertex u = 1; u <= n1; u++) {
 		for (vertex v = n1+1; v <= n1+n2; v++) {
-			uint64_t vpair = u; vpair <<= 32; vpair |= v;
-			if (!edgeSet.member(vpair)) vpVec.push_back(vpair);
+			Pair<vertex,vertex> vpair(u,v);
+			if (!edgeSet.contains(vpair)) vpVec.push_back(vpair);
 		}
 	}
 	// sample remaining edges from vector
 	unsigned int i = 0;
 	while (graf.m() < nume && i < vpVec.size()) {
 		int j = Util::randint(i,vpVec.size()-1);
-		vertex u = vpVec[j] >> 32;
-		vertex v = vpVec[j] & 0xffffffff;
+		vertex u = vpVec[j].first; vertex v = vpVec[j].second;
 		graf.join(u,v); vpVec[j] = vpVec[i++];
 	}
 	graf.sortAdjLists();
@@ -201,11 +202,11 @@ void Rgraph::digraph(Digraph& dg, int numv, int nume) {
         else dg.clear();
 
 	// build set containing edges already in graph
-	HashSet edgeSet(nume);
+	HashSet<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
 	for (edge e = dg.first(); e != 0; e = dg.next(e)) {
-		vertex u = min(dg.tail(e), dg.head(e));
-		vertex v = max(dg.tail(e), dg.head(e));
-		uint64_t vpair = u; vpair <<= 32; vpair |= v;
+		Pair<vertex,vertex> vpair;
+		vpair.first =  min(dg.tail(e), dg.head(e));
+		vpair.second = max(dg.tail(e), dg.head(e));
 		edgeSet.insert(vpair);
 	}
 
@@ -216,8 +217,8 @@ void Rgraph::digraph(Digraph& dg, int numv, int nume) {
 		vertex u = Util::randint(1,numv);
 		vertex v = Util::randint(1,numv);
 		if (u == v) continue;
-		uint64_t vpair = u; vpair <<= 32; vpair |= v;
-		if (!edgeSet.member(vpair)) {
+		Pair<vertex,vertex> vpair(u,v);
+		if (!edgeSet.contains(vpair)) {
 			edgeSet.insert(vpair); dg.join(u,v);
 		}
 	}
@@ -225,21 +226,20 @@ void Rgraph::digraph(Digraph& dg, int numv, int nume) {
 
 	// if more edges needed, build a vector containing remaining 
 	// "candidate" edges and then sample from this vector
-	vector<uint64_t> vpVec;
+	vector<Pair<vertex,vertex>> vpVec;
 	unsigned int i = 0;
 	for (vertex u = 1; u < numv; u++) {
 		for (vertex v = 1; v <= numv; v++) {
 			if (v == u) continue;
-			uint64_t vpair = u; vpair <<= 32; vpair |= v;
-			if (!edgeSet.member(vpair)) vpVec.push_back(vpair);
+			Pair<vertex,vertex> vpair(u,v);
+			if (!edgeSet.contains(vpair)) vpVec.push_back(vpair);
 		}
 	}
 	// sample remaining edges from vector
 	i = 0;
 	while (dg.m() < nume && i < vpVec.size()) {
 		int j = Util::randint(i,vpVec.size()-1);
-		vertex u = vpVec[j] >> 32;
-		vertex v = vpVec[j] & 0xffffffff;
+		vertex u = vpVec[j].first; vertex v = vpVec[j].second;
 		dg.join(u,v); vpVec[j] = vpVec[i++];
 	}
 	dg.sortAdjLists();
@@ -291,11 +291,11 @@ void Rgraph::dag(Digraph& dgraf, int numv, int nume) {
 	else dgraf.clear();
 
 	// build set containing edges already in graph
-	HashSet edgeSet(nume);
+	HashSet<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
 	for (edge e = dgraf.first(); e != 0; e = dgraf.next(e)) {
-		vertex u = min(dgraf.tail(e), dgraf.head(e));
-		vertex v = max(dgraf.tail(e), dgraf.head(e));
-		uint64_t vpair = u; vpair <<= 32; vpair |= v;
+		Pair<vertex,vertex> vpair;
+		vpair.first =  min(dgraf.tail(e), dgraf.head(e));
+		vpair.second = max(dgraf.tail(e), dgraf.head(e));
 		edgeSet.insert(vpair);
 	}
 
@@ -306,8 +306,8 @@ void Rgraph::dag(Digraph& dgraf, int numv, int nume) {
 		vertex u = Util::randint(1,numv-1);
 		vertex v = Util::randint(u+1,numv);
 		if (u == v) continue;
-		uint64_t vpair = u; vpair <<= 32; vpair |= v;
-		if (!edgeSet.member(vpair)) {
+		Pair<vertex,vertex> vpair(u,v);
+		if (!edgeSet.contains(vpair)) {
 			edgeSet.insert(vpair); dgraf.join(u,v);
 		}
 	}
@@ -315,20 +315,19 @@ void Rgraph::dag(Digraph& dgraf, int numv, int nume) {
 
 	// if more edges needed, build a vector containing remaining 
 	// "candidate" edges and then sample from this vector
-	vector<uint64_t> vpVec;
+	vector<Pair<vertex,vertex>> vpVec;
 	for (vertex u = 1; u < numv; u++) {
 		for (vertex v = u+1; v <= numv; v++) {
 			if (v == u) continue;
-			uint64_t vpair = u; vpair <<= 32; vpair |= v;
-			if (!edgeSet.member(vpair)) vpVec.push_back(vpair);
+			Pair<vertex,vertex> vpair(u,v);
+			if (!edgeSet.contains(vpair)) vpVec.push_back(vpair);
 		}
 	}
 	// sample remaining edges from vector
 	int i = 0;
 	while (dgraf.m() < nume && i < vpVec.size()) {
 		int j = Util::randint(i,vpVec.size()-1);
-		vertex u = vpVec[j] >> 32;
-		vertex v = vpVec[j] & 0xffffffff;
+		vertex u = vpVec[j].first; vertex v = vpVec[j].second;
 		dgraf.join(u,v); vpVec[j] = vpVec[i++];
 	}
 	dgraf.sortAdjLists();

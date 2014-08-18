@@ -64,9 +64,10 @@ void Dlist::resize(int size) {
  *  @param size is the size of the expanded object.
  */
 void Dlist::expand(int size) {
-	if (size <= n()) return;
-	index *old_prv = prv; int old_n = n();
-	List::expand(size); makeSpace();
+	int old_n = n();
+	List::expand(size);
+	if (n() == old_n) return;
+	index *old_prv = prv; makeSpace();
 	std::copy(old_prv, old_prv+old_n+1, prv);
 	std::fill(prv+old_n+1, prv+n()+1, -1);
 	delete [] old_prv;
@@ -78,14 +79,12 @@ void Dlist::expand(int size) {
  */
 Dlist& Dlist::operator=(const Dlist& src) {
 	if (this == &src) return *this;
-	if (src.n() > n()) {
-		freeSpace();
-		this->List::operator=(src);
-		makeSpace(); std::fill(prv, prv+n()+1, -1); prv[0] = 0;
-	} else {
-		for (index x = first(); x != 0; x = next(x)) prv[x] = -1;
-		this->List::operator=(src);
+	int old_n = n();
+	List::operator=(src); // copy parent class data
+	if (n() != old_n) {  // parent resized, do likewise
+		freeSpace(); makeSpace();
 	}
+	std::fill(prv, prv+n()+1, -1); prv[0] = 0;
 	for (index x = src.first(); x != 0; x = src.next(x))
 		prv[x] = src.prv[x];
 	return *this;
@@ -97,8 +96,8 @@ Dlist& Dlist::operator=(const Dlist& src) {
  */
 Dlist& Dlist::operator=(Dlist&& src) {
 	if (this == &src) return *this;
-	freeSpace(); this->List::operator=(src);
-	prv = src.prv; src.prv = nullptr;
+	List::operator=(src); // move parent class data
+	delete [] prv; prv = src.prv; src.prv = nullptr;
 	return *this;
 }
 
@@ -122,12 +121,18 @@ index Dlist::get(int i) const {
  *  @return true if list was modified, else false
  */
 bool Dlist::insert(index i, index j) {
+	if ((i < 0 || (i > n() && !autoExpand)) || (j < 0 || j > n())) {
+                string s = "Dlist::insert(" + to_string(i) + ","
+                           + to_string(j) + ")\n";
+                throw IllegalArgumentException(s);
+        }
+        if (i == 0 || member(i)) return false;
+        if (i > n() && autoExpand) expand(max(i,2*n()));
+
 	if (!List::insert(i,j)) return false;
 	// now update prv
 	prv[i] = j;
-	if (next(i) != 0) {
-		prv[next(i)] = i;
-	}
+	if (next(i) != 0) prv[next(i)] = i;
         return true;
 }
 
@@ -137,6 +142,7 @@ bool Dlist::insert(index i, index j) {
  */
 bool Dlist::remove(index i) {
 	if (!member(i)) return false;
+	int old_n = n();
 	if (i == first()) {
 		prv[next(i)] = 0; List::removeNext(0);
 	} else if (i == last()) {
@@ -145,7 +151,14 @@ bool Dlist::remove(index i) {
 		prv[next(i)] = prv[i]; List::removeNext(prv[i]);
 	}
 	prv[i] = -1;
+	if (n() != old_n) { // parent class shrunk object
+		freeSpace(); makeSpace();
+		std::fill(prv, prv+n()+1, -1); prv[0] = 0;
+	}
 	return true;
 }
+
+/** Remove all elements from list. */
+void Dlist::clear() { while (!empty()) removeFirst(); }
 
 } // ends namespace

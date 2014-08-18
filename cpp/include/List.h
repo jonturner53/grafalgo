@@ -27,7 +27,7 @@ namespace grafalgo {
  *  in contexts requiring polymorphic types.
  */
 class List : public Adt {
-public:		List(int=26);
+public:		List(int=10, bool=true);
 		List(const List&);
 		List(List&&);
 		~List();
@@ -66,6 +66,9 @@ public:		List(int=26);
 	string	toString() const;
 	friend istream& operator>>(istream&, List&);
 
+protected:
+	bool	autoExpand;		///< if true, list expands to handle
+					///< larger index values
 private:
 	int	len;			///< number of elements in list
 	index	head;			///< first index in list
@@ -117,11 +120,7 @@ inline int List::length() const { return len; }
  *  @return true if i is in the list, else false
  */
 inline bool List::member(index i) const {
-	if (!valid(i)) {
-                string s = "get(" + to_string(i) + ") ";
-                throw IllegalArgumentException(s);
-        }
-	return nxt[i] != -1;
+	return valid(i) && nxt[i] != -1;
 }
 
 /** Add index to the front of the list.

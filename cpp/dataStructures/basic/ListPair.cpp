@@ -167,7 +167,7 @@ void ListPair::clear() { while (firstIn() != 0) swap(firstIn()); }
 
 /** Swap index from one list to the other.
  *  @param i is index of item in one list
- *  @param j is index of item in the other list; i is inserted
+ *  @param j is an index of an item in the other list; i is inserted
  *  into the other list right after item j; if j == 0, i is
  *  inserted at the beginning of the list.
  *  @return true if the swap succeeded, else false

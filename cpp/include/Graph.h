@@ -21,8 +21,8 @@
 
 namespace grafalgo {
 
-typedef int vertex;
-typedef int edge;
+typedef int32_t vertex;
+typedef int32_t edge;
 
 /** Data structure for undirected graph.
  *
@@ -86,7 +86,6 @@ public:		Graph(int=1,int=1);
 
 	void	sortAdjLists();
 protected:
-	int	mm;			///< number of edges
 	int	maxEdge;		///< max number of edges
 
 	edge	*fe;			///< fe[v] is first edge incident to v
@@ -118,7 +117,7 @@ protected:
 /** Get the number of edges.
  *  @return the number of edges in the graph.
  */
-inline int Graph::m() const { return mm; }
+inline int Graph::m() const { return edges->getNumIn(); }
 
 /** Get the maximum allowed edge number.
  *  @return the maximum allowed edge number

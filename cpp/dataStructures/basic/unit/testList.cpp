@@ -26,11 +26,6 @@ bool basicTests() {
 
 	// test illegal argument exceptions
 	try {
-		l1.addFirst(n1+1);
-		Utest::assertTrue(false,"addFirst fails to detect illegal "
-					"argument");
-	} catch(IllegalArgumentException e) { cout << endl; }
-	try {
 		l1.addFirst(-1);
 		Utest::assertTrue(false,"addFirst fails to detect illegal "
 					"argument");
@@ -100,8 +95,20 @@ bool basicTests() {
 	Utest::assertEqual(l2.toString(), "[c b a]",
 		"mismatch on list [c b a]");
 	int n2 = 27; l2.expand(n2);
+	Utest::assertEqual(l2.n(),27,"mismatch on size of expanded set");
 	Utest::assertEqual(l2.toString(), "[3 2 1]",
 		"mismatch on list [3 2 1]");
+
+	l2.addLast(30);
+	Utest::assertTrue(l2.member(30),"mismatch on membership test (30)");
+	Utest::assertTrue(!l2.member(29),"mismatch on membership test (29)");
+	Utest::assertEqual(l2.n(),54,"mismatch on size of expanded set (54)");
+
+	for (int i = 31; i <= 60; i++) l2.addLast(i);
+	for (int i = 31; i <= 60; i++)
+		Utest::assertTrue(l2.member(i),
+			"mismatch on membership test (" + to_string(i) + ")");
+	Utest::assertEqual(l2.n(),108,"mismatch on size of expanded set (108)");
 
 	l2.resize(30); l2.addFirst(1); l2.addFirst(2); l2.addFirst(3);
 	cout << "writing numeric list: " << l2 << endl;

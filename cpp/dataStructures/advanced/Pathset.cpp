@@ -292,7 +292,7 @@ string PathSet::path2string(path q) const {
 	string s;
 	if (q == 0) return s;
 	s += path2string(left(q));
-	s += Adt::item2string(q) + ":" + to_string(nodeCost(q)) + " ";
+	s += Adt::index2string(q) + ":" + to_string(nodeCost(q)) + " ";
 	s += path2string(right(q));
 	return s;
 }
@@ -307,7 +307,7 @@ string PathSet::pathTree2string(path q) const {
 	bool singleton = (left(q) = 0 && right(q) == 0);
 	if (!singleton) s += "(";
 	s += pathTree2string(left(q));
-	s += Adt::item2string(q) + ":" + to_string(nodeCost(q)) + " ";
+	s += Adt::index2string(q) + ":" + to_string(nodeCost(q)) + " ";
 	s += pathTree2string(right(q));
 	if (!singleton) s += ")";
 	return s;

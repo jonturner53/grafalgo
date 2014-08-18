@@ -23,7 +23,7 @@ namespace grafalgo {
  *  reverse traversal and general remove operation.
  */
 class Dlist : public List {
-public:		Dlist(int=26);
+public:		Dlist(int=10);
 		Dlist(const Dlist&);
 		Dlist(Dlist&&);
 		~Dlist();
@@ -46,7 +46,7 @@ public:		Dlist(int=26);
 	bool	addLast(index);
         bool    remove(index);
 	bool	removeLast();
-	using	List::clear;
+	void	clear();
 
 protected:
 	// handle dynamic storage

@@ -1,42 +1,14 @@
 #include "stdinc.h"
+#include "Hash.h"
 #include "HashMap.h"
 #include "Util.h"
 #include "Utest.h"
 
 using namespace grafalgo;
 
-uint32_t hash1(const int& key, int hf) {
-	const uint32_t A0 = 0xa96347c5;
-	const uint32_t A1 = 0xe65ac2d3;
-
-	uint64_t z = key;
-	z *= (hf == 0 ? A0 : A1);
-	return ((uint32_t) (z >> 16));
-}
-
-uint32_t hash2(const string& key, int hf) {
-	const uint32_t A0 = 0xa96347c5;
-	const uint32_t A1 = 0xe65ac2d3;
-
-	uint64_t z = 0;
-	const char* p = key.data();
-	int n = key.length();
-	while (n >= 8) {
-		z += *((const uint64_t*) p);
-		p += 8; n -= 8;
-	}
-	for (int i = 0; i < 8; i++) {
-		z += (*p << 8*i); p++; n--;
-		if (n == 0) { p = key.data(); n = key.length(); }
-	}
-	z = (z >> 32) + (z & 0xffffffff);
-	z *= (hf == 0 ? A0 : A1);
-	return ((uint32_t) (z >> 16));
-}
-
 void basicTests() {
 	int n = 20;
-	HashMap<int,int> map1(hash1,n);
+	HashMap<int,int,Hash::s32> map1(n);
 
         Utest::assertEqual(map1.put(1234,543,3),3,
 		"wrong index for first item");
@@ -90,8 +62,19 @@ void basicTests() {
         Utest::assertEqual(map1.toString(),
 		"{(1234,985) (78,33)}", "mismatched map");
 
+	for (int i = 100; i < 200; i++) map1.put(i,i+100);
+	for (int i = 100; i < 200; i++)
+		Utest::assertEqual(map1.get(i),i+100,
+			"get mismatch " + to_string(i));
+	map1.put(300,301,500);
+	Utest::assertEqual(map1.n(),500,"size mismatch (500)");
+	Utest::assertEqual(map1.find(300),500,"find mismatch (300)");
+	Utest::assertEqual(map1.find(400),0,"find mismatch (400)");
+	map1.clear();
+	Utest::assertEqual(map1.n(),10,"size mismatch (10)");
 
-	HashMap<string,string> map2(hash2);
+
+	HashMap<string,string,Hash::string> map2(n);
 
         Utest::assertEqual(map2.put("abc","uvw",3),3,
 		"wrong index for first item");
@@ -144,7 +127,6 @@ void basicTests() {
 	v4 = "hah";
         Utest::assertEqual(map2.toString(),
 		"{(abc,who) (lmn,hah)}", "mismatched map");
-
 }
 
 

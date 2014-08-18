@@ -19,7 +19,7 @@ namespace grafalgo {
  *  is specified when an object is constructed.
  */
 template<class K> class Dheap : public Adt {
-public:		Dheap(int,int);
+public:		Dheap(int,int=4);
 		~Dheap();
 
 	// common methods
@@ -64,52 +64,6 @@ private:
 	void	makeSpace(int);
 	void	freeSpace();
 };
-
-// inline methods
-
-/** Find an item in the heap with the smallest key.
- *  @return the index of an item that has the smallest key
- */
-template<class K>
-inline int Dheap<K>::findmin() const { return hn == 0 ? 0 : h[1]; }
-
-/** Delete a minimum key item from the heap and return it.
- *  @return the index an item of minimum key from the heap, after deleting it
- *  from the heap
- */
-template<class K>
-inline int Dheap<K>::deletemin() {
-	if (hn == 0) return 0;
-	index i = h[1]; remove(h[1]);
-	return i;
-}
-
-/** Get the key of item.
- *  @param i is the index of an item in the heap
- *  @return the value of i's key
- */
-template<class K>
-inline K Dheap<K>::key(index i) const { return kee[i]; }
-
-/** Determine if an item is in the heap.
- *  @param i is the index of an item in the heap
- *  @return true if i is in the heap, else false
- */
-template<class K>
-inline bool Dheap<K>::member(index i) const { return pos[i] != 0; }
-
-/** Determine if the heap is empty.
- *  @return true if heap is empty, else false
- */
-template<class K>
-inline bool Dheap<K>::empty() const { return hn == 0; };
-
-/** Return size of heap.
- */
-template<class K>
-inline int Dheap<K>::size() const { return hn; };
-
-// non-inline functions
 
 /** Constructor for Dheap class.
  *  @param size is the number of items in the contructed object
@@ -184,6 +138,49 @@ void Dheap<K>::expand(int size) {
 	Dheap old(this->n(),d); old.copyFrom(*this);
 	resize(size); this->copyFrom(old);
 }
+
+/** Find an item in the heap with the smallest key.
+ *  @return the index of an item that has the smallest key
+ */
+template<class K>
+inline int Dheap<K>::findmin() const { return hn == 0 ? 0 : h[1]; }
+
+/** Delete a minimum key item from the heap and return it.
+ *  @return the index an item of minimum key from the heap, after deleting it
+ *  from the heap
+ */
+template<class K>
+inline int Dheap<K>::deletemin() {
+	if (hn == 0) return 0;
+	index i = h[1]; remove(h[1]);
+	return i;
+}
+
+/** Get the key of item.
+ *  @param i is the index of an item in the heap
+ *  @return the value of i's key
+ */
+template<class K>
+inline K Dheap<K>::key(index i) const { return kee[i]; }
+
+/** Determine if an item is in the heap.
+ *  @param i is the index of an item in the heap
+ *  @return true if i is in the heap, else false
+ */
+template<class K>
+inline bool Dheap<K>::member(index i) const { return pos[i] != 0; }
+
+/** Determine if the heap is empty.
+ *  @return true if heap is empty, else false
+ */
+template<class K>
+inline bool Dheap<K>::empty() const { return hn == 0; };
+
+/** Return size of heap.
+ */
+template<class K>
+inline int Dheap<K>::size() const { return hn; };
+
 
 /** Remove all elements from heap. */
 template<class K>
@@ -281,7 +278,7 @@ string Dheap<K>::toString() const {
 	stringstream ss;
 	for (int i = 1; i <= hn; i++) {
 		if (i != 1) ss << " ";
-		ss << "(" << item2string(h[i]) << "," << kee[h[i]] << ")";
+		ss << "(" << index2string(h[i]) << "," << kee[h[i]] << ")";
 	}
 	return ss.str();
 }

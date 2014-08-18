@@ -168,12 +168,12 @@ string LheapSet::heap2string(lheap h, bool isroot) const {
 	string s = "";
 	if (h == 0) return s;
 	if (left(h) == 0 && right(h) == 0) {
-		s += item2string(h) + ":" + to_string(kee(h)) + ","
+		s += index2string(h) + ":" + to_string(kee(h)) + ","
 			+ to_string(rank(h));
 	} else {
 		s += "(";
 		if (left(h) != 0) s += heap2string(left(h),false) + " ";
-		s += item2string(h) + ":" + to_string(kee(h)) + ","
+		s += index2string(h) + ":" + to_string(kee(h)) + ","
 		     + to_string(rank(h));
 		if (isroot) s += "*";
 		if (right(h) != 0) s += " " + heap2string(right(h),false);

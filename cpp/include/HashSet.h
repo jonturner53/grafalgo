@@ -20,16 +20,26 @@ namespace grafalgo {
  *  assigns a unique index to each element and provides methods
  *  to access set elements by their index.
  */
-template<class E> class HashSet : public Adt {
+template<class E, uint32_t (*)(const E&, int)>
+class HashSet : public Adt {
 public:
-		HashSet(uint32_t (*)(const E&, int), int=26);
+		HashSet(int=10, bool=true);
+		HashSet(const HashSet&);
+		HashSet(HashSet&&);
 		~HashSet();
 
-	// common methods
-	void	clear();
+	// operators
+	HashSet& operator=(const HashSet&);
+	HashSet& operator=(HashSet&&);
+
+	// adjust size
 	void	resize(int);
 	void	expand(int);
-	void	copyFrom(const HashSet&);
+
+	// predicates
+	bool	empty() const; 		
+	bool	contains(const E&) const;
+	bool	valid(index) const;
 
 	// access methods
 	index	first() const; 	
@@ -42,15 +52,13 @@ public:
 	index	insert(const E&); 
 	index	insert(const E&, int); 
 	void	remove(const E&); 
-
-	// predicates
-	bool	contains(const E&) const;
-	bool	valid(index) const;
+	void	clear();
 
 	// produce human-readable version
 	string 	toString() const;
 protected:
-	uint32_t (*hashit)(const E&, int); ///< pointer to hash function
+	bool	autoExpand;
+	int	numBuckets();
 private:
 	static const int MAXINDEX = (1 << 24)-1;  ///< largest possible index
 	static const int BKT_SIZ = 8;   ///< # of entries per bucket
@@ -66,132 +74,208 @@ private:
 
 	E	*eVec;		///< eVec[i] is element mapped to index i
 
-
-	void	makeSpace(int);
+	void	makeSpace();
 	void	freeSpace();
+	void	init();
 };
 
 /** Constructor for HashSet, allocates space and initializes table.
- *  N1 is the limit on the range of values; it must be less than 2^24.
+ *  @param h is a pointer to the hash function to b used
+ *  @param n1 is an optional limit on the range of values;
+ *  it must be less than 2^24; the default is 10
+ *  @param autoX is an optional parameter that determines whether the
+ *  the data structure expands automatically, as needed; the default
+ *  value is true
  */
-template<class E>
-HashSet<E>::HashSet(uint32_t (*h)(const E&, int), int n1)
-	: Adt(n1), hashit(h) {
-	makeSpace(n());
+template<class E, uint32_t (*H)(const E&, int)>
+HashSet<E,H>::HashSet(int n1, bool autoX) : Adt(n1), autoExpand(autoX) {
+	nb = numBuckets(); makeSpace(); init();
+};
+
+/** Copy constructor.
+ */
+template<class E, uint32_t (*H)(const E&, int)>
+HashSet<E,H>::HashSet(const HashSet& src) : Adt(src.n()) {
+	autoExpand = src.autoExpand;
+	nb = src.nb;
+	makeSpace();
+	bktMsk = src.bktMsk; fpMsk = src.fpMsk; indexMsk = src.indexMsk;
+	for (int b = 0; b < 2*nb; b++) {
+		for (int i = 0; i < BKT_SIZ; i++)
+			bkt[b][i] = src.bkt[b][i];
+	}
+	for (index x = src.first(); x != 0; x = src.next(x))
+		eVec[x] = src.eVec[x];
+	*idx = *(src.idx);
+}
+
+/** Move constructor.
+ */
+template<class E, uint32_t (*H)(const E&, int)>
+HashSet<E,H>::HashSet(HashSet&& src) : Adt(src.n()) {
+	autoExpand = src.autoExpand;
+	nb = src.nb;
+	bktMsk = src.bktMsk; fpMsk = src.fpMsk; indexMsk = src.indexMsk;
+
+	bkt = src.bkt; src.bkt = nullptr;
+	eVec = src.eVec; src.eVec = nullptr;
+	idx = src.idx; src.idx = nullptr;
 };
 	
 /** Destructor for HashSet. */
-template<class E>
-HashSet<E>::~HashSet() { freeSpace(); }
+template<class E, uint32_t (*H)(const E&, int)>
+HashSet<E,H>::~HashSet() { freeSpace(); }
 
 /** Allocate and initialize space for list.
  *  @param size is number of index values to provide space for
  */
-template<class E>
-void HashSet<E>::makeSpace(int size) {
-	// determine number of buckets - keep max load factor in [1/3,2/3]
-	for (nb = 1; size >= (2*BKT_SIZ*nb)*2/3; nb <<= 1) {}
-	nb = max(nb,4);
-	// set masks for bucket, index and fingerprint
-	bktMsk = nb - 1; indexMsk = (2*BKT_SIZ*nb) - 1; fpMsk = ~indexMsk;
+template<class E, uint32_t (*H)(const E&, int)>
+void HashSet<E,H>::makeSpace() {
+	nb = numBuckets();
 	try {
 		bkt = new bkt_t[2*nb];
-		eVec = new E[size+1];
-		idx = new ListPair(size);
+		eVec = new E[n()+1];
+		idx = new ListPair(n());
 	} catch (std::bad_alloc e) {
 		string s = "HashSet::makeSpace: insufficient space for "
-		   	 + to_string(size) + " entries";
+		   	 + to_string(n()) + " entries";
 		throw OutOfSpaceException(s);
 	}
-	for (int b = 0; b < 2*nb; b++) {
-		for (int i = 0; i < BKT_SIZ; i++) bkt[b][i] = 0;
-	}
-	nn = size;
 }
 
 /** Free dynamic storage used by list. */
-template<class E>
-void HashSet<E>::freeSpace() { delete [] bkt; delete idx; }
+template<class E, uint32_t (*H)(const E&, int)>
+void HashSet<E,H>::freeSpace() { delete [] bkt; delete idx; }
+
+template<class E, uint32_t (*H)(const E&, int)>
+int HashSet<E,H>::numBuckets() {
+	int k;
+	for (k = 1; n() > (2*BKT_SIZ*k)*2/3; k <<= 1) {}
+	return k;
+}
+
+template<class E, uint32_t (*H)(const E&, int)>
+void HashSet<E,H>::init() {
+	// set masks for bucket, index and fingerprint
+	bktMsk = nb - 1; indexMsk = (2*BKT_SIZ*nb) - 1; fpMsk = ~indexMsk;
+	for (int b = 0; b < 2*nb; b++) {
+		for (int i = 0; i < BKT_SIZ; i++) bkt[b][i] = 0;
+	}
+}
+
+/** Assignment operator (copy version)
+ */
+template<class E, uint32_t (*H)(const E&, int)>
+HashSet<E,H>& HashSet<E,H>::operator=(const HashSet& src) {
+	if (this == &src) return *this;
+	if (src.n() > n() || src.nb != nb) resize(src.n());
+	autoExpand = src.autoExpand;
+	bktMsk = src.bktMsk; fpMsk = src.fpMsk; indexMsk = src.indexMsk;
+	for (int b = 0; b < 2*nb; b++) {
+		for (int i = 0; i < BKT_SIZ; i++)
+			bkt[b][i] = src.bkt[b][i];
+	}
+	idx->clear();
+	for (index x = src.first(); x != 0; x = src.next(x)) {
+		eVec[x] = src.eVec[x]; idx->swap(x);
+	}
+	return *this;
+}
+
+/** Assignment operator (move version)
+ */
+template<class E, uint32_t (*H)(const E&, int)>
+HashSet<E,H>& HashSet<E,H>::operator=(HashSet&& src) {
+	if (this == &src) return *this;
+	freeSpace(); Adt::resize(src.n());
+	autoExpand = src.autoExpand; nb = src.nb;
+	bktMsk = src.bktMsk; fpMsk = src.fpMsk; indexMsk = src.indexMsk;
+
+	bkt = src.bkt; src.bkt = nullptr;
+	eVec = src.eVec; src.eVec = nullptr;
+	idx = src.idx; src.idx = nullptr;
+	return *this;
+};
 
 /** Resize a HashSet object.
  *  The old value is discarded.
  *  @param size is the size of the resized object.
  */
-template<class E>
-void HashSet<E>::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "HashSet::resize:" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+template<class E, uint32_t (*H)(const E&, int)>
+void HashSet<E,H>::resize(int size) {
+	freeSpace(); Adt::resize(size); nb = numBuckets(); makeSpace(); init();
 }
 
 /** Expand the space available for this HashSet.
  *  Rebuilds old value in new space.
  *  @param size is the size of the resized object.
  */
-template<class E>
-void HashSet<E>::expand(int size) {
+template<class E, uint32_t (*H)(const E&, int)>
+void HashSet<E,H>::expand(int size) {
 	if (size <= n()) return;
-	HashSet old(hashit, this->n()); old.copyFrom(*this);
-	resize(size); this->copyFrom(old);
-}
-
-/** Remove all elements from map. */
-template<class E>
-void HashSet<E>::clear() {
-	while (first() != 0) remove(retrieve(first()));
-}
-
-/** Copy into this from source. */
-template<class E>
-void HashSet<E>::copyFrom(const HashSet& source) {
-	if (&source == this) return;
-	if (source.n() > n()) resize(source.n());
-	else clear();
-	for (index x = source.first(); x != 0; x = source.next(x))
-		insert(source.retrieve(x),x);
+	delete [] bkt; auto old_eVec = eVec; auto old_idx = idx;
+	Adt::resize(size); nb = numBuckets();
+	try {
+		bkt = new bkt_t[2*nb];
+		eVec = new E[n()+1];
+		idx = new ListPair(n());
+	} catch (std::bad_alloc e) {
+		string s = "HashSet::expand: insufficient space for "
+		   	 + to_string(n()) + " entries";
+		throw OutOfSpaceException(s);
+	}
+	init();
+	for (index x = old_idx->firstIn(); x != 0; x = old_idx->nextIn(x))
+		insert(old_eVec[x],x);
+	delete [] old_eVec; delete old_idx;
 }
 
 /** Get the first assigned index, in some arbitrary order.
  *  @return number of the first identfier
  */
-template<class E>
-inline int HashSet<E>::first() const { return idx->firstIn(); }
+template<class E, uint32_t (*H)(const E&, int)>
+inline int HashSet<E,H>::first() const { return idx->firstIn(); }
 
 /** Get the next assigned index, in some arbitrary order.
  *  @param id is an identifer in the set
  *  @return number of the next identfier
  */
-template<class E>
-inline int HashSet<E>::next(int id) const { return idx->nextIn(id); }
+template<class E, uint32_t (*H)(const E&, int)>
+inline int HashSet<E,H>::next(int id) const { return idx->nextIn(id); }
+
+/** Determine if a set is empty.
+ *  @param elem is the element to be checked
+ *  @return true if the element has been mapped, else false
+ */
+template<class E, uint32_t (*H)(const E&, int)>
+inline bool HashSet<E,H>::empty() const { return size() == 0; }
 
 /** Determine if a given element is in the set.
  *  @param elem is the element to be checked
  *  @return true if the element has been mapped, else false
  */
-template<class E>
-inline bool HashSet<E>::contains(const E& elem) const { return find(elem) != 0; }
+template<class E, uint32_t (*H)(const E&, int)>
+inline bool HashSet<E,H>::contains(const E& elem) const { return find(elem)!=0; }
 
 /** Determine if a given index has been assigned to a element.
  *  @param x is the index to be checked
  *  @return true if the index has been asssigned, else false
  */
-template<class E>
-inline bool HashSet<E>::valid(int x) const { return idx->isIn(x); }
+template<class E, uint32_t (*H)(const E&, int)>
+inline bool HashSet<E,H>::valid(int x) const { return idx->isIn(x); }
 
 /** The size of the mapping.
  *  @return the number of mapped index values.
  */
-template<class E>
-inline int HashSet<E>::size() const { return idx->getNumIn(); }
+template<class E, uint32_t (*H)(const E&, int)>
+inline int HashSet<E,H>::size() const { return idx->getNumIn(); }
 
 /** Retrieve the element with a given index.
  *  @param x is the index whose element is to be returned
  *  @return the element that maps to x, or 0 if there is none
  */
-template<class E>
-inline const E& HashSet<E>::retrieve(index x) const {
+template<class E, uint32_t (*H)(const E&, int)>
+inline const E& HashSet<E,H>::retrieve(index x) const {
 	if (!valid(x)) {
 		string s = "HashSet::retrieve: invalid index " + to_string(x);
 		throw IllegalArgumentException(s);
@@ -204,11 +288,11 @@ inline const E& HashSet<E>::retrieve(index x) const {
  *  @return the corresponding id or 0 if the element is not
  *  in the set or the operation fails
  */
-template<class E>
-int HashSet<E>::find(const E& elem) const {
+template<class E, uint32_t (*H)(const E&, int)>
+int HashSet<E,H>::find(const E& elem) const {
 	index x;
 	// check bucket in the first half of the bucket array
-	uint32_t h = hashit(elem,0);
+	uint32_t h = H(elem,0);
 	uint32_t b = h & bktMsk;
 	uint32_t fp = (h << (LG_BKT_SIZ-1)) & fpMsk;
 	for (int i = 0; i < BKT_SIZ; i++) {
@@ -218,7 +302,7 @@ int HashSet<E>::find(const E& elem) const {
 		}
 	}
 	// check bucket in the second half of the bucket array
-	h = hashit(elem,1);
+	h = H(elem,1);
 	b = nb + (h & bktMsk); fp = (h << (LG_BKT_SIZ-1)) & fpMsk;
 	for (int i = 0; i < BKT_SIZ; i++) {
 		if (bkt[b][i] != 0 && (bkt[b][i] & fpMsk) == fp) {
@@ -235,8 +319,8 @@ int HashSet<E>::find(const E& elem) const {
  *  @return the index assigned to the element or 0 if the operation fails;
  *  if the element is already in the set, a new index is assigned
  */
-template<class E>
-inline index HashSet<E>::insert(const E& elem) {
+template<class E, uint32_t (*H)(const E&, int)>
+inline index HashSet<E,H>::insert(const E& elem) {
 	index x = idx->firstOut();
 	if (x == 0) {
 		expand(2*n());
@@ -249,18 +333,21 @@ inline index HashSet<E>::insert(const E& elem) {
  *  @param element is the new element
  *  @param x is the index to be assigned to the element
  *  @return the new index or 0 if x is not an available index or
- *  the operation fails; if the element is already in use, the specified
- *  index replaces the index that the element was previosly assigned
- *  to the element
+ *  the operation fails; if the element is already in the set, the specified
+ *  index replaces the index that was previously assigned to the element
  */
-template<class E>
-index HashSet<E>::insert(const E& elem, index x) {
+template<class E, uint32_t (*H)(const E&, int)>
+index HashSet<E,H>::insert(const E& elem, index x) {
+	if (x > n()) {
+		if (autoExpand) expand(max(x,2*n()));
+		else return 0;
+	}
 	if (!idx->isOut(x)) return 0;
 	idx->swap(x);
 
 	// find an empty slot in buckets in both halves of hash table,
 	// count number of empty slots, if element already present, overwrite
-	uint32_t h0 = hashit(elem,0);
+	uint32_t h0 = H(elem,0);
 	uint32_t b0 = h0 & bktMsk;
 	uint32_t fp0 = (h0 << (LG_BKT_SIZ-1)) & fpMsk;
 	int i0, n0; i0 = n0 = 0;
@@ -276,7 +363,7 @@ index HashSet<E>::insert(const E& elem, index x) {
 			}
 		}
 	}
-	uint32_t h1 = hashit(elem,1);
+	uint32_t h1 = H(elem,1);
 	uint32_t b1 = nb + (h1 & bktMsk);
 	uint32_t fp1 = (h1 << (LG_BKT_SIZ-1)) & fpMsk;
 	int i1, n1; i1 = n1 = 0;
@@ -310,42 +397,55 @@ index HashSet<E>::insert(const E& elem, index x) {
  *  This operation removes an element from the set.
  *  @param elem is the element of the pair to be removed
  */
-template<class E>
-void HashSet<E>::remove(const E& elem) {
+template<class E, uint32_t (*H)(const E&, int)>
+void HashSet<E,H>::remove(const E& elem) {
 	index x;
 	// check bucket in the first half of the bucket array
-	uint32_t h = hashit(elem,0);
+	uint32_t h = H(elem,0);
 	uint32_t b = h & bktMsk; uint32_t fp = (h << (LG_BKT_SIZ-1)) & fpMsk;
 	for (int i = 0; i < BKT_SIZ; i++) {
 		if (bkt[b][i] != 0 && (bkt[b][i] & fpMsk) == fp) {
 			x = bkt[b][i] & indexMsk;
 			if (eVec[x] == elem) {
-				bkt[b][i] = 0; idx->swap(x); return;
+				bkt[b][i] = 0; idx->swap(x);
+				// shrink empty set to default size
+				if (size() == 0 && autoExpand) resize(10);
+				return;
 			}
 		}
 	}
 	// check bucket in the second half of the bucket array
-	h = hashit(elem,1);
+	h = H(elem,1);
 	b = nb + (h & bktMsk); fp = (h << (LG_BKT_SIZ-1)) & fpMsk;
 	for (int i = 0; i < BKT_SIZ; i++) {
 		if (bkt[b][i] != 0 && (bkt[b][i] & fpMsk) == fp) {
 			x = bkt[b][i] & indexMsk;
 			if (eVec[x] == elem) {
-				bkt[b][i] = 0; idx->swap(x); return;
+				bkt[b][i] = 0; idx->swap(x);
+				// shrink empty set to default size
+				if (size() == 0 && autoExpand) resize(10);
+				return;
 			}
 		}
 	}
 }
 
+/** Remove all elements from map. */
+template<class E, uint32_t (*H)(const E&, int)>
+void HashSet<E,H>::clear() {
+	while (first() != 0) remove(retrieve(first()));
+}
+
 /** Create a string representation of the HashSet.
  *  @return the string
  */
-template<class E>
-string HashSet<E>::toString() const {
+template<class E, uint32_t (*H)(const E&, int)>
+string HashSet<E,H>::toString() const {
 	stringstream ss; ss << "{";
 	for (index x = first(); x != 0; x = next(x)) {
 		if (x != first()) ss << " ";
-		ss << "(" << retrieve(x) << "," << x << ")";
+		const E& elem = retrieve(x);
+		ss << "(" << elem << "," << x << ")";
 	}	
 	ss << "}"; return ss.str();
 }

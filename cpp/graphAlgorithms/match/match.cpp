@@ -89,11 +89,11 @@ int main(int argc, char *argv[]) {
 	i = 0;
 	for (e = match.first(); e != 0; e = match.next(e)) {
 		if (size) {
-			cout << "(" << graf.item2string(graf.left(e));
-			cout << "," << graf.item2string(graf.right(e));
+			cout << "(" << graf.index2string(graf.left(e));
+			cout << "," << graf.index2string(graf.right(e));
 		} else {
-			cout << "(" << wg.item2string(wg.left(e));
-			cout << "," << wg.item2string(wg.right(e));
+			cout << "(" << wg.index2string(wg.left(e));
+			cout << "," << wg.index2string(wg.right(e));
 			cout << "," << wg.weight(e);
 		}
 		cout << ") ";

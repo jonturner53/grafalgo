@@ -19,10 +19,10 @@ namespace grafalgo {
  */
 bool Util::skipSpace(istream& in, bool sameline) {
 	while (true) {
-		char c = in.get();
-		if (!in.good()) return false;
-		if (sameline && c == '\n') { in.unget(); return false; }
-		if (!isspace(c)) { in.unget(); return true; }
+		char c = in.peek();
+		if (!in.good() || (sameline && c == '\n')) return false;
+		if (!isspace(c)) { return true; }
+		in.get();
 	}
 }
 
@@ -35,11 +35,23 @@ bool Util::skipBlank(istream& in) {
 	char c; bool com;
 	com = false;
 	while (1) {
-		in.get(c); if (!in.good()) return false;
-		if (c ==  '#') {com =  true; continue; }
-		if (c == '\n') {com = false; continue; }
-		if (com || isspace(c)) continue;
-		in.unget(); return true;
+		c = in.peek();
+		if (!in.good()) return false;
+		if (c == '#') com =  true;
+		else if (c == '\n') com = false;
+		if (!com && !isspace(c)) return true;
+		in.get();
+	}
+}
+
+/** Advance to the start of the next line.
+ *  @eturn false on error or eof.
+ */
+bool Util::nextLine(istream& in) {
+	while (true) {
+		char c = in.get();
+		if (!in.good()) return false;
+		if (c == '\n') return true;
 	}
 }
 
@@ -58,10 +70,35 @@ bool Util::readWord(istream& in, string& s, bool sameline) {
 	char c = in.peek();
 	if (!in.good() || !isalpha(c)) return false;
 	while (1) {
-		c = in.get();
+		c = in.peek();
 		if (!in.good()) return false;
 		if (isalpha(c) || isdigit(c) || c == '_' || c == '/') s += c;
-		else { in.unget(); return true; }
+		else return true;
+		in.get();
+	}
+}
+
+/** Read a string from the input stream.
+ *  A string starts and ends with a double-quote.
+ *  @param in is an open input stream
+ *  @param s is a string in which result is returned
+ *  @param sameline is an optional argument; if it is true, do not
+ *  scan past the end of the line; default is false
+ *  @return true if a well-formed string is found, else false
+ */
+bool Util::readString(istream& in, string& s, bool sameline) {
+	s = "";
+	skipSpace(in,sameline);
+	char c = in.peek();
+	if (!in.good() || c != '\"') return false;
+	in.get();
+	while (1) {
+		c = in.peek();
+		if (!in.good()) return false;
+		if (c == '\"') return true;
+		if (sameline && c == '\n') return false;
+		s += c;
+		in.get();
 	}
 }
 
@@ -74,12 +111,12 @@ bool Util::readWord(istream& in, string& s, bool sameline) {
  */
 bool Util::readInt(istream& in, int& i, bool sameline) {
 	if (skipSpace(in,sameline)) {
-		char c = in.get();
-		if (in.good() && (isdigit(c) || c != '-')) {
-			in.unget();
-			in >> i;
-			if (in.good()) return true;
+		char c = in.peek();
+		if (!in.good()) return false;
+		if (isdigit(c) || c != '-') {
+			in >> i; return in.good();
 		}
+		in.get();
 	}
 	return false;
 }
@@ -95,11 +132,10 @@ bool Util::readInt(istream& in, int& i, bool sameline) {
  */
 bool Util::verify(istream& in, char c, bool strict) {
 	skipSpace(in);
-	char c1 = in.get();
-	if (!in.good()) return false;
-	if (c == c1) return true;
-	in.unget();
-	return false;
+	char c1 = in.peek();
+	if (!in.good() || c1 != c) return false;
+	in.get();
+	return true;
 }
 
 /** Test if one string is a prefix of another.

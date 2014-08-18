@@ -269,13 +269,13 @@ string FheapSet::toString() const {
 string FheapSet::heap2string(fheap h) const {
 	string s = "";
 	if (h == 0 || (p(h) == 0 && c(h) == 0 && sib(h) == h)) return s;
-	s += "[" + item2string(h);
+	s += "[" + index2string(h);
 	if (mark(h)) s += "!";
 	else s += ":";
 	s += to_string(kee(h)) + "," + to_string(rank(h));
 	s += heap2string(c(h));
 	for (fheap sh = sib(h); sh != h; sh = sib(sh)) {
-		s += " " + item2string(sh);
+		s += " " + index2string(sh);
 		if (mark(sh)) s += "!";
 		else s += ":";
 		s += to_string(key(sh)) + "," + to_string(rank(sh));

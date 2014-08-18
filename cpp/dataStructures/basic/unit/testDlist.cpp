@@ -80,6 +80,15 @@ void basicTests() {
 	cout << "writing numeric list: " << l2.toString() << endl;
 	Utest::assertEqual(l2.toString(), "[3 2 1]",
 		"mismatch on list [3 2 1]");
+
+	l2.addLast(35);
+	Utest::assertTrue(l2.member(35),"mismatch on membership test (35)");
+	Utest::assertEqual(l2.n(),60,"mismatch on size (60)");
+	l2.addLast(121);
+	Utest::assertEqual(l2.n(),121,"mismatch on size (121)");
+
+	while (!l2.empty()) { l2.removeFirst(); }
+	Utest::assertEqual(l2.n(),10,"mismatch on size (10)");
 }
 
 /**

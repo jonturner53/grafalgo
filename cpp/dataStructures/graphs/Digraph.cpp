@@ -89,8 +89,6 @@ edge Digraph::joinWith(vertex u, vertex v, edge e) {
 	if (fi[v] == 0) fi[v] = 2*e+1;
 	else adjLists->join(2*e+1,fi[v]);
 
-	mm++;
-
 	return e;
 }
 
@@ -114,7 +112,6 @@ bool Digraph::remove(edge e) {
 
 	evec[e].l = 0;
 
-	mm--;
 	return true;
 }
 
@@ -126,10 +123,10 @@ string Digraph::adjList2string(vertex u) const {
 	string s;
 	if (firstOut(u) == 0) return s;
 	int cnt = 0;
-	s += "[" + Adt::item2string(u) + ":";
+	s += "[" + Adt::index2string(u) + ":";
 	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
-		s += " " + Adt::item2string(v);
+		s += " " + Adt::index2string(v);
 		if (++cnt >= 20 && nextOut(u,e) != 0) {
 			s += "\n"; cnt = 0;
 		}
@@ -150,8 +147,8 @@ string Digraph::toDotString() const {
 	int cnt = 0;
 	for (edge e = first(); e != 0; e = next(e)) {
 		vertex u = tail(e); vertex v = head(e);
-		s += Adt::item2string(u) + " -> ";
-		s += Adt::item2string(v) + " ; "; 
+		s += Adt::index2string(u) + " -> ";
+		s += Adt::index2string(v) + " ; "; 
 		if (++cnt == 15) { cnt = 0; s += "\n"; }
 	}
 	s += "}\n";
@@ -165,12 +162,12 @@ string Digraph::toDotString() const {
 bool Digraph::readAdjList(istream& in) {
 	if (!Util::verify(in,'[')) return 0;
 	vertex u;
-	if (!Adt::readItem(in,u)) return 0;
+	if (!Adt::readIndex(in,u)) return 0;
 	if (u > n()) expand(u,m());
 	if (!Util::verify(in,':')) return 0;
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v;
-		if (!Adt::readItem(in,v)) return 0;
+		if (!Adt::readIndex(in,v)) return 0;
 		if (v > n()) expand(v,m());
 		if (m() >= maxEdge) expand(n(),max(1,2*m()));
 		join(u,v);

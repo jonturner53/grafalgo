@@ -325,7 +325,7 @@ BstSet::BstPair BstSet::split(index i, bst s) {
 string BstSet::node2string(index i) const {
 	string s;
 	if (i == 0) return s;
-	s += Adt::item2string(i);
+	s += Adt::index2string(i);
 	if (p(i) == 0)	s += "*";
 	else 		s += ":";
 	s += to_string(key(i));

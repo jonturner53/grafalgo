@@ -1,5 +1,13 @@
 Complete documentation of graph algorithms
 
+Add memSpace methods to data structures to facilitate
+space calculations. Not sure can do this for templates.
+
+Might want to auto-adjust space in HashSet if both
+buckets are full on an insert. Note that this could
+make hash table pretty sparse. Not likely to happen,
+but possible.
+
 Add Ddheap, edmondsBW.. to repository after 542 done
 
 Rework matching stuff
@@ -19,14 +27,24 @@ Rework Utility class and stdinc.
 - timing stuff based on C++?
 
 Use templates for keys in heaps and search trees.
+Started on this, including HashSet and HashMap.
 
-Think about templates for sets and maps. More complicated.
-Should I try to do handle strings as keys?
+Think about adding copy, move constructors,
+assignment operators and comparison operators
+to all data structures (or at least most).
+Done this for some already.
 
 Add unit tests for all data structures.
+- consider alternate designs for this
+- fully scripted version is nice, but more automated version
+  might be better, rather than always comparing to strings;
+  also requires lots of test methods, making it cumbersome
 
 Add unit tests for graph algorithms; when multiple
 algorithms for same problem, can do random generation
 and check values returned as one simple approach
 
 Augment the Java stuff. Maybe do some animations?
+Revisit the efficiency comparison using inline Java methods.
+Ron Cytron says that if a method is private or final, it
+can be inlined. I guess final is the only useful one here.

@@ -33,7 +33,6 @@ public:
 	void	clear();
 	void	resize(int);
 	void	expand(int);
-	void 	copyFrom(const ListPair&);
 
 	// operators
         ListPair&   operator=(const ListPair&);

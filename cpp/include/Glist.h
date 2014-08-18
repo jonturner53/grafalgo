@@ -17,7 +17,7 @@ namespace grafalgo {
 
 /** Data structure representing a generic list of values.  */
 template<class V> class Glist : public Adt {
-public:		Glist(int=26);
+public:		Glist(int=26, bool=true);
 		Glist(const Glist&);
 		Glist(Glist&&);
 		~Glist();
@@ -36,7 +36,7 @@ public:		Glist(int=26);
 	index	last() const;
 	index	next(index) const;
 	index	prev(index) const;
-	const V& value(index) const;
+	V&	value(index) const;
 	int	length() const;
 
 	// predicates
@@ -59,10 +59,11 @@ public:		Glist(int=26);
 	string	toString() const;
 
 private:
+	bool	autoExpand;
+
 	// managing dynamic storage
         void    makeSpace();   
 	void	freeSpace();
-	void	init();
 	void	copyContents(const Glist&);
 
 	ListPair *lp;		///< list pair for index list and free space
@@ -71,7 +72,9 @@ private:
 
 /** Create a list with space for index values in 1..nn1 */
 template<class V>
-Glist<V>::Glist(int nn1) : Adt(nn1) { makeSpace(); }
+Glist<V>::Glist(int nn1, bool autoX) : Adt(nn1), autoExpand(autoX) {
+	makeSpace();
+}
 
 /** Copy constructor. */
 template<class V>
@@ -187,7 +190,7 @@ void Glist<V>::expand(int size) {
  *  argument exception if no such item
  */
 template<class V>
-inline const V& Glist<V>::value(index i) const {
+inline V& Glist<V>::value(index i) const {
 	if (!member(i)) {
                 string s = "Glist::value(" + to_string(i)
 			   + "): item not in list";
@@ -307,7 +310,7 @@ index Glist<V>::get(int i) const {
 
 /** Find the index of an item with a specified value.
  *  @param v is a reference to a value
- *  @param i is the index of an item in the list, or 0
+ *  @param i is the index of an item in the list, or 0; optional (default=0)
  *  @return the index of the first item following i in the list that
  *  has the same value as v, or 0 if no such item; if i == 0, search
  *  the entire list
@@ -328,14 +331,17 @@ index Glist<V>::find(const V& v, index i) const {
  */
 template<class V>
 index Glist<V>::insert(const V& v, index j) {
-	if (!(j == 0 || valid(j))) {
+	if (j != 0 && !valid(j)) {
 		stringstream ss;
 		ss << "Glist::insert(" << v << "," << j << ")";
 		string s = ss.str();
 		throw IllegalArgumentException(s);
 	}
 	index i = lp->firstOut();
-	if (i == 0) { lp->expand(2*n()); i = lp->firstOut(); }
+	if (i == 0) {
+		if (!autoExpand) return 0;
+		lp->expand(2*n()); i = lp->firstOut();
+	}
 	if (!lp->swap(i,j)) return 0;
 	vals[i] = v;
 	return i;
@@ -353,7 +359,10 @@ bool Glist<V>::remove(index i) {
 		string s = ss.str();
 		throw IllegalArgumentException(s);
 	}
-	return lp->swap(i);
+	if (!lp->swap(i)) return false;
+	if (length() == 0 && autoExpand)
+		resize(10);	// drop back to default capacity
+	return true;
 }
 
 /** Compare two lists for equality.

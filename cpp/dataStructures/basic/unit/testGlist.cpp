@@ -96,6 +96,7 @@ bool basicTests() {
 
 	// test equals method
 	l1.clear(); l2.clear();
+	Utest::assertEqual(l1.n(),10,"mismatch on capacity (10)");
 	Utest::assertTrue(l1.equals(l1),"equals(): list testing unequal "
 					"to itself");
 	Utest::assertTrue(l1.equals(l2),"equals(): empty lists testing as "

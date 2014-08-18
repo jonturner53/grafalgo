@@ -172,8 +172,8 @@ void Dtrees::cut(index i) {
  */
 string Dtrees::path2string(path q) const {
 	string s = ps->path2string(q);
-	s += " succ(" + Adt::item2string(q);
-	s += ")=" + Adt::item2string(succ(q)) + "\n";
+	s += " succ(" + Adt::index2string(q);
+	s += ")=" + Adt::index2string(succ(q)) + "\n";
 	return s;
 }
 

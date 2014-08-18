@@ -19,6 +19,8 @@ all:
 		       CXXFLAGS='${CXXFLAGS}' all
 	make -C match  IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
+	make -C eColor  IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
+		       CXXFLAGS='${CXXFLAGS}' all
 
 clean:
 	make -C misc   clean
@@ -27,3 +29,4 @@ clean:
 	make -C maxFlo clean
 	make -C mcFlo  clean
 	make -C match  clean
+	make -C eColor  clean

@@ -30,11 +30,11 @@ int main(int argc, char *argv[]) {
 	
 		cout << "distances\n\n    ";
 		for (v = 1; v <= dig.n(); v++) {
-			cout << dig.item2string(v) << " ";
+			cout << dig.index2string(v) << " ";
 		}
 		printf("\n");
 		for (u = 1; u <= dig.n(); u++) {
-			cout << "  " << dig.item2string(v) << ": ";
+			cout << "  " << dig.index2string(v) << ": ";
 			for (v = 1; v <= dig.n(); v++) {
 				cout << setw(3) << dist[u][v] << " ";
 			}
@@ -42,13 +42,13 @@ int main(int argc, char *argv[]) {
 		}
 		cout << "\n\nmidpoint array\n\n    ";
 		for (v = 1; v <= dig.n(); v++)  {
-			cout << "  " << dig.item2string(v) << " ";
+			cout << "  " << dig.index2string(v) << " ";
 		}
 		cout << endl;
 		for (u = 1; u <= dig.n(); u++) {
-			cout << " " << dig.item2string(v) << ": ";
+			cout << " " << dig.index2string(v) << ": ";
 			for (v = 1; v <= dig.n(); v++) {
-				cout << setw(3) << dig.item2string(mid[u][v])
+				cout << setw(3) << dig.index2string(mid[u][v])
 				     << " ";
 			}
 			cout << endl;
@@ -65,11 +65,11 @@ int main(int argc, char *argv[]) {
 	
 		cout << "distances\n\n    ";
 		for (v = 1; v <= dig.n(); v++) {
-			cout << "  "<< dig.item2string(v) << " ";
+			cout << "  "<< dig.index2string(v) << " ";
 		}
 		cout << endl;
 	        for (u = 1; u <= dig.n(); u++) {
-			cout << " " << dig.item2string(v) << ": ";
+			cout << " " << dig.index2string(v) << ": ";
 	                for (v = 1; v <= dig.n(); v++) {
 				cout << setw(3) << dist[u][v] << " ";
 	                }
@@ -78,13 +78,13 @@ int main(int argc, char *argv[]) {
 	
 		cout << "\n\nshortest path trees\n\n    ";
 	        for (v = 1; v <= dig.n(); v++)  {
-			cout << "  " << dig.item2string(v);
+			cout << "  " << dig.index2string(v);
 	        }
 		cout << endl;
 		for (u = 1; u <= dig.n(); u++) {
-			cout << " " << dig.item2string(v) << ": ";
+			cout << " " << dig.index2string(v) << ": ";
 			for (v = 1; v <= dig.n(); v++) {
-				cout << setw(3) << dig.item2string(parent[u][v])
+				cout << setw(3) << dig.index2string(parent[u][v])
 				     << " ";
 			}
 			cout << endl;
