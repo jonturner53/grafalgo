@@ -14,6 +14,24 @@ const uint64_t Hash::A[] = {	0xe65ac2d3a96347c5, 0xa96347c5e65ac2d3,
 				0x47c5e65ac2d3a963, 0x47c5e65ac2d3a963
 			   };
 
+/** Hash an unsigned 32 bit value.
+ *  @param key is the key input to the hash function
+ *  @param hf is an integer in 0..1 that identifies one of two hash functions
+ *  @return a 32 bit "random-looking" value, based on key
+ */
+uint32_t Hash::s32(const int32_t& key, int hf) {
+	return chunk(key,hf);
+}
+
+/** Hash an unsigned 32 bit value.
+ *  @param key is the key input to the hash function
+ *  @param hf is an integer in 0..1 that identifies one of two hash functions
+ *  @return a 32 bit "random-looking" value, based on key
+ */
+uint32_t Hash::u32(const uint32_t& key, int hf) {
+	return chunk(key,hf);
+}
+
 /** Hash a signed 64 bit value.
  *  @param key is the key input to the hash function
  *  @param hf is an integer in 0..1 that identifies one of two hash functions
@@ -23,14 +41,6 @@ uint32_t Hash::s64(const int64_t& key, int hf) {
 	uint32_t hi = ((uint64_t) key >> 32) & 0xffffffff;
 	uint32_t lo = (uint32_t) key;
 	return chunk(hi,hf)^chunk(lo,hf+1);
-}
-/** Hash an unsigned 32 bit value.
- *  @param key is the key input to the hash function
- *  @param hf is an integer in 0..1 that identifies one of two hash functions
- *  @return a 32 bit "random-looking" value, based on key
- */
-uint32_t Hash::u32(const uint32_t& key, int hf) {
-	return chunk(key,hf);
 }
 
 /** Hash an unsigned 64 bit value.

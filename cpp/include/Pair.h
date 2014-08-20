@@ -27,7 +27,7 @@ public:
 		Pair() {}
 		Pair(const F& f, const S& s) : first(f), second(s) {}
 
-	bool	operator==(const Pair<F,S>& other) {
+	bool	operator==(const Pair<F,S>& other) const {
 		return first == other.first && second == other.second;
 	}
 	string	toString() const {

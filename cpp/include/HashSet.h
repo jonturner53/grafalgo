@@ -316,28 +316,70 @@ int HashSet<E,H>::find(const E& elem) const {
 
 /** Add a new element to the set.
  *  @param elem is the element to be added
- *  @return the index assigned to the element or 0 if the operation fails;
- *  if the element is already in the set, a new index is assigned
+ *  @return the index assigned to the element or 0 if the operation fails
  */
 template<class E, uint32_t (*H)(const E&, int)>
 inline index HashSet<E,H>::insert(const E& elem) {
+	// count number of empty slots, in both halves of the table
+	// if element already present, return its index
+	uint32_t h0 = H(elem,0);
+	uint32_t b0 = h0 & bktMsk;
+	uint32_t fp0 = (h0 << (LG_BKT_SIZ-1)) & fpMsk;
+	int i0, n0; i0 = n0 = 0;
+	for (int i = BKT_SIZ-1; i >= 0; i--) {
+		if (bkt[b0][i] == 0) { n0++; i0 = i; }
+		else if ((bkt[b0][i] & fpMsk) == fp0) {
+			index x = bkt[b0][i] & indexMsk;
+			if (eVec[x] == elem) return x;
+		}
+	}
+	uint32_t h1 = H(elem,1);
+	uint32_t b1 = nb + (h1 & bktMsk);
+	uint32_t fp1 = (h1 << (LG_BKT_SIZ-1)) & fpMsk;
+	int i1, n1; i1 = n1 = 0;
+	for (int i = BKT_SIZ-1; i >= 0; i--) {
+		if (bkt[b1][i] == 0) { n1++; i1 = i; }
+		else if ((bkt[b1][i] & fpMsk) == fp1) {
+			index x = bkt[b1][i] & indexMsk;
+			if (eVec[x] == elem) return x;
+		}
+	}
+
+	// if no unused entry in either bucket, give up
+	if (n0 + n1 == 0) return 0;
+
+	// store the element in eVec and add entry in least-loaded bucket
 	index x = idx->firstOut();
 	if (x == 0) {
-		expand(2*n());
+		if (autoExpand) expand(2*n());
+		else return 0;
 		x = idx->firstOut();
+		insert(elem,x);
+		return x;
 	}
-	return insert(elem,x);
+	idx->swap(x);
+	eVec[x] = elem;
+	if (n0 >= n1) {
+		bkt[b0][i0] = fp0 | (x & indexMsk);
+	} else {
+		bkt[b1][i1] = fp1 | (x & indexMsk);
+	}
+
+	return x;
+
 }
 
 /** Insert a new element.
  *  @param element is the new element
  *  @param x is the index to be assigned to the element
  *  @return the new index or 0 if x is not an available index or
- *  the operation fails; if the element is already in the set, the specified
- *  index replaces the index that was previously assigned to the element
+ *  the operation fails; if the element is already in the set using a
+ *  different index, the specified index replaces the one that was
+ *  previously assigned to the element
  */
 template<class E, uint32_t (*H)(const E&, int)>
 index HashSet<E,H>::insert(const E& elem, index x) {
+	if (idx->isIn(x) && elem == eVec[x]) return x;
 	if (x > n()) {
 		if (autoExpand) expand(max(x,2*n()));
 		else return 0;

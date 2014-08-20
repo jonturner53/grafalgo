@@ -50,7 +50,7 @@ private:
  *  @return a 32 bit "random-looking" value, based on x
  */
 inline uint32_t Hash::chunk(int32_t x, int hf) {
-	return ((uint32_t) (((uint64_t) x) * A[hf])) >> 16;
+	return (uint32_t) ((((uint64_t) x) * A[hf]) >> 16);
 }
 
 /** Compute a 32 bit chunk of a hash function.
@@ -61,16 +61,7 @@ inline uint32_t Hash::chunk(int32_t x, int hf) {
  *  @return a 32 bit "random-looking" value, based on x
  */
 inline uint32_t Hash::chunk(uint32_t x, int hf) {
-	return ((uint32_t) (((uint64_t) x) * A[hf])) >> 16;
-}
-
-/** Hash a signed 32 bit value.
- *  @param key is the key input to the hash function
- *  @param hf is an integer in 0..1 that identifies one of two hash functions
- *  @return a 32 bit "random-looking" value, based on key
- */
-inline uint32_t Hash::s32(const int32_t& key, int hf) {
-	return chunk(key,hf);
+	return (uint32_t) ((((uint64_t) x) * A[hf]) >> 16);
 }
 
 } // ends namespace

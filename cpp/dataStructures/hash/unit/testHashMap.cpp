@@ -127,6 +127,7 @@ void basicTests() {
 	v4 = "hah";
         Utest::assertEqual(map2.toString(),
 		"{(abc,who) (lmn,hah)}", "mismatched map");
+	cout << "basic tests passed\n";
 }
 
 
