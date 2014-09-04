@@ -113,7 +113,7 @@ bool Util::readInt(istream& in, int& i, bool sameline) {
 	if (skipSpace(in,sameline)) {
 		char c = in.peek();
 		if (!in.good()) return false;
-		if (isdigit(c) || c != '-') {
+		if (isdigit(c) || c == '-') {
 			in >> i; return in.good();
 		}
 		in.get();
@@ -123,7 +123,7 @@ bool Util::readInt(istream& in, int& i, bool sameline) {
 
 /** Read an integer from the input stream.
  *  @param in is an open input stream
- *  @param i is an int in which result is returned
+ *  @param i is a uint64_t in which result is returned
  *  @param sameline is an optional argument; if it is true, do not
  *  scan past the end of the line; default is false
  *  @return true on success, else false
@@ -132,7 +132,7 @@ bool Util::readInt(istream& in, uint64_t& i, bool sameline) {
 	if (skipSpace(in,sameline)) {
 		char c = in.peek();
 		if (!in.good()) return false;
-		if (isdigit(c) || c != '-') {
+		if (isdigit(c) || c == '-') {
 			in >> i; return in.good();
 		}
 		in.get();

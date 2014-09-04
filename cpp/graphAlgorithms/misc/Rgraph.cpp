@@ -176,6 +176,19 @@ void Rgraph::tree(Graph& graf, int numv) {
 	graf.sortAdjLists();
 }
 
+/*
+Consider adding a random k-ary tree in which every non-leaf has k edges.
+S=set of in-tree vertices that can accept another child. Pick a non-tree
+vertex and an element of S to join by an edge. Add non-tree vertex to S
+while possibly removing the tree vertex.
+
+Variant: rooted tree in which root has k-1 edges.
+
+Alternate aproach. Use partition to maintain set of connected components.
+Select random pair of endpoints and join if endpoints are in different
+components.
+*/
+
 /** Create a random simple, connected graph.
  */
 void Rgraph::connected(Graph& graf, int numv, int nume) {
