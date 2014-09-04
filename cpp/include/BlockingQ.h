@@ -90,7 +90,7 @@ inline bool BlockingQ<T>::full() const { return count.load() == N; }
 template<class T>
 void BlockingQ<T>::enq(T x) {
 	unique_lock<mutex> elck(emtx);
-	notFull.wait(elck,[=]{return !full();});
+	notFull.wait(elck,[=]{return count.load() != N;});
 
 	buf[wp] = x;
 	wp = (wp+1)%N;
@@ -110,7 +110,7 @@ void BlockingQ<T>::enq(T x) {
  */
 template<class T> T BlockingQ<T>::deq() {
 	unique_lock<mutex> dlck(dmtx);
-	notEmpty.wait(dlck,[=]{return !empty();});
+	notEmpty.wait(dlck,[=]{return count.load() != 0;});
 
 	T x = buf[rp];
 	rp = (rp+1)% N;
