@@ -36,6 +36,6 @@
 #include <poll.h>
 #include <limits.h>
 
-#include <linux/sockios.h>
+//#include <linux/sockios.h>
 
 #endif

@@ -12,11 +12,13 @@
 #include <pthread.h>
 #include "stdinc.h"
 #include <thread>
+#include <atomic>
 #include <mutex>
 #include <condition_variable>
 #include "Util.h"
 
 using std::mutex;
+using std::atomic;
 using std::unique_lock;
 using std::condition_variable;
 
