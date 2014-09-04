@@ -36,8 +36,6 @@
 #include <poll.h>
 #include <limits.h>
 
-#ifdef linux
 #include <linux/sockios.h>
-#endif
 
 #endif
