@@ -53,10 +53,10 @@ private:
 };
 
 /** Constructor for BlockingQ objects.
- *  @param x is the log2 of the maximum number of elements that can be queued
+ *  @param N1 is the maximum number of elements that can be queued
  */
 template<class T>
-BlockingQ<T>::BlockingQ(int x) : N(1 << x) {
+BlockingQ<T>::BlockingQ(int x) : N(N1) {
 	buf = new T[N];
 	count.store(0); rp = wp = 0;
 }
@@ -66,11 +66,12 @@ template<class T>
 BlockingQ<T>::~BlockingQ() { delete [] buf; }
 
 /** Resize the queue, discarding any contents.
+ *  @param nuN is the new specified size
  *  This should only be used before any threads are using the BlockingQ.
  */
 template<class T>
-inline void BlockingQ<T>::resize(int x) {
-	N = 1 << x; delete [] buf; buf = new T[N];
+inline void BlockingQ<T>::resize(nuN) {
+	N = NuN; delete [] buf; buf = new T[N];
 }
 
 /** Determine if queue is empty.

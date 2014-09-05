@@ -53,12 +53,14 @@ private:
 };
 
 /** Constructor for NonblockingQ objects.
- *  @param x is the log_2(maximum number of elements that can be queued).
+ *  @param N1 is specified capacity of the queue; it is actually rounded
+ *  up to the next power of 2.
  */
 template<class T>
-inline NonblockingQ<T>::NonblockingQ(int x) : N(1 << x) {
-	rc.store(0); wc.store(0); wcs.store(0);
+inline NonblockingQ<T>::NonblockingQ(int N1) {
+	for (N = 1; N < N1; N <<= 1) {}
 	buf = new T[N];
+	rc.store(0); wc.store(0); wcs.store(0);
 }
 
 /** Destructor for NonblockingQ objects. */
@@ -79,7 +81,8 @@ inline void NonblockingQ<T>::reset() {
  */
 template<class T>
 inline void NonblockingQ<T>::resize(int nuN) {
-	N = nuN; delete [] buf; buf = new int[N];
+	for (N = 1; N < NuN; N <<= 1) {}
+	delete [] buf; buf = new int[N];
 	rc.store(0); wc.store(0); wcs.store(0);
 }
 

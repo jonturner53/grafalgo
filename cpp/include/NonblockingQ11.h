@@ -47,12 +47,12 @@ private:
 };
 
 /** Constructor for NonblockingQ11 objects.
- *  @param x is the log_2(maximum number of elements that can be queued).
+ *  @param N1 is the maximum number of elements that can be queued.
  */
 template<class T>
-inline NonblockingQ11<T>::NonblockingQ11(int x) : N(1 << x) {
-	rp.store(0); wp.store(0); 
+inline NonblockingQ11<T>::NonblockingQ11(int x) : N(N1) {
 	buf = new T[N];
+	rp.store(0); wp.store(0); 
 }
 
 /** Destructor for NonblockingQ11 objects. */
@@ -74,7 +74,7 @@ inline void NonblockingQ11<T>::reset() {
  */
 template<class T>
 inline void NonblockingQ11<T>::resize(int x) {
-	N = 1 << x; delete [] buf; buf = new int[N];
+	N = N1; delete [] buf; buf = new int[N];
 	rp.store(0); wp.store(0); 
 }
 
