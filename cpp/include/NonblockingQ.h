@@ -53,12 +53,12 @@ private:
 };
 
 /** Constructor for NonblockingQ objects.
- *  @param N1 is specified capacity of the queue; it is actually rounded
- *  up to the next power of 2.
+ *  @param capacity is the specified capacity of the queue; the actual
+ *  capacity is rounded up to the next power of 2.
  */
 template<class T>
-inline NonblockingQ<T>::NonblockingQ(int N1) {
-	for (N = 1; N < N1; N <<= 1) {}
+inline NonblockingQ<T>::NonblockingQ(int capacity) {
+	for (N = 1; N < capacity; N <<= 1) {}
 	buf = new T[N];
 	rc.store(0); wc.store(0); wcs.store(0);
 }
@@ -77,11 +77,13 @@ inline void NonblockingQ<T>::reset() {
 }
 
 /** Resize the queue, discarding any contents.
+ *  @param capacity is the specified capacity of the queue; the actual
+ *  capacity is rounded up to the next power of 2
  *  This should only before any threads are using the NonblockingQ.
  */
 template<class T>
-inline void NonblockingQ<T>::resize(int nuN) {
-	for (N = 1; N < NuN; N <<= 1) {}
+inline void NonblockingQ<T>::resize(int capacity) {
+	for (N = 1; N < capacity; N <<= 1) {}
 	delete [] buf; buf = new int[N];
 	rc.store(0); wc.store(0); wcs.store(0);
 }

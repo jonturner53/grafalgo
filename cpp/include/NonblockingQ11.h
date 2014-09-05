@@ -47,10 +47,10 @@ private:
 };
 
 /** Constructor for NonblockingQ11 objects.
- *  @param N1 is the maximum number of elements that can be queued.
+ *  @param capacity is the specified capacity of the queue
  */
 template<class T>
-inline NonblockingQ11<T>::NonblockingQ11(int x) : N(N1) {
+inline NonblockingQ11<T>::NonblockingQ11(int capacity) : N(capacity) {
 	buf = new T[N];
 	rp.store(0); wp.store(0); 
 }
@@ -70,11 +70,11 @@ inline void NonblockingQ11<T>::reset() {
 
 /** Resize the queue, discarding any contents.
  *  This should only before any threads are using the NonblockingQ11.
- *  @param x is the log2 of the max number of items that can be queued.
+ *  @param capacity is the new specified capacity of the queue
  */
 template<class T>
-inline void NonblockingQ11<T>::resize(int x) {
-	N = N1; delete [] buf; buf = new int[N];
+inline void NonblockingQ11<T>::resize(int capacity) {
+	N = capacity; delete [] buf; buf = new int[N];
 	rp.store(0); wp.store(0); 
 }
 
