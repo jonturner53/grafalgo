@@ -17,7 +17,7 @@
 
 using std::atomic;
 
-namespace forest {
+namespace grafalgo {
 
 /** This class implements a simple thread-safe queue for communication
  *  among threads. It uses a lock-free implementation for high performance.

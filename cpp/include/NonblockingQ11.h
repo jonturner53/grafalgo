@@ -17,7 +17,7 @@
 
 using std::atomic;
 
-namespace forest {
+namespace grafalgo {
 
 /** This class implements a simple nonblocking queue for communication
  *  between a single writer thread and a single reader. It uses lock-free 

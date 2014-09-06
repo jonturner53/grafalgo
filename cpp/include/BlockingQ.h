@@ -22,7 +22,7 @@ using std::atomic;
 using std::unique_lock;
 using std::condition_variable;
 
-namespace forest {
+namespace grafalgo {
 
 /** This class implements a simple thread-safe queue for communication
  *  among threads.
