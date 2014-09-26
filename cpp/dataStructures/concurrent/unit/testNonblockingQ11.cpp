@@ -14,10 +14,10 @@ using std::mutex;
 using std::atomic;
 using std::unique_lock;
 
-using namespace forest;
+using namespace grafalgo;
 
-NonblockingQ11<int> q0(4);
-NonblockingQ11<int> q1(4);
+NonblockingQ11<int,128> q0(16);
+NonblockingQ11<int,128> q1(16);
 
 void f(int i) {
 	int x;
