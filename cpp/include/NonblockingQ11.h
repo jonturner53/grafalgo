@@ -9,10 +9,12 @@
 #ifndef NONBLOCKING11_H
 #define NONBLOCKING11_H
 
+#include <sstream>
 #include <chrono>
 #include <thread>
 #include <atomic>
 #include "stdinc.h"
+#include "Adt.h"
 #include "Util.h"
 
 using std::atomic;
@@ -28,7 +30,7 @@ namespace grafalgo {
  *  of cache lines by different threads;
  *  default value of 64 is suitable for 64 byte cache lines
  */
-template<class T,int pad=64> class NonblockingQ11 {
+template<class T,int pad=64> class NonblockingQ11 : public Adt {
 public:		NonblockingQ11(int=4);
 		~NonblockingQ11();
 
@@ -42,6 +44,9 @@ public:		NonblockingQ11(int=4);
 	T	deq();	
 
 	string	toString() const;
+	friend ostream& operator<<(ostream& os, const T& q) {
+		return (os << q.toString());
+	}
 private:
 	int	N;			///< max number of items in buf
 	int	padT;			///< padding in terms of units of T
@@ -66,7 +71,6 @@ inline NonblockingQ11<T,pad>::NonblockingQ11(int capacity) {
 	N = capacity + padT;
 	buf = new T[N];
 	rp.store(0); wp.store(0); rpOld = rp; wpOld = wp;
-cerr << "N=" << N << " padT=" << padT << endl;
 }
 
 /** Destructor for NonblockingQ11 objects. */
@@ -128,6 +132,14 @@ inline bool NonblockingQ11<T,pad>::enq(T x) {
  */
 template<class T, int pad>
 inline T NonblockingQ11<T,pad>::deq() {
+/*
+	if (cache is not empty) return cache.deq();
+	else {
+		try to refill cache using wpOld
+		if not able to, update wpOld, then try
+		update rp
+	}
+*/
 	if (rp != wpOld) {
 		int x = buf[rp]; rp.store((rp+1)%N); return x;
 	}

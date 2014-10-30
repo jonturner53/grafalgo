@@ -9,6 +9,7 @@
 #ifndef NONBLOCKING_H
 #define NONBLOCKING_H
 
+#include <sstream>
 #include <chrono>
 #include <thread>
 #include <atomic>
@@ -42,6 +43,9 @@ public:		NonblockingQ(int=4);
 	T	deq();	
 
 	string	toString() const;
+	friend	ostream& operator<<(ostream& os, const T& q) {
+		os << q.toString(); return os;
+	}
 private:
 	int	N;			///< max number of items in queue
 
@@ -105,7 +109,7 @@ inline bool NonblockingQ<T>::full() const {
 
 /** Add value to the end of the queue.
  *  The calling thread is blocked if the queue is full.
- *  @param i is the value to be added.
+ *  @param x is the value to be added.
  */
 template<class T>
 inline bool NonblockingQ<T>::enq(T x) {
@@ -114,7 +118,7 @@ inline bool NonblockingQ<T>::enq(T x) {
 	while (wcc < rc.load()+(N-1)) {
 		if (wc.compare_exchange_weak(wcc,wcc+1)) {
 			buf[wcc%N] = x; 
-			// wait until gp==wcc, then increment it
+			// wait until wcs==wcc, then increment it
 			uint32_t tmp = wcc;
 			while (!wcs.compare_exchange_weak(tmp,wcc+1)) {
 				tmp = wcc; // undoing c&x update to tmp
