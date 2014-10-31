@@ -28,6 +28,7 @@ public:
 	static bool readWord(istream&, string&, bool= false);
 	static bool readString(istream&, string&, bool= false);
 	static bool readInt(istream&, int&, bool= false);
+	static bool readInt(istream&, int64_t&, bool= false);
 	static bool readInt(istream&, uint64_t&, bool= false);
 	static bool verify(istream&, char c, bool=false);
 

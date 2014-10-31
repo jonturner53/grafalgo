@@ -9,6 +9,7 @@
 #ifndef NONBLOCKING_H
 #define NONBLOCKING_H
 
+#include <sstream>
 #include <chrono>
 #include <thread>
 #include <atomic>
@@ -42,6 +43,9 @@ public:		NonblockingQ(int=4);
 	T	deq();	
 
 	string	toString() const;
+	friend	ostream& operator<<(ostream& os, const T& q) {
+		os << q.toString(); return os;
+	}
 private:
 	int	N;			///< max number of items in queue
 
