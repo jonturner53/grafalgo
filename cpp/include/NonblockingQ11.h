@@ -71,7 +71,6 @@ inline NonblockingQ11<T,pad>::NonblockingQ11(int capacity) {
 	N = capacity + padT;
 	buf = new T[N];
 	rp.store(0); wp.store(0); rpOld = rp; wpOld = wp;
-cerr << "N=" << N << " padT=" << padT << endl;
 }
 
 /** Destructor for NonblockingQ11 objects. */
@@ -133,6 +132,14 @@ inline bool NonblockingQ11<T,pad>::enq(T x) {
  */
 template<class T, int pad>
 inline T NonblockingQ11<T,pad>::deq() {
+/*
+	if (cache is not empty) return cache.deq();
+	else {
+		try to refill cache using wpOld
+		if not able to, update wpOld, then try
+		update rp
+	}
+*/
 	if (rp != wpOld) {
 		int x = buf[rp]; rp.store((rp+1)%N); return x;
 	}
