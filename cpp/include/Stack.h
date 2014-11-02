@@ -33,6 +33,7 @@ public:		Stack(int=16);
 	int	xferOut(Stack<T>&,int);
 
 	string	toString() const;
+	string	toString(int) const;
 	friend ostream& operator<<(ostream& os, const T& q) {
 		return (os << q.toString());
 	}
@@ -112,7 +113,7 @@ inline int Stack<T>::xferIn(Stack<T>& other, int cnt) {
 template<class T>
 inline T Stack<T>::pop() {
 	if (sp == 0) {
-		string s = "empty stack";
+		string s = "Stack::pop: empty stack\n";
 		throw IllegalArgumentException(s);
 	}
 	return stak[--sp];
@@ -128,11 +129,33 @@ inline int Stack<T>::xferOut(Stack<T>& other, int cnt) {
 	return other.xferIn(*this, cnt);
 }
 
+/** Produce a string representing the stack contents.
+ *  @param return the string representing the stack
+ */
 template<class T>
 inline string Stack<T>::toString() const {
 	stringstream ss;
 	ss << "[";
 	for (int i = 0; i < sp;  i++) {
+		ss << stak[i];
+		if (i != sp-1) ss << ", ";
+	}
+	ss << "]";
+	return ss.str();
+}
+
+/** Produce a string representing the stack contents.
+ *  @param n is the max number of stack values to print;
+ *  if n is less than the number of values on the stack,
+ *  the top n values are printed
+ *  @param return the string representing the stack
+ */
+template<class T>
+inline string Stack<T>::toString(int n) const {
+	stringstream ss;
+	ss << "[";
+	if (n < sp) ss << ".. ";
+	for (int i = max(0,sp-n); i < sp;  i++) {
 		ss << stak[i];
 		if (i != sp-1) ss << ", ";
 	}
