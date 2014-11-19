@@ -8,17 +8,26 @@
 
 #include "stdinc.h"
 #include "Adt.h"
+#include "Util.h"
 #include "List.h"
 #include "Graph.h"
 
 using namespace grafalgo;
 
-/** Compute list of vertices in breadth-first order.
- *  @param g is a graph object
- *  @param s is a vertex in g
- *  @param vlist is used to return a list of all the vertices
- *  in breadth-first order, starting from s
+void bfs(Graph&, vertex, List&);
+
+/** usage: bfs
+ *  
+ *  Bfs reads a graph from stdin, and lists its vertices in
+ *  breadth-first order starting from vertex 1.
  */
+int main() {
+	Graph g; cin >> g;
+	List vlist(g.n());
+	bfs(g,1,vlist);
+	cout << vlist << endl;
+}
+
 void bfs(Graph& g, vertex s, List& vlist) {
 	vertex u,v; edge e; List q(g.n());
 	bool *mark = new bool[g.n()+1];

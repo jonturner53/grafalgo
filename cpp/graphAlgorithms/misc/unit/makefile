@@ -25,6 +25,18 @@ all:	${LIBS} ${XFILES}
 ${LIBGA}: ${OFILES}
 	ar -ru ${LIBGA} ${OFILES}
 
+bfs: bfs.o ${LIBS}
+	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+
+toposort: toposort.o ${LIBS}
+	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+
+test_nca: test_nca.o ${LIBS} 
+	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+
+copyGraph: copyGraph.o ${LIBS}
+	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+
 randGraph: randGraph.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 

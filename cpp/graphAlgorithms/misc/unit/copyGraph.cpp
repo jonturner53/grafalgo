@@ -1,12 +1,10 @@
-// usage: cgraph type
-//
-// Copy a graph of specified type from stdin to stdout.
-// Why you ask? To test input and output operators, of course.
-// We also do an assignment in between input and output,
-// in order to test the assignment operator.
-//
-// The allowed values of type are graph, wgraph,
-// digraph, wdigraph, flograph, wflograph.
+/** @file copyGraph.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
 
 #include "stdinc.h"
 #include "Adt.h"
@@ -16,9 +14,19 @@
 
 using namespace grafalgo;
 
+/** usage: copyGraph type
+ * 
+ *  Copy a graph of specified type from stdin to stdout.
+ *  Why you ask? To test input and output operators, of course.
+ *  We also do an assignment in between input and output,
+ *  in order to test the assignment operator.
+ * 
+ *  The allowed values of type are graph, wgraph,
+ *  digraph, wdigraph, flograph, wflograph.
+ */
 int main(int argc, char *argv[]) { 
 
-	if (argc != 2) Util::fatal("usage: cgraph type");
+	if (argc != 2) Util::fatal("usage: copyGraph type");
 
 	if (strcmp(argv[1],"graph") == 0) {
 		Graph g; cin >>g; Graph g1;
@@ -39,6 +47,6 @@ int main(int argc, char *argv[]) {
 		Wflograph wfg; cin >> wfg; Wflograph wfg1;
 		wfg1.copyFrom(wfg); cout << wfg1;
 	} else {
-		Util::fatal("usage: cgraph type");
+		Util::fatal("usage: copyGraph type");
 	}
 }

@@ -1,37 +1,10 @@
-// usage: randGraph type n m scram [..] seed
-//
-// Create a random graph on n vertices and m edges
-// and print it. Type specifies what type of graph
-// to generate (see below). Span is the max separation
-// between vertices in the same edge. Scramble=1 if
-// vertex numbers should be randomized, otherwise 0.
-// Certain cases require additional arguments that are detailed
-// below, along with the string that specifies the
-// graph type.
-// 
-//    "ugraph"  n m scram seed
-//   "bigraph"  n m scram seed
-//    "cgraph"  n m scram seed
-//      "tree"  n m scram seed
-//    "wgraph" 	n m scram lo hi seed
-//  "wbigraph"  n m scram lo hi seed
-//   "wcgraph"  n m scram lo hi seed
-//     "wtree"  n m scram seed
-//   "digraph"  n m scram seed
-//       "dag"  n m scram seed
-//  "wdigraph" 	n m scram lo hi seed
-//      "wdag" 	n m scram lo hi seed
-//  "flograph"  n m scram mss ecap1 ecap2 seed
-// "wflograph" 	n m scram mss ecap1 ecap2 lo hi seed
-// "mflograph" 	n m scram mss ecap1 ecap2 lo hi seed
-//
-// For bigraphs, n is the number of vertices in each part.
-// For weighted graphs, [lo,hi] is the range of edge
-// weights. These are distributed uniformly in the range.
-// For flographs, mss is the number of edges from the source
-// and to the sink, ecap1 is the average edge capacity of
-// source/sink edges and ecap2 is the average edge capacity
-// of all other edges.
+/** @file randGraph.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
 
 #include "stdinc.h"
 #include "Adt.h"
@@ -40,6 +13,41 @@
 
 using namespace grafalgo;
 
+/** usage: randGraph type n m scram [..] seed
+ * 
+ *  Create a random graph on n vertices and m edges
+ *  and print it. Type specifies what type of graph
+ *  to generate (see below). Span is the max separation
+ *  between vertices in the same edge. Scramble=1 if
+ *  vertex numbers should be randomized, otherwise 0.
+ *  Certain cases require additional arguments that are detailed
+ *  below, along with the string that specifies the
+ *  graph type.
+ *  
+ *     "ugraph"  n m scram seed
+ *    "bigraph"  n m scram seed
+ *     "cgraph"  n m scram seed
+ *       "tree"  n m scram seed
+ *     "wgraph" 	n m scram lo hi seed
+ *   "wbigraph"  n m scram lo hi seed
+ *    "wcgraph"  n m scram lo hi seed
+ *      "wtree"  n m scram seed
+ *    "digraph"  n m scram seed
+ *        "dag"  n m scram seed
+ *   "wdigraph" 	n m scram lo hi seed
+ *       "wdag" 	n m scram lo hi seed
+ *   "flograph"  n m scram mss ecap1 ecap2 seed
+ *  "wflograph" 	n m scram mss ecap1 ecap2 lo hi seed
+ *  "mflograph" 	n m scram mss ecap1 ecap2 lo hi seed
+ * 
+ *  For bigraphs, n is the number of vertices in each part.
+ *  For weighted graphs, [lo,hi] is the range of edge
+ *  weights. These are distributed uniformly in the range.
+ *  For flographs, mss is the number of edges from the source
+ *  and to the sink, ecap1 is the average edge capacity of
+ *  source/sink edges and ecap2 is the average edge capacity
+ *  of all other edges.
+ */
 int main(int argc, char* argv[]) {
 	int n, m, mss, scram, lo, hi, ecap1, ecap2, seed = 0;
 	char *gtyp = argv[1];

@@ -8,10 +8,30 @@
 
 #include "stdinc.h"
 #include "Adt.h"
+#include "Util.h"
 #include "List.h"
 #include "Digraph.h"
 
 using namespace grafalgo;
+
+bool toposort(const Digraph&, List&);
+
+/** usage: toposort
+ * 
+ *  Toposort reads a graph from stdin, and creates an equivalent
+ *  graph whose vertices are in topologically sorted order.
+ *  This graph, and the mapping used to produce, are written
+ *  to stdout.
+ */
+int main() {
+	Digraph dg; cin >> dg;
+	List vlist(dg.n());
+	if (toposort(dg,vlist))
+		cout << vlist << endl;
+	else
+		cout << "graph contains cycle\n";
+	exit(0);
+}
 
 /** Compute a topological ordering of dg.
  *  @param dg is a reference to an acyclic digraph
