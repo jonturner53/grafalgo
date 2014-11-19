@@ -1,0 +1,27 @@
+#! /bin/bash
+#
+# usage: testScript algorithm
+#
+# Run unit test on series of random graphs, with a specified algorithm.
+# The algorithm argument is prim, primF, kruskal or rrobin.
+#
+algo="prim"
+if [ $# -eq 1 ] ; then
+	algo=$1
+fi;
+
+echo "density 3 graphs"
+k=6;
+while [ $k -le 16 ] ; do
+	n=$((2**k)); m=$((3*n/2))
+	timeMst $algo 20 $n $m $m  
+	k=$((k+1))
+done
+
+echo "density lg(n) graphs"
+k=6; 
+while [ $k -le 16 ] ; do
+	n=$((2**k)); m=$((k*n))
+	timeMst $algo 20 $n $m $m  
+	k=$((k+1))
+done
