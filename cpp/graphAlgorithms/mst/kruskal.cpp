@@ -1,7 +1,15 @@
+/** @file kruskal.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
 #include "stdinc.h"
 #include "Partition.h"
 #include "Wgraph.h"
-#include "List.h"
+#include "Glist.h"
 
 using namespace grafalgo;
 
@@ -54,7 +62,7 @@ void sortEdges(const Wgraph& wg, edge *elist) {
  *  @param mstree is a list in which the mst is returned; it is assumed
  *  to be empty
  */
-void kruskal(Wgraph& wg, list<edge>& mstree) {
+void kruskal(Wgraph& wg, Glist<edge>& mstree) {
 	edge e, e1; vertex u,v,cu,cv;
 	Partition vsets(wg.n());
 	edge *elist = new edge[wg.m()+1];
@@ -66,7 +74,7 @@ void kruskal(Wgraph& wg, list<edge>& mstree) {
 		u = wg.left(e); v = wg.right(e);
 		cu = vsets.find(u); cv = vsets.find(v);
 		if (cu != cv) {
-			 vsets.link(cu,cv); mstree.push_back(e);
+			 vsets.link(cu,cv); mstree.addLast(e);
 		}
 	}
 }

@@ -87,7 +87,7 @@ void FheapSet::clear() {
 	for (index x = 0; x <= n(); x++) {
 		c(x) = p(x) = rank(x) = kee(x) = 0; mark(x) = false;
 	}
-	for (index x = 0; x <= FheapSet::MAXRANK; x++) rvec[x] = 0;
+	//for (index x = 0; x <= FheapSet::MAXRANK; x++) rvec[x] = 0;
 }
 
 /** Build a heap from a list of nodes.
@@ -98,7 +98,7 @@ fheap FheapSet::makeheap(const List& lst) {
 	if (h == 0) return 0;
 	fheap minh = h;
 	for (fheap h1 = lst.next(h); h1 != 0; h1 = lst.next(h1)) {
-		if (kee(h1) < kee(h)) minh = h1;
+		if (kee(h1) < kee(minh)) minh = h1;
 		sibs->join(h,h1);
 	}
 	return minh;
@@ -112,6 +112,7 @@ fheap FheapSet::makeheap(const List& lst) {
  */
 fheap FheapSet::meld(fheap h1, fheap h2) {
 	assert(0 <= h1 && h1 <= n() && 0 <= h2 && h2 <= n());
+//cerr << "meld(" << h1 << "," << h2 << ")\n";
 	if (h1 == 0) return h2;
 	if (h2 == 0) return h1;
 	sibs->join(h1,h2);
@@ -140,12 +141,13 @@ fheap FheapSet::insert(index i, fheap h, keytyp x) {
  */
 fheap FheapSet::decreasekey(index i, keytyp delta, fheap h) {
 	assert(0 <= i && i <= n() && 0 <= h && h <= n() && delta >= 0);
+//cerr << "decreaskey(" << i << "," << delta << "," << h << ")\n";
 	fheap pi = p(i);
 	kee(i) -= delta;
-	if (pi == 0) return kee(i) < kee(h) ? i : h;
+	if (pi == 0) return (kee(i) < kee(h) ? i : h);
 	if (kee(i) >= kee(pi)) return h;
 	do {
-		c(pi) = rank(pi) == 1 ? 0: sib(i);
+		c(pi) = (rank(pi) == 1 ? 0: sib(i));
 		rank(pi)--;
 		sibs->remove(i);
 		p(i) = 0; mark(i) = false;
@@ -158,48 +160,49 @@ fheap FheapSet::decreasekey(index i, keytyp delta, fheap h) {
 }
 
 /** Merge the tree roots in heap, to eliminate repeated ranks.
- *  @param h is a tree root in a heap; all tree roots are assumed
+ *  @param r is a tree root in a heap; all tree roots are assumed
  *  to be non-deleted nodes
  *  @return the resulting root with the smallest key
  */
-fheap FheapSet::mergeRoots(fheap h) {
+fheap FheapSet::mergeRoots(fheap r) {
 	// Build queue of roots and find root with smallest key
 	mrCount++;
-	fheap minRoot = h;
-	tmpq->addLast(h); p(h) = 0;
-	for (fheap sh = sib(h); sh != h; sh = sib(sh)) {
-		if (kee(sh) < kee(minRoot)) minRoot = sh;
-		tmpq->addLast(sh); p(sh) = 0; mark(sh) = false;
+	index minRoot = r;
+	tmpq->addLast(r); p(r) = 0;
+	for (fheap sr = sib(r); sr != r; sr = sib(sr)) {
+		if (kee(sr) < kee(minRoot)) minRoot = sr;
+		tmpq->addLast(sr); p(sr) = 0; mark(sr) = false;
 	}
-	int maxr = -1; // maxr = maximum rank seen so far
+	// scan roots, merging trees of equal rank
+	int maxRank = -1; // maxRank = maximum rank seen so far
 	while (!tmpq->empty()) {
 		mrCount++;
-		// scan roots, merging trees of equal rank
-		fheap h1 = tmpq->first(); tmpq->removeFirst();
-		if (rank(h1) > FheapSet::MAXRANK)
-			Util::fatal("deletemin: rank too large");
-		fheap h2 = rvec[rank(h1)];
-		if (maxr < rank(h1)) {
-			for (maxr++; maxr < rank(h1); maxr++) rvec[maxr] = 0;
-			rvec[rank(h1)] = h1;
-		} else if (h2 == 0) {
-			rvec[rank(h1)] = h1;
-		} else if (kee(h1) < kee(h2)) {
-			sibs->remove(h2);
-			sibs->join(c(h1),h2); c(h1) = h2;
-			rvec[rank(h1)] = 0;
-			rank(h1)++; p(h2) = h1;
-			tmpq->addLast(h1);
+		index r1 = tmpq->first(); tmpq->removeFirst();
+		if (rank(r1) > FheapSet::MAXRANK)
+			Util::fatal("mergeRoots: rank too large");
+		index r2 = rvec[rank(r1)];
+		if (maxRank < rank(r1)) {
+			for (maxRank++; maxRank < rank(r1); maxRank++)
+				rvec[maxRank] = 0;
+			rvec[rank(r1)] = r1;
+		} else if (r2 == 0) {
+			rvec[rank(r1)] = r1;
+		} else if (kee(r1) < kee(r2)) {
+			sibs->remove(r2);
+			sibs->join(c(r1),r2); c(r1) = r2;
+			rvec[rank(r1)] = 0;
+			rank(r1)++; p(r2) = r1;
+			tmpq->addLast(r1);
 		} else {
-			sibs->remove(h1);
-			sibs->join(c(h2),h1); c(h2) = h1;
-			rvec[rank(h1)] = 0;
-			rank(h2)++; p(h1) = h2; 
-			if (h == h1) h = h2;
-			tmpq->addLast(h2);
+			sibs->remove(r1);
+			sibs->join(c(r2),r1); c(r2) = r1;
+			rvec[rank(r1)] = 0;
+			rank(r2)++; p(r1) = r2; 
+			tmpq->addLast(r2);
+			if (r1 == minRoot) minRoot = r2;
 		}
 	}
-	for (int k = 0; k <= maxr; k++) rvec[k] = 0;
+	//for (int k = 0; k <= maxRank; k++) rvec[k] = 0;
 	return minRoot;
 }
 
@@ -209,14 +212,20 @@ fheap FheapSet::mergeRoots(fheap h) {
  *  removing the item with the smallest key
  */
 fheap FheapSet::deletemin(fheap h) {
+if (!(1 <= h && h <= n())) {
+//cerr << "deletemin(" << h << ")\n";
+}
 	assert(1 <= h && h <= n());
 
 	// Merge h's children into root list and remove it
-	fheap x = c(h);
+	index x = c(h);
 	if (x != 0) sibs->join(h,x);
 	c(h) = 0; rank(h) = 0;
 	x = sib(h);
-	if (x == h) return 0;
+	if (x == h) {
+//cerr << "returning 0 because heap now empty\n";
+		return 0;
+	}
 	sibs->remove(h);
 
 	return mergeRoots(x);
@@ -229,8 +238,7 @@ fheap FheapSet::deletemin(fheap h) {
  */
 fheap FheapSet::remove(index i, fheap h) {
 	assert(1 <= i && i <= n() && 1 <= h && h <= n());
-	keytyp k;
-	k = kee(i);
+	keytyp k = kee(i);
 	h = decreasekey(i,(kee(i)-kee(h))+1,h);
 	h = deletemin(h);
 	kee(i) = k;

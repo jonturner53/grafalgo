@@ -6,19 +6,20 @@
 //
 
 #include "stdinc.h"
+#include "Glist.h"
 #include "Wgraph.h"
 
 using namespace grafalgo;
 
-extern void kruskal(Wgraph&, list<edge>&);
-extern void prim(Wgraph&, list<edge>&);
-extern void primF(Wgraph&, list<edge>&);
-extern void rrobin(Wgraph&, list<edge>&);
+extern void kruskal(Wgraph&, Glist<edge>&);
+extern void prim(Wgraph&, Glist<edge>&);
+extern void primF(Wgraph&, Glist<edge>&);
+extern void rrobin(Wgraph&, Glist<edge>&);
 
 int main(int argc, char *argv[]) {
 	Wgraph wg;
 	cin >> wg;
-	list<edge> mstree;
+	Glist<edge> mstree;
 	
 	if (argc < 2) Util::fatal("usage: mst method ..");
 
@@ -35,7 +36,8 @@ int main(int argc, char *argv[]) {
 
 	Wgraph mst(wg.n(), wg.n()-1);
 	int treeweight = 0;
-	for (edge e : mstree) {
+	for (grafalgo::index x = mstree.first(); x != 0; x = mstree.next(x)) {
+		edge e = mstree.value(x);
 		edge ee = mst.join(wg.left(e),wg.right(e));
 		mst.setWeight(ee, wg.weight(e));
 		treeweight += wg.weight(e);

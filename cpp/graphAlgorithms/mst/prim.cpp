@@ -1,6 +1,15 @@
+/** @file prim.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
 #include "stdinc.h"
 #include "Dheap.h"
 #include "Wgraph.h"
+#include "Glist.h"
 
 using namespace grafalgo;
 
@@ -9,7 +18,7 @@ using namespace grafalgo;
  *  @param mstree is a reference to a list used to return
  *  the edges in the mst; it is assumed to be empty
  */
-void prim(Wgraph& wg, list<int>& mstree) {
+void prim(Wgraph& wg, Glist<edge>& mstree) {
 	vertex u,v; edge e;
 	edge *cheap = new edge[wg.n()+1];
 	bool *intree = new bool[wg.n()+1];
@@ -22,7 +31,7 @@ void prim(Wgraph& wg, list<int>& mstree) {
 	for (u = 2; u <= wg.n(); u++) intree[u] = false;
 	while (!nheap.empty()) {
 		u = nheap.deletemin();
-		intree[u] = true; mstree.push_back(cheap[u]);
+		intree[u] = true; mstree.addLast(cheap[u]);
 		for (e = wg.firstAt(u); e != 0; e = wg.nextAt(u,e)) {
 			v = wg.mate(u,e);
 			if (nheap.member(v) && wg.weight(e) < nheap.key(v)) {

@@ -112,11 +112,11 @@ void ListPair::expand(int size) {
 
 	// add new elements to end of outList
 	for (index x = old_n + 1; x <= n(); x++) {
-		nxt[x] = -x+1; prv[x] = -(x-1);
+		nxt[x] = -(x+1); prv[x] = -(x-1);
 	}
 	prv[old_n+1] = -outTail; nxt[n()] = 0;
 	if (outHead == 0) outHead = old_n+1;
-	else nxt[outTail] = -old_n+1;
+	else nxt[outTail] = -(old_n+1);
 	outTail = n(); numOut += (n() - old_n);
 	delete [] old_nxt; delete [] old_prv;
 }

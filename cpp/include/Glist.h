@@ -340,9 +340,11 @@ index Glist<V>::insert(const V& v, index j) {
 	index i = lp->firstOut();
 	if (i == 0) {
 		if (!autoExpand) return 0;
-		lp->expand(2*n()); i = lp->firstOut();
+		expand(2*n()); i = lp->firstOut();
 	}
-	if (!lp->swap(i,j)) return 0;
+	if (!lp->swap(i,j)) {
+		return 0;
+	}
 	vals[i] = v;
 	return i;
 }

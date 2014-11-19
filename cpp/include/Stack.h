@@ -121,8 +121,8 @@ inline T Stack<T>::pop() {
 
 /** Transfer values to the top of another stack.
  *  @param other is another stack
- *  @param cnt is the max number of values to add
- *  @param return the number of values actually added
+ *  @param cnt is the max number of values to transfer to other
+ *  @param return the number of values actually transferred
  */
 template<class T>
 inline int Stack<T>::xferOut(Stack<T>& other, int cnt) {

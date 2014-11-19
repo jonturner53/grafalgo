@@ -1,18 +1,29 @@
+/** @file rrobin.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
 #include "stdinc.h"
 #include "Dlist.h"
+#include "Glist.h"
 #include "Partition.h"
 #include "LlheapSet.h"
 #include "Wgraph.h"
 
 using namespace grafalgo;
 
-Wgraph *gp;
-Partition *pp;
+Wgraph *gp;	// pointer to graph, used by delf function
+Partition *pp;  // pointer to partition of vertices, used by delf function
 
-// Return true if the endpoints of e are in same tree.
+/** Determine if an edge joins two vertices in the same tree.
+ *  @param e is an edge in the graph.
+ *  @return true if both endpoints of e are in the same tree
+ */
 bool delf(edge e) {
-	return (*pp).find((*gp).left((e+1)/2)) ==
-	       (*pp).find((*gp).right((e+1)/2));
+	return pp->find(gp->left((e+1)/2)) == pp->find(gp->right((e+1)/2));
 }
 
 /** Find a minimum spanning tree of wg using the round robin algorithm.
@@ -20,7 +31,7 @@ bool delf(edge e) {
  *  @param mstree is a list in which the edges of the mst are returned;
  *  it is assumed to be empty, initially
  */
-void rrobin(Wgraph& wg, list<edge>& mstree) {
+void rrobin(Wgraph& wg, Glist<edge>& mstree) {
 	edge e; vertex u,v,cu,cv;
 	Dlist q(wg.n()); List elist(2*wg.m());
 	lheap *h = new lheap[wg.n()+1];
@@ -45,7 +56,7 @@ void rrobin(Wgraph& wg, list<edge>& mstree) {
 		vertex q1 = q.first();	
 		h[q1] = heapSet.findmin(h[q1]);
 		if (h[q1] == 0) { q.removeFirst(); continue; }
-		e = (h[q1]+1)/2; mstree.push_back(e);
+		e = (h[q1]+1)/2; mstree.addLast(e);
 		u = wg.left(e); v = wg.right(e);
 		cu = prtn.find(u); cv = prtn.find(v);
 		q.remove(cu); q.remove(cv);

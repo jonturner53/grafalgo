@@ -60,7 +60,7 @@ protected:
  	Fnode	*node;			///< node[u] contains fields for node u
 	ClistSet *sibs;			///< collection of sibling lists
 	int	rvec[MAXRANK+1];	///< temporary vector of ranks
-	List	*tmpq;			///< temporary queue used
+	List	*tmpq;			///< temporary queue
 
 	// internal helper methods
 	void	makeSpace(int);

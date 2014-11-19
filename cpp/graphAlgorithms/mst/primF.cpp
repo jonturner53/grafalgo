@@ -1,4 +1,13 @@
+/** @file prim.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
 #include "stdinc.h"
+#include "Glist.h"
 #include "Wgraph.h"
 #include "FheapSet.h"
 
@@ -10,7 +19,7 @@ using namespace grafalgo;
  *  @param mstree is a second weighted graph data structure in which the
  *  the result is to be returned; it is assumed to have no edges
  */
-void primF(Wgraph& wg, list<edge>& mstree) {
+void primF(Wgraph& wg, Glist<edge>& mstree) {
         vertex u,v; edge e;
         edge* cheap = new edge[wg.n()+1];
         FheapSet nheap(wg.n()); fheap root;
@@ -32,23 +41,33 @@ void primF(Wgraph& wg, list<edge>& mstree) {
         } while (e != 0);
 	inTree[1] = true;
 	for (u = 2; u <= wg.n(); u++) inTree[u] = false;
-
+//int cnt=1;
+//cerr << "entering main loop, numInHeap=" << numInHeap << endl;
         while (numInHeap > 0) {
+//cerr << root << " ******" << endl;
+//cerr << nheap.toString();
                 u = root; root = nheap.deletemin(root);
+//cerr << "new root " << root << endl;
+//cerr << nheap.toString();
                 inHeap[u] = false; numInHeap--;
-		inTree[u] = true; mstree.push_back(cheap[u]);
+		inTree[u] = true; mstree.addLast(cheap[u]);
                 for (e = wg.firstAt(u); e != 0; e = wg.nextAt(u,e)) {
                         v = wg.mate(u,e);
                         if (inHeap[v] && wg.weight(e) < nheap.key(v)) {
+//cerr << "decreasekey at " << v << endl;
                                 root = nheap.decreasekey(v,nheap.key(v) -
                                                              wg.weight(e),root);
+//cerr << nheap.toString();
                                 cheap[v] = e;
                         } else if (!inHeap[v] && !inTree[v]) {
+//cerr << "inserting " << v << endl;
                                 root = nheap.insert(v,root,wg.weight(e));
+//cerr << nheap.toString();
                                 cheap[v] = e;
                                 inHeap[v] = true; numInHeap++;
                         }
                 }
+//cnt++;
         }
         delete [] cheap; delete [] inHeap;
 }

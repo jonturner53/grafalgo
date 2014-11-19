@@ -1,11 +1,10 @@
-// usage:
-//	check
-//
-// Check reads two graphs from stdin, and checks to see
-// if the second is a minimum spanning tree of the first.
-// It prints a message for each discrepancy that it finds.
-//
-// This program is not bullet-proof. Caveat emptor.
+/** @file checkMst.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
 
 #include "stdinc.h"
 #include "List.h"
@@ -15,7 +14,7 @@
 
 using namespace grafalgo;
 
-void check(Wgraph&, Wgraph&);
+void checkMst(Wgraph&, Wgraph&);
 void verify(Wgraph&, Wgraph&);
 void rverify(Wgraph&, Wgraph&, vertex, vertex, vertex*,
 	     ClistSet&, vertex*, int*);
@@ -24,14 +23,26 @@ void nca(Wgraph&, Wgraph&, vertex*, ClistSet&);
 void nca_search(Wgraph&, Wgraph&, vertex, vertex, vertex*,
 	ClistSet&, Partition&, vertex*, int*);
 
+
+/** usage:
+ * 	checkMst
+ * 
+ *  CheckMst reads two graphs from stdin, and checks to see
+ *  if the second is a minimum spanning tree of the first.
+ *  It prints a message for each discrepancy that it finds.
+ */
 int main() {
 	Wgraph wg; cin >> wg;
 	Wgraph mstree; cin >> mstree;
-	check(wg,mstree);
+	checkMst(wg,mstree);
 }
 
-// Verify that mstree is a minimum spanning tree of wg.
-void check(Wgraph& wg, Wgraph& mstree) {
+/** Verify that one graph is an MST of another.
+ *  @param wg is a weighted graph object
+ *  @param mstree is second weighted graph that is to be checked
+ *  against wg; an error message is printed for each discrepancy
+ */
+void checkMst(Wgraph& wg, Wgraph& mstree) {
 	vertex u,v; edge e, f;
 
 	// check that mstree is a subgraph of wg
@@ -78,7 +89,11 @@ void check(Wgraph& wg, Wgraph& mstree) {
 	verify(wg,mstree);
 }
 
-// Verify that there is no cheaper spanning tree than mstree.
+/** Verify that there is no cheaper spanning tree.
+ *  Print an error message for each discrepancy found.
+ *  @param wg is a weighted graph
+ *  @param mstree is a second graph that is assumed to be a spanning tree.
+ */
 void verify(Wgraph& wg, Wgraph& mstree) {
 	// Determine nearest common ancestor for each edge.
 	vertex* first_edge = new edge[wg.n()+1];
@@ -92,7 +107,12 @@ void verify(Wgraph& wg, Wgraph& mstree) {
 	rverify(wg,mstree,1,1,first_edge,edge_sets,a,mw);
 }
 
-// Recursively verify the subtree rooted at u with parent pu.
+/** Recursively verify a subtree
+ *  @param wg is the graph
+ *  @param mstree is the candidate MST
+ *  @param u is a vertex
+ *  @param pu is the parent of u in mstree
+ */
 void rverify(Wgraph& wg, Wgraph& mstree, vertex u, vertex pu,
 	    vertex first_edge[], ClistSet& edge_sets, vertex a[], int mw[]) {
 	vertex v; edge e; int m;
@@ -116,9 +136,14 @@ void rverify(Wgraph& wg, Wgraph& mstree, vertex u, vertex pu,
 	}
 }
 
-// Return the maximum weight of edges on path from u to v,
-// defined by the ancestor pointers in a. Compress a & mw as a
-// side effect.
+/** Return the maximum weight of edges on a path.
+ *  Performs path compression as a side-effect.
+ *  @param u is a vertex
+ *  @param v is an ancestor of u
+ *  @param a contains ancestor pointers used to speed path searches
+ *  @param mw[x] is the maximum weight on the path from a vertex x
+ *  to its ancestor a[x]
+ */
 int max_wt(vertex u, vertex v, vertex a[], int mw[]) {
 	if (u == v) return 0;
 	int m = max(mw[u],max_wt(a[u],v,a,mw));
@@ -126,12 +151,15 @@ int max_wt(vertex u, vertex v, vertex a[], int mw[]) {
 	return m;
 }
 		
-// Compute the nearest common ancestors in mstree of edges in wg.
-// On return edge_sets contains a collection of lists, with two edges
-// appearing on the same list if they have the same nearest common ancestor.
-// On return, first_edge[u] is an edge for which u is the nearest common
-// ancestor, or null if there is no such edge.
-void nca(Wgraph& wg, Wgraph& mstree, vertex *first_edge, ClistSet& edge_sets) {
+/** Compute nearest common ancestors of edge endpoints.
+ *  @param wg is the graph
+ *  @param mstree is the candidate MST
+ *  @param first_edge[u] is an edge for which u is the nearest common ancestor,
+ *  or 0 if there is no such edge
+ *  @param edge_sets is used to return a collection of lists that partition
+ *  the edges; two edges appear on the same list if they have the same nca
+ */
+void nca(Wgraph& wg, Wgraph& mstree, edge *first_edge, ClistSet& edge_sets) {
 	Partition npap(wg.n());
 	vertex *npa = new vertex[wg.n()+1];
 	int *mark = new int[wg.m()+1];
@@ -143,8 +171,18 @@ void nca(Wgraph& wg, Wgraph& mstree, vertex *first_edge, ClistSet& edge_sets) {
 	nca_search(wg,mstree,1,1,first_edge,edge_sets,npap,npa,mark);
 }
 
+/** Recursive helper for computing nearest common ancestors of edge endpoints.
+ *  @param wg is the graph
+ *  @param mstree is the candidate MST
+ *  @param u is a vertex
+ *  @param pu is the parent of u
+ *  @param first_edge[u] is an edge for which u is the nearest common ancestor,
+ *  or 0 if there is no such edge
+ *  @param edge_sets is used to return a collection of lists that partition
+ *  the edges; two edges appear on the same list if they have the same nca
+ */
 void nca_search(Wgraph& wg, Wgraph& mstree, vertex u, vertex pu,
-		vertex first_edge[],
+		edge first_edge[],
 	ClistSet& edge_sets, Partition& npap, vertex npa[], int mark[]) {
 	vertex v, w; edge e;
 
@@ -165,4 +203,3 @@ void nca_search(Wgraph& wg, Wgraph& mstree, vertex u, vertex pu,
 		}
 	}
 }
-		
