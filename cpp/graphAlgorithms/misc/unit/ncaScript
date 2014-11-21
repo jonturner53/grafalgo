@@ -1,0 +1,21 @@
+#! /bin/bash
+#
+# usage: ncaScript n m seed
+#
+#
+n=10
+if [ $# -ge 1 ] ; then
+	n=$1
+fi;
+m=15
+if [ $# -ge 2 ] ; then
+	m=$2
+fi;
+seed=1
+if [ $# -ge 3 ] ; then
+	seed=$3
+fi;
+
+randGraph tree $n $((n-1)) 0 $seed >tg1
+randGraph ugraph $n $m 0 $seed >tg2
+cat tg1 tg2 | testNca

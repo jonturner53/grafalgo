@@ -1,0 +1,84 @@
+#! /bin/bash
+#
+# usage: copyScript n m seed
+#
+#
+n=10
+if [ $# -ge 1 ] ; then
+	n=$1
+fi;
+m=15
+if [ $# -ge 2 ] ; then
+	m=$2
+fi;
+seed=1
+if [ $# -ge 3 ] ; then
+	seed=$3
+fi;
+echo -n "copying undirected graph:"
+randGraph ugraph $n $m 0 $seed >tg1
+copyGraph ugraph <tg1 >tg2
+if cmp -s tg1 tg2 ; then
+	echo " success"
+else
+	echo "mismatch"
+	cat tg1 tg2
+	exit 1
+fi;
+
+echo -n "copying weighted undirected graph:"
+randGraph wgraph $n $m 0 1 $m $seed >tg1
+copyGraph wgraph <tg1 >tg2
+if cmp -s tg1 tg2 ; then
+	echo " success" 
+else
+	echo "mismatch"
+	cat tg1 tg2
+	exit 1
+fi;
+
+echo -n "copying directed graph:"
+randGraph digraph $n $m 0 $seed >tg1
+copyGraph digraph <tg1 >tg2
+if cmp -s tg1 tg2 ; then
+	echo " success" 
+else
+	echo "mismatch"
+	cat tg1 tg2
+	exit 1
+fi;
+
+echo -n "copying weighted directed graph:"
+randGraph wdigraph $n $m 0 1 $m $seed >tg1
+copyGraph wdigraph <tg1 >tg2
+if cmp -s tg1 tg2 ; then
+	echo " success" 
+else
+	echo "mismatch"
+	cat tg1 tg2
+	exit 1
+fi;
+
+echo -n "copying flograph:"
+randGraph flograph $n $m 0 100 10 10 $seed >tg1
+copyGraph flograph <tg1 >tg2
+if cmp -s tg1 tg2 ; then
+	echo " success" 
+else
+	echo "mismatch"
+	cat tg1 tg2
+	exit 1
+fi;
+
+echo -n "copying weighted flograph:"
+randGraph wflograph $n $m 0 100 10 10 1 $m $seed >tg1
+copyGraph wflograph <tg1 >tg2
+if cmp -s tg1 tg2 ; then
+	echo " success" 
+else
+	echo "mismatch"
+	cat tg1 tg2
+	exit 1
+fi;
+
+rm tg1 tg2

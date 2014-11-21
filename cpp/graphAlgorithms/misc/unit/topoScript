@@ -1,0 +1,19 @@
+#! /bin/bash
+#
+# usage: topoScript n m seed
+#
+#
+n=10
+if [ $# -ge 1 ] ; then
+	n=$1
+fi;
+m=15
+if [ $# -ge 2 ] ; then
+	m=$2
+fi;
+seed=1
+if [ $# -ge 3 ] ; then
+	seed=$3
+fi;
+
+randGraph dag $n $m 1 $seed | testToposort
