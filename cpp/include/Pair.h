@@ -15,9 +15,9 @@ using namespace std;
 
 namespace grafalgo {
 
-/** Collection of hash functions that can be used with HashSet and HashMap
- *  data structures. Users may also supply their own, but these can be used
- *  for some common cases.
+/** Simple template to create a pair of objects.
+ *  Includes toString method for displaying pair; requires that
+ *  template types be "printable" using stringstream's output operator.
  */
 template<class F, class S> class Pair : Adt {
 public:

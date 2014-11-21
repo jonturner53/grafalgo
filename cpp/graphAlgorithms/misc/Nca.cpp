@@ -13,18 +13,14 @@ namespace grafalgo {
 /** Compute nearest common ancestors of specified pairs of vertices.
  *  @param t is a reference to a graph object that is a tree
  *  @param root1 is the root of the tree
- *  @param pairs1 is an array of VertexPair structures that identify the
- *  pairs of vertices for which we compute ncas
- *  @param np1 is the number of pairs in pairs1
- *  @param ncav1 is an array in which the nca values are returned
+ *  @param g is a graph defined on the same vertex set as t;
+ *  the edges of g define the pairs for which the nca is to be computed
+ *  @param ncav1 is an array used to return the nca values; on return,
+ *  ncav1[e] is the nearest common ancestor of the pair defined by edge e;
+ *  the size of ncav1 is assumed to be at least g.m()+1
  */
-Nca::Nca(Graph& t, vertex root1, VertexPair pairs1[], int np1, int ncav1[])
-	   : tp(&t), root(root1), pairs(pairs1), np(np1), ncav(ncav1) {
-
-	gp = new Graph(tp->n(),np);
-	for (int i = 0; i < np; i++) gp->join(pairs[i].v1, pairs[i].v2);
-	// note: edges are allocated sequentially from 1,
-	// so edge i+1 corresponds to pair i
+Nca::Nca(Graph& t, vertex root1, Graph& g, vertex ncav1[])
+	   : tp(&t), root(root1), gp(&g), ncav(ncav1) {
 
 	pp = new Partition(tp->n());
 	noa = new vertex[tp->n()+1];
@@ -33,7 +29,7 @@ Nca::Nca(Graph& t, vertex root1, VertexPair pairs1[], int np1, int ncav1[])
 
 	compute_nca(root,0);
 
-	delete gp; delete pp; delete [] noa; delete [] state;
+	delete pp; delete [] noa; delete [] state;
 }
 
 /** Recursive computation of nca values.
@@ -44,19 +40,36 @@ void Nca::compute_nca(vertex u, vertex pu) {
 	vertex v; edge e;
 
 	state[u] = open;
+	// recursively visit the children of u in the tree
 	for (e = tp->firstAt(u); e != 0; e = tp->nextAt(u,e)) {
 		v = tp->mate(u,e);
 		if (v == pu) continue;
 		compute_nca(v,u);
+		// now u is nearest open ancestor of vertices in v's subtree
 		pp->link(pp->find(u),pp->find(v));
 		noa[pp->find(u)] = u;
 	}
+	// examine pairs that include u and assign nca value for those
+	// pairs for which the other endpoint is closed
 	for (e = gp->firstAt(u); e != 0; e = gp->nextAt(u,e)) {
 		v = gp->mate(u,e);
 		if (state[v] == closed)
-			ncav[e-1] = noa[pp->find(v)];
+			ncav[e] = noa[pp->find(v)];
 	}
 	state[u] = closed;
 }
+
+
+/*
+Seems phony to use graph in this way. Also, the way results are
+returned is obscure.
+
+For returning results, might make more sense to use an array (or list)
+Pair<Pair<vertex,vertex>,vertex> to pass in the pairs and return
+result.
+
+To eliminate graph, we need a list of pairs for each vertex.
+Could replicate the use of ClistSet used in graphs.
+*/
 
 } // ends namespace

@@ -212,8 +212,8 @@ string Flograph::toDotString() const {
              + " [ style = bold, peripheries = 2, color = blue]; " + "\n";
 	int cnt = 0;
 	for (edge e = first(); e != 0; e = next(e)) {
-		vertex u = min(left(e),right(e));
-		vertex v = max(left(e),right(e));
+		vertex u = tail(e);
+		vertex v = head(e);
 		s += Adt::index2string(u) + " -> ";
 		s += Adt::index2string(v);
 		s += " [label = \"(" + to_string(cap(u,e)) + ","

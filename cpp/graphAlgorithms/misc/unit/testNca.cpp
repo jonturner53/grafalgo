@@ -10,32 +10,19 @@
 
 using namespace grafalgo;
 
-const int maxP = 100;
-
 int main() {
-	int np; vertex x, y;
-	Graph tree; tree.read(cin);
-	VertexPair pairs[maxP];
-	vertex ncav[maxP];
+	Graph tree; cin >> tree;
+	Graph pairs(tree.n(),10); cin >> pairs;
+	cout << tree << pairs;
 
-	np = 0;
-	while (1) {
-		Util::skipBlank(cin);
-		if (!Util::verify(cin,'(') || !Util::readNode(cin,x,tree.n()) ||
-		    !Util::verify(cin,',') || !Util::readNode(cin,y,tree.n()) ||
-		    !Util::verify(cin,')') || np >= maxP)
-			break;
-		pairs[np].v1 = x; pairs[np++].v2 = y;
-	}
-
-	Nca(tree,1,pairs,np,ncav);
-	string s;
-	for (int i = 0; i < np; i++) {
-		cout << "nca(" << Util::node2string(pairs[i].v1,tree.n(),s);
-		cout << ","    << Util::node2string(pairs[i].v2,tree.n(),s);
-		cout << ")="   << Util::node2string(ncav[i],tree.n(),s);
-		if (i%5 == 4) cout << endl;
+	vertex ncav[pairs.m()+1];
+	Nca(tree,1,pairs,ncav);
+	int i = 0;
+	for (edge e = pairs.first(); e != 0; e = pairs.next(e)) {
+		cout << pairs.edge2string(e)
+		     << ":" << tree.index2string(ncav[e]);
+		if ((++i%8) == 0) cout << endl;
 		else cout << " ";
 	}
-	if (np%5 != 0) cout << endl;
+	if ((i%8) != 0) cout << endl;
 }

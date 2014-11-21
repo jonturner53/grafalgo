@@ -1,4 +1,4 @@
-** @file Graph.cpp
+/** @file Graph.cpp
  *
  *  @author Jon Turner
  *  @date 2011
@@ -113,12 +113,12 @@ edge Graph::joinWith(vertex u, vertex v, edge e) {
 	evec[e].l = u; evec[e].r = v;
 
 	// add edge to the adjacency lists
-	// in the adjLists data structure, each edge appears twice,
-	// as 2*e and 2*e+1
-	if (fe[u] != 0) adjLists->join(2*e,fe[u]);
-	if (fe[v] != 0) adjLists->join(2*e+1,fe[v]);
+	// the adjLists data structure stores "edge endpoints",
+	// where 2*e is left endpoint of e, 2*e+1 is right endpoint
 	if (fe[u] == 0) fe[u] = 2*e;
+	else		adjLists->join(2*e,fe[u]);
 	if (fe[v] == 0) fe[v] = 2*e+1;
+	else		adjLists->join(2*e+1,fe[v]);
 
 	return e;
 }
@@ -160,41 +160,39 @@ int Graph::ecmp(edge e1, edge e2, vertex u) const {
  *  @param u is the vertex whose adjacency list is to be sorted.
  */
 void Graph::sortAlist(vertex u) {
-	edge e; int j, k, p, c;
-
+	int ep; int j, k, p, c;
 	if (fe[u] == 0) return; // empty list
 
 	int  *elist = new int[n()+1];
 
-	// copy edges in adjacency list for u into an array
-	k = 1; elist[k++] = fe[u];
-	for (e = adjLists->suc(fe[u]); e != fe[u]; ) {
-		if (k > n()) {
-			Util::fatal("Graph::sortAlist: adjacency list "
-				    "too long");
-		}
-		elist[k++] = e;
-		edge f = e; e = adjLists->suc(e); adjLists->remove(f);
+	// copy edge endpoints in adjacency list for u into an array
+	k = 1;
+
+	for (ep = fe[u]; ep != 0; ep = fe[u]) {
+		elist[k++] = ep;
+		fe[u] = adjLists->suc(ep);
+		if (fe[u] == ep) fe[u] = 0;
+		else		 adjLists->remove(ep);
 	}
 	k--;
 	// put edge list in heap-order using mate(u) as key
 	for (j = k/2; j >= 1; j--) {
 		// do pushdown starting at position j
-		e = elist[j]; p = j;
+		ep = elist[j]; p = j;
 		while (1) {
 			c = 2*p;
 			if (c > k) break;
 			if (c+1 <= k && ecmp(elist[c+1]/2,elist[c]/2,u) > 0)
 				c++;
-			if (ecmp(elist[c]/2,e/2,u) <= 0) break;
+			if (ecmp(elist[c]/2,ep/2,u) <= 0) break;
 			elist[p] = elist[c]; p = c;
 		}
-		elist[p] = e;
+		elist[p] = ep;
 	}
 	// repeatedly extract the edge with largest mate(u) from heap and
 	// restore heap order
 	for (j = k-1; j >= 1; j--) {
-		e = elist[j+1]; elist[j+1] = elist[1];
+		ep = elist[j+1]; elist[j+1] = elist[1];
 		// now largest edges are in positions j+1,...,k
 		// elist[1,...,j] forms a heap with edge having
 		// largest mate(u) on top
@@ -205,16 +203,16 @@ void Graph::sortAlist(vertex u) {
 			if (c > j) break;
 			if (c+1 <= j && ecmp(elist[c+1]/2,elist[c]/2,u) > 0)
 				c++;
-			if (ecmp(elist[c]/2,e/2,u) <= 0) break;
+			if (ecmp(elist[c]/2,ep/2,u) <= 0) break;
 			elist[p] = elist[c]; p = c;
 		}
-		elist[p] = e;
+		elist[p] = ep;
 	}
 	// now elist is sorted by mate(u)
 
 	// now rebuild links forming adjacency list for u
-	for (j = k-1; j >= 1; j--) {
-		adjLists->join(elist[j],elist[j+1]);
+	for (j = 2; j <= k; j++) {
+		adjLists->join(elist[j-1],elist[j]);
 	}
 	fe[u] = elist[1];
 
@@ -335,12 +333,12 @@ bool Graph::readAdjList(istream& in) {
 	if (!Util::verify(in,'[')) return 0;
 	vertex u;
 	if (!Adt::readIndex(in,u)) return 0;
-	if (u > n()) expand(max(u,2*n()),maxEdge);
+	if (u > n()) expand(u,maxEdge);
 	if (!Util::verify(in,':')) return 0;
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v;
 		if (!Adt::readIndex(in,v)) return 0;
-		if (v > n()) expand(max(u,2*n()),maxEdge);
+		if (v > n()) expand(v,maxEdge);
 		if (m() >= maxEdge) expand(n(),max(1,2*maxEdge));
 		if (u > v) join(u,v);
 	}

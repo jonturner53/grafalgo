@@ -2,7 +2,7 @@
 SHELL := /bin/bash
 ARCH := -m$(shell getconf LONG_BIT)
 BIN := ~/bin
-WARN := -Wall -Wno-c++11-extensions
+WARN := -Wall
 CXXFLAGS := ${WARN} ${ARCH} -O2 -std=c++0x
 
 all:

@@ -42,7 +42,7 @@ public:		FheapSet(int=26);
 	fheap	deletemin(fheap);	
 	fheap	insert(index,fheap);
 	fheap	insert(index,fheap,keytyp);
-	fheap	remove(index, fheap);	
+	fheap	remove(index,fheap);	
 	fheap	makeheap(const List&);
 
 	string  toString() const;

@@ -1,4 +1,4 @@
-/** @file bfs.cpp
+/** @file testBfs.cpp
  * 
  *  @author Jon Turner
  *  @date 2011
@@ -14,34 +14,16 @@
 
 using namespace grafalgo;
 
-void bfs(Graph&, vertex, List&);
+extern void bfs(Graph&, vertex, List&);
 
-/** usage: bfs
+/** usage: testBfs
  *  
- *  Bfs reads a graph from stdin, and lists its vertices in
+ *  TestBfs reads a graph from stdin, and lists its vertices in
  *  breadth-first order starting from vertex 1.
  */
 int main() {
 	Graph g; cin >> g;
 	List vlist(g.n());
 	bfs(g,1,vlist);
-	cout << vlist << endl;
-}
-
-void bfs(Graph& g, vertex s, List& vlist) {
-	vertex u,v; edge e; List q(g.n());
-	bool *mark = new bool[g.n()+1];
-	for (u = 1; u <= g.n(); u++) mark[u] = false;
-	q.addLast(s); mark[s] = true;
-	while (!q.empty()) {
-		u = q.first(); q.removeFirst();
-		string s1;
-		vlist.addLast(u);
-		for (e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			v = g.mate(u,e);
-			if (!mark[v]) { q.addLast(v); mark[v] = 1; }
-		}
-	}
-	cout << endl;
-	delete [] mark;
+	cout << g << vlist << endl;
 }

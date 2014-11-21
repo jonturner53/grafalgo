@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 
 	if (argc != 2) Util::fatal("usage: copyGraph type");
 
-	if (strcmp(argv[1],"graph") == 0) {
+	if (strcmp(argv[1],"ugraph") == 0) {
 		Graph g; cin >>g; Graph g1;
 		g1.copyFrom(g); cout << g1;
 	} else if (strcmp(argv[1],"wgraph") == 0) {

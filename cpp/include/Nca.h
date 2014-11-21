@@ -12,6 +12,7 @@
 #include "stdinc.h"
 #include "Adt.h"
 #include "Util.h"
+#include "Pair.h"
 #include "Partition.h"
 #include "Graph.h"
 
@@ -22,21 +23,14 @@ namespace grafalgo {
  */
 class Nca {
 public:
-	struct VertexPair {
-		vertex v1, v2;
-		VertexPair(vertex u, vertex v) : v1(u), v2(v) {}
-	};
-
-		Nca(Graph&, vertex, VertexPair[], int, vertex[]);
+		Nca(Graph&, vertex, Graph&, vertex[]);
 private:
 	Graph 	*tp;		// pointer to tree
 	vertex	root;		// tree root
-	VertexPair *pairs;	// vector of vertex pairs
-	int	np;		// number of vertex pairs
 	vertex	*ncav;		// pointer to nca vector
 
-	Graph	*gp;		// graph used to represent pairs internally
-	Partition *pp;		// groups closed vertices with their noa
+	Graph	*gp;		// pointer to graph used to represent pairs
+	Partition *pp;		// groups closed vertices by their noa
 	vertex	*noa;		// if u is a canonical element, noa[u] is noa
 
 	enum state_t { unreached, open, closed };

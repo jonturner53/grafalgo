@@ -28,7 +28,7 @@ bool toposort(const Digraph& dg, List& vlist) {
 	// Let nin[u]=in-degree of u and put nodes u with nin[u]=0 on q
 	for (vertex u = 1; u <= dg.n(); u++) {
 		nin[u] = 0;
-		for (edge e = dg.firstIn(u); e != 0; e=dg.nextIn(u,e)) {
+		for (edge e = dg.firstIn(u); e != 0; e = dg.nextIn(u,e)) {
 			nin[u]++;
 		}
 		if (nin[u] == 0) q.addLast(u);

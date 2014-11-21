@@ -153,7 +153,9 @@ bool List::insert(index i, index j) {
 		throw IllegalArgumentException(s);
 	}
 	if (i == 0 || member(i)) return false;
-	if (i > n() && autoExpand) expand(max(i,2*n()));
+	if (i > n() && autoExpand) {
+		expand(max(i,2*n()));
+	}
 	len++;
 	if (j == 0) {
 		if (empty()) tail = i;
@@ -266,7 +268,7 @@ istream& operator>>(istream& in, List& lst) {
 				   "character "; s += c;
 			throw InputException(s);
 		}
-		if (lst.n() < x) lst.expand(max(x,2*lst.n()));
+		if (lst.n() < x) lst.expand(x);
 		if (lst.member(x)) {
 			string s = "List::operator>>: repeated element in list";
 			throw InputException(s);

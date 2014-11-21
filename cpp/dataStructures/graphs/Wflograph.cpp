@@ -79,6 +79,7 @@ void Wflograph::copyFrom(const Wflograph& source) {
 		setFlow(ee,source.f(source.tail(e),e));
 		setCost(ee,source.cost(source.tail(e),e));
 	}
+	setSrc(source.src()); setSnk(source.snk());
         sortAdjLists();
 }
 
@@ -133,7 +134,7 @@ string Wflograph::adjList2string(vertex u) const {
 	s += Adt::index2string(u);
 	if (u == src()) s += "->";
 	s += ":";
-	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
+	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
 		s += " " + index2string(v) + "(" + to_string(cap(u,e)) + ","
 		     + to_string(cost(u,e)) + "," + to_string(f(u,e)) + ")";
@@ -157,8 +158,7 @@ string Wflograph::toDotString() const {
            + " [ style = bold, peripheries = 2, color = blue];\n";
 	int cnt = 0;
 	for (edge e = first(); e != 0; e = next(e)) {
-		vertex u = min(left(e),right(e));
-		vertex v = max(left(e),right(e));
+		vertex u = tail(e); vertex v = head(e);
 		s += Adt::index2string(u) + " -> ";
 		s += Adt::index2string(v);
 		s += " [label = \"(" + to_string(cap(u,e)) + ","

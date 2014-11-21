@@ -92,7 +92,7 @@ edge Digraph::joinWith(vertex u, vertex v, edge e) {
 	return e;
 }
 
-/** Remove an edge from the Diraph.
+/** Remove an edge from the Digraph.
  *  @param e is the edge to be removed.
  *  @return true on success, false on failure
  */
@@ -163,13 +163,13 @@ bool Digraph::readAdjList(istream& in) {
 	if (!Util::verify(in,'[')) return 0;
 	vertex u;
 	if (!Adt::readIndex(in,u)) return 0;
-	if (u > n()) expand(u,m());
+	if (u > n()) expand(u,maxEdge);
 	if (!Util::verify(in,':')) return 0;
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v;
 		if (!Adt::readIndex(in,v)) return 0;
-		if (v > n()) expand(v,m());
-		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (v > n()) expand(v,maxEdge);
+		if (m() >= maxEdge) expand(n(),max(1,max(1,2*maxEdge)));
 		join(u,v);
 	}
 	return in.good();
