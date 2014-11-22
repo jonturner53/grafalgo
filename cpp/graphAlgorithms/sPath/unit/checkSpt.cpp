@@ -1,11 +1,10 @@
-// usage:
-//	check [src]
-//
-// check reads two graphs from stdin, and checks to see
-// if the second is a shortest path tree of the first.
-// It prints a message for each discrepancy that it finds.
-//
-// This program is not bullet-proof. Caveat emptor.
+/** @file checkSpt.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
 
 #include "stdinc.h"
 #include "List.h"
@@ -13,18 +12,25 @@
 
 using namespace grafalgo;
 
-void check(int, Wdigraph&, Wdigraph&);
+void checkSpt(int, Wdigraph&, Wdigraph&);
 
+/** usage:
+ * 	checkSpt [src]
+ * 
+ *  CheckSpt reads two graphs from stdin, and checks to see
+ *  if the second is a shortest path tree of the first.
+ *  It prints a message for each discrepancy that it finds.
+ */
 int main(int argc, char *argv[]) {
 	int s = 1;
 	if (argc == 2 && sscanf(argv[1],"%d",&s) != 1)
 		Util::fatal("usage: check [src]");
 	Wdigraph dig; cin >> dig;
 	Wdigraph sptree; cin >> sptree;
-	check(s,dig,sptree);
+	checkSpt(s,dig,sptree);
 }
 
-void check(int s, Wdigraph& dig, Wdigraph& sptree) {
+void checkSpt(int s, Wdigraph& dig, Wdigraph& sptree) {
 // Verify that sptree is a shortest path tree of dig.
 	vertex u,v; edge e, f;
 

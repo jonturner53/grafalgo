@@ -38,7 +38,10 @@ bool Adt::readIndex(istream& in, index& x) {
 
 string Adt::index2string(index x) const {
 	string s = "";
-	if (n() <= 26) s += ((char) ((x-1) + 'a'));
+	if (n() <= 26) {
+		if (x == 0) s += '-';
+		else s += ((char) ((x-1) + 'a'));
+	}
 	else s += to_string(x);
 	return s;
 }

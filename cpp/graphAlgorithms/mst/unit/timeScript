@@ -1,8 +1,8 @@
 #! /bin/bash
 #
-# usage: testScript algorithm
+# usage: timeScript algorithm
 #
-# Run unit test on series of random graphs, with a specified algorithm.
+# Run timing tests with a specified algorithm.
 # The algorithm argument is prim, primF, kruskal or rrobin.
 #
 algo="prim"
@@ -11,6 +11,7 @@ if [ $# -eq 1 ] ; then
 fi;
 
 echo "density 3 graphs"
+echo "algorithm n m maxkey avg min max"
 k=6;
 while [ $k -le 16 ] ; do
 	n=$((2**k)); m=$((3*n/2))
@@ -19,6 +20,7 @@ while [ $k -le 16 ] ; do
 done
 
 echo "density lg(n) graphs"
+echo "algorithm n m maxkey avg min max"
 k=6; 
 while [ $k -le 16 ] ; do
 	n=$((2**k)); m=$((k*n))

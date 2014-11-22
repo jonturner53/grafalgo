@@ -1,9 +1,10 @@
-// usage: spt method [src]
-//
-// Spt reads a graph from stdin, computes a shortest path tree (from src)
-// using the method specified by the argument and then prints the graph
-// and the spt. Src defaults to 1.
-//
+/** @file testSpt.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
 
 #include "stdinc.h"
 #include "Wdigraph.h"
@@ -13,6 +14,15 @@ using namespace grafalgo;
 extern void dijkstra(Wdigraph&, vertex, vertex*, int*);
 extern void bfScan(Wdigraph&, vertex, vertex*, int*);
 
+/** usage: spt method [src]
+ * 
+ *  Spt reads a graph from stdin, computes a shortest path tree (from src)
+ *  using the method specified by the argument and then prints the graph
+ *  and the spt. The edge lengths in the output spt represent the shortest
+ *  path distance to the head of the edge. For example, if the length of
+ *  edge (x,y) is shown as 13, this means that the length of the shortest
+ *  path from the source vertex to y is 13. Src defaults to 1.
+ */
 int main(int argc, char *argv[]) {
 	int s; Wdigraph dig; cin >> dig;
 	

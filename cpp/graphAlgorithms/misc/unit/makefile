@@ -11,8 +11,8 @@ LIBS := ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/Partition.h \
 	 ${IDIR}/Nca.h
-XFILES = copyGraph testBfs testToposort testNca
-OFILES = copyGraph.o bfs.o toposort.o Nca.o
+XFILES = testBfs testToposort testNca
+OFILES = bfs.o toposort.o Nca.o
 
 ${OFILES} : ${HFILES}
 
@@ -20,9 +20,6 @@ ${OFILES} : ${HFILES}
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
 all:	${XFILES}
-
-copyGraph: copyGraph.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 testBfs: testBfs.o ${LIBS} ${LIBGA}
 	${CXX} ${CXXFLAGS} $< ${LIBS} ${LIBGA} -o $@

@@ -1,13 +1,10 @@
-// usage:
-//	timeMst method reps n m maxkey
-//
-// timeMst repeatedly generates a random graph and computes
-// its minimum spanning tree using the specified method.
-// Reps is the number of repetitions.
-// n is the number of vertices, m is the number of edges,
-// maxkey is the maximum key
-//
-// Method may be prim, primF, kruskal or rrobin.
+/** @file timeMst.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
 
 #include "stdinc.h"
 #include <sys/times.h>
@@ -26,10 +23,26 @@ extern void prim(Wgraph&, Glist<int>&);
 extern void primF(Wgraph&, Glist<int>&);
 extern void rrobin(Wgraph&, Glist<int>&);
 
+/** usage:
+ * 	timeMst method reps n m maxkey
+ * 
+ *  timeMst repeatedly generates a random graph and computes
+ *  its minimum spanning tree using the specified method.
+ *  Reps is the number of repetitions.
+ *  n is the number of vertices, m is the number of edges,
+ *  maxkey is the maximum key
+ * 
+ *  Method may be prim, primF, kruskal or rrobin.
+ * 
+ *  The output is a single line containing
+ *
+ *      method n m maxkey avg min max
+ *
+ *  where avg is the average time required to execute the specified
+ *  method, min is the minimum time and max in the maximum time.
+ */
 int main(int argc, char* argv[]) {
 	int i, reps, n, m, maxkey;
-	high_resolution_clock::time_point time1, time2;
-	nanoseconds maxtime(0), mintime(2000000000), totaltime(0);
 	if (argc != 6 ||
 	    sscanf(argv[2],"%d",&reps) != 1 ||
 	    sscanf(argv[3],"%d",&n) != 1 ||
@@ -42,6 +55,10 @@ int main(int argc, char* argv[]) {
 	srand(1);
 	Wgraph wg(n,m);
 	Glist<edge> mstree;
+	high_resolution_clock::time_point time1, time2;
+	nanoseconds diff;
+	int64_t avgTime, minTime, maxTime;
+	avgTime = maxTime = 0; minTime = ((int64_t) 1) << 62;
 	for (i = 1; i <= reps; i++) {
 		Rgraph::connected(wg,n,m); 
 		Rgraph::edgeWeight(wg,0,maxkey);
@@ -62,16 +79,14 @@ int main(int argc, char* argv[]) {
 			Util::fatal("mstRep: undefined method");
 		}
 		time2 = high_resolution_clock::now();
+		diff = time2 - time1;
+		avgTime += diff.count();
+		minTime = min(diff.count(),minTime);
+		maxTime = max(diff.count(),maxTime);
 		mstree.clear();
-		nanoseconds diff = time2 - time1;
-		mintime = min(diff,mintime);
-		maxtime = max(diff,maxtime);
-		totaltime += diff;
 	}
-	double avgtime = (totaltime.count()/reps);
-	cout << argv[1] << " n=" << n << " m=" << m
-	     << " maxkey=" << maxkey << " "
-	     << "avgtime=" << (avgtime/1000) << "us  "
-	     << "mintime=" << (mintime.count()/1000) << "us  "
-	     << "maxtime=" << (maxtime.count()/1000) << "us" << endl;
+	avgTime /= reps;
+	cout << argv[1] << " " << n << " " << m << " " << maxkey << " "
+	     << (avgTime/1000) << " " << (minTime/1000) << " "
+	     << (maxTime/1000) << endl;
 }
