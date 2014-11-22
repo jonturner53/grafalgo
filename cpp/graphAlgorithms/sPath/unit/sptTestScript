@@ -1,0 +1,38 @@
+#! /bin/bash
+#
+# usage: sptTestScript algorithm lo hi
+#
+# Run unit test on series of random graphs, with a specified algorithm.
+# The algorithm argument is one of dijkstra, bfScan. The lo and hi arguments,
+# specify the range of edge lengths. For bfScan, negative edge lengths can
+# be used.
+#
+algo="dijkstra"
+if [ $# -ge 1 ] ; then
+	algo=$1
+fi;
+lo="1"
+if [ $# -ge 2 ] ; then
+	lo=$2
+fi;
+hi="9"
+if [ $# -ge 3 ] ; then
+	hi=$3
+fi;
+echo "testing algorithm: " $algo $lo $hi
+
+echo "testing 10 vertex graph"
+randGraph wdigraph 10 40 1 $lo $hi 1 | testSpt $algo 
+randGraph wdigraph 10 40 1 $lo $hi 1 | testSpt $algo | checkSpt
+
+echo "testing 20 vertex graph"
+randGraph wdigraph 20 100 1 $lo $hi 2 | testSpt $algo 
+randGraph wdigraph 20 100 1 $lo $hi 2 | testSpt $algo | checkSpt
+
+echo "testing 100 vertex, 2000 edge graphs (10)"
+for seed in 3 4 5 6 7 8 9 10 11 12; do
+	randGraph wdigraph 100 2000 1 $lo $hi $seed | testSpt $algo | checkSpt
+done
+
+echo "testing 1000 vertex, 100000 edge graph"
+randGraph wgraph 1000 100000 1 $lo $hi 4 | testSpt $algo | checkSpt

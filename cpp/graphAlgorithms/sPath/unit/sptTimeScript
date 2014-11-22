@@ -1,0 +1,29 @@
+#! /bin/bash
+#
+# usage: sptTimeScript algorithm
+#
+# Run timing tests with a specified algorithm.
+# The algorithm argument may be dijkstra of bfScan
+#
+algo="dijkstra"
+if [ $# -eq 1 ] ; then
+	algo=$1
+fi;
+
+echo "density 3 graphs"
+echo "algorithm n m lo hi avg min max"
+k=6;
+while [ $k -le 16 ] ; do
+	n=$((2**k)); m=$((3*n/2))
+	timeSpt $algo 20 $n $m 1 $m  
+	k=$((k+1))
+done
+
+echo "density lg(n) graphs"
+echo "algorithm n m lo hi avg min max"
+k=6; 
+while [ $k -le 16 ] ; do
+	n=$((2**k)); m=$((k*n))
+	timeSpt $algo 20 $n $m 1 $m  
+	k=$((k+1))
+done
