@@ -13,7 +13,7 @@ using namespace grafalgo;
 
 /** Find maximum flow in a flow graph.
  *  Base class constructor initializes dynamic data common to all algorithms.
- *  Constructors for derived classes actually implement specific algorithms.
+ *  Derived class constructors define local data then invoke main routine.
  */
 augPath::augPath(Flograph& fg1, int& flow_value) : fg(&fg1) {
 	pEdge = new edge[fg->n()+1];
@@ -21,12 +21,21 @@ augPath::augPath(Flograph& fg1, int& flow_value) : fg(&fg1) {
 
 augPath::~augPath() { delete [] pEdge; }
 
+/** Main routine for all augmenting path variants.
+ *  @return the maximum flow value
+ */
+int augPath::main() {
+	int flo = 0;
+	while (findPath()) flo += augment();
+	return flo;
+}
+
 /** Saturate the augmenting path defined by the pEdge array. */
 int augPath::augment() {
 	vertex u, v; edge e; flow f;
 
 	// determine residual capacity of path
-	f = Util::BIGINT32;
+	f = INT_MAX;
 	v = fg->snk(); e = pEdge[v];
 	while (v != fg->src()) {
 		u = fg->mate(v,e);

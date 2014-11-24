@@ -1,22 +1,36 @@
+/** @file capScale.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
 #include "Flograph.h"
 #include "capScale.h"
 
 using namespace grafalgo;
 
+/** Find maximum flow in fg using the capacity scaling algorithm.
+ *  @param fg1 is a flow graph
+ *  @param floVal is a reference to an integer in which the max flow
+ *  is returned.
+ */
 capScale::capScale(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
-// Find maximum flow in fg using the shortest augment path algorithm.
 	// initialize scale factor to largest power of 2
 	// that is <= (max edge capacity)/2
 	edge e; int maxCap = 0;
 	for (e = fg->first(); e != 0; e = fg->next(e)) 
 		maxCap = max(maxCap,fg->cap(fg->tail(e),e));
 	for (scale = 1; scale <= maxCap/2; scale *= 2) {}   
-	floVal = 0;
-	while(findPath()) floVal += augment(); 
+
+	floVal = main();
 }
 
+/** Find a path with sufficient unused residual capacity.
+ *  @return true if a path was found from source to sink.
+ */
 bool capScale::findPath() {
-// Find a path with sufficient unused residual capacity.
 	vertex u,v; edge e;
 	List queue(fg->n());
 

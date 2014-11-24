@@ -1,33 +1,33 @@
+/** @file dinic.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
 #include "dinic.h"
 
 using namespace grafalgo;
 
+/** Compute a max flow using Dinic's algorithm.
+ *  @param fg1 is a flow graph
+ *  @param floVal is a reference to an integer in which the maximum
+ *  flow is returned.
+ */
 dinic::dinic(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
         level = new int[fg->n()+1];
         nextEdge = new edge[fg->n()+1];
 
 	floVal = 0;
-        while (newPhase()) {
-        	while (findPath()) floVal += augment();
-        }
+        while (newPhase()) { floVal += main(); }
 	delete [] level; delete [] nextEdge;
 }
 
-dinic::dinic(Flograph& fg1, int& floVal, string& stats) : augPath(fg1,floVal) {
-        level = new int[fg->n()+1];
-        nextEdge = new edge[fg->n()+1];
-
-	floVal = 0;
-        while (newPhase()) {
-        	while (findPath(fg->src())) {
-			floVal += augment();
-		}
-        }
-	delete [] level; delete [] nextEdge;
-}
-
+/** Prepare for new phase. 
+ *  @return true if there is a source/sink path.
+ */
 bool dinic::newPhase() {
-// Prepare for new phase. Return true if there is a source/sink path.
 	vertex u,v; edge e;
 	List q(fg->n());
 
@@ -49,8 +49,11 @@ bool dinic::newPhase() {
 	return false;
 }
 
+/** Find an augmenting path from specified vertex to sink.
+ *  @param u is a vertex
+ *  @return true if there is an augmenting path from u to the sink
+ */
 bool dinic::findPath(vertex u) {
-// Find a shortest path with unused residual capacity.
         vertex v; edge e;
 
 	for (e = nextEdge[u]; e != 0; e = fg->nextAt(u,e)) {

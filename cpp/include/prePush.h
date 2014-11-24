@@ -34,17 +34,15 @@ protected:
 	int 	*excess; 	///< excess flow entering vertex
 	edge 	*nextedge;	///< pointer into adjacency list
 
-	// statistics counters
-	int	satCount;	///< # of steps that saturate an edge
-	int	nonSatCount;	///< # that add flow but don't saturate edge
-	int	newDistCount;	///< # times new dist labels computed (batch)
-	int	relabCount;	///< # of node relabeling steps
+	int	maxFlowIncr();
+	int	maxFlowBatch();
 
-	bool 	balance(vertex);
         void   	initdist(); 
-        int    	minlabel(vertex);
-	void	virtual newUnbal(vertex); 
 	int	flowValue();	
+        int    	minlabel(vertex);
+	void	virtual addUnbal(vertex); 
+	vertex	virtual removeUnbal(); 
+	bool 	balance(vertex);
 };
 
 #endif

@@ -28,6 +28,7 @@ protected:
         Flograph* fg;         	///< graph we're finding flow on
 	edge *pEdge;		///< pEdge[u] is edge to parent of u in spt
 
+	int	main();
         int   	augment();
 	virtual bool findPath() = 0; 	///< find augmenting path
 };

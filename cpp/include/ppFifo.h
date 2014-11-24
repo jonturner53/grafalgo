@@ -25,7 +25,8 @@ public:
 protected:
 	void	doit(bool);
 	List	*unbal;	
-	void	newUnbal(vertex); 
+	void    virtual addUnbal(vertex);
+        vertex  virtual removeUnbal();
 };
 
 #endif

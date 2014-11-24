@@ -1,10 +1,10 @@
 #include "prePush.h"
 
+/** Find maximum flow in fg using the preflow-push method.
+ *  The base clase constructor initializes data used by all
+ *  variants.
+ */
 prePush::prePush(Flograph& fg1, int& floVal) : fg(&fg1) {
-// Find maximum flow in fg using the preflow-push method.
-// The base clase constructor initializes data used by all
-// variants.
-
 	excess = new int[fg->n()+1];
 	nextedge = new edge[fg->n()+1];
 
@@ -19,44 +19,69 @@ prePush::prePush(Flograph& fg1, int& floVal) : fg(&fg1) {
                 if (v != fg->snk()) excess[v] = fg->cap(s,e);
         }
 	d = new int[fg->n()+1];
-	satCount = nonSatCount = newDistCount = relabCount = 0;
-	initdist();
-	// constructor of derived class takes over from here
+
+	// constructor of derived class initializes additional data
+	// structures, then calls either maxFlowIncr() or maxFlowBatch()
 }
 
 prePush::~prePush() { delete [] d; delete [] excess; delete [] nextedge; }
 
-void prePush::newUnbal(vertex u) {
-	Util::fatal("prePush::newUnbal: execution should never reach here");
-}
 
-bool prePush::balance(vertex u) {
-// Attempt to balance vertex u, by pushing flow through admissible edges.
-	if (excess[u] <= 0) return true;
-	while (true) {
-		edge e = nextedge[u];
-		if (e == 0) return false; 
-		vertex v = fg->mate(u,e);
-		if (fg->res(u,e) > 0 && d[u] == d[v]+1 && nextedge[v] != 0) {
-			flow x = min(excess[u],fg->res(u,e));
-			if (x == fg->res(u,e)) satCount++;
-			else nonSatCount++;
-			fg->addFlow(u,e,x);
-			excess[u] -= x; excess[v] += x;
-			if (v != fg->src() && v != fg->snk()) newUnbal(v);
-			if (excess[u] <= 0) return true;
-		}
-		nextedge[u] = fg->nextAt(u,e);
+/** Compute maximum flow using incremental relabeling.
+ *  @return the value of the max flow
+ */
+int prePush::maxFlowIncr() {
+	initdist();
+	vertex s = fg->src();
+        for (edge e = fg->firstOut(s); e != 0; e = fg->nextAt(s,e)) {
+		vertex v = fg->head(e);
+		if (excess[v] > 0) addUnbal(v);
 	}
+	vertex u = removeUnbal();
+	while (u != 0) {
+		if (!balance(u)) {
+			d[u] = 1 + minlabel(u);
+			nextedge[u] = fg->firstAt(u);
+			addUnbal(u);
+		}
+		u = removeUnbal();
+	}
+	return flowValue();
 }
 
+/** Compute maximum flow using batch relabeling.
+ *  @return the value of the max flow
+ */
+int prePush::maxFlowBatch() {
+	initdist();
+	vertex s = fg->src();
+        for (edge e = fg->firstOut(s); e != 0; e = fg->nextAt(s,e)) {
+		vertex v = fg->head(e);
+		if (excess[v] > 0) addUnbal(v);
+	}
+	vertex u = removeUnbal();
+     	while (u != 0) {
+     		do {
+			balance(u);
+			u = removeUnbal();
+		} while (u != 0);
+                initdist();
+                for (u = 1; u <= fg->n(); u++) {
+			if (u == fg->src() || u == fg->snk()) continue;
+                        nextedge[u] = fg->firstAt(u);
+                        if (excess[u] > 0) addUnbal(u);
+                }
+		u = removeUnbal();
+        }
+	return flowValue();
+}
+/** Compute exact distance labels and return in distance vector.
+ *  For vertices that can't reach sink, compute labels to source.
+ */
 void prePush::initdist() {
-// Compute exact distance labels and return in d.
-// For vertices that can't reach t, compute labels to s.
 	vertex u,v; edge e;
 	List queue(fg->n());
 
-	newDistCount++;
 	for (u = 1; u < fg->n(); u++) d[u] = 2*fg->n();
 
 	// compute distance labels for vertices that have path to sink
@@ -91,9 +116,23 @@ void prePush::initdist() {
 	}
 }
 
+/** Compute the value of the current flow.
+ *  @return the flow value leaving source
+ */
+int prePush::flowValue() {
+	int fv = 0; vertex s = fg->src();
+        for (edge e = fg->firstAt(s); e != 0; e = fg->nextAt(s,e))
+		fv += fg->f(s,e);
+	return fv;
+}
+
+/** Find smallest label on an adjacent vertex through an edge with
+ *  positive residual capacity.
+ *  @param u is a vertex
+ *  @return the smallest label on a neighbor of u for which the
+ *  connecting edge positive residual capacity
+ */
 int prePush::minlabel(vertex u) {
-// Find smallest label on a vertex adjacent to v through an edge with
-// positive residual capacity.
 	int small; edge e;
 
 	small = 2*fg->n();
@@ -103,10 +142,48 @@ int prePush::minlabel(vertex u) {
 	return small;
 }
 
-int prePush::flowValue() {
-// Return the value of the flow leaving the source.
-	int fv = 0; vertex s = fg->src();
-        for (edge e = fg->firstAt(s); e != 0; e = fg->nextAt(s,e))
-		fv += fg->f(s,e);
-	return fv;
+/** Add a vertex to set of unbalanced vertices.
+ *  This method must be defined in the derived class, as each
+ *  derived class may use a different representation for the
+ *  set of unbalanced vertices.
+ *  @param u is the vertex to be added to the unbalanced set
+ */
+void prePush::addUnbal(vertex u) {
+	Util::fatal("prePush::addUnbal: execution should never reach here");
 }
+
+/** Remove a vertex from the set of unbalanced vertices.
+ *  This method must be defined in the derived class, as each
+ *  derived class may use a different representation for the
+ *  set of unbalanced vertices.
+ *  @return an unbalanced vertex or 0 if there are none; this method
+ *  removes the returned vertex from the data structure that represents
+ *  the unbalanced vertices; if the caller is unable to make the vertex
+ *  balanced, it must add the vertex back to the unbalanced set.
+ */
+vertex prePush::removeUnbal() {
+	Util::fatal("prePush::removeUnbal: execution should never reach here");
+	return 0;
+}
+
+/** Attempt to balance vertex, by pushing flow through admissible edges.
+ *  @param u is a vertex
+ *  @return true if u was successfully balanced
+ */
+bool prePush::balance(vertex u) {
+	if (excess[u] <= 0) return true;
+	while (true) {
+		edge e = nextedge[u];
+		if (e == 0) return false; 
+		vertex v = fg->mate(u,e);
+		if (fg->res(u,e) > 0 && d[u] == d[v]+1 && nextedge[v] != 0) {
+			flow x = min(excess[u],fg->res(u,e));
+			fg->addFlow(u,e,x);
+			excess[u] -= x; excess[v] += x;
+			if (v != fg->src() && v != fg->snk()) addUnbal(v);
+			if (excess[u] <= 0) return true;
+		}
+		nextedge[u] = fg->nextAt(u,e);
+	}
+}
+

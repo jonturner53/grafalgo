@@ -1,3 +1,11 @@
+/** @file shortPath.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
 #include "shortPath.h"
 
 /** Find maximum flow using the shortest augment path algorithm.
@@ -6,10 +14,7 @@
  *  amount of flow added to the flow graph.
  */
 shortPath::shortPath(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
-	floVal = 0;
-	while(findPath()) {
-		floVal += augment(); 
-	}
+	floVal = main();
 }
 
 /** Find a shortest path with unused residual capacity.

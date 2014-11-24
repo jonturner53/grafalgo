@@ -1,9 +1,11 @@
-// usage: maxFlo method
-//
-// MaxFlo reads a flograph from stdin, computes a maximum flow
-// using the method specified by the argument and then prints the
-// flograph with the max flow.
-//
+/** @file testMaxFlo.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
 
 #include "stdinc.h"
 #include "Flograph.h"
@@ -16,6 +18,15 @@
 #include "ppFifo.h"
 #include "ppHiLab.h"
 
+/** usage: testMaxFlo method
+ * 
+ *  TestMaxFlo reads a flograph from stdin, computes a maximum flow
+ *  using the method specified by the argument and then prints the
+ *  flograph with the max flow.
+ *
+ *  The method can be one of shortPath, maxCap, capScale, dinic,
+ *  dinicDtrees, ppFifo, ppFifoBatch, ppHiLab or ppHiLabBatch.
+ */ 
 int main(int argc, char *argv[]) {
 	int floVal=0;
 	Flograph fg; cin >> fg;

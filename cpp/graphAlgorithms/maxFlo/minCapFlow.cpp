@@ -1,17 +1,24 @@
-#include "minFlow.h"
+/** @file minCapFlow.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2013
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
+#include "minCapFlow.h"
 
 /** Find maximum flow in flow graph with min capacity constraints.
  *  @param fg is the flow graph
- *  @param floVal on return, floVal is the total amount of flow that was
- *  added to the flow graph; if there is no feasible flow for the
- *  given min capacities, -1 is returned.
+ *  @param floVal is a reference used to return the value of the added flow;
+ *  if there is no feasible flow for the given min capacities, -1 is returned.
  *  Normally, fg is expected to have 0 flow on all its edges,
  *  but this method will work correctly even if there is an initial
  *  non-zero flow. This method may modify the edge numbers in fg1.
  *  It will have all the same edges, but they may be identified by
  *  different edge numbers, upon return.
  */
-minFlow::minFlow(Mflograph& fg1, int& floVal) {
+minCapFlow::minCapFlow(Mflograph& fg1, int& floVal) {
 	pEdge = new edge[fg1.n()+1];
 
 	// Create separate flow graph for use in first phase
@@ -23,13 +30,14 @@ minFlow::minFlow(Mflograph& fg1, int& floVal) {
 		tcap += fg2.cap(fg2.tail(e),e);
 	edge snkSrcEdge = fg2.join(fg2.snk(),fg2.src());
 	if (snkSrcEdge == 0)
-		fatal("minFlow: internal error, can't create sink/source edge");
+		Util::fatal("minCapFlow: internal error, can't create "
+			    "sink/source edge");
 	fg2.setCapacity(snkSrcEdge,tcap); fg2.setMinFlo(snkSrcEdge,0);
 	fg = &fg2;
 
 	// attempt to find a flow that satisfies all min capacities
 	// first, add edges with unsatisfied min capacities to a todo list
-	UiList todo(fg->m());
+	List todo(fg->m());
 	for (edge e = fg->first(); e != 0; e = fg->next(e)) {
 		vertex u = fg->tail(e);
 		if (fg->f(u,e) < fg->minFlo(e))
@@ -37,7 +45,7 @@ minFlow::minFlow(Mflograph& fg1, int& floVal) {
 	}
 	while (!todo.empty()) {
 		edge e = todo.first();
-		vertex u = fg->tail(e); vertex v = fg->head(e);
+		vertex u = fg->tail(e);
 		if (fg->f(u,e) >= fg->minFlo(e)) {
 			todo.removeFirst(); continue;
 		}
@@ -57,7 +65,7 @@ minFlow::minFlow(Mflograph& fg1, int& floVal) {
 	}
 }
 
-minFlow::~minFlow() { delete [] pEdge; }
+minCapFlow::~minCapFlow() { delete [] pEdge; }
 
 /** Find an augmenting path from the source to the sink.
  *  If a path is found, the pEdge data structure contains "parent pointers"
@@ -66,9 +74,9 @@ minFlow::~minFlow() { delete [] pEdge; }
  *  following the pEdge values from the sink back to the source.
  *  @return true if a path found, else false
  */ 
-bool minFlow::findPath() {
+bool minCapFlow::findPath() {
 	vertex u,v; edge e;
-	UiList queue(fg->n());
+	List queue(fg->n());
 
 	for (u = 1; u <= fg->n(); u++) pEdge[u] = 0;
 	queue.addLast(fg->src());
@@ -94,11 +102,11 @@ bool minFlow::findPath() {
  *  sequence to saturate the path.
  *  @return the amount of flow added to the path.
  */
-int minFlow::augment() {
+int minCapFlow::augment() {
 	vertex u, v; edge e; flow f;
 
 	// determine residual capacity of path
-	f = BIGINT;
+	f = INT_MAX;
 	u = fg->snk(); e = pEdge[u];
 	while (u != fg->src()) {
 		v = fg->mate(u,e);
@@ -125,11 +133,11 @@ int minFlow::augment() {
  *  @param e is an edge
  *  @return true if a cycle is found, else false
  */
-bool minFlow::findCycle(edge e) {
+bool minCapFlow::findCycle(edge e) {
 	vertex u = fg->tail(e); vertex v = fg->head(e);
 	for (vertex x = 1; x <= fg->n(); x++) pEdge[x] = 0;
 
-	UiList queue(fg->n()); queue.addLast(v);
+	List queue(fg->n()); queue.addLast(v);
 	while (!queue.empty()) {
 		vertex x = queue.first(); queue.removeFirst();
 		for (edge ex = fg->firstAt(x); ex != 0; ex = fg->nextAt(x,ex)) {
@@ -150,7 +158,7 @@ bool minFlow::findCycle(edge e) {
  *  @param e is an edge
  *  @return the amount of flow added to the cycle
  */
-int minFlow::add2cycle(edge e) {
+int minCapFlow::add2cycle(edge e) {
 	vertex u = fg->tail(e); vertex v = fg->head(e);
 
 	// determine residual capacity of cycle

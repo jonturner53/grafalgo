@@ -1,35 +1,41 @@
-/** @file check.cpp
+/** @file checkMinCapFlow.cpp
  *
  *  @author Jon Turner
  *  @date 2011
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
- *
- *  usage: check
- *
- * Check reads a Flograph from stdin, with a flow and checks
- * that it's a legal maximum flow.
  */
 
 #include "stdinc.h"
-#include "Flograph.h"
+#include "Mflograph.h"
 #include "List.h"
 
 using namespace grafalgo;
 
-int main() {
+/**
+ *  usage: checkMinCapFlow
+ *
+ *  CheckMf reads an Mflograph from stdin, with a flow and checks
+ *  that it's a legal maximum flow that respects the min flow requirements.
+ *  An error message is output for each violation.
+ */
+main() {
 	vertex u,v; edge e; int sum;
-	Flograph fg; cin >> fg;
+	Mflograph fg; fg.read(cin);
 
-	// verify that capacity constraints are respected
+	// verify that capacity constraints and min flow requirements 
+	// are respected
 	for (e = fg.first(); e != 0; e = fg.next(e)) {
-		u = fg.tail(e); v = fg.head(e);
+		u = fg.tail(e); v = fg.head(e); string s;
 		if (fg.f(u,e) < 0)
 			cout << "Negative flow on edge " 
-			     << e << "=" << fg.edge2string(e) << endl;
+			     << e << "=" << fg.edge2string(e,s) << endl;
 		if (fg.f(u,e) > fg.cap(u,e))
 			cout << "Flow exceeds capacity on edge "
-			     << e << "=" << fg.edge2string(e) << endl;
+			     << e << "=" << fg.edge2string(e,s) << endl;
+		if (fg.f(u,e) < fg.minFlo(e))
+			cout << "Flow less than min flow requirement on edge "
+			     << e << "=" << fg.edge2string(e,s) << endl;
 	}
 
 	// verify that flow at each node is balanced

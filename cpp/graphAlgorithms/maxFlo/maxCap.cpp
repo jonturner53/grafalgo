@@ -1,20 +1,33 @@
+/** @file maxCap.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
 #include "maxCap.h"
 
+/** Find maximum flow in fg using the max capacity variant of
+ *  the augmenting path algorithm.
+ *  @param fg1 is a flow graph
+ *  @param floVal is a reference to an integer in which the max
+ *  flow value is returned.
+ */
 maxCap::maxCap(Flograph& fg1,int& floVal) : augPath(fg1,floVal) {
-// Find maximum flow in fg using the shortest augment path algorithm.
-	floVal = 0;
-	while(findPath()) floVal += augment(); 
+	floVal = main();
 }
 
+/** Find an augmenting path of maximum capacity.
+ *  @return true if a path is found.
+ */
 bool maxCap::findPath() {
-// Find a path with unused residual capacity.
         vertex u, v; edge e;
         Dheap<int> nheap(fg->n(),2+fg->m()/fg->n()); int bcap[fg->n()+1];
 
         for (u = 1; u <= fg->n(); u++) { pEdge[u] = 0; bcap[u] = 0; }
-        bcap[fg->src()] = Util::BIGINT32;
-        nheap.insert(fg->src(),-Util::BIGINT32); // store negative values, 
-				    // so deletemin gives max cap
+        bcap[fg->src()] = INT_MAX;
+        nheap.insert(fg->src(),-INT_MAX); // so deletemin gives max cap
         while (!nheap.empty()) {
                 u = nheap.deletemin();
                 for (e = fg->firstAt(u); e != 0; e = fg->nextAt(u,e)) {

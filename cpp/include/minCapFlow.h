@@ -1,9 +1,13 @@
-/** MinFlow class. Encapsulates data and routines used to find
- *  a maximum flow in flographs with minimum flow constraints.
+/** @file minCapFlow.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2013
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef MINCAP_H
-#define MINCAP_H
+#ifndef MINCAPFLOW_H
+#define MINCAPFLOW_H
 
 #include "stdinc.h"
 #include "Mflograph.h"
@@ -12,10 +16,13 @@
 
 using namespace grafalgo;
 
-class minFlow {
+/** MinCapFlow class. Encapsulates data and routines used to find
+ *  a maximum flow in flographs with minimum flow constraints.
+ */
+class minCapFlow {
 public: 
-	minFlow(Mflograph&,int&);
-	~minFlow();
+	minCapFlow(Mflograph&,int&);
+	~minCapFlow();
 protected:
         Mflograph* fg;       	// graph we're finding flow on
 	edge *pEdge;		// pEdge[u] is edge to parent of u in the	

@@ -29,7 +29,6 @@ protected:
 	int	top;		// highest index into ubVec with ubVec[i]!=0
 	ClistSet *unbal;	// collection of circular lists of vertices
 
-	void	newUnbal(vertex);
 	void	addUnbal(vertex);
 	vertex	removeUnbal();
 
