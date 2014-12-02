@@ -236,10 +236,8 @@ bool List::isConsistent() const {
  */
 string List::toString() const {
 	string s = "[";
-	bool isFirst = true;
 	for (index i = first(); i != 0; i = next(i)) {
-		if (isFirst) isFirst = false;
-		else s += " ";
+		if (i != first()) s += " ";
 		s += index2string(i);
 	}
 	s += "]";

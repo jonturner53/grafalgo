@@ -2,24 +2,23 @@
 // finding a maximum size matching in a general graph. To use,
 // invoke the constructor.
 
-#ifndef EDMONDS_H
-#define EDMONDS_H
+#ifndef EDMONDSGABOW_H
+#define EDMONDSGABOW_H
 
 #include "stdinc.h"
 #include "Graph.h"
 #include "List.h"
 #include "Dlist.h"
+#include "Glist.h"
 #include "RlistSet.h"
 #include "Partition.h"
 
 using namespace grafalgo;
 
-class edmonds {
-public: edmonds(Graph&,Dlist&,int&);
-	string& statString(bool, string&);
+class edmondsGabow {
+public: edmondsGabow(Graph&, Glist<edge>&, int&);
 private:
 	Graph* graf;		// graph we're finding matching for
-	Dlist* match;		// matching we're building
 	Partition *blossoms;	// partition of the vertices into blossoms
 	RlistSet* augpath;	// reversible list used to construct path
 	vertex* origin;		// origin[u] is the original vertex
@@ -36,9 +35,6 @@ private:
 	edge* pEdge;		// p[u] is parent of u in forest
 	bool* mark;		// used in nearest common ancestor computation
 
-	int iSize, mSize, stepCount, blossomCount;
-	int imatchTime, rmatchTime, pathInitTime, pathFindTime;
-	
 	vertex nca(vertex,vertex); // return nearest-common ancestor
 	edge path(vertex,vertex); // construct augmenting path
 	void augment(edge);	// augment the matching

@@ -1,17 +1,31 @@
-#include "cycRed.h"
+/** @file mcfCycRed.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
+#include "mcfCycRed.h"
+#include "dinic.h"
 
 using namespace grafalgo;
 
-// Find minimum cost, maximum flow in wfg using
-// the cycle reduction algorithm. 
-cycRed::cycRed(Wflograph& wfg1, flow& floVal, cost& floCost) : wfg(&wfg1) {
-	vertex u;
-
+/** Find minimum cost, maximum flow in a weighted flow graph using
+ *  the cycle reduction algorithm. 
+ *  @param wfg1 is the flow graph
+ *  @param floVal is an output parameter used to return the value of
+ *  the min cost max flow
+ *  @param floCost is an output parameter used to return the cost of
+ *  the min cost max flow
+ */
+mcfCycRed::mcfCycRed(Wflograph& wfg1, flow& floVal, cost& floCost): wfg(&wfg1) {
 	pEdge = new edge[wfg->n()+1];
 	mark = new int[wfg->n()+1];
 
-	dinicDtrees x(*wfg,floVal);
+	dinic(*wfg,floVal);
 
+	vertex u;
 	while ((u = findCyc()) != 0) augment(u);
 
 	floCost = 0;
@@ -21,12 +35,16 @@ cycRed::cycRed(Wflograph& wfg1, flow& floVal, cost& floCost) : wfg(&wfg1) {
 	}
 }
 
-void cycRed::augment(vertex z) {
-// Add flow to cycle defined by pEdge pointers that includes z.
+/** Add flow to a negative-cost cycle.
+ *  Adds as much flow as possible to the cycle, reducing the cost
+ *  without changing the flow value.
+ *  @param z is a vertex on a cycle defined by the pEdge array
+ */
+void mcfCycRed::augment(vertex z) {
 	vertex u, v; edge e; flow f;
 
         // determine residual capacity of cycle
-        f = Util::BIGINT32;
+        f = INT_MAX;
         u = z; e = pEdge[u];
         do {
                 v = wfg->mate(u,e);
@@ -43,11 +61,13 @@ void cycRed::augment(vertex z) {
         } while (u != z);
 }
 
-vertex cycRed::findCyc() {
-// Find a negative cost cycle in the residual graph.
-// If a cycle is found, return some vertex on the cycle,
-// else 0. In the case there is a cycle, you can traverse
-// the cycle by following pEdge pointers from the returned vertex.
+/** Find a negative cost cycle in the residual graph.
+ *  @return some vertex on the cycle, or 0 if no negative
+ *  cycle is present in the residual graph; The edges in the
+ *  cycle are found by traversing the pEdge pointers, starting
+ *  at pEdge[returnedVertex].
+ */
+vertex mcfCycRed::findCyc() {
 
 	vertex u,v,last; edge e;
 	int c[wfg->n()+1];
@@ -79,9 +99,10 @@ vertex cycRed::findCyc() {
 	return 0;
 }
 
-vertex cycRed::cycleCheck() {
-// If there is a cycle defined by the pEdge pointers, return
-// some vertex on the cycle, else null.
+/** Check for a cycle in the pEdge pointers.
+ *  @return true if the pEdge pointers define a cycle, else false
+ */
+vertex mcfCycRed::cycleCheck() {
 	vertex u,v; edge e; int cm;
 
 	for (u = 1; u <= wfg->n(); u++) { mark[u] = 0; }

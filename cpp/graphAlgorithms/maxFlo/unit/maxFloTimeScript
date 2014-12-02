@@ -1,0 +1,32 @@
+#! /bin/bash
+#
+# usage: maxFloTimeScript algorithm 
+#
+# Run timing tests with a specified algorithm.
+# The algorithm argument is shortPath, maxCap, capScale, dinic,
+# dinicDtrees, ppFifo, ppFifoBatch, ppHiLab or ppHiLabBatch.
+#
+algo="shortPath"
+if [ $# -eq 1 ] ; then
+	algo=$1
+fi;
+
+echo "density 3 graphs"
+echo "algorithm n m mss ecap1 ecap2 avg min max"
+k=6;
+while [ $k -le 12 ] ; do
+	n=$((2**k)); m=$((3*n/2)); mss=$(((n-2)/4));
+	ecap2=100; ecap1=$((ecap2*(m-2*mss)/4))
+	timeMaxFlo $algo 20 $n $m $mss $ecap1 $ecap2
+	k=$((k+1))
+done
+
+echo "density lg(n) graphs"
+echo "algorithm n m mss ecap1 ecap2 avg min max"
+k=6; 
+while [ $k -le 12 ] ; do
+	n=$((2**k)); m=$((k*n)) mss=$(((n-2)/4));
+	ecap2=100; ecap1=$((ecap2*(m-2*mss)/4))
+	timeMaxFlo $algo 20 $n $m $mss $ecap1 $ecap2
+	k=$((k+1))
+done

@@ -1,8 +1,13 @@
-// lcapc class encapsulates data and routines used by least cost aug path
-// algorithm for min cost flow. Use constructor to invoke algorithm.
+/** @file mcfLcap.h
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
 
-#ifndef LCAP_H
-#define LCAP_H
+#ifndef MCFLCAP_H
+#define MCFLCAP_H
 
 #include "stdinc.h"
 #include "Wflograph.h"
@@ -11,9 +16,13 @@
 
 using namespace grafalgo;
 
-class lcap {
+/** The mcfLcap class encapsulates data and methods used by the least cost
+ *  augmenting path algorithm for min cost flow. Use constructor to invoke
+ *  algorithm.
+ */
+class mcfLcap {
 public:
-	lcap(Wflograph&, flow&, floCost&, bool);
+	mcfLcap(Wflograph&, flow&, floCost&, bool);
 protected:
 	Wflograph* wfg;		// graph we're finding flow on
 	int*	lab;		// lab[u] is label used to transform costs

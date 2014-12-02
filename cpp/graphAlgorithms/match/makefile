@@ -10,11 +10,10 @@ LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/List.h \
-	 ${IDIR}/RlistSet.h ${IDIR}/Partition.h ${IDIR}/altPath.h \
-	 ${IDIR}/faltPath.h ${IDIR}/edmonds.h ${IDIR}/fastEdmonds.h
-OFILES = flowMatch.o altPath.o faltPath.o edmonds.o fastEdmonds.o \
-	maxdMatch.o fmaxdMatch.o
-XFILES = match matchRep
+	 ${IDIR}/RlistSet.h ${IDIR}/Partition.h ${IDIR}/hopcroftKarp.h \
+	 ${IDIR}/hungarian.h ${IDIR}/edmondsGabow.h ${IDIR}/fastEdmondsGabow.h
+OFILES = hopcroftKarp.o hungarian.o edmondsGabow.o fastEdmondsGabow.o \
+	maxdMatch.o fastMaxdMatch.o
 
 ${OFILES} : ${HFILES}
 
@@ -25,12 +24,6 @@ all:	${LIBS} ${XFILES}
 
 ${LIBGA}: ${OFILES}
 	ar -ru ${LIBGA} ${OFILES}
-
-match: match.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-matchRep: matchRep.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 clean:
 	rm -f *.o ${XFILES}

@@ -15,7 +15,7 @@ int main() {
 	Wflograph wfg; cin >> wfg;
 
 	// Check that capacity constraints are respected.
-	for (e = 1; e <= wfg.m(); e++) {
+	for (e = wfg.first(); e != 0; e = wfg.next(e)) {
 		u = wfg.tail(e); v = wfg.head(e);
 		if (wfg.f(u,e) < 0)
 			printf("Negative flow on edge %d=(%d,%d)\n",e,u,v);
@@ -25,7 +25,8 @@ int main() {
 	}
 
 	// Make sure each vertex is balanced.
-	for (u = 2; u < wfg.n(); u++) { 
+	for (u = 1; u <= wfg.n(); u++) { 
+		if (u == wfg.src() || u == wfg.snk()) continue;
 		s = 0;
 		for (e = wfg.firstAt(u); e != 0; e = wfg.nextAt(u,e)) {
 			if (u == wfg.head(e))
@@ -40,8 +41,8 @@ int main() {
 	// Check that there is no augmenting path.
 	int *d = new int[wfg.n()+1];
 	for (u = 1; u <= wfg.n(); u++) d[u] = wfg.n();
-	d[1] = 0;
-	List q(wfg.n()); q.addLast(1);
+	d[wfg.src()] = 0;
+	List q(wfg.n()); q.addLast(wfg.src());
 	while (!q.empty()) {
 		u = q.first(); q.removeFirst();
 		for (e = wfg.firstAt(u); e != 0; e = wfg.nextAt(u,e)) {
@@ -52,9 +53,10 @@ int main() {
 			}
 		}
 	}
-	if (d[wfg.n()] < wfg.n()) printf("Not a maximum flow\n");
+	if (d[wfg.snk()] < wfg.n()) printf("Not a maximum flow\n");
 
 	// Check that there are no negative cost cycles in residual graph.
+	// Note: speed this up using bfs from pseudo-source
 	int** cst = new int*[wfg.n()+1];
 	for (u = 1; u <= wfg.n(); u++) {
 		cst[u] = new int[wfg.n()+1];
@@ -62,7 +64,7 @@ int main() {
 	for (u = 1; u <= wfg.n(); u++) {
 		for (v = 1; v <= wfg.n(); v++) {
 			if (u == v) cst[u][v] = 0;
-			else cst[u][v] = Util::BIGINT32;
+			else cst[u][v] = INT_MAX;
 		}
 	}
 	for (u = 1; u <= wfg.n(); u++) {
@@ -79,8 +81,8 @@ int main() {
 		}
 		for (u = 1; u <= wfg.n(); u++) {
 			for (w = 1; w <= wfg.n(); w++) {
-				if (cst[u][v] != Util::BIGINT32 &&
-				    cst[v][w] != Util::BIGINT32 &&
+				if (cst[u][v] != INT_MAX &&
+				    cst[v][w] != INT_MAX &&
 				    cst[u][w] > cst[u][v] + cst[v][w]) {
 					cst[u][w] = cst[u][v] + cst[v][w];
 				}

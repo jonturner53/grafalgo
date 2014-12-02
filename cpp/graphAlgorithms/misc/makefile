@@ -12,7 +12,7 @@ LIBS := ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/Partition.h \
 	 ${IDIR}/Nca.h 
 XFILES = randGraph toDot
-OFILES = bfs.o toposort.o Nca.o toDot.o
+OFILES = bfs.o toposort.o Nca.o findSplit.o toDot.o
 
 ${OFILES} : ${HFILES}
 

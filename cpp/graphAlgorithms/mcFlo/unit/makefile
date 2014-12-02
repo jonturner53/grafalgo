@@ -1,27 +1,32 @@
 SHELL := /bin/bash
 ARCH := -m$(shell getconf LONG_BIT)
-IDIR := ../../include
-LDIR := ../../lib
+IDIR := ../../../include
+LDIR := ../../../lib
 BIN := ~/bin
 WARN := -Wall 
 CXXFLAGS := ${WARN} ${ARCH} -O2 -std=c++0x
 
-LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Dlist.h ${IDIR}/Wflograph.h \
 	 ${IDIR}/mcfCycRed.h ${IDIR}/mcfLcap.h ${IDIR}/mcfScale.h
-OFILES = mcfCycRed.o mcfLcap.o mcfScale.o
+XFILES = testMcFlo timeMcFlo checkMcFlo
 
 ${OFILES} : ${HFILES}
 
 .cpp.o:
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-all:	${LIBS}
+all:	${XFILES}
 
-${LIBGA} : ${OFILES}
-	ar -ru ${LIBGA} ${OFILES}
+testMcFlo: testMcFlo.o ${LIBS}
+	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+
+timeMcFlo: timeMcFlo.o ${LIBS}
+	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+
+checkMcFlo: checkMcFlo.o ${LIBS}
+	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 clean:
 	rm -f *.o ${XFILES}

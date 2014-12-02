@@ -1,12 +1,29 @@
-#include "lcap.h"
+/** @file mcfLcap.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
+#include "mcfLcap.h"
 
 using namespace grafalgo;
 
-lcap::lcap(Wflograph& wfg1, flow& flowVal, floCost& flowCost, bool mostNeg) : wfg(&wfg1) {
-// Find minimum cost, flow in wfg using the least-cost augmenting path
-// algorithm.  If the mostNeg flag is true, the algorithm finds a
-// flow with the largest negative cost. Otherwise, it finds a min
-// cost, max flow.  Returns flow value in floVal and cost in floCost.
+/** Find minimum cost, flow in weighted flow graph using the least-cost
+ *  augmenting path algorithm.
+ *  @param wfg1 is a flow graph; the final flow is returned in its edges'
+ *  flow field
+ *  @param flowVal is an output parameter used to return the value of
+ *  computed flow
+ *  @param floCost is an output parameter used to return the cost of the
+ *  computed flow
+ *  @param mostNeg is a flag; if it is true, the algorithm finds a
+ *  flow with the largest negative cost (this may not be a max value flow);
+ *  otherwise, it finds a min cost, max flow. 
+ */
+mcfLcap::mcfLcap(Wflograph& wfg1, flow& flowVal, floCost& flowCost,
+		 bool mostNeg) : wfg(&wfg1) {
 
 	lab = new int[wfg->n()+1];
 	pEdge = new edge[wfg->n()+1];
@@ -24,12 +41,13 @@ lcap::lcap(Wflograph& wfg1, flow& flowVal, floCost& flowCost, bool mostNeg) : wf
 }
 
 
-void lcap::initLabels() {
-// Compute values for labels that give non-negative transformed costs.
-// The labels are the least cost path distances from an imaginary
-// vertex with a length 0 edge to every vertex in the graph.
-// Uses the breadth-first scanning algorithm to compute shortest
-// paths.
+/** Compute values for labels that give non-negative transformed costs.
+ *  The labels are the least cost path distances from an imaginary
+ *  vertex with a length 0 edge to every vertex in the graph.
+ *  Uses the breadth-first scanning algorithm to compute shortest
+ *  paths.
+ */
+void mcfLcap::initLabels() {
         int pass;
 	vertex u, v,last; edge e;
         List q(wfg->n());
@@ -40,9 +58,8 @@ void lcap::initLabels() {
         pass = 0; last = q.last();
         while (!q.empty()) {
 		u = q.first(); q.removeFirst();
-                for (e = wfg->firstAt(u); e != 0; e = wfg->nextAt(u,e)) {
+                for (e = wfg->firstOut(u); e != 0; e = wfg->nextOut(u,e)) {
                         v = wfg->head(e);
-			if (v == u) continue;
                         if (lab[v] > lab[u] + wfg->cost(u,e)) {
                                 lab[v] = lab[u] + wfg->cost(u,e); pEdge[v] = e;
                                 if (!q.member(v)) q.addLast(v);
@@ -54,12 +71,14 @@ void lcap::initLabels() {
         }
 }
 
-bool lcap::findpath() {
-// Find a least cost augmenting path.
+/** Find a least cost augmenting path.
+ *  @param return true if a path was found, else false.
+ */
+bool mcfLcap::findpath() {
 	vertex u,v; edge e;
 	int c[wfg->n()+1]; Dheap<int> S(wfg->n(),4);
 
-	for (u = 1; u <= wfg->n(); u++) { pEdge[u] = 0; c[u] = Util::BIGINT32; }
+	for (u = 1; u <= wfg->n(); u++) { pEdge[u] = 0; c[u] = INT_MAX; }
 	c[wfg->src()] = 0; S.insert(wfg->src(),0);
 	while (!S.empty()) {
 		u = S.deletemin();
@@ -68,7 +87,7 @@ bool lcap::findpath() {
 			v = wfg->mate(u,e);
 			if (c[v] > c[u] + wfg->cost(u,e) + (lab[u] - lab[v])) {
 				pEdge[v] = e;
-				c[v] = c[u] +  wfg->cost(u,e) + (lab[u] - lab[v]);
+				c[v] = c[u] + wfg->cost(u,e) + (lab[u]-lab[v]);
 				if (!S.member(v)) S.insert(v,c[v]);
 				else S.changekey(v,c[v]);
 			}
@@ -79,12 +98,15 @@ bool lcap::findpath() {
 	return (pEdge[wfg->snk()] != 0 ? true : false);
 }
 
-void lcap::pathRcapCost(flow& rcap, floCost& pc) {
-// Return the residual capacity and cost of the path defined by pEdge
-// in rcap and pc.
+/** Determine residual capacity and cost of augmenting path defined by pEdge.
+ *  @param rcap is an output parameter used to return the capacity of the
+ *  augmenting path defined by pEdge.
+ *  @param pc is an output parameter used to return the cost of the path
+ */
+void mcfLcap::pathRcapCost(flow& rcap, floCost& pc) {
         vertex u, v; edge e;
 
-	rcap = Util::BIGINT32; pc = 0;
+	rcap = INT_MAX; pc = 0;
         u = wfg->snk(); e = pEdge[u];
         while (u != wfg->src()) {
                 v = wfg->mate(u,e);
@@ -93,8 +115,10 @@ void lcap::pathRcapCost(flow& rcap, floCost& pc) {
         }
 }
 
-void lcap::augment(flow& f) {
-// Add f units of flow to the path defined by pEdge.
+/** Add flow to the path defined by pEdge.
+ *  @param f is the amount of flow to add to the path
+ */
+void mcfLcap::augment(flow& f) {
         vertex u, v; edge e;
 
         u = wfg->snk(); e = pEdge[u];
