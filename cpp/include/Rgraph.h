@@ -31,18 +31,13 @@ public:
 	static void dag(Digraph&, int, int);
 	static void flograph(Flograph&, int, int, int);
 
-	static void edgeWeight(Wgraph&, int, int);
-	static void edgeLength(Wdigraph&, int, int);
-	static void edgeCapacity(Flograph&, int, int);
-	static void edgeCost(Wflograph&, int, int);
-	static void edgeMinFlo(Mflograph&, int, int);
+	static void setWeights(Wgraph&, int, int);
+	static void setLengths(Wdigraph&, int, int);
+	static void setCapacities(Flograph&, int, int);
+	static void setCosts(Wflograph&, int, int);
+	static void setMinFlows(Mflograph&, int, int);
 
-	static void scramble(Graph&);
-	static void scramble(Wgraph&);
-	static void scramble(Wdigraph&);
-	static void scramble(Flograph&);
-	static void scramble(Wflograph&);
-	static void scramble(Mflograph&);
+	template<class T> static void scramble(T&);
 
 	static void shuffle(Graph&, int*, int*);
 	static void shuffle(Wgraph&, int*, int*);
@@ -50,11 +45,21 @@ public:
 	static void shuffle(Flograph&, int*, int*);
 	static void shuffle(Wflograph&, int*, int*);
 	static void shuffle(Mflograph&, int*, int*);
-
-private:
-	static void shuffleEdges(Graph&, int*, int*);
-	static void shuffleFloInfo(Flograph&, int*, int*);
 };
+
+/** Scramble the vertices and edges in a graph.
+ *  @param graf is a graph object (Graph, Wgraph, Digraph,...);
+ *  on return the vertices and edge numbers are permuted to give
+ *  a graph that is structurally identical to the original but
+ *  which "looks different"
+ */
+template<class T>
+void Rgraph::scramble(T& graf) {
+        int *vp = new int[graf.n()+1]; int *ep = new int[graf.maxEdgeNum()+1];
+        Util::genPerm(graf.n(),vp); Util::genPerm(graf.maxEdgeNum(),ep);
+        shuffle(graf,vp,ep);
+        graf.sortAdjLists();
+}
 
 } // ending namespace
 

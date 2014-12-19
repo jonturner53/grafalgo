@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
 	avgTime = maxTime = 0; minTime = ((int64_t) 1) << 62;
 	for (i = 1; i <= reps; i++) {
 		Rgraph::digraph(dig,n,m); 
-		Rgraph::edgeLength(dig,lo,hi);
+		Rgraph::setLengths(dig,lo,hi);
 		sptree = new Wdigraph(dig.n(),dig.n()-1);
 		if (strcmp(argv[1],"dijkstra") == 0) {
 			t1 = high_resolution_clock::now();

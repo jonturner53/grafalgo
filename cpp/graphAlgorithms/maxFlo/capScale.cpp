@@ -13,10 +13,8 @@ using namespace grafalgo;
 
 /** Find maximum flow in fg using the capacity scaling algorithm.
  *  @param fg1 is a flow graph
- *  @param floVal is a reference to an integer in which the max flow
- *  is returned.
  */
-capScale::capScale(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
+capScale::capScale(Flograph& fg1) : augPath(fg1) {
 	// initialize scale factor to largest power of 2
 	// that is <= (max edge capacity)/2
 	edge e; int maxCap = 0;
@@ -24,7 +22,7 @@ capScale::capScale(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
 		maxCap = max(maxCap,fg->cap(fg->tail(e),e));
 	for (scale = 1; scale <= maxCap/2; scale *= 2) {}   
 
-	floVal = main();
+	main();
 }
 
 /** Find a path with sufficient unused residual capacity.

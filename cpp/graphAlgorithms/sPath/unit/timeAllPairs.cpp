@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 	avgTime = maxTime = 0; minTime = ((int64_t) 1) << 62;
 	Wdigraph dig;
 	for (i = 1; i <= reps; i++) {
-		Rgraph::digraph(dig,n,m); Rgraph::edgeLength(dig,lo,hi);
+		Rgraph::digraph(dig,n,m); Rgraph::setLengths(dig,lo,hi);
 		if (strcmp(argv[1],"floyd") == 0) {
 			t1 = high_resolution_clock::now();
 			floyd(dig,dist,mid);

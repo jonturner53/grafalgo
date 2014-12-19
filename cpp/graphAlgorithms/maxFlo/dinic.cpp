@@ -11,16 +11,16 @@
 using namespace grafalgo;
 
 /** Compute a max flow using Dinic's algorithm.
- *  @param fg1 is a flow graph
+ *  @param fg1 is a flow graph; possibly with an initial non-zero flow
  *  @param floVal is a reference to an integer in which the maximum
  *  flow is returned.
  */
-dinic::dinic(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
+dinic::dinic(Flograph& fg1) : augPath(fg1) {
         level = new int[fg->n()+1];
         nextEdge = new edge[fg->n()+1];
 
-	floVal = 0;
-        while (newPhase()) { floVal += main(); }
+        while (newPhase()) { main(); }
+
 	delete [] level; delete [] nextEdge;
 }
 

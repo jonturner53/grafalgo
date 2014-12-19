@@ -36,6 +36,8 @@ public:
 	static bool prefix(string&, string&);	
 	static int strnlen(char*, int);
 	static void genPerm(int, int*);	
+	template<class T>
+	static void shuffle(T*, int*, int);
 	static uint32_t getTime();
 	static void warning(const string&);
 	static void fatal(const string&);
@@ -59,7 +61,6 @@ inline void Util::fatal(const string& msg) {
 	if (errno != 0) perror("");
 	exit(1);
 }
-
 
 /** Generate a random fraction.
  *  @return a double in [0,1]
@@ -102,6 +103,19 @@ inline int Util::randTruncGeo(double p, int k) {
  */
 inline double Util::randpar(double mu, double s) {
 	return mu*(1-1/s)/exp((1/s)*log(randfrac()));
+}
+
+/** Shuffle a vector according to a permutation.
+ *  @param vec is a vector of values to be shuffled
+ *  @param perm is a vector of integers that defines a permutation
+ *  @param n is the number of elements in vec and in perm
+ *  On return, the original value of vec[i] appears at position
+ *  vec[perm[i]].
+ */
+template<class T>
+void Util::shuffle(T *vec, int *perm, int n) {
+        T cvec[n]; std::copy(vec, vec+n, cvec);
+        for (int i = 0; i < n; i++) vec[perm[i]] = cvec[i];
 }
 
 } // ends namespace

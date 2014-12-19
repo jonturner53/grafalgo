@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
 	avgTime = maxTime = 0; minTime = ((int64_t) 1) << 62;
 	for (i = 1; i <= reps; i++) {
 		Rgraph::connected(wg,n,m); 
-		Rgraph::edgeWeight(wg,0,maxkey);
+		Rgraph::setWeights(wg,0,maxkey);
 
 		if (strcmp(argv[1],"kruskal") == 0) {
 			time1 = high_resolution_clock::now();

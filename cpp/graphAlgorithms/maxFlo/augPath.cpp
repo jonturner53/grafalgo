@@ -15,7 +15,7 @@ using namespace grafalgo;
  *  Base class constructor initializes dynamic data common to all algorithms.
  *  Derived class constructors define local data then invoke main routine.
  */
-augPath::augPath(Flograph& fg1, int& flow_value) : fg(&fg1) {
+augPath::augPath(Flograph& fg1) : fg(&fg1) {
 	pEdge = new edge[fg->n()+1];
 }
 

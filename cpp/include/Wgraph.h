@@ -12,9 +12,9 @@
 #include "stdinc.h"
 #include "Graph.h"
 
-typedef int weight;
-
 namespace grafalgo {
+
+typedef int edgeWeight;
 
 /** Data structure for undirected graph with edge weights.
  *
@@ -36,8 +36,8 @@ public:		Wgraph(int=1,int=1);
 	void	copyFrom(const Wgraph&);
 
 	// methods for accessing/changing weight
-	int	weight(edge) const;
-	void	setWeight(edge,int);
+	edgeWeight weight(edge) const;
+	void	setWeight(edge,edgeWeight);
 
 	// create a string representation
 	using Graph::edge2string;
@@ -45,18 +45,20 @@ public:		Wgraph(int=1,int=1);
         string toDotString() const;
 
 private:
-	int	*wt;			///< weight of the edge
+	edgeWeight *wt;			///< weight of the edge
 	void makeSpace(int,int);
 	void freeSpace();
 	bool	readAdjList(istream&);
 	string	adjList2string(vertex) const;
+
+	friend class Rgraph;
 };
 
 /** Get the weight of an edge.
  *  @param e is the edge of interest
  *  @return the weight of e, or 0 if e is not a valid edge.
  */
-inline int Wgraph::weight(edge e) const {
+inline edgeWeight Wgraph::weight(edge e) const {
 	assert(0 <= e && e <= maxEdge);
 	return (evec[e].l == 0 ? 0 : wt[e]);
 }
@@ -65,7 +67,7 @@ inline int Wgraph::weight(edge e) const {
  *  @param e is the edge of interest
  *  @param w is the desired weight
  */
-inline void Wgraph::setWeight(edge e, int w) {
+inline void Wgraph::setWeight(edge e, edgeWeight w) {
 	assert(0 <= e && e <= maxEdge); wt[e] = w;
 }
 

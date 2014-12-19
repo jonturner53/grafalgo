@@ -70,8 +70,8 @@ void Wgraph::copyFrom(const Wgraph& source) {
 		resize(source.n(),source.m());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
-		edge ee = join(source.left(e),source.right(e));
-		setWeight(ee,source.weight(e));
+		joinWith(source.left(e),source.right(e),e);
+		setWeight(e,source.weight(e));
 	}
         sortAdjLists();
 }
@@ -81,21 +81,34 @@ void Wgraph::copyFrom(const Wgraph& source) {
  *  @return true on success, false on error.
  */
 bool Wgraph::readAdjList(istream& in) {
-	if (!Util::verify(in,'[')) return 0;
+	if (!Util::verify(in,'[')) return false;
 	vertex u;
-	if (!Adt::readIndex(in,u)) return 0;
+	if (!Adt::readIndex(in,u)) return false;
 	if (u > n()) expand(u,m());
-	if (!Util::verify(in,':')) return 0;
+	if (!Util::verify(in,':')) return false;
 	while (in.good() && !Util::verify(in,']')) {
-		vertex v;
-		if (!Adt::readIndex(in,v)) return 0;
+		vertex v; edge e;
+		if (!Adt::readIndex(in,v)) return false;
 		if (v > n()) expand(v,m());
 		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (!Util::verify(in,'#')) {
+			if (u < v) e = join(u,v);
+		} else {
+			if (!Util::readInt(in,e)) return false;
+			if (e >= maxEdge) expand(n(),e);
+			if (u < v) {
+				if (joinWith(u,v,e) != e) return false;
+			} else {
+				if ((u == left(e)  && v != right(e)) ||
+				    (u == right(e) && v != left(e)))
+					return false;
+			}
+		}
 		int w;
 		if (!Util::verify(in,'(') || !Util::readInt(in,w) ||
 		    !Util::verify(in,')'))
-			return 0;
-        	if (u < v) { edge e = join(u,v); setWeight(e,w); }
+			return false;
+		if (u < v) setWeight(e,w);
 	}
 	return in.good();
 }
@@ -110,6 +123,7 @@ string Wgraph::edge2string(edge e, vertex u) const {
         vertex v = mate(u,e);
         s += "(" + index2string(u);
 	s += "," + index2string(v) + "," + to_string(weight(e)) + ")";
+	if (shoEnum) s += "#" + to_string(e);
         return s;
 }
 
@@ -124,7 +138,9 @@ string Wgraph::adjList2string(vertex u) const {
 	s += "[" + Adt::index2string(u) + ":";
 	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
 		vertex v = mate(u,e);
-		s +=  " " + index2string(v) + "(" + to_string(weight(e)) + ")";
+		s +=  " " + index2string(v);
+		if (shoEnum) s += "#" + to_string(e);
+		s += "(" + to_string(weight(e)) + ")";
 		if (++cnt >= 15 && nextAt(u,e) != 0) {
 			s +=  "\n"; cnt = 0;
 		}

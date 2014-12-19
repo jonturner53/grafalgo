@@ -22,7 +22,7 @@
  */
 class shortPath : public augPath {
 public: 
-	shortPath(Flograph&,int&);
+	shortPath(Flograph&);
 private:
         bool	findPath();
 };

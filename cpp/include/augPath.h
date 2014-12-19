@@ -22,7 +22,7 @@ using namespace grafalgo;
  */
 class augPath {
 public: 
-	augPath(Flograph&,int&);
+	augPath(Flograph&);
 	~augPath();
 protected:
         Flograph* fg;         	///< graph we're finding flow on

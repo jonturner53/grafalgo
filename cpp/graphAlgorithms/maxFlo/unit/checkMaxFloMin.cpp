@@ -1,4 +1,4 @@
-/** @file checkMinCapFlow.cpp
+/** @file checkMaxFloMin.cpp
  *
  *  @author Jon Turner
  *  @date 2011
@@ -13,15 +13,16 @@
 using namespace grafalgo;
 
 /**
- *  usage: checkMinCapFlow
+ *  usage: checkMaxFloMin
  *
- *  CheckMf reads an Mflograph from stdin, with a flow and checks
+ *  CheckMaxFloMin reads an Flograph from stdin, with a flow followed
+ *  by a set of minimum flow requirements. It then checks
  *  that it's a legal maximum flow that respects the min flow requirements.
  *  An error message is output for each violation.
  */
-main() {
+int main() {
 	vertex u,v; edge e; int sum;
-	Mflograph fg; fg.read(cin);
+	Mflograph fg; cin >> fg;
 
 	// verify that capacity constraints and min flow requirements 
 	// are respected
@@ -29,13 +30,13 @@ main() {
 		u = fg.tail(e); v = fg.head(e); string s;
 		if (fg.f(u,e) < 0)
 			cout << "Negative flow on edge " 
-			     << e << "=" << fg.edge2string(e,s) << endl;
+			     << e << "=" << fg.edge2string(e) << endl;
 		if (fg.f(u,e) > fg.cap(u,e))
 			cout << "Flow exceeds capacity on edge "
-			     << e << "=" << fg.edge2string(e,s) << endl;
+			     << e << "=" << fg.edge2string(e) << endl;
 		if (fg.f(u,e) < fg.minFlo(e))
 			cout << "Flow less than min flow requirement on edge "
-			     << e << "=" << fg.edge2string(e,s) << endl;
+			     << e << "=" << fg.edge2string(e) << endl;
 	}
 
 	// verify that flow at each node is balanced

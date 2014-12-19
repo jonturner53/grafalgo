@@ -22,10 +22,10 @@ fi;
 echo "testing algorithm: " $algo $lo $hi
 
 echo "testing 6 vertex graph"
-randGraph wdigraph 6 18 1 $lo $hi 1 | testAllPairs $algo 
+randGraph wdigraph 6 18 $lo $hi 1 1 | testAllPairs $algo 
 
 echo ""; echo "testing 10 vertex graph"
-randGraph wdigraph 10 25 1 $lo $hi 2 | testAllPairs $algo 
+randGraph wdigraph 10 25 $lo $hi 2 1 | testAllPairs $algo 
 
 echo ""; echo "testing 20 vertex graph"
-randGraph wdigraph 20 75 1 $lo $hi 2 | testAllPairs $algo 
+randGraph wdigraph 20 75 $lo $hi 2 1 | testAllPairs $algo 

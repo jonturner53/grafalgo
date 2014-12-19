@@ -74,10 +74,10 @@ void Wflograph::copyFrom(const Wflograph& source) {
 		resize(source.n(),source.m());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
-		edge ee = join(source.tail(e),source.head(e));
-		setCapacity(ee,source.cap(source.tail(e),e));
-		setFlow(ee,source.f(source.tail(e),e));
-		setCost(ee,source.cost(source.tail(e),e));
+		joinWith(source.tail(e),source.head(e),e);
+		setCapacity(e,source.cap(source.tail(e),e));
+		setFlow(e,source.f(source.tail(e),e));
+		setCost(e,source.cost(source.tail(e),e));
 	}
 	setSrc(source.src()); setSnk(source.snk());
         sortAdjLists();
@@ -88,34 +88,40 @@ void Wflograph::copyFrom(const Wflograph& source) {
  *  @return true on success, false on error.
  */
 bool Wflograph::readAdjList(istream& in) {
-	if (!Util::verify(in,'[')) return 0;
+	if (!Util::verify(in,'[')) return false;
 	bool isSrc = false; bool isSnk = false;
 	if (Util::verify(in,'-')) {
-		if (!Util::verify(in,'>',true)) return 0;
+		if (!Util::verify(in,'>',true)) return false;
 		isSnk = true;
 	}
 	vertex u;
-	if (!Adt::readIndex(in,u)) return 0;
+	if (!Adt::readIndex(in,u)) return false;
 	if (Util::verify(in,'-')) {
-		if (!Util::verify(in,'>',true)) return 0;
+		if (!Util::verify(in,'>',true)) return false;
 		isSrc = true;
 	}
-	if (!Util::verify(in,':')) return 0;
+	if (!Util::verify(in,':')) return false;
 	if (u > n()) expand(u,m());
 	if (isSrc) setSrc(u);
 	if (isSnk) setSnk(u);
 	while (in.good() && !Util::verify(in,']')) {
-		vertex v;
-		if (!Adt::readIndex(in,v)) return 0;
+		vertex v; edge e;
+		if (!Adt::readIndex(in,v)) return false;
 		if (v > n()) expand(v,m());
 		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (!Util::verify(in,'#')) {
+			e = join(u,v);
+		} else {
+			if (!Util::readInt(in,e)) return false;
+			if (e >= maxEdge) expand(n(),e);
+			if (joinWith(u,v,e) != e) return false;
+		}
 		flow capacity, flow; floCost ecost;
 		if (!Util::verify(in,'(') || !Util::readInt(in,capacity) ||
 		    !Util::verify(in,',') || !Util::readInt(in,ecost) ||
 		    !Util::verify(in,',') || !Util::readInt(in,flow) ||
 		    !Util::verify(in,')'))
-			return 0;
-        	edge e = join(u,v);
+			return false;
 		setCapacity(e,capacity); setFlow(e,flow); setCost(e,ecost);
 	}
 	return in.good();
@@ -136,9 +142,11 @@ string Wflograph::adjList2string(vertex u) const {
 	s += ":";
 	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
-		s += " " + index2string(v) + "(" + to_string(cap(u,e)) + ","
+		s += " " + index2string(v);
+		if (shoEnum) s += "#" + to_string(e);
+		s += "(" + to_string(cap(u,e)) + ","
 		     + to_string(cost(u,e)) + "," + to_string(f(u,e)) + ")";
-		if (++cnt >= 15 && nextAt(u,e) != 0) {
+		if (++cnt >= 10 && nextAt(u,e) != 0) {
 			s +=  "\n"; cnt = 0;
 		}
 	}
@@ -183,6 +191,7 @@ string Wflograph::edge2string(edge e) const {
 		s += "(" + index2string(u);
 		s += "," + index2string(v) + "," + to_string(cap(u,e)) + ","
 		     + to_string(cost(u,e)) + "," +  to_string(f(u,e)) + ")";
+		if (shoEnum) s += "#" + to_string(e);
         }
 	return s;
 }

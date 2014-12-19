@@ -12,17 +12,17 @@ fi;
 echo "testing algorithm: " $algo
 
 echo "testing 10 vertex graph"
-randGraph wcgraph 10 20 1 1 9 1 | testMst $algo 
-randGraph wcgraph 10 20 1 1 9 1 | testMst $algo | checkMst
+randGraph wcgraph 10 20 1 9 1 1 | testMst $algo 
+randGraph wcgraph 10 20 1 9 1 1 | testMst $algo | checkMst
 
 echo "testing 20 vertex graph"
-randGraph wcgraph 20 50 1 1 99 2 | testMst $algo 
-randGraph wcgraph 20 50 1 1 99 2 | testMst $algo | checkMst
+randGraph wcgraph 20 50 1 99 2 1 | testMst $algo 
+randGraph wcgraph 20 50 1 99 2 1 | testMst $algo | checkMst
 
 echo "testing 100 vertex, 2000 edge graphs (10)"
 for seed in 3 4 5 6 7 8 9 10 11 12; do
-	randGraph wgraph 100 2000 1 1 9999 $seed | testMst $algo | checkMst
+	randGraph wgraph 100 2000 1 9999 $seed 1 | testMst $algo | checkMst
 done
 
 echo "testing 1000 vertex, 100000 edge graph"
-randGraph wgraph 1000 100000 1 1 9999 4 | testMst $algo | checkMst
+randGraph wgraph 1000 100000 1 9999 4 1 | testMst $algo | checkMst

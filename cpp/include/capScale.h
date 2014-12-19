@@ -21,7 +21,7 @@
  */
 class capScale : public augPath {
 public: 
-	capScale(Flograph&,int&);
+	capScale(Flograph&);
 private:
 	flow	scale;		///< scale factor for scaling method
         bool	findPath();

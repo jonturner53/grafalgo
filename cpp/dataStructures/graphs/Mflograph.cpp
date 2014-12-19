@@ -13,7 +13,7 @@
 
 namespace grafalgo {
 
-/** Construct a Mflograph.
+/** Construct an Mflograph.
  *  @param numv is the number of vertices in the graph
  *  @param maxe is the max number of edges in the graph
  *  @param s1 is the source vertex
@@ -70,14 +70,14 @@ void Mflograph::expand(int numv, int maxe) {
 /** Copy into list from source. */
 void Mflograph::copyFrom(const Mflograph& source) {
 	if (&source == this) return;
-	if (source.n() > n() || source.m() > maxEdge)
+	if (source.n() > n() || source.maxEdge > maxEdge)
 		resize(source.n(),source.m());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
-		edge ee = join(source.tail(e),source.head(e));
-		setCapacity(ee,source.cap(source.tail(e),e));
-		setFlow(ee,source.f(source.tail(e),e));
-		setMinFlo(ee,source.minFlo(e));
+		joinWith(source.tail(e),source.head(e),e);
+		setCapacity(e,source.cap(source.tail(e),e));
+		setFlow(e,source.f(source.tail(e),e));
+		setMinFlo(e,source.minFlo(e));
 	}
         sortAdjLists();
 }
@@ -100,21 +100,27 @@ bool Mflograph::readAdjList(istream& in) {
 		isSrc = true;
 	}
 	if (!Util::verify(in,':')) return 0;
-	if (u > n()) expand(u,m());
+	if (u > n()) expand(u,maxEdge);
 	if (isSrc) setSrc(u);
 	if (isSnk) setSnk(u);
 	while (in.good() && !Util::verify(in,']')) {
-		vertex v;
+		vertex v; edge e;
 		if (!Adt::readIndex(in,v)) return 0;
-		if (v > n()) expand(v,m());
+		if (v > n()) expand(v,maxEdge);
 		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (!Util::verify(in,'#')) {
+			e = join(u,v);
+		} else {
+			if (!Util::readInt(in,e)) return false;
+			if (e >= maxEdge) expand(n(),e);
+			if (joinWith(u,v,e) != e) return false;
+		}
 		flow capacity, flow, minflow;
 		if (!Util::verify(in,'(') || !Util::readInt(in,capacity) ||
 		    !Util::verify(in,',') || !Util::readInt(in,minflow) ||
 		    !Util::verify(in,',') || !Util::readInt(in,flow) ||
 		    !Util::verify(in,')'))
 			return 0;
-        	edge e = join(u,v);
 		setCapacity(e,capacity); setFlow(e,flow); setMinFlo(e,minflow);
 	}
 	return in.good();
@@ -133,11 +139,13 @@ string Mflograph::adjList2string(vertex u) const {
 	s += Adt::index2string(u);
 	if (u == src()) s += "->";
 	s += ":";
-	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
+	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
-		s += " " + index2string(v) + "(" + to_string(cap(u,e)) + ","
+		s += " " + index2string(v);
+		if (shoEnum) s += "#" + to_string(e);
+		s += "(" + to_string(cap(u,e)) + ","
 		   + to_string(minFlo(e)) + "," + to_string(f(u,e)) + ")";
-		if (++cnt >= 15 && nextAt(u,e) != 0) {
+		if (++cnt >= 10 && nextAt(u,e) != 0) {
 			s +=  "\n"; cnt = 0;
 		}
 	}
@@ -159,6 +167,7 @@ string Mflograph::edge2string(edge e) const {
 		s += "," + index2string(v) + "," + to_string(cap(u,e))
 		     + "," + to_string(minFlo(e)) + ","
 		     +  to_string(f(u,e)) + ")";
+		if (shoEnum) s += "#" + to_string(e);
         }
 	return s;
 }
@@ -195,6 +204,18 @@ string Mflograph::toDotString() const {
 edge Mflograph::join(vertex u, vertex v) {
 	assert(1 <= u && u <= n() && 1 <= v && v <= n() && m() < maxEdge);
 	edge e = Flograph::join(u,v); mflo[e] = 0;
+	return e;
+}
+
+/** Join two vertices with a specific edge.
+ *  @param u is a vertex
+ *  @param v is a vertex
+ *  @param e is the number of the edge to use (if available)
+ *  @return the number of the new edge
+ */
+edge Mflograph::joinWith(vertex u, vertex v, edge e) {
+	assert(1 <= u && u <= n() && 1 <= v && v <= n() && e <= maxEdge);
+	Flograph::joinWith(u,v,e); mflo[e] = 0;
 	return e;
 }
 

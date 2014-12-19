@@ -20,8 +20,7 @@
  */
 class ppFifo : public prePush {
 public: 
-		ppFifo(Flograph&, int&, bool);
-		ppFifo(Flograph&, int&, bool, string&);
+		ppFifo(Flograph&, bool);
 protected:
 	void	doit(bool);
 	List	*unbal;	

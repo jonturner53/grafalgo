@@ -20,7 +20,7 @@ using namespace grafalgo;
  *  by weight; that is, wg.weight(elist[i]) <= wg.weight(elist[i+1])
  */
 void sortEdges(const Wgraph& wg, edge *elist) {
-        int i, p, c; edge e; weight w;
+        int i, p, c; edge e; edgeWeight w;
 
         for (i = wg.m()/2; i >= 1; i--) {
                 // do pushdown starting at i

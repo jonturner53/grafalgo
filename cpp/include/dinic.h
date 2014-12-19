@@ -18,8 +18,7 @@
  */
 class dinic : public augPath {
 public:
-		dinic(Flograph&,int&);
-		dinic(Flograph&,int&,string&);
+		dinic(Flograph&);
 private:
         int*    nextEdge;       ///< ignore edges before nextEdge[u] in adj list
         int*    level;          ///< level[u]=# of edges in path from source

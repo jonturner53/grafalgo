@@ -59,7 +59,8 @@ protected:
 
 private:
 	edge	*fi;		///< fi[u] is first in edge
-	Digraph& operator=(const Digraph&);
+
+	friend class Rgraph;
 };
 
 /** Get the tail (starting point) of a directed edge.

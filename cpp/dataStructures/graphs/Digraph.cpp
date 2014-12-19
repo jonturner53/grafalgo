@@ -82,7 +82,7 @@ edge Digraph::joinWith(vertex u, vertex v, edge e) {
 	evec[e].l = u; evec[e].r = v;
 
 	// add edge to the adjacency lists
-	// in the adjLists data structure, each edge appears twice,
+	// in the adjLists data structure, each endpoint appears twice,
 	// as 2*e and 2*e+1
 	if (fe[u] == 0) fe[u] = 2*e;
 	else adjLists->join(2*e,fe[u]);
@@ -127,6 +127,7 @@ string Digraph::adjList2string(vertex u) const {
 	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
 		s += " " + Adt::index2string(v);
+		if (shoEnum) s += "#" + to_string(e);
 		if (++cnt >= 20 && nextOut(u,e) != 0) {
 			s += "\n"; cnt = 0;
 		}
@@ -160,17 +161,23 @@ string Digraph::toDotString() const {
  *  @return true on success, false on error.
  */
 bool Digraph::readAdjList(istream& in) {
-	if (!Util::verify(in,'[')) return 0;
+	if (!Util::verify(in,'[')) return false;
 	vertex u;
-	if (!Adt::readIndex(in,u)) return 0;
+	if (!Adt::readIndex(in,u)) return false;
 	if (u > n()) expand(u,maxEdge);
-	if (!Util::verify(in,':')) return 0;
+	if (!Util::verify(in,':')) return false;
 	while (in.good() && !Util::verify(in,']')) {
-		vertex v;
-		if (!Adt::readIndex(in,v)) return 0;
+		vertex v; edge e;
+		if (!Adt::readIndex(in,v)) return false;
 		if (v > n()) expand(v,maxEdge);
 		if (m() >= maxEdge) expand(n(),max(1,max(1,2*maxEdge)));
-		join(u,v);
+		if (!Util::verify(in,'#')) {
+			e = join(u,v);
+		} else {
+			if (!Util::readInt(in,e)) return false;
+			if (e >= maxEdge) expand(n(),e);
+			if (joinWith(u,v,e) != e) return false;
+		}
 	}
 	return in.good();
 }

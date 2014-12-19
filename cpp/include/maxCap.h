@@ -22,7 +22,7 @@
  */
 class maxCap : public augPath {
 public: 
-	maxCap(Flograph&,int&);
+	maxCap(Flograph&);
 private:
 	bool	findPath();
 };

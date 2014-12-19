@@ -84,7 +84,12 @@ public:		Graph(int=1,int=1);
 	virtual	string elist2string(list<int>&) const;
 	virtual	string elist2string(List&) const;
 
+	// sort adjacency lists by other endpont
 	void	sortAdjLists();
+
+	/// control output format
+	void	showEdgeNum(bool sho) { shoEnum = sho; }
+
 protected:
 	int	maxEdge;		///< max number of edges
 
@@ -102,6 +107,8 @@ protected:
 					///< each "edge endpoint" appears
 					///< on one list; the endpoints
 					///< for edge e are 2e and 2e+1
+	bool	shoEnum;		///< if true, edge numbers are included
+					///< in string representation
 
 	// internal helper methods
 	void	makeSpace(int, int);

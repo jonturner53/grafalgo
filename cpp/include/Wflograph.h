@@ -51,8 +51,7 @@ protected:
 	bool	readAdjList(istream&);
 	string	adjList2string(vertex) const; 
 
-private:
-	Wflograph& operator=(const Wflograph&); 
+	friend class Rgraph;
 };
 
 /** Return cost of an edge.

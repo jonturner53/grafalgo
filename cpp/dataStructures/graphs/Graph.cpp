@@ -17,6 +17,7 @@ namespace grafalgo {
  */
 Graph::Graph(int numv, int maxe) : Adt(numv), maxEdge(maxe) {
 	makeSpace(numv,maxe); 
+	shoEnum = false;
 }
 
 Graph::~Graph() { freeSpace(); }
@@ -73,15 +74,18 @@ void Graph::expand(int numv, int maxe) {
 /** Remove all edges from graph. */
 void Graph::clear() { while (first() != 0) remove(first()); }
 
-/** Copy into list from source. */
+/** Copy another graph to this one.
+ *  @param source is the graph to be copied
+ */
 void Graph::copyFrom(const Graph& source) {
 	if (&source == this) return;
 	if (source.n() > n() || source.maxEdge > maxEdge)
 		resize(source.n(),source.maxEdge);
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
-		join(source.left(e),source.right(e));
+		joinWith(source.left(e),source.right(e),e);
 	}
+	sortAdjLists();
 }
 
 /** Join two vertices with an edge.
@@ -243,6 +247,7 @@ string Graph::edge2string(edge e, vertex u) const {
 	vertex v = mate(u,e);
 	s += index2string(u) + ",";
 	s += index2string(v) + ")";
+	if (shoEnum) s += "#" + to_string(e);
 	return s;
 }
 
@@ -281,6 +286,7 @@ string Graph::adjList2string(vertex u) const {
 	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) {
 		vertex v = mate(u,e);
 		s += " " + index2string(v);
+		if (shoEnum) s += "#" + to_string(e);
 		if (++cnt >= 20 && nextAt(u,e) != 0) {
 			s += "\n"; cnt = 0;
 		}
@@ -330,17 +336,29 @@ string Graph::toDotString() const {
  *  @return true on success, false on error.
  */
 bool Graph::readAdjList(istream& in) {
-	if (!Util::verify(in,'[')) return 0;
+	if (!Util::verify(in,'[')) return false;
 	vertex u;
-	if (!Adt::readIndex(in,u)) return 0;
+	if (!Adt::readIndex(in,u)) return false;
 	if (u > n()) expand(u,maxEdge);
-	if (!Util::verify(in,':')) return 0;
+	if (!Util::verify(in,':')) return false;
 	while (in.good() && !Util::verify(in,']')) {
-		vertex v;
-		if (!Adt::readIndex(in,v)) return 0;
+		vertex v; edge e;
+		if (!Adt::readIndex(in,v)) return false;
 		if (v > n()) expand(v,maxEdge);
 		if (m() >= maxEdge) expand(n(),max(1,2*maxEdge));
-		if (u > v) join(u,v);
+		if (!Util::verify(in,'#')) {
+			if (u < v) join(u,v);
+		} else {
+			if (!Util::readInt(in,e)) return false;
+			if (e >= maxEdge) expand(n(),e);
+			if (u < v) {
+				if (joinWith(u,v,e) != e) return false;
+			} else {
+				if ((u == left(e)  && v != right(e)) ||
+				    (u == right(e) && v != left(e)))
+					return false;
+			}
+		}
 	}
 	return in.good();
 }

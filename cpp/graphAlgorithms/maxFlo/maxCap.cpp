@@ -11,12 +11,8 @@
 /** Find maximum flow in fg using the max capacity variant of
  *  the augmenting path algorithm.
  *  @param fg1 is a flow graph
- *  @param floVal is a reference to an integer in which the max
- *  flow value is returned.
  */
-maxCap::maxCap(Flograph& fg1,int& floVal) : augPath(fg1,floVal) {
-	floVal = main();
-}
+maxCap::maxCap(Flograph& fg1) : augPath(fg1) { main(); }
 
 /** Find an augmenting path of maximum capacity.
  *  @return true if a path is found.

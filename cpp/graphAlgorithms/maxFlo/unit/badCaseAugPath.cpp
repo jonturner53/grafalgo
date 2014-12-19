@@ -11,7 +11,7 @@
 
 using namespace grafalgo;
 
-extern void hardFlograph(int, int, Flograph&);
+void badCaseAugPath(int, int, Flograph&);
 
 /**
  *  usage: badCaseAugPath k1 k2
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 		Util::fatal("usage badCaseAugPath k1 k2");
 
 	Flograph fg(10,20);
-	hardFlograph(k1,k2,fg);
+	badCaseAugPath(k1,k2,fg);
 
 	string s;
 	cout << fg;

@@ -13,6 +13,8 @@
 
 namespace grafalgo {
 
+typedef int edgeLength;
+
 /** Data structure for directed graph with edge lengths.
  *
  *  Wdigraph size (number of vertices and max number of edges) must
@@ -33,8 +35,8 @@ public:		Wdigraph(int=1,int=1);
 	virtual void copyFrom(const Wdigraph&);
 
 	// methods for accessing/changing length
-        int     length(edge) const;
-        void    setLength(edge,int);
+        edgeLength length(edge) const;
+        void    setLength(edge,edgeLength);
 
 	// create a string representation
         string	edge2string(edge) const;
@@ -49,13 +51,15 @@ private:
         string	adjList2string(vertex) const;
 
 	Wdigraph& operator=(const Wdigraph&);
+
+	friend class Rgraph;
 };
 
 /** Get the length of an edge.
  *  @param e is the edge of interest
  *  @return the length of e
  */
-inline int Wdigraph::length(edge e) const {
+inline edgeLength Wdigraph::length(edge e) const {
 	assert(0 <= e && e <= maxEdge); return len[e];
 }
 
@@ -63,7 +67,7 @@ inline int Wdigraph::length(edge e) const {
  *  @param e is the edge of interest
  *  @param lng is the desired length
  */
-inline void Wdigraph::setLength(edge e, int lng) {
+inline void Wdigraph::setLength(edge e, edgeLength lng) {
 	assert(0 <= e && e <= maxEdge); len[e] = lng;
 }
 

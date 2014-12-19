@@ -26,7 +26,7 @@ using namespace grafalgo;
  */
 class prePush {
 public: 
-		prePush(Flograph&, int&);
+		prePush(Flograph&);
 		~prePush();
 protected:
         Flograph* fg;           ///< graph we're finding flow on
@@ -34,8 +34,8 @@ protected:
 	int 	*excess; 	///< excess flow entering vertex
 	edge 	*nextedge;	///< pointer into adjacency list
 
-	int	maxFlowIncr();
-	int	maxFlowBatch();
+	void	maxFlowIncr();
+	void	maxFlowBatch();
 
         void   	initdist(); 
 	int	flowValue();	

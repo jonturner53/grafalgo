@@ -9,13 +9,10 @@
 #include "shortPath.h"
 
 /** Find maximum flow using the shortest augment path algorithm.
- *  @param fg1 is a reference to a flow graph
- *  @param floVal is a reference to an integer used to return the
- *  amount of flow added to the flow graph.
+ *  @param fg1 is a reference to a flow graph, possibly with an
+ *  initial non-zero flow
  */
-shortPath::shortPath(Flograph& fg1, int& floVal) : augPath(fg1,floVal) {
-	floVal = main();
-}
+shortPath::shortPath(Flograph& fg1) : augPath(fg1) { main(); }
 
 /** Find a shortest path with unused residual capacity.
  */

@@ -24,8 +24,8 @@ using namespace grafalgo;
  */
 class dinicDtrees {
 public:	
-		dinicDtrees(Flograph&,int&);
-		dinicDtrees(Flograph&,int&,string&);
+		dinicDtrees(Flograph&);
+		dinicDtrees(Flograph&,string&);
 private:
 	Flograph* fg;		///< graph we're finding flow on
 	int*	nextEdge;	///< pointer into adjacency list

@@ -40,7 +40,7 @@ using namespace grafalgo;
  *  min is the minimum time and max is the maximum time
  */
 int main(int argc, char* argv[]) {
-	int i, reps, n, m, mss, ec1, ec2, floVal;
+	int i, reps, n, m, mss, ec1, ec2;
 	if (argc != 8 ||
 	    sscanf(argv[2],"%d",&reps) != 1 ||
 	    sscanf(argv[3],"%d",&n) != 1 ||
@@ -58,29 +58,29 @@ int main(int argc, char* argv[]) {
 	int64_t avgTime, minTime, maxTime;
 	avgTime = maxTime = 0; minTime = ((int64_t) 1) << 62;
 	for (i = 1; i <= reps; i++) {
-		Rgraph::flograph(fg,n,m,mss); Rgraph::edgeCapacity(fg,ec1,ec2);
+		Rgraph::flograph(fg,n,m,mss); Rgraph::setCapacities(fg,ec1,ec2);
 
 		if (strcmp(argv[1],"maxCap") == 0) {
 			t1 = high_resolution_clock::now();
-			maxCap(fg,floVal);
+			(maxCap(fg)); // parens added to resolve ambiguity
 		} else if (strcmp(argv[1],"capScale") == 0) {
 			t1 = high_resolution_clock::now();
-			capScale(fg,floVal);
+			(capScale(fg));
 		} else if (strcmp(argv[1],"shortPath") == 0) {
 			t1 = high_resolution_clock::now();
-			shortPath(fg,floVal);
+			(shortPath(fg));
 		} else if (strcmp(argv[1],"dinic") == 0) {
 			t1 = high_resolution_clock::now();
-			dinic(fg,floVal);
+			(dinic(fg));
 		} else if (strcmp(argv[1],"dinicDtrees") == 0) {
 			t1 = high_resolution_clock::now();
-			dinicDtrees(fg,floVal);
+			(dinicDtrees(fg));
 		} else if (strcmp(argv[1],"ppFifo") == 0) {
 			t1 = high_resolution_clock::now();
-			ppFifo(fg,floVal,false);
+			ppFifo(fg,false);
 		} else if (strcmp(argv[1],"ppFifoBatch") == 0) {
 			t1 = high_resolution_clock::now();
-			ppFifo(fg,floVal,true);
+			ppFifo(fg,true);
 		} else {
 			Util::fatal("maxFloRep: undefined method");
 		}

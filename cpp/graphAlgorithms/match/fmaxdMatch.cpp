@@ -1,9 +1,19 @@
+/** @file fmaxdMatch.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
 #include "fmaxdMatch.h"
 
 using namespace grafalgo;
 
 /** Find a matching in the bipartite graph graf that includes an
  *  edge at every vertex of maximum degree.
+ *  This version includes some opimtimizations to speed up execution
+ *  for typical graphs.
  *  graf1 is a reference to the graph
  *  match1 is a reference to a list in which the matching is returned
  */

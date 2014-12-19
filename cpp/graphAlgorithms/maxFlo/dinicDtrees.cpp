@@ -10,10 +10,8 @@
 
 /** Find a max flow using Dinic's algorith with dynamic trees.
  *  @param fg1 is a flow graph
- *  @param floVal is a reference to an integer in which the max flow value
- *  is returned
  */
-dinicDtrees::dinicDtrees(Flograph& fg1, int& floVal) : fg(&fg1) {
+dinicDtrees::dinicDtrees(Flograph& fg1) : fg(&fg1) {
 	level  = new int[fg->n()+1]; nextEdge = new int[fg->n()+1];
 	upEdge = new int[fg->n()+1]; dt = new Dtrees(fg->n());
 
@@ -22,9 +20,8 @@ dinicDtrees::dinicDtrees(Flograph& fg1, int& floVal) : fg(&fg1) {
 		level[u] = nextEdge[u] = upEdge[u] = 0;
 	}
 
-	floVal = 0;
         while (newPhase()) {
-                while (findPath()) floVal += augment();
+                while (findPath()) augment();
         }
 	delete [] level; delete[] upEdge; delete [] nextEdge; delete dt;
 }

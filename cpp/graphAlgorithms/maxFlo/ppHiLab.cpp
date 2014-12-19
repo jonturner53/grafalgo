@@ -11,12 +11,10 @@
 /** Find maximum flow in a flow graph using the highest-label-first
  *  variant of the preflow-push algorithm.
  *  @param fg1 is a reference to the flow graph
- *  @param floVal is a reference to an integer variable in which the
- *  maximum flow value is returned
  *  @param batch is a boolean which determines if the algorithm uses
  *  batch relabeling (batch=true) or incremental relabeling (batch=false)
  */
-ppHiLab::ppHiLab(Flograph& fg1, int& floVal, bool batch) : prePush(fg1,floVal) {
+ppHiLab::ppHiLab(Flograph& fg1, bool batch) : prePush(fg1) {
 	// ubVec[d] is an unbalanced vertex with a distance label of d
 	// or 0 if there is no unbalanced vertex with a distance label of d
 	// unbal partitions the vertices into circular lists, where all
@@ -27,8 +25,8 @@ ppHiLab::ppHiLab(Flograph& fg1, int& floVal, bool batch) : prePush(fg1,floVal) {
 	top = 0;
 	for (int i = 0; i < 2*fg->n(); i++) ubVec[i] = 0;
 
-	if (batch) floVal = maxFlowBatch();
-	else floVal = maxFlowIncr();
+	if (batch) maxFlowBatch();
+	else maxFlowIncr();
 }
 
 /** Add an unbalanced vertex to the vector of lists of such vertices.

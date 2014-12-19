@@ -11,15 +11,13 @@
 /** Find maximum flow in a flow graph using the fifo varaint of the 
  *  preflow-push algorithm.
  *  @param fg1 is a reference to the flow graph
- *  @param floVal is a reference to an integer variable in which the
- *  maximum flow value is returned
  *  @param batch is a boolean which determines if the algorithm uses
  *  batch relabeling (batch=true) or incremental relabeling (batch=false)
  */
-ppFifo::ppFifo(Flograph& fg1, int& floVal, bool batch) : prePush(fg1,floVal) {
+ppFifo::ppFifo(Flograph& fg1, bool batch) : prePush(fg1) {
 	unbal = new List(fg->n());
-	if (batch) floVal = maxFlowBatch();
-	else	   floVal = maxFlowIncr();
+	if (batch) maxFlowBatch();
+	else	   maxFlowIncr();
 }
 
 /** Add a vertex to the set of unbalanced vertices.

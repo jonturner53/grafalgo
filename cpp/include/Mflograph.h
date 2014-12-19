@@ -31,6 +31,7 @@ public:		Mflograph(int=3,int=2,int=1,int=2);
 
 	flow 	res(vertex, edge) const;
 	virtual edge join(vertex,vertex);
+	virtual edge joinWith(vertex,vertex,edge);
 
 	flow	minFlo(edge) const;
 	void	setMinFlo(edge,flow);
@@ -44,12 +45,13 @@ protected:
 	// various helper methods
         void    makeSpace(int,int);    		
         void    freeSpace();    	
-//	void    virtual shuffle(int*, int*);
 	bool	readAdjList(istream&);
 	string	adjList2string(vertex) const; 
 
 private:
 	Mflograph& operator=(const Mflograph&); 
+
+	friend class Rgraph;
 };
 
 /** Return cost of an edge.

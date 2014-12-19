@@ -1,10 +1,11 @@
 #include "prePush.h"
 
 /** Find maximum flow in fg using the preflow-push method.
+ *  @param fg1 is a flow graph, possibly with a non-zero initial flow.
  *  The base clase constructor initializes data used by all
  *  variants.
  */
-prePush::prePush(Flograph& fg1, int& floVal) : fg(&fg1) {
+prePush::prePush(Flograph& fg1) : fg(&fg1) {
 	excess = new int[fg->n()+1];
 	nextedge = new edge[fg->n()+1];
 
@@ -14,9 +15,9 @@ prePush::prePush(Flograph& fg1, int& floVal) : fg(&fg1) {
 	}
 	vertex s = fg->src();
         for (edge e = fg->firstOut(s); e != 0; e = fg->nextAt(s,e)) {
+		flow ff = fg->res(s,e); fg->addFlow(s,e,ff);
                 vertex v = fg->head(e);
-                fg->addFlow(s,e,fg->cap(s,e));
-                if (v != fg->snk()) excess[v] = fg->cap(s,e);
+                if (v != fg->snk()) excess[v] += ff;
         }
 	d = new int[fg->n()+1];
 
@@ -27,10 +28,8 @@ prePush::prePush(Flograph& fg1, int& floVal) : fg(&fg1) {
 prePush::~prePush() { delete [] d; delete [] excess; delete [] nextedge; }
 
 
-/** Compute maximum flow using incremental relabeling.
- *  @return the value of the max flow
- */
-int prePush::maxFlowIncr() {
+/** Compute maximum flow using incremental relabeling.  */
+void prePush::maxFlowIncr() {
 	initdist();
 	vertex s = fg->src();
         for (edge e = fg->firstOut(s); e != 0; e = fg->nextAt(s,e)) {
@@ -46,13 +45,11 @@ int prePush::maxFlowIncr() {
 		}
 		u = removeUnbal();
 	}
-	return flowValue();
+	return;
 }
 
-/** Compute maximum flow using batch relabeling.
- *  @return the value of the max flow
- */
-int prePush::maxFlowBatch() {
+/** Compute maximum flow using batch relabeling.  */
+void prePush::maxFlowBatch() {
 	initdist();
 	vertex s = fg->src();
         for (edge e = fg->firstOut(s); e != 0; e = fg->nextAt(s,e)) {
@@ -73,7 +70,7 @@ int prePush::maxFlowBatch() {
                 }
 		u = removeUnbal();
         }
-	return flowValue();
+	return;
 }
 /** Compute exact distance labels and return in distance vector.
  *  For vertices that can't reach sink, compute labels to source.
@@ -114,16 +111,6 @@ void prePush::initdist() {
 			}
 		}
 	}
-}
-
-/** Compute the value of the current flow.
- *  @return the flow value leaving source
- */
-int prePush::flowValue() {
-	int fv = 0; vertex s = fg->src();
-        for (edge e = fg->firstAt(s); e != 0; e = fg->nextAt(s,e))
-		fv += fg->f(s,e);
-	return fv;
 }
 
 /** Find smallest label on an adjacent vertex through an edge with

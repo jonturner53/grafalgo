@@ -76,9 +76,9 @@ int main(int argc, char *argv[]) {
 
 		dijkstraAll(dig,dist,parent);
 	
-		cout << "distances\n\n     ";
+		cout << "distances\n\n    ";
 		for (v = 1; v <= dig.n(); v++) {
-			cout << setw(2) << dig.index2string(v) << "  ";
+			cout << setw(2) << dig.index2string(v) << " ";
 		}
 		cout << endl;
 	        for (u = 1; u <= dig.n(); u++) {
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
 	
 		cout << "\n\nshortest path trees\n\n    ";
 	        for (v = 1; v <= dig.n(); v++)  {
-			cout << setw(2) << dig.index2string(v) << "  ";
+			cout << setw(2) << dig.index2string(v) << " ";
 	        }
 		cout << endl;
 		for (u = 1; u <= dig.n(); u++) {

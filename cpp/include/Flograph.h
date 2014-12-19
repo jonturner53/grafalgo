@@ -41,13 +41,15 @@ public:		Flograph(int=3,int=2,int=1,int=2);
 	// methods for dealing with flows
 	flow	cap(vertex,edge) const;	
 	flow	f(vertex,edge) const;
-	flow	res(vertex,edge) const;
+	virtual flow res(vertex,edge) const;
 	void	addFlow(vertex,edge,flow); 
 	void	setFlow(edge,flow); 
 	void	clearFlow(); 
 	void	setCapacity(edge,flow);	
+	flow	totalFlow();
 
 	virtual edge join(vertex,vertex);
+	virtual edge joinWith(vertex,vertex,edge);
 
 	string edge2string(edge) const;
 	string toDotString() const;
@@ -69,6 +71,8 @@ protected:
 	bool	readAdjList(istream&);
 
 	Flograph& operator=(const Flograph&); 
+
+	friend class Rgraph;
 };
 
 /** Get the source for a flograph.
@@ -87,7 +91,7 @@ inline vertex Flograph::snk() const { return t; }
  *  @return the capacity of e, going from v to mate(v)
  */
 inline flow Flograph::cap(vertex v, edge e) const { 
-	assert(1 <= v && v <= n() && 1 <= e && e <= m());
+	assert(1 <= v && v <= n() && 1 <= e && e <= maxEdge);
 	return tail(e) == v ? floInfo[e].cpy : 0;
 }
 
@@ -97,7 +101,7 @@ inline flow Flograph::cap(vertex v, edge e) const {
  *  @return the flow on e, going from v to mate(v)
  */
 inline flow Flograph::f(vertex v, edge e) const {
-	assert(1 <= v && v <= n() && 1 <= e && e <= m());
+	assert(1 <= v && v <= n() && 1 <= e && e <= maxEdge);
 	return tail(e) == v ? floInfo[e].flo : -floInfo[e].flo;
 }
 
@@ -107,7 +111,7 @@ inline flow Flograph::f(vertex v, edge e) const {
  *  @return the unused capacity of e, going from v to mate(v)
  */
 inline flow Flograph::res(vertex v, edge e) const {
-	assert(1 <= v && v <= n() && 1 <= e && e <= m());
+	assert(1 <= v && v <= n() && 1 <= e && e <= maxEdge);
 	return tail(e) == v ? floInfo[e].cpy - floInfo[e].flo : floInfo[e].flo;
 }
 
@@ -116,7 +120,7 @@ inline flow Flograph::res(vertex v, edge e) const {
  *  @param fval is the new flow on e from the tail to the head
  */
 inline void Flograph::setFlow(edge e, flow fval) {
-        assert(1 <= e && e <= m());
+        assert(1 <= e && e <= maxEdge);
         floInfo[e].flo = fval;
 }
 
@@ -125,7 +129,7 @@ inline void Flograph::setFlow(edge e, flow fval) {
  *  @param capp is the new edge capacity for e
  */
 inline void Flograph::setCapacity(edge e, flow capp) {
-        assert(1 <= e && e <= m());
+        assert(1 <= e && e <= maxEdge);
         floInfo[e].cpy = capp;
 }
 

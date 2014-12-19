@@ -21,8 +21,8 @@
  */
 class ppHiLab : public prePush {
 public: 
-		ppHiLab(Flograph&, int&, bool);
-		ppHiLab(Flograph&, int&, bool, string&);
+		ppHiLab(Flograph&, bool);
+		ppHiLab(Flograph&, bool, string&);
 protected:
 	int	*ubVec;		// ubVec[i] is an unbalanced vertex
 				// with label i

@@ -71,16 +71,25 @@ void Flograph::expand(int numv, int maxe) {
 /** Copy into list from source. */
 void Flograph::copyFrom(const Flograph& source) {
 	if (&source == this) return;
-	if (source.n() > n() || source.m() > maxEdge)
-		resize(source.n(),source.m());
+	if (source.n() > n() || source.maxEdgeNum() > maxEdge)
+		resize(source.n(),source.maxEdgeNum());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
-		edge ee = join(source.tail(e),source.head(e));
-		setCapacity(ee,source.cap(source.tail(e),e));
-		setFlow(ee,source.f(source.tail(e),e));
+		joinWith(source.tail(e),source.head(e),e);
+		setCapacity(e,source.cap(source.tail(e),e));
+		setFlow(e,source.f(source.tail(e),e));
 	}
 	setSrc(source.src()); setSnk(source.snk());
         sortAdjLists();
+}
+
+/** Compute the total flow leaving the source vertex.
+ *  @return the total flow leaving the source
+ */
+flow Flograph::totalFlow() {
+	vertex s = src(); flow sum = 0;
+	for (edge e = firstAt(s); e != 0; e = nextAt(s,e)) sum += f(s,e);
+	return sum;
 }
 
 /** Read adjacency list from an input stream, add it to the graph.
@@ -88,33 +97,41 @@ void Flograph::copyFrom(const Flograph& source) {
  *  @return true on success, false on error.
  */
 bool Flograph::readAdjList(istream& in) {
-	if (!Util::verify(in,'[')) return 0;
+	if (!Util::verify(in,'[')) return false;
 	bool isSrc = false; bool isSnk = false;
 	if (Util::verify(in,'-')) {
-		if (!Util::verify(in,'>',true)) return 0;
+		if (!Util::verify(in,'>',true)) return false;
 		isSnk = true;
 	}
 	vertex u;
-	if (!Adt::readIndex(in,u)) return 0;
+	if (!Adt::readIndex(in,u)) return false;
 	if (Util::verify(in,'-')) {
-		if (!Util::verify(in,'>',true)) return 0;
+		if (!Util::verify(in,'>',true)) return false;
 		isSrc = true;
 	}
-	if (!Util::verify(in,':')) return 0;
-	if (u > n()) expand(u,m());
+	if (!Util::verify(in,':')) return false;
+	if (u > n()) expand(u,maxEdge);
 	if (isSrc) setSrc(u);
 	if (isSnk) setSnk(u);
 	while (in.good() && !Util::verify(in,']')) {
-		vertex v;
-		if (!Adt::readIndex(in,v)) return 0;
-		if (v > n()) expand(v,m());
+		vertex v; edge e;
+		if (!Adt::readIndex(in,v)) return false;
+		if (v > n()) { 
+			expand(v,maxEdge);
+		}
 		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (!Util::verify(in,'#')) {
+			e = join(u,v);
+		} else {
+			if (!Util::readInt(in,e)) return false;
+			if (e >= maxEdge) expand(n(),e);
+			if (joinWith(u,v,e) != e) return false;
+		}
 		int capacity, flow;
 		if (!Util::verify(in,'(') || !Util::readInt(in,capacity) ||
 		    !Util::verify(in,',') || !Util::readInt(in,flow) ||
 		    !Util::verify(in,')'))
-			return 0;
-        	edge e = join(u,v);
+			return false;
 		setCapacity(e,capacity); setFlow(e,flow);
 	}
 	return in.good();
@@ -129,6 +146,17 @@ edge Flograph::join(vertex u, vertex v) {
 	assert(1 <= u && u <= n() && 1 <= v && v <= n() && m() < maxEdge);
 	edge e = Digraph::join(u,v); setFlow(e,0);
 	return e;
+}
+
+/** Join two vertices with a specified edge.
+ *  @param u is a vertex number
+ *  @param v is a vertex number
+ *  @param e is the number of the edge to be created (if available)
+ *  @return number of new edge from u to v
+ */
+edge Flograph::joinWith(vertex u, vertex v, edge e) {
+	edge ee = Digraph::joinWith(u,v,e); setFlow(ee,0);
+	return ee;
 }
 
 /** Remove flow from all edges.
@@ -146,12 +174,14 @@ void Flograph::clearFlow() {
 void Flograph::addFlow(vertex v, edge e, flow ff) {
 	if (tail(e) == v) {
 		if (ff + flo(e) > cpy(e) || ff + flo(e) < 0) {
+cerr << "addFlow(" << v << "," << e << "," << ff << ") cap=" << cpy(e) << endl;
 			Util::fatal("addflow: requested flow outside allowed "
 				    "range");
 		}
 		flo(e) += ff;
 	} else {
 		if (flo(e) - ff < 0 || flo(e) - ff > cpy(e)) {
+cerr << "addFlow(" << v << "," << e << "," << ff << ") cap=" << cpy(e) << endl;
 			Util::fatal("addflow: requested flow outside allowed "
 				    "range");
 		}
@@ -172,6 +202,7 @@ string Flograph::edge2string(edge e) const {
 		s += "(" + index2string(u);
 		s += "," + index2string(v) + "," + to_string(cap(u,e))
 		     + "," +  to_string(f(u,e)) + ")";
+		if (shoEnum) s += "#" + to_string(e);
         }
 	return s;
 }
@@ -191,9 +222,11 @@ string Flograph::adjList2string(vertex u) const {
 	int cnt = 0;
 	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
-		s += " " + Adt::index2string(v) + "(" + to_string(cap(u,e)) + ","
+		s += " " + Adt::index2string(v);
+		if (shoEnum) s += "#" + to_string(e);
+		s += "(" + to_string(cap(u,e)) + ","
 		   + to_string(f(u,e)) + ")";
-		if (++cnt >= 15 && nextOut(u,e) != 0) {
+		if (++cnt >= 10 && nextOut(u,e) != 0) {
 			s +=  "\n"; cnt = 0;
 		}
 	}

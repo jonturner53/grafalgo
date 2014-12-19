@@ -68,8 +68,8 @@ void Wdigraph::copyFrom(const Wdigraph& source) {
 		resize(source.n(),source.m());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
-		edge ee = join(source.tail(e),source.head(e));
-		setLength(ee,source.length(e));
+		joinWith(source.tail(e),source.head(e),e);
+		setLength(e,source.length(e));
 	}
         sortAdjLists();
 }
@@ -79,21 +79,28 @@ void Wdigraph::copyFrom(const Wdigraph& source) {
  *  @return true on success, false on error.
  */
 bool Wdigraph::readAdjList(istream& in) {
-	if (!Util::verify(in,'[')) return 0;
+	if (!Util::verify(in,'[')) return false;
 	vertex u;
-	if (!Adt::readIndex(in,u)) return 0;
+	if (!Adt::readIndex(in,u)) return false;
 	if (u > n()) expand(u,m());
-	if (!Util::verify(in,':')) return 0;
+	if (!Util::verify(in,':')) return false;
 	while (in.good() && !Util::verify(in,']')) {
-		vertex v;
-		if (!Adt::readIndex(in,v)) return 0;
+		vertex v; edge e;
+		if (!Adt::readIndex(in,v)) return false;
 		if (v > n()) expand(v,m());
 		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (!Util::verify(in,'#')) {
+			e = join(u,v);
+		} else {
+			if (!Util::readInt(in,e)) return false;
+			if (e >= maxEdge) expand(n(),e);
+			if (joinWith(u,v,e) != e) return false;
+		}
 		int w;
 		if (!Util::verify(in,'(') || !Util::readInt(in,w) ||
 		    !Util::verify(in,')'))
-			return 0;
-        	edge e = join(u,v); setLength(e,w);
+			return false;
+        	setLength(e,w);
 	}
 	return in.good();
 }
@@ -109,7 +116,9 @@ string Wdigraph::adjList2string(vertex u) const {
 	s += "[" + Adt::index2string(u) + ":";
 	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {
 		vertex v = head(e);
-		s +=  " " + index2string(v) + "(" + to_string(length(e)) + ")";
+		s +=  " " + index2string(v);
+		if (shoEnum) s += "#" + to_string(e);
+		s += "(" + to_string(length(e)) + ")";
 		if (++cnt >= 15 && nextOut(u,e) != 0) {
 			s +=  "\n"; cnt = 0;
 		}
@@ -128,6 +137,7 @@ string Wdigraph::edge2string(edge e) const {
         vertex u = tail(e); vertex v = head(e);
         string s = "(" + index2string(u) + "," + index2string(v) + ","
 		   + to_string(length(e)) + ")";
+	if (shoEnum) s += "#" + to_string(e);
         return s;
 }
 
