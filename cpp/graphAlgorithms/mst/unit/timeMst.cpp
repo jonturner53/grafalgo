@@ -21,7 +21,7 @@ using namespace chrono;
 extern void kruskal(Wgraph&, Glist<int>&);
 extern void prim(Wgraph&, Glist<int>&);
 extern void primF(Wgraph&, Glist<int>&);
-extern void rrobin(Wgraph&, Glist<int>&);
+extern void cheritonTarjan(Wgraph&, Glist<int>&);
 
 /** usage:
  * 	timeMst method reps n m maxkey
@@ -32,7 +32,7 @@ extern void rrobin(Wgraph&, Glist<int>&);
  *  n is the number of vertices, m is the number of edges,
  *  maxkey is the maximum key
  * 
- *  Method may be prim, primF, kruskal or rrobin.
+ *  Method may be prim, primF, kruskal or cheritonTarjan.
  * 
  *  The output is a single line containing
  *
@@ -72,9 +72,9 @@ int main(int argc, char* argv[]) {
 		} else if (strcmp(argv[1],"primF") == 0) {
 			time1 = high_resolution_clock::now();
 			primF(wg,mstree);
-		} else if (strcmp(argv[1],"rrobin") == 0) {
+		} else if (strcmp(argv[1],"cheritonTarjan") == 0) {
 			time1 = high_resolution_clock::now();
-			rrobin(wg,mstree);
+			cheritonTarjan(wg,mstree);
 		} else {
 			Util::fatal("mstRep: undefined method");
 		}

@@ -1,10 +1,18 @@
-#include "fastEdmonds.h"
+/** @file fastEdmondsGabow.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2012
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
+#include "fastEdmondsGabow.h"
 
 using namespace grafalgo;
 
 // Find a maximum size matching in the graph graf and
 // return it as a list of edges.
-fastEdmonds::fastEdmonds(Graph& graf1, Dlist& match1, int &size)
+fastEdmonds::fastEdmondsGabow(Graph& graf1, Dlist& match1, int &size)
 		 : graf(&graf1), match(&match1) {
 	vertex u, v; edge e;
 	blossoms = new Partition(graf->n()); // set per blossom

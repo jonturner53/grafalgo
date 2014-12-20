@@ -2,8 +2,8 @@
 // finding a maximum weight matching in a bipartite graph. To use,
 // invoke the constructor.
 
-#ifndef EDMONDSBW_H
-#define EDMONDSBW_H
+#ifndef EDMONDSGMGBI_H
+#define EDMONDSGMGBI_H
 
 #include "stdinc.h"
 #include "Wgraph.h"
@@ -12,11 +12,14 @@
 
 using namespace grafalgo;
 
-/** This class implements Edmond's algorithm for bipartite weighted graphs.
- *  This is a primal-dual algorithm.
+/** This class implements Edmond's algorithm using the specific method
+ *  method described by Galil, Micali and Gabow. This is a primal-dual
+ *  algorithm.
+ *
+ *  This class handles only bipartite graphs.
  */
-class edmondsBW {
-public: edmondsBW(Wgraph&,Dlist&,int&,int&);
+class edmondsGMGbi{
+public: edmondsGMGbi(Wgraph&,Dlist&,int&,int&);
 private:
 	Wgraph*	graf;		///< graph we're finding matching for
 	Dlist*	match;		///< matching we're building

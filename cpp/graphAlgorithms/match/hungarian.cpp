@@ -22,7 +22,7 @@ extern bool findSplit(const Graph&, ListPair&);
  *  computed matching
  */
 hungarian::hungarian(Wgraph& graf1, Glist<edge>& match,
-		     int& matchSize, weight& matchWeight) 
+		     int& matchSize, edgeWeight& matchWeight) 
 		: graf(&graf1) {
 	// divide vertices into two independent sets
 	split = new ListPair(graf->n());
@@ -104,8 +104,8 @@ vertex hungarian::findPath() {
 		w[u] = 0; S.insert(u,0);
 	}
 
-	vertex bestSink = 0; weight bestPathWeight = INT_MAX;
-	weight wMax = 0;
+	vertex bestSink = 0; edgeWeight bestPathWeight = INT_MAX;
+	edgeWeight wMax = 0;
 	while (!S.empty()) {
 		vertex u = S.deletemin(); // u is in "in-set"
 		wMax = max(wMax, w[u]);

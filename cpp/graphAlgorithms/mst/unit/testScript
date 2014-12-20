@@ -3,7 +3,7 @@
 # usage: testScript algorithm
 #
 # Run unit test on series of random graphs, with a specified algorithm.
-# The algorithm argument is prim, primF, kruskal or rrobin.
+# The algorithm argument is prim, primF, kruskal or cheritonTarjan.
 #
 algo="prim"
 if [ $# -eq 1 ] ; then

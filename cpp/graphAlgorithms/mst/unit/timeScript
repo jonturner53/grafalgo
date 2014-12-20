@@ -3,7 +3,7 @@
 # usage: timeScript algorithm
 #
 # Run timing tests with a specified algorithm.
-# The algorithm argument is prim, primF, kruskal or rrobin.
+# The algorithm argument is prim, primF, kruskal or cheritonTarjan.
 #
 algo="prim"
 if [ $# -eq 1 ] ; then

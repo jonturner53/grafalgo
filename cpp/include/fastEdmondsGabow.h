@@ -15,7 +15,7 @@
 using namespace grafalgo;
 
 class fastEdmonds {
-public: fastEdmonds(Graph&,Dlist&,int&);
+public: fastEdmondsGabow(Graph&,Dlist&,int&);
 	string& statString(bool, string&);
 private:
 	Graph* graf;		///< graph we're finding matching for

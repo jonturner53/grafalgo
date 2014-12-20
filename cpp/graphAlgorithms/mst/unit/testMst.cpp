@@ -2,7 +2,8 @@
 //
 // mst reads a graph from stdin, computes its minimum spanning tree
 // using the method specified by the argument and then prints the graph
-// and the mst.
+// and the mst. The method argument is one of kruskal, prim, primF or
+// cheritonTarjan.
 //
 
 #include "stdinc.h"
@@ -14,7 +15,7 @@ using namespace grafalgo;
 extern void kruskal(Wgraph&, Glist<edge>&);
 extern void prim(Wgraph&, Glist<edge>&);
 extern void primF(Wgraph&, Glist<edge>&);
-extern void rrobin(Wgraph&, Glist<edge>&);
+extern void cheritonTarjan(Wgraph&, Glist<edge>&);
 
 int main(int argc, char *argv[]) {
 	Wgraph wg;
@@ -29,8 +30,8 @@ int main(int argc, char *argv[]) {
 		prim(wg,mstree);
 	else if (strcmp(argv[1],"primF") == 0)
 		primF(wg,mstree);
-	else if (strcmp(argv[1],"rrobin") == 0)
-		rrobin(wg,mstree);
+	else if (strcmp(argv[1],"cheritonTarjan") == 0)
+		cheritonTarjan(wg,mstree);
 	else
 		Util::fatal("mst: undefined method");
 

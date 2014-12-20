@@ -1,4 +1,4 @@
-/** @file rrobin.cpp
+/** @file cheritonTarjan.cpp
  * 
  *  @author Jon Turner
  *  @date 2011
@@ -31,7 +31,7 @@ bool delf(edge e) {
  *  @param mstree is a list in which the edges of the mst are returned;
  *  it is assumed to be empty, initially
  */
-void rrobin(Wgraph& wg, Glist<edge>& mstree) {
+void cheritonTarjan(Wgraph& wg, Glist<edge>& mstree) {
 	edge e; vertex u,v,cu,cv;
 	Dlist q(wg.n()); List elist(2*wg.m());
 	lheap *h = new lheap[wg.n()+1];

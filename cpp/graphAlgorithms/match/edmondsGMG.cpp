@@ -1,4 +1,4 @@
-#include "edmondsBW.h"
+#include "edmondsGMGbi.h"
 
 using namespace grafalgo;
 
@@ -11,7 +11,7 @@ using namespace grafalgo;
  *  @param weight is a reference to an integer in which the weight
  *  of the matching is returned
  */
-edmondsBW::edmondsBW(Wgraph& graf1, Dlist& match1, int& size, int& weight)
+edmondsGMGbi::edmondsGMGbi(Wgraph& graf1, Dlist& match1, int& size, int& weight)
 		 : graf(&graf1), match(&match1) {
 	state = new stype[graf->n()+1];
 	mEdge = new edge[graf->n()+1];
@@ -39,7 +39,7 @@ edmondsBW::edmondsBW(Wgraph& graf1, Dlist& match1, int& size, int& weight)
  *  @param e is an edge joining two trees in the forest built by
  *  findpath
  */
-double edmondsBW::augment(edge e) {
+double edmondsGMGbi::augment(edge e) {
 	vertex u = graf->left(e);
 	double pathWeight = 0;;
 	while (pEdge[u] != 0) {
@@ -57,7 +57,7 @@ double edmondsBW::augment(edge e) {
 		ee = pEdge[v]; match->addLast(ee); v = graf->mate(v,ee); 
 		pathWeight += graf->weight(ee);
 	}
-	if (u == v) Util::fatal("edmondsBW::augment: graph not bipartite");
+	if (u == v) Util::fatal("edmondsGMGbi::augment: graph not bipartite");
 	match->addLast(e);
 	pathWeight += graf->weight(e);
 	return pathWeight;
@@ -69,7 +69,7 @@ double edmondsBW::augment(edge e) {
  *  to the tree roots forms an augmenting path; return 0 if
  *  no augmenting path, or if the current matching has maximum weight
  */
-edge edmondsBW::findpath() {
+edge edmondsGMGbi::findpath() {
 	for (vertex u = 1; u <= graf->n(); u++) {
 		state[u] = even; mEdge[u] = pEdge[u] = 0;
 	}
