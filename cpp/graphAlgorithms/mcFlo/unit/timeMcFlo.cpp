@@ -58,27 +58,27 @@ int main(int argc, char* argv[]) {
 		exit(1); // redundant exit to shutup compiler
 	}
 
-	Wflograph wfg; flow floVal; cost floCost;
+	Wflograph wfg; 
 	int64_t avgTime, minTime, maxTime;
 	avgTime = maxTime = 0; minTime = ((int64_t) 1) << 62;
 	for (i = 1; i <= reps; i++) {
 		Rgraph::flograph(wfg,n,m-2*mss,mss);
-		Rgraph::edgeCapacity(wfg,ec1,ec2);
-		Rgraph::edgeCost(wfg,lo,hi);
+		Rgraph::setCapacities(wfg,ec1,ec2);
+		Rgraph::setCosts(wfg,lo,hi);
 
 		high_resolution_clock::time_point t1, t2;
 		if (strcmp(argv[1],"cycRed") == 0) {
 			t1 = high_resolution_clock::now();
-			mcfCycRed(wfg,floVal,floCost);
+			(mcfCycRed(wfg));
 		} else if (strcmp(argv[1],"lcap") == 0) {
 			t1 = high_resolution_clock::now();
-			mcfLcap(wfg,floVal,floCost,false);
+			mcfLcap(wfg,false);
 		} else if (strcmp(argv[1],"mostNeg") == 0) {
 			t1 = high_resolution_clock::now();
-			mcfLcap(wfg,floVal,floCost,true);
+			mcfLcap(wfg,true);
 		} else if (strcmp(argv[1],"scale") == 0) {
 			t1 = high_resolution_clock::now();
-			mcfScale(wfg,floVal,floCost);
+			(mcfScale(wfg));
 		} else {
 			Util::fatal("timeMcFlo: undefined method");
 		}

@@ -8,11 +8,11 @@ using namespace std;
 void basicTests() {
 	int n = 13; string s;
 	TreeMap map(n);
-	int *perm = new int[n+1];
+	int *perm = new int[n];
 	Util::genPerm(n,perm);
 	cout << "putting in key order\n";
-	for (int i = 1; i <= n; i++) {
-		map.put(i,perm[i]);
+	for (int i = 0; i < n; i++) {
+		map.put(i+1,1+perm[i]);
 		cout << map.toString(s) << endl;
 	}
 	cout << "getting in key order\n";

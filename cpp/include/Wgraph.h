@@ -11,6 +11,7 @@
 
 #include "stdinc.h"
 #include "Graph.h"
+#include "Glist.h"
 
 namespace grafalgo {
 
@@ -37,6 +38,7 @@ public:		Wgraph(int=1,int=1);
 
 	// methods for accessing/changing weight
 	edgeWeight weight(edge) const;
+	edgeWeight weight(Glist<edge>) const;
 	void	setWeight(edge,edgeWeight);
 
 	// create a string representation

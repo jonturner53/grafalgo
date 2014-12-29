@@ -22,7 +22,7 @@ void perfTest(int n) {
 	cout << "removing from front: " << removeFront << " us per operation\n";
 
 	t0 = Util::getTime();
-	for (int i = 1; i <= n; i++) lst.addLast(perm[i]);
+	for (int i = 0; i < n; i++) lst.addLast(1+perm[i]);
 	t1= Util::getTime();
 	double addBackRand = ((double) t1 - (double) t0)/n;
 	cout << "appending to end in random order: " << addBack
@@ -34,7 +34,7 @@ void perfTest(int n) {
 	removeFront = ((double) t1 - (double) t0)/n;
 	cout << "removing from front: " << removeFront << " us per operation\n";
 
-	for (int i = 1; i <= n; i++) lst.addLast(perm[i]);
+	for (int i = 0; i < n; i++) lst.addLast(1+perm[i]);
 	t0= Util::getTime();
 	for (int i = 1; i <= n; i++) lst.remove(i);
 	t1= Util::getTime();
@@ -53,7 +53,7 @@ void perfTest(int n) {
 	if (n <= 10000) {
 		sum = 0;
 		t0= Util::getTime();
-		for (int i = 1; i <= n; i++) sum += lst.get(perm[i]);
+		for (int i = 0; i < n; i++) sum += lst.get(1+perm[i]);
 		t1= Util::getTime();
 		double sumRandom = ((double) t1 - (double) t0)/n;
 		cout << "summing in random order: " << sumRandom
@@ -61,7 +61,7 @@ void perfTest(int n) {
 	}
 
 	lst.clear();
-	for (int i = 1; i <= n/2; i++) lst.addLast(perm[i]);
+	for (int i = 0; i < n/2; i++) lst.addLast(1+perm[i]);
 	t0 = Util::getTime();
 	sum = 0;
 	for (int i = 1; i <= n; i++) sum += lst.member(i);

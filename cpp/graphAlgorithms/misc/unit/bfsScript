@@ -16,4 +16,4 @@ if [ $# -ge 3 ] ; then
 	seed=$3
 fi;
 
-randGraph ugraph $n $m 0 $seed | testBfs
+randGraph ugraph $n $m $seed 0 | testBfs

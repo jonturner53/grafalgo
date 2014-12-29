@@ -1,8 +1,17 @@
-#ifndef FMAXDMATCH_H
-#define FMAXDMATCH_H
+/** @file fastMaxDmatch.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2012
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
+#ifndef FASTMAXDMATCH_H
+#define FASTMAXDMATCH_H
 
 #include "maxdMatch.h"
 #include "Dlist.h"
+#include "Glist.h"
 
 using namespace grafalgo;
 
@@ -15,13 +24,13 @@ using namespace grafalgo;
  *  an initial maximal matching and avoiding most of the initialization
  *  that the basic algorithm does at the start of every path search.
  */
-class fmaxdMatch : public maxdMatch {
+class fastMaxdMatch : public maxdMatch {
 public:
 
-	fmaxdMatch(Graph&,Dlist&);
+	fastMaxdMatch(Graph&, Glist<edge>&);
 private:
 	edge* 	mEdge;		///< mEdge[u] is matching edge incident to  u
-	Dlist*	maxdVerts;	///< list of max degree vertices
+	Dlist*	roots;		///< list of potential tree roots
 	List*	q;		///< queue of edges used in findpath
 	int*	visited;	///< visited[u]=i if u visited in phase i
 	int	phase;		///< each call to findpath starts new phase
@@ -29,7 +38,7 @@ private:
 	void 	extend(edge);	
 	edge 	findPath();
 
-	void	init(Graph&, Dlist&);
+	void	init(Graph&);
 	void	cleanup();
 };
 

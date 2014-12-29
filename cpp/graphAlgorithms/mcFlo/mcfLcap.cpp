@@ -14,28 +14,21 @@ using namespace grafalgo;
  *  augmenting path algorithm.
  *  @param wfg1 is a flow graph; the final flow is returned in its edges'
  *  flow field
- *  @param flowVal is an output parameter used to return the value of
- *  computed flow
- *  @param floCost is an output parameter used to return the cost of the
- *  computed flow
  *  @param mostNeg is a flag; if it is true, the algorithm finds a
  *  flow with the largest negative cost (this may not be a max value flow);
  *  otherwise, it finds a min cost, max flow. 
  */
-mcfLcap::mcfLcap(Wflograph& wfg1, flow& flowVal, floCost& flowCost,
-		 bool mostNeg) : wfg(&wfg1) {
+mcfLcap::mcfLcap(Wflograph& wfg1, bool mostNeg) : wfg(&wfg1) {
 
 	lab = new int[wfg->n()+1];
 	pEdge = new edge[wfg->n()+1];
 
 	initLabels();
-	flowVal = flowCost = 0;
 	while (findpath()) {
 		flow nuFlo; floCost pathCost;
 		pathRcapCost(nuFlo,pathCost);
 		if (mostNeg && pathCost >= 0) break;
 		augment(nuFlo);
-		flowVal += nuFlo; flowCost += nuFlo*pathCost;
 	}
 	delete [] lab; delete [] pEdge;
 }

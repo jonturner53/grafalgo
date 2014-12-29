@@ -1,9 +1,9 @@
 // Header file for class that implements Edmond's algorithm for
-// finding a minimum weight matching of maximum size matching in
-// a bipartite graph. To use, invoke the constructor.
+// finding a maximum weight matching in a bipartite graph. To use,
+// invoke the constructor.
 
-#ifndef EDMONDSBWMIN_H
-#define EDMONDSBWMIN_H
+#ifndef EDMONDSGMGBI_H
+#define EDMONDSGMGBI_H
 
 #include "stdinc.h"
 #include "Wgraph.h"
@@ -12,14 +12,16 @@
 
 using namespace grafalgo;
 
-/** This class implements Edmond's algorithm for bipartite weighted graphs.
- *  This is a primal-dual algorithm.
+/** This class implements Edmond's algorithm using the specific method
+ *  method described by Galil, Micali and Gabow. This is a primal-dual
+ *  algorithm.
+ *
+ *  This class handles only bipartite graphs.
  */
-class edmondsBWmin {
-public: edmondsBWmin(Wgraph&,Dlist&,int&,int&);
+class edmondsGMGbi {
+public: edmondsGMGbi(Wgraph&, Glist<edge>&);
 private:
 	Wgraph*	graf;		///< graph we're finding matching for
-	Dlist*	match;		///< matching we're building
 
 	enum stype {unreached, odd, even};
 	stype	*state;		///< state used in augmenting path search
@@ -27,10 +29,10 @@ private:
 	edge*	pEdge;		///< p[u] is parent of u in forest
 	double*	z;		///< z[u] is label for vertex u (dual variable)
 
-	Ddheap*	h1o;		///< heap of odd vertices by label
-	Ddheap*	h1e;		///< heap of even vertices by label
-	Ddheap*	h2;		///< edges joining even/unreached by slack
-	Ddheap*	h3;		///< edges joining even/even by slack
+	Ddheap<double>* h1o;	///< heap of odd vertices by label
+	Ddheap<double>* h1e;	///< heap of even vertices by label
+	Ddheap<double>* h2;	///< edges joining even/unreached by slack
+	Ddheap<double>* h3;	///< edges joining even/even by slack
 
 	int	maxwt;		///< maximum edge weight
 

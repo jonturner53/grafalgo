@@ -76,6 +76,17 @@ void Wgraph::copyFrom(const Wgraph& source) {
         sortAdjLists();
 }
 
+/** Determine the total weight of a list of edges
+ *  @param elist is a list of edge numbers
+ *  @return the sume of the edge weights for the edges in elist
+ */
+edgeWeight Wgraph::weight(Glist<edge> elist) const {
+	edgeWeight sum = 0;
+	for (index x = elist.first(); x != 0; x = elist.next(x))
+		sum += weight(elist.value(x));
+	return sum;
+}
+
 /** Read adjacency list from an input stream, add it to the graph.
  *  @param in is an open input stream
  *  @return true on success, false on error.

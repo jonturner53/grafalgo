@@ -5,46 +5,46 @@
 void basicEval(int n) {
 	int t1, t2;
 	SaTreeMap map(n);
-	int *perm = new int[2*n+1];
+	int *perm = new int[2*n];
 	Util::genPerm(2*n,perm);
 
 	cout << "putting in random order: ";
 	t1 = Util::getTime();
-	for (int i = 1; i <= n; i++) {
-		map.put(perm[i],i);
+	for (int i = 0; i < n; i++) {
+		map.put(1+perm[i],i+1);
 	}
 	t2 = Util::getTime();
 	cout << t2-t1 << " " << ((double) (t2-t1))/n << endl;
 
 	cout << "getting in reverse random order (hits): ";
 	t1 = Util::getTime();
-	for (int i = 1; i <= n; i++) {
-		map.get(perm[(n+1)-i]);
+	for (int i = 0; i < n; i++) {
+		map.get(perm[n-(i+1)]);
 	}
 	t2 = Util::getTime();
 	cout << t2-t1 << " " << ((double) (t2-t1))/n << endl;
 
 	cout << "getting in random order (misses): ";
 	t1 = Util::getTime();
-	for (int i = n+1; i <= 2*n; i++) {
-		map.get(perm[i]);
+	for (int i = n; i < 2*n; i++) {
+		map.get(1+perm[i]);
 	}
 	t2 = Util::getTime();
 	cout << t2-t1 << " " << ((double) (t2-t1))/n << endl;
 
 	cout << "remapping existing pairs: ";
 	t1 = Util::getTime();
-	for (int i = 1; i <= n; i++) {
-		map.put(perm[i],-i);
+	for (int i = 0; i < n; i++) {
+		map.put(1+perm[i],-i);
 	}
 	t2 = Util::getTime();
 	cout << t2-t1 << " " << ((double) (t2-t1))/n << endl;
 
 	cout << "remove/put pairs: ";
 	t1 = Util::getTime();
-	for (int i = 1; i <= n; i++) {
-		map.remove(perm[i]);
-		map.put(perm[i+n],i+n);
+	for (int i = 0; i < n; i++) {
+		map.remove(1+perm[i]);
+		map.put(perm[i+n],(i+1)+n);
 	}
 	t2 = Util::getTime();
 	cout << t2-t1 << " " << ((double) (t2-t1))/n << endl;

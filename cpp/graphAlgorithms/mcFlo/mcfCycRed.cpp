@@ -14,25 +14,15 @@ using namespace grafalgo;
 /** Find minimum cost, maximum flow in a weighted flow graph using
  *  the cycle reduction algorithm. 
  *  @param wfg1 is the flow graph
- *  @param floVal is an output parameter used to return the value of
- *  the min cost max flow
- *  @param floCost is an output parameter used to return the cost of
- *  the min cost max flow
  */
-mcfCycRed::mcfCycRed(Wflograph& wfg1, flow& floVal, cost& floCost): wfg(&wfg1) {
+mcfCycRed::mcfCycRed(Wflograph& wfg1): wfg(&wfg1) {
 	pEdge = new edge[wfg->n()+1];
 	mark = new int[wfg->n()+1];
 
-	dinic(*wfg,floVal);
+	(dinic(*wfg)); // parens added to resolve ambiguity
 
 	vertex u;
 	while ((u = findCyc()) != 0) augment(u);
-
-	floCost = 0;
-	for (edge e = 1; e <= wfg->m(); e++) {
-		vertex u = wfg->tail(e);
-		floCost += wfg->f(u,e)*wfg->cost(u,e);
-	}
 }
 
 /** Add flow to a negative-cost cycle.

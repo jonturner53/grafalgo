@@ -1,4 +1,4 @@
-/** @file fmaxdMatch.cpp
+/** @file fastMaxdMatch.cpp
  * 
  *  @author Jon Turner
  *  @date 2011
@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#include "fmaxdMatch.h"
+#include "fastMaxdMatch.h"
 
 using namespace grafalgo;
 
@@ -15,25 +15,21 @@ using namespace grafalgo;
  *  This version includes some opimtimizations to speed up execution
  *  for typical graphs.
  *  graf1 is a reference to the graph
- *  match1 is a reference to a list in which the matching is returned
+ *  match is a reference to a list in which the matching is returned
  */
-fmaxdMatch::fmaxdMatch(Graph& graf1, Dlist& match1) {
-	init(graf1,match1);
+fastMaxdMatch::fastMaxdMatch(Graph& graf1, Glist<edge>& match) {
+	init(graf1);
 
 	// find an initial matching, by examining edges at max degree
-	// vertices and adding the first non-conflicting edge we find;
-	// account for the time spent on this using fpLoop
+	// vertices and adding the first non-conflicting edge we find (if any)
 	for (vertex u = 1; u <= graf->n(); u++) {
 		if (d[u] != maxd || mEdge[u] != 0) continue;
 		for (edge e = graf->firstAt(u); e != 0; e = graf->nextAt(u,e)) {
 			vertex v = graf->mate(u,e);
 			if (mEdge[v] == 0) {
-				match->addLast(e);
 				mEdge[u] = mEdge[v] = e;
-				if (maxdVerts->member(u))
-					maxdVerts->remove(u);
-				if (maxdVerts->member(v))
-					maxdVerts->remove(v);
+				if (roots->member(u)) roots->remove(u);
+				if (roots->member(v)) roots->remove(v);
 				break;
 			}
 		}
@@ -41,8 +37,12 @@ fmaxdMatch::fmaxdMatch(Graph& graf1, Dlist& match1) {
 
 	edge e;
 	phase = 1;
-	while((e = findPath()) != 0) {
-		extend(e); phase++;
+	while((e = findPath()) != 0) { extend(e); phase++; }
+
+	match.clear(); 
+	for (vertex u = 1; u <= graf->n(); u++) {
+		edge e = mEdge[u];
+		if (e != 0 && u < graf->mate(u,e)) match.addLast(e); 
 	}
 
 	maxdMatch::cleanup(); cleanup();
@@ -51,29 +51,28 @@ fmaxdMatch::fmaxdMatch(Graph& graf1, Dlist& match1) {
 /** Initizalize all data structures used by the algorithm.
  *  Includes allocation and initialization of dynamic data structures.
  *  In addition to the data structures provided by the base class,
- *  we add an mEdge array, a list maxdVerts containing unmatched
- *  vertices of maximum degree, the queue used by findpath
- *  and the array visited[] which keeps track of the most recent
- *  phase in which each vertex has been visited.
+ *  we add a list roots containing unmatched vertices of maximum degree,
+ *  the queue used by findpath and the array visited[] which keeps track
+ *  of the most recent phase in which each vertex has been visited.
  */
-void fmaxdMatch::init(Graph& graf1, Dlist& match1) {
+void fastMaxdMatch::init(Graph& graf1) {
 	// initialize stuff in base class
-	maxdMatch::init(graf1,match1);
+	maxdMatch::init(graf1);
 
 	// allocate storage for added data structures
 	mEdge = new edge[graf->n()+1]; 
-	maxdVerts = new Dlist(graf->n());
+	roots = new Dlist(graf->n());
 	visited = new int[graf->n()+1];    
-	q = new List(maxe);
+	q = new List(graf->maxEdgeNum());
 
 	for (vertex u = 1; u <= graf->n(); u++) {
 		pEdge[u] = mEdge[u] = visited[u] = 0;
-		if (d[u] == maxd) maxdVerts->addLast(u);
+		if (d[u] == maxd) roots->addLast(u);
 	}
 }
 
-void fmaxdMatch::cleanup() {
-	delete [] mEdge;  delete [] visited; delete maxdVerts;
+void fastMaxdMatch::cleanup() {
+	delete [] mEdge;  delete [] visited; delete roots;
 }
 
 /** Extend the matching, so it covers at least one more max degree vertex.
@@ -82,30 +81,25 @@ void fmaxdMatch::cleanup() {
  *  to the root of the tree; otherwise e connects a free vertex to
  *  a vertex in the tree and the tree path plus e forms an augmenting path.
  */
-void fmaxdMatch::extend(edge e) {
-	vertex u, v;
-
-	if (match->member(e)) {
-		u = graf->left(e);
+void fastMaxdMatch::extend(edge e) {
+	vertex u = graf->left(e);
+	if (mEdge[u] == e) {
 		if (pEdge[u] != e) u = graf->right(e);
 		mEdge[u] = 0;
 		while (pEdge[u] != 0) {
-			e = pEdge[u]; match->remove(e);  u = graf->mate(u,e);
-			e = pEdge[u]; match->addLast(e);
+			e = pEdge[u]; u = graf->mate(u,e); e = pEdge[u];
 			mEdge[u] = e; u = graf->mate(u,e); mEdge[u] = e;
 		}
 		return;
 	}
-	match->addLast(e);
-	u = graf->left(e); v = graf->right(e);
-	if (maxdVerts->member(u)) maxdVerts->remove(u);
-	if (maxdVerts->member(v)) maxdVerts->remove(v);
+
+	u = graf->left(e);
+	if (pEdge[u] == 0) u = graf->right(e);
+	vertex v = graf->mate(u,e);
+	if (roots->member(v)) roots->remove(v);
 	mEdge[u] = mEdge[v] = e;
-	if (pEdge[u] == 0) u = v;
 	while (pEdge[u] != 0) {
-		e = pEdge[u];
-		match->remove(e);  u = graf->mate(u,e); 
-		e = pEdge[u]; match->addLast(e);
+		e = pEdge[u]; u = graf->mate(u,e); e = pEdge[u];
 		mEdge[u] = e; u = graf->mate(u,e); mEdge[u] = e;
 	}
 }
@@ -113,11 +107,11 @@ void fmaxdMatch::extend(edge e) {
 /** Find a path in graf that can be used to add another max degree
  *  vertex to the matching.
  */
-edge fmaxdMatch::findPath() {
+edge fastMaxdMatch::findPath() {
 	// find a max degree vertex that's unmatched
-	vertex root = maxdVerts->first();
+	vertex root = roots->first();
 	if (root == 0) return 0;
-	maxdVerts->removeFirst();
+	roots->removeFirst();
 	visited[root] = phase;
 
 	q->clear();

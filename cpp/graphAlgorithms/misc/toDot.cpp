@@ -20,7 +20,7 @@ using namespace grafalgo;
  *  Dot is one of several graph-drawing utilities in the popular
  *  graphViz package.
  * 
- *  The allowed values of type are graph, wgraph,
+ *  The allowed values of type are ugraph, wgraph,
  *  digraph, wdigraph, flograph, wflograph.
  *
  *  The output graph can be piped to "dot -Tpdf >foo.pdf"

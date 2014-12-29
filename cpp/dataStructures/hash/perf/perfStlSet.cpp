@@ -24,7 +24,7 @@ void perfTest(int n) {
 	cout << "removing from front: " << removeFront << " us per operation\n";
 
 	t0 = Util::getTime();
-	for (int i = 1; i <= n; i++) sett.insert(perm[i]);
+	for (int i = 0; i < n; i++) sett.insert(1+perm[i]);
 	t1= Util::getTime();
 	double addBackRand = ((double) t1 - (double) t0)/n;
 	cout << "inserting in random order: " << addBack
@@ -38,7 +38,7 @@ void perfTest(int n) {
 
 	set<int>::iterator p;
 	if (n <= 10000) {
-		for (int i = 1; i <= n; i++) sett.insert(perm[i]);
+		for (int i = 0; i < n; i++) sett.insert(1+perm[i]);
 		t0= Util::getTime();
 		for (int i = 1; i <= n; i++) { sett.erase(i); }
 		t1= Util::getTime();
@@ -47,7 +47,7 @@ void perfTest(int n) {
 		     << " us per operation\n";
 	}
 
-	for (int i = 1; i <= n; i++) sett.insert(perm[i]);
+	for (int i = 0; i < n; i++) sett.insert(1+perm[i]);
 	int sum = 0;
 	t0= Util::getTime();
 	for (p = sett.begin(); p != sett.end(); p++) sum += *p;
@@ -57,7 +57,7 @@ void perfTest(int n) {
 	     << sum << "\n";
 
 	sett.clear();
-        for (int i = 1; i <= n/2; i++) sett.insert(perm[i]);
+        for (int i = 0; i < n/2; i++) sett.insert(1+perm[i]);
         t0= Util::getTime();
 	sum = 0;
         for (int i = 1; i <= n; i++)

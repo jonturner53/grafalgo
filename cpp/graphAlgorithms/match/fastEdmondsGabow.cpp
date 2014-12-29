@@ -10,10 +10,12 @@
 
 using namespace grafalgo;
 
-// Find a maximum size matching in the graph graf and
-// return it as a list of edges.
-fastEdmonds::fastEdmondsGabow(Graph& graf1, Dlist& match1, int &size)
-		 : graf(&graf1), match(&match1) {
+/** Find a maximum size matching in a graph.
+ *  @param graf1 is a graph
+ *  @param match is a reference to a list in which the matching is returned.
+ */
+fastEdmondsGabow::fastEdmondsGabow(Graph& graf1, Glist<edge>& match)
+					: graf(&graf1) {
 	vertex u, v; edge e;
 	blossoms = new Partition(graf->n()); // set per blossom
 	augpath = new RlistSet(graf->m());    // reversible list
@@ -32,37 +34,33 @@ fastEdmonds::fastEdmondsGabow(Graph& graf1, Dlist& match1, int &size)
 	pending = new List(graf->n());     // used by findpath
 	unmatched = new Dlist(graf->n());  // list of unmatched vertices
 
-	mSize = stepCount = blossomCount = pathInitTime = pathFindTime = 0;
-	int t1, t2, t3;
-	t1 = Util::getTime();
 	// Create initial maximal (not maximum) matching
 	for (u = 1; u <= graf->n(); u++) {
 		mEdge[u] = 0; mark[u] = false; latestSearch[u] = 0;
 		nextEdge[u] = graf->firstAt(u);
 		unmatched->addLast(u);
 	}
-	match->clear(); size = 0;
 	for (u = 1; u <= graf->n(); u++) {
 		if (mEdge[u] != 0) continue;
 		for (e = graf->firstAt(u); e != 0; e = graf->nextAt(u,e)) {
 			v = graf->mate(u,e);
 			if (mEdge[v] == 0) {
 				mEdge[u] = mEdge[v] = e;
-				match->addLast(e); mSize++;
 				unmatched->remove(u);
 				unmatched->remove(v);
 				break;
 			}
 		}
 	}
-	iSize = mSize;
 		
-	t2 = Util::getTime();
-	imatchTime = (t2-t1);
-	while((e = findpath()) != 0) { augment(e); mSize++; }
-	size = mSize;
-	t3 = Util::getTime();
-	rmatchTime = (t3-t2);
+	while((e = findpath()) != 0) {
+	augment(e); }
+
+	match.clear();
+	for (vertex u = 1; u <= graf->n(); u++) {
+		edge e = mEdge[u];
+		if (e != 0 && u < graf->mate(u,e)) match.addLast(e);
+	}
 
 	delete blossoms; delete augpath; delete [] origin;
 	delete [] bridge; delete [] pEdge; delete [] mEdge; delete[] mark;
@@ -70,16 +68,12 @@ fastEdmonds::fastEdmondsGabow(Graph& graf1, Dlist& match1, int &size)
 
 // Modify the matching by augmenting along the path defined by
 // the list in the augpath data structure whose last element is e.
-void fastEdmonds::augment(edge e) {
-	edge e1;
+void fastEdmondsGabow::augment(edge e) {
 	while (true) {
-		e1 = augpath->first(e);
-		if (match->member(e1)) match->remove(e1);
-		else {
-			match->addLast(e1);
-			mEdge[graf->left(e1)] = mEdge[graf->right(e1)] = e1;
-		}
-		if (e == augpath->first(e)) break;
+		edge e1 = augpath->first(e);
+		mEdge[graf->left(e1)] = mEdge[graf->right(e1)] = e1;
+		if (e == augpath->first(e)) return;
+		e = augpath->pop(e);
 		e = augpath->pop(e);
 	}
 }
@@ -90,7 +84,7 @@ void fastEdmonds::augment(edge e) {
 // mark bits to identify the nca. Before returning, clear the mark
 // bits by traversing the paths a second time. The mark bits are
 // initialized in the constructor.
-vertex fastEdmonds::nca(vertex u, vertex v) {
+vertex fastEdmondsGabow::nca(vertex u, vertex v) {
 	vertex x,px,y,py,result;
 
 	// first pass to find the nca
@@ -128,7 +122,7 @@ vertex fastEdmonds::nca(vertex u, vertex v) {
 // A is assumed to be a descendant of b, and the path to b from a
 // is assumed to pass through the matching edge incident to a.
 // Return path in the augpath data structure.
-edge fastEdmonds::path(vertex a, vertex b) {
+edge fastEdmondsGabow::path(vertex a, vertex b) {
 	vertex pa, p2a, da; edge e, e1, e2;
 	if (a == b) { return 0; }
 	if (state[a] == even) {
@@ -153,18 +147,13 @@ edge fastEdmonds::path(vertex a, vertex b) {
 // that forms the augmenting path. In this case, the last
 // edge in the list is returned as the function value.
 // On failure, returns 0.
-edge fastEdmonds::findpath() {
+edge fastEdmondsGabow::findpath() {
 	vertex u,v,vp,w,wp,x,y; edge e;
 
-	int t1, t2, t3;
-	t1 = Util::getTime();
-
-	searchNum++;
 	pending->clear();
 	vertex nextUnmatched = unmatched->first();
 
-	t2 = Util::getTime();
-	pathInitTime += (t2-t1);
+	searchNum++;
 	while (true) {
 		if (nextUnmatched != 0) {
 			// initialize the next unmatched vertex and add
@@ -188,7 +177,6 @@ edge fastEdmonds::findpath() {
 		} else {
 			nextEdge[v] = graf->nextAt(v,e);
 		}
-		stepCount++;
 		w = graf->mate(v,e);
 		if (latestSearch[w] != searchNum && mEdge[w] != 0) {
 			// w not yet reached in this search, so can't be
@@ -238,12 +226,9 @@ edge fastEdmonds::findpath() {
 			e = augpath->join(e,path(w,y));
 			// x and y will soon be matched
 			unmatched->remove(x); unmatched->remove(y);
-			t3 = Util::getTime();
-			pathFindTime += (t3-t2);
 			return e;
 		} else if (state[wp] == even) {
 			// vp and wp are in same tree - collapse blossom
-			blossomCount++;
 			x = vp;
 			while (x != u) {
 				origin[blossoms->link(
@@ -272,34 +257,5 @@ edge fastEdmonds::findpath() {
 			}
 		} 
 	}
-	t3 = Util::getTime();
-	pathFindTime += (t3-t2);
 	return 0;
-}
-
-/** Create string containing statistics.
- *
- *  @param verbose if true, return fully labeled string; otherwise
- *  returned string contains just the values
- *  @param s is reference to string in which result is returned
- */
-string& fastEdmonds::statString(bool verbose, string& s) {
-	stringstream ss;
-	if (verbose) {
-		ss << "iSize=" << iSize << " ";
-		ss << "mSize=" << mSize << " ";
-		ss << "stepCount=" << stepCount << " ";
-		ss << "blossomCount=" << blossomCount << " ";
-		ss << "imatchTime=" << imatchTime << " ";
-		ss << "rmatchTime=" << rmatchTime << " ";
-		ss << "pathInitTime=" << pathInitTime << " ";
-		ss << "pathFindTime=" << pathFindTime;
-	} else {
-		ss << iSize << " " << mSize << " ";
-		ss << stepCount << " " << blossomCount << " ";
-		ss << imatchTime << " "<< rmatchTime << " ";
-		ss << pathInitTime << " " << pathFindTime;
-	}
-	s = ss.str();
-	return s;
 }

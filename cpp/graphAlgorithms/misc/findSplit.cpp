@@ -27,7 +27,7 @@ bool findSplit(const Graph& graf, ListPair& split) {
 	for (u = 1; u <= graf.n(); u++) unreached[u] = true;
 	u = 1;
 	while (u <= graf.n()) {
-		q.addLast(u);
+		q.addLast(u); unreached[u] = false;
 		while (!q.empty()) {
 			vertex v = q.first(); q.removeFirst();
 			for (edge e = graf.firstAt(v); e != 0;
@@ -35,8 +35,7 @@ bool findSplit(const Graph& graf, ListPair& split) {
 				vertex w = graf.mate(v,e);
 				if (unreached[w]) {
 					if (split.isOut(v)) split.swap(w);
-					unreached[u] = false;
-					q.addLast(w);
+					q.addLast(w); unreached[w] = false;
 				} else if ((split.isIn(v) && split.isIn(w)) ||
 					   (split.isOut(v) && split.isOut(w))) {
 					return false;
@@ -44,7 +43,7 @@ bool findSplit(const Graph& graf, ListPair& split) {
 			}
 		}
 		// find next unreached vertex
-		for (u++; u <= graf.n() && unreached[u]; u++) {}
+		for (u++; u <= graf.n() && !unreached[u]; u++) {}
 	}
 	return true;
 }

@@ -17,13 +17,9 @@ using namespace grafalgo;
 
 /** Find minimum cost maximum flow in a weighted flow graph using the
  *  scaling algorithm.
- *  @param fval is an output parameter used to return the value of the
- *  computed flow
- *  @param fcost is an output parameter used to return the cost of the
- *  computed flow
  *  Assumes that the original graph has no negative cost cycles.
  */
-mcfScale::mcfScale(Wflograph& wfg1, flow& fval, floCost& fcost) : wfg(&wfg1) {
+mcfScale::mcfScale(Wflograph& wfg1) : wfg(&wfg1) {
 	lab = new int[wfg->n()+1]; excess = new int[wfg->n()+1];
 	pEdge = new edge[wfg->n()+1];
 	slist = new Dlist(wfg->n()); tlist = new Dlist(wfg->n());
@@ -41,8 +37,9 @@ mcfScale::mcfScale(Wflograph& wfg1, flow& fval, floCost& fcost) : wfg(&wfg1) {
 
 	// Determine a max flow so that we can initialize excess
 	// values at s and t
-	dinic(*wfg,fval);
-	excess[wfg->src()] = fval; excess[wfg->snk()] = -fval;
+	(dinic(*wfg));	// parens added to resolve ambiguity
+	excess[wfg->src()] = wfg->totalFlow();
+	excess[wfg->snk()] = -wfg->totalFlow();
 
 	// reset flow to 0
 	for (edge e = wfg->first(); e != 0; e = wfg->next(e)) {
@@ -52,15 +49,8 @@ mcfScale::mcfScale(Wflograph& wfg1, flow& fval, floCost& fcost) : wfg(&wfg1) {
 	while (Delta > 0) {
 		newPhase();
 		vertex t;
-		while ((t = findpath()) != 0) {
-			augment(t);
-		}
+		while ((t = findpath()) != 0) augment(t);
 		Delta /= 2;
-	}
-	fcost = 0;
-	for (edge e = wfg->first(); e != 0; e = wfg->next(e)) {
-		vertex u = wfg->tail(e);
-		fcost += wfg->f(u,e) * wfg->cost(u,e);
 	}
 	delete [] lab; delete [] excess; delete[] pEdge;
 	delete slist; delete tlist;

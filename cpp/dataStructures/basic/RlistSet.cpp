@@ -79,7 +79,7 @@ void RlistSet::copyFrom(const RlistSet& source) {
  *  Has no effect on a singleton list, since all index values must
  *  be on some list.
  *  @param t is the index of the canonical element of some list
- *  @return the last index of the canonical element of the modified list
+ *  @return the index of the canonical element of the modified list
  */
 index RlistSet::pop(index t) {
 	index h = first(t);

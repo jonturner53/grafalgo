@@ -14,8 +14,7 @@
 #include "List.h"
 #include "ClistSet.h"
 #include "ListPair.h"
-#include "HashSet.h"
-#include "Dheap.h"
+#include "Glist.h"
 #include <list>
 #include <vector>
 
@@ -63,7 +62,7 @@ public:		Graph(int=1,int=1);
 	vertex	left(edge) const;	
 	vertex	right(edge) const;	
 	vertex	mate(vertex,edge) const;
-	edge	getEdge(vertex,vertex) const;
+	edge	findEdge(vertex,vertex) const;
 
 	// methods for adding/removing edges
 	virtual edge join(vertex,vertex); 	
@@ -81,7 +80,8 @@ public:		Graph(int=1,int=1);
 	virtual	string edge2string(edge,vertex) const;
 	virtual	string toString() const;
         virtual	string toDotString() const;
-	virtual	string elist2string(list<int>&) const;
+	virtual	string elist2string(list<edge>&) const;
+	virtual	string elist2string(Glist<edge>&) const;
 	virtual	string elist2string(List&) const;
 
 	// sort adjacency lists by other endpont
@@ -119,6 +119,7 @@ protected:
 	// methods for sorting ajacency lists
 	int	ecmp(edge, edge, vertex) const;
 	void	sortAlist(vertex);
+friend class Rgraph;
 };
 
 /** Get the number of edges.
@@ -203,10 +204,11 @@ inline vertex Graph::right(edge e) const {
  *  or it is not incident to v.
  */
 inline vertex Graph::mate(vertex v, edge e) const {
-	assert(1 <= v && v <= n() && 1 <= e && e <= maxEdge);
-	return (evec[e].l == 0 ?
-		0 : (v == evec[e].l ?
-		     evec[e].r : (v == evec[e].r ? evec[e].l : 0)));
+	assert(0 <= v && v <= n() && 0 <= e && e <= maxEdge);
+	if (v == 0 || e == 0) return 0;
+	return (evec[e].l == 0 ?  0 :
+		(v == evec[e].l ?  evec[e].r :
+		 (v == evec[e].r ? evec[e].l : 0)));
 }
 
 } // ends namespace

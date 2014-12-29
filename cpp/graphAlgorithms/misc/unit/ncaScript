@@ -16,6 +16,6 @@ if [ $# -ge 3 ] ; then
 	seed=$3
 fi;
 
-randGraph tree $n $((n-1)) 0 $seed >tg1
-randGraph ugraph $n $m 0 $seed >tg2
+randGraph tree $n $((n-1)) $seed 0 >tg1
+randGraph ugraph $n $m $seed 0 >tg2
 cat tg1 tg2 | testNca

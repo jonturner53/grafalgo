@@ -14,6 +14,8 @@
 #include "Wdigraph.h"
 #include "Wflograph.h"
 #include "Mflograph.h"
+#include "HashSet.h"
+#include "Dheap.h"
 
 namespace grafalgo {
 
@@ -24,6 +26,8 @@ public:
 	static void ugraph(Graph&, int, int);
 	static void bigraph(Graph&, int, int, int);
 	static void tree(Graph&, int);
+	static void regular(Graph&, int, int);
+	static void regularBigraph(Graph&, int, int);
 	static void connected(Graph&, int,int);
 	static void addEdges(Graph&, int);
 	static void addEdges(Graph&, int, int, int);
@@ -45,6 +49,9 @@ public:
 	static void shuffle(Flograph&, int*, int*);
 	static void shuffle(Wflograph&, int*, int*);
 	static void shuffle(Mflograph&, int*, int*);
+
+private:
+	static bool tryRegular(Graph&, int, int);
 };
 
 /** Scramble the vertices and edges in a graph.
@@ -55,7 +62,7 @@ public:
  */
 template<class T>
 void Rgraph::scramble(T& graf) {
-        int *vp = new int[graf.n()+1]; int *ep = new int[graf.maxEdgeNum()+1];
+        int *vp = new int[graf.n()]; int *ep = new int[graf.maxEdgeNum()];
         Util::genPerm(graf.n(),vp); Util::genPerm(graf.maxEdgeNum(),ep);
         shuffle(graf,vp,ep);
         graf.sortAdjLists();

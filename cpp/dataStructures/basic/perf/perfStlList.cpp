@@ -10,19 +10,19 @@ void perfTest(int n) {
 	cout << "perfTest " << n << endl;
 
 	uint32_t t0 = Util::getTime();
-	for (int i = 1; i <= n; i++) lst.push_back(i);
+	for (int i = 0; i < n; i++) lst.push_back(i);
 	uint32_t t1= Util::getTime();
 	double addBack = ((double) t1 - (double) t0)/n;
 	cout << "appending to end: " << addBack << " us per operation\n";
 
 	t0= Util::getTime();
-	for (int i = 1; i <= n; i++) lst.pop_front();
+	for (int i = 0; i < n; i++) lst.pop_front();
 	t1= Util::getTime();
 	double removeFront = ((double) t1 - (double) t0)/n;
 	cout << "removing from front: " << removeFront << " us per operation\n";
 
 	t0 = Util::getTime();
-	for (int i = 1; i <= n; i++) lst.push_back(perm[i]);
+	for (int i = 0; i < n; i++) lst.push_back(1+perm[i]);
 	t1= Util::getTime();
 	double addBackRand = ((double) t1 - (double) t0)/n;
 	cout << "appending to end in random order: " << addBack
@@ -36,7 +36,7 @@ void perfTest(int n) {
 
 	list<int>::iterator p;
 	if (n <= 10000) {
-		for (int i = 1; i <= n; i++) lst.push_back(perm[i]);
+		for (int i = 0; i < n; i++) lst.push_back(1+perm[i]);
 		t0= Util::getTime();
 		for (int i = 1; i <= n; i++) { lst.remove(i); }
 		t1= Util::getTime();
@@ -45,7 +45,7 @@ void perfTest(int n) {
 		     << " us per operation\n";
 	}
 
-	for (int i = 1; i <= n; i++) lst.push_back(perm[i]);
+	for (int i = 0; i < n; i++) lst.push_back(1+perm[i]);
 	int sum = 0;
 	t0= Util::getTime();
 	for (p = lst.begin(); p != lst.end(); p++) sum += *p;

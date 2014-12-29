@@ -265,6 +265,20 @@ string Graph::elist2string(list<edge>& elist) const {
 	return s;
 }
 
+/** Create a string representation of an edge list.
+ *  @param elist is a reference to a list of edge numbers
+ *  @return the string
+ */
+string Graph::elist2string(Glist<edge>& elist) const {
+	string s;
+	int i = elist.length();
+	for (index x = elist.first(); x != 0; x = elist.next(x)) {
+		s += edge2string(elist.value(x));
+		if (--i) s += " ";
+	}
+	return s;
+}
+
 string Graph::elist2string(List& elist) const {
 	string s = "";
 	for (edge e = elist.first(); e != 0; e = elist.next(e)) {
@@ -287,7 +301,7 @@ string Graph::adjList2string(vertex u) const {
 		vertex v = mate(u,e);
 		s += " " + index2string(v);
 		if (shoEnum) s += "#" + to_string(e);
-		if (++cnt >= 20 && nextAt(u,e) != 0) {
+		if (++cnt >= 10 && nextAt(u,e) != 0) {
 			s += "\n"; cnt = 0;
 		}
 	}
@@ -381,13 +395,13 @@ istream& operator>>(istream& in, Graph& g) {
 	return in;
 }
 
-/** Get an edge joining two vertices.
+/** Find an edge joining two vertices.
  *  @param u is a vertex number
  *  @param v is a vertex number
  *  @return the number of some edge joining u and v, or 0 if there
  *  is no such edge
  */
-edge Graph::getEdge(vertex u, vertex v) const {
+edge Graph::findEdge(vertex u, vertex v) const {
 	for (edge e = firstAt(u); e != 0; e = nextAt(u,e))
 		if (mate(u,e) == v) return e;
 	return 0;

@@ -23,22 +23,21 @@ using namespace grafalgo;
  *  Method is one of cycRed, lcap, mostNeg, scale
  */
 int main(int argc, char *argv[]) {
-	flow floVal = 0; cost floCost = 0;
 	Wflograph wfg; cin >> wfg;
 	
 	if (argc != 2) Util::fatal("usage: mcFlo method");
 
 	if (strcmp(argv[1],"cycRed") == 0)
-		mcfCycRed(wfg,floVal,floCost);
+		(mcfCycRed(wfg));
 	else if (strcmp(argv[1],"lcap") == 0)
-		mcfLcap(wfg,floVal,floCost,false);
+		mcfLcap(wfg,false);
 	else if (strcmp(argv[1],"mostNeg") == 0)
-		mcfLcap(wfg,floVal,floCost,true);
+		mcfLcap(wfg,true);
 	else if (strcmp(argv[1],"scale") == 0)
-		mcfScale(wfg,floVal,floCost);
+		(mcfScale(wfg));
 	else
 		Util::fatal("mcFlo: undefined method");
 
-	cout << wfg << "flow value is " << floVal
-	     << " and flow cost is " << floCost << endl;
+	cout << wfg << "flow value is " << wfg.totalFlow()
+	     << " and flow cost is " << wfg.totalCost() << endl;
 }

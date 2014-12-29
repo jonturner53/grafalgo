@@ -193,13 +193,13 @@ int Util::strnlen(char* s, int n) {
 	return n;
 }
 
-/** Create random permutation on integers 1..n and return in p.
+/** Create random permutation on integers 0..n-1 and return in p.
  */
 void Util::genPerm(int n, int p[]) {
 	int i, j, k;
-	for (i = 1; i <= n; i++) p[i] = i;
-	for (i = 1; i <= n; i++) {
-		j = randint(i,n);
+	for (i = 0; i < n; i++) p[i] = i;
+	for (i = 0; i < n; i++) {
+		j = randint(i,n-1);
 		k = p[i]; p[i] = p[j]; p[j] = k;
 	}
 }

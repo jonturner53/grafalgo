@@ -83,6 +83,16 @@ void Wflograph::copyFrom(const Wflograph& source) {
         sortAdjLists();
 }
 
+/** Compute the total cost of the current flow.
+ *  @return the sum of the flow*cost over all edges
+ */
+floCost Wflograph::totalCost() const {
+	floCost sum = 0;
+	for (edge e = first(); e != 0; e = next(e)) 
+		sum += f(tail(e),e) * cost(tail(e),e);
+	return sum;
+}
+
 /** Read adjacency list from an input stream, add it to the graph.
  *  @param in is an open input stream
  *  @return true on success, false on error.

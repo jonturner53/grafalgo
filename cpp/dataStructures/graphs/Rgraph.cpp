@@ -181,6 +181,11 @@ void Rgraph::tree(Graph& graf, int numv) {
 }
 
 /** Create a random simple, connected graph.
+ *  @param graf is an undirected graph object
+ *  @param numv is the number of vertices on which the digraph is generated;
+ *  if this object has n()>numv, the random graph is defined over the first
+ *  numv vertices, leaving the remaining vertices with no edges
+ *  @param nume is the number of edges in the generated digraph
  */
 void Rgraph::connected(Graph& graf, int numv, int nume) {
 	 // try standard random graph generation
@@ -195,6 +200,73 @@ void Rgraph::connected(Graph& graf, int numv, int nume) {
 	 graf.clear();
 	 tree(graf,numv);
 	 addEdges(graf,nume);
+}
+
+void Rgraph::regular(Graph& graf, int numv, int d) {
+	graf.resize(numv, numv*d/2);
+	if ((numv & 1) && (d & 1)) 
+		Util::fatal("regular graph with odd degree must have even "
+			    "number of vertices");
+	if (numv <= d)
+		Util::fatal("regular graph must have vertex count larger than "
+			    "the vertex degree");
+	while (!tryRegular(graf,numv,d)) {}
+}
+
+bool Rgraph::tryRegular(Graph& graf, int numv, int d) {
+	// generate random list of "edge endpoints"
+	// endpoints  for vertex v are numbered (v-1)*d...v*d-1
+	graf.clear();
+	int m = numv*d; 
+	int ep[m];
+	Util::genPerm(m,ep);
+	for (int i = 0; i < m-2; i += 2) {
+		// select random endpoints from those remaining
+		int j = Util::randint(i, m-1);
+		int x = ep[j]; ep[j] = ep[i];
+		// select another random endpoint to a different vertex
+		// note: graph is usually simple, but small chance it's not
+		int k; int cnt = 0;
+		do {
+			k = Util::randint(i+1, m-1);
+		} while ((x/d == ep[k]/d || graf.findEdge(1+x/d, 1+ep[k]/d))
+			  && ++cnt < 2*d);
+		int y = ep[k]; ep[k] = ep[i+1];
+		if (x/d == y/d) { return false; }
+		// join the vertices for the selected endpoints
+		graf.join(1+x/d, 1+y/d);
+	}
+	if (ep[m-2]/d == ep[m-1]/d) return false;
+	graf.join(1+ep[m-2]/d, 1+ep[m-1]/d);
+	graf.sortAdjLists();
+	return true;
+}
+
+void Rgraph::regularBigraph(Graph& graf, int numv, int d) {
+	graf.resize(2*numv, numv*d);
+	if (numv < d)
+		Util::fatal("regular bipartite graph must have vertex count "
+			    "at least equal to the vertex degree");
+	// generate two random list of "edge endpoints"
+	int m = numv*d; 
+	int left[m];  Util::genPerm(m,left);
+	int right[m]; Util::genPerm(m,right);
+	for (int i = 0; i < m-1; i ++) {
+		// select random endpoints from those remaining
+		int j = Util::randint(i, m-1);
+		int x = left[j]; left[j] = left[i];
+		// select another random endpoint to a different vertex
+		// note: graph is usually simple, but small chance it's not
+		int k; int cnt = 0;
+		do {
+			k = Util::randint(i, m-1);
+		} while (graf.findEdge(1+x/d, numv+1+right[k]/d) && ++cnt<2*d);
+		int y = right[k]; right[k] = right[i];
+		// join the vertices for the selected endpoints
+		graf.join(1+x/d, numv+1+y/d);
+	}
+	graf.join(1+left[m-1]/d, numv+1+right[m-1]/d);
+	graf.sortAdjLists();
 }
 
 /** Generate a random digraph.
@@ -276,14 +348,14 @@ void Rgraph::flograph(Flograph& fg, int numv, int nume, int mss) {
 	 digraph(fg,numv-2,nume-2*mss);
 	 fg.setSrc(numv-1); fg.setSnk(numv);
 
-	 vertex *neighbors = new vertex[2*mss+1];
+	 vertex *neighbors = new vertex[2*mss];
 	 Util::genPerm(2*mss,neighbors);
-	 for (int i = 1; i <= mss; i++) {
-		 fg.join(fg.src(),neighbors[i]);
+	 for (int i = 0; i < mss; i++) {
+		 fg.join(fg.src(),neighbors[i]+1);
 	 }
 	 Util::genPerm(2*mss,neighbors);
-	 for (int i = 1; i <= mss; i++) {
-		 fg.join((numv-2)-neighbors[i],fg.snk());
+	 for (int i = 0; i < mss; i++) {
+		 fg.join((numv-2)-(neighbors[i]+1),fg.snk());
 	 }
 	 fg.sortAdjLists();
 
@@ -403,82 +475,6 @@ void Rgraph::setMinFlows(Mflograph& fg, flow lo, flow hi) {
 		 fg.setMinFlo(e,Util::randint(lo,hi));
 }
 
-/** Randomly scramble the vertices and edges in a graph.
- *  @param graf is a reference to a graph; on return, its vertices
- *  and edges have been randomly permuted and the adjacency lists re-sorted.
-void Rgraph::scramble(Graph& graf) {
-	 int *vp = new int[graf.n()+1]; int *ep = new int[graf.maxEdgeNum()+1];
-	 Util::genPerm(graf.n(),vp); Util::genPerm(graf.maxEdgeNum(),ep);
-	 shuffle(graf,vp,ep);
-	 graf.sortAdjLists();
-}
- */
-
-/** Randomly scramble the vertices and edges in a weighted graph.
- *  @param graf is a reference to a graph; on return, its vertices
- *  and edges have been randomly permuted and the adjacency lists re-sorted.
-void Rgraph::scramble(Wgraph& graf) {
-	 int *vp = new int[graf.n()+1]; int *ep = new int[graf.maxEdgeNum()+1];
-	 Util::genPerm(graf.n(),vp); Util::genPerm(graf.maxEdgeNum(),ep);
-	 shuffle(graf,vp,ep);
-	 graf.sortAdjLists();
-}
- */
-
-/** Randomly scramble the vertices and edges in a weighted digraph.
- *  @param graf is a reference to a graph; on return, its vertices
- *  and edges have been randomly permuted and the adjacency lists re-sorted.
-void Rgraph::scramble(Wdigraph& graf) {
-	 int *vp = new int[graf.n()+1]; int *ep = new int[graf.maxEdgeNum()+1];
-	 Util::genPerm(graf.n(),vp); Util::genPerm(graf.maxEdgeNum(),ep);
-	 shuffle(graf,vp,ep);
-	 graf.sortAdjLists();
-}
- */
-
-/** Randomly scramble the vertices and edges in a flograph.
- *  @param graf is a reference to a graph; on return, its vertices
- *  and edges have been randomly permuted and the adjacency lists re-sorted.
-void Rgraph::scramble(Flograph& graf) {
-	 int *vp = new int[graf.n()+1]; int *ep = new int[graf.maxEdgeNum()+1];
-	 Util::genPerm(graf.n(),vp); Util::genPerm(graf.maxEdgeNum(),ep);
-	 shuffle(graf,vp,ep);
-	 graf.sortAdjLists();
-}
- */
-
-/** Randomly scramble the vertices and edges in a weighted flograph.
- *  @param graf is a reference to a graph; on return, its vertices
- *  and edges have been randomly permuted and the adjacency lists re-sorted.
-void Rgraph::scramble(Wflograph& graf) {
-	 int *vp = new int[graf.n()+1]; int *ep = new int[graf.maxEdgeNum()+1];
-	 Util::genPerm(graf.n(),vp); Util::genPerm(graf.maxEdgeNum(),ep);
-	 shuffle(graf,vp,ep);
-	 graf.sortAdjLists();
-}
- */
-
-/** Randomly scramble the vertices and edges in a flograph with min flows.
- *  @param graf is a reference to a graph; on return, its vertices
- *  and edges have been randomly permuted and the adjacency lists re-sorted.
- */
-/*
-void Rgraph::scramble(Mflograph& graf) {
-	 int *vp = new int[graf.n()+1]; int *ep = new int[graf.maxEdgeNum()+1];
-	 Util::genPerm(graf.n(),vp); Util::genPerm(graf.maxEdgeNum(),ep);
-	 shuffle(graf,vp,ep);
-	 graf.sortAdjLists();
-}
-
-template<class T>
-void Rgraph::scramble(T& graf) {
-	int *vp = new int[graf.n()+1]; int *ep = new int[graf.maxEdgeNum()+1];
-        Util::genPerm(graf.n(),vp); Util::genPerm(graf.maxEdgeNum(),ep);
-        shuffle(graf,vp,ep);
-        graf.sortAdjLists();
-}
-*/
-
 /** Shuffle the vertices and edges according to the given permutations.
  *  @param graf is a graph object to be shuffled
  *  @param vp is a permutation on the vertices (size n()+1),
@@ -498,7 +494,9 @@ void Rgraph::shuffle(Graph& graf, int vp[], int ep[]) {
 	 graf.clear();
 	 for (edge e = 1; e <= graf.maxEdgeNum(); e++) {
 		 if (left[e] != 0)
-			 graf.joinWith(vp[left[e]],vp[right[e]],ep[e]);
+			 graf.joinWith( 1+vp[left[e]-1],
+					1+vp[right[e]-1],
+					1+ep[e-1]);
 	 }
 }
 

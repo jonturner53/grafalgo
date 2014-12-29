@@ -21,7 +21,7 @@ using namespace grafalgo;
  *  Use constructor to invoke algorithm.
  */
 class mcfScale {
-public: mcfScale(Wflograph&, flow&, floCost&);       
+public: mcfScale(Wflograph&);       
 
 private:
 	Wflograph* wfg;	 	// graph we're finding flow on

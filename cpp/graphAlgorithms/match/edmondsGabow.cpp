@@ -13,11 +13,8 @@ using namespace grafalgo;
 /** Find a maximum size matching.
  *  @param graf1 is an undirected graph
  *  @param match is a list in which the matching is returned
- *  @param size is an output parameter in which the size of the
- *  matching is returned
  */
-edmondsGabow::edmondsGabow(Graph& graf1, Glist<edge>& match, int &size)
-		 : graf(&graf1) {
+edmondsGabow::edmondsGabow(Graph& graf1, Glist<edge>& match) : graf(&graf1) {
 	blossoms = new Partition(graf->n()); // set per blossom
 	augpath = new RlistSet(graf->m());    // reversible list
 	origin = new vertex[graf->n()+1];    // original vertex for each blossom
@@ -41,10 +38,10 @@ edmondsGabow::edmondsGabow(Graph& graf1, Glist<edge>& match, int &size)
 	edge e;
 	while((e = findpath()) != 0) augment(e);
 
-	match.clear(); size = 0;
+	match.clear(); 
 	for (vertex u = 1; u <= graf->n(); u++) {
 		if (mEdge[u] != 0 && u < graf->mate(u,mEdge[u])) {
-			match.addLast(u); size++;
+			match.addLast(mEdge[u]); 
 		}
 	}
 
@@ -58,9 +55,9 @@ edmondsGabow::edmondsGabow(Graph& graf1, Glist<edge>& match, int &size)
 void edmondsGabow::augment(edge e) {
 	while (true) {
 		edge e1 = augpath->first(e);
-		vertex u = graf->left(e1); vertex v = graf->right(e1);
-		if (mEdge[u] != e1 || mEdge[v] != e1) mEdge[u] = mEdge[v] = e1;
-		if (e == augpath->first(e)) return;
+		mEdge[graf->left(e1)] = mEdge[graf->right(e1)] = e1;
+		if (e == augpath->first(e)) { return; }
+		e = augpath->pop(e);
 		e = augpath->pop(e);
 	}
 }

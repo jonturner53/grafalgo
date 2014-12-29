@@ -37,6 +37,7 @@ public:		Wflograph(int=3,int=2,int=1,int=2);
 
 	floCost	cost(vertex,edge) const;
 	void	setCost(edge,floCost);
+	floCost totalCost() const;
 
 	string	edge2string(edge) const;
 	string	toDotString() const;

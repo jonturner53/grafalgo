@@ -16,11 +16,9 @@ extern bool findSplit(const Graph&, ListPair&);
  *  Hopcroft-Karp algorithm.
  *  @param graf1 is an undirected graph
  *  @param match is a list in which the result is returned
- *  @param size is an output parameter used to return the size of the
- *  computed matching
  */
-hopcroftKarp::hopcroftKarp(Graph& graf1, Glist<edge>& match, int& size) 
-		: graf(&graf1) {
+hopcroftKarp::hopcroftKarp(Graph& graf1, Glist<edge>& match) : graf(&graf1) {
+
 	// divide vertices into two independent sets
 	split = new ListPair(graf->n());
 	if (!findSplit(*graf,*split))
@@ -36,12 +34,12 @@ hopcroftKarp::hopcroftKarp(Graph& graf1, Glist<edge>& match, int& size)
 	}
 
 	// add unmatched vertices from in-set to roots
+	pEdge = new edge[graf->n()+1];
 	roots = new Dlist(graf->n());
 	for (vertex u = split->firstIn(); u != 0; u = split->nextIn(u))
-		if (mEdge[u] == 0) roots->addLast(u);
+		if (mEdge[u] == 0) { roots->addLast(u); pEdge[u] = 0; }
 
-	size = 0;
-	pEdge = new edge[graf->n()+1];
+	level = new int[graf->n()+1];
 	nextEdge = new edge[graf->n()+1];
 	while (newPhase()) {
 		vertex r = roots->first();
@@ -50,20 +48,19 @@ hopcroftKarp::hopcroftKarp(Graph& graf1, Glist<edge>& match, int& size)
 			if (u == 0) {
 				r = roots->next(r);
 			} else {
-				augment(u); size++;
+				augment(u); 
 				vertex nextr = roots->next(r);
 				roots->remove(r);
 				r = nextr;
 			}
+			if (r == 0) break;
 			u = findPath(r);
 		}
 	}
-	match.clear(); size = 0;
+	match.clear(); 
 	for (vertex u = 1; u <= graf->n(); u++) {
 		edge e = mEdge[u];
-		if (e != 0 && u < graf->mate(u,e)) {
-			match.addLast(e); size++;
-		}
+		if (e != 0 && u < graf->mate(u,e)) match.addLast(e); 
 	}
 	delete split; delete roots;
 	delete [] mEdge; delete [] pEdge;
@@ -84,7 +81,6 @@ bool hopcroftKarp::newPhase() {
 	int maxLevel = graf->n(); // used to terminate early
 	while (!q.empty()) {
 		vertex u = q.first(); q.removeFirst(); // u in in-set
-		if (level[u] > maxLevel) return true;
 		for (edge e = graf->firstAt(u); e != 0; e = graf->nextAt(u,e)) {
 			if (e == mEdge[u]) continue;
 			vertex v = graf->mate(u,e); // v in out-set
@@ -92,7 +88,8 @@ bool hopcroftKarp::newPhase() {
 			// first time we've seen v
 			level[v] = level[u] + 1; 
 			edge ee = mEdge[v];
-			if (ee == 0) { maxLevel = level[v]; continue; }
+			if (ee == 0) maxLevel = level[v]; // found alt-path
+			if (maxLevel == level[v]) continue;
 			vertex w = graf->mate(v,ee);
 			level[w] = level[v] + 1;
 			q.addLast(w);
@@ -113,12 +110,12 @@ vertex hopcroftKarp::findPath(vertex u) {
 		vertex v = graf->mate(u,e);
 		if (level[v] != level[u] + 1) continue;
 		edge ee = mEdge[v];
-		if (ee == 0) { pEdge[v] = e; nextEdge[u] = e; return v; }
+		if (ee == 0) { nextEdge[u] = e; pEdge[v] = e; return v; }
 		vertex w = graf->mate(v,ee);
+		if (level[w] != level[v] + 1) continue;
 		vertex t = findPath(w);
 		if (t != 0) {
-			pEdge[v] = e; pEdge[w] = ee; nextEdge[u] = e;
-			return t;
+			pEdge[v] = e; pEdge[w] = ee; nextEdge[u] = e; return t;
 		}
 	}
 	nextEdge[u] = 0; return 0;
@@ -129,9 +126,10 @@ vertex hopcroftKarp::findPath(vertex u) {
  *  the path can be found using the pEdge pointers
  */
 void hopcroftKarp::augment(vertex u) {
-	while (u != 0) {
+	while (true) {
 		vertex v = graf->mate(u,pEdge[u]);
 		mEdge[u] = mEdge[v] = pEdge[u];
-		u = pEdge[v];
+		if (pEdge[v] == 0) break;
+		u = graf->mate(v,pEdge[v]);
 	}
 }

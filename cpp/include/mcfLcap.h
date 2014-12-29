@@ -22,7 +22,7 @@ using namespace grafalgo;
  */
 class mcfLcap {
 public:
-	mcfLcap(Wflograph&, flow&, floCost&, bool);
+	mcfLcap(Wflograph&, bool);
 protected:
 	Wflograph* wfg;		// graph we're finding flow on
 	int*	lab;		// lab[u] is label used to transform costs

@@ -16,7 +16,7 @@
 using namespace grafalgo;
 
 class edmondsGabow {
-public: edmondsGabow(Graph&, Glist<edge>&, int&);
+public: edmondsGabow(Graph&, Glist<edge>&);
 private:
 	Graph* graf;		// graph we're finding matching for
 	Partition *blossoms;	// partition of the vertices into blossoms

@@ -26,7 +26,7 @@ using namespace grafalgo;
  */
 class mcfCycRed {
 public: 	
-		mcfCycRed(Wflograph&,flow&,cost&);
+		mcfCycRed(Wflograph&);
 private:
 	Wflograph* wfg;		// graph we're finding flow on
 	edge*	pEdge;		// pEdge[u] is edge to parent of u in spt

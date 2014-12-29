@@ -16,4 +16,4 @@ if [ $# -ge 3 ] ; then
 	seed=$3
 fi;
 
-randGraph dag $n $m 1 $seed | testToposort
+randGraph dag $n $m $seed 1 | testToposort

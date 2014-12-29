@@ -11,7 +11,7 @@ LIBS := ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/Partition.h \
 	 ${IDIR}/Nca.h
-XFILES = testBfs testToposort testNca
+XFILES = testBfs testFindSplit testToposort testNca
 OFILES = bfs.o toposort.o Nca.o
 
 ${OFILES} : ${HFILES}
@@ -22,13 +22,16 @@ ${OFILES} : ${HFILES}
 all:	${XFILES}
 
 testBfs: testBfs.o ${LIBS} ${LIBGA}
-	${CXX} ${CXXFLAGS} $< ${LIBS} ${LIBGA} -o $@
+	${CXX} ${CXXFLAGS} $< ${LIBGA} ${LIBS} -o $@
+
+testFindSplit: testFindSplit.o ${LIBS} ${LIBGA}
+	${CXX} ${CXXFLAGS} $< ${LIBGA} ${LIBS} -o $@
 
 testToposort: testToposort.o ${LIBS} ${LIBGA}
-	${CXX} ${CXXFLAGS} $< ${LIBS} ${LIBGA} -o $@
+	${CXX} ${CXXFLAGS} $< ${LIBGA} ${LIBS} -o $@
 
 testNca: testNca.o ${LIBS} ${LIBGA} 
-	${CXX} ${CXXFLAGS} $< ${LIBS} ${LIBGA} -o $@
+	${CXX} ${CXXFLAGS} $< ${LIBGA} ${LIBS} -o $@
 
 clean:
 	rm -f *.o ${XFILES}

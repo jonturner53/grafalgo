@@ -2,24 +2,23 @@
 // finding a maximum size matching in a general graph. To use,
 // invoke the constructor.
 
-#ifndef FASTEDMONDS_H
-#define FASTEDMONDS_H
+#ifndef FASTEDMONDSGABOW_H
+#define FASTEDMONDSGABOW_H
 
 #include "stdinc.h"
 #include "Graph.h"
 #include "List.h"
 #include "Dlist.h"
+#include "Glist.h"
 #include "RlistSet.h"
 #include "Partition.h"
 
 using namespace grafalgo;
 
-class fastEdmonds {
-public: fastEdmondsGabow(Graph&,Dlist&,int&);
-	string& statString(bool, string&);
+class fastEdmondsGabow {
+public: fastEdmondsGabow(Graph&, Glist<edge>&);
 private:
 	Graph* graf;		///< graph we're finding matching for
-	Dlist* match;		///< matching we're building
 	Partition *blossoms;	///< partition of the vertices into blossoms
 	RlistSet* augpath;	///< reversible list used to construct path
 	vertex* origin;		///< origin[u] is the original vertex
@@ -42,9 +41,6 @@ private:
 	List* pending;		///< list of vertices used by findpath
 	Dlist* unmatched;	///< list of unmatched vertices
 
-	int iSize, mSize, stepCount, blossomCount;
-	int imatchTime, rmatchTime, pathInitTime, pathFindTime;
-	
 	vertex nca(vertex,vertex); // return nearest-common ancestor
 	edge path(vertex,vertex); // construct augmenting path
 	void augment(edge);	// augment the matching
