@@ -11,7 +11,7 @@
 #include "Wgraph.h"
 #include "Glist.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Sort edges according to weight, using heap-sort.
  *  @param wg is a weighted graph
@@ -78,3 +78,5 @@ void kruskal(Wgraph& wg, Glist<edge>& mstree) {
 		}
 	}
 }
+
+} // ends namespace

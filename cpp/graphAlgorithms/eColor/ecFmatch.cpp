@@ -1,7 +1,7 @@
 
-#include "Dlist.h"
+#include "Glist.h"
 #include "Graph.h"
-#include "fmaxdMatch.h"
+#include "fastMaxdMatch.h"
 
 namespace grafalgo {
 
@@ -18,15 +18,16 @@ using namespace grafalgo;
  */
 int ecFmatch(Graph& graf1, int color[]) {
 	Graph graf; graf.copyFrom(graf1);
-	Dlist match(graf.maxEdgeNum());
+	Glist<edge> match(graf.maxEdgeNum());
 
 	int c = 0;
 	while (graf.m() != 0) {
 		c++;	// color to use next
-		fmaxdMatch(graf,match);
+		fastMaxdMatch(graf,match);
 		while (!match.empty()) {
-			color[match.first()] = c;
-			graf.remove(match.first());
+			edge e = match.value(match.first());
+			color[e] = c;
+			graf.remove(e);
 			match.removeFirst();
 		}
 	}

@@ -11,6 +11,8 @@
 
 #include "augPath.h"
 
+namespace grafalgo {
+
 /** This class encapsulates data and methods used by Dinic's
  *  algorithms for max flow.
  *  
@@ -28,5 +30,7 @@ private:
 
         bool    newPhase(); 
 };
+
+} // ends namespace
 
 #endif

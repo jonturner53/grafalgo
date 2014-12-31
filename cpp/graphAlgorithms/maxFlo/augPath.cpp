@@ -9,7 +9,7 @@
 #include "Adt.h"
 #include "augPath.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find maximum flow in a flow graph.
  *  Base class constructor initializes dynamic data common to all algorithms.
@@ -51,3 +51,5 @@ int augPath::augment() {
 	}
 	return f;
 }
+
+} // ends namespace grafalgo

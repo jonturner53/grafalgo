@@ -62,7 +62,8 @@ private:
  */
 template<class T>
 void Rgraph::scramble(T& graf) {
-        int *vp = new int[graf.n()]; int *ep = new int[graf.maxEdgeNum()];
+        int *vp = new int[graf.n()];
+	int *ep = new int[graf.maxEdgeNum()];
         Util::genPerm(graf.n(),vp); Util::genPerm(graf.maxEdgeNum(),ep);
         shuffle(graf,vp,ep);
         graf.sortAdjLists();

@@ -11,11 +11,13 @@
 #include "Wdigraph.h"
 #include "Rgraph.h"
 
-using namespace grafalgo;
-using namespace chrono;
-
+namespace grafalgo {
 extern void dijkstraAll(Wdigraph&, int**, vertex**);
 extern void floyd(Wdigraph&, int**, vertex**);
+}
+
+using namespace chrono;
+using namespace grafalgo;
 
 /** usage: 
  * 	timeAllPairsRep method reps n m lo hi 

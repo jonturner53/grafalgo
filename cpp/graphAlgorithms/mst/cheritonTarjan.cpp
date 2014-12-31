@@ -13,7 +13,7 @@
 #include "LlheapSet.h"
 #include "Wgraph.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 Wgraph *gp;	// pointer to graph, used by delf function
 Partition *pp;  // pointer to partition of vertices, used by delf function
@@ -65,3 +65,5 @@ void cheritonTarjan(Wgraph& wg, Glist<edge>& mstree) {
 	}
 	delete [] h;
 }
+
+} // ends namespace

@@ -2,27 +2,47 @@
 #include "List.h"
 #include "Wdigraph.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
-void bfScan(Wdigraph& dig, vertex s, vertex p[], int d[]) {
-// Compute shortest path tree using breadth-first scanning algorithm.
-	int pass; vertex v,w,last; edge e;
-	List q(dig.n());
+/** Compute a shortest path tree using breadth-first scanning algorithm.
+ *  @param dig is a directed graph with edge lengths
+ *  @param s is the source vertex for the shortest path tree computation;
+ *  if s=0, paths are computed from an imaginary extra vertex with a
+ *  zero length edge to every other vertex
+ *  @param pEdge is an array of parent pointers; on return pEdge[u] is the
+ *  number of the edge connecting u to its parent in the shortest path tree
+ *  @param d is array of distances; on return d[u] is the shortest path
+ *  distance from s to u
+ *  @return true on success, false if a negative cost cycle was encountered
+ */
+bool bfScan(Wdigraph& dig, vertex s, edge pEdge[], edgeLength d[]) {
+	for (vertex v = 1; v <= dig.n(); v++) { pEdge[v] = 0; d[v] = INT_MAX; }
 
-	for (v = 1; v <= dig.n(); v++) { p[v] = 0; d[v] = Util::BIGINT32; }
-	d[s] = 0; q.addLast(s); pass = 0; last = s;
+	List q(dig.n()); vertex last;
+	if (s != 0) {
+		d[s] = 0; q.addLast(s); last = s;
+	} else {
+		for (vertex v = 1; v <= dig.n(); v++) {
+			d[v] = 0; q.addLast(v);
+		}
+		last = dig.n();
+	}
 
+	int pass = 0; int cnt = 0;
 	while (!q.empty()) {
-		v = q.first(); q.removeFirst();
-		for (e = dig.firstOut(v); e != 0; e = dig.nextOut(v,e)) {
-			w = dig.head(e);
+		vertex v = q.first(); q.removeFirst();
+		for (edge e = dig.firstOut(v); e != 0; e = dig.nextOut(v,e)) {
+			vertex w = dig.head(e);
 			if (d[v] + dig.length(e) < d[w]) {
-				d[w] = d[v] + dig.length(e); p[w] = v;
+				if (pEdge[w] == 0) cnt++;
+				d[w] = d[v] + dig.length(e); pEdge[w] = e;
 				if (!q.member(w)) q.addLast(w);
 			}
 		}
 		if (v == last && !q.empty()) { pass++; last = q.last(); }
-		if (pass == dig.n())
-			Util::fatal("bfScan: graph has negative cycle");
+		if (pass == dig.n()) return false;
 	}
+	return cnt == dig.n();
 }
+
+} // ends namespace

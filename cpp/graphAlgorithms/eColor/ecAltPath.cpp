@@ -8,18 +8,11 @@ namespace grafalgo {
  *  @param graf is a reference to the graph
  *  @param color is an array indexed by an edge number; on return
  *  color[e] is the color assigned to edge e
- *  each list in the set defines a set of edges of the same color
  *  @return the number of colors used
  */
 int ecAltPath(Graph& graf, int color[]) {
-	// determine the max degree, Delta
-	int Delta = 0;
-	for (int u = 1; u < graf.n(); u++) {
-		int d = 0;
-		for (edge e = graf.firstAt(u); e != 0; e = graf.nextAt(u,e))
-			d++;
-		Delta = max(Delta,d);
-	}
+	int Delta = graf.maxDegree();
+
 	// avail[u] is a list of available colors at u
 	// emap[u][c] is the edge that is colored c at u
 	Dlist *avail = new Dlist[graf.n()+1];
@@ -52,7 +45,7 @@ int ecAltPath(Graph& graf, int color[]) {
 		// depends on graph being bipartite
 		cu = avail[u].first(); cv = avail[v].first();
 		vertex w = v; int c = cu; edge f = e;
-		while (emap[w][c] != 0) {
+		while (emap[w][c] != 0 && w != u) {
 			// f is next edge on path to be colored
 			// w is the "leading endpoint of f"
 			// c is the color to use for f
@@ -66,7 +59,17 @@ int ecAltPath(Graph& graf, int color[]) {
 		// color the last edge and update the avail sets at endpoints
 		color[f] = c;
 		emap[graf.left(f)][c] = f; emap[graf.right(f)][c] = f;
-		avail[u].remove(cu); avail[v].remove(cv); avail[w].remove(c);
+		avail[u].remove(cu); avail[v].remove(cv);
+		if (w == u) continue;
+
+		// update available colors at last vertex on path
+		avail[w].remove(c);
+		c = (c == cu ? cv : cu);
+		vertex x = avail[w].first();
+		while (x != 0 && avail[w].next(x) > c)
+			x = avail[w].next(x);
+		if (x == 0) avail[w].addFirst(c);
+		else avail[w].insert(c,x);
 	}
 	delete [] avail;
 	return Delta;

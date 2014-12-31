@@ -1,4 +1,14 @@
+/** @file prePush.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
+
 #include "prePush.h"
+
+namespace grafalgo {
 
 /** Find maximum flow in fg using the preflow-push method.
  *  @param fg1 is a flow graph, possibly with a non-zero initial flow.
@@ -174,3 +184,4 @@ bool prePush::balance(vertex u) {
 	}
 }
 
+} // ends namespace

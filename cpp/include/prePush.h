@@ -17,7 +17,7 @@
 #include "Flograph.h"
 #include "List.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** PrePush class ecapsulates data and methods used by the preflow-push
  *  algorithms for maximum flow. Subclasses are defined for each
@@ -44,5 +44,7 @@ protected:
 	vertex	virtual removeUnbal(); 
 	bool 	balance(vertex);
 };
+
+} // ends namespace
 
 #endif

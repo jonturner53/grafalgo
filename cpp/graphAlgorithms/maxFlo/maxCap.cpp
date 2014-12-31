@@ -8,6 +8,8 @@
 
 #include "maxCap.h"
 
+namespace grafalgo {
+
 /** Find maximum flow in fg using the max capacity variant of
  *  the augmenting path algorithm.
  *  @param fg1 is a flow graph
@@ -41,3 +43,5 @@ bool maxCap::findPath() {
         }
 	return false;
 }
+
+} // ends namespace

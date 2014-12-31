@@ -12,7 +12,7 @@
 #include "ppFifo.h"
 #include "shortPath.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find maximum flow in flow graph with min flow requirements.
  *  @param fg is the flow graph
@@ -76,3 +76,5 @@ bool maxFloMin(Mflograph& fg, string floAlgo) {
 	return true;
 }
 
+
+} // ends namespace

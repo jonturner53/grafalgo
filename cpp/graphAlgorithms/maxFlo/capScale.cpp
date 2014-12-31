@@ -9,7 +9,7 @@
 #include "Flograph.h"
 #include "capScale.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find maximum flow in fg using the capacity scaling algorithm.
  *  @param fg1 is a flow graph
@@ -51,3 +51,4 @@ bool capScale::findPath() {
 	}
 	return false;
 }
+ } // ends namespace

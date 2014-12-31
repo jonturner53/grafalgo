@@ -407,6 +407,25 @@ edge Graph::findEdge(vertex u, vertex v) const {
 	return 0;
 }
 
+/** Compute the degree of a vertex.
+ *  @param u is a vertex
+ *  @return the number of edges incident to u
+ */
+int Graph::degree(vertex u) const {
+	int d = 0;
+	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) d++;
+	return d;
+}
+
+/** Compute the maximum degree.
+ *  @return the maximum degree of any vertex.
+ */
+int Graph::maxDegree() const {
+	int d = 0;
+	for (vertex u = 1; u <= n(); u++) d = max(d,degree(u));
+	return d;
+}
+
 /** Get the components of a graph.
  *  @param component is an array that is used to return the result of
  *  the computation; if component is not NULL, then it is expected to

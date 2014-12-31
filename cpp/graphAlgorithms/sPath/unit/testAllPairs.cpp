@@ -9,10 +9,12 @@
 #include "stdinc.h"
 #include "Wdigraph.h"
 
-using namespace grafalgo;
+namespace grafalgo {
+extern bool dijkstraAll(Wdigraph&, edgeLength**, edge**);
+extern bool floyd(Wdigraph&, edgeLength**, vertex**); 
+}
 
-extern void dijkstraAll(Wdigraph&, int**, vertex**);
-extern void floyd(Wdigraph&, int**, vertex**); 
+using namespace grafalgo;
 
 /** usage: testAllPairs method
  *  
@@ -39,7 +41,8 @@ int main(int argc, char *argv[]) {
 			mid[u] = new vertex[dig.n()+1];
 		}
 	
-		floyd(dig,dist,mid);
+		if (!floyd(dig,dist,mid)) 
+			Util::fatal("detected negative cycle");
 	
 		cout << "distances\n\n    ";
 		for (v = 1; v <= dig.n(); v++) {
@@ -66,15 +69,18 @@ int main(int argc, char *argv[]) {
 			}
 			cout << endl;
 		}
+	
 	} else if (strcmp(argv[1],"dijkstra") == 0) {
 		int** dist = new int*[dig.n()+1];
-		vertex** parent = new vertex*[dig.n()+1];
+		edge** pEdge = new edge*[dig.n()+1];
 		for (u = 1; u <= dig.n(); u++) {
 			dist[u] = new int[dig.n()+1];
-			parent[u] = new vertex[dig.n()+1];
+			pEdge[u] = new edge[dig.n()+1];
 		}
 
-		dijkstraAll(dig,dist,parent);
+		if (!dijkstraAll(dig,dist,pEdge)) 
+			Util::fatal("detected negative cycle or unreachable "
+				    "vertices");
 	
 		cout << "distances\n\n    ";
 		for (v = 1; v <= dig.n(); v++) {
@@ -97,8 +103,9 @@ int main(int argc, char *argv[]) {
 		for (u = 1; u <= dig.n(); u++) {
 			cout << setw(2) << dig.index2string(u) << ": ";
 			for (v = 1; v <= dig.n(); v++) {
-				cout << setw(2)
-				     << dig.index2string(parent[u][v]) << " ";
+				cout << setw(2) 
+				     << dig.index2string(dig.tail(pEdge[u][v]))
+				     << " ";
 			}
 			cout << endl;
 		}

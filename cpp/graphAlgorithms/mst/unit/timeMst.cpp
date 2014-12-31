@@ -15,13 +15,15 @@
 #include "Rgraph.h"
 #include "Util.h"
 
-using namespace grafalgo;
-using namespace chrono;
-
+namespace grafalgo {
 extern void kruskal(Wgraph&, Glist<int>&);
 extern void prim(Wgraph&, Glist<int>&);
 extern void primF(Wgraph&, Glist<int>&);
 extern void cheritonTarjan(Wgraph&, Glist<int>&);
+}
+
+using namespace grafalgo;
+using namespace chrono;
 
 /** usage:
  * 	timeMst method reps n m maxkey

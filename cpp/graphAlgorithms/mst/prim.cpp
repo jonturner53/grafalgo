@@ -11,7 +11,7 @@
 #include "Wgraph.h"
 #include "Glist.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find a minimum spanning tree using Prim's algorithm.
  *  @param wg is a reference to a weighted graph object
@@ -43,3 +43,5 @@ void prim(Wgraph& wg, Glist<edge>& mstree) {
 	}
 	delete [] cheap; delete [] intree;
 }
+
+} // ends namespace

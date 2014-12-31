@@ -15,6 +15,8 @@
 #include "augPath.h"
 #include "Util.h"
 
+namespace grafalgo {
+
 /** This class encapsulates data and methods for the shortest path
  *  variant of the augmenting path algorithm for max flow.
  * 
@@ -26,5 +28,7 @@ public:
 private:
         bool	findPath();
 };
+
+} // ends namespace
 
 #endif

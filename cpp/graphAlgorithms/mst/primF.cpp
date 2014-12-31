@@ -11,7 +11,7 @@
 #include "Wgraph.h"
 #include "FheapSet.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find a minimum spanning tree using Prim's algorithm.
  *  This version uses a Fibonacci heap
@@ -41,33 +41,24 @@ void primF(Wgraph& wg, Glist<edge>& mstree) {
         } while (e != 0);
 	inTree[1] = true;
 	for (u = 2; u <= wg.n(); u++) inTree[u] = false;
-//int cnt=1;
-//cerr << "entering main loop, numInHeap=" << numInHeap << endl;
         while (numInHeap > 0) {
-//cerr << root << " ******" << endl;
-//cerr << nheap.toString();
                 u = root; root = nheap.deletemin(root);
-//cerr << "new root " << root << endl;
-//cerr << nheap.toString();
                 inHeap[u] = false; numInHeap--;
 		inTree[u] = true; mstree.addLast(cheap[u]);
                 for (e = wg.firstAt(u); e != 0; e = wg.nextAt(u,e)) {
                         v = wg.mate(u,e);
                         if (inHeap[v] && wg.weight(e) < nheap.key(v)) {
-//cerr << "decreasekey at " << v << endl;
                                 root = nheap.decreasekey(v,nheap.key(v) -
                                                              wg.weight(e),root);
-//cerr << nheap.toString();
                                 cheap[v] = e;
                         } else if (!inHeap[v] && !inTree[v]) {
-//cerr << "inserting " << v << endl;
                                 root = nheap.insert(v,root,wg.weight(e));
-//cerr << nheap.toString();
                                 cheap[v] = e;
                                 inHeap[v] = true; numInHeap++;
                         }
                 }
-//cnt++;
         }
         delete [] cheap; delete [] inHeap;
 }
+
+} // ends namespace

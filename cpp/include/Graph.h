@@ -70,6 +70,8 @@ public:		Graph(int=1,int=1);
 	virtual bool remove(edge);	
 
 	// methods for computing properties
+	int	degree(vertex) const;
+	int	maxDegree() const;
 	int	getComponents(int*) const;
 
 	// input

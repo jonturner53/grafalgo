@@ -15,6 +15,8 @@
 
 #include "prePush.h"
 
+namespace grafalgo {
+
 /** PpHiLab class encapsulates data and methods used by the 
  *  highest label-first variant of the preflow-push method for
  *  finding maximum flows.
@@ -34,5 +36,7 @@ protected:
 
 	void	doit(bool);
 };
+
+} // ends namespace
 
 #endif

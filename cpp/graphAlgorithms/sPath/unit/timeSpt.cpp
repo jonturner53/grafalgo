@@ -11,11 +11,13 @@
 #include "Wdigraph.h"
 #include "Rgraph.h"
 
-using namespace grafalgo;
-using namespace chrono;
+namespace grafalgo {
+extern bool dijkstra(Wdigraph&, vertex, edge*, edgeLength*);
+extern bool bfScan(Wdigraph&, vertex, edge*, edgeLength*);
+}
 
-extern void dijkstra(Wdigraph&, vertex, vertex*, int*);
-extern void bfScan(Wdigraph&, vertex, vertex*, int*);
+using namespace chrono;
+using namespace grafalgo;
 
 /** usage:
  * 	sptRep method reps n m lo hi

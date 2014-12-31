@@ -502,28 +502,28 @@ void Rgraph::shuffle(Graph& graf, int vp[], int ep[]) {
 
 void Rgraph::shuffle(Wgraph& graf, int vp[], int ep[]) {
 	shuffle((Graph&) graf,vp,ep);
-	Util::shuffle<edgeWeight>(graf.wt, ep, graf.maxEdgeNum()+1);
+	Util::shuffle<edgeWeight>(graf.wt, ep, graf.maxEdgeNum());
 }
 
 void Rgraph::shuffle(Wdigraph& graf, int vp[], int ep[]) {
 	shuffle((Digraph&) graf,vp,ep);
-	Util::shuffle<edgeLength>(graf.len,ep,graf.maxEdgeNum()+1);
+	Util::shuffle<edgeLength>(graf.len,ep,graf.maxEdgeNum());
 }
 	
 void Rgraph::shuffle(Flograph& graf, int vp[], int ep[]) {
 	shuffle((Graph&) graf,vp,ep);
-	Util::shuffle<Flograph::FloInfo>(graf.floInfo, ep, graf.maxEdgeNum()+1);
+	Util::shuffle<Flograph::FloInfo>(graf.floInfo, ep, graf.maxEdgeNum());
 	graf.setSrc(vp[graf.src()]); graf.setSnk(vp[graf.snk()]);
 }
 
 void Rgraph::shuffle(Wflograph& graf, int vp[], int ep[]) {
 	shuffle((Flograph&) graf,vp,ep);
-	Util::shuffle<flow>(graf.cst, ep, graf.maxEdgeNum()+1);
+	Util::shuffle<flow>(graf.cst, ep, graf.maxEdgeNum());
 }
 
 void Rgraph::shuffle(Mflograph& graf, int vp[], int ep[]) {
 	shuffle((Flograph&) graf,vp,ep);
-	Util::shuffle<flow>(graf.mflo, ep, graf.maxEdgeNum()+1);
+	Util::shuffle<flow>(graf.mflo, ep, graf.maxEdgeNum());
 }
 
 } // ends namespace

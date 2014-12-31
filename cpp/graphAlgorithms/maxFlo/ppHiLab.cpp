@@ -8,6 +8,8 @@
 
 #include "ppHiLab.h"
 
+namespace grafalgo {
+
 /** Find maximum flow in a flow graph using the highest-label-first
  *  variant of the preflow-push algorithm.
  *  @param fg1 is a reference to the flow graph
@@ -60,3 +62,4 @@ vertex ppHiLab::removeUnbal() {
 	return u;
 }
 
+} // ends namespace

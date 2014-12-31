@@ -15,6 +15,8 @@
 
 #include "augPath.h"
 
+namespace grafalgo {
+
 /** This class encapsulates data and methods for the maximum capacity
  *  variant of the augmenting path algorithm.
  *
@@ -26,5 +28,7 @@ public:
 private:
 	bool	findPath();
 };
+
+} // ends namespace
 
 #endif

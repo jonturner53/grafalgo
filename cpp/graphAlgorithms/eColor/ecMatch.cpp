@@ -1,4 +1,4 @@
-#include "Dlist.h"
+#include "Glist.h"
 #include "Graph.h"
 #include "maxdMatch.h"
 
@@ -16,14 +16,14 @@ namespace grafalgo {
 int ecMatch(Graph& graf1, int color[]) {
 	Graph graf;
 	graf.copyFrom(graf1);
-	Dlist match(graf.maxEdgeNum());
+	Glist<edge> match(graf.maxEdgeNum());
 
 	int c = 0;
 	while (graf.m() != 0) {
 		c++; // color to use next
 		maxdMatch(graf,match);
 		while (!match.empty()) {
-			edge e = match.first();
+			edge e = match.value(match.first());
 			match.removeFirst();
 			color[e] = c;
 			graf.remove(e);

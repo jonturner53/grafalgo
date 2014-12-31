@@ -14,7 +14,7 @@
 #include "List.h"
 #include "Dheap.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** This class encapsulates data and routines used by the augmenting
  *  path algorithms for max flow. This serves as a base class for
@@ -32,5 +32,7 @@ protected:
         int   	augment();
 	virtual bool findPath() = 0; 	///< find augmenting path
 };
+
+} // ends namespace
 
 #endif

@@ -14,6 +14,8 @@
 
 #include "augPath.h"
 
+namespace grafalgo {
+
 /** This class encapsulates data and methods used by the capacity-scaling
  *  variant of the augmenting path algorithm.
  *
@@ -26,5 +28,7 @@ private:
 	flow	scale;		///< scale factor for scaling method
         bool	findPath();
 };
+
+} // ends namespace
 
 #endif

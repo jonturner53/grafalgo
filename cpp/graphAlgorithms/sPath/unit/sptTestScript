@@ -21,18 +21,16 @@ if [ $# -ge 3 ] ; then
 fi;
 echo "testing algorithm: " $algo $lo $hi
 
-echo "testing 10 vertex graph"
-randGraph wdigraph 10 40 $lo $hi 1 1 | testSpt $algo 
-randGraph wdigraph 10 40 $lo $hi 1 1 | testSpt $algo | checkSpt
+echo ""; echo "testing 10 vertex graph"
+randGraph wdigraph 10 40 $lo $hi 1 1 | testSpt $algo show verify
 
-echo "testing 20 vertex graph"
-randGraph wdigraph 20 100 $lo $hi 2 1 | testSpt $algo 
-randGraph wdigraph 20 100 $lo $hi 2 1 | testSpt $algo | checkSpt
+echo ""; echo "testing 20 vertex graph"
+randGraph wdigraph 20 100 $lo $hi 2 1 | testSpt $algo show verify
 
-echo "testing 100 vertex, 2000 edge graphs (10)"
+echo ""; echo "testing 100 vertex, 2000 edge graphs (10)"
 for seed in 3 4 5 6 7 8 9 10 11 12; do
-	randGraph wdigraph 100 2000 $lo $hi $seed 1 | testSpt $algo | checkSpt
+	randGraph wdigraph 100 2000 $lo $hi $seed 1 | testSpt $algo verify
 done
 
-echo "testing 1000 vertex, 100000 edge graph"
-randGraph wgraph 1000 100000 $lo $hi 4 1 | testSpt $algo | checkSpt
+echo ""; echo "testing 1000 vertex, 100000 edge graph"
+randGraph wgraph 1000 100000 $lo $hi 4 1 | testSpt $algo verify

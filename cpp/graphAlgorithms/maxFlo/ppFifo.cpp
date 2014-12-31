@@ -8,6 +8,8 @@
 
 #include "ppFifo.h"
 
+namespace grafalgo {
+
 /** Find maximum flow in a flow graph using the fifo varaint of the 
  *  preflow-push algorithm.
  *  @param fg1 is a reference to the flow graph
@@ -41,3 +43,5 @@ vertex ppFifo::removeUnbal() {
 	if (u != 0) unbal->removeFirst();
 	return u;
 }
+
+} // ends namespace

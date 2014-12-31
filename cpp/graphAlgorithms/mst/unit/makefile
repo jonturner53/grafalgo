@@ -11,7 +11,7 @@ LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/List.h \
 	 ${IDIR}/LlheapSet.h ${IDIR}/Partition.h 
-XFILES = testMst timeMst checkMst
+XFILES = testMst timeMst 
 
 ${OFILES} : ${HFILES}
 ${LIBGA} : ${OFILES}
@@ -28,9 +28,6 @@ testMst: testMst.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 timeMst: timeMst.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-checkMst: checkMst.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 clean:

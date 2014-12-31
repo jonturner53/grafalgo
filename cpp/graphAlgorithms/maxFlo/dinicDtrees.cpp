@@ -8,6 +8,8 @@
 
 #include "dinicDtrees.h"
 
+namespace grafalgo {
+
 /** Find a max flow using Dinic's algorith with dynamic trees.
  *  @param fg1 is a flow graph
  */
@@ -113,3 +115,5 @@ bool dinicDtrees::newPhase() {
 	}
 	return false;
 }
+
+} // ends namespace

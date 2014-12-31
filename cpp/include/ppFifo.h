@@ -15,6 +15,8 @@
 
 #include "prePush.h"
 
+namespace grafalgo {
+
 /** PrePush class encapsulates data and methods used by the FIFO variant
  *  of the preflow-push method for computing maximum flows.
  */
@@ -27,5 +29,7 @@ protected:
 	void    virtual addUnbal(vertex);
         vertex  virtual removeUnbal();
 };
+
+} // ends namespace
 
 #endif

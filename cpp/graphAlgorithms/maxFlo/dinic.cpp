@@ -8,7 +8,7 @@
 
 #include "dinic.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Compute a max flow using Dinic's algorithm.
  *  @param fg1 is a flow graph; possibly with an initial non-zero flow
@@ -65,3 +65,5 @@ bool dinic::findPath(vertex u) {
 	}
 	nextEdge[u] = 0; return false;
 }
+
+} // ends namespace

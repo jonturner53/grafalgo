@@ -8,6 +8,8 @@
 
 #include "shortPath.h"
 
+namespace grafalgo {
+
 /** Find maximum flow using the shortest augment path algorithm.
  *  @param fg1 is a reference to a flow graph, possibly with an
  *  initial non-zero flow
@@ -38,3 +40,5 @@ bool shortPath::findPath() {
 	}
 	return false;
 }
+
+} // ends namespace

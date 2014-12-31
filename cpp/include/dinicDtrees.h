@@ -15,7 +15,7 @@
 #include "Dtrees.h"
 #include "List.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** This class encapsulates data and methods used by the version
  *  of Dinic's algorithm that uses dynamic trees.
@@ -37,5 +37,7 @@ private:
 	int	augment();
 	bool	newPhase();	
 };
+
+} // ends namespace
 
 #endif
