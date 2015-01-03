@@ -11,7 +11,7 @@
 #include "List.h"
 #include "Digraph.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Compute a topological ordering of dg.
  *  @param dg is a reference to an acyclic digraph
@@ -43,3 +43,5 @@ bool toposort(const Digraph& dg, List& vlist) {
 	}
 	return (i == dg.n());
 }
+
+} // ends namespace

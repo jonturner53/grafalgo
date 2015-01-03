@@ -13,7 +13,7 @@
 #include "dinic.h"
 #include "mcfScale.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find minimum cost maximum flow in a weighted flow graph using the
  *  scaling algorithm.
@@ -186,3 +186,4 @@ void mcfScale::augment(vertex t) {
 	return;
 }
 
+} // ends namespace

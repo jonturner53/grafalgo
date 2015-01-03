@@ -1,6 +1,6 @@
 #include "edmondsGMGbi.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find a maximum weighted matching in a bipartite graph.
  *  @param graf1 is a reference to a bipartite graph
@@ -150,3 +150,5 @@ edge edmondsGMGbi::findpath() {
 		h2->addtokeys(-delta); h3->addtokeys(-2*delta);
 	}
 }
+
+} // ends namespace

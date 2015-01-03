@@ -221,3 +221,4 @@ int main(int argc, char* argv[]) {
 		Util::fatal("usage: randGraph type n m scram [..] seed");
 	exit(0);
 }
+

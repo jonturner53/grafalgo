@@ -14,7 +14,7 @@
 #include "Dlist.h"
 #include "Dheap.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** The mcfScale class encapsulates data and methods used by the scaling
  *  version of the augmenting path algorithm for the min cost flow problem.
@@ -37,4 +37,7 @@ private:
 	void    newPhase();     // prepare for a new phase
 	void    initLabels();   // assign initial values to labels
 };
+
+} // ends namespace
+
 #endif

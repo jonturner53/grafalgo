@@ -8,7 +8,7 @@
 
 #include "maxdMatch.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find a matching in the bipartite graph graf that includes an
  *  edge at every vertex of maximum degree.
@@ -134,3 +134,5 @@ edge maxdMatch::findPath() {
 	}
 	return 0;
 }
+
+} // ends namespace

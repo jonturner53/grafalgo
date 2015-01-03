@@ -14,7 +14,7 @@
 #include "List.h"
 #include "Dheap.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** The mcfLcap class encapsulates data and methods used by the least cost
  *  augmenting path algorithm for min cost flow. Use constructor to invoke
@@ -33,5 +33,7 @@ protected:
 	void initLabels();	// initialize labels for transformed costs
 	bool findpath();	// find a least cost augmenting path
 };
+
+} // ends namespace
 
 #endif

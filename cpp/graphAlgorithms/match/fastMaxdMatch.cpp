@@ -8,7 +8,7 @@
 
 #include "fastMaxdMatch.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find a matching in the bipartite graph graf that includes an
  *  edge at every vertex of maximum degree.
@@ -60,7 +60,6 @@ void fastMaxdMatch::init(Graph& graf1) {
 	maxdMatch::init(graf1);
 
 	// allocate storage for added data structures
-	mEdge = new edge[graf->n()+1]; 
 	roots = new Dlist(graf->n());
 	visited = new int[graf->n()+1];    
 	q = new List(graf->maxEdgeNum());
@@ -138,3 +137,5 @@ edge fastMaxdMatch::findPath() {
 	}
 	return e;
 }
+
+} // ends namespace

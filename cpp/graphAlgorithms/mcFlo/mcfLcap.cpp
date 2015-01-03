@@ -8,7 +8,7 @@
 
 #include "mcfLcap.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find minimum cost, flow in weighted flow graph using the least-cost
  *  augmenting path algorithm.
@@ -121,3 +121,5 @@ void mcfLcap::augment(flow& f) {
                 u = v; e = pEdge[u];
         }
 }
+
+} // ends namespace

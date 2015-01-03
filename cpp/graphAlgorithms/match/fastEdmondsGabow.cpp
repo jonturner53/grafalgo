@@ -8,7 +8,7 @@
 
 #include "fastEdmondsGabow.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find a maximum size matching in a graph.
  *  @param graf1 is a graph
@@ -259,3 +259,5 @@ edge fastEdmondsGabow::findpath() {
 	}
 	return 0;
 }
+
+} // ends namespace

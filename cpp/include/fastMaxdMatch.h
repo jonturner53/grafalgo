@@ -13,7 +13,7 @@
 #include "Dlist.h"
 #include "Glist.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** This class encapsulates data and methods used to find a matching
  *  that matches all vertices of maximum degree in a bipartite graph.
@@ -29,7 +29,6 @@ public:
 
 	fastMaxdMatch(Graph&, Glist<edge>&);
 private:
-	edge* 	mEdge;		///< mEdge[u] is matching edge incident to  u
 	Dlist*	roots;		///< list of potential tree roots
 	List*	q;		///< queue of edges used in findpath
 	int*	visited;	///< visited[u]=i if u visited in phase i
@@ -41,5 +40,7 @@ private:
 	void	init(Graph&);
 	void	cleanup();
 };
+
+} // ends namespace
 
 #endif

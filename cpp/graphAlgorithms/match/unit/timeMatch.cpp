@@ -19,8 +19,10 @@
 #include "maxdMatch.h"
 #include "fastMaxdMatch.h"
 
+namespace grafalgo {
 extern void flowMatch(Graph&, Glist<edge>&);
 extern void flowMatchWt(Wgraph&, Glist<edge>&);
+}
 
 using namespace chrono;
 using namespace grafalgo;

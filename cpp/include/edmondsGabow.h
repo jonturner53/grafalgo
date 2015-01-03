@@ -13,7 +13,7 @@
 #include "RlistSet.h"
 #include "Partition.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 class edmondsGabow {
 public: edmondsGabow(Graph&, Glist<edge>&);
@@ -40,5 +40,7 @@ private:
 	void augment(edge);	// augment the matching
 	edge findpath();	// find an altmenting path
 };
+
+} // ends namespace
 
 #endif

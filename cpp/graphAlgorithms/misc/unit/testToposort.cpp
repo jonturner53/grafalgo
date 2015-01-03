@@ -12,9 +12,11 @@
 #include "List.h"
 #include "Digraph.h"
 
-using namespace grafalgo;
-
+namespace grafalgo {
 extern bool toposort(const Digraph&, List&);
+}
+
+using namespace grafalgo;
 
 /** usage: testToposort
  * 

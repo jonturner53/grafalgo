@@ -9,7 +9,7 @@
 #include "mcfCycRed.h"
 #include "dinic.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find minimum cost, maximum flow in a weighted flow graph using
  *  the cycle reduction algorithm. 
@@ -115,3 +115,5 @@ vertex mcfCycRed::cycleCheck() {
 	}
 	return 0;
 }
+
+} // ends namespace

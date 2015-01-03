@@ -8,7 +8,7 @@ CXXFLAGS := ${WARN} ${ARCH} -O2 -std=c++11
 LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 LIBGA = ${LDIR}/lib-ga.a
 
-OFILES = ecMatch.o ecFmatch.o ecAltPath.o
+OFILES = ecMatch.o ecFmatch.o ecVizing.o ecGabow.o
 
 ${OFILES} : ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 

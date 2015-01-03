@@ -19,7 +19,7 @@
 #include "Dtrees.h"
 #include "dinicDtrees.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** This class encapsulates data and methods used by the cycle reduction
  *  algorithm for finding minimum colst flows.
@@ -36,5 +36,7 @@ private:
 	vertex findCyc();	// find negative cost cycle
 	vertex cycleCheck();	// check for cycle in pEdge pointers
 };
+
+} // ends namespace
 
 #endif

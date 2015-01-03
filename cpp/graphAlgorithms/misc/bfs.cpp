@@ -11,7 +11,7 @@
 #include "List.h"
 #include "Graph.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Compute list of vertices in breadth-first order.
  *  @param g is a graph object
@@ -36,3 +36,5 @@ void bfs(Graph& g, vertex s, List& vlist) {
 	cout << endl;
 	delete [] mark;
 }
+
+} // ends namespace

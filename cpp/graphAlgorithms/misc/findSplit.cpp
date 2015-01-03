@@ -11,7 +11,7 @@
 #include "List.h"
 #include "ListPair.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Divide the vertices of a bipartite graph into two independent sets.
  *  @param graf is a bipartite graph
@@ -47,3 +47,5 @@ bool findSplit(const Graph& graf, ListPair& split) {
 	}
 	return true;
 }
+
+} // ends namespace

@@ -10,7 +10,7 @@
 #include "Dlist.h"
 #include "Ddheap.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** This class implements Edmond's algorithm using the specific method
  *  method described by Galil, Micali and Gabow. This is a primal-dual
@@ -39,5 +39,7 @@ private:
 	double augment(edge);	// augment the matching
 	edge findpath();	// find an augmenting path
 };
+
+} // ends namespace
 
 #endif

@@ -8,7 +8,7 @@
 
 #include "hungarian.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 extern bool findSplit(const Graph&, ListPair&);
 
@@ -139,3 +139,5 @@ void hungarian::augment(vertex u) {
 		u = graf->mate(v,pEdge[v]);
 	}
 }
+
+} // ends namespace

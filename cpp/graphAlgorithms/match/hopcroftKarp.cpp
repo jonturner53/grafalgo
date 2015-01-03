@@ -8,7 +8,7 @@
 
 #include "hopcroftKarp.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 extern bool findSplit(const Graph&, ListPair&);
 
@@ -133,3 +133,5 @@ void hopcroftKarp::augment(vertex u) {
 		u = graf->mate(v,pEdge[v]);
 	}
 }
+
+} // ends namespace

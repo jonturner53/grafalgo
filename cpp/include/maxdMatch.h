@@ -4,7 +4,7 @@
 #include "Graph.h"
 #include "Glist.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** This class encapsulates data and methods used to find a matching
  *  that matches all vertices of maximum degree in a bipartite graph.
@@ -30,5 +30,7 @@ protected:
 	void	init(Graph&);
 	void	cleanup();
 };
+
+} // ends namespace
 
 #endif

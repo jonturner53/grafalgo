@@ -8,7 +8,7 @@
 
 #include "edmondsGabow.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 /** Find a maximum size matching.
  *  @param graf1 is an undirected graph
@@ -224,3 +224,5 @@ edge edmondsGabow::findpath() {
 	}
 	return 0;
 }
+
+} // ends namespace

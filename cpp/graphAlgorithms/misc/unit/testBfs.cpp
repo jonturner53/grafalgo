@@ -12,9 +12,11 @@
 #include "List.h"
 #include "Graph.h"
 
-using namespace grafalgo;
-
+namespace grafalgo {
 extern void bfs(Graph&, vertex, List&);
+}
+
+using namespace grafalgo;
 
 /** usage: testBfs
  *  

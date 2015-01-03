@@ -10,7 +10,7 @@ namespace grafalgo {
  *  color[e] is the color assigned to edge e
  *  @return the number of colors used
  */
-int ecAltPath(Graph& graf, int color[]) {
+int ecVizing(Graph& graf, int color[]) {
 	int Delta = graf.maxDegree();
 
 	// avail[u] is a list of available colors at u
@@ -65,11 +65,14 @@ int ecAltPath(Graph& graf, int color[]) {
 		// update available colors at last vertex on path
 		avail[w].remove(c);
 		c = (c == cu ? cv : cu);
-		vertex x = avail[w].first();
-		while (x != 0 && avail[w].next(x) > c)
-			x = avail[w].next(x);
-		if (x == 0) avail[w].addFirst(c);
-		else avail[w].insert(c,x);
+		int ac = avail[w].first();
+		if (c < ac) avail[w].addFirst(c);
+		else {
+			while (ac != 0 && c > avail[w].next(ac))
+				ac = avail[w].next(ac);
+			if (ac == 0) avail[w].addLast(c);
+			else avail[w].insert(c,ac);
+		}
 	}
 	delete [] avail;
 	return Delta;
