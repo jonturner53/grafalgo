@@ -60,7 +60,6 @@ private:
  *  @return the cost of e in the direction from v to mate(v)
  */
 inline flow Mflograph::minFlo(edge e) const { 
-	assert(1 <= e && e <= m());
 	return mflo[e];
 }
 
@@ -71,7 +70,6 @@ inline flow Mflograph::minFlo(edge e) const {
  *  the min flow contraint is set equal to the max capacity
  */
 inline void Mflograph::setMinFlo(edge e, flow c) { 
-	assert(1 <= e && e <= m());
 	mflo[e] = min(c,cap(tail(e),e));
 }
 
@@ -81,7 +79,6 @@ inline void Mflograph::setMinFlo(edge e, flow c) {
  *  @return the unused capacity of e, going from v to mate(v)
  */
 inline flow Mflograph::res(vertex v, edge e) const {
-        assert(1 <= v && v <= n() && 1 <= e && e <= m());
         return tail(e) == v ? floInfo[e].cpy - floInfo[e].flo
 			    : floInfo[e].flo - mflo[e];
 }

@@ -65,79 +65,79 @@ bool test2x(testcase& tc, int rv1, int rv2, string& before, string& after) {
 
 bool run(testcase tc) {
 	int rv;
-	string s, before, after;
+	string before, after;
 	stringstream ss;
 	if (tc.method == "key") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		rv = tc.bstset->key(tc.a1);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		tc.exp = before;
 		return test1(tc,rv,before,after);
 	} else if (tc.method == "find") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		rv = tc.bstset->find(tc.a1);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		tc.exp = before;
 		return test1(tc,rv,before,after);
 	} else if (tc.method == "first") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		rv = tc.bstset->first(tc.a1);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		tc.exp = before;
 		return test1(tc,rv,before,after);
 	} else if (tc.method == "last") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		rv = tc.bstset->last(tc.a1);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		tc.exp = before;
 		return test1(tc,rv,before,after);
-	} else if (tc.method == "suc") {
-		before = tc.bstset->toString(s);
-		rv = tc.bstset->suc(tc.a1);
-		after = tc.bstset->toString(s);
+	} else if (tc.method == "next") {
+		before = tc.bstset->toString();
+		rv = tc.bstset->next(tc.a1);
+		after = tc.bstset->toString();
 		tc.exp = before;
 		return test1(tc,rv,before,after);
-	} else if (tc.method == "pred") {
-		before = tc.bstset->toString(s);
-		rv = tc.bstset->pred(tc.a1);
-		after = tc.bstset->toString(s);
+	} else if (tc.method == "prev") {
+		before = tc.bstset->toString();
+		rv = tc.bstset->prev(tc.a1);
+		after = tc.bstset->toString();
 		tc.exp = before;
 		return test1(tc,rv,before,after);
 	} else if (tc.method == "access") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		rv = tc.bstset->access(tc.a1,tc.a2);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		tc.exp = before;
 		return test2(tc,rv,before,after);
 	} else if (tc.method == "setkey") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		tc.bstset->setkey(tc.a1,tc.a2);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test2(tc,0,before,after);
 	} else if (tc.method == "insert") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		int rv2 = tc.a2;
 		rv = tc.bstset->insert(tc.a1,rv2);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test2x(tc,rv,rv2,before,after);
 		return false;
 	} else if (tc.method == "remove") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		int rv2 = tc.a2;
 		tc.bstset->remove(tc.a1,rv2);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test2x(tc,0,rv2,before,after);
 	} else if (tc.method == "join") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		rv = tc.bstset->join(tc.a1,tc.a2,tc.a3);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test3(tc,rv,before,after);
 		return false;
 	} else if (tc.method == "split") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		BstSet::BstPair rv(0,0);
 		rv = tc.bstset->split(tc.a1,tc.a2);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test2x(tc,rv.t1,rv.t2,before,after);
 	}
 	cout << "\nError: unknown test\n";
@@ -223,12 +223,12 @@ void runTests() {
 	{&bstset, "find",17, 0, 0,18, 0,""},
 	{&bstset,"first", 4, 0, 0,13, 0,""},
 	{&bstset, "last", 4, 0, 0, 1, 0,""},
-	{&bstset,  "suc",10, 0, 0, 9, 0,""},
-	{&bstset,  "suc", 9, 0, 0, 8, 0,""},
-	{&bstset,  "suc", 1, 0, 0, 0, 0,""},
-	{&bstset, "pred", 7, 0, 0, 8, 0,""},
-	{&bstset, "pred",10, 0, 0,11, 0,""},
-	{&bstset, "pred", 4, 0, 0, 5, 0,""},
+	{&bstset, "next",10, 0, 0, 9, 0,""},
+	{&bstset, "next", 9, 0, 0, 8, 0,""},
+	{&bstset, "next", 1, 0, 0, 0, 0,""},
+	{&bstset, "prev", 7, 0, 0, 8, 0,""},
+	{&bstset, "prev",10, 0, 0,11, 0,""},
+	{&bstset, "prev", 4, 0, 0, 5, 0,""},
 	{&bstset,"access",10, 4, 0,11, 0,""},
 	{&bstset,"access",15, 4, 0, 6, 0,""},
 	{&bstset,"access", 5, 4, 0, 0, 0,""},

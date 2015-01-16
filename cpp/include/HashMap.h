@@ -110,15 +110,7 @@ HashMap<K,V,H>::~HashMap() { freeSpace(); }
  *  @param size is number of index values to provide space for
  */
 template<class K, class V, uint32_t (*H)(const K&, int)>
-void HashMap<K,V,H>::makeSpace() {
-	try {
-		values = new V[n()+1];
-	} catch (std::bad_alloc e) {
-		string s = "HashMap::makeSpace: insufficient space for "
-		   	   + to_string(n()) + " index values";
-		throw OutOfSpaceException(s);
-	}
-}
+void HashMap<K,V,H>::makeSpace() { values = new V[n()+1]; }
 
 /** Free dynamic storage used by map. */
 template<class K, class V, uint32_t (*H)(const K&, int)>
@@ -188,11 +180,7 @@ void HashMap<K,V,H>::clear() {
  */
 template<class K, class V, uint32_t (*H)(const K&, int)>
 inline const K& HashMap<K,V,H>::getKey(index x) const {
-	if (!valid(x)) {
-		string s = "HashMap::getValue: invalid index " + to_string(x);
-		throw IllegalArgumentException(s);
-	}
-	return retrieve(x);
+	assert(valid(x)); return retrieve(x);
 }
 
 /** Get the value of the (key,value) pair with a given index.
@@ -202,11 +190,7 @@ inline const K& HashMap<K,V,H>::getKey(index x) const {
  */
 template<class K, class V, uint32_t (*H)(const K&, int)>
 inline V& HashMap<K,V,H>::getValue(index x) const {
-	if (!valid(x)) {
-		string s = "HashMap::getValue: invalid index " + to_string(x);
-		throw IllegalArgumentException(s);
-	}
-	return values[x];
+	assert(valid(x)); return values[x];
 }
 
 /** Get the value associated with a given key.

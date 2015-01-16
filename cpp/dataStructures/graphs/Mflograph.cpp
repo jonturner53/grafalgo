@@ -30,15 +30,7 @@ Mflograph::~Mflograph() { freeSpace(); }
  *  @param numv is the number of vertices to allocate space for
  *  @param maxe is the number of edges to allocate space for
  */
-void Mflograph::makeSpace(int numv, int maxe) {
-	try {
-		mflo = new flow[maxe+1];
-	} catch (std::bad_alloc e) {
-		string s = "Mflograph::makeSpace: insufficient space for "
-		   	   + to_string(maxe) + " min flows";
-		throw OutOfSpaceException(s);
-	}
-}
+void Mflograph::makeSpace(int numv, int maxe) { mflo = new flow[maxe+1]; }
 
 /** Free space used by graph. */
 void Mflograph::freeSpace() { delete [] mflo; }
@@ -49,12 +41,7 @@ void Mflograph::freeSpace() { delete [] mflo; }
  *  @param maxe is the number of edges to allocate space for
  */
 void Mflograph::resize(int numv, int maxe) {
-	freeSpace();
-	Flograph::resize(numv,maxe);
-	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
-		string s = "Mflograph::resize:" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+	freeSpace(); Flograph::resize(numv,maxe); makeSpace(numv,maxe);
 }
 
 /** Expand the space available for this Mflograph.
@@ -62,15 +49,15 @@ void Mflograph::resize(int numv, int maxe) {
  *  @param size is the size of the resized object.
  */
 void Mflograph::expand(int numv, int maxe) {
-	if (numv <= n() && maxe <= maxEdge) return;
-	Mflograph old(this->n(),this->maxEdge); old.copyFrom(*this);
+	if (numv <= n() && maxe <= M()) return;
+	Mflograph old(this->n(),this->M()); old.copyFrom(*this);
 	resize(numv,maxe); this->copyFrom(old);
 }
 
 /** Copy into list from source. */
 void Mflograph::copyFrom(const Mflograph& source) {
 	if (&source == this) return;
-	if (source.n() > n() || source.maxEdge > maxEdge)
+	if (source.n() > n() || source.M() > M())
 		resize(source.n(),source.m());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
@@ -100,19 +87,19 @@ bool Mflograph::readAdjList(istream& in) {
 		isSrc = true;
 	}
 	if (!Util::verify(in,':')) return 0;
-	if (u > n()) expand(u,maxEdge);
+	if (u > n()) expand(u,M());
 	if (isSrc) setSrc(u);
 	if (isSnk) setSnk(u);
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v; edge e;
 		if (!Adt::readIndex(in,v)) return 0;
-		if (v > n()) expand(v,maxEdge);
-		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (v > n()) expand(v,M());
+		if (m() >= M()) expand(n(),max(1,2*m()));
 		if (!Util::verify(in,'#')) {
 			e = join(u,v);
 		} else {
 			if (!Util::readInt(in,e)) return false;
-			if (e >= maxEdge) expand(n(),e);
+			if (e >= M()) expand(n(),e);
 			if (joinWith(u,v,e) != e) return false;
 		}
 		flow capacity, flow, minflow;
@@ -202,7 +189,7 @@ string Mflograph::toDotString() const {
  *  @return the number of the new edge
  */
 edge Mflograph::join(vertex u, vertex v) {
-	assert(1 <= u && u <= n() && 1 <= v && v <= n() && m() < maxEdge);
+	assert(1 <= u && u <= n() && 1 <= v && v <= n() && m() < M());
 	edge e = Flograph::join(u,v); mflo[e] = 0;
 	return e;
 }
@@ -214,7 +201,7 @@ edge Mflograph::join(vertex u, vertex v) {
  *  @return the number of the new edge
  */
 edge Mflograph::joinWith(vertex u, vertex v, edge e) {
-	assert(1 <= u && u <= n() && 1 <= v && v <= n() && e <= maxEdge);
+	assert(1 <= u && u <= n() && 1 <= v && v <= n() && e <= M());
 	Flograph::joinWith(u,v,e); mflo[e] = 0;
 	return e;
 }

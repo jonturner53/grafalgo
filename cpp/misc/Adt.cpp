@@ -10,16 +10,16 @@
 
 namespace grafalgo {
 
-/** Read an item from the input stream.
- *  An item might be an element of a set of vertex in a graph.
- *  By convention, data structures that can hold at most 26 items
+/** Read an index from the input stream.
+ *  An index represent an element of a set of vertex in a graph.
+ *  By convention, data structures that can hold at most 26 indexes
  *  have a string representation that substitutes lower-case
  *  letters for the index values used internally (so 1 becomes 'a',
  *  2 becomes 'b' and so forth). On input, if the next non-space
  *  character is a lower-case letter, we replace 'a' with 1, etc.
  *  If the next non-space character is a digit, we read an integer
  *  and interpret it as an index.
- *  @param in is an open inpust stream
+ *  @param in is an open input stream
  *  @param x is a reference to an index in which the input value is
  *  returned
  *  @return true on success, else false

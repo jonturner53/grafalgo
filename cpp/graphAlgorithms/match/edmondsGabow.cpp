@@ -11,25 +11,25 @@
 namespace grafalgo {
 
 /** Find a maximum size matching.
- *  @param graf1 is an undirected graph
+ *  @param g1 is an undirected graph
  *  @param match is a list in which the matching is returned
  */
-edmondsGabow::edmondsGabow(Graph& graf1, Glist<edge>& match) : graf(&graf1) {
-	blossoms = new Partition(graf->n()); // set per blossom
-	augpath = new RlistSet(graf->m());    // reversible list
-	origin = new vertex[graf->n()+1];    // original vertex for each blossom
-	bridge = new BridgePair[graf->n()+1];// edge that formed a blossom
-	state = new stype[graf->n()+1];	     // state used in path search
-	pEdge = new edge[graf->n()+1];	     // edge to parent in tree
-	mEdge = new edge[graf->n()+1];	     // incident matching edge (if any)
-	mark = new bool[graf->n()+1];	     // mark bits used by nca
+edmondsGabow::edmondsGabow(Graph& g1, Glist<edge>& match) : g(&g1) {
+	blossoms = new Partition(g->n()); // set per blossom
+	augpath = new RlistSet(g->m());    // reversible list
+	origin = new vertex[g->n()+1];    // original vertex for each blossom
+	bridge = new BridgePair[g->n()+1];// edge that formed a blossom
+	state = new stype[g->n()+1];	     // state used in path search
+	pEdge = new edge[g->n()+1];	     // edge to parent in tree
+	mEdge = new edge[g->n()+1];	     // incident matching edge (if any)
+	mark = new bool[g->n()+1];	     // mark bits used by nca
 	
 	// Create initial maximal (not maximum) matching
-	for (vertex u = 1; u <= graf->n(); u++) {
+	for (vertex u = 1; u <= g->n(); u++) {
 		mEdge[u] = 0; mark[u] = false;
 	}
-	for (edge e = graf->first(); e != 0; e = graf->next(e)) {
-		vertex u = graf->left(e); vertex v = graf->right(e);
+	for (edge e = g->first(); e != 0; e = g->next(e)) {
+		vertex u = g->left(e); vertex v = g->right(e);
 		if (mEdge[u] == 0 && mEdge[v] == 0) {
 			mEdge[u] = mEdge[v] = e;
 		}
@@ -39,8 +39,8 @@ edmondsGabow::edmondsGabow(Graph& graf1, Glist<edge>& match) : graf(&graf1) {
 	while((e = findpath()) != 0) augment(e);
 
 	match.clear(); 
-	for (vertex u = 1; u <= graf->n(); u++) {
-		if (mEdge[u] != 0 && u < graf->mate(u,mEdge[u])) {
+	for (vertex u = 1; u <= g->n(); u++) {
+		if (mEdge[u] != 0 && u < g->mate(u,mEdge[u])) {
 			match.addLast(mEdge[u]); 
 		}
 	}
@@ -55,7 +55,7 @@ edmondsGabow::edmondsGabow(Graph& graf1, Glist<edge>& match) : graf(&graf1) {
 void edmondsGabow::augment(edge e) {
 	while (true) {
 		edge e1 = augpath->first(e);
-		mEdge[graf->left(e1)] = mEdge[graf->right(e1)] = e1;
+		mEdge[g->left(e1)] = mEdge[g->right(e1)] = e1;
 		if (e == augpath->first(e)) { return; }
 		e = augpath->pop(e);
 		e = augpath->pop(e);
@@ -76,8 +76,8 @@ vertex edmondsGabow::nca(vertex u, vertex v) {
 	vertex x,px,y,py,result;
 
 	// first pass to find the nca
-	x = u; px = (pEdge[x] != 0 ? graf->mate(x,pEdge[x]) : 0);
-	y = v; py = (pEdge[y] != 0 ? graf->mate(y,pEdge[y]) : 0);
+	x = u; px = (pEdge[x] != 0 ? g->mate(x,pEdge[x]) : 0);
+	y = v; py = (pEdge[y] != 0 ? g->mate(y,pEdge[y]) : 0);
 	while (true) {
 		if (x == y) { result = x; break; }
 		if (px == 0 &&  py == 0) { result = 0; break; }
@@ -85,21 +85,21 @@ vertex edmondsGabow::nca(vertex u, vertex v) {
 			if (mark[x]) { result = x; break; }
 			mark[x] = true;
 			x = origin[blossoms->find(px)];
-			px = (pEdge[x] != 0 ? graf->mate(x,pEdge[x]) : 0);
+			px = (pEdge[x] != 0 ? g->mate(x,pEdge[x]) : 0);
 		}
 		if (py != 0) {
 			if (mark[y]) { result = y; break; }
 			mark[y] = true;
 			y = origin[blossoms->find(py)];
-			py = (pEdge[y] != 0 ? graf->mate(y,pEdge[y]) : 0);
+			py = (pEdge[y] != 0 ? g->mate(y,pEdge[y]) : 0);
 		}
 	}
 	// second pass to clear mark bits
 	x = u, y = v; 
 	while (mark[x] || mark[y]) {
 		mark[x] = mark[y] = false;
-		px = (pEdge[x] != 0 ? graf->mate(x,pEdge[x]) : 0);
-		py = (pEdge[y] != 0 ? graf->mate(y,pEdge[y]) : 0);
+		px = (pEdge[x] != 0 ? g->mate(x,pEdge[x]) : 0);
+		py = (pEdge[y] != 0 ? g->mate(y,pEdge[y]) : 0);
 		x = (px == 0 ? x : origin[blossoms->find(px)]);
 		y = (py == 0 ? y : origin[blossoms->find(py)]);
 	}
@@ -117,17 +117,17 @@ edge edmondsGabow::path(vertex a, vertex b) {
 	if (a == b) return 0;
 	if (state[a] == even) {
 		e1 = pEdge[a];  
-		pa = graf->mate(a,e1);
+		pa = g->mate(a,e1);
 		if (pa == b) return e1;
 		e2 = pEdge[pa]; 
-		p2a = graf->mate(pa,e2);
+		p2a = g->mate(pa,e2);
 		e = augpath->join(e1,e2);
 		e = augpath->join(e,path(p2a,b));
 		return e;
 	} else {
 		e = bridge[a].e; da = bridge[a].v;
 		e = augpath->join(augpath->reverse(path(da,a)),e);
-		e = augpath->join(e,path(graf->mate(da,e),b));
+		e = augpath->join(e,path(g->mate(da,e),b));
 		return e;
 	}
 }
@@ -141,34 +141,34 @@ edge edmondsGabow::findpath() {
 	vertex u,v,vp,w,wp,x,y; edge e, f;
 
 	blossoms->clear();
-	for (u = 1; u <= graf->n(); u++) {
+	for (u = 1; u <= g->n(); u++) {
 		state[u] = (mEdge[u] == 0 ? even : unreached);
 		pEdge[u] = 0; origin[u] = u;
 	}
 
-	List q(graf->m()); // list of edges to be processed in main loop
-	for (e = 1; e <= graf->m(); e++) {
-		if (state[graf->left(e)] == even ||
-		    state[graf->right(e)] == even)
+	List q(g->m()); // list of edges to be processed in main loop
+	for (e = 1; e <= g->m(); e++) {
+		if (state[g->left(e)] == even ||
+		    state[g->right(e)] == even)
 			q.addLast(e);
 	}
 
 	while (!q.empty()) {
 		e = q.first(); q.removeFirst();
-		v = graf->left(e); vp = origin[blossoms->find(v)];
+		v = g->left(e); vp = origin[blossoms->find(v)];
 		if (state[vp] != even) {
-			v = graf->right(e); vp = origin[blossoms->find(v)];
+			v = g->right(e); vp = origin[blossoms->find(v)];
 		}
-		w = graf->mate(v,e); wp = origin[blossoms->find(w)];
+		w = g->mate(v,e); wp = origin[blossoms->find(w)];
 		if (vp == wp) continue; // skip internal edges in a blossom
 		if (state[wp] == unreached) {
 			// w is not contained in a blossom and is matched
 			// so extend tree and add newly eligible edges to q
-			x = graf->mate(w,mEdge[w]);
+			x = g->mate(w,mEdge[w]);
 			state[w] = odd;  pEdge[w] = e;
 			state[x] = even; pEdge[x] = mEdge[w];
-			for (f = graf->firstAt(x); f != 0;
-			     f = graf->nextAt(x,f)) {
+			for (f = g->firstAt(x); f != 0;
+			     f = g->nextAt(x,f)) {
 				if ((f != mEdge[x]) && !q.member(f))
 					q.addLast(f);
 			}
@@ -180,12 +180,12 @@ edge edmondsGabow::findpath() {
 			x = vp;
 			while (pEdge[x] != 0) {
 				x = origin[blossoms->find(
-						graf->mate(x,pEdge[x]))];
+						g->mate(x,pEdge[x]))];
 			}
 			y = wp;
 			while (pEdge[y] != 0) {
 				y = origin[blossoms->find(
-						graf->mate(y,pEdge[y]))];
+						g->mate(y,pEdge[y]))];
 			}
 			e = augpath->join(augpath->reverse(path(v,x)),e);
 			e = augpath->join(e,path(w,y));
@@ -199,12 +199,12 @@ edge edmondsGabow::findpath() {
 					blossoms->find(u))] = u;
 				if (state[x] == odd) {
 					bridge[x].e = e; bridge[x].v = v;
-					for (f = graf->firstAt(x); f != 0;
-					     f = graf->nextAt(x,f))
+					for (f = g->firstAt(x); f != 0;
+					     f = g->nextAt(x,f))
 						if (!q.member(f)) q.addLast(f);
 				}
 				x = origin[blossoms->find(
-						graf->mate(x,pEdge[x]))];
+						g->mate(x,pEdge[x]))];
 			}
 			x = wp;
 			while (x != u) {
@@ -213,12 +213,12 @@ edge edmondsGabow::findpath() {
 					blossoms->find(u))] = u;
 				if (state[x] == odd) {
 					bridge[x].e = e; bridge[x].v = w;
-					for (f = graf->firstAt(x); f != 0;
-					     f = graf->nextAt(x,f))
+					for (f = g->firstAt(x); f != 0;
+					     f = g->nextAt(x,f))
 						if (!q.member(f)) q.addLast(f);
 				}
 				x = origin[blossoms->find(
-						graf->mate(x,pEdge[x]))];
+						g->mate(x,pEdge[x]))];
 			}
 		} 
 	}

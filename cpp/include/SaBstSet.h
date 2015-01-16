@@ -21,6 +21,7 @@ class SaBstSet : public BstSet {
 public: 	SaBstSet(int=26);
 		~SaBstSet();
 	bst	find(index);		
+	bst	findroot(index);		
 	index	access(keytyp,bst&);
 
 	bool	insert(index,bst&);
@@ -29,8 +30,8 @@ public: 	SaBstSet(int=26);
 
 	index	first(bst) = delete;
 	index	last(bst) = delete;
-	index	suc(index) = delete;
-	index	pred(index) = delete;
+	index	next(index) = delete;
+	index	prev(index) = delete;
 protected:
 	index	splay(index);
 	void	splaystep(index);

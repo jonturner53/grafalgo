@@ -12,7 +12,7 @@
 using namespace grafalgo;
 
 void basicTests() {
-	int n1 = 10; Dlist l1(n1);
+	Dlist l1; int n1 = l1.n();
 
 	Utest::assertTrue(l1.empty(), "initial list not empty");
 	cout << "writing empty list: " << l1.toString() << endl;
@@ -32,7 +32,7 @@ void basicTests() {
 	Utest::assertTrue(l1.member(1),
 		"member 1 not reported in list");
 
-	for (int i = 1; i <= n1; i += 2) l1.addLast(i);
+	for (int i = 3; i <= n1; i += 2) l1.addLast(i);
 	s = l1.toString();
 	cout << "writing longer list: " << s << endl;
 	Utest::assertEqual(s, "[a c e g i]",
@@ -69,7 +69,7 @@ void basicTests() {
 
 	Utest::assertTrue(l1.empty(), "empty list reported as non-empty");
 
-	List l2(n1); l2.addFirst(1); l2.addFirst(2); l2.addFirst(3);
+	List l2; l2.addFirst(1); l2.addFirst(2); l2.addFirst(3);
 	Utest::assertEqual(l2.toString(), "[c b a]",
 		"mismatch on list [c b a]");
 	int n2 = 27; l2.expand(n2);
@@ -86,9 +86,6 @@ void basicTests() {
 	Utest::assertEqual(l2.n(),60,"mismatch on size (60)");
 	l2.addLast(121);
 	Utest::assertEqual(l2.n(),121,"mismatch on size (121)");
-
-	while (!l2.empty()) { l2.removeFirst(); }
-	Utest::assertEqual(l2.n(),10,"mismatch on size (10)");
 }
 
 /**

@@ -12,36 +12,24 @@
 namespace grafalgo {
 
 /** Constructor for Dtrees class.
- *  @param size defines the index range for the constructed object.
+ *  @param n defines the index range for the constructed object.
  */
-Dtrees::Dtrees(int size) : Adt(size) {
-	makeSpace(size);
+Dtrees::Dtrees(int n) : Adt(n) {
+	makeSpace(); clear();
 }
 
 /** Destructor for Dtrees class. */
 Dtrees::~Dtrees() { freeSpace(); }
 
 /** Allocate and initialize space for Dtrees.
- *  @param size is number of index values to provide space for
  */
-void Dtrees::makeSpace(int size) {
-	try {
-		successor = new index[size+1];
-		ps = new PathSet(size,successor);
-	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "makeSpace:: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
-		throw OutOfSpaceException(s);
-	}
-	nn = size; clear();
+void Dtrees::makeSpace() {
+	successor = new index[n()+1]; ps = new PathSet(n(),successor);
 }
 
 /** Free dynamic storage used by Dtrees. */
 void Dtrees::freeSpace() {
-	delete ps; //delete [] parentOf; 
-	delete [] successor;
+	delete ps; delete [] successor;
 }
 
 /** Reinitialize data structure, creating single node trees. */
@@ -51,24 +39,20 @@ void Dtrees::clear() {
 }
 
 /** Resize a Dtrees object, discarding old value.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void Dtrees::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "Dtrees::resize::" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+void Dtrees::resize(int n) {
+	freeSpace(); Adt::resize(n); makeSpace(); clear();
 }
 
 /** Expand the space available for this ojbect.
  *  Rebuilds old value in new space.
- *  @param size is the size of the expanded object.
+ *  @param n is the size of the expanded object.
  */
-void Dtrees::expand(int size) {
-	if (size <= n()) return;
+void Dtrees::expand(int n) {
+	if (n <= this->n()) return;
 	Dtrees old(this->n()); old.copyFrom(*this);
-	resize(size); this->copyFrom(old);
+	resize(n); this->copyFrom(old);
 }
 /** Copy another object to this one.
  *  @param source is object to be copied to this one
@@ -91,6 +75,7 @@ void Dtrees::copyFrom(const Dtrees& source) {
  *  a single path.
  */
 path Dtrees::expose(index i) {
+	assert(valid(i));
 	PathNodePair pnPair(0,i);
 	while (pnPair.i != 0) pnPair = splice(pnPair);
 	succ(pnPair.p) = 0;
@@ -118,6 +103,7 @@ Dtrees::PathNodePair Dtrees::splice(PathNodePair pnPair) {
  *  @return the root of the tree containing i
  */
 index Dtrees::findroot(index i) {
+	assert(valid(i));
 	index x;
 	x = ps->findtail(expose(i));
 	succ(x) = 0; // relies on fact that x is canonical element on return
@@ -141,6 +127,7 @@ NodeCostPair Dtrees::findcost(index i) {
  *  path from i to the tree root
  */
 void Dtrees::addcost(index i, cost x) {
+	assert(valid(i));
 	ps->addpathcost(expose(i),x);
 }
 
@@ -151,6 +138,7 @@ void Dtrees::addcost(index i, cost x) {
  *  This operation makes i the parent of t.
  */
 void Dtrees::link(tree t, index i) {
+	assert(valid(t) && valid(i));
 	succ(ps->findpath(t)) = i;
 }
 
@@ -159,6 +147,7 @@ void Dtrees::link(tree t, index i) {
  *  The operation removes the edge from i to its parent.
  */
 void Dtrees::cut(index i) {
+	assert(valid(i));
 	PathSet::PathPair pp = ps->split(i);
 	if (pp.p2 != 0) succ(pp.p2) = succ(i); 
 	if (pp.p1 != 0) succ(pp.p1) = i;

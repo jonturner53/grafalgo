@@ -17,60 +17,48 @@
 namespace grafalgo {
 
 /** Constructor for DkBstSet class.
- *  @param size defines the index range for the constructed object.
+ *  @param n defines the index range for the constructed object.
  */
-DkBstSet::DkBstSet(int size) : BalBstSet(size) {
-	makeSpace(size);
+DkBstSet::DkBstSet(int n) : BalBstSet(n) {
+	makeSpace(); init();
 }
 
 /** Destructor for DkBstSet class. */
 DkBstSet::~DkBstSet() { freeSpace(); }
 
-/** Allocate and initialize space for DkBstSet.
- *  @param size is number of index values to provide space for
- */
-void DkBstSet::makeSpace(int size) {
-	try {
-		dmin = new keytyp[size+1]; dkey = new keytyp[size+1];
-	} catch (std::bad_alloc e) {
-		string s = "makeSpace:: insufficient space for "
-			   + to_string(size) + "index values";
-		throw OutOfSpaceException(s);
-	}
-	nn = size; clear();
+/** Allocate space for DkBstSet.  */
+void DkBstSet::makeSpace() {
+	dmin = new keytyp[n()+1]; dkey = new keytyp[n()+1];
 }
 
 /** Free dynamic storage used by DkBstSet. */
-void DkBstSet::freeSpace() {
-	delete [] dmin; delete [] dkey;
-}
+void DkBstSet::freeSpace() { delete [] dmin; delete [] dkey; }
 
 /** Reinitialize data structure, creating single node trees. */
 void DkBstSet::clear() {
-	SaBstSet::clear();
+	BalBastSet::clear(); init();
+}
+
+/** Initialize data for the DkBstSet subclass. */
+void DkBstSet::init() {
 	for (int i = 0; i <= n(); i++) dmin(i) = dkey(i) = 0; 
 }
 
 /** Resize a DkBstSet object, discarding old value.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void DkBstSet::resize(int size) {
-	freeSpace();
-	SaBstSet::resize(size);
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "DkBstSet::resize::" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+void DkBstSet::resize(int n) {
+	freeSpace(); BalBstSet::resize(n); makeSpace(); init();
 }
 
 /** Expand the space available for this ojbect.
  *  Rebuilds old value in new space.
- *  @param size is the size of the expanded object.
+ *  @param n is the size of the expanded object.
  */
-void DkBstSet::expand(int size) {
-	if (size <= n()) return;
+void DkBstSet::expand(int n) {
+	if (n <= this->n()) return;
 	DkBstSet old(this->n()); old.copyFrom(*this);
-	resize(size); this->copyFrom(old);
+	resize(n); this->copyFrom(old);
 }
 
 /** Copy another object to this one.
@@ -81,7 +69,7 @@ void DkBstSet::copyFrom(const DkBstSet& source) {
 	if (source.n() > n()) resize(source.n());
 	else clear();
 
-	SaBstSet::copyFrom(source);
+	BalBstSet::copyFrom(source);
 	for (index x = 1; x <= n(); x++) {
 		dmin(x) = source.dmin[x]; dkey(x) = source.dkey[x];
 	}
@@ -92,16 +80,16 @@ void DkBstSet::copyFrom(const DkBstSet& source) {
  *  @return the value of the second key at i
  */
 keytyp DkBstSet::key2(index i) {
-	assert(1 <= i && i <= n());
-	splay(i);
+	assert(valid(i));
 	return dmin(i) + dkey(i);
 }
 
 /** Perform a rotation.
- *  @param x is a node in a bst (node in a search tree); the operation does
+ *  @param x is a node in a bst (node in a search tree); the operation
  *  moves x up into its parent's place
  */
 void DkBstSet::rotate(index x) {
+	assert(valid(x) && valid(p(x));
 	index y = p(x); if (y == 0) return;
 	index a, b, c;
 	if (x == left(y)) { a = left(x);  b = right(x); c = right(y); }
@@ -130,8 +118,8 @@ void DkBstSet::rotate(index x) {
  *  if there is no such node, return the node with the smallest key1
  */
 index DkBstSet::access(keytyp k, bst t)  {
-	assert (0 <= t && t <= n());
 	if (t == 0) return 0;
+	assert(valid(t));
 	index v = 0;
 	while (true) {
 		if (k < kee1(t)) {
@@ -152,7 +140,7 @@ index DkBstSet::access(keytyp k, bst t)  {
  *  @param t is the root of a search tree
  */
 void inline DkBstSet::change2(keytyp diff, index i, bst t) {
-        assert(1 <= t && t <= n());
+        assert(valid(i) && valid(t) && p(t) == 0);
 
 	mc = mincost(i);
 

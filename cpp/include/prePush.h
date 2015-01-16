@@ -29,7 +29,7 @@ public:
 		prePush(Flograph&);
 		~prePush();
 protected:
-        Flograph* fg;           ///< graph we're finding flow on
+        Flograph* g;           ///< graph we're finding flow on
 	int 	*d;		///< vector of distance labels
 	int 	*excess; 	///< excess flow entering vertex
 	edge 	*nextedge;	///< pointer into adjacency list

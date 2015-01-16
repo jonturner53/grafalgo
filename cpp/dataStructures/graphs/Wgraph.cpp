@@ -13,7 +13,7 @@ namespace grafalgo {
 
 /** Construct a Wgraph with space for a specified number of vertices and edges.
  *  @param numv is number of vertices in the graph
- *  @param maxEdge1 is the maximum number of edges
+ *  @param maxe is the maximum number of edges
  */
 Wgraph::Wgraph(int numv, int maxe) : Graph(numv,maxe) {
 	makeSpace(numv, maxe);
@@ -26,15 +26,7 @@ Wgraph::~Wgraph() { freeSpace(); }
  *  @param numv is the number of vertices to allocate space for
  *  @param maxe is the number of edges to allocate space for
  */
-void Wgraph::makeSpace(int numv, int maxe) {
-	try {
-		wt = new int[maxe+1];
-	} catch (std::bad_alloc e) {
-		string s = "Wgraph::makeSpace: insufficient space for "
-		   + to_string(maxe) + " edge weights";
-		throw OutOfSpaceException(s);
-	}
-}
+void Wgraph::makeSpace(int numv, int maxe) { wt = new int[maxe+1]; }
 
 /** Free space used by graph. */
 void Wgraph::freeSpace() { delete [] wt; }
@@ -45,12 +37,7 @@ void Wgraph::freeSpace() { delete [] wt; }
  *  @param maxe is the number of edges to allocate space for
  */
 void Wgraph::resize(int numv, int maxe) {
-	freeSpace();
-	Graph::resize(numv,maxe);
-	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
-		string s = "Wgraph::resize:" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+	freeSpace(); Graph::resize(numv,maxe); makeSpace(numv,maxe); 
 }
 
 /** Expand the space available for this Wgraph.
@@ -58,15 +45,15 @@ void Wgraph::resize(int numv, int maxe) {
  *  @param size is the size of the resized object.
  */
 void Wgraph::expand(int numv, int maxe) {
-	if (numv <= n() && maxe <= maxEdge) return;
-	Wgraph old(this->n(),this->maxEdge); old.copyFrom(*this);
+	if (numv <= n() && maxe <= M()) return;
+	Wgraph old(this->n(),this->M()); old.copyFrom(*this);
 	resize(numv,maxe); this->copyFrom(old);
 }
 
 /** Copy into list from source. */
 void Wgraph::copyFrom(const Wgraph& source) {
 	if (&source == this) return;
-	if (source.n() > n() || source.m() > maxEdge)
+	if (source.n() > n() || source.m() > M())
 		resize(source.n(),source.m());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
@@ -101,12 +88,12 @@ bool Wgraph::readAdjList(istream& in) {
 		vertex v; edge e;
 		if (!Adt::readIndex(in,v)) return false;
 		if (v > n()) expand(v,m());
-		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (m() >= M()) expand(n(),max(1,2*m()));
 		if (!Util::verify(in,'#')) {
 			if (u < v) e = join(u,v);
 		} else {
 			if (!Util::readInt(in,e)) return false;
-			if (e >= maxEdge) expand(n(),e);
+			if (e >= M()) expand(n(),e);
 			if (u < v) {
 				if (joinWith(u,v,e) != e) return false;
 			} else {

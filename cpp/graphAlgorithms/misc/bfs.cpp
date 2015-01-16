@@ -20,7 +20,7 @@ namespace grafalgo {
  *  in breadth-first order, starting from s
  */
 void bfs(Graph& g, vertex s, List& vlist) {
-	vertex u,v; edge e; List q(g.n(),false);
+	vertex u,v; edge e; List q(g.n());
 	bool *mark = new bool[g.n()+1];
 	for (u = 1; u <= g.n(); u++) mark[u] = false;
 	q.addLast(s); mark[s] = true;

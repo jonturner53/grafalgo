@@ -1,8 +1,10 @@
-// Header file for data structure that maintains a staircase function.
-// Main operations include testing for the minimum value in a
-// specified range and increasing (or decreasing) the value
-// across all points in a specified range.
-// x values are required to be non-negative.
+/** @file StarFunc.cpp
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
 
 #ifndef STAIRFUNC_H
 #define STAIRFUNC_H
@@ -31,7 +33,7 @@ public: 	StairFunc(int);
 	void	expand(int);
 	void	copyFrom(const StairFunc&);
 
-	static	const int MAXY = Util::BIGINT32-1; // max allowed key2 value
+	static	const int MAXY = Util::INT_MAX-1; // max allowed key2 value
 	int	value(int); 		    // return y value for given x
 	int	findmin(int,int); 	    // return min value in given range
 	void	change(int,int,int);	    // change values in range by delta
@@ -42,7 +44,7 @@ protected:
 	DkBstSet *points;		// data structure for "change points"
 	List	*free;			// list of unused items in points
 
-	void	makeSpace(int);
+	void	makeSpace();
 	void	freeSpace();
 };
 

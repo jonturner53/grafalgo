@@ -48,7 +48,6 @@ public:		FheapSet(int=26);
 	string  toString() const;
 	virtual string heap2string(fheap) const;
 
-	int	mrCount;	// performance counter
 protected:
 	static const int MAXRANK = 32;
 	struct Fnode {			///< node object
@@ -63,7 +62,7 @@ protected:
 	List	*tmpq;			///< temporary queue
 
 	// internal helper methods
-	void	makeSpace(int);
+	void	makeSpace();
 	void	freeSpace();
 	fheap	mergeRoots(fheap);
 };
@@ -79,7 +78,7 @@ inline keytyp FheapSet::key(index i) const { return node[i].kee; }
  *  @return the key of i
  */
 inline void FheapSet::setKey(index i, keytyp k) {
-	assert(sibs->suc(i) == i && node[i].p == 0 && node[i].c == 0);
+	assert(sibs->next(i) == i && node[i].p == 0 && node[i].c == 0);
 	node[i].kee = k;
 }
 

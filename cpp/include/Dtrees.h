@@ -57,7 +57,7 @@ private:
 	path	expose(index);
 	PathNodePair splice(PathNodePair);
 
-	void	makeSpace(int);
+	void	makeSpace();
 	void	freeSpace();
 };
 

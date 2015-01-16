@@ -11,29 +11,20 @@
 namespace grafalgo {
 
 /** Constructor for SaTreeMap class.
- *  @param size defines the index range for the constructed object.
+ *  @param n defines the index range for the constructed object.
  */
-SaTreeMap::SaTreeMap(int size) : Adt(size) {
-	makeSpace(size);
+SaTreeMap::SaTreeMap(int n) : Adt(n) {
+	makeSpace(); init();
 }
 
 /** Destructor for SaTreeMap class. */
 SaTreeMap::~SaTreeMap() { freeSpace(); }
 
-/** Allocate and initialize space for SaTreeMap.
- *  @param size is number of index values to provide space for
- */
-void SaTreeMap::makeSpace(int size) {
-	try {
-		st = new SaBstSet(size);
-		values = new uint32_t[size+1];
-		nodes = new ListPair(size);
-	} catch (std::bad_alloc e) {
-		string s = "makeSpace:: insufficient space for "
-			   + to_string(size) + "index values";
-		throw OutOfSpaceException(s);
-	}
-	root = 0; nn = size; clear();
+/** Allocate and initialize space for SaTreeMap.  */
+void SaTreeMap::makeSpace() {
+	st = new SaBstSet(n());
+	values = new uint32_t[n()+1];
+	nodes = new ListPair(n());
 }
 
 /** Free dynamic storage used by SaTreeMap. */
@@ -47,25 +38,22 @@ void SaTreeMap::clear() {
 }
 
 /** Resize a SaTreeMap object, discarding old value.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void SaTreeMap::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "SaTreeMap::resize::" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+void SaTreeMap::resize(int n) {
+	freeSpace(); Adt::resize(n); makeSpace(); init();
 }
 
 /** Expand the space available for this ojbect.
  *  Rebuilds old value in new space.
- *  @param size is the size of the expanded object.
+ *  @param n is the size of the expanded object.
  */
-void SaTreeMap::expand(int size) {
-	if (size <= n()) return;
+void SaTreeMap::expand(int n) {
+	if (n <= this->n()) return;
 	SaTreeMap old(this->n()); old.copyFrom(*this);
-	resize(size); this->copyFrom(old);
+	resize(n); this->copyFrom(old);
 }
+
 /** Copy another object to this one.
  *  @param source is object to be copied to this one
  */

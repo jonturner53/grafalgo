@@ -11,7 +11,7 @@ LIBS := ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Wdigraph.h ${IDIR}/List.h \
 	 ${IDIR}/Dheap.h
-OFILES = dijkstra.o bfScan.o dijkstraAll.o floyd.o
+OFILES = dijkstra.o bellmanMoore.o edmondsKarp.o floyd.o
 
 ${OFILES} : ${HFILES}
 

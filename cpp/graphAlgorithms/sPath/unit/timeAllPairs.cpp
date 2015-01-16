@@ -12,7 +12,7 @@
 #include "Rgraph.h"
 
 namespace grafalgo {
-extern void dijkstraAll(Wdigraph&, int**, vertex**);
+extern void edmondsKarp(Wdigraph&, int**, vertex**);
 extern void floyd(Wdigraph&, int**, vertex**);
 }
 
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 			dist[u] = new int[n+1];
 			mid[u] = new vertex[n+1];
 		}
-	} else if (strcmp(argv[1],"dijkstra") == 0) {
+	} else if (strcmp(argv[1],"edmondsKarp") == 0) {
 		dist = new int*[n+1];
 		parent = new vertex*[n+1];
 		for (u = 1; u <= n; u++) {
@@ -71,15 +71,15 @@ int main(int argc, char *argv[]) {
 	nanoseconds diff;
 	int64_t avgTime, minTime, maxTime;
 	avgTime = maxTime = 0; minTime = ((int64_t) 1) << 62;
-	Wdigraph dig;
+	Wdigraph g;
 	for (i = 1; i <= reps; i++) {
-		Rgraph::digraph(dig,n,m); Rgraph::setLengths(dig,lo,hi);
+		Rgraph::digraph(g,n,m); Rgraph::setLengths(g,lo,hi);
 		if (strcmp(argv[1],"floyd") == 0) {
 			t1 = high_resolution_clock::now();
-			floyd(dig,dist,mid);
-		} else if (strcmp(argv[1],"dijkstra") == 0) {
+			floyd(g,dist,mid);
+		} else if (strcmp(argv[1],"edmondsKarp") == 0) {
 			t1 = high_resolution_clock::now();
-			dijkstraAll(dig,dist,parent);
+			edmondsKarp(g,dist,parent);
 		}
 		t2 = high_resolution_clock::now();
 		diff = t2 - t1;

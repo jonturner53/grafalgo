@@ -9,7 +9,7 @@
 #include "List.h"
 #include "Dlist.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 class altPath {
 public:
@@ -22,5 +22,7 @@ private:
 	void augment(edge);	// augment the matching
 	edge findPath();	// find an altmenting path
 };
+
+} // ends namespace
 
 #endif

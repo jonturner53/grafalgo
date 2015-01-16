@@ -24,15 +24,7 @@ Wdigraph::~Wdigraph() { freeSpace(); }
  *  @param numv is the number of vertices to allocate space for
  *  @param maxe is the number of edges to allocate space for
  */
-void Wdigraph::makeSpace(int numv, int maxe) {
-	try {
-		len = new int[maxe+1];
-	} catch (std::bad_alloc e) {
-		string s = "Wdigraph::makeSpace: insufficient space for "
-			   + to_string(maxe) + " edge lengths";
-		throw OutOfSpaceException(s);
-	}
-}
+void Wdigraph::makeSpace(int numv, int maxe) { len = new int[maxe+1]; }
 
 /** Free space used by graph. */
 void Wdigraph::freeSpace() { delete [] len; }
@@ -43,12 +35,7 @@ void Wdigraph::freeSpace() { delete [] len; }
  *  @param maxe is the number of edges to allocate space for
  */
 void Wdigraph::resize(int numv, int maxe) {
-	freeSpace();
-	Digraph::resize(numv,maxe);
-	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
-		string s = "Wdigraph::resize:" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+	freeSpace(); Digraph::resize(numv,maxe); makeSpace(numv,maxe); 
 }
 
 /** Expand the space available for this Wdigraph.
@@ -56,15 +43,15 @@ void Wdigraph::resize(int numv, int maxe) {
  *  @param size is the size of the resized object.
  */
 void Wdigraph::expand(int numv, int maxe) {
-	if (numv <= n() && maxe <= maxEdge) return;
-	Wdigraph old(this->n(),this->maxEdge); old.copyFrom(*this);
+	if (numv <= n() && maxe <= M()) return;
+	Wdigraph old(this->n(),this->M()); old.copyFrom(*this);
 	resize(numv,maxe); this->copyFrom(old);
 }
 
 /** Copy into list from source. */
 void Wdigraph::copyFrom(const Wdigraph& source) {
 	if (&source == this) return;
-	if (source.n() > n() || source.m() > maxEdge)
+	if (source.n() > n() || source.m() > M())
 		resize(source.n(),source.m());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
@@ -88,12 +75,12 @@ bool Wdigraph::readAdjList(istream& in) {
 		vertex v; edge e;
 		if (!Adt::readIndex(in,v)) return false;
 		if (v > n()) expand(v,m());
-		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (m() >= M()) expand(n(),max(1,2*m()));
 		if (!Util::verify(in,'#')) {
 			e = join(u,v);
 		} else {
 			if (!Util::readInt(in,e)) return false;
-			if (e >= maxEdge) expand(n(),e);
+			if (e >= M()) expand(n(),e);
 			if (joinWith(u,v,e) != e) return false;
 		}
 		int w;

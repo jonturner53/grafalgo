@@ -11,7 +11,7 @@
 
 namespace grafalgo {
 extern bool dijkstra(Wdigraph&, vertex, edge*, edgeLength*);
-extern bool bfScan(Wdigraph&, vertex, edge*, edgeLength*);
+extern bool bellmanMoore(Wdigraph&, vertex, edge*, edgeLength*);
 }
 
 using namespace grafalgo;
@@ -33,24 +33,24 @@ bool checkSpt(Wdigraph&, vertex, edge*, edgeLength*);
  *  checked for correctness, potentially producing error messages
  */
 int main(int argc, char *argv[]) {
-	Wdigraph dig; cin >> dig;
+	Wdigraph g; cin >> g;
 	
 	if (argc < 2)
 		Util::fatal("usage: spt method [src] [show verify]");
 	vertex s = 1;
 	if (argc >= 3 && sscanf(argv[2],"%d",&s) != 1) s = 1;
 
-	edge pEdge[dig.n()+1]; edgeLength d[dig.n()+1];
+	edge pEdge[g.n()+1]; edgeLength d[g.n()+1];
 
 	if (strcmp(argv[1],"dijkstra") == 0)
-		dijkstra(dig,s,pEdge,d);
-	else if (strcmp(argv[1],"bfScan") == 0)
-		bfScan(dig,s,pEdge,d);
+		dijkstra(g,s,pEdge,d);
+	else if (strcmp(argv[1],"bellmanMoore") == 0)
+		bellmanMoore(g,s,pEdge,d);
 	else
 		Util::fatal("spt: undefined method");
 
 	edgeLength sum = 0;
-	for (vertex u = 1; u <= dig.n(); u++) sum += d[u];
+	for (vertex u = 1; u <= g.n(); u++) sum += d[u];
 	cout << "distance sum is " << sum << endl;
 
 	bool show = false; bool verify = false;
@@ -60,20 +60,20 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (show) {
-		cout << dig << endl;
-		for (vertex u = 1; u <= dig.n(); u++)
+		cout << g << endl;
+		for (vertex u = 1; u <= g.n(); u++)
 			cout << d[u] << " ";
 		cout << endl;
-		for (vertex u = 1; u <= dig.n(); u++)
-			if (u != s) cout << dig.edge2string(pEdge[u]) << " ";
+		for (vertex u = 1; u <= g.n(); u++)
+			if (u != s) cout << g.edge2string(pEdge[u]) << " ";
 		cout << endl;
 	}
 
-	if (verify) checkSpt(dig, s, pEdge, d);
+	if (verify) checkSpt(g, s, pEdge, d);
 }
 
 /** Verify a shortest path tree.
- *  @param dig is a directed graph
+ *  @param g is a directed graph
  *  @param s is the source vertex
  *  @param pEdge is an array of edges that defines the shortest path tree;
  *  specifically, pEdge[u] is the edge from the parent of u in the tree
@@ -81,10 +81,10 @@ int main(int argc, char *argv[]) {
  *  that is, d[u] is the distance from the source to u
  *  @return true if sptree is a shortest path tree
  */
-bool checkSpt(Wdigraph& dig, vertex s, edge* pEdge, edgeLength* d) {
+bool checkSpt(Wdigraph& g, vertex s, edge* pEdge, edgeLength* d) {
 	bool status = true;
 	// source checks
-	if (s < 0 || s > dig.n()) {
+	if (s < 0 || s > g.n()) {
 		cout << "invalid source vertex " << s << endl;
 		return false;
 	}
@@ -94,35 +94,35 @@ bool checkSpt(Wdigraph& dig, vertex s, edge* pEdge, edgeLength* d) {
 	}
 
 	// basic validity tests for pEdge
-	for (vertex u = 1; u <= dig.n(); u++) {
+	for (vertex u = 1; u <= g.n(); u++) {
 		edge e = pEdge[u];
 		if (e == 0 && u == s) continue;
-		if (!dig.validEdge(e)) {
-			cout << "pEdge[" << dig.index2string(u) << "]=" << e
+		if (!g.validEdge(e)) {
+			cout << "pEdge[" << g.index2string(u) << "]=" << e
 			     << " is not a valid edge number\n";
 			return false;
 		}
-		if (dig.head(e) != u) {
-			cout << "pEdge[" << dig.index2string(u) << "]="
-			     << dig.edge2string(e) << " does not point to "
-			     << dig.index2string(u) << endl;
+		if (g.head(e) != u) {
+			cout << "pEdge[" << g.index2string(u) << "]="
+			     << g.edge2string(e) << " does not point to "
+			     << g.index2string(u) << endl;
 			return false;
 		}
 	}
 
 	// verify that pEdge paths lead back to s and that reported
 	// distances match path lengths
-	for (vertex u = 1; u <= dig.n(); u++) {
+	for (vertex u = 1; u <= g.n(); u++) {
 		if (u == s) continue;
 		int cnt = 0; vertex v; edgeLength plen = 0;
-		for (v = u; pEdge[v] != 0; v = dig.tail(pEdge[v])) {
-			if (cnt++ > dig.n()) {
+		for (v = u; pEdge[v] != 0; v = g.tail(pEdge[v])) {
+			if (cnt++ > g.n()) {
 				cout << "detected cycle in parent pointers "
-				        "starting from " << dig.index2string(u)
+				        "starting from " << g.index2string(u)
 				     << endl;
 				return false;
 			}
-			plen += dig.length(pEdge[v]);
+			plen += g.length(pEdge[v]);
 		}
 		if (v != s) {
 			if (s != 0) {
@@ -131,24 +131,24 @@ bool checkSpt(Wdigraph& dig, vertex s, edge* pEdge, edgeLength* d) {
 				return false;
 			}
 			if (d[v] != 0) {
-				cout << "tree root " << dig.index2string(u)
+				cout << "tree root " << g.index2string(u)
 				     << " has non-zero distance " << d[u]
 				     << endl;
 				status = false;
 			}
 		}
 		if (plen != d[u]) {
-			cout << "d[" << dig.index2string(u) << "]=" << d[u]
+			cout << "d[" << g.index2string(u) << "]=" << d[u]
 			     << " but path length is " << plen << endl;
 			status = false;
 		}
 	}
 
 	// verify shortest path tree condition for all edges
-	for (edge e = dig.first(); e != 0; e = dig.next(e)) {
-		vertex u = dig.tail(e); vertex v = dig.head(e);
-		if (d[v] > d[u] + dig.length(e)) {
-			cout << "edge " << dig.edge2string(e) << " violates "
+	for (edge e = g.first(); e != 0; e = g.next(e)) {
+		vertex u = g.tail(e); vertex v = g.head(e);
+		if (d[v] > d[u] + g.length(e)) {
+			cout << "edge " << g.edge2string(e) << " violates "
 			        "shortest path tree condition\n";
 			status = false;
 		}

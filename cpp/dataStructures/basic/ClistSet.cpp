@@ -10,9 +10,9 @@
 namespace grafalgo {
 
 /** Constructor for ClistSet. 
- *  @param n1 defines the set of integers 1..n on which this object is defined
+ *  @param n defines the set of integers 1..n on which this object is defined
  */
-ClistSet::ClistSet(int n1) : Adt(n1) { makeSpace(n()); }
+ClistSet::ClistSet(int n) : Adt(n) { makeSpace(); clear(); }
 
 /** Destructor for ClistSet */
 ClistSet::~ClistSet() { freeSpace(); }
@@ -20,30 +20,17 @@ ClistSet::~ClistSet() { freeSpace(); }
 /** Allocate and initialize space for ClistSet.
  *  @param size is number of index values to provide space for
  */
-void ClistSet::makeSpace(int size) {
-	try { node = new lnode[size+1]; } catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "ClistSet::makeSpace: insufficient space for "
-		   << size << "index values";
-		string s = ss.str();
-		throw OutOfSpaceException(s);
-	}
-	nn = size; clear();
-}
+void ClistSet::makeSpace() { node = new lnode[n()+1]; }
 
 /** Free dynamic storage used by ClistSet. */
 void ClistSet::freeSpace() { delete [] node; }
 
 /** Resize a ClistSet object.
  *  The old value is discarded.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void ClistSet::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "ClistSet::resize:" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+void ClistSet::resize(int n) {
+	freeSpace(); Adt::resize(n); makeSpace(); clear();
 }
 
 /** Expand the space available for this ClistSet.
@@ -60,7 +47,7 @@ void ClistSet::expand(int size) {
  */
 void ClistSet::clear() {
 	for (index i = 0; i <= n(); i++) {
-		node[i].next = node[i].prev = i;
+		node[i].succ = node[i].pred = i;
 	}
 }
 
@@ -69,9 +56,9 @@ void ClistSet::copyFrom(const ClistSet& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
 	else clear();
-	for (index x = 0; x <= source.n(); x++) {
-		node[x].next = source.suc(x);
-		node[x].prev = source.pred(x);
+	for (index x = 1; x <= source.n(); x++) {
+		node[x].succ = source.next(x);
+		node[x].pred = source.prev(x);
 	}
 }
 
@@ -80,10 +67,10 @@ void ClistSet::copyFrom(const ClistSet& source) {
  *  @param i is an index
  */
 void ClistSet::remove(index i) {
-	assert(0 <= i && i <= n());
-	node[node[i].prev].next = node[i].next;
-	node[node[i].next].prev = node[i].prev;
-	node[i].next = node[i].prev = i;
+	assert(valid(i));
+	node[node[i].pred].succ = node[i].succ;
+	node[node[i].succ].pred = node[i].pred;
+	node[i].succ = node[i].pred = i;
 }
 
 
@@ -95,11 +82,11 @@ void ClistSet::remove(index i) {
  *  responsiblity to ensure this doesn't happen
  */
 void ClistSet::join(index i, index j) {
-	assert(0 <= i && i <= n() && 0 <= j && j <= n());
 	if (i == 0 || j == 0) return;
-	node[node[i].next].prev = node[j].prev;
-	node[node[j].prev].next = node[i].next;
-	node[i].next = j; node[j].prev = i;
+	assert(valid(i) && valid(j));
+	node[node[i].succ].pred = node[j].pred;
+	node[node[j].pred].succ = node[i].succ;
+	node[i].succ = j; node[j].pred = i;
 }
 
 /** Produce a string representation of the object.
@@ -107,26 +94,25 @@ void ClistSet::join(index i, index j) {
  */
 string ClistSet::toString() const {
 	index i, j; string s;
-	int *mark = new int[n()+1];
+	bool mark[n()+1];
 	s = "{";
 	int cnt = 0;
-	for (i = 1; i <= n(); i++) mark[i] = 0;
+	for (i = 1; i <= n(); i++) mark[i] = false;
 	for (i = 1; i <= n(); i++) {
 		if (mark[i]) continue; 
-		mark[i] = 1;
-		if (node[i].next == i) continue;
+		mark[i] = true;
+		if (node[i].succ == i) continue;
 		if (++cnt > 1) s += ", ";
 		s += "[";
 		s += Adt::index2string(i);
-		for (j = node[i].next; j != i; j = node[j].next) {
-			mark[j] = 1;
+		for (j = node[i].succ; j != i; j = node[j].succ) {
+			mark[j] = true;
 			s += " ";
 			s += Adt::index2string(j);
 		}
 		s += "]";
 	}
 	s += "}";
-	delete [] mark;
 	return s;
 }
 

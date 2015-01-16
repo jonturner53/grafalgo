@@ -20,8 +20,6 @@ namespace grafalgo {
  */
 Flograph::Flograph(int numv, int maxe, int s1, int t1) 
 	: Digraph(numv, maxe), s(s1), t(t1) {
-        assert(n() >= 2 && maxEdge >= 0 && 1 <= s && s <= n() 
-		&& 1 <= t && t <= n() && s != t);
 	makeSpace(numv,maxe);
 }
 
@@ -32,13 +30,7 @@ Flograph::~Flograph() { freeSpace(); }
  *  @param maxe is the number of edges to allocate space for
  */
 void Flograph::makeSpace(int numv, int maxe) {
-	try {
-		floInfo = new FloInfo[maxe+1];
-	} catch (std::bad_alloc e) {
-		string s = "Flograph::makeSpace: insufficient space for "
-			   + to_string(maxe) + " edge weights";
-		throw OutOfSpaceException(s);
-	}
+	floInfo = new FloInfo[maxe+1];
 }
 
 /** Free space used by graph. */
@@ -50,12 +42,7 @@ void Flograph::freeSpace() { delete [] floInfo; }
  *  @param maxe is the number of edges to allocate space for
  */
 void Flograph::resize(int numv, int maxe) {
-	freeSpace();
-	Digraph::resize(numv,maxe);
-	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
-		string s = "Flograph::resize:" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+	freeSpace(); Digraph::resize(numv,maxe); makeSpace(numv,maxe);
 }
 
 /** Expand the space available for this Flograph.
@@ -63,16 +50,16 @@ void Flograph::resize(int numv, int maxe) {
  *  @param size is the size of the resized object.
  */
 void Flograph::expand(int numv, int maxe) {
-	if (numv <= n() && maxe <= maxEdge) return;
-	Flograph old(this->n(),this->maxEdge); old.copyFrom(*this);
+	if (numv <= n() && maxe <= M()) return;
+	Flograph old(this->n(),this->M()); old.copyFrom(*this);
 	resize(numv,maxe); this->copyFrom(old);
 }
 
 /** Copy into list from source. */
 void Flograph::copyFrom(const Flograph& source) {
 	if (&source == this) return;
-	if (source.n() > n() || source.maxEdgeNum() > maxEdge)
-		resize(source.n(),source.maxEdgeNum());
+	if (source.n() > n() || source.M() > M())
+		resize(source.n(),source.M());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
 		joinWith(source.tail(e),source.head(e),e);
@@ -110,21 +97,21 @@ bool Flograph::readAdjList(istream& in) {
 		isSrc = true;
 	}
 	if (!Util::verify(in,':')) return false;
-	if (u > n()) expand(u,maxEdge);
+	if (u > n()) expand(u,M());
 	if (isSrc) setSrc(u);
 	if (isSnk) setSnk(u);
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v; edge e;
 		if (!Adt::readIndex(in,v)) return false;
 		if (v > n()) { 
-			expand(v,maxEdge);
+			expand(v,M());
 		}
-		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (m() >= M()) expand(n(),max(1,2*m()));
 		if (!Util::verify(in,'#')) {
 			e = join(u,v);
 		} else {
 			if (!Util::readInt(in,e)) return false;
-			if (e >= maxEdge) expand(n(),e);
+			if (e >= M()) expand(n(),e);
 			if (joinWith(u,v,e) != e) return false;
 		}
 		int capacity, flow;
@@ -143,7 +130,6 @@ bool Flograph::readAdjList(istream& in) {
  *  @return number of new edge from u to v
  */
 edge Flograph::join(vertex u, vertex v) {
-	assert(1 <= u && u <= n() && 1 <= v && v <= n() && m() < maxEdge);
 	edge e = Digraph::join(u,v); setFlow(e,0);
 	return e;
 }
@@ -174,14 +160,12 @@ void Flograph::clearFlow() {
 void Flograph::addFlow(vertex v, edge e, flow ff) {
 	if (tail(e) == v) {
 		if (ff + flo(e) > cpy(e) || ff + flo(e) < 0) {
-cerr << "addFlow(" << v << "," << e << "," << ff << ") cap=" << cpy(e) << endl;
 			Util::fatal("addflow: requested flow outside allowed "
 				    "range");
 		}
 		flo(e) += ff;
 	} else {
 		if (flo(e) - ff < 0 || flo(e) - ff > cpy(e)) {
-cerr << "addFlow(" << v << "," << e << "," << ff << ") cap=" << cpy(e) << endl;
 			Util::fatal("addflow: requested flow outside allowed "
 				    "range");
 		}

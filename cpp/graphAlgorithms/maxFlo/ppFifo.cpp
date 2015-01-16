@@ -12,12 +12,12 @@ namespace grafalgo {
 
 /** Find maximum flow in a flow graph using the fifo varaint of the 
  *  preflow-push algorithm.
- *  @param fg1 is a reference to the flow graph
+ *  @param g1 is a reference to the flow graph
  *  @param batch is a boolean which determines if the algorithm uses
  *  batch relabeling (batch=true) or incremental relabeling (batch=false)
  */
-ppFifo::ppFifo(Flograph& fg1, bool batch) : prePush(fg1) {
-	unbal = new List(fg->n());
+ppFifo::ppFifo(Flograph& g1, bool batch) : prePush(g1) {
+	unbal = new List(g->n());
 	if (batch) maxFlowBatch();
 	else	   maxFlowIncr();
 }

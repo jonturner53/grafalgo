@@ -3,9 +3,9 @@
 # usage: sptTestScript algorithm lo hi
 #
 # Run unit test on series of random graphs, with a specified algorithm.
-# The algorithm argument is one of dijkstra, bfScan. The lo and hi arguments,
-# specify the range of edge lengths. For bfScan, negative edge lengths can
-# be used.
+# The algorithm argument is one of dijkstra, bellmanMoore.
+# The lo and hi arguments, specify the range of edge lengths.
+# For bellmanMoore, negative edge lengths can be used.
 #
 algo="dijkstra"
 if [ $# -ge 1 ] ; then

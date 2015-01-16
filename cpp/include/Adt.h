@@ -10,7 +10,6 @@
 #define ADT_H
 
 #include "stdinc.h"
-#include "Exceptions.h"
 #include "Util.h"
 
 using namespace std;
@@ -32,7 +31,7 @@ typedef int32_t position;
  *  in a bounded range 1..N, for some value of N.
  *
  *  The use of index values has a couple advantages over pointers.
- *  First, index values can serve as common "names" for
+ *  First, index values can serve as common "handles" for
  *  items in multiple data structures, eliminating the need to have
  *  explicit mappings to relate such items. As one example,
  *  when graph vertices are identified by indexes, we can maintain
@@ -45,13 +44,14 @@ typedef int32_t position;
  */
 class Adt {
 public:
-	static const int32_t MAXINDEX = 0x7ffffff;
-	static const int32_t MAXPOSITION = 0x7ffffff;
+	static const int32_t MAXINDEX = 0x7fffffff;
+	static const int32_t MAXPOSITION = 0x7fffffff;
 
 	Adt(index size=26) : nn(size) {}
 	virtual ~Adt() {}
 
-	index n() const { return nn; }
+	index	n() const { return nn; }
+	bool	valid(index i) const { return 1 <= i && i <= nn; }
 
 	// disallow copy, move constructors, assignments
 //	Adt(Adt&) = delete;

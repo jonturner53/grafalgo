@@ -18,7 +18,7 @@ namespace grafalgo {
 class fastEdmondsGabow {
 public: fastEdmondsGabow(Graph&, Glist<edge>&);
 private:
-	Graph* graf;		///< graph we're finding matching for
+	Graph* g;		///< graph we're finding matching for
 	Partition *blossoms;	///< partition of the vertices into blossoms
 	RlistSet* augpath;	///< reversible list used to construct path
 	vertex* origin;		///< origin[u] is the original vertex

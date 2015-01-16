@@ -11,30 +11,19 @@
 namespace grafalgo {
 
 /** Constructor for TreeMap class.
- *  @param size defines the index range for the constructed object.
+ *  @param n defines the index range for the constructed object.
  */
-TreeMap::TreeMap(int size) : Adt(size) {
-	makeSpace(size);
-}
+TreeMap::TreeMap(int n) : Adt(n) { makeSpace(); init(); }
 
 /** Destructor for TreeMap class. */
 TreeMap::~TreeMap() { freeSpace(); }
 
 /** Allocate and initialize space for TreeMap.
- *  @param size is number of index values to provide space for
  */
-void TreeMap::makeSpace(int size) {
-	try {
-		st = new BalBstSet(size);
-		values = new uint32_t[size+1];
-		nodes = new ListPair(size);
-	} catch (std::bad_alloc e) {
-		string s = "makeSpace:: insufficient space for "
-			   + to_string(size) + "index values";
-		throw OutOfSpaceException(s);
-	}
-	root = 0;
-	nn = size; clear();
+void TreeMap::makeSpace() {
+	st = new BalBstSet(n());
+	values = new uint32_t[n()+1];
+	nodes = new ListPair(n());
 }
 
 /** Free dynamic storage used by TreeMap. */
@@ -48,24 +37,20 @@ void TreeMap::clear() {
 }
 
 /** Resize a TreeMap object, discarding old value.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void TreeMap::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "TreeMap::resize::" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+void TreeMap::resize(int n) {
+	freeSpace(); Adt::resize(n); makeSpace(); init();
 }
 
 /** Expand the space available for this ojbect.
  *  Rebuilds old value in new space.
- *  @param size is the size of the expanded object.
+ *  @param n is the size of the expanded object.
  */
-void TreeMap::expand(int size) {
-	if (size <= n()) return;
+void TreeMap::expand(int n) {
+	if (n <= this->n()) return;
 	TreeMap old(this->n()); old.copyFrom(*this);
-	resize(size); this->copyFrom(old);
+	resize(n); this->copyFrom(old);
 }
 /** Copy another object to this one.
  *  @param source is object to be copied to this one

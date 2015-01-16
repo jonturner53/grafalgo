@@ -60,7 +60,7 @@ else
 fi;
 
 echo -n "copying flograph:"
-randGraph flograph $n $m 0 100 10 10 $seed >tg1
+randGraph flograph $n $m $((m/5)) 100 20 10 $seed >tg1
 copyGraph flograph <tg1 >tg2
 if cmp -s tg1 tg2 ; then
 	echo " success" 
@@ -71,7 +71,7 @@ else
 fi;
 
 echo -n "copying weighted flograph:"
-randGraph wflograph $n $m 0 100 10 10 1 $m $seed >tg1
+randGraph wflograph $n $m $((m/5)) 100 20 10 1 $m $seed >tg1
 copyGraph wflograph <tg1 >tg2
 if cmp -s tg1 tg2 ; then
 	echo " success" 

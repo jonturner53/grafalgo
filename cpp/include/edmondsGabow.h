@@ -1,6 +1,10 @@
-// Header file for class that implements Edmond's algorithm for
-// finding a maximum size matching in a general graph. To use,
-// invoke the constructor.
+/** @file edmondsGabow.h
+ * 
+ *  @author Jon Turner
+ *  @date 2011
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
 
 #ifndef EDMONDSGABOW_H
 #define EDMONDSGABOW_H
@@ -15,10 +19,13 @@
 
 namespace grafalgo {
 
+/** Encapsulates data and methods used to implement Gabow's version
+ *  of Edmond's algorithm for finding a maximum size matching in a graph.
+ */
 class edmondsGabow {
 public: edmondsGabow(Graph&, Glist<edge>&);
 private:
-	Graph* graf;		// graph we're finding matching for
+	Graph* g;		// graph we're finding matching for
 	Partition *blossoms;	// partition of the vertices into blossoms
 	RlistSet* augpath;	// reversible list used to construct path
 	vertex* origin;		// origin[u] is the original vertex

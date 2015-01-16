@@ -18,7 +18,7 @@ public:
 	maxdMatch(Graph&, Glist<edge>&);
 	maxdMatch() {};		// for use with derived class
 protected:
-	Graph* 	graf;		///< graph we're finding matching for
+	Graph* 	g;		///< graph we're finding matching for
 	edge* 	mEdge;		///< mEdge[u] is matching edge at u or 0
 	edge* 	pEdge;		///< pEdge[u] is edge to parent of u in forest
 	int*  	d;		///< d[u] is degree of u

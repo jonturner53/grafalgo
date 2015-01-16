@@ -27,15 +27,7 @@ ListSet::~ListSet() { freeSpace(); }
  *  @param nlists is the number of lists to provide space for
  */
 void ListSet::makeSpace(int nitems, int nlists) {
-	try {
-		nxt = new index[nitems+1]; lh = new listhdr[nlists+1];
-	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "ListSet::makeSpace: insufficient space for "
-		   << nitems << "index values and " << nlists << " lists";
-		string s = ss.str();
-		throw OutOfSpaceException(s);
-	}
+	nxt = new index[nitems+1]; lh = new listhdr[nlists+1];
 	for (int i = 0; i <= nlst; i++) { lh[i].head = lh[i].tail = 0; }
 	for (int i = 0; i <= nitems; i++) nxt[i] = -1;
 	nn = nitems; nlst = nlists;
@@ -57,11 +49,7 @@ void ListSet::clear() {
  *  @param nlists is the number of lists in the resized object.
  */
 void ListSet::resize(int nitems, int nlists) {
-	freeSpace();
-	try { makeSpace(nitems,nlists); } catch(OutOfSpaceException e) {
-		string s; s = "ListSet::resize:" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+	freeSpace(); makeSpace(nitems,nlists);
 }
 
 /** Expand the space available for this ListSet.
@@ -90,6 +78,7 @@ void ListSet::copyFrom(const ListSet& src) {
  *  @param j is a list number; the index i is added to the end of list j
  */
 void ListSet::addLast(index i, alist j) {
+	assert(valid(i) && !member(i) && validList(j));
 	if (i == 0) return;
 	if (lh[j].head == 0) lh[j].head = i;
 	else nxt[lh[j].tail] = i;
@@ -101,6 +90,7 @@ void ListSet::addLast(index i, alist j) {
  *  @return the first index on list j or 0, if it is empty
  */
 int ListSet::removeFirst(alist j) {
+	assert(validList(j));
 	int i = lh[j].head;
 	if (i == 0) return 0;
 	lh[j].head = nxt[i]; nxt[i] = -1;
@@ -112,6 +102,7 @@ int ListSet::removeFirst(alist j) {
  *  @param j is a list number; the index i is added to the front of list j
  */
 void ListSet::addFirst(index i, alist j) {
+	assert(valid(i) && !member(i) && validList(j));
 	if (i == 0) return;
 	if (lh[j].head == 0) lh[j].tail = i;
 	nxt[i] = lh[j].head;
@@ -123,6 +114,7 @@ void ListSet::addFirst(index i, alist j) {
  *  @return the string
  */
 string ListSet::list2string(alist j) const {
+	assert(validList(j));
 	int i;
 	string s = "";
 	s += to_string(j) + ": ";

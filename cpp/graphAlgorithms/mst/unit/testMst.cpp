@@ -39,30 +39,25 @@ bool checkMst(Wgraph&, Wgraph&);
  *  case of an invalid tree.
  */
 int main(int argc, char *argv[]) {
-	Wgraph wg; cin >> wg;
-	Glist<edge> mstree;
+	Wgraph g; cin >> g;
+	Glist<edge> mst;
 	
 	if (argc < 2) Util::fatal("usage: testMst method [ show verify]");
 
 	if (strcmp(argv[1],"kruskal") == 0)
-		kruskal(wg,mstree);
+		kruskal(g,mst);
 	else if (strcmp(argv[1],"prim") == 0)
-		prim(wg,mstree);
+		prim(g,mst);
 	else if (strcmp(argv[1],"primF") == 0)
-		primF(wg,mstree);
+		primF(g,mst);
 	else if (strcmp(argv[1],"cheritonTarjan") == 0)
-		cheritonTarjan(wg,mstree);
+		cheritonTarjan(g,mst);
 	else
 		Util::fatal("mst: undefined method");
 
-	Wgraph mst(wg.n(), wg.n()-1);
 	int treeweight = 0;
-	for (grafalgo::index x = mstree.first(); x != 0; x = mstree.next(x)) {
-		edge e = mstree.value(x);
-		edge ee = mst.join(wg.left(e),wg.right(e));
-		mst.setWeight(ee, wg.weight(e));
-		treeweight += wg.weight(e);
-	}
+	for (grafalgo::index x = mst.first(); x != 0; x = mst.next(x))
+		treeweight += g.weight(mst.value(x));
 	cout << "mst weight: " << treeweight << endl;
 
 	// check for show/verify arguments
@@ -72,8 +67,16 @@ int main(int argc, char *argv[]) {
 		else if (strcmp(argv[i],"verify") == 0) verify = true;
 	}
 
-	if (show) cout << wg << endl << wg.elist2string(mstree) << endl;
-	if (verify) checkMst(wg, mst);
+	if (show) cout << g << endl << g.elist2string(mst) << endl;
+	if (verify) {
+		Wgraph mstg(g.n(), g.n()-1);
+		for (grafalgo::index x = mst.first(); x != 0; x = mst.next(x)) {
+			edge e = mst.value(x);
+			edge ee = mstg.join(g.left(e),g.right(e));
+			mstg.setWeight(ee, g.weight(e));
+		}
+		checkMst(g, mstg);
+	}
 }
 
 bool verify(Wgraph&, Wgraph&);
@@ -86,108 +89,108 @@ void nca_search(Wgraph&, Wgraph&, vertex, vertex, vertex*,
 
 
 /** Verify that one graph is an MST of another.
- *  @param wg is a weighted graph object
- *  @param mstree is second weighted graph that is to be checked
- *  against wg; an error message is printed for each discrepancy
+ *  @param g is a weighted graph object
+ *  @param mstg is second weighted graph that is to be checked
+ *  against g; an error message is printed for each discrepancy
  */
-bool checkMst(Wgraph& wg, Wgraph& mstree) {
+bool checkMst(Wgraph& g, Wgraph& mstg) {
 	vertex u,v; edge e, f; bool status = true;
 
-	// check that mstree is a subgraph of wg
-	if (mstree.n() != wg.n() || mstree.m() != mstree.n()-1) {
+	// check that mstg is a subgraph of g
+	if (mstg.n() != g.n() || mstg.m() != mstg.n()-1) {
 		cout << "check: size error, aborting\n";
 		return false;
 	}
-	vertex* edgeTo = new vertex[mstree.n()+1];
-	for (u = 1; u <= wg.n(); u++) edgeTo[u] = 0;
-	for (u = 1; u <= wg.n(); u++) {
-		for (e = wg.firstAt(u); e != 0; e = wg.nextAt(u,e))
-			edgeTo[wg.mate(u,e)] = e;
-		for (f = mstree.firstAt(u); f != 0; f = mstree.nextAt(u,f)) {
-			v = mstree.mate(u,f);
+	vertex* edgeTo = new vertex[mstg.n()+1];
+	for (u = 1; u <= g.n(); u++) edgeTo[u] = 0;
+	for (u = 1; u <= g.n(); u++) {
+		for (e = g.firstAt(u); e != 0; e = g.nextAt(u,e))
+			edgeTo[g.mate(u,e)] = e;
+		for (f = mstg.firstAt(u); f != 0; f = mstg.nextAt(u,f)) {
+			v = mstg.mate(u,f);
 			e = edgeTo[v];
-			if (e == 0 || mstree.weight(f) != wg.weight(e)) {
+			if (e == 0 || mstg.weight(f) != g.weight(e)) {
 				cout << "check: edge " << f << "="
-				     << mstree.edge2string(f)
-				     << " is not in wg\n";
+				     << mstg.edge2string(f)
+				     << " is not in g\n";
 				status = false;
 			}
 		}
-		for (e = wg.firstAt(u); e != 0; e = wg.nextAt(u,e))
-			edgeTo[wg.mate(u,e)] = 0;
+		for (e = g.firstAt(u); e != 0; e = g.nextAt(u,e))
+			edgeTo[g.mate(u,e)] = 0;
 	}
 
-	// check that mstree reaches all the vertices
-	int* mark = new int[mstree.n()+1]; int marked;
-	for (u = 1; u <= mstree.n(); u++) mark[u] = 0;
+	// check that mstg reaches all the vertices
+	int* mark = new int[mstg.n()+1]; int marked;
+	for (u = 1; u <= mstg.n(); u++) mark[u] = 0;
 	mark[1] = 1; marked = 1;
-	List q(wg.n()); q.addLast(1);
+	List q(g.n()); q.addLast(1);
 	while (!q.empty()) {
 		u = q.first(); q.removeFirst();
-		for (e = mstree.firstAt(u); e != 0; e = mstree.nextAt(u,e)) {
-			v = mstree.mate(u,e);
+		for (e = mstg.firstAt(u); e != 0; e = mstg.nextAt(u,e)) {
+			v = mstg.mate(u,e);
 			if (mark[v] == 0) {
 				q.addLast(v); mark[v] = 1; marked++;
 			}
 		}
 	}
-	if (marked != mstree.n()) {
-		printf("check: mstree does not reach all vertices\n");
+	if (marked != mstg.n()) {
+		printf("check: mst does not reach all vertices\n");
 		return false;
 	}
 	// check that there is no cheaper spanning tree
-	if (!verify(wg,mstree)) status = false;
+	if (!verify(g,mstg)) status = false;
 
 	return status;
 }
 
 /** Verify that there is no cheaper spanning tree.
  *  Print an error message for each discrepancy found.
- *  @param wg is a weighted graph
- *  @param mstree is a second graph that is assumed to be a spanning tree.
- *  @return true if mstree has minimum cost
+ *  @param g is a weighted graph
+ *  @param mstg is a second graph that is assumed to be a spanning tree.
+ *  @return true if mstg has minimum cost
  */
-bool verify(Wgraph& wg, Wgraph& mstree) {
+bool verify(Wgraph& g, Wgraph& mstg) {
 	// Determine nearest common ancestor for each edge.
-	vertex* first_edge = new edge[wg.n()+1];
-	ClistSet edge_sets(wg.m());
-	nca(wg,mstree,first_edge,edge_sets);
+	vertex* first_edge = new edge[g.n()+1];
+	ClistSet edge_sets(g.m());
+	nca(g,mstg,first_edge,edge_sets);
 
 	// Check paths from endpoints to nca, and compress.
-	vertex* a = new vertex[mstree.n()+1];	// a[u] is an ancestor of u
-	int* mw = new int[mstree.n()+1];	// mw[u] is max edge wt
+	vertex* a = new vertex[mstg.n()+1];	// a[u] is an ancestor of u
+	int* mw = new int[mstg.n()+1];	// mw[u] is max edge wt
 						// between u, a[u]
-	return rverify(wg,mstree,1,1,first_edge,edge_sets,a,mw);
+	return rverify(g,mstg,1,1,first_edge,edge_sets,a,mw);
 }
 
 /** Recursively verify a subtree
- *  @param wg is the graph
- *  @param mstree is the candidate MST
+ *  @param g is the graph
+ *  @param mstg is the candidate MST
  *  @param u is a vertex
- *  @param pu is the parent of u in mstree
+ *  @param pu is the parent of u in mstg
  *  @return true if the subtree can be verified, else false
  */
-bool rverify(Wgraph& wg, Wgraph& mstree, vertex u, vertex pu,
+bool rverify(Wgraph& g, Wgraph& mstg, vertex u, vertex pu,
 	    vertex first_edge[], ClistSet& edge_sets, vertex a[], int mw[]) {
 	vertex v; edge e; int m; bool status = true;
-	for (e = mstree.firstAt(u); e != 0; e = mstree.nextAt(u,e)) {
-		v = mstree.mate(u,e);
+	for (e = mstg.firstAt(u); e != 0; e = mstg.nextAt(u,e)) {
+		v = mstg.mate(u,e);
 		if (v == pu) continue;
-		a[v] = u; mw[v] = mstree.weight(e);
-		if (!rverify(wg,mstree,v,u,first_edge,edge_sets,a,mw))
+		a[v] = u; mw[v] = mstg.weight(e);
+		if (!rverify(g,mstg,v,u,first_edge,edge_sets,a,mw))
 			status = false;
 	}
 	e = first_edge[u];
 	if (e == 0) return status;
 	while (true) {
-		m = max( max_wt(wg.left(e),u,a,mw),
-			 max_wt(wg.right(e),u,a,mw) );
-		if (m > wg.weight(e)) {
+		m = max( max_wt(g.left(e),u,a,mw),
+			 max_wt(g.right(e),u,a,mw) );
+		if (m > g.weight(e)) {
 			cout << "mst violation: edge " << e << "="
-			     << wg.edge2string(e) << " in wg\n";
+			     << g.edge2string(e) << " in g\n";
 			status = false;
 		}
-		e = edge_sets.suc(e);
+		e = edge_sets.next(e);
 		if (e == first_edge[u]) break;
 	}
 	return status;
@@ -209,28 +212,28 @@ int max_wt(vertex u, vertex v, vertex a[], int mw[]) {
 }
 		
 /** Compute nearest common ancestors of edge endpoints.
- *  @param wg is the graph
- *  @param mstree is the candidate MST
+ *  @param g is the graph
+ *  @param mstg is the candidate MST
  *  @param first_edge[u] is an edge for which u is the nearest common ancestor,
  *  or 0 if there is no such edge
  *  @param edge_sets is used to return a collection of lists that partition
  *  the edges; two edges appear on the same list if they have the same nca
  */
-void nca(Wgraph& wg, Wgraph& mstree, edge *first_edge, ClistSet& edge_sets) {
-	Partition npap(wg.n());
-	vertex *npa = new vertex[wg.n()+1];
-	int *mark = new int[wg.m()+1];
+void nca(Wgraph& g, Wgraph& mstg, edge *first_edge, ClistSet& edge_sets) {
+	Partition npap(g.n());
+	vertex *npa = new vertex[g.n()+1];
+	int *mark = new int[g.m()+1];
 
-	for (edge e = wg.first(); e != 0; e = wg.next(e)) mark[e] = 0;
-	for (vertex u = 1; u <= wg.n(); u++) {
+	for (edge e = g.first(); e != 0; e = g.next(e)) mark[e] = 0;
+	for (vertex u = 1; u <= g.n(); u++) {
 		first_edge[u] = 0; npa[u] = u;
 	}
-	nca_search(wg,mstree,1,1,first_edge,edge_sets,npap,npa,mark);
+	nca_search(g,mstg,1,1,first_edge,edge_sets,npap,npa,mark);
 }
 
 /** Recursive helper for computing nearest common ancestors of edge endpoints.
- *  @param wg is the graph
- *  @param mstree is the candidate MST
+ *  @param g is the graph
+ *  @param mstg is the candidate MST
  *  @param u is a vertex
  *  @param pu is the parent of u
  *  @param first_edge[u] is an edge for which u is the nearest common ancestor,
@@ -238,20 +241,20 @@ void nca(Wgraph& wg, Wgraph& mstree, edge *first_edge, ClistSet& edge_sets) {
  *  @param edge_sets is used to return a collection of lists that partition
  *  the edges; two edges appear on the same list if they have the same nca
  */
-void nca_search(Wgraph& wg, Wgraph& mstree, vertex u, vertex pu,
+void nca_search(Wgraph& g, Wgraph& mstg, vertex u, vertex pu,
 		edge first_edge[],
 	ClistSet& edge_sets, Partition& npap, vertex npa[], int mark[]) {
 	vertex v, w; edge e;
 
-	for (e = mstree.firstAt(u); e != 0; e = mstree.nextAt(u,e)) {
-		v = mstree.mate(u,e);
+	for (e = mstg.firstAt(u); e != 0; e = mstg.nextAt(u,e)) {
+		v = mstg.mate(u,e);
 		if (v == pu) continue;
-		nca_search(wg,mstree,v,u,first_edge,edge_sets,npap,npa,mark);
+		nca_search(g,mstg,v,u,first_edge,edge_sets,npap,npa,mark);
 		npap.link(npap.find(u),npap.find(v));
 		npa[npap.find(u)] = u;
 	}
-	for (e = wg.firstAt(u); e != 0; e = wg.nextAt(u,e)) {
-		v = wg.mate(u,e);
+	for (e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+		v = g.mate(u,e);
 		if (! mark[e]) mark[e] = 1;
 		else {
 			w = npa[npap.find(v)];

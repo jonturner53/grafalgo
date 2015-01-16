@@ -15,29 +15,18 @@
 namespace grafalgo {
 
 /** Constructor for LheapSet class
- *  @param size is the number of items in the constructed object
+ *  @param n is the number of items in the constructed object
  */
-LheapSet::LheapSet(int size) : Adt(size) {
-	makeSpace(size);
-	meldCount = 0;
+LheapSet::LheapSet(int n) : Adt(n) {
+	makeSpace(); clear();
 }
 
 /** Destructor for LheapSet class. */
 LheapSet::~LheapSet() { freeSpace(); }
 
 /** Allocate and initialize space for LheapSet.
- *  @param size is number of index values to provide space for
  */
-void LheapSet::makeSpace(int size) {
-	try {
-		node = new hnode[size+1];
-	} catch (std::bad_alloc e) {
-		string s = "makeSpace:: insufficient space for "
-		    	+ to_string(size) + "index values";
-		throw OutOfSpaceException(s);
-	}
-	nn = size; clear();
-}
+void LheapSet::makeSpace() { node = new hnode[n()+1]; }
 
 /** Free dynamic storage used by LheapSet. */
 void LheapSet::freeSpace() { delete [] node; }
@@ -54,24 +43,20 @@ void LheapSet::copyFrom(const LheapSet& source) {
 
 /** Resize a LheapSet object.
  *  The old value is discarded.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void LheapSet::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "LheapSet::resize::" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+void LheapSet::resize(int n) {
+	freeSpace(); Adt::resize(n); makeSpace(); clear();
 }
 
 /** Expand the space available for this LheapSet.
  *  Rebuilds old value in new space.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void LheapSet::expand(int size) {
-	if (size <= n()) return;
-	LheapSet old(n()); old.copyFrom(*this);
-	resize(size); this->copyFrom(old);
+void LheapSet::expand(int n) {
+	if (n <= this->n()) return;
+	LheapSet old(this->n()); old.copyFrom(*this);
+	resize(n); this->copyFrom(old);
 }
 
 /** Remove all elements from heap. */
@@ -97,14 +82,13 @@ lheap LheapSet::heapify(List& hlst) {
 }
 
 /** Combine two heaps.
- *  @param h1 is the canonical element of a heap
- *  @param h2 is the canonical element of a heap
+ *  @param h1 is the canonical element of a heap, or 0
+ *  @param h2 is the canonical element of a heap, or 0
  *  @param return the canonical element of the heap obtained
  *  by combining h1 and h2
  */
 lheap LheapSet::meld(lheap h1, lheap h2) {
-	assert(0 <= h1 && h1 <= n() && 0 <= h2 && h2 <= n());
-	meldCount++;
+	assert((h1 == 0 || valid(h1)) && (h2 == 0 || valid(h2)));
 	     if (h1 == 0) return h2;
 	else if (h2 == 0) return h1;
 	if (kee(h1) > kee(h2)) {
@@ -126,8 +110,8 @@ lheap LheapSet::meld(lheap h1, lheap h2) {
  *  i into h
  */
 lheap LheapSet::insert(index i, lheap h) {
-	assert(0 <= i && i <= n() && 0 <= h && h <= n());
-	assert(left(i) == 0 && right(i) == 0 && rank(i) ==1);
+	assert((i == 0 || valid(i)) && (h == 0 || valid(h)));
+	assert(left(i) == 0 && right(i) == 0 && rank(i) == 1);
 	return meld(i,h);
 }
 
@@ -136,6 +120,7 @@ lheap LheapSet::insert(index i, lheap h) {
  *  @return the canonical element of the resulting heap
  */
 index LheapSet::deletemin(lheap h) {
+	assert(valid(h));
 	lheap h1 = meld(left(h),right(h));
 	left(h) = right(h) = 0; rank(h) = 1;
 	return h1;

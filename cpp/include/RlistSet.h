@@ -35,8 +35,8 @@ public:		RlistSet(int=26);
 
 	index	first(index) const;
 	index	last(index) const;
-	index	suc(index,index) const;
-	index	pred(index,index) const;
+	index	next(index,index) const;
+	index	prev(index,index) const;
 	void	advance(index&,index&) const;
 	void	retreat(index&,index&) const;
 
@@ -57,7 +57,7 @@ private:
 	bool	*canon;			///< canon[x] is true if x is the
 					///< canonical item on its list
 
-	void	makeSpace(int);
+	void	makeSpace();
 	void	freeSpace();
 };
 
@@ -65,20 +65,24 @@ private:
  *  @param x is the index of the canonical item of a list
  *  @return the first index on the list containing x
  */
-inline index RlistSet::first(index x) const { return node[x].p1; }
+inline index RlistSet::first(index x) const {
+	assert(valid(x)); return node[x].p1;
+}
 
 /** Get the index of the last item on a list.
  *  @param x is the index of the canonical item of a list
  *  @return the last index on the list containing x
  */
-inline index RlistSet::last(index x) const { return x; }
+inline index RlistSet::last(index x) const { assert(valid(x)); return x; }
 
 /** Get the index of the next item on a list.
  *  @param x is the index of some item of a list
  *  @param prev is the index of the item that comes before x on its list
  *  @return the last index on the list containing x
  */
-inline index RlistSet::suc(index x, index prev) const {
+inline index RlistSet::next(index x, index prev) const {
+	assert(valid(x) && valid(prev) &&
+	       (prev == node[x].p1 || prev == node[x].p2));
 	return (prev == node[x].p2 ? node[x].p1 : node[x].p2);
 }
 
@@ -87,7 +91,9 @@ inline index RlistSet::suc(index x, index prev) const {
  *  @param next is the index of the item that comes after x on its list
  *  @return the index of the previous item on the list containing x
  */
-inline index RlistSet::pred(index x, index next) const {
+inline index RlistSet::prev(index x, index next) const {
+	assert(valid(x) && valid(next) &&
+	       (next == node[x].p1 || next == node[x].p2));
 	return (next == node[x].p2 ? node[x].p1 : node[x].p2);
 }
 
@@ -98,7 +104,8 @@ inline index RlistSet::pred(index x, index next) const {
  *  on return, y is the original value of x
  */
 inline void RlistSet::advance(index& x, index& y) const {
-	index xx = x; x = suc(x,y); y = xx;
+	assert(valid(x) && valid(y) && (y == node[x].p1 || y == node[x].p2));
+	index xx = x; x = next(x,y); y = xx;
 }
 
 /** Retreat (advance in reverse) the indices of a pair of list items.
@@ -108,7 +115,8 @@ inline void RlistSet::advance(index& x, index& y) const {
  *  on return, y is the original value of x
  */
 inline void RlistSet::retreat(index& x, index& y) const {
-	index xx = x; x = pred(x,y); y = xx;
+	assert(valid(x) && valid(y) && (y == node[x].p1 || y == node[x].p2));
+	index xx = x; x = prev(x,y); y = xx;
 }
 
 } // ends namespace

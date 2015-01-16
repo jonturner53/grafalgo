@@ -10,25 +10,16 @@
 namespace grafalgo {
 
 /** Constructor for RlistSet class.
- *  @param nn defines the set of integers 1..nn on which the lists are defined.
+ *  @param n defines the index set for the new object
  */
-RlistSet::RlistSet(int nn) : Adt(nn) { makeSpace(n()); }
+RlistSet::RlistSet(int n) : Adt(n) { makeSpace(); clear(); }
 
 /** Destructor for RlistSet class. */
 RlistSet::~RlistSet() { freeSpace(); }
 
-/** Allocate and initialize space for list.
- *  @param size is number of index values to provide space for
- */
-void RlistSet::makeSpace(int size) {
-	try {
-		node = new ListNode[size+1]; canon = new bool[size+1];
-	} catch (std::bad_alloc e) {
-		string s = "RlistSet::makeSpace: insufficient space for "
-		   		+ to_string(size) + "index values";
-		throw OutOfSpaceException(s);
-	}
-	nn = size; clear();
+/** Allocate space for object. */
+void RlistSet::makeSpace() {
+	node = new ListNode[n()+1]; canon = new bool[n()+1];
 }
 
 /** Free dynamic storage used by list. */
@@ -39,11 +30,7 @@ void RlistSet::freeSpace() { delete [] node; }
  *  @param size is the size of the resized object.
  */
 void RlistSet::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "RlistSet::resize:" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+	freeSpace(); makeSpace(); clear();
 }
 
 /** Expand the space available for this RlistSet.
@@ -82,9 +69,10 @@ void RlistSet::copyFrom(const RlistSet& source) {
  *  @return the index of the canonical element of the modified list
  */
 index RlistSet::pop(index t) {
+	assert(valid(t));
 	index h = first(t);
 	if (h == t) return h;
-	index nuHead = suc(h,t);
+	index nuHead = next(h,t);
 	if (node[h].p2 == t)	node[t].p1 = node[h].p1;
 	else 			node[t].p1 = node[h].p2;
 	if (node[nuHead].p1 == h) node[nuHead].p1 = t;
@@ -101,6 +89,7 @@ index RlistSet::pop(index t) {
  *  the second list to the end of the first
  */
 index RlistSet::join(index t1, index t2) {
+	assert((t1 == 0 || valid(t1)) && (t2 == 0 || valid(t2)));
 	if (t1 == 0) return t2;
 	else if (t2 == 0 || t2 == t1) return t1;
 
@@ -121,6 +110,7 @@ index RlistSet::join(index t1, index t2) {
  *  reversing the original list.
  */
 index RlistSet::reverse(index t) {
+	assert(valid(t));
 	index h = first(t);
 	if (t == 0 || h == t) return t;
 	if (t == node[h].p2) node[h].p2 = node[h].p1;
@@ -131,7 +121,7 @@ index RlistSet::reverse(index t) {
 
 /** Build a string representation of the set of lists.
  *  All lists with at least two items are printed, one per line.
- *  @return the stri
+ *  @return the string
  */
 string RlistSet::toString() const {
 	string s = "";
@@ -148,6 +138,7 @@ string RlistSet::toString() const {
  *  @return the string
  */
 string RlistSet::toString(index t) const {
+	assert(valid(t));
 	index h = first(t);
 	string s = "[ ";
 	if (t == 0) s += "-";

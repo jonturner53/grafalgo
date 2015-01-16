@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
 
 	srand(1);
 	Wgraph wg(n,m);
-	Glist<edge> mstree;
+	Glist<edge> mst;
 	high_resolution_clock::time_point time1, time2;
 	nanoseconds diff;
 	int64_t avgTime, minTime, maxTime;
@@ -67,16 +67,16 @@ int main(int argc, char* argv[]) {
 
 		if (strcmp(argv[1],"kruskal") == 0) {
 			time1 = high_resolution_clock::now();
-			kruskal(wg,mstree);
+			kruskal(wg,mst);
 		} else if (strcmp(argv[1],"prim") == 0) {
 			time1 = high_resolution_clock::now();
-			prim(wg,mstree);
+			prim(wg,mst);
 		} else if (strcmp(argv[1],"primF") == 0) {
 			time1 = high_resolution_clock::now();
-			primF(wg,mstree);
+			primF(wg,mst);
 		} else if (strcmp(argv[1],"cheritonTarjan") == 0) {
 			time1 = high_resolution_clock::now();
-			cheritonTarjan(wg,mstree);
+			cheritonTarjan(wg,mst);
 		} else {
 			Util::fatal("mstRep: undefined method");
 		}
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
 		avgTime += diff.count();
 		minTime = min(diff.count(),minTime);
 		maxTime = max(diff.count(),maxTime);
-		mstree.clear();
+		mst.clear();
 	}
 	avgTime /= reps;
 	cout << argv[1] << " " << n << " " << m << " " << maxkey << " "

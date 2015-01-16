@@ -9,7 +9,7 @@
 #include "List.h"
 #include "Dlist.h"
 
-using namespace grafalgo;
+namespace grafalgo {
 
 class faltPath {
 public:
@@ -32,5 +32,6 @@ private:
 	edge findPath();	// find an augmenting path
 	edge expand(vertex);	// expand tree at given vertex
 };
+ } // ends namespace
 
 #endif

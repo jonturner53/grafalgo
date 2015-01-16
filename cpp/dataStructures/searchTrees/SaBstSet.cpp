@@ -15,9 +15,9 @@
 namespace grafalgo {
 
 /** Constructor for SaBstSet class.
- *  @param size defines the index range for the constructed object.
+ *  @param n defines the index range for the constructed object.
  */
-SaBstSet::SaBstSet(int size) : BstSet(size) {}
+SaBstSet::SaBstSet(int n) : BstSet(n) {}
 
 /** Destructor for SaBstSet class. */
 SaBstSet::~SaBstSet() {}
@@ -50,10 +50,23 @@ void SaBstSet::splaystep(index x) {
 
 /** Get the root of the bst containing an item.
  *  @param i is an item in some bst
- *  @return the caonical element of the bst containing i; note that
+ *  @return the canonical element of the bst containing i; note that
  *  the operation restructures the tree possibly changing the root
  */
-bst SaBstSet::find(index i) { return splay(i); }
+bst SaBstSet::find(index i) {
+	assert(valid(i)); return splay(i);
+}
+
+/** Get the root of the bst containing an item.
+ *  @param i is an item in some bst
+ *  @return the canonical element of the bst containing i; note that
+ *  this operation does not restructure the tree
+ */
+bst SaBstSet::findroot(index i) {
+	assert(valid(i));
+	while (p(i) != 0) i = p(i);
+	return i;
+}
 
 /** Get the item with a specified key value.
  *  @param k is a key value
@@ -63,7 +76,7 @@ bst SaBstSet::find(index i) { return splay(i); }
  *  no item has that key
  */
 index SaBstSet::access(keytyp k, bst& t) {
-	assert (0 <= t && t <= n());
+	assert (t == 0 || valid(t));
 	index x = t;
 	while (true) {
 		     if (k < kee(x) && left(x) != 0) x = left(x);
@@ -82,8 +95,9 @@ index SaBstSet::access(keytyp k, bst& t) {
  */
 bool SaBstSet::insert(index i, bst& t) {
 	if (t == 0) { t = i; return true; }
+	assert(valid(t) && p(t) == 0);
 	index x = t;
-        while (1) {
+        while (true) {
                      if (kee(i) < kee(x) &&  left(x) != 0) x = left(x);
                 else if (kee(i) > kee(x) && right(x) != 0) x = right(x);
                 else break;
@@ -98,12 +112,12 @@ bool SaBstSet::insert(index i, bst& t) {
 
 /** Remove an item from a bst.
  *  @param i is an item in some bst
- *  @param t is the bst containing i
- *  @return the root of the bst that results from removing i
- *  from t
+ *  @param t is a reference to the root of the bst containing i;
+ *  if the operation changes the root of the tree, then the variable
+ *  in the calling program is updated to reflect this
  */
 void SaBstSet::remove(index i, bst& t) {
-	assert(1 <= i && i <= n() && 1 <= t && t <= n());
+	assert(valid(i) && valid(t) && p(t) == 0);
         index j;
         if (left(i) != 0 && right(i) != 0) {
                 for (j = left(i); right(j) != 0; j = right(j)) {}
@@ -125,12 +139,12 @@ void SaBstSet::remove(index i, bst& t) {
 /** Divide a bst at an item
  *  @param i is the index of a node in some bst
  *  @param t is the root of the bst containing i
- *  @return the pair of bst [t1,t2] that results from splitting s into three
+ *  @return the pair of bst [t1,t2] that results from splitting t into three
  *  parts; t1 (containing ityems with keys smaller than that of i), i itself,
  *  and t2 (contining items with keys larger than that of i)
  */
 BstSet::BstPair SaBstSet::split(index i, bst t) {
-	assert(1 <= i && i <= n() && 1 <= t && t <= n());
+	assert(valid(i) && valid(t));
 	splay(i);
 	BstSet::BstPair pair(left(i),right(i));
 	left(i) = right(i) = p(i) = 0;

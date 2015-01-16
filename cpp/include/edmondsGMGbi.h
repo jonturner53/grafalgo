@@ -13,15 +13,15 @@
 namespace grafalgo {
 
 /** This class implements Edmond's algorithm using the specific method
- *  method described by Galil, Micali and Gabow. This is a primal-dual
+ *  described by Galil, Micali and Gabow. This is a primal-dual
  *  algorithm.
  *
- *  This class handles only bipartite graphs.
+ *  This version handles only bipartite graphs.
  */
 class edmondsGMGbi {
 public: edmondsGMGbi(Wgraph&, Glist<edge>&);
 private:
-	Wgraph*	graf;		///< graph we're finding matching for
+	Wgraph*	g;		///< graph we're finding matching for
 
 	enum stype {unreached, odd, even};
 	stype	*state;		///< state used in augmenting path search

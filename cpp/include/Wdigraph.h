@@ -59,17 +59,13 @@ private:
  *  @param e is the edge of interest
  *  @return the length of e
  */
-inline edgeLength Wdigraph::length(edge e) const {
-	assert(0 <= e && e <= maxEdge); return len[e];
-}
+inline edgeLength Wdigraph::length(edge e) const { return len[e]; }
 
 /** Set the length of an edge.
  *  @param e is the edge of interest
  *  @param lng is the desired length
  */
-inline void Wdigraph::setLength(edge e, edgeLength lng) {
-	assert(0 <= e && e <= maxEdge); len[e] = lng;
-}
+inline void Wdigraph::setLength(edge e, edgeLength lng) { len[e] = lng; }
 
 } // ends namespace
 

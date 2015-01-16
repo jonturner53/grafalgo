@@ -9,7 +9,7 @@
 #ifndef DINIC_H
 #define DINIC_H
 
-#include "augPath.h"
+#include "fordFulkerson.h"
 
 namespace grafalgo {
 
@@ -18,14 +18,14 @@ namespace grafalgo {
  *  
  *  The algorithm is invoked using the constructor.
  */
-class dinic : public augPath {
+class dinic : public fordFulkerson {
 public:
 		dinic(Flograph&);
 private:
         int*    nextEdge;       ///< ignore edges before nextEdge[u] in adj list
         int*    level;          ///< level[u]=# of edges in path from source
 
-        bool    findPath() { return findPath(fg->src()); }
+        bool    findPath() { return findPath(g->src()); }
         bool	findPath(vertex);
 
         bool    newPhase(); 

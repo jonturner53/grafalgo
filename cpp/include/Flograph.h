@@ -91,7 +91,6 @@ inline vertex Flograph::snk() const { return t; }
  *  @return the capacity of e, going from v to mate(v)
  */
 inline flow Flograph::cap(vertex v, edge e) const { 
-	assert(1 <= v && v <= n() && 1 <= e && e <= maxEdge);
 	return tail(e) == v ? floInfo[e].cpy : 0;
 }
 
@@ -101,7 +100,6 @@ inline flow Flograph::cap(vertex v, edge e) const {
  *  @return the flow on e, going from v to mate(v)
  */
 inline flow Flograph::f(vertex v, edge e) const {
-	assert(1 <= v && v <= n() && 1 <= e && e <= maxEdge);
 	return tail(e) == v ? floInfo[e].flo : -floInfo[e].flo;
 }
 
@@ -111,7 +109,6 @@ inline flow Flograph::f(vertex v, edge e) const {
  *  @return the unused capacity of e, going from v to mate(v)
  */
 inline flow Flograph::res(vertex v, edge e) const {
-	assert(1 <= v && v <= n() && 1 <= e && e <= maxEdge);
 	return tail(e) == v ? floInfo[e].cpy - floInfo[e].flo : floInfo[e].flo;
 }
 
@@ -120,7 +117,6 @@ inline flow Flograph::res(vertex v, edge e) const {
  *  @param fval is the new flow on e from the tail to the head
  */
 inline void Flograph::setFlow(edge e, flow fval) {
-        assert(1 <= e && e <= maxEdge);
         floInfo[e].flo = fval;
 }
 
@@ -129,7 +125,6 @@ inline void Flograph::setFlow(edge e, flow fval) {
  *  @param capp is the new edge capacity for e
  */
 inline void Flograph::setCapacity(edge e, flow capp) {
-        assert(1 <= e && e <= maxEdge);
         floInfo[e].cpy = capp;
 }
 

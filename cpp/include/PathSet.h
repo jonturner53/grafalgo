@@ -75,7 +75,7 @@ protected:
 	void	splaystep(index);
 	void	rotate(index);
 
-	void	makeSpace(int);
+	void	makeSpace();
 	void	freeSpace();
 };
 

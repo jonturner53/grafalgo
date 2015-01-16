@@ -25,14 +25,14 @@ int main(int argc, char* argv[]) {
 	if (argc != 2 || sscanf(argv[1],"%d",&n) != 1)
 		Util::fatal("usage badCase n");
 
-	Wdigraph dig(n,n*n/2);
+	Wdigraph g(n,n*n/2);
 
 	for (u = 1; u <= n-1; u++) {
-		e = dig.join(u,u+1); dig.setLength(e,1);
+		e = g.join(u,u+1); g.setLength(e,1);
 		for (v = u+2; v <= n; v++) {
-			e = dig.join(u,v); dig.setLength(e,2*(n-u));
+			e = g.join(u,v); g.setLength(e,2*(n-u));
 		}
 	}
-	dig.sortAdjLists();
-	cout << dig;
+	g.sortAdjLists();
+	cout << g;
 }

@@ -48,7 +48,8 @@ private:
 	uint32_t *values;		///< vector of values
 	ListPair *nodes;		///< in-use and free nodes
 
-	void	makeSpace(int);
+	void	makeSpace();
+	void	init() { root = 0; }
 	void	freeSpace();
 };
 

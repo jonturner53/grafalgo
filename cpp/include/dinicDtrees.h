@@ -27,7 +27,7 @@ public:
 		dinicDtrees(Flograph&);
 		dinicDtrees(Flograph&,string&);
 private:
-	Flograph* fg;		///< graph we're finding flow on
+	Flograph* g;		///< graph we're finding flow on
 	int*	nextEdge;	///< pointer into adjacency list
 	int*	upEdge;		///< upEdge[u] is edge for dtrees link from u
 	int*	level;		///< level[u]=# of edges in path from source

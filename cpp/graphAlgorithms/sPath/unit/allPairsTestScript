@@ -3,11 +3,11 @@
 # usage: allPairsTestScript algorithm lo hi
 #
 # Run unit test on series of random graphs, with a specified algorithm.
-# The algorithm argument is one of dijkstra, floyd. The lo and hi arguments,
+# The algorithm argument is one of edmondsKarp, floyd. The lo and hi arguments,
 # specify the range of edge lengths. Negative edge lengths can be used
 # for both algorithms.
 #
-algo="dijkstra"
+algo="edmondsKarp"
 if [ $# -ge 1 ] ; then
 	algo=$1
 fi;

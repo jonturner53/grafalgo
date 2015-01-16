@@ -19,12 +19,12 @@ namespace grafalgo {
  *  vertices, leaving the remaining vertices with no edges
  *  @param nume is the number of edges in the graph
  */  
-void Rgraph::ugraph(Graph& graf, int numv, int nume) {
+void Rgraph::ugraph(Graph& g, int numv, int nume) {
 	 numv = max(0,numv); nume = max(0,nume);
-	 if (numv > graf.n() || nume > graf.maxEdgeNum())
-		 graf.resize(numv,nume);
-	 else graf.clear();
-	 addEdges(graf,nume);
+	 if (numv > g.n() || nume > g.M())
+		 g.resize(numv,nume);
+	 else g.clear();
+	 addEdges(g,nume);
 }
 
 /** Add random edges to a graph.
@@ -32,52 +32,52 @@ void Rgraph::ugraph(Graph& graf, int numv, int nume) {
  *  has some edges, additional edges will be added until the
  *  graph has nume edges
  */
-void Rgraph::addEdges(Graph& graf, int nume) {
-	 if (nume <= graf.m()) return;
+void Rgraph::addEdges(Graph& g, int nume) {
+	 if (nume <= g.m()) return;
 	 // build set containing edges already in graph
 	 HashSet<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
-	 for (edge e = graf.first(); e != 0; e = graf.next(e)) {
+	 for (edge e = g.first(); e != 0; e = g.next(e)) {
 		 Pair<vertex,vertex> vpair;
-		 vpair.first =  min(graf.left(e), graf.right(e));
-		 vpair.second = max(graf.left(e), graf.right(e));
+		 vpair.first =  min(g.left(e), g.right(e));
+		 vpair.second = max(g.left(e), g.right(e));
 		 edgeSet.insert(vpair);
 	 }
 
 	 // add edges using random sampling of vertex pairs
 	 // stop early if graph gets so dense that most samples
 	 // repeat edges already in graph
-	 while (graf.m() < nume && graf.m()/graf.n() < graf.n()/4) {
-		 vertex u = Util::randint(1,graf.n());
-		 vertex v = Util::randint(1,graf.n());
+	 while (g.m() < nume && g.m()/g.n() < g.n()/4) {
+		 vertex u = Util::randint(1,g.n());
+		 vertex v = Util::randint(1,g.n());
 		 if (u == v) continue;
 		 if (u > v) { vertex w = u; u = v; v = w; }
 		 Pair<vertex,vertex> vpair(u,v);
 		 if (!edgeSet.contains(vpair)) {
-			 edgeSet.insert(vpair); graf.join(u,v);
+			 edgeSet.insert(vpair); g.join(u,v);
 		 }
 	 }
-	 if (graf.m() == nume) {
-	 	graf.sortAdjLists(); return;
+	 if (g.m() == nume) {
+	 	g.sortAdjLists(); return;
 	}
 
 	 // if more edges needed, build a vector containing remaining 
 	 // "candidate" edges and then sample from this vector
 	 vector<Pair<vertex,vertex>> vpVec;
-	 for (vertex u = 1; u < graf.n(); u++) {
-		 for (vertex v = u+1; v <= graf.n(); v++) {
+	 for (vertex u = 1; u < g.n(); u++) {
+		 for (vertex v = u+1; v <= g.n(); v++) {
 			 Pair<vertex,vertex> vpair(u,v);
 			 if (!edgeSet.contains(vpair)) vpVec.push_back(vpair);
 		 }
 	 }
 	 // sample remaining edges from vector
 	 unsigned int i = 0;
-	 while (graf.m() < nume && i < vpVec.size()) {
+	 while (g.m() < nume && i < vpVec.size()) {
 		 int j = Util::randint(i,vpVec.size()-1);
 		 vertex u = vpVec[j].first;
 		 vertex v = vpVec[j].second;
-		 graf.join(u,v); vpVec[j] = vpVec[i++];
+		 g.join(u,v); vpVec[j] = vpVec[i++];
 	 }
-	 graf.sortAdjLists();
+	 g.sortAdjLists();
 }
 
 /** Generate a random bipartite graph.
@@ -86,13 +86,13 @@ void Rgraph::addEdges(Graph& graf, int nume) {
  *  @param nume is the desired number of edges in the random graph;
  *  cannot exceed n1*n2
  */
-void Rgraph::bigraph(Graph& graf, int n1, int n2, int nume) {
+void Rgraph::bigraph(Graph& g, int n1, int n2, int nume) {
 	 n1 = max(1,n1); n2 = max(1,n2);
 	 nume = min(n1*n2,nume);
-	 if (graf.n() < n1+n2 || graf.maxEdgeNum() < nume)
-		 graf.resize(n1+n2,nume); 
-	 else graf.clear();
-	 addEdges(graf,n1,n2,nume);
+	 if (g.n() < n1+n2 || g.M() < nume)
+		 g.resize(n1+n2,nume); 
+	 else g.clear();
+	 addEdges(g,n1,n2,nume);
 }
 
 /** Add edges to form a random bipartite graph.
@@ -100,30 +100,30 @@ void Rgraph::bigraph(Graph& graf, int n1, int n2, int nume) {
  *  @param n2 specifies the number of vertices in the "right part"
  *  @param nume is the desired number of edges in the graph
  */
-void Rgraph::addEdges(Graph& graf, int n1, int n2, int nume) {
-	 if (nume <= graf.m()) return;
+void Rgraph::addEdges(Graph& g, int n1, int n2, int nume) {
+	 if (nume <= g.m()) return;
 	 // build set containing edges already in graph
 	 HashSet<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
-	 for (edge e = graf.first(); e != 0; e = graf.next(e)) {
+	 for (edge e = g.first(); e != 0; e = g.next(e)) {
 		 Pair<vertex,vertex> vpair;
-		 vpair.first =  min(graf.left(e), graf.right(e));
-		 vpair.second = max(graf.left(e), graf.right(e));
+		 vpair.first =  min(g.left(e), g.right(e));
+		 vpair.second = max(g.left(e), g.right(e));
 		 edgeSet.insert(vpair);
 	 }
 
 	 // add edges using random sampling of vertex pairs
 	 // stop early if graph gets so dense that most samples
 	 // repeat edges already in graph
-	 while (graf.m() < nume && graf.m()/n1 < n2/2) {
+	 while (g.m() < nume && g.m()/n1 < n2/2) {
 		 vertex u = Util::randint(1,n1);
 		 vertex v = Util::randint(n1+1,n1+n2);
 		 Pair<vertex,vertex> vpair(u,v);
 		 if (!edgeSet.contains(vpair)) {
-			 edgeSet.insert(vpair); graf.join(u,v);
+			 edgeSet.insert(vpair); g.join(u,v);
 		 }
 	 }
-	 if (graf.m() == nume) {
-	 	graf.sortAdjLists(); return;
+	 if (g.m() == nume) {
+	 	g.sortAdjLists(); return;
 	}
 
 	 // if more edges needed, build a vector containing remaining 
@@ -137,12 +137,12 @@ void Rgraph::addEdges(Graph& graf, int n1, int n2, int nume) {
 	 }
 	 // sample remaining edges from vector
 	 unsigned int i = 0;
-	 while (graf.m() < nume && i < vpVec.size()) {
+	 while (g.m() < nume && i < vpVec.size()) {
 		 int j = Util::randint(i,vpVec.size()-1);
 		 vertex u = vpVec[j].first; vertex v = vpVec[j].second;
-		 graf.join(u,v); vpVec[j] = vpVec[i++];
+		 g.join(u,v); vpVec[j] = vpVec[i++];
 	 }
-	 graf.sortAdjLists();
+	 g.sortAdjLists();
 }
 
 /** Generate a random tree. 
@@ -152,7 +152,7 @@ void Rgraph::addEdges(Graph& graf, int n1, int n2, int nume) {
  *  if this object has n()>numv, the tree is generated over the first numv
  *  vertices, leaving the remaining vertices with no edges
  */
-void Rgraph::tree(Graph& graf, int numv) {
+void Rgraph::tree(Graph& g, int numv) {
 	 // build a random sequence of n-2 vertex numbers
 	 // these can be interpreted as "edge endpoints" for
 	 // the non-leaf vertices in the tree to be generated;
@@ -173,50 +173,50 @@ void Rgraph::tree(Graph& graf, int numv) {
 	 for (int i = 1; i <= numv-2; i++) {
 		 vertex u = degOne.deletemin();
 		 vertex v = endpoints[i];
-		 graf.join(u,v);
+		 g.join(u,v);
 		 if (--d[v] == 1) degOne.insert(v,v);
 	 }
-	 graf.join(degOne.deletemin(),degOne.deletemin());
-	 graf.sortAdjLists();
+	 g.join(degOne.deletemin(),degOne.deletemin());
+	 g.sortAdjLists();
 }
 
 /** Create a random simple, connected graph.
- *  @param graf is an undirected graph object
+ *  @param g is an undirected graph object
  *  @param numv is the number of vertices on which the digraph is generated;
  *  if this object has n()>numv, the random graph is defined over the first
  *  numv vertices, leaving the remaining vertices with no edges
  *  @param nume is the number of edges in the generated digraph
  */
-void Rgraph::connected(Graph& graf, int numv, int nume) {
+void Rgraph::connected(Graph& g, int numv, int nume) {
 	 // try standard random graph generation
-	 ugraph(graf,numv,nume);
+	 ugraph(g,numv,nume);
 
-	 if (graf.getComponents(NULL) == 1) {
-	 	graf.sortAdjLists(); return;
+	 if (g.getComponents(NULL) == 1) {
+	 	g.sortAdjLists(); return;
 	}
 	 
 	 // graph too sparse for standard method to produce connected graph
 	 // so start over, adding edges to a random tree
-	 graf.clear();
-	 tree(graf,numv);
-	 addEdges(graf,nume);
+	 g.clear();
+	 tree(g,numv);
+	 addEdges(g,nume);
 }
 
-void Rgraph::regular(Graph& graf, int numv, int d) {
-	graf.resize(numv, numv*d/2);
+void Rgraph::regular(Graph& g, int numv, int d) {
+	g.resize(numv, numv*d/2);
 	if ((numv & 1) && (d & 1)) 
 		Util::fatal("regular graph with odd degree must have even "
 			    "number of vertices");
 	if (numv <= d)
 		Util::fatal("regular graph must have vertex count larger than "
 			    "the vertex degree");
-	while (!tryRegular(graf,numv,d)) {}
+	while (!tryRegular(g,numv,d)) {}
 }
 
-bool Rgraph::tryRegular(Graph& graf, int numv, int d) {
+bool Rgraph::tryRegular(Graph& g, int numv, int d) {
 	// generate random list of "edge endpoints"
 	// endpoints  for vertex v are numbered (v-1)*d...v*d-1
-	graf.clear();
+	g.clear();
 	int m = numv*d; 
 	int ep[m];
 	Util::genPerm(m,ep);
@@ -229,21 +229,21 @@ bool Rgraph::tryRegular(Graph& graf, int numv, int d) {
 		int k; int cnt = 0;
 		do {
 			k = Util::randint(i+1, m-1);
-		} while ((x/d == ep[k]/d || graf.findEdge(1+x/d, 1+ep[k]/d))
+		} while ((x/d == ep[k]/d || g.findEdge(1+x/d, 1+ep[k]/d))
 			  && ++cnt < 2*d);
 		int y = ep[k]; ep[k] = ep[i+1];
 		if (x/d == y/d) { return false; }
 		// join the vertices for the selected endpoints
-		graf.join(1+x/d, 1+y/d);
+		g.join(1+x/d, 1+y/d);
 	}
 	if (ep[m-2]/d == ep[m-1]/d) return false;
-	graf.join(1+ep[m-2]/d, 1+ep[m-1]/d);
-	graf.sortAdjLists();
+	g.join(1+ep[m-2]/d, 1+ep[m-1]/d);
+	g.sortAdjLists();
 	return true;
 }
 
-void Rgraph::regularBigraph(Graph& graf, int numv, int d) {
-	graf.resize(2*numv, numv*d);
+void Rgraph::regularBigraph(Graph& g, int numv, int d) {
+	g.resize(2*numv, numv*d);
 	if (numv < d)
 		Util::fatal("regular bipartite graph must have vertex count "
 			    "at least equal to the vertex degree");
@@ -260,13 +260,13 @@ void Rgraph::regularBigraph(Graph& graf, int numv, int d) {
 		int k; int cnt = 0;
 		do {
 			k = Util::randint(i, m-1);
-		} while (graf.findEdge(1+x/d, numv+1+right[k]/d) && ++cnt<2*d);
+		} while (g.findEdge(1+x/d, numv+1+right[k]/d) && ++cnt<2*d);
 		int y = right[k]; right[k] = right[i];
 		// join the vertices for the selected endpoints
-		graf.join(1+x/d, numv+1+y/d);
+		g.join(1+x/d, numv+1+y/d);
 	}
-	graf.join(1+left[m-1]/d, numv+1+right[m-1]/d);
-	graf.sortAdjLists();
+	g.join(1+left[m-1]/d, numv+1+right[m-1]/d);
+	g.sortAdjLists();
 }
 
 /** Generate a random digraph.
@@ -277,7 +277,7 @@ void Rgraph::regularBigraph(Graph& graf, int numv, int d) {
  */
 void Rgraph::digraph(Digraph& dg, int numv, int nume) {
 	 numv = max(0,numv); nume = max(0,nume);
-	 if (numv > dg.n() || nume > dg.maxEdgeNum()) dg.resize(numv,nume); 
+	 if (numv > dg.n() || nume > dg.M()) dg.resize(numv,nume); 
 	 else dg.clear();
 
 	 // build set containing edges already in graph
@@ -340,7 +340,7 @@ void Rgraph::flograph(Flograph& fg, int numv, int nume, int mss) {
 	 mss = max(1,mss); mss = min(mss,(numv-2)/4); 
 	 numv = max(numv,3); nume = max(2*mss,nume);
 
-	 if (fg.n() != numv || fg.maxEdgeNum() < nume) {
+	 if (fg.n() != numv || fg.M() < nume) {
 		fg.resize(numv,nume); 
 	 } else {
 		fg.clear();
@@ -368,35 +368,35 @@ void Rgraph::flograph(Flograph& fg, int numv, int nume, int mss) {
  *  numv vertices, leaving the remaining vertices with no edges
  *  @param nume is the number of edges in the generated digraph
  */
-void Rgraph::dag(Digraph& dgraf, int numv, int nume) {
+void Rgraph::dag(Digraph& g, int numv, int nume) {
 	 numv = max(0,numv); nume = max(0,nume);
-	 if (dgraf.n() < numv || dgraf.maxEdgeNum() < nume)
-		 dgraf.resize(numv,nume); 
-	 else dgraf.clear();
+	 if (g.n() < numv || g.M() < nume)
+		 g.resize(numv,nume); 
+	 else g.clear();
 
 	 // build set containing edges already in graph
 	 HashSet<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
-	 for (edge e = dgraf.first(); e != 0; e = dgraf.next(e)) {
+	 for (edge e = g.first(); e != 0; e = g.next(e)) {
 		 Pair<vertex,vertex> vpair;
-		 vpair.first =  min(dgraf.tail(e), dgraf.head(e));
-		 vpair.second = max(dgraf.tail(e), dgraf.head(e));
+		 vpair.first =  min(g.tail(e), g.head(e));
+		 vpair.second = max(g.tail(e), g.head(e));
 		 edgeSet.insert(vpair);
 	 }
 
 	 // add edges using random sampling of vertex pairs
 	 // stop early if graph gets so dense that most samples
 	 // repeat edges already in graph
-	 while (dgraf.m() < dgraf.maxEdgeNum() && dgraf.m()/numv < numv/4) {
+	 while (g.m() < g.M() && g.m()/numv < numv/4) {
 		 vertex u = Util::randint(1,numv-1);
 		 vertex v = Util::randint(u+1,numv);
 		 if (u == v) continue;
 		 Pair<vertex,vertex> vpair(u,v);
 		 if (!edgeSet.contains(vpair)) {
-			 edgeSet.insert(vpair); dgraf.join(u,v);
+			 edgeSet.insert(vpair); g.join(u,v);
 		 }
 	 }
-	 if (dgraf.m() == dgraf.maxEdgeNum()) {
-	 	dgraf.sortAdjLists(); return;
+	 if (g.m() == g.M()) {
+	 	g.sortAdjLists(); return;
 	}
 
 	 // if more edges needed, build a vector containing remaining 
@@ -411,22 +411,22 @@ void Rgraph::dag(Digraph& dgraf, int numv, int nume) {
 	 }
 	 // sample remaining edges from vector
 	 int i = 0;
-	 while (dgraf.m() < nume && i < vpVec.size()) {
+	 while (g.m() < nume && i < vpVec.size()) {
 		 int j = Util::randint(i,vpVec.size()-1);
 		 vertex u = vpVec[j].first; vertex v = vpVec[j].second;
-		 dgraf.join(u,v); vpVec[j] = vpVec[i++];
+		 g.join(u,v); vpVec[j] = vpVec[i++];
 	 }
-	 dgraf.sortAdjLists();
+	 g.sortAdjLists();
 }
 
 /** Assign random weights to edges in a graph.
- *  @param graf is a reference to the target Wgraph
+ *  @param g is a reference to the target Wgraph
  *  @param lo is the low end of the range
  *  @param hi is the high end of the range
  */
-void Rgraph::setWeights(Wgraph& graf, int lo, int hi) {
-	 for (edge e = graf.first(); e != 0; e = graf.next(e))
-		 graf.setWeight(e,Util::randint(lo,hi));
+void Rgraph::setWeights(Wgraph& g, int lo, int hi) {
+	 for (edge e = g.first(); e != 0; e = g.next(e))
+		 g.setWeight(e,Util::randint(lo,hi));
 }
 
 /** Assign random lengths to edges in a graph.
@@ -476,54 +476,53 @@ void Rgraph::setMinFlows(Mflograph& fg, flow lo, flow hi) {
 }
 
 /** Shuffle the vertices and edges according to the given permutations.
- *  @param graf is a graph object to be shuffled
- *  @param vp is a permutation on the vertices (size n()+1),
+ *  @param g is a graph object to be shuffled
+ *  @param vp is a permutation on the vertices,
  *  mapping vertex u to vp[u]
- *  @param ep is a permutation on the edges (size maxEdgeNum()+1),
+ *  @param ep is a permutation on the edges,
  *  mapping edge e to ep[e]
  */
-void Rgraph::shuffle(Graph& graf, int vp[], int ep[]) {
-	 vertex left[graf.maxEdgeNum()+1];
-	 vertex right[graf.maxEdgeNum()+1];
+void Rgraph::shuffle(Graph& g, int vp[], int ep[]) {
+	 vertex left[g.M()+1]; vertex right[g.M()+1];
 
-	 for (edge e = 1; e <= graf.maxEdgeNum(); e++) {
-		 if (graf.validEdge(e)) {
-			 left[e] = graf.left(e); right[e] = graf.right(e);
+	 for (edge e = 1; e <= g.M(); e++) {
+		 if (g.validEdge(e)) {
+			 left[e] = g.left(e); right[e] = g.right(e);
 		 } else  left[e] = 0;
 	 }
-	 graf.clear();
-	 for (edge e = 1; e <= graf.maxEdgeNum(); e++) {
+	 g.clear();
+	 for (edge e = 1; e <= g.M(); e++) {
 		 if (left[e] != 0)
-			 graf.joinWith( 1+vp[left[e]-1],
+			 g.joinWith( 1+vp[left[e]-1],
 					1+vp[right[e]-1],
 					1+ep[e-1]);
 	 }
 }
 
-void Rgraph::shuffle(Wgraph& graf, int vp[], int ep[]) {
-	shuffle((Graph&) graf,vp,ep);
-	Util::shuffle<edgeWeight>(graf.wt, ep, graf.maxEdgeNum());
+void Rgraph::shuffle(Wgraph& g, int vp[], int ep[]) {
+	shuffle((Graph&) g,vp,ep);
+	Util::shuffle<edgeWeight>(g.wt+1, ep, g.M());
 }
 
-void Rgraph::shuffle(Wdigraph& graf, int vp[], int ep[]) {
-	shuffle((Digraph&) graf,vp,ep);
-	Util::shuffle<edgeLength>(graf.len,ep,graf.maxEdgeNum());
+void Rgraph::shuffle(Wdigraph& g, int vp[], int ep[]) {
+	shuffle((Digraph&) g,vp,ep);
+	Util::shuffle<edgeLength>(g.len+1,ep,g.M());
 }
 	
-void Rgraph::shuffle(Flograph& graf, int vp[], int ep[]) {
-	shuffle((Graph&) graf,vp,ep);
-	Util::shuffle<Flograph::FloInfo>(graf.floInfo, ep, graf.maxEdgeNum());
-	graf.setSrc(vp[graf.src()]); graf.setSnk(vp[graf.snk()]);
+void Rgraph::shuffle(Flograph& g, int vp[], int ep[]) {
+	shuffle((Graph&) g,vp,ep);
+	Util::shuffle<Flograph::FloInfo>(g.floInfo+1, ep, g.M());
+	g.setSrc(1+vp[g.src()-1]); g.setSnk(1+vp[g.snk()-1]);
 }
 
-void Rgraph::shuffle(Wflograph& graf, int vp[], int ep[]) {
-	shuffle((Flograph&) graf,vp,ep);
-	Util::shuffle<flow>(graf.cst, ep, graf.maxEdgeNum());
+void Rgraph::shuffle(Wflograph& g, int vp[], int ep[]) {
+	shuffle((Flograph&) g,vp,ep);
+	Util::shuffle<flow>(g.cst+1, ep, g.M());
 }
 
-void Rgraph::shuffle(Mflograph& graf, int vp[], int ep[]) {
-	shuffle((Flograph&) graf,vp,ep);
-	Util::shuffle<flow>(graf.mflo, ep, graf.maxEdgeNum());
+void Rgraph::shuffle(Mflograph& g, int vp[], int ep[]) {
+	shuffle((Flograph&) g,vp,ep);
+	Util::shuffle<flow>(g.mflo+1, ep, g.M());
 }
 
 } // ends namespace

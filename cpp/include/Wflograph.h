@@ -61,7 +61,6 @@ protected:
  *  @return the cost of e in the direction from v to mate(v)
  */
 inline flow Wflograph::cost(vertex v, edge e) const { 
-	assert(1 <= v && v <= n() && 1 <= e && e <= m());
 	return tail(e) == v ? cst[e] : -cst[e];
 }
 
@@ -69,10 +68,7 @@ inline flow Wflograph::cost(vertex v, edge e) const {
  *  @param e is an edge
  *  @param c is a new cost to be assigned to e
  */
-inline void Wflograph::setCost(edge e, floCost c) { 
-	assert(1 <= e && e <= m());
-	cst[e] = c;
-}
+inline void Wflograph::setCost(edge e, floCost c) { cst[e] = c; }
 
 } // ends namespace
 

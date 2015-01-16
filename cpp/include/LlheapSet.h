@@ -49,7 +49,7 @@ private:
 	void	purge(lheap,List&);
 
 	string  heap2string(index,bool) const;
-	void	makeSpace(int);
+	void	makeSpace();
 	void	freeSpace();
 };
 

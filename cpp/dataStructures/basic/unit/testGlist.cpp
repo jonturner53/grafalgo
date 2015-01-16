@@ -13,7 +13,7 @@
 using namespace grafalgo;
 
 bool basicTests() {
-	int n1 = 10; Glist<int> l1(n1);
+	Glist<int> l1; int n1 = l1.n();
 
 	Utest::assertTrue(l1.empty(), "initial list not empty");
 	cout << "writing empty list: " << l1 << endl;
@@ -80,7 +80,7 @@ bool basicTests() {
 		"empty list reported as non-empty");
 
 	l1.addFirst(1); l1.addFirst(2); l1.addFirst(3);
-	Glist<int> l2(n1); l2 = l1;
+	Glist<int> l2; l2 = l1;
 	Utest::assertEqual(l2.toString(), "[3, 2, 1]",
 		"mismatch on list [3, 2, 1] a");
 	Utest::assertTrue(l2 == l1, "assignment produces unequal pair");
@@ -94,26 +94,20 @@ bool basicTests() {
 	Utest::assertEqual(l2.toString(), "[3, 2, 1]",
 		"mismatch on list [3, 2, 1] c");
 
-	// test equals method
+	// test equality operation
 	l1.clear(); l2.clear();
 	Utest::assertEqual(l1.n(),10,"mismatch on capacity (10)");
-	Utest::assertTrue(l1.equals(l1),"equals(): list testing unequal "
-					"to itself");
-	Utest::assertTrue(l1.equals(l2),"equals(): empty lists testing as "
-					"unequal");
+	Utest::assertTrue(l1 == l1,"==: list testing unequal to itself");
+	Utest::assertTrue(l1 == l2,"==: empty lists testing as unequal");
 	l1.addFirst(1);
-	Utest::assertTrue(!l1.equals(l2),"equals(): different lists testing as "
-					"equal");
+	Utest::assertTrue(!(l1 == l2),"==: different lists testing as equal");
 	l2.addLast(1);
-	Utest::assertTrue(l1.equals(l2),"equals(): equal lists testing as "
-					"unequal");
+	Utest::assertTrue(l1 == l2,"==: equal lists testing as unequal");
 	l1.addLast(5); l2.addLast(5);
 	l1.addFirst(3); l2.addFirst(3);
-	Utest::assertTrue(l1.equals(l2),"equals(): equal lists testing as "
-					"unequal");
+	Utest::assertTrue(l1 == l2,"==: equal lists testing as unequal");
 	l1.removeFirst();
-	Utest::assertTrue(!l1.equals(l2),"equals(): unequal lists testing as "
-					"equal");
+	Utest::assertTrue(!(l1 == l2),"==: unequal lists testing as equal");
 
 	Glist<string> l3;
 	l3.addFirst("abc"); l3.addLast("def ghi"); l3.addFirst("x y z");

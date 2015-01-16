@@ -10,26 +10,26 @@
 
 namespace grafalgo {
 
-/** Find maximum flow in fg using the preflow-push method.
- *  @param fg1 is a flow graph, possibly with a non-zero initial flow.
+/** Find maximum flow in g using the preflow-push method.
+ *  @param g1 is a flow graph, possibly with a non-zero initial flow.
  *  The base clase constructor initializes data used by all
  *  variants.
  */
-prePush::prePush(Flograph& fg1) : fg(&fg1) {
-	excess = new int[fg->n()+1];
-	nextedge = new edge[fg->n()+1];
+prePush::prePush(Flograph& g1) : g(&g1) {
+	excess = new int[g->n()+1];
+	nextedge = new edge[g->n()+1];
 
 	// initialization
-	for (vertex u = 1; u <= fg->n(); u++) {
-		nextedge[u] = fg->firstAt(u); excess[u] = 0;
+	for (vertex u = 1; u <= g->n(); u++) {
+		nextedge[u] = g->firstAt(u); excess[u] = 0;
 	}
-	vertex s = fg->src();
-        for (edge e = fg->firstOut(s); e != 0; e = fg->nextAt(s,e)) {
-		flow ff = fg->res(s,e); fg->addFlow(s,e,ff);
-                vertex v = fg->head(e);
-                if (v != fg->snk()) excess[v] += ff;
+	vertex s = g->src();
+        for (edge e = g->firstOut(s); e != 0; e = g->nextAt(s,e)) {
+		flow ff = g->res(s,e); g->addFlow(s,e,ff);
+                vertex v = g->head(e);
+                if (v != g->snk()) excess[v] += ff;
         }
-	d = new int[fg->n()+1];
+	d = new int[g->n()+1];
 
 	// constructor of derived class initializes additional data
 	// structures, then calls either maxFlowIncr() or maxFlowBatch()
@@ -41,16 +41,16 @@ prePush::~prePush() { delete [] d; delete [] excess; delete [] nextedge; }
 /** Compute maximum flow using incremental relabeling.  */
 void prePush::maxFlowIncr() {
 	initdist();
-	vertex s = fg->src();
-        for (edge e = fg->firstOut(s); e != 0; e = fg->nextAt(s,e)) {
-		vertex v = fg->head(e);
+	vertex s = g->src();
+        for (edge e = g->firstOut(s); e != 0; e = g->nextAt(s,e)) {
+		vertex v = g->head(e);
 		if (excess[v] > 0) addUnbal(v);
 	}
 	vertex u = removeUnbal();
 	while (u != 0) {
 		if (!balance(u)) {
 			d[u] = 1 + minlabel(u);
-			nextedge[u] = fg->firstAt(u);
+			nextedge[u] = g->firstAt(u);
 			addUnbal(u);
 		}
 		u = removeUnbal();
@@ -61,9 +61,9 @@ void prePush::maxFlowIncr() {
 /** Compute maximum flow using batch relabeling.  */
 void prePush::maxFlowBatch() {
 	initdist();
-	vertex s = fg->src();
-        for (edge e = fg->firstOut(s); e != 0; e = fg->nextAt(s,e)) {
-		vertex v = fg->head(e);
+	vertex s = g->src();
+        for (edge e = g->firstOut(s); e != 0; e = g->nextAt(s,e)) {
+		vertex v = g->head(e);
 		if (excess[v] > 0) addUnbal(v);
 	}
 	vertex u = removeUnbal();
@@ -73,9 +73,9 @@ void prePush::maxFlowBatch() {
 			u = removeUnbal();
 		} while (u != 0);
                 initdist();
-                for (u = 1; u <= fg->n(); u++) {
-			if (u == fg->src() || u == fg->snk()) continue;
-                        nextedge[u] = fg->firstAt(u);
+                for (u = 1; u <= g->n(); u++) {
+			if (u == g->src() || u == g->snk()) continue;
+                        nextedge[u] = g->firstAt(u);
                         if (excess[u] > 0) addUnbal(u);
                 }
 		u = removeUnbal();
@@ -87,35 +87,35 @@ void prePush::maxFlowBatch() {
  */
 void prePush::initdist() {
 	vertex u,v; edge e;
-	List queue(fg->n());
+	List queue(g->n());
 
-	for (u = 1; u < fg->n(); u++) d[u] = 2*fg->n();
+	for (u = 1; u < g->n(); u++) d[u] = 2*g->n();
 
 	// compute distance labels for vertices that have path to sink
-	d[fg->snk()] = 0;
-	queue.addLast(fg->snk());
+	d[g->snk()] = 0;
+	queue.addLast(g->snk());
 	while (!queue.empty()) {
 		u = queue.first(); queue.removeFirst();
-		for (e = fg->firstAt(u); e != 0; e = fg->nextAt(u,e)) {
-			v = fg->mate(u,e);
-			if (fg->res(v,e) > 0 && d[v] > d[u] + 1) {
+		for (e = g->firstAt(u); e != 0; e = g->nextAt(u,e)) {
+			v = g->mate(u,e);
+			if (g->res(v,e) > 0 && d[v] > d[u] + 1) {
 				d[v] = d[u] + 1;
 				queue.addLast(v);
 			}
 		}
 	}
 
-	if (d[fg->src()] < fg->n()) 
+	if (d[g->src()] < g->n()) 
 		Util::fatal("initdist: path present from source to sink");
 
 	// compute distance labels for remaining vertices
-	d[fg->src()] = fg->n();
-	queue.addLast(fg->src());
+	d[g->src()] = g->n();
+	queue.addLast(g->src());
 	while (!queue.empty()) {
 		u = queue.first(); queue.removeFirst();
-		for (e = fg->firstAt(u); e != 0; e = fg->nextAt(u,e)) {
-			v = fg->mate(u,e);
-			if (fg->res(v,e) > 0 && d[v] > d[u] + 1) {
+		for (e = g->firstAt(u); e != 0; e = g->nextAt(u,e)) {
+			v = g->mate(u,e);
+			if (g->res(v,e) > 0 && d[v] > d[u] + 1) {
 				d[v] = d[u] + 1;
 				queue.addLast(v);
 			}
@@ -132,10 +132,10 @@ void prePush::initdist() {
 int prePush::minlabel(vertex u) {
 	int small; edge e;
 
-	small = 2*fg->n();
-	for (e = fg->firstAt(u); e != 0; e = fg->nextAt(u,e))
-		if (fg->res(u,e) > 0)
-			small = min(small,d[fg->mate(u,e)]);
+	small = 2*g->n();
+	for (e = g->firstAt(u); e != 0; e = g->nextAt(u,e))
+		if (g->res(u,e) > 0)
+			small = min(small,d[g->mate(u,e)]);
 	return small;
 }
 
@@ -172,15 +172,15 @@ bool prePush::balance(vertex u) {
 	while (true) {
 		edge e = nextedge[u];
 		if (e == 0) return false; 
-		vertex v = fg->mate(u,e);
-		if (fg->res(u,e) > 0 && d[u] == d[v]+1 && nextedge[v] != 0) {
-			flow x = min(excess[u],fg->res(u,e));
-			fg->addFlow(u,e,x);
+		vertex v = g->mate(u,e);
+		if (g->res(u,e) > 0 && d[u] == d[v]+1 && nextedge[v] != 0) {
+			flow x = min(excess[u],g->res(u,e));
+			g->addFlow(u,e,x);
 			excess[u] -= x; excess[v] += x;
-			if (v != fg->src() && v != fg->snk()) addUnbal(v);
+			if (v != g->src() && v != g->snk()) addUnbal(v);
 			if (excess[u] <= 0) return true;
 		}
-		nextedge[u] = fg->nextAt(u,e);
+		nextedge[u] = g->nextAt(u,e);
 	}
 }
 

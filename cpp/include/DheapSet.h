@@ -33,12 +33,12 @@ namespace grafalgo {
  *  
  *  Heaps are constructed from logical nodes of size d.
  *  Each node contains up to d items, and each item in a
- *  node has a child pointer that identifes the node
+ *  node has a child "pointer" that identifes the node
  *  containing its children in the tree that forms the heap.
- *  Each node also has a parent pointer that points to the
+ *  Each node also has a parent "pointer" that points to the
  *  position of the parent item in the parent node
  *  
- *  Each node also a predecessor pointer that points to
+ *  Each node also has a predecessor "pointer" that points to
  *  the preceding node in its heap in the breadth-first
  *  ordering of the nodes. This pointer is used when
  *  adding and removing nodes from a heap.
@@ -123,41 +123,33 @@ private:
  */
 template<class K>
 DheapSet<K>::DheapSet(int size, int maxh, int dd) :
-		   Adt(size), maxHeap(maxh), d(dd) {
-	makeSpace();
-}
+		   Adt(size), maxHeap(maxh), d(dd) { makeSpace(); init(); }
 
+/** Destructor for DheapSet. */
 template<class K>
 DheapSet<K>::~DheapSet() { freeSpace(); }
 
-/** Allocate and initialize space for Dheap.
+/** Allocate and initialize space for DheapSet.
  *  @param size is number of index values to provide space for
  */
 template<class K>
 void DheapSet<K>::makeSpace() {
 	numNodes = (n()/d) + maxHeap;
-	try {
-		heaps = new index[numNodes*d]; // each d-word block is a "node"
-		child = new int[numNodes*d];    // each item in heaps has child
-						// node
-		parent = new int[numNodes];   	// note, one per node
-		pred = new int[numNodes];     	// ditto
-	
-		key = new K[n()+1];
+	heaps = new index[numNodes*d]; // each d-word block is a "node"
+	child = new int[numNodes*d];    // each item in heaps has child
+					// node
+	parent = new int[numNodes];   	// note, one per node
+	pred = new int[numNodes];     	// ditto
 
-		root = new index[maxHeap+1];	// values are indices in
-						// heaps array
-		bot = new index[maxHeap+1];	// ditto
-		hSize = new int[maxHeap+1];
-	} catch (std::bad_alloc e) {
-		string s = "makeSpace:: insufficient space for "
-				+ to_string(n()) + " index values";
-		throw OutOfSpaceException(s);
-	}
-	init();
+	key = new K[n()+1];
+
+	root = new index[maxHeap+1];	// values are indices in
+					// heaps array
+	bot = new index[maxHeap+1];	// ditto
+	hSize = new int[maxHeap+1];
 }
 
-/** Free dynamic storage used by Dheap. */
+/** Free dynamic storage used by DheapSet. */
 template<class K>
 void DheapSet<K>::freeSpace() { 
 	delete [] heaps; delete [] child; delete [] parent;
@@ -165,9 +157,11 @@ void DheapSet<K>::freeSpace() {
 	delete [] bot; delete [] hSize;
 }
 
-/** Copy into DheapSet from source. */
+/** Copy into DheapSet .
+ *  @param src is another DheapSet object to be copied to this object.
+ */
 template<class K>
-void DheapSet<K>::copyFrom(const DheapSet& source) {
+void DheapSet<K>::copyFrom(const DheapSet& src) {
 	Util::fatal("DheapSet::copyFrom not implemented.");
 }
 
@@ -178,7 +172,7 @@ void DheapSet<K>::copyFrom(const DheapSet& source) {
  */
 template<class K>
 void DheapSet<K>::resize(int size, int maxh) {
-	freeSpace(); Adt::resize(size); maxHeap = maxh; makeSpace();
+	freeSpace(); Adt::resize(size); maxHeap = maxh; makeSpace(); init();
 }
 
 /** Expand the space available for this Dheap.
@@ -195,7 +189,7 @@ void DheapSet<K>::expand(int size, int maxh) {
 /** Initialize all the heaps. */
 template<class K>
 void DheapSet<K>::init() {
-	for (int h = 1; h <= maxHeap; h++) hSize[h] = 0;
+	for (index h = 1; h <= maxHeap; h++) hSize[h] = 0;
 	for (int p = 0; p < numNodes*d; p++) heaps[p] = 0;
 
 	// build free list using "parent pointer" of each "node"
@@ -208,7 +202,7 @@ void DheapSet<K>::init() {
 /** Remove all elements from all heaps. */
 template<class K>
 void DheapSet<K>::clear() {
-	for (int h = 1; h <= maxHeap; h++) 
+	for (index h = 1; h <= maxHeap; h++) 
 		while (hSize[h] > 0) deleteMin(h);
 }
 
@@ -219,7 +213,7 @@ void DheapSet<K>::clear() {
  *  @return true on success, false on failure
  */
 template<class K>
-bool DheapSet<K>::insert(index i, const K& k, int h) {
+bool DheapSet<K>::insert(index i, const K& k, index h) {
 	key[i] = k;
 	if (i == 0) return false;
 	int n = hSize[h]; int r = (n-1)%d;
@@ -256,9 +250,13 @@ bool DheapSet<K>::insert(index i, const K& k, int h) {
 	return true;
 }
 
-// Delete and return item with smallest key.
+/** Delete and return item with smallest key.
+ *  @param h is an index identifying a heap.
+ *  @return the index of the item with the smallest key in h after
+ *  removing the index from h.
+ */
 template<class K>
-int DheapSet<K>::deleteMin(int h) {
+int DheapSet<K>::deleteMin(index h) {
         int hn = hSize[h];
         if (hn == 0) return 0;
         int i, p;
@@ -292,7 +290,10 @@ int DheapSet<K>::deleteMin(int h) {
         return i;
 }
 
-// Shift i up from position p to restore heap order.
+/** Shift an item up the heap to restore heap order.
+ *  @param i is the index of item to be shifted up the heap
+ *  @param p is the position from which i is to be shifted up
+ */
 template<class K>
 void DheapSet<K>::siftup(index i, int p) {
 	int pp = parent[p/d];
@@ -302,7 +303,10 @@ void DheapSet<K>::siftup(index i, int p) {
 	heaps[p] = i;
 }
 
-// Shift i down from position p to restore heap order.
+/** Shift an item down the heap to restore heap order.
+ *  @param i is the index of item to be shifted down the heap
+ *  @param p is the position from which i is to be shifted down
+ */
 template<class K>
 void DheapSet<K>::siftdown(index i, int p) {
 	int cp = nodeMinPos(child[p]);
@@ -313,25 +317,35 @@ void DheapSet<K>::siftdown(index i, int p) {
 	heaps[p] = i;
 }
 
-// Change the key of the min item in a heap.
+/** Change the key of the min item in a heap.
+ *  @param k is the new key value to be assigned
+ *  @param h is the index of the heap whose min key value is to
+ *  be adjusted
+ */
 template<class K>
-void DheapSet<K>::changeKeyMin(const K& k, int h) {
+void DheapSet<K>::changeKeyMin(const K& k, index h) {
 	int p = nodeMinPos(root[h]);
 	index i = heaps[p]; key[i] = k;
 	siftdown(i,p);
 }
 
+/** Create a human-readable representation of the DheapSet object.
+ *  @return the string representing the object
+ */ 
 template<class K>
 string DheapSet<K>::toString() const {
 	string s;
-	for (int h = 1; h <= maxHeap; h++) {
+	for (index h = 1; h <= maxHeap; h++) {
 		if (!empty(h)) s += toString(h) + "\n";
 	}
 	return s;
 }
 
+/** Create a human-readable representation of a single heap.
+ *  @return the string representing the heap
+ */ 
 template<class K>
-string DheapSet<K>::toString(int h) const {
+string DheapSet<K>::toString(index h) const {
 	if (hSize[h] == 0) return "[]";
 
 	list<int> nodeList;
@@ -356,6 +370,11 @@ string DheapSet<K>::toString(int h) const {
 	return ss.str();
 }
 
+/** Find the position of the item with the smallest key in a node.
+ *  @param p is the position of the first item in some node
+ *  @return the position of the item with the smallest key in p's node;
+ *  if there is no valid item at position p, return -1
+ */ 
 template<class K>
 inline int DheapSet<K>::nodeMinPos(int p) const {
 	if (p == -1 || heaps[p] == 0) return -1;
@@ -366,25 +385,37 @@ inline int DheapSet<K>::nodeMinPos(int p) const {
 	return minPos;
 }
 
-// Return item at top of heap
+/** Return item at top of heap
+ *  @param h is the index of some heap
+ *  @return the item at the top of h or 0 if h is empty
+ */
 template<class K>
-inline int DheapSet<K>::findMin(int h) const {
+inline int DheapSet<K>::findMin(index h) const {
 	if (hSize[h] == 0) return 0;
 	int p = nodeMinPos(root[h]);
 	return (p < 0 ? 0 : heaps[p]);
 }
 
-// Return key of i.
+/** Return the key of an item in the heap.
+ *  @param i is the index of an item
+ *  @return the key for item i
+ */
 template<class K>
 inline const K& DheapSet<K>::getKey(index i) const { return key[i]; }
 
-// Return true if heap is empty, else false.
+/** Determine if a heap is empty.
+ *  @param h is the index of a heap
+ *  @return true if h is empty
+ */
 template<class K>
-inline bool DheapSet<K>::empty(int h) const { return hSize[h] == 0; };
+inline bool DheapSet<K>::empty(index h) const { return hSize[h] == 0; };
 
-// Return the size of a heap.
+/** Return the size of a heap.
+ *  @param h is the index of a heap
+ *  @return the number of items in h
+ */
 template<class K>
-inline int DheapSet<K>::heapSize(int h) const { return hSize[h]; };
+inline int DheapSet<K>::heapSize(index h) const { return hSize[h]; };
 
 } // ends namespace
 

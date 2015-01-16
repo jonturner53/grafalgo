@@ -13,10 +13,10 @@
 
 namespace grafalgo {
 
-/** Data structure for undirected graph with edge weights.
+/** Data structure for directed graph.
  *
- *  Digraph size (number of vertices and max number of edges) must
- *  be specified when a Digraph object is constructed.
+ *  Vertices are identified by index values 1..n.
+ *  Edges are identified by separate index values over range 1..M.
  *  Edges can be added and removed from the graph.
  *  Methods are provided to facilitate graph traversal,
  *  either by iterating through all edges of the graph
@@ -44,16 +44,13 @@ public:		Digraph(int=1,int=1);
 	edge	joinWith(vertex,vertex,edge);
 	bool	remove(edge);
 
-        void    rgraph(int,int);    
-        void    rdag(int,int);     
-
 	// create a string representation
         virtual string toDotString() const;
-
 
 protected:
 	void makeSpace(int,int);
 	void freeSpace();
+	void init();
 	string	adjList2string(vertex) const;
 	bool	readAdjList(istream&);
 
@@ -94,11 +91,11 @@ inline edge Digraph::nextAt(vertex v, edge e) const {
 	assert(validVertex(v) && validEdge(e));
         if (v != evec[e].l && v != evec[e].r) return 0;
         int ee = (v == evec[e].l ? 2*e : 2*e+1);
-        int ff = adjLists->suc(ee);
+        int ff = adjLists->next(ee);
         return (ff == fi[v] ? firstOut(v) : (ff == fe[v] ? 0 : ff/2));
 }
 
-/** Get the first edge incident to a vertex.
+/** Get the first edge entering a vertex.
  *  @param v is the the vertex of interest
  *  @return the first edge incident to v
  */
@@ -107,7 +104,7 @@ inline edge Digraph::firstIn(vertex v) const {
         return fi[v]/2;
 }
 
-/** Get the next incoming edge incident to a specific vertex.
+/** Get the next incoming edge at a vertex.
  *  @param v is a vertex whose edges we're iterating through
  *  @param e is the edge whose successor is requested
  *  @return the next edge in the adjacency list for v
@@ -117,7 +114,7 @@ inline edge Digraph::nextIn(vertex v, edge e) const {
 	assert(validVertex(v) && validEdge(e));
         if (v != evec[e].l && v != evec[e].r) return 0;
         int ee = (v == evec[e].l ? 2*e : 2*e+1);
-        int ff = adjLists->suc(ee);
+        int ff = adjLists->next(ee);
         return (fi[v] == ff ? 0 : ff/2);
 }
 
@@ -130,7 +127,7 @@ inline edge Digraph::firstOut(vertex v) const {
         return fe[v]/2;
 }
 
-/** Get the next outgoing edge incident to a specific vertex.
+/** Get the next outgoing edge at a vertex.
  *  @param v is the edge whose adjacency list we're accessing
  *  @param e is the edge whose successor is requested
  *  @return the next edge in the adjacency list for v
@@ -140,7 +137,7 @@ inline edge Digraph::nextOut(vertex v, edge e) const {
 	assert(validVertex(v) && validEdge(e));
         if (v != evec[e].l && v != evec[e].r) return 0;
         int ee = (v == evec[e].l ? 2*e : 2*e+1);
-        int ff = adjLists->suc(ee);
+        int ff = adjLists->next(ee);
         return (fe[v] == ff ? 0 : ff/2);
 }
 

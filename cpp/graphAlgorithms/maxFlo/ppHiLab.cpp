@@ -12,20 +12,20 @@ namespace grafalgo {
 
 /** Find maximum flow in a flow graph using the highest-label-first
  *  variant of the preflow-push algorithm.
- *  @param fg1 is a reference to the flow graph
+ *  @param g1 is a reference to the flow graph
  *  @param batch is a boolean which determines if the algorithm uses
  *  batch relabeling (batch=true) or incremental relabeling (batch=false)
  */
-ppHiLab::ppHiLab(Flograph& fg1, bool batch) : prePush(fg1) {
+ppHiLab::ppHiLab(Flograph& g1, bool batch) : prePush(g1) {
 	// ubVec[d] is an unbalanced vertex with a distance label of d
 	// or 0 if there is no unbalanced vertex with a distance label of d
 	// unbal partitions the vertices into circular lists, where all
 	// vertices on the same list are unbalanced and have the same
 	// distance label; balanced vertices each form singleton lists
-	ubVec = new int[2*fg->n()];
-	unbal = new ClistSet(fg->n());
+	ubVec = new int[2*g->n()];
+	unbal = new ClistSet(g->n());
 	top = 0;
-	for (int i = 0; i < 2*fg->n(); i++) ubVec[i] = 0;
+	for (int i = 0; i < 2*g->n(); i++) ubVec[i] = 0;
 
 	if (batch) maxFlowBatch();
 	else maxFlowIncr();
@@ -36,7 +36,7 @@ ppHiLab::ppHiLab(Flograph& fg1, bool batch) : prePush(fg1) {
  *  of unbalanced vertices with the same distance label as u
  */
 void ppHiLab::addUnbal(vertex u) {
-	if (ubVec[d[u]] == u || unbal->suc(u) != u) return;
+	if (ubVec[d[u]] == u || unbal->next(u) != u) return;
 	if (ubVec[d[u]] == 0) ubVec[d[u]] = u;
 	else unbal->join(ubVec[d[u]],u);
 	top = max(top,d[u]);
@@ -51,7 +51,7 @@ void ppHiLab::addUnbal(vertex u) {
 vertex ppHiLab::removeUnbal() {
 	if (top == 0) return 0;
 	vertex u = ubVec[top]; 
-	vertex v = unbal->suc(u);
+	vertex v = unbal->next(u);
 	if (v != u) {
 		unbal->remove(u);
 		ubVec[top] = v;

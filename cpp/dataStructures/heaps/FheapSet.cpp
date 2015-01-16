@@ -10,7 +10,7 @@
 
 namespace grafalgo {
 
-#define sib(x) sibs->suc(x)
+#define sib(x) sibs->next(x)
 #define kee(x) node[x].kee
 #define rank(x) node[x].rank
 #define mark(x) node[x].mark
@@ -18,27 +18,16 @@ namespace grafalgo {
 #define c(x) node[x].c
 
 /** Constructor for FheapSet class.
- *  @param size is the number of items in the constructed object
+ *  @param n is the number of items in the constructed object
  */
-FheapSet::FheapSet(int size) : Adt(size) { makeSpace(size); mrCount = 0; }
+FheapSet::FheapSet(int n) : Adt(n) { makeSpace(); clear(); }
 
 /** Destructor for FheapSet class. */
 FheapSet::~FheapSet() { freeSpace(); }
 
-/** Allocate and initialize space for FheapSet.
- *  @param size is number of index values to provide space for
- */
-void FheapSet::makeSpace(int size) {
-	try {
-		node = new Fnode[size+1];
-		sibs = new ClistSet(size);
-		tmpq = new List(size);
-	} catch (std::bad_alloc e) {
-		string s = "makeSpace:: insufficient space for "
-			+ to_string(size) + " index values";
-		throw OutOfSpaceException(s);
-	}
-	nn = size; clear();
+/** Allocate space for FheapSet. */
+void FheapSet::makeSpace() {
+	node = new Fnode[n()+1]; sibs = new ClistSet(n()); tmpq = new List(n());
 }
 
 /** Free dynamic storage used by FheapSet. */
@@ -62,24 +51,20 @@ void FheapSet::copyFrom(const FheapSet& source) {
 
 /** Resize a FheapSet object.
  *  The old value is discarded.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void FheapSet::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "FheapSet::resize::" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+void FheapSet::resize(int n) {
+	freeSpace(); Adt::resize(n); makeSpace(); clear();
 }
 
 /** Expand the space available for this FheapSet.
  *  Rebuilds old value in new space.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void FheapSet::expand(int size) {
-	if (size <= n()) return;
+void FheapSet::expand(int n) {
+	if (n <= this->n()) return;
 	FheapSet old(this->n()); old.copyFrom(*this);
-	resize(size); this->copyFrom(old);
+	resize(n); this->copyFrom(old);
 }
 
 /** Convert all heaps to singletons. */
@@ -88,7 +73,6 @@ void FheapSet::clear() {
 	for (index x = 0; x <= n(); x++) {
 		c(x) = p(x) = rank(x) = kee(x) = 0; mark(x) = false;
 	}
-	//for (index x = 0; x <= FheapSet::MAXRANK; x++) rvec[x] = 0;
 }
 
 /** Build a heap from a list of nodes.
@@ -106,14 +90,14 @@ fheap FheapSet::makeheap(const List& lst) {
 }
 
 /** Combine two heaps.
- *  @param h1 is the canonical element of a heap
- *  @param h2 is the canonical element of a heap
+ *  @param h1 is the canonical element of a heap, or 0
+ *  @param h2 is the canonical element of a heap, or 0
  *  @param return the canonical element of the heap obtained
  *  by combining h1 and h2
  */
 fheap FheapSet::meld(fheap h1, fheap h2) {
-	assert(0 <= h1 && h1 <= n() && 0 <= h2 && h2 <= n());
-//cerr << "meld(" << h1 << "," << h2 << ")\n";
+	assert((h1 == 0 || (valid(h1) && p(h1) == 0)) &&
+	       (h2 == 0 || (valid(h2) && p(h2) == 0)));
 	if (h1 == 0) return h2;
 	if (h2 == 0) return h1;
 	sibs->join(h1,h2);
@@ -128,7 +112,7 @@ fheap FheapSet::meld(fheap h1, fheap h2) {
  *  i into h
  */
 fheap FheapSet::insert(index i, fheap h, keytyp x) {
-	assert(0 <= i && i <= n() && 0 <= h && h <= n());
+	assert(valid(i) && valid(h) && p(h) == 0);
 	setKey(i,x);
 	return meld(i,h);
 }
@@ -141,8 +125,7 @@ fheap FheapSet::insert(index i, fheap h, keytyp x) {
  *  i's key by delta
  */
 fheap FheapSet::decreasekey(index i, keytyp delta, fheap h) {
-	assert(0 <= i && i <= n() && 0 <= h && h <= n() && delta >= 0);
-//cerr << "decreaskey(" << i << "," << delta << "," << h << ")\n";
+	assert(valid(i) && valid(h) && p(h) == 0);
 	fheap pi = p(i);
 	kee(i) -= delta;
 	if (pi == 0) return (kee(i) < kee(h) ? i : h);
@@ -166,8 +149,8 @@ fheap FheapSet::decreasekey(index i, keytyp delta, fheap h) {
  *  @return the resulting root with the smallest key
  */
 fheap FheapSet::mergeRoots(fheap r) {
+	assert(valid(r) && p(r) == 0);
 	// Build queue of roots and find root with smallest key
-	mrCount++;
 	index minRoot = r;
 	tmpq->addLast(r); p(r) = 0;
 	for (fheap sr = sib(r); sr != r; sr = sib(sr)) {
@@ -177,7 +160,6 @@ fheap FheapSet::mergeRoots(fheap r) {
 	// scan roots, merging trees of equal rank
 	int maxRank = -1; // maxRank = maximum rank seen so far
 	while (!tmpq->empty()) {
-		mrCount++;
 		index r1 = tmpq->first(); tmpq->removeFirst();
 		if (rank(r1) > FheapSet::MAXRANK)
 			Util::fatal("mergeRoots: rank too large");
@@ -213,20 +195,19 @@ fheap FheapSet::mergeRoots(fheap r) {
  *  removing the item with the smallest key
  */
 fheap FheapSet::deletemin(fheap h) {
-if (!(1 <= h && h <= n())) {
-//cerr << "deletemin(" << h << ")\n";
-}
-	assert(1 <= h && h <= n());
+	assert(valid(h) && p(h) == 0);
 
 	// Merge h's children into root list and remove it
-	index x = c(h);
-	if (x != 0) sibs->join(h,x);
-	c(h) = 0; rank(h) = 0;
-	x = sib(h);
-	if (x == h) {
-//cerr << "returning 0 because heap now empty\n";
-		return 0;
+	// First, make parent pointers of new root nodes 0
+	if (c(h) != 0) {
+		index x = c(h);
+		do { p(x) = 0; x = sibs->next(x); } while (x != c(h));
+		sibs->join(h,x);
+		c(h) = 0;
 	}
+	rank(h) = 0;
+	index x = sib(h);
+	if (x == h) return 0;
 	sibs->remove(h);
 
 	return mergeRoots(x);
@@ -238,7 +219,7 @@ if (!(1 <= h && h <= n())) {
  *  @return the heap that results from removing i from h
  */
 fheap FheapSet::remove(index i, fheap h) {
-	assert(1 <= i && i <= n() && 1 <= h && h <= n());
+	assert(valid(i) && valid(h) && p(h) == 0);
 	keytyp k = kee(i);
 	h = decreasekey(i,(kee(i)-kee(h))+1,h);
 	h = deletemin(h);

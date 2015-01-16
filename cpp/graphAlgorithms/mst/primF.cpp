@@ -16,10 +16,10 @@ namespace grafalgo {
 /** Find a minimum spanning tree using Prim's algorithm.
  *  This version uses a Fibonacci heap
  *  @param wg is a weighted graph
- *  @param mstree is a second weighted graph data structure in which the
- *  the result is to be returned; it is assumed to have no edges
+ *  @param mst is a list in which the edge numbers for the edges in
+ *  the the minimum spanning tree are returned
  */
-void primF(Wgraph& wg, Glist<edge>& mstree) {
+void primF(Wgraph& wg, Glist<edge>& mst) {
         vertex u,v; edge e;
         edge* cheap = new edge[wg.n()+1];
         FheapSet nheap(wg.n()); fheap root;
@@ -27,6 +27,7 @@ void primF(Wgraph& wg, Glist<edge>& mstree) {
         bool *inTree = new bool[wg.n()+1]; // inTree[u]=true if u is in tree
         int numInHeap = 0;
 
+	mst.clear();
         for (u = 1; u <= wg.n(); u++) inHeap[u] = false;
 
         e = wg.firstAt(1);
@@ -44,7 +45,7 @@ void primF(Wgraph& wg, Glist<edge>& mstree) {
         while (numInHeap > 0) {
                 u = root; root = nheap.deletemin(root);
                 inHeap[u] = false; numInHeap--;
-		inTree[u] = true; mstree.addLast(cheap[u]);
+		inTree[u] = true; mst.addLast(cheap[u]);
                 for (e = wg.firstAt(u); e != 0; e = wg.nextAt(u,e)) {
                         v = wg.mate(u,e);
                         if (inHeap[v] && wg.weight(e) < nheap.key(v)) {

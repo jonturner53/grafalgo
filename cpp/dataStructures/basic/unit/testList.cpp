@@ -13,7 +13,7 @@
 using namespace grafalgo;
 
 bool basicTests() {
-	int n1 = 10; List l1(n1);
+	List l1; int n1 = l1.n();
 
 	Utest::assertTrue(l1.empty(), "initial list not empty");
 	Utest::assertTrue(l1.isConsistent(), "initial list not consistent");
@@ -24,18 +24,7 @@ bool basicTests() {
 			"member returns true on empty list");
 	}
 
-	// test illegal argument exceptions
-	try {
-		l1.addFirst(-1);
-		Utest::assertTrue(false,"addFirst fails to detect illegal "
-					"argument");
-	} catch(IllegalArgumentException e) { cout << endl; }
-	try {
-		l1.addFirst(1);
-	} catch(IllegalArgumentException e) { 
-		Utest::assertTrue(false,"addFirst incorrectly detects illegal "
-					"argument");
-	}
+	l1.addLast(1);
 	cout << "writing one item list: " << l1 << endl;
 	Utest::assertEqual(l1.toString(), "[a]",
 		"mismatch on adding first item");
@@ -44,7 +33,7 @@ bool basicTests() {
 	Utest::assertTrue(!l1.empty(),"list with one item reports empty");
 	Utest::assertTrue(l1.member(1),"member 1 not reported in list");
 
-	for (int i = 1; i <= n1; i += 2) l1.addLast(i);
+	for (int i = 3; i <= n1; i += 2) l1.addLast(i);
 	cout << "writing longer list: " << l1 << endl;
 	Utest::assertEqual(l1.toString(), "[a c e g i]",
 		"mismatch on list [a c e g i]");
@@ -91,7 +80,7 @@ bool basicTests() {
 		"empty list reported as non-empty");
 
 	l1.addFirst(1); l1.addFirst(2); l1.addFirst(3);
-	List l2(n1); l2 = l1;
+	List l2; l2 = l1;
 	Utest::assertEqual(l2.toString(), "[c b a]",
 		"mismatch on list [c b a]");
 	int n2 = 27; l2.expand(n2);
@@ -117,24 +106,24 @@ bool basicTests() {
 	Utest::assertTrue(l1.isConsistent(),
 			  "not consistent after three more adds");
 
-	// test equals method
+	// test equality operator
 	l1.clear(); l2.clear();
-	Utest::assertTrue(l1.equals(l1),"equals(): list testing unequal "
+	Utest::assertTrue(l1 == l1,"==: list testing unequal "
 					"to itself");
-	Utest::assertTrue(l1.equals(l2),"equals(): empty lists testing as "
+	Utest::assertTrue(l1 == l2,"==: empty lists testing as "
 					"unequal");
 	l1.addFirst(1);
-	Utest::assertTrue(!l1.equals(l2),"equals(): different lists testing as "
+	Utest::assertTrue(!(l1 == l2),"==: different lists testing as "
 					"equal");
 	l2.addLast(1);
-	Utest::assertTrue(l1.equals(l2),"equals(): equal lists testing as "
+	Utest::assertTrue(l1 == l2,"==: equal lists testing as "
 					"unequal");
 	l1.addLast(5); l2.addLast(5);
 	l1.addFirst(3); l2.addFirst(3);
-	Utest::assertTrue(l1.equals(l2),"equals(): equal lists testing as "
+	Utest::assertTrue(l1 == l2,"==: equal lists testing as "
 					"unequal");
 	l1.removeFirst();
-	Utest::assertTrue(!l1.equals(l2),"equals(): unequal lists testing as "
+	Utest::assertTrue(!(l1 == l2),"==: unequal lists testing as "
 					"equal");
 
 	return true;

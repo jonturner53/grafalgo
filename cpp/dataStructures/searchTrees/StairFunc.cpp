@@ -11,27 +11,17 @@
 namespace grafalgo {
 
 /** Constructor for StairFunc class.
- *  @param size defines the index range for the constructed object.
+ *  @param n defines the index range for the constructed object.
  */
-StairFunc::StairFunc(int size) : Adt(size) {
-	makeSpace(size);
-}
+StairFunc::StairFunc(int n) : Adt(n) { makeSpace(); clear(); }
 
 /** Destructor for StairFunc class. */
 StairFunc::~StairFunc() { freeSpace(); }
 
-/** Allocate and initialize space for StairFunc.
- *  @param size is number of index values to provide space for
+/** Allocate space for StairFunc.
  */
-void StairFunc::makeSpace(int size) {
-	try {
-		points = new DkBstSet(2*size+1); free = new List(2*size+1);
-	} catch (std::bad_alloc e) {
-		string s = "makeSpace:: insufficient space for "
-		   	   + to_string(size) +  "index values";
-		throw OutOfSpaceException(s);
-	}
-	nn = size; clear();
+void StairFunc::makeSpace() {
+	points = new DkBstSet(2*size+1); free = new List(2*size+1);
 }
 
 /** Free dynamic storage used by StairFunc. */
@@ -48,24 +38,20 @@ void StairFunc::clear() {
 }
 
 /** Resize a StairFunc object, discarding old value.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void StairFunc::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "StairFunc::resize::" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+void StairFunc::resize(int n) {
+	freeSpace(); Adt::resize(n); makeSpace(); clear();
 }
 
 /** Expand the space available for this ojbect.
  *  Rebuilds old value in new space.
- *  @param size is the size of the expanded object.
+ *  @param n is the size of the expanded object.
  */
-void StairFunc::expand(int size) {
-	if (size <= n()) return;
+void StairFunc::expand(int n) {
+	if (n <= this->n()) return;
 	StairFunc old(this->n()); old.copyFrom(*this);
-	resize(size); this->copyFrom(old);
+	resize(n); this->copyFrom(old);
 }
 
 /** Copy another object to this one.
@@ -80,7 +66,10 @@ void StairFunc::copyFrom(const StairFunc& source) {
 	free->copyFrom(*(source.free));
 }
 
-// Return the y value at a specified x coordinate
+/** Return the y value of the function at a specified x coordinate
+ *  @param x is the x-coordinate at which the function value is to be evaluated
+ *  @return the function value at x
+ */
 index StairFunc::value(int x)  {
 	assert (x >= 0);
 	index v = points->access(x,points->find(1));
@@ -91,7 +80,7 @@ index StairFunc::value(int x)  {
 // the range [lo,hi]
 int StairFunc::findmin(int lo, int hi) {
 	assert(0 <= lo && lo <= hi);
-	int min = Util::BIGINT32;
+	int min = INT_MAX;
 	BstSet::BstPair pairA(0,0); BstSet::BstPair pairB(0,0);
 	
 	//lowNode is largest node with key1 <= lo
@@ -185,7 +174,7 @@ void StairFunc::change(int lo, int hi, int diff) {
 
 string StairFunc::toString() const {
 	string 2;
-	for (index i = 1; i != 0; i = points->suc(i)) {
+	for (index i = 1; i != 0; i = points->next(i)) {
 		s += "(" + to_string(points->key1(i)) + ","
 		     + to_string(points->key2(i)) + ") ";
 	}

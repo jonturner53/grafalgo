@@ -3,7 +3,7 @@
 # usage: sptTimeScript algorithm
 #
 # Run timing tests with a specified algorithm.
-# The algorithm argument may be dijkstra of bfScan
+# The algorithm argument may be dijkstra of bellmanMoore
 #
 algo="dijkstra"
 if [ $# -eq 1 ] ; then

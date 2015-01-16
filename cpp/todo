@@ -1,48 +1,45 @@
-Complete documentation of graph algorithms
+Convert search trees to use templates.
+
+Make documentation more consistent and complete.
+
+Re-think Mflograph (again). In the second phase, we can associate
+a reverse edge with edges that have no min-flow requirement.
+This allows flow added in first phase to be removed from these edges.
+Need a way to relate the paired edges. Suppose we construct a graph
+with 2M edges to start with, where e maps to 2e and 2e+1. For edges
+with min flow requirements, first phase can use these to connect to
+source and sink. For edges with no min flow requirement, second phase
+can use these as reverse edges. Use same graph in both phases
+(with adjustments) and copy results to original graph when done.
+Represent min flows with array indexed by edge numbers.
 
 Add memSpace methods to data structures to facilitate
 space calculations. Not sure can do this for templates.
+Maybe can. Would require objects used in templates to
+support this, but we already requre toString, so maybe
+it's ok.
 
 Might want to auto-adjust space in HashSet if both
 buckets are full on an insert. Note that this could
 make hash table pretty sparse. Not likely to happen,
 but possible.
 
-Add Ddheap, edmondsBW.. to repository after 542 done
-
 Rework matching stuff
 - integrate fast initialization, drop separate "fast" versions
+  maybe not; re-evaluate fast versions; may be that only the
+  initial maximal matching is really worth the trouble
 - make class hierarchy for edmonds variants
-
-Separate random graph stuff into separate static class.
-
-Start shifting to C++11.
-
-Rework Utility class and stdinc.
-- is there a better way to do simple parsing?
-- get a token from input, where a token has some recognizable type
-  char, int, float, word, name, string and possibly specific value
-  if what comes next is not what I am looking for, put it back;
-  skip over whitespace, optionally not on end-of-line
-- timing stuff based on C++?
+- add private visited(x) method that compares phase to lastVisit(x)
+  to make efficient versions more transparent
 
 Use templates for keys in heaps and search trees.
 Started on this, including HashSet and HashMap.
-
-Think about adding copy, move constructors,
-assignment operators and comparison operators
-to all data structures (or at least most).
-Done this for some already.
 
 Add unit tests for all data structures.
 - consider alternate designs for this
 - fully scripted version is nice, but more automated version
   might be better, rather than always comparing to strings;
   also requires lots of test methods, making it cumbersome
-
-Add unit tests for graph algorithms; when multiple
-algorithms for same problem, can do random generation
-and check values returned as one simple approach
 
 Augment the Java stuff. Maybe do some animations?
 Revisit the efficiency comparison using inline Java methods.

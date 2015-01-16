@@ -10,7 +10,6 @@
 #define LIST_H
 
 #include "Adt.h"
-#include "Exceptions.h"
 
 namespace grafalgo {
 
@@ -27,7 +26,8 @@ namespace grafalgo {
  *  in contexts requiring polymorphic types.
  */
 class List : public Adt {
-public:		List(int=10, bool=true);
+public:		List();
+		List(int);
 		List(const List&);
 		List(List&&);
 		~List();
@@ -48,18 +48,16 @@ public:		List(int=10, bool=true);
 	int	length() const;
 
 	// predicates
-	bool	valid(index) const;
 	bool	empty() const;
 	bool	member(index) const;
-	bool	equals(List&) const;
 	bool	isConsistent() const;
 	
 	// modifiers
-	bool	insert(index,index);
-	bool	addFirst(index);
-	bool	addLast(index);
-	bool	removeFirst();
-	bool	removeNext(index);
+	virtual void insert(index,index);
+	void	addFirst(index);
+	void	addLast(index);
+	void	removeFirst();
+	void	removeNext(index);
 	void	clear();
 
 	// input/output
@@ -73,7 +71,7 @@ private:
 	int	len;			///< number of elements in list
 	index	head;			///< first index in list
 	index	tail;			///< last index in list
-	index	*nxt;			///< nxt[i] is successor of i in list
+	index	*succ;			///< succ[i] is successor of i in list
 
 	// managing dynamic storage
         void    makeSpace();   
@@ -87,7 +85,9 @@ private:
  *  @param i is an index on the list
  *  @return the index that follows i, or 0 if there is no next index
  */
-inline index List::next(index i) const { return nxt[i]; }
+inline index List::next(index i) const {
+	assert(member(i)); return succ[i];
+}
 
 /** Get first index on list.
  *  @return the first index on the list or 0 if the list is empty
@@ -98,12 +98,6 @@ inline index List::first() const { return head; }
  *  @return the last index on the list or 0 if the list is empty
  */
 inline index List::last() const { return tail; }
-
-/** Test if a given index is valid for this List.
- *  @param i is an integer
- *  @return true if i is in range for this List.
- */
-inline bool List::valid(index i) const { return 1 <= i && i <= n(); }
 
 /** Test if list is empty.
  *  @return true if list is empty, else false.
@@ -120,25 +114,22 @@ inline int List::length() const { return len; }
  *  @return true if i is in the list, else false
  */
 inline bool List::member(index i) const {
-	return valid(i) && nxt[i] != -1;
+	assert(valid(i)); return succ[i] != -1;
 }
 
 /** Add index to the front of the list.
  *  @param index to be added.
- *  @return true if the list was modified, else false
  */
-inline bool List::addFirst(index i) { return insert(i,0); }
+inline void List::addFirst(index i) { insert(i,0); }
 
 /** Add index to the end of the list.
  *  @param index to be added.
- *  @return true if the list was modified, else false
  */
-inline bool List::addLast(index i) { return insert(i,last()); }
+inline void List::addLast(index i) { insert(i,last()); }
 
 /** Remove the first index in the list.
- *  @return true if the list was modified, else false
  */
-inline bool List::removeFirst() { return removeNext(0); }
+inline void List::removeFirst() { removeNext(0); }
 
 } // ending namespace
 

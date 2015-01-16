@@ -61,7 +61,6 @@ private:
  *  @return the weight of e, or 0 if e is not a valid edge.
  */
 inline edgeWeight Wgraph::weight(edge e) const {
-	assert(0 <= e && e <= maxEdge);
 	return (evec[e].l == 0 ? 0 : wt[e]);
 }
 
@@ -69,9 +68,7 @@ inline edgeWeight Wgraph::weight(edge e) const {
  *  @param e is the edge of interest
  *  @param w is the desired weight
  */
-inline void Wgraph::setWeight(edge e, edgeWeight w) {
-	assert(0 <= e && e <= maxEdge); wt[e] = w;
-}
+inline void Wgraph::setWeight(edge e, edgeWeight w) { wt[e] = w; }
 
 } // ends namespace
 

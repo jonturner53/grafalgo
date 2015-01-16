@@ -9,9 +9,9 @@
 #include "stdinc.h"
 #include "Flograph.h"
 #include "Mflograph.h"
-#include "maxCap.h"
-#include "capScale.h"
-#include "shortPath.h"
+#include "ffMaxCap.h"
+#include "ffScale.h"
+#include "ffShortPath.h"
 #include "dinic.h"
 #include "dinicDtrees.h"
 #include "prePush.h"
@@ -33,7 +33,7 @@ bool checkMaxFloMin(Mflograph&);
  *  using the method specified by the argument and then prints the
  *  flograph with the max flow.
  *
- *  The method can be one of shortPath, maxCap, capScale, dinic,
+ *  The method can be one of ffShortPath, ffMaxCap, ffCapScale, dinic,
  *  dinicDtrees, ppFifo, ppFifoBatch, ppHiLab or ppHiLabBatch.
  * 
  *  If the show argument is present (the string "show"), the flograph
@@ -49,21 +49,21 @@ int main(int argc, char *argv[]) {
 		else if (strcmp(argv[i],"verify") == 0) verify = true;
 	}
 
-	if (strcmp(argv[1],"maxCap") == 0) {
+	if (strcmp(argv[1],"ffMaxCap") == 0) {
 		Flograph fg; cin >> fg;
-		(maxCap(fg)); // parens added to resolve ambiguity
+		(ffMaxCap(fg)); // parens added to resolve ambiguity
 		cout << "total flow of " << fg.totalFlow() << endl;
 		if (show) cout << fg << endl;
 		if (verify) checkMaxFlo(fg);
-	} else if (strcmp(argv[1],"capScale") == 0) {
+	} else if (strcmp(argv[1],"ffScale") == 0) {
 		Flograph fg; cin >> fg;
-		(capScale(fg));
+		(ffScale(fg));
 		cout << "total flow of " << fg.totalFlow() << endl;
 		if (show) cout << fg << endl;
 		if (verify) checkMaxFlo(fg);
-	} else if (strcmp(argv[1],"shortPath") == 0) {
+	} else if (strcmp(argv[1],"ffShortPath") == 0) {
 		Flograph fg; cin >> fg;
-		(shortPath(fg));
+		(ffShortPath(fg));
 		cout << "total flow of " << fg.totalFlow() << endl;
 		if (show) cout << fg << endl;
 		if (verify) checkMaxFlo(fg);
@@ -184,35 +184,5 @@ bool checkMaxFloMin(Mflograph &fg) {
 	}
 
 	return checkMaxFlo(fg);
-/*
-	// verify that flow at each node is balanced
-	for (u = 1; u <= fg.n(); u++) { 
-		if (u == fg.src() || u == fg.snk()) continue;
-		sum = 0;
-		for (e = fg.firstAt(u); e != 0; e = fg.nextAt(u,e)) {
-			sum -= fg.f(u,e);
-		}
-		if (sum != 0) cout << "Vertex " << u << " is not balanced\n";
-	}
-
-	// Verify that the flow is maximum by computing hop-count distance
-	// over all edges that are not saturated. If sink ends up with a
-	// distance smaller than n, then there is a path to sink with
-	// non-zero residual capacity.
-	int *d = new int[fg.n()+1];
-	for (u = 1; u <= fg.n(); u++) d[u] = fg.n();
-	d[fg.src()] = 0;
-	List q(fg.n()); q.addLast(fg.src());
-	while (!q.empty()) {
-		u = q.first(); q.removeFirst();
-		for (e = fg.firstAt(u); e != 0; e = fg.nextAt(u,e)) {
-			v = fg.mate(u,e);
-			if (fg.res(u,e) > 0 && d[v] > d[u] + 1) {
-				d[v] = d[u] + 1; q.addLast(v);
-			}
-		}
-	}
-	if (d[fg.snk()] < fg.n()) printf("Not a maximum flow\n");
-*/
 	return true;
 }

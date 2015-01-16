@@ -14,7 +14,7 @@
 
 namespace grafalgo {
 
-/** Data structure representing a list of indexes.
+/** Data structure representing a doubly-linked list of indexes.
  *
  *  Used to represent a list of indexes from a defined range 1..n,
  *  where each index may appear on the list at most one time.
@@ -23,11 +23,13 @@ namespace grafalgo {
  *  reverse traversal and general remove operation.
  */
 class Dlist : public List {
-public:		Dlist(int=10);
+public:		Dlist();
+		Dlist(int);
 		Dlist(const Dlist&);
 		Dlist(Dlist&&);
 		~Dlist();
 
+	void	init();
 	void	resize(int);
 	void	expand(int);
 
@@ -41,11 +43,9 @@ public:		Dlist(int=10);
 	int	prev(index) const;
 
 	// modifiers
-	bool    insert(index,index);
-	bool	addFirst(index);
-	bool	addLast(index);
-        bool    remove(index);
-	bool	removeLast();
+	void    insert(index,index);
+        void    remove(index);
+	void	removeLast();
 	void	clear();
 
 protected:
@@ -53,7 +53,7 @@ protected:
         void    makeSpace();   
 	void	freeSpace();
 private:
-	index	*prv;			// prv[i] is previous index in list
+	index	*pred;			// pred[i] is previous index in list
 };
 
 /** Return the predecessor of an index in the list.
@@ -61,25 +61,13 @@ private:
  *  @return the index that precedes i or 0, if none
  */
 inline index Dlist::prev(index i) const {
-        assert(valid(i) && member(i)); return prv[i];
+        assert(member(i)); return pred[i];
 }
-
-/** Add index to the front of the list.
- *  @param index to be added.
- *  @return true if the list was modified, else false
- */
-inline bool Dlist::addFirst(index i) { return insert(i,0); }
-
-/** Add index to the end of the list.
- *  @param index to be added.
- *  @return true if the list was modified, else false
- */
-inline bool Dlist::addLast(index i) { return insert(i,last()); }
 
 /** Remove the last index on the list.
  *  @return true if the list was modified, else false
  */
-inline bool Dlist::removeLast() {
+inline void Dlist::removeLast() {
         return remove(last());
 }
 

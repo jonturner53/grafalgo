@@ -11,13 +11,13 @@
 namespace grafalgo {
 
 /** Find a max flow using Dinic's algorith with dynamic trees.
- *  @param fg1 is a flow graph
+ *  @param g1 is a flow graph
  */
-dinicDtrees::dinicDtrees(Flograph& fg1) : fg(&fg1) {
-	level  = new int[fg->n()+1]; nextEdge = new int[fg->n()+1];
-	upEdge = new int[fg->n()+1]; dt = new Dtrees(fg->n());
+dinicDtrees::dinicDtrees(Flograph& g1) : g(&g1) {
+	level  = new int[g->n()+1]; nextEdge = new int[g->n()+1];
+	upEdge = new int[g->n()+1]; dt = new Dtrees(g->n());
 
-	for (vertex u = 1; u <= fg->n(); u++) {
+	for (vertex u = 1; u <= g->n(); u++) {
 		dt->addcost(u,INT_MAX);
 		level[u] = nextEdge[u] = upEdge[u] = 0;
 	}
@@ -34,30 +34,30 @@ dinicDtrees::dinicDtrees(Flograph& fg1) : fg(&fg1) {
 bool dinicDtrees::findPath() {
         vertex u, v; edge e;
 
-	while (nextEdge[fg->src()] != 0) {
-		u = dt->findroot(fg->src()); e = nextEdge[u];
+	while (nextEdge[g->src()] != 0) {
+		u = dt->findroot(g->src()); e = nextEdge[u];
 		while (1) { // look for forward path
-			if (u == fg->snk()) return true;
+			if (u == g->snk()) return true;
 			if (e == 0) { nextEdge[u] = 0; break; }
-			v = fg->mate(u,e);
-			if (fg->res(u,e) > 0 && level[v] == level[u] + 1
+			v = g->mate(u,e);
+			if (g->res(u,e) > 0 && level[v] == level[u] + 1
 			    && nextEdge[v] != 0) {
-				dt->addcost(u,fg->res(u,e) - dt->nodeCost(u));
+				dt->addcost(u,g->res(u,e) - dt->nodeCost(u));
 				dt->link(u,v); upEdge[u] = e;
 				nextEdge[u] = e;
-				u = dt->findroot(fg->src()); e = nextEdge[u];
+				u = dt->findroot(g->src()); e = nextEdge[u];
 			} else {
-				e = fg->nextAt(u,e);
+				e = g->nextAt(u,e);
 			}
 		}
 		// prune dead-end
-		for (e = fg->firstAt(u); e != 0; e = fg->nextAt(u,e)) {
-			v = fg->mate(u,e);
+		for (e = g->firstAt(u); e != 0; e = g->nextAt(u,e)) {
+			v = g->mate(u,e);
 			//if (u != dt->parent(v) || e != upEdge[v]) continue;
 			if (e != upEdge[v]) continue;
 			dt->cut(v); upEdge[v] = 0;
-			fg->addFlow(v,e,
-				(fg->cap(v,e)-dt->nodeCost(v)) - fg->f(v,e));
+			g->addFlow(v,e,
+				(g->cap(v,e)-dt->nodeCost(v)) - g->f(v,e));
 			dt->addcost(v,INT_MAX - dt->nodeCost(v));
 		}
 	}
@@ -71,12 +71,12 @@ bool dinicDtrees::findPath() {
 int dinicDtrees::augment() {
 	vertex u; edge e;
 
-	NodeCostPair p = dt->findcost(fg->src());
+	NodeCostPair p = dt->findcost(g->src());
 	int flo = p.c;
-	dt->addcost(fg->src(),-flo);
-	for (p = dt->findcost(fg->src()); p.c==0; p = dt->findcost(fg->src())) {
+	dt->addcost(g->src(),-flo);
+	for (p = dt->findcost(g->src()); p.c==0; p = dt->findcost(g->src())) {
 		u = p.x; e = upEdge[u];
-		fg->addFlow(u,e,fg->cap(u,e) - fg->f(u,e));
+		g->addFlow(u,e,g->cap(u,e) - g->f(u,e));
 		dt->cut(u); upEdge[u] = 0;
 		dt->addcost(u,INT_MAX);
 	}
@@ -88,28 +88,28 @@ int dinicDtrees::augment() {
  */
 bool dinicDtrees::newPhase() {
 	vertex u, v; edge e;
-	List q(fg->n());
-	for (u = 1; u <= fg->n(); u++) {
-		nextEdge[u] = fg->firstAt(u);
+	List q(g->n());
+	for (u = 1; u <= g->n(); u++) {
+		nextEdge[u] = g->firstAt(u);
 		//if (dt->parent(u) != 0) { // cleanup from previous phase
 		if (upEdge[u] != 0) { // cleanup from previous phase
 			e = upEdge[u];
-			fg->addFlow(u,e,
-				(fg->cap(u,e)-dt->nodeCost(u)) - fg->f(u,e));
+			g->addFlow(u,e,
+				(g->cap(u,e)-dt->nodeCost(u)) - g->f(u,e));
 			dt->cut(u);
 			dt->addcost(u,INT_MAX - dt->nodeCost(u));
 			upEdge[u] = 0;
 		}
-		level[u] = fg->n();
+		level[u] = g->n();
 	}
-	q.addLast(fg->src()); level[fg->src()] = 0;
+	q.addLast(g->src()); level[g->src()] = 0;
 	while (!q.empty()) {
 		u = q.first(); q.removeFirst();
-		for (e = fg->firstAt(u); e != 0; e = fg->nextAt(u,e)) {
-			v = fg->mate(u,e);
-			if (fg->res(u,e) > 0 && level[v] == fg->n()) {
+		for (e = g->firstAt(u); e != 0; e = g->nextAt(u,e)) {
+			v = g->mate(u,e);
+			if (g->res(u,e) > 0 && level[v] == g->n()) {
 				level[v] = level[u] + 1; q.addLast(v);
-				if (v == fg->snk()) return true;
+				if (v == g->snk()) return true;
 			}
 		}
 	}

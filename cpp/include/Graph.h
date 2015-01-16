@@ -25,9 +25,6 @@ typedef int32_t edge;
 
 /** Data structure for undirected graph.
  *
- *  Graph size (number of vertices and max number of edges) must
- *  be specified when a Graph object is instantiated.
- *  Edges can be added and removed from the graph.
  *  Methods are provided to facilitate graph traversal,
  *  either by iterating through all edges of the graph
  *  or all edges incident to a specific vertex.
@@ -46,7 +43,7 @@ public:		Graph(int=1,int=1);
 
 	// number of edges
 	int	m() const;	
-	int	maxEdgeNum() const;	
+	int	M() const;	
 
 	// predicates
 	bool	validVertex(int) const;
@@ -93,8 +90,6 @@ public:		Graph(int=1,int=1);
 	void	showEdgeNum(bool sho) { shoEnum = sho; }
 
 protected:
-	int	maxEdge;		///< max number of edges
-
 	edge	*fe;			///< fe[v] is first edge incident to v
 
 	struct EdgeInfo {
@@ -115,6 +110,7 @@ protected:
 	// internal helper methods
 	void	makeSpace(int, int);
 	void	freeSpace();
+	void	init();
 	virtual bool readAdjList(istream&);
 	virtual string adjList2string(vertex) const;
 
@@ -132,19 +128,19 @@ inline int Graph::m() const { return edges->getNumIn(); }
 /** Get the maximum allowed edge number.
  *  @return the maximum allowed edge number
  */
-inline int Graph::maxEdgeNum() const { return maxEdge; }
+inline int Graph::M() const { return edges->n(); }
 
 /** Determine if a vertex number is valid.
  *  @param u is the vertex number to be verified
  *  @return true if u is a valid vertex number, else false.
  */
-inline bool Graph::validVertex(int u) const { return 1 <= u && u <= n(); }
+inline bool Graph::validVertex(vertex u) const { return valid(u); }
 
 /** Determine if an edge number corresponds to a valid edge.
  *  @param e is the edge number to be verified
  *  @return true if e is a valid edge number, else false.
  */
-inline bool Graph::validEdge(int e) const { return edges->isIn(e); }
+inline bool Graph::validEdge(edge e) const { return edges->isIn(e); }
 
 /** Get the first edge in the overall list of edges.
  *  @return the first edge in the list
@@ -163,7 +159,7 @@ inline edge Graph::next(edge e) const { return edges->nextIn(e); }
  *  @return the first edge incident to v
  */
 inline edge Graph::firstAt(vertex v) const { 
-	assert(1 <= v && v <= n());
+	assert(validVertex(v));
 	return fe[v]/2;
 }
 
@@ -174,10 +170,10 @@ inline edge Graph::firstAt(vertex v) const {
  *  or 0 if e is not incident to v or is the last edge on the list
  */
 inline edge Graph::nextAt(vertex v, edge e) const {
-	assert(1 <= v && v <= n() && 1 <= e && e <= maxEdge);
+	assert(validVertex(v) && validEdge(e));
 	if (v != evec[e].l && v != evec[e].r) return 0;
 	int ee = (v == evec[e].l ? 2*e : 2*e+1);
-	int ff = adjLists->suc(ee);
+	int ff = adjLists->next(ee);
 	return (fe[v] == ff ? 0 : ff/2);
 }
 
@@ -186,7 +182,7 @@ inline edge Graph::nextAt(vertex v, edge e) const {
  *  @return the left endpoint of e, or 0 if e is not a valid edge.
  */
 inline vertex Graph::left(edge e) const {
-	assert(0 <= e && e <= maxEdge);
+	assert(validEdge(e));
 	return evec[e].l;
 }
 
@@ -195,7 +191,7 @@ inline vertex Graph::left(edge e) const {
  *  @return the right endpoint of e, or 0 if e is not a valid edge.
  */
 inline vertex Graph::right(edge e) const {
-	assert(0 <= e && e <= maxEdge);
+	assert(validEdge(e));
 	return (evec[e].l == 0 ? 0 : evec[e].r);
 }
 
@@ -206,7 +202,7 @@ inline vertex Graph::right(edge e) const {
  *  or it is not incident to v.
  */
 inline vertex Graph::mate(vertex v, edge e) const {
-	assert(0 <= v && v <= n() && 0 <= e && e <= maxEdge);
+	assert(validVertex(v) && validEdge(e));
 	if (v == 0 || e == 0) return 0;
 	return (evec[e].l == 0 ?  0 :
 		(v == evec[e].l ?  evec[e].r :

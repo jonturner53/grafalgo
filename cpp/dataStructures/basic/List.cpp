@@ -10,27 +10,29 @@
 
 namespace grafalgo {
 
-/** Constructor for list.
- *  @param nn1 specifies the maximum index
+/** Default constructor for List objects.
+ *  Creates list with index range of 1..10, with autoExpand=true.
  */
-List::List(int nn1, bool autoX) : Adt(nn1), autoExpand(autoX) {
-	makeSpace(); init();
-}
+List::List() : Adt(10), autoExpand(true) { makeSpace(); init(); }
+
+/** Constructor for List objects with explicit index range.
+ *  @param n specifies the maximum index
+ */
+List::List(int n) : Adt(n), autoExpand(false) { makeSpace(); init(); }
 
 /** Copy constructor.
  *  @param src is a List whose contents are copied to this List.
  */
-List::List(const List& src) : Adt(src.n()) {
-	makeSpace(); copyContents(src); }
+List::List(const List& src) : Adt(src.n()) { makeSpace(); copyContents(src); }
 
 /** Move constructor.
  *  @param src is a List whose contents may be re-used
  */
 List::List(List&& src) : Adt(src.n()) {
 	freeSpace();
-	head = src.head; tail = src.tail; len = src.len; nxt = src.nxt;
+	head = src.head; tail = src.tail; len = src.len; succ = src.succ;
 	autoExpand = src.autoExpand;
-	src.nxt = nullptr;
+	src.succ = nullptr;
 }
 
 /** Destructor for List. */
@@ -39,21 +41,15 @@ List::~List() { freeSpace(); }
 /** Allocate space for list.
  *  Amount of space allocated is determined by value of n().
  */
-void List::makeSpace() {
-	try { nxt = new index[n()+1]; } catch (std::bad_alloc e) {
-		string s = "List: insufficient space for "
-		   	   + to_string(n()) + " list elements";
-		throw OutOfSpaceException(s);
-	}
-}
+void List::makeSpace() { succ = new index[n()+1]; }
 
 /** Free dynamic storage used by list. */
-void List::freeSpace() { delete [] nxt; }
+void List::freeSpace() { delete [] succ; }
 
 /** Initialize a list.  */
 void List::init() {
-	nxt[0] = 0; head = tail = 0; len = 0;
-	std::fill(nxt+1, nxt+n()+1, -1);
+	succ[0] = 0; head = tail = 0; len = 0;
+	std::fill(succ+1, succ+n()+1, -1);
 }
 
 /** Copy the contents of a list.
@@ -62,8 +58,8 @@ void List::init() {
 void List::copyContents(const List& src) {
 	head = src.head; tail = src.tail; len = src.len;
 	autoExpand = src.autoExpand;
-	std::copy(src.nxt, src.nxt+src.n()+1, nxt);
-	std::fill(nxt+src.n()+1, nxt+n()+1, -1);
+	std::copy(src.succ, src.succ+src.n()+1, succ);
+	std::fill(succ+src.n()+1, succ+n()+1, -1);
 }
 
 /** Resize a List object.
@@ -80,15 +76,15 @@ void List::resize(int size) {
  */
 void List::expand(int size) {
 	if (size <= n()) return;
-	index *old_nxt = nxt; int old_n = n();
+	index *old_succ = succ; int old_n = n();
 	Adt::expand(size); makeSpace();
-	std::copy(old_nxt, old_nxt+old_n+1, nxt);
-	std::fill(nxt+old_n+1, nxt+n()+1, -1);
-	delete [] old_nxt;
+	std::copy(old_succ, old_succ+old_n+1, succ);
+	std::fill(succ+old_n+1, succ+n()+1, -1);
+	delete [] old_succ;
 }
 
 /** Assignment operator (copy).
- *  @param other is a reference to a list to be compared to this
+ *  @param src is a reference to a list to be copied to this
  *  @return true if the two lists are equal
  */
 List& List::operator=(const List& src) {
@@ -99,7 +95,7 @@ List& List::operator=(const List& src) {
 }
 
 /** Assignment operator (move).
- *  @param other is a reference to a list to be compared to this
+ *  @param src is a reference to a list to be moved to this
  *  @return true if the two lists are equal
  */
 List& List::operator=(List&& src) {
@@ -107,21 +103,20 @@ List& List::operator=(List&& src) {
 	freeSpace(); Adt::resize(src.n());
 	head = src.head; tail = src.tail; len = src.len;
 	autoExpand = src.autoExpand;
-	nxt = src.nxt; src.nxt = nullptr;
+	succ = src.succ; src.succ = nullptr;
 	return *this;
 }
 
 /** Equality relation.
- *  @param other is a reference to a list to be compared to this
+ *  @param src is a reference to a list to be compared to this
  *  @return true if the two lists are equal
  */
-bool List::operator==(const List& other) {
-	if (this == &other) return true;
-	if (len != other.len) return false;
-	index x = first(); index y = other.first();
-	while (x != 0) {
-		if (x != y) return false;
-		x = next(x); y = other.next(y);
+bool List::operator==(const List& src) {
+	if (this == &src) return true;
+	if (len != src.len) return false;
+	if (first() != src.first()) return false;
+	for (index x = first(); x != 0; x = next(x)) {
+		if (next(x) != src.next(x)) return false;
 	}
 	return true;
 }
@@ -132,39 +127,29 @@ bool List::operator==(const List& other) {
  *  @return index at position i, or 0 if no such index
  */
 index List::get(position i) const {
-	if (i < 1 || i > length()) return 0;
+	assert(valid(i));
 	if (i == 1) return first();
 	index j;
-	for (j = first(); j != 0 && --i; j = nxt[j]) {}
+	for (j = first(); j != 0 && --i; j = succ[j]) {}
 	return j;
 }
 
 /** Insert an index into the list, relative to another.
- *  @param i is index to insert; if i is 0 or already in
- *  the list, no change is made
- *  @param j is index after which i is to be inserted;
+ *  @param i is index to insert
+ *  @param j is index in the list after which i is to be inserted;
  *  if zero, i is inserted at the front of the list
- *  @return true if list was modified, else false
  */
-bool List::insert(index i, index j) {
-	if ((i < 0 || (i > n() && !autoExpand)) || (j < 0 || j > n())) {
-		string s = "List::insert(" + to_string(i) + ","
-			   + to_string(j) + ")\n";
-		throw IllegalArgumentException(s);
-	}
-	if (i == 0 || member(i)) return false;
-	if (i > n() && autoExpand) {
-		expand(max(i,2*n()));
-	}
+void List::insert(index i, index j) {
+	if (i > n() && autoExpand) expand(max(i,2*n()));
+	assert((valid(i) && !member(i)) && (j == 0 || member(j)));
 	len++;
 	if (j == 0) {
 		if (empty()) tail = i;
-		nxt[i] = head; head = i;
-		return true;
+		succ[i] = head; head = i;
+		return;
 	}
-	nxt[i] = nxt[j]; nxt[j] = i;
+	succ[i] = succ[j]; succ[j] = i;
 	if (tail == j) tail = i;
-	return true;
 }
 
 /** Remove the index following a specified index.
@@ -172,40 +157,14 @@ bool List::insert(index i, index j) {
  *  if zero, the first index is removed
  *  @return true if the list was modified, else false
  */
-bool List::removeNext(index i) {
-	if (i < 0 || i > n()) {
-		string s = "List::removeNext(" + to_string(i) + ") ";
-		throw IllegalArgumentException(s);
-	}
-	if (empty() || (i == last()) || (i != 0 && !member(i)))
-	    	return false;
+void List::removeNext(index i) {
+	assert(i == 0 || (member(i) && next(i) != 0));
 	index j;
-	if (i == 0) { j = head;   head = nxt[j]; }
-	else	    { j = nxt[i]; nxt[i] = nxt[j]; }
+	if (i == 0) { j = head;   head = succ[j]; }
+	else	    { j = succ[i]; succ[i] = succ[j]; }
 	if (tail == j) tail = i;
-	nxt[j] = -1;
+	succ[j] = -1;
 	len--;
-	// shrink empty list back to default size
-	if (len == 0 && autoExpand) resize(10);
-	return true;
-}
-
-/** Compare two lists for equality.
- *
- *  @param other is the list to be compared to this one
- *  @return true if they are the same list or have the
- *  same contents (in the same order);
- *  they need not have the same storage capacity to be equal
- */
-bool List::equals(List& other) const {
-	if (this == &other) return true;
-	if (this->length() != other.length()) return false;
-	index i = first(); index j = other.first();
-	while (i == j) {
-		if (i == 0) return true;
-		i = next(i); j = other.next(j);
-	}
-	return false;
 }
 
 /** Remove all elements from list. */
@@ -225,13 +184,13 @@ bool List::isConsistent() const {
 		if (++cnt > length()) return false;
 	}
 	if (cnt != length()) return false;
-	for (int i = 1; i <= n(); i++) if (nxt[i] == -1) cnt++;
+	for (int i = 1; i <= n(); i++) if (succ[i] == -1) cnt++;
 	if (cnt != n()) return false;
-	if (nxt[0] != 0) return false;
+	if (succ[0] != 0) return false;
 	return true;
 }
 
-/** Create a string representation of a given string.
+/** Create a string representation of the list object.
  *  @return the string
  */
 string List::toString() const {
@@ -250,11 +209,9 @@ istream& operator>>(istream& in, List& lst) {
 	while (true) {
 		Util::skipSpace(in);
 		char c = in.peek();
-		if (!in.good()) {
-			string s = "List::operator>>: misformatted list";
-			throw InputException(s);
-		}
-		index x;
+		if (!in.good())
+			Util::fatal("List::operator>>: misformatted list");
+		index x = 0;
 		if (c == ']') {
 			c = in.get(); return in;
 		} else if (isalpha(c)) {
@@ -264,13 +221,11 @@ istream& operator>>(istream& in, List& lst) {
 		} else {
 			string s = "List::operator>>: unexpected input "
 				   "character "; s += c;
-			throw InputException(s);
+			Util::fatal(s);
 		}
 		if (lst.n() < x) lst.expand(x);
-		if (lst.member(x)) {
-			string s = "List::operator>>: repeated element in list";
-			throw InputException(s);
-		}
+		if (lst.member(x))
+			Util::fatal("List::operator>>: repeated index");
 		lst.addLast(x);
 	}
 }

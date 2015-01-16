@@ -10,9 +10,9 @@
 #include "stdinc.h"
 #include "Flograph.h"
 #include "Rgraph.h"
-#include "maxCap.h"
-#include "capScale.h"
-#include "shortPath.h"
+#include "ffMaxCap.h"
+#include "ffScale.h"
+#include "ffShortPath.h"
 #include "dinic.h"
 #include "dinicDtrees.h"
 #include "prePush.h"
@@ -60,15 +60,15 @@ int main(int argc, char* argv[]) {
 	for (i = 1; i <= reps; i++) {
 		Rgraph::flograph(fg,n,m,mss); Rgraph::setCapacities(fg,ec1,ec2);
 
-		if (strcmp(argv[1],"maxCap") == 0) {
+		if (strcmp(argv[1],"ffMaxCap") == 0) {
 			t1 = high_resolution_clock::now();
-			(maxCap(fg)); // parens added to resolve ambiguity
-		} else if (strcmp(argv[1],"capScale") == 0) {
+			(ffMaxCap(fg)); // parens added to resolve ambiguity
+		} else if (strcmp(argv[1],"ffScale") == 0) {
 			t1 = high_resolution_clock::now();
-			(capScale(fg));
-		} else if (strcmp(argv[1],"shortPath") == 0) {
+			(ffScale(fg));
+		} else if (strcmp(argv[1],"ffShortPath") == 0) {
 			t1 = high_resolution_clock::now();
-			(shortPath(fg));
+			(ffShortPath(fg));
 		} else if (strcmp(argv[1],"dinic") == 0) {
 			t1 = high_resolution_clock::now();
 			(dinic(fg));

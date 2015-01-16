@@ -1,4 +1,4 @@
-/** @file augPath.h
+/** @file fordFulkerson.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef AUGPATH_H
-#define AUGPATH_H
+#ifndef FORDFULKERSON_H
+#define FORDFULKERSON_H
 
 #include "stdinc.h"
 #include "Flograph.h"
@@ -20,12 +20,12 @@ namespace grafalgo {
  *  path algorithms for max flow. This serves as a base class for
  *  specific variants of the augmenting path algorithm.
  */
-class augPath {
+class fordFulkerson {
 public: 
-	augPath(Flograph&);
-	~augPath();
+	fordFulkerson(Flograph&);
+	~fordFulkerson();
 protected:
-        Flograph* fg;         	///< graph we're finding flow on
+        Flograph* g;         	///< graph we're finding flow on
 	edge *pEdge;		///< pEdge[u] is edge to parent of u in spt
 
 	int	main();

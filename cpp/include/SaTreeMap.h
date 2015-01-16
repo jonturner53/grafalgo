@@ -36,6 +36,7 @@ public:
 	void	expand(int);
 	void	copyFrom(const SaTreeMap&);
 
+	void	init() { root = 0; }
 	int	get(keytyp); 		
 	bool	put(keytyp, uint32_t); 
 	void	remove(keytyp); 	
@@ -49,7 +50,7 @@ private:
 	uint32_t *values;		///< vector of values
 	ListPair *nodes;		///< in-use and free nodes
 
-	void	makeSpace(int);
+	void	makeSpace();
 	void	freeSpace();
 };
 

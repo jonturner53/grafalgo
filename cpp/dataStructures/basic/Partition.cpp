@@ -14,51 +14,34 @@
 namespace grafalgo {
 
 /** Initialize partition so that every element is in separate set.
- *  @param nn defines the index range on which the partition is defined
+ *  @param n defines the index range on which the partition is defined
  */
-Partition::Partition(int nn, int noOpt1) : Adt(nn) {
-	makeSpace(n());
-}
+Partition::Partition(int n) : Adt(n) { makeSpace(); clear(); }
 
 /** Destructor for Partition. */
 Partition::~Partition() { freeSpace(); }
 
-/** Allocate and initialize space for list.
- *  @param size is number of index values to provide space for
- */
-void Partition::makeSpace(int size) {
-	try { node = new pnode[size+1]; } catch (std::bad_alloc e) {
-		string s = "Partition::makeSpace: insufficient space for "
-			   + to_string(size) + "elements";
-		throw OutOfSpaceException(s);
-	}
-	nn = size; clear();
-}
+/** Allocate and initialize space for list.  */
+void Partition::makeSpace() { node = new pnode[n()+1]; }
 
 /** Free dynamic storage used by list. */
 void Partition::freeSpace() { delete [] node; }
 
 /** Resize a Partition object.
  *  The old value is discarded.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void Partition::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "Partition::resize:" + e.toString();
-		throw OutOfSpaceException(s);
-	}
-}
+void Partition::resize(int n) { freeSpace(); Adt::resize(n); makeSpace(); }
 
 /** Expand the space available for this Partition.
  *  Rebuilds old value in new space.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void Partition::expand(int size) {
-	if (size <= n()) return;
+void Partition::expand(int n) {
+	if (n <= this->n()) return;
 	Partition old(this->n());
 	old.copyFrom(*this);
-	resize(size);
+	resize(n);
 	this->copyFrom(old);
 }
 
@@ -67,7 +50,9 @@ void Partition::clear() {
 	for (index x = 0; x <= n(); x++) { p(x) = x; rank(x) = 0; }
 }
 
-/** Copy into list from source. */
+/** Copy another Partition object to this one.
+ *  @param source is another Partition object
+ */
 void Partition::copyFrom(const Partition& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
@@ -82,6 +67,7 @@ void Partition::copyFrom(const Partition& source) {
  *  @return the canonical element of the set containing x
  */
 index Partition::find(index x) {
+	assert(valid(x));
 	index root;
 	for (root = x; p(root) != root; root = p(root)) ;
 	while (x != root) { int px = p(x); p(x) = root; x = px; }
@@ -95,6 +81,7 @@ index Partition::find(index x) {
  *  the given sets
  */
 index Partition::link(index x, index y) {
+	assert(valid(x) && valid(y) && p(x) == x && p(y) == y && x != y);
 	if (rank(x) > rank(y)) {
 		index t = x; x = y; y = t;
 	} else if (rank(x) == rank(y))
@@ -107,6 +94,7 @@ index Partition::link(index x, index y) {
  *  @return the canonical element of the set containing x
  */
 int Partition::findroot(int x) const {
+	assert(valid(x));
 	if (x == p(x)) return(x);
 	else return findroot(p(x));
 }

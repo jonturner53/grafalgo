@@ -30,15 +30,7 @@ Wflograph::~Wflograph() { freeSpace(); }
  *  @param numv is the number of vertices to allocate space for
  *  @param maxe is the number of edges to allocate space for
  */
-void Wflograph::makeSpace(int numv, int maxe) {
-	try {
-		cst = new floCost[maxe+1];
-	} catch (std::bad_alloc e) {
-		string s = "Wflograph::makeSpace: insufficient space for "
-			   + to_string(maxe) + " edge costs";
-		throw OutOfSpaceException(s);
-	}
-}
+void Wflograph::makeSpace(int numv, int maxe) { cst = new floCost[maxe+1]; }
 
 /** Free space used by graph. */
 void Wflograph::freeSpace() { delete [] cst; }
@@ -49,12 +41,7 @@ void Wflograph::freeSpace() { delete [] cst; }
  *  @param maxe is the number of edges to allocate space for
  */
 void Wflograph::resize(int numv, int maxe) {
-	freeSpace();
-	Flograph::resize(numv,maxe);
-	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
-		string s; s = "Wflograph::resize:" + e.toString(s);
-		throw OutOfSpaceException(s);
-	}
+	freeSpace(); Flograph::resize(numv,maxe); makeSpace(numv,maxe); 
 }
 
 /** Expand the space available for this Wflograph.
@@ -62,15 +49,15 @@ void Wflograph::resize(int numv, int maxe) {
  *  @param size is the size of the resized object.
  */
 void Wflograph::expand(int numv, int maxe) {
-	if (numv <= n() && maxe <= maxEdge) return;
-	Wflograph old(this->n(),this->maxEdge); old.copyFrom(*this);
+	if (numv <= n() && maxe <= M()) return;
+	Wflograph old(this->n(),this->M()); old.copyFrom(*this);
 	resize(numv,maxe); this->copyFrom(old);
 }
 
 /** Copy into list from source. */
 void Wflograph::copyFrom(const Wflograph& source) {
 	if (&source == this) return;
-	if (source.n() > n() || source.m() > maxEdge)
+	if (source.n() > n() || source.m() > M())
 		resize(source.n(),source.m());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
@@ -118,12 +105,12 @@ bool Wflograph::readAdjList(istream& in) {
 		vertex v; edge e;
 		if (!Adt::readIndex(in,v)) return false;
 		if (v > n()) expand(v,m());
-		if (m() >= maxEdge) expand(n(),max(1,2*m()));
+		if (m() >= M()) expand(n(),max(1,2*m()));
 		if (!Util::verify(in,'#')) {
 			e = join(u,v);
 		} else {
 			if (!Util::readInt(in,e)) return false;
-			if (e >= maxEdge) expand(n(),e);
+			if (e >= M()) expand(n(),e);
 			if (joinWith(u,v,e) != e) return false;
 		}
 		flow capacity, flow; floCost ecost;
@@ -212,7 +199,7 @@ string Wflograph::edge2string(edge e) const {
  *  @return the number of the new edge
  */
 edge Wflograph::join(vertex u, vertex v) {
-	assert(1 <= u && u <= n() && 1 <= v && v <= n() && m() < maxEdge);
+	assert(1 <= u && u <= n() && 1 <= v && v <= n() && m() < M());
 	edge e = Flograph::join(u,v); cst[e] = 0;
 	return e;
 }

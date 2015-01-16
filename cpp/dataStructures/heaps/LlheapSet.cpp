@@ -13,42 +13,35 @@
 #define left(x) node[x].left
 #define right(x) node[x].right
 
-#define deleted(x)((x > n()) || (delf != 0 && (*delf)(x)))
+#define deleted(x)((x > (n()/2)) || (delf != 0 && (*delf)(x)))
 
 namespace grafalgo {
 
 /** Constructor for the LlheapSet class.
- *  @param size is the number of items in the constructed object
+ *  @param n is the number of items that the constructed object can hold;
+ *  the index set is actually twice as large, to allow space for dummy nodes
  *  @param delftyp is pointer to a "deleted function"
  *  which takes a single item as its argment and returns true
  *  if that item should be considered deleted from the heap
  *  in which it is present
  */
-LlheapSet::LlheapSet(int size, delftyp f) : LheapSet(2*size) {
-	makeSpace(size); delf = f;
+LlheapSet::LlheapSet(int n, delftyp f) : LheapSet(2*n) {
+	makeSpace(); clear(); delf = f;
 }
 
 /** Destructor for the LlheapSet class. */
 LlheapSet::~LlheapSet() { freeSpace(); }
 
 /** Allocate and initialize space for LlheapSet.
- *  @param size is number of index values to provide space for
  */
-void LlheapSet::makeSpace(int size) {
-	try {
-		tmplst = new List(size);
-	} catch (std::bad_alloc e) {
-		string s = "makeSpace:: insufficient space for "
-		   	+ to_string(size) + "index values";
-		throw OutOfSpaceException(s);
-	}
-	nn = size; clear();
-}
+void LlheapSet::makeSpace() { tmplst = new List(n()); }
 
 /** Free dynamic storage used by LlheapSet. */
 void LlheapSet::freeSpace() { delete tmplst; }
 
-/** Copy into LlheapSet from source. */
+/** Copy another LlheapSet object to this one.
+ *  @param source is the source object to be copied
+ */
 void LlheapSet::copyFrom(const LlheapSet& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
@@ -60,32 +53,28 @@ void LlheapSet::copyFrom(const LlheapSet& source) {
 
 /** Resize a LlheapSet object.
  *  The old value is discarded.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void LlheapSet::resize(int size) {
-	freeSpace(); LheapSet::resize(size);
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "LlheapSet::resize::" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+void LlheapSet::resize(int n) {
+	freeSpace(); LheapSet::resize(2*n); makeSpace(); clear();
 }
 
 /** Expand the space available for this LlheapSet.
  *  Rebuilds old value in new space.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void LlheapSet::expand(int size) {
-	if (size <= n()) return;
+void LlheapSet::expand(int n) {
+	if (n <= (this->n()/2)) return;
 	LlheapSet old(this->n()); old.copyFrom(*this);
-	resize(size); this->copyFrom(old);
+	resize(n); this->copyFrom(old);
 }
 
 /** Remove all elements from heap. */
 void LlheapSet::clear() {
 	// build list of dummy nodes linked using left pointers
 	LheapSet::clear(); tmplst->clear();
-	for (index i = n()+1; i <= 2*n() ; i++) left(i) = i+1;
-	dummy = n()+1; left(2*n()) = 0;
+	for (index i = (n()/2)+1; i <= n() ; i++) left(i) = i+1;
+	dummy = (n()/2)+1; left(2*n()) = 0;
 	rank(0) = 0; left(0) = right(0) = 0;
 }
 
@@ -96,7 +85,7 @@ void LlheapSet::clear() {
  *  @return the canonical element of the heap obtained by combining h1 and h2
  */
 lheap LlheapSet::lmeld(lheap h1, lheap h2) {
-	assert(0 <= h1 && h1 <= 2*n() && 0 <= h2 && h2 <= 2*n() && dummy != 0);
+	assert((h1 == 0 || valid(h1)) && (h2 == 0 || valid(h2)) && dummy != 0);
 	int i = dummy; dummy = left(dummy);
 	left(i) = h1; right(i) = h2;
 	return i;
@@ -108,8 +97,8 @@ lheap LlheapSet::lmeld(lheap h1, lheap h2) {
  *  @return the canonical element of the heap obtained by inserting i into h
  */
 lheap LlheapSet::insert(index i, lheap h) {
-	assert(0 <= i && i <= n() && 0 <= h && h <= 2*n());
-	assert(left(i) == 0 && right(i) == 0 && rank(i) ==1);
+	assert(0 <= i && i <= (n()/2) && left(i) == 0 && right(i) == 0 &&
+		rank(i) ==1 && valid(h));
 	tmplst->clear(); purge(h,*tmplst); h = heapify(*tmplst);
 	return meld(i,h);
 }
@@ -119,7 +108,7 @@ lheap LlheapSet::insert(index i, lheap h) {
  *  @return the item in h that has the smallest key
  */
 index LlheapSet::findmin(lheap h) {
-	assert(0 <= h && h <= 2*n());
+	assert(h == 0 || valid(h));
 	tmplst->clear(); purge(h,*tmplst); return heapify(*tmplst);
 }
 
@@ -133,6 +122,7 @@ index LlheapSet::findmin(lheap h) {
  */
 void LlheapSet::purge(lheap h, List& hlst) {
 	if (h == 0) return;
+	assert(valid(h));
 	if (!deleted(h)) {
 		hlst.addLast(h);
 	} else {

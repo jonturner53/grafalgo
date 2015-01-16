@@ -132,15 +132,7 @@ HashSet<E,H>::~HashSet() { freeSpace(); }
 template<class E, uint32_t (*H)(const E&, int)>
 void HashSet<E,H>::makeSpace() {
 	nb = numBuckets();
-	try {
-		bkt = new bkt_t[2*nb];
-		eVec = new E[n()+1];
-		idx = new ListPair(n());
-	} catch (std::bad_alloc e) {
-		string s = "HashSet::makeSpace: insufficient space for "
-		   	 + to_string(n()) + " entries";
-		throw OutOfSpaceException(s);
-	}
+	bkt = new bkt_t[2*nb]; eVec = new E[n()+1]; idx = new ListPair(n());
 }
 
 /** Free dynamic storage used by list. */
@@ -215,15 +207,7 @@ void HashSet<E,H>::expand(int size) {
 	if (size <= n()) return;
 	delete [] bkt; auto old_eVec = eVec; auto old_idx = idx;
 	Adt::resize(size); nb = numBuckets();
-	try {
-		bkt = new bkt_t[2*nb];
-		eVec = new E[n()+1];
-		idx = new ListPair(n());
-	} catch (std::bad_alloc e) {
-		string s = "HashSet::expand: insufficient space for "
-		   	 + to_string(n()) + " entries";
-		throw OutOfSpaceException(s);
-	}
+	bkt = new bkt_t[2*nb]; eVec = new E[n()+1]; idx = new ListPair(n());
 	init();
 	for (index x = old_idx->firstIn(); x != 0; x = old_idx->nextIn(x))
 		insert(old_eVec[x],x);
@@ -276,10 +260,7 @@ inline int HashSet<E,H>::size() const { return idx->getNumIn(); }
  */
 template<class E, uint32_t (*H)(const E&, int)>
 inline const E& HashSet<E,H>::retrieve(index x) const {
-	if (!valid(x)) {
-		string s = "HashSet::retrieve: invalid index " + to_string(x);
-		throw IllegalArgumentException(s);
-	}
+	assert(valid(x));
 	return eVec[x]; 
 }
 

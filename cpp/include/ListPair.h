@@ -59,8 +59,8 @@ public:
 	int	getNumOut() const;
 
 	// modifiers
-	bool	swap(index);
-	bool	swap(index, index);
+	void	swap(index);
+	void	swap(index, index);
 
 	// produce string representation
 	string 	toString() const;
@@ -73,8 +73,8 @@ private:
 	index outHead;		///< first value in the out-list
 	index outTail;		///< last value in the out-list
 
-	index *nxt;		///< nxt[i] defines next value after i
-	index *prv;		///< prv[i] defines value preceding i
+	index *succ;		///< succ[i] defines next value after i
+	index *pred;		///< pred[i] defines value preceding i
 
 	void	makeSpace();
 	void	freeSpace();
@@ -83,11 +83,11 @@ private:
 };
 
 /** Determine if an index belongs to the "in-list".
- *  @param i is an index in the range of values supported by the object
+ *  @param i is a valid index
  *  @param return true if i is a member of the "in-list", else false.
  */
 inline bool ListPair::isIn(index i) const {
-	return 1 <= i && i <= nn && (nxt[i] > 0 || i == inTail);
+	return (valid(i) && (succ[i] > 0 || i == inTail));
 }
 
 /** Determine if an index belongs to the "out-list".
@@ -95,7 +95,7 @@ inline bool ListPair::isIn(index i) const {
  *  @param return true if i is a member of the "out-list", else false.
  */
 inline bool ListPair::isOut(index i) const {
-	return 1 <= i && i <= nn && (nxt[i] < 0 || i == outTail);
+	return (valid(i) && (succ[i] < 0 || i == outTail));
 }
 
 /** Get the number of elements in the "in-list".
@@ -128,12 +128,12 @@ inline index ListPair::lastIn() const { return inTail; }
  */
 inline index ListPair::lastOut() const { return outTail; }
 
-/** Get the next value in the inlist.
+/** Get the next index in the inlist.
  *  @param i is the "current" value
- *  @return the next value on the in-list or 0 if no more values
+ *  @return the next index on the in-list or 0 if no more values
  */
 inline index ListPair::nextIn(index i) const {
-	return (0 <= i && i <= nn && nxt[i] > 0 ? nxt[i] : 0);
+	assert(isIn(i)); return succ[i];
 }
 
 /** Get the next value in the outlist.
@@ -141,7 +141,7 @@ inline index ListPair::nextIn(index i) const {
  *  @return the next value on the out-list or 0 if no more values
  */
 inline index ListPair::nextOut(index i) const {
-	return (0 <= i && i <= nn && nxt[i] < 0 ? -nxt[i] : 0);
+	assert(isOut(i)); return -succ[i];
 }
 
 /** Get the previous value in the inlist.
@@ -149,7 +149,7 @@ inline index ListPair::nextOut(index i) const {
  *  @return the previous value on the in-list or 0 if no more values
  */
 inline index ListPair::prevIn(index i) const {
-	return (0 <= i && i <= nn && prv[i] > 0 ? prv[i] : 0);
+	assert(isIn(i)); return pred[i];
 }
 
 /** Get the previous value in the outlist.
@@ -157,14 +157,14 @@ inline index ListPair::prevIn(index i) const {
  *  @return the previous value on the out-list or 0 if no more values
  */
 inline index ListPair::prevOut(index i) const {
-	return (0 <= i && i <= nn && prv[i] < 0 ? -prv[i] : 0);
+	assert(isOut(i)); return -pred[i];
 }
 
 /** Move an item from one list to the other.
  *  Inserts swapped item to end of the other list
  *  @param i is the index of item to be swapped
  */
-inline bool ListPair::swap(index i) {
+inline void ListPair::swap(index i) {
         if (isIn(i)) return swap(i,outTail);
         else return swap(i,inTail);
 }

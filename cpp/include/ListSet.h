@@ -37,6 +37,7 @@ public:		ListSet(int=26,int=5);
 	index	last(alist) const;	
 
 	// predicates
+	bool	validList(index) const;
 	bool	member(index) const;
 	bool	empty(alist) const;
 
@@ -60,35 +61,50 @@ private:
 	void	freeSpace();
 };
 
+/** Determine if a list number is valid.
+ *  @return true if lst is a valid list number.
+ */
+inline bool ListSet::validList(alist lst) const {
+	return 1 <= lst && lst <= nlst;
+}
+
 /** Get the first index in a list.
  *  @param lst is a list in the collection
  *  @return the first index on lst, or 0 if the list is empty
  */
-inline index ListSet::first(alist lst) const { return lh[lst].head; }
+inline index ListSet::first(alist lst) const {
+	assert(validList(lst)); return lh[lst].head;
+}
 
 /** Get the last index in a list.
  *  @param lst is a list in the collection
  *  @return the last index on lst, or 0 if the list is empty
  */
-inline index ListSet::last(alist lst) const { return lh[lst].tail; }
+inline index ListSet::last(alist lst) const {
+	assert(validList(lst)); return lh[lst].tail;
+}
 
 /** Determine if a list is empty.
  *  @param lst is a list in the collection
  *  @return true if the list is empty, else false
  */
-inline bool ListSet::empty(alist lst) const { return lh[lst].head == 0; }
+inline bool ListSet::empty(alist lst) const {
+	assert(validList(lst)); return lh[lst].head == 0;
+}
 
 /** Determine if an index is on some list.
  *  @param i is an index
  *  @return true if the some list contains i, else false
  */
-inline bool ListSet::member(index i) const { return nxt[i] != -1; }
+inline bool ListSet::member(index i) const {
+	assert(valid(i)); return nxt[i] != -1;
+}
 
 /** Get the successor of an index.
  *  @param i is an index on some list
  *  @return the successor of i
  */
-inline index ListSet::next(index i) const { return nxt[i]; }
+inline index ListSet::next(index i) const { assert(valid(i)); return nxt[i]; }
 
 } // ends namespace
 

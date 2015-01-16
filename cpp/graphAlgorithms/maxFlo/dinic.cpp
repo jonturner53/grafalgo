@@ -11,13 +11,13 @@
 namespace grafalgo {
 
 /** Compute a max flow using Dinic's algorithm.
- *  @param fg1 is a flow graph; possibly with an initial non-zero flow
+ *  @param g1 is a flow graph; possibly with an initial non-zero flow
  *  @param floVal is a reference to an integer in which the maximum
  *  flow is returned.
  */
-dinic::dinic(Flograph& fg1) : augPath(fg1) {
-        level = new int[fg->n()+1];
-        nextEdge = new edge[fg->n()+1];
+dinic::dinic(Flograph& g1) : fordFulkerson(g1) {
+        level = new int[g->n()+1];
+        nextEdge = new edge[g->n()+1];
 
         while (newPhase()) { main(); }
 
@@ -29,19 +29,19 @@ dinic::dinic(Flograph& fg1) : augPath(fg1) {
  */
 bool dinic::newPhase() {
 	vertex u,v; edge e;
-	List q(fg->n());
+	List q(g->n());
 
-	for (u = 1; u <= fg->n(); u++) {
-		level[u] = fg->n(); nextEdge[u] = fg->firstAt(u);
+	for (u = 1; u <= g->n(); u++) {
+		level[u] = g->n(); nextEdge[u] = g->firstAt(u);
 	}
-	q.addLast(fg->src()); level[fg->src()] = 0;
+	q.addLast(g->src()); level[g->src()] = 0;
 	while (!q.empty()) {
 		u = q.first(); q.removeFirst();
-		for (e = fg->firstAt(u); e != 0; e = fg->nextAt(u,e)) {
-			v = fg->mate(u,e);
-			if (fg->res(u,e) > 0 && level[v] == fg->n()) {
+		for (e = g->firstAt(u); e != 0; e = g->nextAt(u,e)) {
+			v = g->mate(u,e);
+			if (g->res(u,e) > 0 && level[v] == g->n()) {
 				level[v] = level[u] + 1; 
-				if (v == fg->snk()) return true;
+				if (v == g->snk()) return true;
 				q.addLast(v);
 			}
 		}
@@ -56,10 +56,10 @@ bool dinic::newPhase() {
 bool dinic::findPath(vertex u) {
         vertex v; edge e;
 
-	for (e = nextEdge[u]; e != 0; e = fg->nextAt(u,e)) {
-		v = fg->mate(u,e);
-		if (fg->res(u,e) == 0 || level[v] != level[u] + 1) continue;
-		if (v == fg->snk() || findPath(v)) {
+	for (e = nextEdge[u]; e != 0; e = g->nextAt(u,e)) {
+		v = g->mate(u,e);
+		if (g->res(u,e) == 0 || level[v] != level[u] + 1) continue;
+		if (v == g->snk() || findPath(v)) {
 			pEdge[v] = e; nextEdge[u] = e; return true;
 		}
 	}

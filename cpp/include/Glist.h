@@ -10,14 +10,21 @@
 #define GLIST_H
 
 #include "Adt.h"
-#include "Exceptions.h"
 #include "ListPair.h"
 
 namespace grafalgo {
 
-/** Data structure representing a generic list of values.  */
+/** Data structure representing a generic list of values. 
+ *  Unlike the List and Dlist classes, this class implements a general
+ *  list type. However, each item in the list also has an associated index
+ *  from the underlying index set. Indexes are used as arguments and
+ *  return values by various methods (first(), next(), get, find,..).
+ *  The value() method is is used to obtain the value of the list item
+ *  with a specified index.
+ */
 template<class V> class Glist : public Adt {
-public:		Glist(int=26, bool=true);
+public:		Glist();
+		Glist(int);
 		Glist(const Glist&);
 		Glist(Glist&&);
 		~Glist();
@@ -41,10 +48,8 @@ public:		Glist(int=26, bool=true);
 
 	// predicates
 	bool	empty() const;
-	bool	valid(index) const;
 	bool	member(index) const;
 	bool	contains(const V&) const;
-	bool	equals(const Glist&) const;
 	
 	// modifiers
 	index	insert(const V&, index);
@@ -70,9 +75,18 @@ private:
 	V	*vals;		///< vals[i] is list item with index i
 };
 
-/** Create a list with space for index values in 1..nn1 */
+/** Default constructor for Glist objects.
+ */
 template<class V>
-Glist<V>::Glist(int nn1, bool autoX) : Adt(nn1), autoExpand(autoX) {
+Glist<V>::Glist() : Adt(10), autoExpand(true) {
+	makeSpace();
+}
+
+/** Constructor for Glist objects with explicit index range.
+ *  @param n is the largest index in the index range
+ */
+template<class V>
+Glist<V>::Glist(int n) : Adt(n), autoExpand(false) {
 	makeSpace();
 }
 
@@ -97,15 +111,7 @@ Glist<V>::~Glist() { freeSpace(); }
  *  @param size is number of index values to provide space for
  */
 template<class V>
-void Glist<V>::makeSpace() {
-	try {
-		lp = new ListPair(n()); vals = new V[n()+1];
-	} catch (std::bad_alloc e) {
-		string s = "Glist::makeSpace: insufficient space for "
-		   	   + to_string(n()) + " list elements";
-		throw OutOfSpaceException(s);
-	}
-}
+void Glist<V>::makeSpace() { lp = new ListPair(n()); vals = new V[n()+1]; }
 
 /** Free dynamic storage used by list. */
 template<class V>
@@ -122,6 +128,7 @@ void Glist<V>::copyContents(const Glist& src) {
 }
 
 /** Assignment operator (copy).
+ *  @param src is the Glist which is to be assigned to this object.
  */
 template<class V>
 Glist<V>& Glist<V>::operator=(const Glist& src) {
@@ -132,6 +139,7 @@ Glist<V>& Glist<V>::operator=(const Glist& src) {
 }
 
 /** Assignment operator (move).
+ *  @param src is the Glist which is to be assigned to this object.
  */
 template<class V>
 Glist<V>& Glist<V>::operator=(Glist&& src) {
@@ -147,19 +155,21 @@ Glist<V>& Glist<V>::operator=(Glist&& src) {
 template<class V>
 bool Glist<V>::operator==(const Glist& other) {
         if (this == &other) return true;
-	if (!((*lp) == *(other.lp))) return false;
-	for (index x = other.first(); x != 0; x = other.next(x))
-		if (!(vals[x] == other.vals[x])) return false;
-        return true;
+	index x = first(); index y = other.first();
+	while (x != 0 && y != 0) {
+		if (value(x) != other.value(y)) return false;
+		x = next(x); y = other.next(y);
+	}
+        return x == 0 && y == 0;
 }
 
 /** Resize a Glist object.
  *  The old value is discarded.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
 template<class V>
-void Glist<V>::resize(int size) {
-	freeSpace(); Adt::resize(size); makeSpace();
+void Glist<V>::resize(int n) {
+	freeSpace(); Adt::resize(n); makeSpace();
 }
 
 /** Expand the space available for this Glist.
@@ -172,13 +182,7 @@ void Glist<V>::expand(int size) {
 	lp->expand(size);
 	V *old_vals = vals;
 	Adt::resize(size);
-	try {
-		vals = new V[n()+1];
-	} catch (std::bad_alloc e) {
-		string s = "Glist::expand: insufficient space for "
-		   	   + to_string(size) + " list elements";
-		throw OutOfSpaceException(s);
-	}
+	vals = new V[n()+1];
 	for (index x = first(); x != 0; x = next(x))
 		vals[x] = std::move(old_vals[x]);
 	delete [] old_vals;
@@ -191,12 +195,7 @@ void Glist<V>::expand(int size) {
  */
 template<class V>
 inline V& Glist<V>::value(index i) const {
-	if (!member(i)) {
-                string s = "Glist::value(" + to_string(i)
-			   + "): item not in list";
-                throw IllegalArgumentException(s);
-	}
-	return vals[i];
+	assert(member(i)); return vals[i];
 }
 
 /** Get the next index in the list.
@@ -204,14 +203,18 @@ inline V& Glist<V>::value(index i) const {
  *  @return the index that follows i, or 0 if there is no next index
  */
 template<class V>
-inline index Glist<V>::next(index i) const { return lp->nextIn(i); }
+inline index Glist<V>::next(index i) const {
+	assert(member(i)); return lp->nextIn(i);
+}
 
 /** Get the previous index in the list.
  *  @param i is an index on the list
  *  @return the index that precedes i, or 0 if there is no previous index
  */
 template<class V>
-inline index Glist<V>::prev(index i) const { return lp->prevIn(i); }
+inline index Glist<V>::prev(index i) const {
+	assert(member(i)); return lp->prevIn(i);
+}
 
 /** Get first index on list.
  *  @return the first index on the list or 0 if the list is empty
@@ -224,13 +227,6 @@ inline index Glist<V>::first() const { return lp->firstIn(); }
  */
 template<class V>
 inline index Glist<V>::last() const { return lp->lastIn(); }
-
-/** Test if a given index is valid for this Glist.
- *  @param i is an integer
- *  @return true if i is in range for this Glist.
- */
-template<class V>
-inline bool Glist<V>::valid(index i) const { return 1 <= i && i <= n(); }
 
 /** Test if list is empty.
  *  @return true if list is empty, else false.
@@ -249,7 +245,9 @@ inline int Glist<V>::length() const { return lp->getNumIn(); }
  *  @return true if i is in the list, else false
  */
 template<class V>
-inline bool Glist<V>::member(index i) const { return lp->isIn(i); }
+inline bool Glist<V>::member(index i) const {
+	assert(valid(i)); return lp->isIn(i);
+}
 
 /** Determine if a value appears in list.
  *  @param v is a value
@@ -294,10 +292,10 @@ template<class V> void Glist<V>::clear() {
 /** Get an index for an item based on its position in the list.
  *  @param i is the position of item to be returned; negative values
  *  are interpreted relative to the end of the list.
- *  @return the index at the specfied position kor 0 if no such item
+ *  @return the index at the specfied position or 0 if no such item
  */
 template<class V>
-index Glist<V>::get(int i) const {
+index Glist<V>::get(index i) const {
 	if (i > n() || i < -n()) return 0;
 	index j = 0;
 	if (i > 0) {
@@ -317,7 +315,7 @@ index Glist<V>::get(int i) const {
  */
 template<class V>
 index Glist<V>::find(const V& v, index i) const {
-	if (!(i == 0 || member(i))) return 0;
+	assert(i == 0 || member(i));
 	for (index j = (i == 0 ? first() : next(i)); j != 0; j = next(j))
 		if (v == vals[j]) return j;
 	return 0;
@@ -331,22 +329,13 @@ index Glist<V>::find(const V& v, index i) const {
  */
 template<class V>
 index Glist<V>::insert(const V& v, index j) {
-	if (j != 0 && !valid(j)) {
-		stringstream ss;
-		ss << "Glist::insert(" << v << "," << j << ")";
-		string s = ss.str();
-		throw IllegalArgumentException(s);
-	}
+	assert(j == 0 || member(j));
 	index i = lp->firstOut();
 	if (i == 0) {
 		if (!autoExpand) return 0;
 		expand(2*n()); i = lp->firstOut();
 	}
-	if (!lp->swap(i,j)) {
-		return 0;
-	}
-	vals[i] = v;
-	return i;
+	lp->swap(i,j); vals[i] = v; return i;
 }
 
 /** Remove an item from the list.
@@ -355,35 +344,7 @@ index Glist<V>::insert(const V& v, index j) {
  */
 template<class V>
 bool Glist<V>::remove(index i) {
-	if (!lp->isIn(i)) {
-		stringstream ss;
-		ss << "Glist::remove(" << i << "): item not in list";
-		string s = ss.str();
-		throw IllegalArgumentException(s);
-	}
-	if (!lp->swap(i)) return false;
-	if (length() == 0 && autoExpand)
-		resize(10);	// drop back to default capacity
-	return true;
-}
-
-/** Compare two lists for equality.
- *
- *  @param other is the list to be compared to this one
- *  @return true if they are the same list or have the
- *  same contents (in the same order);
- *  they need not have the same storage capacity to be equal
- */
-template<class V>
-bool Glist<V>::equals(const Glist& other) const {
-	if (this == &other) return true;
-	if (this->length() != other.length()) return false;
-	index i = first(); index j = other.first();
-	while (i != 0) {
-		if (value(i) != other.value(j)) return false;
-		i = next(i); j = other.next(j);
-	}
-	return true;
+	assert(member(i)); lp->swap(i); return true;
 }
 
 /** Create a string representation of a given string.

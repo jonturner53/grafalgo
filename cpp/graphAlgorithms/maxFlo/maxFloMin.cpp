@@ -10,68 +10,66 @@
 #include "Mflograph.h"
 #include "dinic.h"
 #include "ppFifo.h"
-#include "shortPath.h"
 
 namespace grafalgo {
 
 /** Find maximum flow in flow graph with min flow requirements.
- *  @param fg is the flow graph
+ *  @param g is the flow graph
  *  @param floAlgo specifies which max flow algorithm to use internally;
  *  allowed values are "dinic" and "ppFifo".
  *  @param return true if the min flow requirements could be satisified, else 0
  */
-bool maxFloMin(Mflograph& fg, string floAlgo) {
+bool maxFloMin(Mflograph& g, string floAlgo) {
 	// Create separate flow graph for use in first phase
 	// First determine max edge number, total capacity, number
 	// of edges with non-zero minimum flows and the sum of min flows
-	int cnt = 0; edge maxEdge = 0; int totalCap = 0; int totalMinFlo = 0;
-	for (edge e = fg.first(); e != 0; e = fg.next(e)) {
-		maxEdge = max(maxEdge,e);
-		totalCap += fg.cap(fg.tail(e),e);
-		totalMinFlo += fg.minFlo(e);
-		if (fg.minFlo(e) > 0) cnt++;
+	int cnt = 0; int totalCap = 0; int totalMinFlo = 0;
+	for (edge e = g.first(); e != 0; e = g.next(e)) {
+		totalCap += g.cap(g.tail(e),e);
+		totalMinFlo += g.minFlo(e);
+		if (g.minFlo(e) > 0) cnt++;
 	}
 	// Next copy edges to new flow graph being careful to maintain
 	// same edge numbers. Skip edges with non-zero min flows.
-	Flograph fg2(fg.n()+2, maxEdge+cnt+1, fg.n()+1, fg.n()+2);
-	for (edge e = fg.first(); e != 0; e = fg.next(e)) {
-		if (fg.minFlo(e) > 0) continue;
-		vertex u = fg.tail(e); vertex v = fg.head(e);
-		fg2.joinWith(u,v,e); fg2.setCapacity(e,fg.cap(u,e));
+	Flograph g2(g.n()+2, g.M()+cnt+1, g.n()+1, g.n()+2);
+	for (edge e = g.first(); e != 0; e = g.next(e)) {
+		if (g.minFlo(e) > 0) continue;
+		vertex u = g.tail(e); vertex v = g.head(e);
+		g2.joinWith(u,v,e); g2.setCapacity(e,g.cap(u,e));
 	}
 	// Now, add edges from new source and edges to new sink.
-	for (edge e = fg.first(); e != 0; e = fg.next(e)) {
-		if (fg.minFlo(e) <= 0) continue;
-		vertex v = fg.head(e);
-		fg2.joinWith(fg2.src(),v,e); fg2.setCapacity(e,fg.minFlo(e));
+	for (edge e = g.first(); e != 0; e = g.next(e)) {
+		if (g.minFlo(e) <= 0) continue;
+		vertex v = g.head(e);
+		g2.joinWith(g2.src(),v,e); g2.setCapacity(e,g.minFlo(e));
 	}
-	for (edge e = fg.first(); e != 0; e = fg.next(e)) {
-		if (fg.minFlo(e) <= 0) continue;
-		vertex u = fg.tail(e);
-		edge ee = fg2.join(u,fg2.snk());
-		fg2.setCapacity(ee,fg.minFlo(e));
+	for (edge e = g.first(); e != 0; e = g.next(e)) {
+		if (g.minFlo(e) <= 0) continue;
+		vertex u = g.tail(e);
+		edge ee = g2.join(u,g2.snk());
+		g2.setCapacity(ee,g.minFlo(e));
 	}
 	// Finally, add high capacity edge from original sink to original source
-	edge e = fg2.join(fg.snk(), fg.src());
-	fg2.setCapacity(e, totalCap);
+	edge e = g2.join(g.snk(), g.src());
+	g2.setCapacity(e, totalCap);
 
-	// Now, find max flow in fg2 and check that min flow requirements
+	// Now, find max flow in g2 and check that min flow requirements
 	// are all satisfied
-	if (floAlgo == "dinic") (dinic(fg2)); // parens added to resolve ambiguity
-	else ppFifo(fg2, true);
-	if (fg2.totalFlow() < totalMinFlo) return false;
+	if (floAlgo == "dinic") (dinic(g2)); // parens to resolve ambiguity
+	else ppFifo(g2, true);
+	if (g2.totalFlow() < totalMinFlo) return false;
 
-	// Now, copy flow from fg2 into fg.
-	for (edge e = fg.first(); e != 0; e = fg.next(e)) {
-		vertex u = fg.tail(e);
-		flow fe = (fg.minFlo(e) == 0 ? fg2.f(u,e) : fg.minFlo(e));
-		fg.setFlow(e,fe);
+	// Now, copy flow from g2 into g.
+	for (edge e = g.first(); e != 0; e = g.next(e)) {
+		vertex u = g.tail(e);
+		flow fe = (g.minFlo(e) == 0 ? g2.f(u,e) : g.minFlo(e));
+		g.setFlow(e,fe);
 	}
 
 	// Now, add convert to a max flow, relying on Mflograph's res()
 	// function to ensure we do not remove too much flow from min flow edges
-	if (floAlgo == "dinic") (dinic(fg)); // parens added to resolve ambiguity
-	else ppFifo(fg, true);
+	if (floAlgo == "dinic") (dinic(g)); // parens added to resolve ambiguity
+	else ppFifo(g, true);
 
 	return true;
 }

@@ -16,11 +16,13 @@ namespace grafalgo {
 /** This class represents a collection of binary search trees in which
  *  nodes have two different keys. The first key is used to order the
  *  BST nodes in the usual way.
+ *
+ *  Note: implementation not yet complete
  */
 class DkBstSet : public BalBstSet {
 public: 	DkBstSet(int);
 		~DkBstSet();
-	static	const int MAX2 = Util::BIGINT32-1;  ///< max allowed key2 value
+	static	const int MAX2 = INT_MAX-1;  ///< max allowed key2 value
 
 	// common methods
 	void	clear();
@@ -57,7 +59,7 @@ private:
 };
 
 /** Set key values of a node
- *  @param i is an isolated node (that is, it's a single node BST)
+ *  @param i is the index of an isolated node (that is, a single node bst)
  */
 void inline DkBstSet::setkey(index i, keytyp k1, keytyp k2) {
 	assert(0 <= i && i <= n() && k2 <= MAX2);
@@ -66,7 +68,7 @@ void inline DkBstSet::setkey(index i, keytyp k1, keytyp k2) {
 }
 
 /** Get the first key of a node.
- *  @param i is a node in a BST
+ *  @param i is the index of a node in a BST
  *  @return the value of the first key of i
  */
 keytyp inline DkBstSet::key1(index i) {
@@ -84,9 +86,10 @@ keytyp inline DkBstSet::min2(bst t) {
 }
 
 /** Change the key2 values of all items in a bst.
- *  @param diff is a key value
- *  @param t is a canonical element of some bst (root of the BST);
- *  the opertion adds diff to all the key2 values in s
+ *  @param diff is a key value; the operation adds diff to all the
+ *  key2 values of the specified bst
+ *  @param t is the index for the root of the bst whose key2 values are
+ *  to be changed
  */
 void inline DkBstSet::change2(keytyp diff, bst t) {
 	assert(1 <= t && t <= n());

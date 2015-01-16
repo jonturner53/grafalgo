@@ -18,12 +18,12 @@ namespace grafalgo {
  *  Also known as "disjoint sets" and "union-find".
  */
 class Partition : public Adt {
-public:		Partition(int=26,int=0);
+public:		Partition(int=26);
 		~Partition();
 
 	// common methods
 	void	clear();
-	void	clear(int);
+	void	clear(index);
 	void	resize(int);
 	void	expand(int);
 	void	copyFrom(const Partition&);
@@ -40,12 +40,15 @@ private:
 	} *node;			///< vector of nodes
 
 	index	findroot(int) const;
-	void	makeSpace(int);
+	void	makeSpace();
 	void	freeSpace();
 };
 
-inline void Partition::clear(int u) {
-	node[u].p = u; node[u].rank = 0;
+/** Clear a single node in the data structure.
+ *  This method provided for the use of fastEdmondsGabow algorithm.
+ */
+inline void Partition::clear(index u) {
+        node[u].p = u; node[u].rank = 0;
 }
 
 } // ends namespace

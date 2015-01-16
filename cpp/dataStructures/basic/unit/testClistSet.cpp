@@ -15,7 +15,7 @@ void basicTests() {
 	int n1 = 12; ClistSet cl(n1);
 
 	for (int i = 1; i <= n1; i++)
-		Utest::assertTrue(cl.suc(i) == i && cl.pred(i) == i,
+		Utest::assertTrue(cl.next(i) == i && cl.prev(i) == i,
 				  "don't have singletons on startup");
 
 	cout << "writing initial collection" << endl;
@@ -35,7 +35,8 @@ void basicTests() {
 			   cl.toString(),
 			   "incorrect result following removes");
 
-	ClistSet cl2(n1); cl2.copyFrom(cl);
+	ClistSet cl2(n1);
+	cl2.copyFrom(cl);
 	Utest::assertEqual("{[a b], [c d], [e f h j]}",
 			   cl2.toString(),
 			   "incorrect result following copy");

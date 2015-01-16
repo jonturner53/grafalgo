@@ -14,9 +14,8 @@ namespace grafalgo {
 
 /** Balanced binary search trees class.
  *  Represents a collection of balanced BSTs, defined on indexes 1..n.
- *  Each BST corresponds to a "sorted set" and each node corresponds
- *  to an "item", where each item can appear in only one set at a time
- *  (possibly a singleton set).
+ *  Each BST represents a "sorted set" and the sets partition the
+ *  underlying index set (so each index value appears in exactly one set).
  *
  *  Inherits some methods from the SortedSets class.
  */
@@ -42,8 +41,9 @@ protected:
 	void	rebalance2(index, index);
 	string	node2string(index) const;
 
-	void	makeSpace(int);
+	void	makeSpace();
 	void	freeSpace();
+	void	init();
 };
 
 } // ends namespace

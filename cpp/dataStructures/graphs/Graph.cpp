@@ -15,9 +15,8 @@ namespace grafalgo {
  *  @param numv is number of vertices in the Graph
  *  @param maxe is the maximum number of edges
  */
-Graph::Graph(int numv, int maxe) : Adt(numv), maxEdge(maxe) {
-	makeSpace(numv,maxe); 
-	shoEnum = false;
+Graph::Graph(int numv, int maxe) : Adt(numv) {
+	makeSpace(numv,maxe); init(); shoEnum = false;
 }
 
 Graph::~Graph() { freeSpace(); }
@@ -27,20 +26,16 @@ Graph::~Graph() { freeSpace(); }
  *  @param maxe is the number of edges to allocate space for
  */
 void Graph::makeSpace(int numv, int maxe) {
-	try {
-		fe = new edge[numv+1];
-		evec = new EdgeInfo[maxe+1];
-		edges = new ListPair(maxe);
-		adjLists = new ClistSet(2*maxe+1);
-	} catch (std::bad_alloc e) {
-		string s = "Graph::makeSpace: insufficient space for "
-			   + to_string(numv) + "vertices and "
-			   + to_string(maxe) + " edges";
-		throw OutOfSpaceException(s);
-	}
-	for (vertex u = 0; u <= numv; u++) fe[u] = 0;
-	for (edge e = 0; e <= maxe; e++) evec[e].l = 0;
-	nn = numv; maxEdge = maxe;
+	fe = new edge[numv+1];
+	evec = new EdgeInfo[maxe+1];
+	edges = new ListPair(maxe);
+	adjLists = new ClistSet(2*maxe+1);
+}
+
+/** Initialize a Graph object. */
+void Graph::init() {
+	for (vertex u = 0; u <= n(); u++) fe[u] = 0;
+	for (edge e = 0; e <= M(); e++) evec[e].l = 0;
 }
 
 /** Free space used by graph. */
@@ -54,11 +49,7 @@ void Graph::freeSpace() {
  *  @param maxe is the number of edges to allocate space for
  */
 void Graph::resize(int numv, int maxe) {
-	freeSpace();
-	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
-		string s = "Graph::resize:" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+	freeSpace(); Adt::resize(numv); makeSpace(numv,maxe); init();
 }
 
 /** Expand the space available for this Graph.
@@ -66,8 +57,8 @@ void Graph::resize(int numv, int maxe) {
  *  @param size is the size of the resized object.
  */
 void Graph::expand(int numv, int maxe) {
-	if (numv <= n() && maxe <= maxEdge) return;
-	Graph old(this->n(),this->maxEdge); old.copyFrom(*this);
+	if (numv <= n() && maxe <= M()) return;
+	Graph old(this->n(),this->M()); old.copyFrom(*this);
 	resize(numv,maxe); this->copyFrom(old);
 }
 
@@ -79,8 +70,8 @@ void Graph::clear() { while (first() != 0) remove(first()); }
  */
 void Graph::copyFrom(const Graph& source) {
 	if (&source == this) return;
-	if (source.n() > n() || source.maxEdge > maxEdge)
-		resize(source.n(),source.maxEdge);
+	if (source.n() > n() || source.M() > M())
+		resize(source.n(),source.M());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
 		joinWith(source.left(e),source.right(e),e);
@@ -105,12 +96,12 @@ edge Graph::join(vertex u, vertex v) {
 /** Join two vertices with a specific edge.
  *  @param u is the left endpoint for the new edge
  *  @param v is the right endpoint for the new edge
- *  @param e is the number of an idle edge
- *  @return the edge number for the new edge or 0
+ *  @param e is the index of an unused edge
+ *  @return the edge index for the new edge or 0
  *  on failure
  */
 edge Graph::joinWith(vertex u, vertex v, edge e) {
-	if (e == 0 || !edges->isOut(e)) return 0;
+	assert(validVertex(u) && validVertex(v) && edges->isOut(e));
 	edges->swap(e);
 
 	// initialize edge information
@@ -137,11 +128,11 @@ bool Graph::remove(edge e) {
 
 	vertex u = evec[e].l;
 	if (fe[u] == 2*e)
-		fe[u] = (adjLists->suc(2*e) == 2*e ? 0 : adjLists->suc(2*e));
+		fe[u] = (adjLists->next(2*e) == 2*e ? 0 : adjLists->next(2*e));
 	u = evec[e].r;
 	if (fe[u] == 2*e+1)
-		fe[u] = (adjLists->suc(2*e+1) == 2*e+1 ?
-				0 : adjLists->suc(2*e+1));
+		fe[u] = (adjLists->next(2*e+1) == 2*e+1 ?
+				0 : adjLists->next(2*e+1));
 
 	adjLists->remove(2*e); adjLists->remove(2*e+1);
 
@@ -150,11 +141,18 @@ bool Graph::remove(edge e) {
 	return true;
 }
 
-// Compare two edges incident to the same endpoint u.
-// Return -1 if u's mate in e1 is less than u's mate in e2.
-// Return +1 if u's mate in e1 is greater than than u's mate in e2.
-// Return  0 if u's mate in e1 is equal to its mate in e2.
+/** Compare two edges incident to the same endpoint.
+ *  @param e1 is the index of a valid edge
+ *  @param e2 is the index of a valid edge
+ *  @param u is the index of a vertex that both edges are incident to
+ *  @return -1 if u's mate in e1 is less than u's mate in e2;
+ *  return +1 if u's mate in e1 is greater than than u's mate in e2.
+ *  return  0 if u's mate in e1 is equal to its mate in e2.
+ */
 int Graph::ecmp(edge e1, edge e2, vertex u) const {
+	assert(validEdge(e1) && validEdge(e2) && validVertex(u) &&
+	       (u == left(e1) || u == right(e1)) &&
+	       (u == left(e2) || u == right(e2)));
 	if (mate(u,e1) < mate(u,e2)) return -1;
 	else if (mate(u,e1) > mate(u,e2)) return 1;
 	else return 0;
@@ -164,6 +162,7 @@ int Graph::ecmp(edge e1, edge e2, vertex u) const {
  *  @param u is the vertex whose adjacency list is to be sorted.
  */
 void Graph::sortAlist(vertex u) {
+	assert(validVertex(u));
 	int ep; int j, k, p, c;
 	if (fe[u] == 0) return; // empty list
 
@@ -174,7 +173,7 @@ void Graph::sortAlist(vertex u) {
 
 	for (ep = fe[u]; ep != 0; ep = fe[u]) {
 		elist[k++] = ep;
-		fe[u] = adjLists->suc(ep);
+		fe[u] = adjLists->next(ep);
 		if (fe[u] == ep) fe[u] = 0;
 		else		 adjLists->remove(ep);
 	}
@@ -353,18 +352,18 @@ bool Graph::readAdjList(istream& in) {
 	if (!Util::verify(in,'[')) return false;
 	vertex u;
 	if (!Adt::readIndex(in,u)) return false;
-	if (u > n()) expand(u,maxEdge);
+	if (u > n()) expand(u,M());
 	if (!Util::verify(in,':')) return false;
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v; edge e;
 		if (!Adt::readIndex(in,v)) return false;
-		if (v > n()) expand(v,maxEdge);
-		if (m() >= maxEdge) expand(n(),max(1,2*maxEdge));
+		if (v > n()) expand(v,M());
+		if (m() >= M()) expand(n(),max(1,2*M()));
 		if (!Util::verify(in,'#')) {
 			if (u < v) join(u,v);
 		} else {
 			if (!Util::readInt(in,e)) return false;
-			if (e >= maxEdge) expand(n(),e);
+			if (e >= M()) expand(n(),e);
 			if (u < v) {
 				if (joinWith(u,v,e) != e) return false;
 			} else {
@@ -387,10 +386,7 @@ istream& operator>>(istream& in, Graph& g) {
 	while (ok && !Util::verify(in,'}')) {
 		ok = g.readAdjList(in);
 	}
-	if (!ok) {
-		string s = "misformatted input for Graph object\n";
-		throw InputException(s);
-	}
+	if (!ok) Util::fatal("misformatted input for Graph object\n");
 	g.sortAdjLists();
 	return in;
 }
@@ -402,6 +398,7 @@ istream& operator>>(istream& in, Graph& g) {
  *  is no such edge
  */
 edge Graph::findEdge(vertex u, vertex v) const {
+	assert(validVertex(u) && validVertex(v));
 	for (edge e = firstAt(u); e != 0; e = nextAt(u,e))
 		if (mate(u,e) == v) return e;
 	return 0;
@@ -412,6 +409,7 @@ edge Graph::findEdge(vertex u, vertex v) const {
  *  @return the number of edges incident to u
  */
 int Graph::degree(vertex u) const {
+	assert(validVertex(u));
 	int d = 0;
 	for (edge e = firstAt(u); e != 0; e = nextAt(u,e)) d++;
 	return d;

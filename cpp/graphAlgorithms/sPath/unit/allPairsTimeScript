@@ -3,9 +3,9 @@
 # usage: allPairsTimeScript algorithm
 #
 # Run timing tests with a specified algorithm.
-# The algorithm argument may be dijkstra of bfScan
+# The algorithm argument may be edmondsKarp or floyd
 #
-algo="dijkstra"
+algo="edmondsKarp"
 if [ $# -eq 1 ] ; then
 	algo=$1
 fi;

@@ -16,7 +16,7 @@ namespace grafalgo {
  *  @param maxe is the maximum number of edges
  */
 Digraph::Digraph(int numv, int maxe) : Graph(numv,maxe) {
-	makeSpace(numv,maxe);
+	makeSpace(numv,maxe); init();
 }
 
 Digraph::~Digraph() { freeSpace(); }
@@ -25,19 +25,10 @@ Digraph::~Digraph() { freeSpace(); }
  *  @param numv is the number of vertices to allocate space for
  *  @param maxe is the number of edges to allocate space for
  */
-void Digraph::makeSpace(int numv, int maxe) {
-	try {
-		fi = new edge[numv+1];
-	} catch (std::bad_alloc e) {
-		stringstream ss;
-		ss << "Digraph::makeSpace: insufficient space for "
-		   << numv << "vertices and " << maxe << " edges";
-		string s = ss.str();
-		throw OutOfSpaceException(s);
-	}
-	for (vertex u = 0; u <= numv; u++) fi[u] = 0;
-	nn = numv;
-}
+void Digraph::makeSpace(int numv, int maxe) { fi = new edge[numv+1]; } 
+
+/** Initialize Digraph object. */
+void Digraph::init() { for (vertex u = 0; u <= n(); u++) fi[u] = 0; }
 
 /** Free space used by graph. */
 void Digraph::freeSpace() { delete [] fi; }
@@ -48,12 +39,7 @@ void Digraph::freeSpace() { delete [] fi; }
  *  @param maxe is the number of edges to allocate space for
  */
 void Digraph::resize(int numv, int maxe) {
-	freeSpace();
-	Graph::resize(numv,maxe);
-	try { makeSpace(numv,maxe); } catch(OutOfSpaceException e) {
-		string s = "Digraph::resize:" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+	freeSpace(); Graph::resize(numv,maxe); makeSpace(numv,maxe); init();
 }
 
 /** Expand the space available for this Digraph.
@@ -61,8 +47,8 @@ void Digraph::resize(int numv, int maxe) {
  *  @param size is the size of the resized object.
  */
 void Digraph::expand(int numv, int maxe) {
-	if (numv <= n() && maxe <= maxEdge) return;
-	Digraph old(this->n(),this->maxEdge); old.copyFrom(*this);
+	if (numv <= n() && maxe <= M()) return;
+	Digraph old(this->n(),this->M()); old.copyFrom(*this);
 	resize(numv,maxe); this->copyFrom(old);
 }
 
@@ -73,9 +59,7 @@ void Digraph::expand(int numv, int maxe) {
  *  @return the edge number for the new edge, or 0 on failure
  */
 edge Digraph::joinWith(vertex u, vertex v, edge e) {
-	assert(validVertex(u) && validVertex(v));
-
-	if (e == 0 || !edges->isOut(e)) return 0;
+	assert(validVertex(u) && validVertex(v) && edges->isOut(e));
 	edges->swap(e);
 
 	// initialize edge information
@@ -102,11 +86,11 @@ bool Digraph::remove(edge e) {
 
 	vertex u = evec[e].l;
 	if (fe[u] == 2*e)
-		fe[u] = (adjLists->suc(2*e) == 2*e ? 0 : adjLists->suc(2*e));
+		fe[u] = (adjLists->next(2*e) == 2*e ? 0 : adjLists->next(2*e));
 	u = evec[e].r;
 	if (fi[u] == 2*e+1)
-		fi[u] = (adjLists->suc(2*e+1) == 2*e+1 ?
-				0 : adjLists->suc(2*e+1));
+		fi[u] = (adjLists->next(2*e+1) == 2*e+1 ?
+				0 : adjLists->next(2*e+1));
 
 	adjLists->remove(2*e); adjLists->remove(2*e+1);
 
@@ -164,18 +148,18 @@ bool Digraph::readAdjList(istream& in) {
 	if (!Util::verify(in,'[')) return false;
 	vertex u;
 	if (!Adt::readIndex(in,u)) return false;
-	if (u > n()) expand(u,maxEdge);
+	if (u > n()) expand(u,M());
 	if (!Util::verify(in,':')) return false;
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v; edge e;
 		if (!Adt::readIndex(in,v)) return false;
-		if (v > n()) expand(v,maxEdge);
-		if (m() >= maxEdge) expand(n(),max(1,max(1,2*maxEdge)));
+		if (v > n()) expand(v,M());
+		if (m() >= M()) expand(n(),max(1,max(1,2*M())));
 		if (!Util::verify(in,'#')) {
 			e = join(u,v);
 		} else {
 			if (!Util::readInt(in,e)) return false;
-			if (e >= maxEdge) expand(n(),e);
+			if (e >= M()) expand(n(),e);
 			if (joinWith(u,v,e) != e) return false;
 		}
 	}

@@ -68,47 +68,48 @@ bool run(testcase tc) {
 	string s, before, after;
 	stringstream ss;
 	if (tc.method == "key") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		rv = tc.bstset->key(tc.a1);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test1(tc,rv,before,after);
 	} else if (tc.method == "find") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		rv = tc.bstset->find(tc.a1);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test1(tc,rv,before,after);
 	} else if (tc.method == "access") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		int rv2 = tc.a2;
 		int rv1 = tc.bstset->access(tc.a1,rv2);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test2x(tc,rv1,rv2,before,after);
 	} else if (tc.method == "setkey") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		tc.bstset->setkey(tc.a1,tc.a2);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test2(tc,0,before,after);
 	} else if (tc.method == "insert") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		int rv2 = tc.a2;
 		rv = tc.bstset->insert(tc.a1,rv2);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test2x(tc,rv,rv2,before,after);
 	} else if (tc.method == "remove") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
+		rv = tc.bstset->findroot(tc.a1);
 		tc.bstset->remove(tc.a1,rv);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test2(tc,rv,before,after);
 	} else if (tc.method == "join") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		rv = tc.bstset->join(tc.a1,tc.a2,tc.a3);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test3(tc,rv,before,after);
 	} else if (tc.method == "split") {
-		before = tc.bstset->toString(s);
+		before = tc.bstset->toString();
 		BstSet::BstPair rv(0,0);
 		rv = tc.bstset->split(tc.a1,tc.a2);
-		after = tc.bstset->toString(s);
+		after = tc.bstset->toString();
 		return test2x(tc,rv.t1,rv.t2,before,after);
 	}
 	cout << "\nError: unknown test\n";

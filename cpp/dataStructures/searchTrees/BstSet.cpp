@@ -22,33 +22,18 @@
 namespace grafalgo {
 
 /** Constructor for BstSet class.
- *  @param size defines the index range for the constructed object.
+ *  @param n defines the index range for the constructed object.
  */
-BstSet::BstSet(int size) : Adt(size) {
-	makeSpace(size);
-}
+BstSet::BstSet(int n) : Adt(n) { makeSpace(); clear(); }
 
 /** Destructor for BstSet class. */
 BstSet::~BstSet() { freeSpace(); }
 
-/** Allocate and initialize space for BstSet.
- *  @param size is number of index values to provide space for
- */
-void BstSet::makeSpace(int size) {
-	try {
-		node = new BstNode[size+1];
-	} catch (std::bad_alloc e) {
-		string s = "makeSpace:: insufficient space for "
-			   + to_string(size) + "index values";
-		throw OutOfSpaceException(s);
-	}
-	nn = size; clear();
-}
+/** Allocate and initialize space for BstSet.  */
+void BstSet::makeSpace() { node = new BstNode[n()+1]; }
 
 /** Free dynamic storage used by BstSet. */
-void BstSet::freeSpace() {
-	delete [] node;
-}
+void BstSet::freeSpace() { delete [] node; }
 
 /** Reinitialize data structure, creating single node trees. */
 void BstSet::clear() {
@@ -59,24 +44,20 @@ void BstSet::clear() {
 }
 
 /** Resize a BstSet object, discarding old value.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void BstSet::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "BstSet::resize::" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+void BstSet::resize(int n) {
+	freeSpace(); Adt::resize(n); makeSpace(); clear();
 }
 
 /** Expand the space available for this ojbect.
  *  Rebuilds old value in new space.
- *  @param size is the size of the expanded object.
+ *  @param n is the size of the expanded object.
  */
-void BstSet::expand(int size) {
-	if (size <= n()) return;
+void BstSet::expand(int n) {
+	if (n <= this->n()) return;
 	BstSet old(this->n()); old.copyFrom(*this);
-	resize(size); this->copyFrom(old);
+	resize(n); this->copyFrom(old);
 }
 /** Copy another object to this one.
  *  @param source is object to be copied to this one
@@ -96,6 +77,7 @@ void BstSet::copyFrom(const BstSet& source) {
  *  moves x up into its parent's position
  */
 void BstSet::rotate(index x) {
+	assert(valid(x) && valid(p(x)));
 	index y = p(x);
 	if (y == 0) return;
 	index z;
@@ -111,6 +93,7 @@ void BstSet::rotate(index x) {
 }
 
 void BstSet::rotate2(index x) {
+	assert(valid(x) && valid(p(x)) && valid(p(p(x))));
 	if (outer(x))	   { rotate(p(x)); rotate(x); }
 	else if (inner(x)) { rotate(x); rotate(x); }
 }
@@ -121,7 +104,7 @@ void BstSet::rotate2(index x) {
  *  does not restructure the search tree
  */
 bst BstSet::find(index i) const {
-	assert (0 <= i && i <= n());
+	assert(i == 0 || valid(i));
 	while (p(i) != 0) i = p(i);
 	return i;
 }
@@ -133,7 +116,7 @@ bst BstSet::find(index i) const {
  *  @return the item in s that has key value k, or 0 if there is no such item
  */
 index BstSet::access(keytyp k, bst& t) const {
-	assert (0 <= t && t <= n());
+	assert(t == 0 || valid(t));
 	index x = t;
 	while (x != 0 && k != kee(x)) {
 		if (k < kee(x)) x = left(x);
@@ -148,6 +131,7 @@ index BstSet::access(keytyp k, bst& t) const {
  *  @return the node with smallest key1 value in s
  */
 index BstSet::first(bst t) const {
+	assert(valid(t));
 	while (left(t) != 0) t = left(t);
 	return t;
 }
@@ -158,6 +142,7 @@ index BstSet::first(bst t) const {
  *  @return the node with smallest key1 value in s
  */
 index BstSet::last(bst t) const {
+	assert(valid(t));
 	while (right(t) != 0) t = right(t);
 	return t;
 }
@@ -167,7 +152,8 @@ index BstSet::last(bst t) const {
  *  @param i is a node in some bst
  *  @return the node with largest key1 value in the bst
  */
-index BstSet::suc(index i) const {
+index BstSet::next(index i) const {
+	assert(valid(i));
 	if (right(i) != 0) {
 		for (i = right(i); left(i) != 0; i = left(i)) {}
 	} else {
@@ -182,7 +168,8 @@ index BstSet::suc(index i) const {
  *  @param i is a node in some bst
  *  @return the node with largest key1 value in the bst
  */
-index BstSet::pred(index i) const {
+index BstSet::prev(index i) const {
+	assert(valid(i));
 	if (left(i) != 0) {
 		for (i = left(i); right(i) != 0; i = right(i)) {}
 	} else {
@@ -200,11 +187,11 @@ index BstSet::pred(index i) const {
  *  (because key clashed with existing item)
  */
 bool BstSet::insert(index i, bst& t) {
-	assert (1 <= i && i <= n() && 0 <= t && t <= n());
-	assert (left(0) == 0 && right(0) == 0 && p(0) == 0);
+	assert(valid(i) && left(0) == 0 && right(0) == 0 && p(0) == 0 &&
+	        (t == 0 || valid(t)));
 	if (t == 0) { t = i; return true; }
 	index x = t;
-	while (1) {
+	while (true) {
 		     if (kee(i) < kee(x) &&  left(x) != 0) x = left(x);
 		else if (kee(i) > kee(x) && right(x) != 0) x = right(x);
 		else break;
@@ -223,7 +210,7 @@ bool BstSet::insert(index i, bst& t) {
  *  positions of the nodes in the tree
  */
 void BstSet::swap(index i, index j) {
-	assert(1 <= i && i <= n() && 1 <= j && j <= n() && j != p(i));
+	assert(valid(i) && valid(j) && j != p(i));
 
 	// save pointer fields for items i and j
 	index li,ri,pi,lj,rj,pj;
@@ -260,7 +247,7 @@ void BstSet::swap(index i, index j) {
  *  the operation changes the root, t will be changed
  */
 void BstSet::remove(index i, bst& t) {
-	assert(1 <= i && i <= n() && 1 <= t && t <= n());
+	assert(valid(i) && valid(t) && p(t) == 0);
 	index c = (left(t) != 0 ? left(t) : right(t));
         index j;
         if (left(i) != 0 && right(i) != 0) {
@@ -281,15 +268,14 @@ void BstSet::remove(index i, bst& t) {
 }
 
 /** Form new bst by combining two bsts at a node.
- *  @param t1 is the root of some bst
- *  @param t2 is the root of some bst
- *  @param i is a singleton item with key value larger than those of the
+ *  @param t1 is the root of some bst (or subtree)
+ *  @param t2 is the root of some bst (or subtree)
+ *  @param i is an item with key value larger than those of the
  *  items in t1 and smaller than those of the items in t2
  *  @return new bst formed by merging t1, i and t2
  */
 bst BstSet::join(bst t1, index i, bst t2) {
-	assert(0 <= t1 && t1 <= n() && 1 <= i && i <= n() && 
-	       0 <= t2 && t2 <= n());
+	assert((t1 == 0 || valid(t1)) && (t2 == 0 || valid(t2)) && valid(i));
 	left(i) = t1; right(i) = t2;
 	if (t1 != 0) p(t1) = i;
 	if (t2 != 0) p(t2) = i;
@@ -298,13 +284,13 @@ bst BstSet::join(bst t1, index i, bst t2) {
 
 /** Divide a bst at a node.
  *  @param i is a node in some bst
- *  @param s is the root of the bst containing i
- *  @return the pair of bsts [t1,t2] that results from splitting s into three
- *  parts; t1 (containing ityems with keys smaller than that of i), i itself,
+ *  @param t is the root of the bst containing i
+ *  @return the pair of bsts [t1,t2] that results from splitting t into three
+ *  parts; t1 (containing items with keys smaller than that of i), i itself,
  *  and t2 (contining items with keys larger than that of i)
  */
-BstSet::BstPair BstSet::split(index i, bst s) {
-	assert(1 <= i && i <= n() && 1 <= s && s <= n());
+BstSet::BstPair BstSet::split(index i, bst t) {
+	assert(valid(i) && valid(t) && p(t) == 0);
 	bst y = i; bst x = p(y);
 	BstPair pair(left(i),right(i));
 	while (x != 0) {
@@ -325,6 +311,7 @@ BstSet::BstPair BstSet::split(index i, bst s) {
 string BstSet::node2string(index i) const {
 	string s;
 	if (i == 0) return s;
+	assert(valid(i));
 	s += Adt::index2string(i);
 	if (p(i) == 0)	s += "*";
 	else 		s += ":";
@@ -333,12 +320,13 @@ string BstSet::node2string(index i) const {
 }
 
 /** Create a string representation of a bst.
- *  @param t is the root of some bst
+ *  @param t is the root of some bst (or subtree)
  *  @return the string
  */
 string BstSet::bst2string(bst t) const {
 	string s;
 	if (t == 0) return s;
+	assert(valid(t));
 	if (left(t) != 0) s += "(" + bst2string(left(t)) + ") ";
 	s += node2string(t);
 	if (right(t) != 0) s += " (" + bst2string(right(t)) + ")";

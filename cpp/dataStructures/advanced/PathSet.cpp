@@ -16,7 +16,7 @@
 namespace grafalgo {
 
 /** Constructor for PathSet class.
- *  @param size defines the index range for the constructed object.
+ *  @param n defines the index range for the constructed object.
  *  @param pathVals is a vector of integer values, which is defined for
  *  each path in the set; that is if u is the handle of some path,
  *  then pathVals[u] will be an integer which the application using
@@ -25,33 +25,23 @@ namespace grafalgo {
  *  the PathSet object updates pathVals whenever the handle for a path
  *  changes
  */
-PathSet::PathSet(int size, int *pathVals) : Adt(size), pvals(pathVals) {
-	makeSpace(size);
+PathSet::PathSet(int n, int *pathVals) : Adt(n), pvals(pathVals) {
+	makeSpace(); clear();
 }
 
 /** Destructor for PathSet class. */
 PathSet::~PathSet() { freeSpace(); }
 
 /** Allocate and initialize space for PathSet.
- *  @param size is number of index values to provide space for
  */
-void PathSet::makeSpace(int size) {
-	try {
-		pnode = new PathNode[size+1];
-	} catch (std::bad_alloc e) {
-		string s = "makeSpace:: insufficient space for "
-			    + to_string(size) + "index values";
-		throw OutOfSpaceException(s);
-	}
-	nn = size; clear();
-}
+void PathSet::makeSpace() { pnode = new PathNode[n()+1]; }
 
 /** Free dynamic storage used by PathSet. */
 void PathSet::freeSpace() {
 	delete [] pnode;
 }
 
-/** Reinitialize data structure, creating single node trees. */
+/** Initialize data structure, creating single node trees. */
 void PathSet::clear() {
 	for (index i = 0; i <= n(); i++) {
 		left(i) = right(i) = p(i) = dcost(i) = dmin(i) = 0;
@@ -59,24 +49,20 @@ void PathSet::clear() {
 }
 
 /** Resize a PathSet object, discarding old value.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void PathSet::resize(int size) {
-	freeSpace();
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "PathSet::resize::" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+void PathSet::resize(int n) {
+	freeSpace(); Adt::resize(n); makeSpace(); clear();
 }
 
 /** Expand the space available for this ojbect.
  *  Rebuilds old value in new space.
- *  @param size is the size of the expanded object.
+ *  @param n is the size of the expanded object.
  */
-void PathSet::expand(int size) {
-	if (size <= n()) return;
+void PathSet::expand(int n) {
+	if (n <= this->n()) return;
 	PathSet old(this->n(),pvals); old.copyFrom(*this);
-	resize(size); this->copyFrom(old);
+	resize(n); this->copyFrom(old);
 }
 
 /** Copy another object to this one.

@@ -27,7 +27,7 @@ public:		Stack(int=16);
 	bool	empty() const;
 	bool	full() const;
 
-	bool	push(T);
+	void	push(T);
 	T	pop();	
 	int	xferIn(Stack<T>&,int);
 	int	xferOut(Stack<T>&,int);
@@ -43,11 +43,11 @@ private:
 };
 
 /** Constructor for Stack objects.
- *  @param capacity is the specified capacity of the queue
+ *  @param n is the specified capacity of the stack
  */
 template<class T>
-inline Stack<T>::Stack(int capacity) : Adt(capacity) {
-	stak = new T[n()]; sp = 0;
+inline Stack<T>::Stack(int n) : Adt(n) {
+	stak = new T[n]; sp = 0;
 }
 
 /** Destructor for Stack objects. */
@@ -60,12 +60,12 @@ template<class T>
 inline void Stack<T>::reset() { sp = 0; }
 
 /** Resize the queue, discarding any contents.
- *  @param capacity is the new specified capacity of the stack
+ *  @param n is the new specified capacity of the stack
  */
 template<class T>
-inline void Stack<T>::resize(int capacity) {
-	Adt::resize(capacity);
-	delete [] stak; stak = new int[n()];
+inline void Stack<T>::resize(int n) {
+	Adt::resize(n);
+	delete [] stak; stak = new int[n];
 	sp = 0;
 }
 
@@ -83,13 +83,11 @@ inline bool Stack<T>::full() const { return sp == n(); }
 
 /** Add a value to the top of the stack.
  *  @param x is the value to be added.
- *  @param return true on success, false on failure
  */
 template<class T>
-inline bool Stack<T>::push(T x) {
-	if (full()) return false;
+inline void Stack<T>::push(T x) {
+	assert(0 <= sp && sp < n());
 	stak[sp++] = x;
-	return true;
 }
 
 /** Transfer values from top of another stack.
@@ -112,10 +110,7 @@ inline int Stack<T>::xferIn(Stack<T>& other, int cnt) {
  */
 template<class T>
 inline T Stack<T>::pop() {
-	if (sp == 0) {
-		string s = "Stack::pop: empty stack\n";
-		throw IllegalArgumentException(s);
-	}
+	assert(!empty());
 	return stak[--sp];
 }
 

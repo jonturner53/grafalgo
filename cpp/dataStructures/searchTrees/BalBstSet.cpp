@@ -23,64 +23,45 @@
 namespace grafalgo {
 
 /** Constructor for BalBstSet class.
- *  @param size defines the index range for the constructed object.
+ *  @param n defines the index range for the constructed object.
  */
-BalBstSet::BalBstSet(int size) : BstSet(size) {
-	makeSpace(size);
-}
+BalBstSet::BalBstSet(int n) : BstSet(n) { makeSpace(); init(); }
 
 /** Destructor for BalBstSet class. */
 BalBstSet::~BalBstSet() { freeSpace(); }
 
-/** Allocate and initialize space for BalBstSet.
- *  @param size is number of index values to provide space for
- */
-void BalBstSet::makeSpace(int size) {
-	try {
-		rvec = new int[size+1];
-	} catch (std::bad_alloc e) {
-		string s = "makeSpace:: insufficient space for "
-			   + to_string(size) + "index values";
-		throw OutOfSpaceException(s);
-	}
-	nn = size; clear();
-}
+/** Allocate and initialize space for BalBstSet.  */
+void BalBstSet::makeSpace() { rvec = new int[n()+1]; }
 
 /** Free dynamic storage used by BalBstSet. */
-void BalBstSet::freeSpace() {
-	delete [] rvec;
-}
+void BalBstSet::freeSpace() { delete [] rvec; }
 
 /** Reinitialize data structure, creating single node trees. */
-void BalBstSet::clear() {
-	BstSet::clear();
-	for (index i = 1; i <= n(); i++) {
-		rank(i) = 1;
-	}
+void BalBstSet::clear() { BstSet::clear(); init(); }
+
+/** Initialize data defined by subclass. */
+void BalBstSet::init() {
+	for (index i = 1; i <= n(); i++) rank(i) = 1;
 	rank(0) = 0; // note: null node has rank 0
 }
 
 /** Resize a BalBstSet object, discarding old value.
- *  @param size is the size of the resized object.
+ *  @param n is the size of the resized object.
  */
-void BalBstSet::resize(int size) {
-	freeSpace();
-	BstSet::resize(size);
-	try { makeSpace(size); } catch(OutOfSpaceException e) {
-		string s = "BalBstSet::resize::" + e.toString();
-		throw OutOfSpaceException(s);
-	}
+void BalBstSet::resize(int n) {
+	freeSpace(); BstSet::resize(n); makeSpace(); clear();
 }
 
 /** Expand the space available for this ojbect.
  *  Rebuilds old value in new space.
- *  @param size is the size of the expanded object.
+ *  @param n is the size of the expanded object.
  */
-void BalBstSet::expand(int size) {
-	if (size <= n()) return;
+void BalBstSet::expand(int n) {
+	if (n <= this->n()) return;
 	BalBstSet old(this->n()); old.copyFrom(*this);
-	resize(size); this->copyFrom(old);
+	resize(n); this->copyFrom(old);
 }
+
 /** Copy another object to this one.
  *  @param source is object to be copied to this one
  */
@@ -106,15 +87,14 @@ void BalBstSet::swap(index i, index j) {
 	int r = rvec[i]; rvec[i] = rvec[j]; rvec[j] = r;
 }
 
-/** Insert a singleton tree into a bst (bst) in the collection.
- *  @param i is an item (node) to be inserted; it must be a singleton
- *  @param root is a reference to the root of the bst that i
+/** Insert a singleton index into a bst in the collection.
+ *  @param i is an index of a (singleton) node to be inserted
+ *  @param root is a reference to the index of the root of the tree that i
  *  is to be added to; if the operation changes the root
- *  then root will be changed
+ *  then the variable in the calling program is changed
  *  @return true on success, false on failure
  */
 bool BalBstSet::insert(index i, bst& root) {
-	assert(rank(0) == 0);
 	if (!BstSet::insert(i,root)) return false;
 	if (root == i) return true;
 	rebalance1(i);
@@ -123,7 +103,7 @@ bool BalBstSet::insert(index i, bst& root) {
 }
 
 /** Rebalance the tree after a node rank increases.
- *  x is a node whose rank may equal that of its grandparent,
+ *  @param x is a node whose rank may equal that of its grandparent,
  *  in violation of the rank invariant.
  */
 void BalBstSet::rebalance1(index x) {
@@ -135,14 +115,14 @@ void BalBstSet::rebalance1(index x) {
 	else rotate2(x);
 }
 
-/** Remove an item from a bst.
- *  @param i is the item to be removed
+/** Remove a node from a bst.
+ *  @param i is the index of a node to be removed
  *  @param root is a reference to the root of the bst
  *  containing i; if the operation changes the root,
  *  s will be changed to reflect that
  */
 void BalBstSet::remove(index i, bst& root) {
-	assert(rank(0) == 0);
+	assert(valid(i) && valid(root) && p(root) == 0 && rank(0) == 0);
 	if (i == 0 || root == 0) return;
 	index top = (root != i ? root :
 			(right(root) != 0 ? right(root) : left(root)));
@@ -172,8 +152,8 @@ void BalBstSet::remove(index i, bst& root) {
 }
 
 /** Rebalance the tree after a node rank decreases.
- *  x is a node in a tree or 0
- *  px is the parent of x, or a node with a null child, if x=0
+ *  @param x is a node in a tree or 0
+ *  @param px is the parent of x, or a node with a null child, if x=0
  *  in violation of the rank invariant.
  */
 void BalBstSet::rebalance2(index x, index px) {
@@ -202,15 +182,15 @@ void BalBstSet::rebalance2(index x, index px) {
 	}
 }
 
-/** Join two bsts at an item.
- *  @param t1 is the root of some bst
- *  @param t2 is the root of some bst
- *  @param i is a singleton i whose key is larger than that of the keys
- *  in t1 and smaller than that of the keys in t2
+/** Join two bsts at an node.
+ *  @param t1 is the index of the root of some bst (or subtree)
+ *  @param t2 is the index of the root of some bst (or subtree)
+ *  @param i is the index of a node whose key is larger than
+ *  that of the keys in t1 and smaller than that of the keys in t2
  *  @return the new bst that results from merging t1, i and t2
  */
 bst BalBstSet::join(bst t1, index i, bst t2) {
-	if (i == 0) return 0;
+	assert(valid(i) && (t1 == 0 || valid(t1)) && (t2 == 0 || valid(t2)));
 	// first, detach t1, t2 if necessary
 	if (p(t1) != 0) { // implies t1 != 0
 		if (t1 == left(p(t1)))	left(p(t1)) = 0;
@@ -222,7 +202,6 @@ bst BalBstSet::join(bst t1, index i, bst t2) {
 		else			right(p(t2)) = 0;
 		p(t2) = 0;
 	}
-	// ensure i is a singleton
 	left(i) = right(i) = p(i) = 0; rank(i) = 1;
 	// handle cases of null subtrees
 	if (t1 == 0 && t2 == 0) {

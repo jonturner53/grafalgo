@@ -10,27 +10,28 @@
 
 namespace grafalgo {
 
-/** Constructor for list.
- *  @param nn1 specifies the maximum index
+/** Default constructor for Dlist objects.  */
+Dlist::Dlist() : List() { makeSpace(); init(); }
+
+/** Constructor for Dlist objects with explicit index range.
+ *  @param n specifies the maximum index
  */
-Dlist::Dlist(int nn1) : List(nn1) {
-	makeSpace(); std::fill(prv, prv+n()+1, -1); prv[0] = 0;
-}
+Dlist::Dlist(int n) : List(n) { makeSpace(); init(); }
 
 /** Copy constructor.
  *  @param src is a Dlist whose contents are copied to this Dlist.
  */
 Dlist::Dlist(const Dlist& src) : List(src) {
-	makeSpace(); std::fill(prv, prv+n()+1, -1); prv[0] = 0;
+	makeSpace(); init();
 	for (index x = src.first(); x != 0; x = src.next(x))
-		prv[x] = src.prv[x];
+		pred[x] = src.pred[x];
 }
 
 /** Move constructor.
  *  @param src is a Dlist whose contents may be re-used
  */
 Dlist::Dlist(Dlist&& src) : List(src) {
-	prv = src.prv; src.prv = nullptr;
+	pred = src.pred; src.pred = nullptr;
 }
 
 /** Destructor for Dlist. */
@@ -39,24 +40,20 @@ Dlist::~Dlist() { freeSpace(); }
 /** Allocate and initialize space for list.
  *  Amount of space allocated is determined by value of n().
  */
-void Dlist::makeSpace() {
-	try { prv = new index[n()+1]; } catch (std::bad_alloc e) {
-		string s = "Dlist: insufficient space for "
-			   + to_string(n()) + " list elements";
-		throw OutOfSpaceException(s);
-	}
-}
+void Dlist::makeSpace() { pred = new index[n()+1]; }
 
 /** Free dynamic storage used by list. */
-void Dlist::freeSpace() { delete [] prv; }
+void Dlist::freeSpace() { delete [] pred; }
+
+/** Initialize object.  */
+void Dlist::init() { std::fill(pred, pred+n()+1, -1); pred[0] = 0; }
 
 /** Resize a Dlist object.
  *  The old value is discarded.
  *  @param size is the size of the resized object.
  */
 void Dlist::resize(int size) {
-	freeSpace(); List::resize(size); makeSpace();
-	std::fill(prv, prv+n()+1, -1); prv[0] = 0;
+	freeSpace(); List::resize(size); makeSpace(); init();
 }
 
 /** Expand the space available for this Dlist.
@@ -67,10 +64,10 @@ void Dlist::expand(int size) {
 	int old_n = n();
 	List::expand(size);
 	if (n() == old_n) return;
-	index *old_prv = prv; makeSpace();
-	std::copy(old_prv, old_prv+old_n+1, prv);
-	std::fill(prv+old_n+1, prv+n()+1, -1);
-	delete [] old_prv;
+	index *old_pred = pred; makeSpace();
+	std::copy(old_pred, old_pred+old_n+1, pred);
+	std::fill(pred+old_n+1, pred+n()+1, -1);
+	delete [] old_pred;
 }
 
 /** Assignment operator (copy).
@@ -84,9 +81,9 @@ Dlist& Dlist::operator=(const Dlist& src) {
 	if (n() != old_n) {  // parent resized, do likewise
 		freeSpace(); makeSpace();
 	}
-	std::fill(prv, prv+n()+1, -1); prv[0] = 0;
+	init();
 	for (index x = src.first(); x != 0; x = src.next(x))
-		prv[x] = src.prv[x];
+		pred[x] = src.pred[x];
 	return *this;
 }
 
@@ -97,7 +94,7 @@ Dlist& Dlist::operator=(const Dlist& src) {
 Dlist& Dlist::operator=(Dlist&& src) {
 	if (this == &src) return *this;
 	List::operator=(src); // move parent class data
-	delete [] prv; prv = src.prv; src.prv = nullptr;
+	delete [] pred; pred = src.pred; src.pred = nullptr;
 	return *this;
 }
 
@@ -109,53 +106,38 @@ Dlist& Dlist::operator=(Dlist&& src) {
 index Dlist::get(int i) const {
 	if (i >= 0) return List::get(i);
 	index j;
-	for (j = last(); j != 0 && ++i; j = prv[j]) {}
+	for (j = last(); j != 0 && ++i; j = pred[j]) {}
 	return j;
 }
 
 /** Insert an index into the list, relative to another.
- *  @param i is index to insert; if i is 0 or already in
- *  the list, no change is made
+ *  @param i is index to insert
  *  @param j is index after which i is to be inserted;
  *  if j == 0, i is inserted at the front of the list
  *  @return true if list was modified, else false
  */
-bool Dlist::insert(index i, index j) {
-	if ((i < 0 || (i > n() && !autoExpand)) || (j < 0 || j > n())) {
-                string s = "Dlist::insert(" + to_string(i) + ","
-                           + to_string(j) + ")\n";
-                throw IllegalArgumentException(s);
-        }
-        if (i == 0 || member(i)) return false;
+void Dlist::insert(index i, index j) {
         if (i > n() && autoExpand) expand(max(i,2*n()));
-
-	if (!List::insert(i,j)) return false;
-	// now update prv
-	prv[i] = j;
-	if (next(i) != 0) prv[next(i)] = i;
-        return true;
+	assert((valid(i) && !member(i)) && (j == 0 || member(j)));
+	List::insert(i,j);
+	// now update pred
+	pred[i] = j;
+	if (next(i) != 0) pred[next(i)] = i;
 }
 
 /** Remove a specified index.
  *  @param i is an index to be removed
- *  @return true if the list was modified, else false
  */
-bool Dlist::remove(index i) {
-	if (!member(i)) return false;
-	int old_n = n();
+void Dlist::remove(index i) {
+	assert(member(i));
 	if (i == first()) {
-		prv[next(i)] = 0; List::removeNext(0);
+		pred[next(i)] = 0; List::removeNext(0);
 	} else if (i == last()) {
-		List::removeNext(prv[i]);
+		List::removeNext(pred[i]);
 	} else {
-		prv[next(i)] = prv[i]; List::removeNext(prv[i]);
+		pred[next(i)] = pred[i]; List::removeNext(pred[i]);
 	}
-	prv[i] = -1;
-	if (n() != old_n) { // parent class shrunk object
-		freeSpace(); makeSpace();
-		std::fill(prv, prv+n()+1, -1); prv[0] = 0;
-	}
-	return true;
+	pred[i] = -1;
 }
 
 /** Remove all elements from list. */

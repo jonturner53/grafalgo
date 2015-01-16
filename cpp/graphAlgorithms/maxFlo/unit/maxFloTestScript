@@ -3,10 +3,10 @@
 # usage: maxFloTestScript algorithm
 #
 # Run unit test on series of random graphs, with a specified algorithm.
-# The algorithm argument is one of shortPath, maxCap, capScale, dinic,
+# The algorithm argument is one of ffShortPath, ffMaxCap, ffScale, dinic,
 # dinicDtrees, ppFifo, ppFifoBatch, ppHiLab or ppHiLabBatch
 #
-algo="shortPath"
+algo="ffShortPath"
 if [ $# -eq 1 ] ; then
 	algo=$1
 fi;

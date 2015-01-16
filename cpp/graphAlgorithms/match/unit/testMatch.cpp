@@ -63,23 +63,23 @@ int main(int argc, char *argv[]) {
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
 	} else if (strcmp(argv[1],"flowMatchWt") == 0) {
-		Wgraph wg; cin >> wg; Glist<edge> match(wg.n()/2);
-		flowMatchWt(wg,match);
+		Wgraph g; cin >> g; Glist<edge> match(g.n()/2);
+		flowMatchWt(g,match);
 		int size = match.length();
-		edgeWeight totalWeight = wg.weight(match);
+		edgeWeight totalWeight = g.weight(match);
 		cout << size << " edges in matching with total weight "
 		     << totalWeight << "\n";
-		if (show) cout << wg << "[" << wg.elist2string(match) << "]\n";
-		if (verify) checkMatch(wg,match);
+		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
+		if (verify) checkMatch(g,match);
 	} else if (strcmp(argv[1],"hungarian") == 0) {
-		Wgraph wg; cin >> wg; Glist<edge> match(wg.n()/2);
-		hungarian(wg,match);
+		Wgraph g; cin >> g; Glist<edge> match(g.n()/2);
+		hungarian(g,match);
 		int size = match.length();
-		edgeWeight totalWeight = wg.weight(match);
+		edgeWeight totalWeight = g.weight(match);
 		cout << size << " edges in matching with total weight "
 		     << totalWeight << "\n";
-		if (show) cout << wg << "[" << wg.elist2string(match) << "]\n";
-		if (verify) checkMatch(wg,match);
+		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
+		if (verify) checkMatch(g,match);
 	} else if (strcmp(argv[1],"edmondsGabow") == 0) {
 		Graph g; cin >> g; Glist<edge> match(g.n()/2);
 		edmondsGabow(g,match);
@@ -95,14 +95,14 @@ int main(int argc, char *argv[]) {
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
 	} else if (strcmp(argv[1],"edmondsGMGbi") == 0) {
-		Wgraph wg; cin >> wg; Glist<edge> match(wg.n()/2);
-		edmondsGMGbi(wg,match);
+		Wgraph g; cin >> g; Glist<edge> match(g.n()/2);
+		edmondsGMGbi(g,match);
 		int size = match.length();
-		edgeWeight totalWeight = wg.weight(match);
+		edgeWeight totalWeight = g.weight(match);
 		cout << size << " edges in matching with total weight "
 		     << totalWeight << "\n";
-		if (show) cout << wg << "[" << wg.elist2string(match) << "]\n";
-		if (verify) checkMatch(wg,match);
+		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
+		if (verify) checkMatch(g,match);
 	} else if (strcmp(argv[1],"maxdMatch") == 0) {
 		Graph g; cin >> g; Glist<edge> match(g.n()/2);
 		maxdMatch(g,match);

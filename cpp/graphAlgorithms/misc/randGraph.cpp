@@ -71,21 +71,21 @@ int main(int argc, char* argv[]) {
 		cout << g;
 	} else if (strcmp(gtyp,"bigraph") == 0 && argc == 6 &&
 	    	   sscanf(argv[3],"%d",&m) == 1) {
-		Graph bg(2*n,m);
-		Rgraph::bigraph(bg,n,n,m);
-		if (scram) Rgraph::scramble<Graph>(bg);
-		cout << bg;
+		Graph g(2*n,m);
+		Rgraph::bigraph(g,n,n,m);
+		if (scram) Rgraph::scramble<Graph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"cgraph") == 0 && argc == 6 &&
 	    	   sscanf(argv[3],"%d",&m) == 1) {
-		Graph cg(n,m);
-		Rgraph::connected(cg,n,m);
-		if (scram) Rgraph::scramble<Graph>(cg);
-		cout << cg;
+		Graph g(n,m);
+		Rgraph::connected(g,n,m);
+		if (scram) Rgraph::scramble<Graph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"tree") == 0 && argc == 5) {
-		Graph tree(n,n-1);
-		Rgraph::tree(tree,n);
-		if (scram) Rgraph::scramble<Graph>(tree);
-		cout << tree;
+		Graph g(n,n-1);
+		Rgraph::tree(g,n);
+		if (scram) Rgraph::scramble<Graph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"regular") == 0 && argc == 6 &&
 	    	   sscanf(argv[3],"%d",&d) == 1) {
 		Graph rg(n,n*d/2);
@@ -102,37 +102,37 @@ int main(int argc, char* argv[]) {
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
 	    	   sscanf(argv[5],"%d",&hi) == 1) {
-		Wgraph wg(n,m);
-		Rgraph::ugraph(wg,n,m);
-		Rgraph::setWeights(wg,lo,hi);
-		if (scram) Rgraph::scramble<Wgraph>(wg);
-		cout << wg;
+		Wgraph g(n,m);
+		Rgraph::ugraph(g,n,m);
+		Rgraph::setWeights(g,lo,hi);
+		if (scram) Rgraph::scramble<Wgraph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"wbigraph") == 0 && argc == 8 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
 	    	   sscanf(argv[5],"%d",&hi) == 1) {
-		Wgraph wbg(2*n,m);
-		Rgraph::bigraph(wbg,n,n,m);
-		Rgraph::setWeights(wbg,lo,hi);
-		if (scram) Rgraph::scramble<Wgraph>(wbg);
-		cout << wbg;
+		Wgraph g(2*n,m);
+		Rgraph::bigraph(g,n,n,m);
+		Rgraph::setWeights(g,lo,hi);
+		if (scram) Rgraph::scramble<Wgraph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"wcgraph") == 0 && argc == 8 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
 	    	   sscanf(argv[5],"%d",&hi) == 1) {
-		Wgraph wcg(n,m);
-		Rgraph::connected(wcg,n,m);
-		Rgraph::setWeights(wcg,lo,hi);
-		if (scram) Rgraph::scramble<Wgraph>(wcg);
-		cout << wcg;
+		Wgraph g(n,m);
+		Rgraph::connected(g,n,m);
+		Rgraph::setWeights(g,lo,hi);
+		if (scram) Rgraph::scramble<Wgraph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"wtree") == 0 && argc == 7 &&
 	    	   sscanf(argv[3],"%d",&lo) == 1 &&
 	    	   sscanf(argv[4],"%d",&hi) == 1) {
-		Wgraph wtree(n,n-1);
-		Rgraph::tree(wtree,n);
-		Rgraph::setWeights(wtree,lo,hi);
-		if (scram) Rgraph::scramble<Wgraph>(wtree);
-		cout << wtree;
+		Wgraph g(n,n-1);
+		Rgraph::tree(g,n);
+		Rgraph::setWeights(g,lo,hi);
+		if (scram) Rgraph::scramble<Wgraph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"wregular") == 0 && argc == 8 &&
 	    	   sscanf(argv[3],"%d",&d) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
@@ -146,32 +146,32 @@ int main(int argc, char* argv[]) {
 	    	   sscanf(argv[3],"%d",&d) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
 	    	   sscanf(argv[5],"%d",&hi) == 1) {
-		Wgraph rg(n,n*d);
-		Rgraph::regularBigraph(rg,n,d);
-		Rgraph::setWeights(rg,lo,hi);
-		if (scram) Rgraph::scramble<Graph>(rg);
-		cout << rg;
+		Wgraph g(n,n*d);
+		Rgraph::regularBigraph(g,n,d);
+		Rgraph::setWeights(g,lo,hi);
+		if (scram) Rgraph::scramble<Graph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"digraph") == 0 && argc == 6 &&
 	    	   sscanf(argv[3],"%d",&m) == 1) {
-		Digraph dg(n,m);
-		Rgraph::digraph(dg,n,m);
-		if (scram) Rgraph::scramble<Digraph>(dg);
-		cout << dg;
+		Digraph g(n,m);
+		Rgraph::digraph(g,n,m);
+		if (scram) Rgraph::scramble<Digraph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"dag") == 0 && argc == 6 &&
 	    	   sscanf(argv[3],"%d",&m) == 1) {
-		Digraph dg(n,m);
-		Rgraph::dag(dg,n,m);
-		if (scram) Rgraph::scramble<Digraph>(dg);
-		cout << dg;
+		Digraph g(n,m);
+		Rgraph::dag(g,n,m);
+		if (scram) Rgraph::scramble<Digraph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"wdigraph") == 0 && argc == 8 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
 	    	   sscanf(argv[5],"%d",&hi) == 1) {
-		Wdigraph wD(n,m);
-		Rgraph::digraph(wD,n,m);
-		Rgraph::setLengths(wD,lo,hi);
-		if (scram) Rgraph::scramble<Wdigraph>(wD);
-		cout << wD;
+		Wdigraph g(n,m);
+		Rgraph::digraph(g,n,m);
+		Rgraph::setLengths(g,lo,hi);
+		if (scram) Rgraph::scramble<Wdigraph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"wdag") == 0 && argc == 8 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
@@ -186,11 +186,11 @@ int main(int argc, char* argv[]) {
 	    	   sscanf(argv[4],"%d",&mss) == 1 &&
 	    	   sscanf(argv[5],"%d",&ecap1) == 1 &&
 	    	   sscanf(argv[6],"%d",&ecap2) == 1) {
-		Flograph fg(n,m,1,2);
-		Rgraph::flograph(fg,n,m,mss);
-		Rgraph::setCapacities(fg,ecap1,ecap2);
-		if (scram) Rgraph::scramble<Flograph>(fg);
-		cout << fg;
+		Flograph g(n,m,1,2);
+		Rgraph::flograph(g,n,m,mss);
+		Rgraph::setCapacities(g,ecap1,ecap2);
+		if (scram) Rgraph::scramble<Flograph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"wflograph") == 0 && argc == 11 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&mss) == 1 &&
@@ -198,12 +198,12 @@ int main(int argc, char* argv[]) {
 	    	   sscanf(argv[6],"%d",&ecap2) == 1 &&
 	    	   sscanf(argv[7],"%d",&lo) == 1 &&
 	    	   sscanf(argv[8],"%d",&hi) == 1) {
-		Wflograph wfg(n,m,1,2);
-		Rgraph::flograph(wfg,n,m,mss);
-		Rgraph::setCapacities(wfg,ecap1,ecap2);
-		Rgraph::setCosts(wfg,lo,hi);
-		if (scram) Rgraph::scramble<Wflograph>(wfg);
-		cout << wfg;
+		Wflograph g(n,m,1,2);
+		Rgraph::flograph(g,n,m,mss);
+		Rgraph::setCapacities(g,ecap1,ecap2);
+		Rgraph::setCosts(g,lo,hi);
+		if (scram) Rgraph::scramble<Wflograph>(g);
+		cout << g;
 	} else if (strcmp(gtyp,"mflograph") == 0 && argc == 11 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&mss) == 1 &&
@@ -211,12 +211,12 @@ int main(int argc, char* argv[]) {
 	    	   sscanf(argv[6],"%d",&ecap2) == 1 &&
 	    	   sscanf(argv[7],"%d",&lo) == 1 &&
 	    	   sscanf(argv[8],"%d",&hi) == 1) {
-		Mflograph mfg(n,m,1,2);
-		Rgraph::flograph(mfg,n,m,mss);
-		Rgraph::setCapacities(mfg,ecap1,ecap2);
-		Rgraph::setMinFlows(mfg,lo,hi);
-		if (scram) Rgraph::scramble<Mflograph>(mfg);
-		cout << mfg;
+		Mflograph g(n,m,1,2);
+		Rgraph::flograph(g,n,m,mss);
+		Rgraph::setCapacities(g,ecap1,ecap2);
+		Rgraph::setMinFlows(g,lo,hi);
+		if (scram) Rgraph::scramble<Mflograph>(g);
+		cout << g;
 	} else 
 		Util::fatal("usage: randGraph type n m scram [..] seed");
 	exit(0);

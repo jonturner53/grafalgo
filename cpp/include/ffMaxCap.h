@@ -1,4 +1,4 @@
-/** @file maxCap.h
+/** @file ffMaxCap.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -10,21 +10,21 @@
 // maximum capacity augmenting path algorithm. Use constructor to
 // invoke the algorithm.
 
-#ifndef MAXCAP_H
-#define MAXCAP_H
+#ifndef FFMAXCAP_H
+#define FFMAXCAP_H
 
-#include "augPath.h"
+#include "fordFulkerson.h"
 
 namespace grafalgo {
 
 /** This class encapsulates data and methods for the maximum capacity
- *  variant of the augmenting path algorithm.
+ *  variant of the fordFulkerson path algorithm.
  *
  *  Use the constructor to invoke the algorithm.
  */
-class maxCap : public augPath {
+class ffMaxCap : public fordFulkerson {
 public: 
-	maxCap(Flograph&);
+	ffMaxCap(Flograph&);
 private:
 	bool	findPath();
 };

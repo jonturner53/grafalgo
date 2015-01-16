@@ -61,12 +61,12 @@ private:
  *  which "looks different"
  */
 template<class T>
-void Rgraph::scramble(T& graf) {
-        int *vp = new int[graf.n()];
-	int *ep = new int[graf.maxEdgeNum()];
-        Util::genPerm(graf.n(),vp); Util::genPerm(graf.maxEdgeNum(),ep);
-        shuffle(graf,vp,ep);
-        graf.sortAdjLists();
+void Rgraph::scramble(T& g) {
+        int *vp = new int[g.n()];
+	int *ep = new int[g.M()];
+        Util::genPerm(g.n(),vp); Util::genPerm(g.M(),ep);
+        shuffle(g,vp,ep);
+        g.sortAdjLists();
 }
 
 } // ending namespace

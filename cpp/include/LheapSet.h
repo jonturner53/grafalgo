@@ -45,7 +45,6 @@ public:		LheapSet(int=100);
 	string 	toString() const;
 	string 	heap2string(lheap) const;
 
-	int	meldCount;	// performance counter
 protected:
 	struct hnode {
 	keytyp	kee;		///< kee[i] = key of item i
@@ -55,7 +54,7 @@ protected:
 	} *node;
 
 	string 	heap2string(lheap, bool) const;
-	void	makeSpace(int);
+	void	makeSpace();
 	void	freeSpace();
 };
 

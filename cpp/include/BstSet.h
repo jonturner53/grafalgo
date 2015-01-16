@@ -17,11 +17,11 @@ namespace grafalgo {
 typedef int bst;		// tree in collection
 typedef uint64_t keytyp;
 
-/** Data structure that represents a collection of "sorted sets".
- *  Items in the same set have distinct keys. Sets are represented
- *  by binary search trees, with items represented by tree nodes.
- *  Items (nodes) are identified by integers 1..n where n is specified
- *  when an object is constructed.
+/** Data structure that represents a collection of binary search trees.
+ *  Each search tree represents a "sorted set" and these sets partition
+ *  the underlying index set. Each tree node corresponds to an item in
+ *  some set and is identified by an index value. Items in the same set
+ *  have distinct key values.
  */
 class BstSet : public Adt {
 public:
@@ -44,8 +44,8 @@ public:
 	bst	find(index) const;
 	index	first(bst) const;	
 	index	last(bst) const;	
-	index	suc(index) const;	
-	index	pred(index) const;	
+	index	next(index) const;	
+	index	prev(index) const;	
 	index	access(keytyp,bst&) const;
 
 	void	setkey(index,keytyp);
@@ -71,7 +71,7 @@ protected:
 
 	virtual	string node2string(index) const;
 
-	void	makeSpace(int);
+	void	makeSpace();
 	void	freeSpace();
 };
 
