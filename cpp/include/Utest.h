@@ -11,59 +11,82 @@
 
 #include "stdinc.h"
 
-/**
- *  Class to facilitate unit testing of other classes.
+/** Macro to assist in unit testing of data structures.
+ *  @param x is the name of the object under test
+ *  @param expr is an expression to be evaluated
+ *  @param testString is a string describing the test;
+ *  it is printed if the test fails, to aid with debugging
+ *  @param expectedVal is the expected value of expr; if expr!=expectedValue
+ *  the test fails, an error message is output and the test program terminates
+ *  @param expectedFinal is the expected value of x.toString() after
+ *  expr is evaluated
  */
-class Utest {
-public:	static bool assertTrue(bool, const char*);
-	static bool assertTrue(bool, const string&);
-	static bool assertEqual(int, int, const char*);
-	static bool assertEqual(int, int, const string&);
-	static bool assertEqual(const string&, const string&, const char*);
-	static bool assertEqual(const string&, const string&, const string&);
-};
-
-inline bool Utest::assertTrue(bool condition, const string& s) {
-	if (!condition) {
-		cout << s << endl; exit(1);
-	}
-	return true;
+#define chek(x, expr, testString, expectedVal, expectedFinal) { \
+	string before = x.toString(); \
+	int val = expr; \
+	string after = x.toString(); \
+	if (val != expectedVal || after != expectedFinal) { \
+		cerr << "Test " << testString << " failed\n" \
+		     << "expression evaluates to " << val \
+		     << ", expecting " << expectedVal << endl \
+		     << "initial state:" << before << endl \
+		     << "final state:" << after << endl \
+		     << "expected state:" << expectedFinal << endl; \
+		exit(1); \
+	} \
 }
 
-inline bool Utest::assertTrue(bool condition, const char* s) {
-	if (!condition) {
-		cout << s << endl; exit(1);
-	}
-	return true;
-}
+/** Macro to check the state of a data structure being tested.
+ *  @param x is the name of the object under test
+ *  @param testString is a string describing the test;
+ *  it is printed if the test fails, to aid with debugging
+ *  @param expected is the expected value of x.toString()
+ */
+#define chekState(x, testString, expected) \
+	chek(x, true, testString, true, expected);
 
-inline bool Utest::assertEqual(int x, int y, const string& s) {
-	if (x != y) {
-		cout << s << endl; exit(1);
-	}
-	return true;
-}
+/** Macro to test a condition involving a data structure.
+ *  @param x is the name of the object under test
+ *  @param condition is a boolean condition to be evaluated;
+ *  if it evaluates to false, the test fails
+ *  @param testString is a string describing the test;
+ *  it is printed if the test fails, to aid with debugging
+ */
+#define chekCond(x, condition, testString) \
+	chek(x, condition, testString, true, x.toString());
 
-inline bool Utest::assertEqual(int x, int y, const char* s) {
-	if (x != y) {
-		cout << s << endl; exit(1);
-	}
-	return true;
-}
+/** Macro to test an integer-valued expression involving a data structure.
+ *  @param x is the name of the object under test
+ *  @param expr is an expression to be evaluated
+ *  @param testString is a string describing the test;
+ *  it is printed if the test fails, to aid with debugging
+ *  @param expectedVal is the expected value of expr; if expr!=expectedValue
+ *  the test fails, an error message is output and the test program terminates
+ */
+#define chekExpr(x, expr, testString, expectedVal) \
+	chek(x, expr, testString, expectedVal, x.toString());
 
-inline bool Utest::assertEqual(const string& p, const string& q,
-			       const string& s) {
-	if (p.compare(q) != 0) {
-		cout << s << endl; exit(1);
-	}
-	return true;
-}
-
-inline bool Utest::assertEqual(const string& p, const string& q, const char* s) {
-	if (p.compare(q) != 0) {
-		cout << s << endl; exit(1);
-	}
-	return true;
+/** Macro to test a string-valued expression involving a data structure.
+ *  @param x is the name of the object under test
+ *  @param expr is an expression to be evaluated
+ *  @param testString is a string describing the test;
+ *  it is printed if the test fails, to aid with debugging
+ *  @param expectedVal is the expected value of expr; if expr!=expectedValue
+ *  the test fails, an error message is output and the test program terminates
+ */
+#define chekSexpr(x, expr, testString, expectedVal) { \
+	string before = x.toString(); \
+	string val = expr; \
+	string after = x.toString(); \
+	if (val != expectedVal) { \
+		cerr << "Test " << testString << " failed\n" \
+		     << "expression evaluates to " << val \
+		     << ", expecting " << expectedVal << endl \
+		     << "initial state:" << before << endl \
+		     << "final state:" << after << endl \
+		     << "expected state:" << after << endl; \
+		exit(1); \
+	} \
 }
 
 #endif

@@ -15,109 +15,95 @@ using namespace grafalgo;
 bool basicTests() {
 	Glist<int> l1; int n1 = l1.n();
 
-	Utest::assertTrue(l1.empty(), "initial list not empty");
-	cout << "writing empty list: " << l1 << endl;
-
 	for (int i = 1; i <= n1; i++) {
-		Utest::assertTrue(!l1.member(i),
-			"member returns true on empty list");
+		chekCond(l1, !l1.find(i),"a" + to_string(i) + " !l1.find(i)");
 	}
+	chekState(l1, "aa", "[]");
 
-	l1.addFirst(1);
-	cout << "writing one item list: " << l1 << endl;
-	Utest::assertEqual(l1.toString(), "[1]",
-		"mismatch on adding first item");
+	// single element list
+	l1.addLast(1);
+	chekState(l1, "b1", "[1]");
+	chekCond(l1, !l1.empty(), "b2 !l1.empty()");
+	chekCond(l1, l1.find(1), "b3 l1.find(1)");
 	
-	Utest::assertTrue(!l1.empty(),"list with one item reports empty");
-	Utest::assertTrue(l1.member(1),"member 1 not reported in list");
+	// checking list building operations
+	for (int i = 3; i <= n1; i += 2) l1.addLast(i);
+	chekState(l1, "c1", "[1, 3, 5, 7, 9]");
+	chekCond(l1, l1.find(5)>0, "c2 l1.find(5)>0");
+	chekCond(l1, l1.find(4)==0, "c3 l1.find(4)==0");
+	chekExpr(l1, l1.value(l1.last()), "c4 l1.last()", 9);
+	chekExpr(l1, l1.value(l1.next(l1.find(3))),
+			  "l1.value(l1.next(l1.find(3)))", 5);
+	chekExpr(l1, l1.value(l1.get(2)), "c6 l1.value(l1.get(2))", 3);
+	l1.addFirst(4);
+	l1.insert(6,l1.find(7));
+	chekState(l1, "c7", "[4, 1, 3, 5, 7, 6, 9]");
 
-	for (int i = 1; i <= n1; i += 2) l1.addLast(i);
-	cout << "writing longer list: " << l1 << endl;
-	Utest::assertEqual(l1.toString(), "[1, 1, 3, 5, 7, 9]",
-		"mismatch on list [1, 1, 3, 5, 7, 9]");
-
-	Utest::assertTrue(l1.contains(5),
-		"member 5 not reported in list");
-	Utest::assertTrue(!l1.contains(4),
-		"non-member 4 is reported in list");
-	l1.insert(5,l1.find(1));
-	Utest::assertEqual(l1.toString(), "[1, 5, 1, 3, 5, 7, 9]",
-		"mismatch on list [1, 5, 1, 3, 5, 7, 9]");
-	int i[10]; int p = 1;
-	for (int j = l1.first(); j != 0; j = l1.next(j)) i[p++] = j;
-	for (int j = l1.last(); j != 0; j = l1.prev(j)) {
-		p--;
-		Utest::assertEqual(j,i[p],
-			"index mismatch at position " + to_string(p));
-	}
-	Utest::assertEqual(l1.value(i[3]),1,"item at position 3 != 1");
-	Utest::assertEqual(l1.value(i[6]),7,"item at position 6 != 7");
-
+	// checking remove operations
 	l1.removeFirst();
-	Utest::assertEqual(l1.toString(), "[5, 1, 3, 5, 7, 9]",
-		"mismatch on list [5, 1, 3, 5, 7, 9]");
-	l1.remove(l1.find(3)); 
-	Utest::assertEqual(l1.toString(), "[5, 1, 5, 7, 9]",
-		"mismatch on list [5, 1, 5, 7, 9]");
-
+	chekState(l1, "d1", "[1, 3, 5, 7, 6, 9]");
+	chekCond(l1, l1.find(4)==0, "d2 l1.find(4)==0");
+	l1.remove(l1.find(6));
+	l1.remove(l1.find(1));
+	chekState(l1, "d3", "[3, 5, 7, 9]");
 	l1.remove(l1.find(7));
-	Utest::assertEqual(l1.toString(), "[5, 1, 5, 9]",
-		"mismatch on list [5, 1, 5, 9]");
-
+	chekState(l1, "e1", "[3, 5, 9]");
+	l1.remove(l1.find(3)); 
+	chekState(l1, "e2", "[5, 9]");
 	l1.removeLast();
-	Utest::assertEqual(l1.toString(), "[5, 1, 5]",
-		"mismatch on list [5, 1, 5]");
+	chekState(l1, "e3", "[5]");
+	chekCond(l1, !l1.empty(), "e4 !l1.empty()");
+	l1.removeFirst(); 
+	chekState(l1, "e5", "[]");
+	chekCond(l1, l1.empty(), "e6 l1.empty()");
 
-	Utest::assertTrue(!l1.empty(),
-		"non-empty list reported as empty");
-
-	l1.removeFirst();
-	Utest::assertEqual(l1.toString(), "[1, 5]",
-		"mismatch on list [1, 5]");
-
-	l1.clear();
-	Utest::assertTrue(l1.empty(),
-		"empty list reported as non-empty");
-
+	// second list, expanding size
 	l1.addFirst(1); l1.addFirst(2); l1.addFirst(3);
 	Glist<int> l2; l2 = l1;
-	Utest::assertEqual(l2.toString(), "[3, 2, 1]",
-		"mismatch on list [3, 2, 1] a");
-	Utest::assertTrue(l2 == l1, "assignment produces unequal pair");
+	chekState(l2, "f1", "[3, 2, 1]");
 	int n2 = 27; l2.expand(n2);
-	Utest::assertEqual(l2.toString(), "[3, 2, 1]",
-		"mismatch on list [3, 2, 1] b");
-	Utest::assertTrue(l2 == l1, "expansion produces unequal pair");
+	chek(l2, l2.n(), "f2 l2.n()", 27, "[3, 2, 1]");
+	l2.addLast(30);
+	chekCond(l2, l2.find(30)>0, "f3 l2.find(30)>0");
+	chekCond(l2, l2.find(29)==0, "f4 l2.find(29)==0");
+	chekExpr(l2, l2.n(), "f5 l2.n()", 27);
+	chekState(l2, "f6", "[3, 2, 1, 30]");
+	l2.insert(2,l2.find(1));
+	chekState(l2, "f7", "[3, 2, 1, 2, 30]");
+	chekExpr(l2, l2.find(2,0), "f8 l2.find(2,0)", l2.get(2));
+	chekExpr(l2, l2.find(2,l2.get(2)),
+			  "l2.find(2,l2.get(2))", l2.get(4));
+
+	// expanding list further
+	for (int i = 31; i <= 60; i++) l2.addLast(i);
+	for (int i = 31; i <= 60; i++)
+		chekCond(l2, l2.find(i)>0, "f"+to_string(i) + " l2.find(i)>0");
+	chekExpr( l2, l2.n(), "f70 l2.n()", 54);
 
 	l2.resize(30); l2.addFirst(1); l2.addFirst(2); l2.addFirst(3);
-	cout << "writing numeric list: " << l2 << endl;
-	Utest::assertEqual(l2.toString(), "[3, 2, 1]",
-		"mismatch on list [3, 2, 1] c");
+	chekState(l2, "g1", "[3, 2, 1]");
 
-	// test equality operation
+	// test equality operator
 	l1.clear(); l2.clear();
-	Utest::assertEqual(l1.n(),10,"mismatch on capacity (10)");
-	Utest::assertTrue(l1 == l1,"==: list testing unequal to itself");
-	Utest::assertTrue(l1 == l2,"==: empty lists testing as unequal");
+	chek(l1, l1==l1, "h1 l1==l1", true, "[]");
+	chek(l1, l1==l2, "h2 l1==l2", true, "[]");
 	l1.addFirst(1);
-	Utest::assertTrue(!(l1 == l2),"==: different lists testing as equal");
+	chek(l1, l1==l2, "h3 l1==l2", false, "[1]");
 	l2.addLast(1);
-	Utest::assertTrue(l1 == l2,"==: equal lists testing as unequal");
+	chek(l2, l1==l2, "h4 l1==l2", true, "[1]");
 	l1.addLast(5); l2.addLast(5);
 	l1.addFirst(3); l2.addFirst(3);
-	Utest::assertTrue(l1 == l2,"==: equal lists testing as unequal");
+	chek(l1, l1==l2, "h5 l1==l2", true, "[3, 1, 5]");
 	l1.removeFirst();
-	Utest::assertTrue(!(l1 == l2),"==: unequal lists testing as equal");
+	chek(l1, l1==l2, "h6 l1==l2", false, "[1, 5]");
 
 	Glist<string> l3;
 	l3.addFirst("abc"); l3.addLast("def ghi"); l3.addFirst("x y z");
-	cout << l3 << endl;
-	Utest::assertEqual(l3.toString(), "[x y z, abc, def ghi]",
-		"mismatch on list [x y z, abc, def ghi]");
+	chekState(l3, "i1", "[x y z, abc, def ghi]");
 	int a = l3.find("abc");
-	Utest::assertEqual(l3.value(a), "abc", "mismatch on abc");
-	Utest::assertEqual(l3.value(l3.next(a)), "def ghi",
-			"mismatch on def ghi");
+	chekSexpr(l3, l3.value(a), "i2 l3.value(a)", "abc");
+	chekSexpr(l3, l3.value(l3.next(a)),
+		  "i3 l3.value(l3.next(a))", "def ghi");
 
 	return true;
 }

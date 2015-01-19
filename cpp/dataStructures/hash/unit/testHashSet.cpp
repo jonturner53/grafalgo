@@ -15,80 +15,65 @@ using namespace grafalgo;
 void basicTests() {
 	HashSet<uint32_t,Hash::u32> map1;
 
-	Utest::assertEqual(map1.first(), 0, "initial map not empty");
-	cout << "writing empty indexMap: " << map1 << endl;
+	chekCond(map1, !map1.first(), "a1 !map1.first()");
+	chekState(map1, "a2", "{}");
 
 	map1.insert(1234);
-	Utest::assertEqual(map1.insert(1234,3),3,"wrong index for first item");
-	Utest::assertEqual(map1.retrieve(3),1234,"wrong key for first item");
-	cout << "writing singleton indexMap: " << map1 << endl;
-	Utest::assertEqual(map1.toString(), "{(1234,3)}",
-		"mismatch on adding first item");
+	chekExpr(map1, map1.insert(1234,3), "b1 map1.insert(1234,3)", 3);
+	chekExpr(map1, map1.retrieve(3), "b1 map1.retrieve(3)", 1234);
+	chekState(map1, "b3", "{(1234,3)}");
 
-	Utest::assertEqual(map1.insert(2345,7),7,"wrong index for second item");
+	chekExpr(map1, map1.insert(2345,7), "b1 map1.insert(2345,7)", 7);
 	int32_t x = map1.insert(3456);
-	Utest::assertEqual(map1.find(3456),x,"wrong index for third item");
-	Utest::assertEqual(map1.toString(),
-		"{(1234,3) (2345,7) (3456," + to_string(x) + ")}",
-		"mismatch after adding third item");
-	cout << "writing 3 index map: " << map1 << endl;
-
+	chekState(map1, "b2", "{(1234,3) (2345,7) (3456," + to_string(x) +")}");
 	map1.remove(2345);
-	Utest::assertEqual(map1.toString(),
-		"{(1234,3) (3456," + to_string(x) + ")}",
-		"mismatch after removing element");
+	chekState(map1, "b3", "{(1234,3) (3456," + to_string(x) + ")}");
 
 	int32_t y = map1.insert(4567);
-	Utest::assertEqual(map1.toString(), 
-		"{(1234,3) (3456," + to_string(x) + ") " +
-		"(4567," + to_string(y) + ")}",
-		"mismatch on adding after removing");
+	chekState(map1, "b4", "{(1234,3) (3456," + to_string(x) +
+			      ") (4567," + to_string(y) + ")}");
 	
 	// force map to expand
 	for (int i = 20; i < 30; i++) map1.insert(i);
 	for (int i = 20; i < 30; i++)
-		Utest::assertTrue(map1.contains(i),"mismatch on membership test1");
+		chekCond(map1, map1.contains(i),
+			"c" + to_string(i) + " map1.contains(i)");
 
 	// force map to expand again
 	for (int i = 30; i < 80; i++) map1.insert(i);
 	for (int i = 30; i < 80; i++) {
-		Utest::assertTrue(map1.contains(i),"mismatch on membership test2");
+		chekCond(map1, map1.contains(i),
+			"c" + to_string(i) + " map1.contains(i)");
 	}
 
 	HashSet<uint32_t,Hash::u32> copy1(map1);
 	for (grafalgo::index x = map1.first(); x != 0; x = map1.next(x))
-		Utest::assertTrue(copy1.contains(map1.retrieve(x)),
-			"mismatch on membership test in copy1");
+		chekCond(copy1, copy1.contains(map1.retrieve(x)),
+			"d" + to_string(x) +
+			" copy1.contains(map1.retrieve(x))");
 	HashSet<uint32_t,Hash::u32> copy2;
 	copy2 = copy1;
 	for (grafalgo::index x = map1.first(); x != 0; x = map1.next(x))
-		Utest::assertTrue(copy2.contains(map1.retrieve(x)),
-			"mismatch on membership test in copy2");
+		chekCond(copy2, copy1.contains(map1.retrieve(x)),
+			"e" + to_string(x) + 
+			" copy2.contains(map1.retrieve(x))");
 
 	map1.clear();
-	Utest::assertEqual(map1.toString(), "{}",
-			   "mismatch after clearing map");
+	chekState(map1, "f", "{}");
 
 	HashSet<string,Hash::string> map2;
 	map2.insert("abc", 5);
 	map2.insert("abc def", 4);
 	map2.insert("xyz",2);
-	Utest::assertEqual(map2.toString(), "{(abc,5) (abc def,4) (xyz,2)}",
-		"mismatch on 3 map");
+	chekState(map2, "g1", "{(abc,5) (abc def,4) (xyz,2)}");
 	map2.insert("xyz",7);
-	Utest::assertEqual(map2.toString(), "{(abc,5) (abc def,4) (xyz,7)}",
-		"mismatch on modified 3 map");
-	Utest::assertTrue(map2.contains("abc"),
-		"contains returns false for string \"abc\" in set");
-	Utest::assertTrue(map2.contains("abc def"),
-		"contains returns false for string \"abc def\" in set");
-	Utest::assertTrue(map2.contains("xyz"),
-		"contains returns false for string \"xyz\" in set");
-	Utest::assertTrue(!map2.contains("xy"),
-		"contains returns true for element not in set");
+	chekState(map2, "g2", "{(abc,5) (abc def,4) (xyz,7)}");
+	chekCond(map2, map2.contains("abc"), "g3 map2.contains(abc)");
+	chekCond(map2, map2.contains("abc def"), "g4 map2.contains(abc def)");
+	chekCond(map2, map2.contains("xyz"), "g5 map2.contains(xyz)");
+	chekCond(map2, !map2.contains("xy"), "g6 !map2.contains(xy)");
 	map2.remove("abc");
-	Utest::assertEqual(map2.toString(), "{(abc def,4) (xyz,7)}",
-		"mismatch on 2 map");
+	chekState(map2, "g1", "{(abc def,4) (xyz,7)}");
 }
 
 /**

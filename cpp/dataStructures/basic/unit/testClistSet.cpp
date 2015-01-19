@@ -14,45 +14,37 @@ using namespace grafalgo;
 void basicTests() {
 	int n1 = 12; ClistSet cl(n1);
 
-	for (int i = 1; i <= n1; i++)
-		Utest::assertTrue(cl.next(i) == i && cl.prev(i) == i,
-				  "don't have singletons on startup");
+	for (int i = 1; i <= n1; i++) {
+		chekExpr(cl, cl.next(i), "a" + to_string(i) + " cl.next(i)", i);
+		chekExpr(cl, cl.prev(i), "A" + to_string(i) + " cl.prev(i)", i);
+	}
 
-	cout << "writing initial collection" << endl;
-	cout << cl << endl;
+	chekState(cl, "a13", "{}");
 
+	// joining
 	cl.join(1,2); cl.join(3,4);
 	for (int i = 6; i <= 10; i++) cl.join(i-1,i);
-	cout << "writing collection after some joins" << endl;
-	cout << cl << endl;
-	Utest::assertEqual("{[a b], [c d], [e f g h i j]}",cl.toString(),
-			   "incorrect result following joins");
+	chekState(cl, "b", "{[a b], [c d], [e f g h i j]}");
 
+	// removing some items
 	cl.remove(7); cl.remove(9);
-	cout << "writing collection after some removes" << endl;
-	cout << cl << endl;
-	Utest::assertEqual("{[a b], [c d], [e f h j]}",
-			   cl.toString(),
-			   "incorrect result following removes");
+	chekState(cl, "c", "{[a b], [c d], [e f h j]}");
 
 	ClistSet cl2(n1);
 	cl2.copyFrom(cl);
-	Utest::assertEqual("{[a b], [c d], [e f h j]}",
-			   cl2.toString(),
-			   "incorrect result following copy");
+	chekState(cl2, "d", "{[a b], [c d], [e f h j]}");
+
 	cl2.expand(27);
-	Utest::assertEqual("{[1 2], [3 4], [5 6 8 10]}",
-			   cl2.toString(),
-			   "incorrect result following expand");
+	chekState(cl2, "e", "{[1 2], [3 4], [5 6 8 10]}");
 }
 
 /**
  *  Unit test for List data structure.
  */
 int main() {
-	cout << "running basic tests\n";
+	cout << "testing\n";
 	basicTests();
-	cout << "basic tests passed\n";
+	cout << "passed\n";
 
 	// add more systematic tests for each individual method
 }

@@ -14,63 +14,45 @@ using namespace grafalgo;
 void basicTests() {
 	int n = 10; ListPair lp(n);
 
-	cout << "writing initial pair " << lp << endl;
-
-	Utest::assertTrue(!lp.isIn(1) && lp.firstIn() == 0 && lp.lastIn() == 0,
-			  "initial inSet non-empty");
-	Utest::assertTrue(lp.isOut(1) && lp.firstOut() != 0 && lp.lastOut() !=0,
-			  "initial outSet does not contain all elements");
+	chekCond(lp, !lp.isIn(1) && lp.firstIn() == 0 && lp.lastIn() == 0,
+		  "a !lp.isIn(1) && lp.firstIn() == 0 && lp.lastIn() == 0");
+	chekCond(lp, lp.isOut(1) && lp.firstOut() != 0 && lp.lastOut() !=0,
+		  "b lp.isOut(1) && lp.firstOut() != 0 && lp.lastOut() !=0");
 
 	lp.swap(1);
-	Utest::assertEqual(lp.toString(),"{a} {b c d e f g h i j}",
-			   "set pair does not match expected value");
+	chekState(lp,"c", "{a} {b c d e f g h i j}");
 	lp.swap(4);
-	Utest::assertEqual(lp.toString(),"{a d} {b c e f g h i j}",
-			   "set pair does not match expected value");
+	chekState(lp,"d", "{a d} {b c e f g h i j}");
 	lp.swap(10);
-	Utest::assertEqual(lp.toString(),"{a d j} {b c e f g h i}",
-			   "set pair does not match expected value");
+	chekState(lp,"e", "{a d j} {b c e f g h i}");
 	lp.swap(2); lp.swap(5); lp.swap(9);
-	Utest::assertEqual(lp.toString(),"{a d j b e i} {c f g h}",
-			   "set pair does not match expected value");
-	cout << "writing balanced pair " << lp << endl;
+	chekState(lp,"f", "{a d j b e i} {c f g h}");
 
 	lp.swap(4); lp.swap(5); lp.swap(1); lp.swap(9);
-	Utest::assertEqual(lp.toString(),"{j b} {c f g h d e a i}",
-			   "set pair does not match expected value");
+	chekState(lp,"g", "{j b} {c f g h d e a i}");
 
 	lp.swap(2,0); 
-	Utest::assertEqual(lp.toString(),"{j} {b c f g h d e a i}",
-			   "set pair does not match expected value");
+	chekState(lp,"h", "{j} {b c f g h d e a i}");
 
 	lp.swap(10,9); 
-	Utest::assertEqual(lp.toString(),"{} {b c f g h d e a i j}",
-			   "set pair does not match expected value");
+	chekState(lp,"i", "{} {b c f g h d e a i j}");
 
 	lp.swap(5,0); 
-	Utest::assertEqual(lp.toString(),"{e} {b c f g h d a i j}",
-			   "set pair does not match expected value");
+	chekState(lp,"j", "{e} {b c f g h d a i j}");
 
 	lp.swap(6,0); 
-	Utest::assertEqual(lp.toString(),"{f e} {b c g h d a i j}",
-			   "set pair does not match expected value");
+	chekState(lp,"k", "{f e} {b c g h d a i j}");
 	lp.swap(8,5); 
-	Utest::assertEqual(lp.toString(),"{f e h} {b c g d a i j}",
-			   "set pair does not match expected value");
+	chekState(lp,"l", "{f e h} {b c g d a i j}");
 	lp.swap(4,6); 
-	Utest::assertEqual(lp.toString(),"{f d e h} {b c g a i j}",
-			   "set pair does not match expected value");
-
-	cout << "writing final pair " << lp << endl;
+	chekState(lp,"m", "{f d e h} {b c g a i j}");
 }
 
 /**
  *  Unit test for ListPair data structure.
  */
 int main() {
-	cout << "running basic tests\n";
+	cout << "testing\n";
 	basicTests();
-	cout << "basic tests passed\n";
-
-	// add more systematic tests for each individual method
+	cout << "passed\n";
 }

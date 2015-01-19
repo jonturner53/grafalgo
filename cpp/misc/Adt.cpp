@@ -11,8 +11,9 @@
 namespace grafalgo {
 
 /** Read an index from the input stream.
- *  An index represent an element of a set of vertex in a graph.
- *  By convention, data structures that can hold at most 26 indexes
+ *  An index typically represents some component of a data structure,
+ *  such as an element of a set or vertex in a graph.
+ *  By convention, data structures whose index sets have at most 26 elements
  *  have a string representation that substitutes lower-case
  *  letters for the index values used internally (so 1 becomes 'a',
  *  2 becomes 'b' and so forth). On input, if the next non-space

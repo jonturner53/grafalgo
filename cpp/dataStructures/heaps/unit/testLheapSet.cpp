@@ -14,39 +14,35 @@ using namespace grafalgo;
 void basicTests() {
 	LheapSet hset; 
 
-	cout << "writing empty heap set: " << hset.toString() << "\n\n";
-
 	hset.setkey(1,5); hset.setkey(3,4); hset.setkey(5,6);
 	int h1 = 1; h1 = hset.insert(3,h1); h1 = hset.insert(5,h1);
-	Utest::assertTrue(hset.findmin(h1) == 3, "min item does not match");
-	cout << "writing hset with 3 item heap\n" << hset.toString() << endl;
+	chekState(hset, "a", "(1:5,1 3:4,2* 5:6,1)\n");
+
+	chekExpr(hset, hset.findmin(h1), "b hset.findmin(h1)", 3);
 
 	hset.setkey(8,2); hset.setkey(9,7); hset.setkey(7,3);
 	int h2 = 8; h2 = hset.insert(9,h2); h2 = hset.insert(7,h2);
-	Utest::assertTrue(hset.findmin(h2) == 8, "min item does not match");
-	cout << "writing hset with two 3 item heaps\n"
-	     << hset.toString() << endl;
-
+	chek(hset, hset.findmin(h2), "c hset.findmin(h2)", 8,
+		"(1:5,1 3:4,2* 5:6,1)\n(9:7,1 8:2,2* 7:3,1)\n");
+	
 	h1 = hset.meld(h1,h2);
-	Utest::assertTrue(hset.findmin(h1) == 8, "min item does not match");
-	cout << "after melding\n" << hset.toString() << endl;
+	chek(hset, hset.findmin(h1), "d hset.findmin(h1)", 8,
+		"(9:7,1 8:2,2* ((1:5,1 3:4,2 5:6,1) 7:3,1))\n");
 
 	h1 = hset.deletemin(h1);
-	Utest::assertTrue(hset.findmin(h1) == 7, "min item does not match");
-	cout << "after deletemin\n" << hset.toString() << endl;
+	chek(hset, hset.findmin(h1), "e hset.findmin(h1)", 7,
+		"((1:5,1 3:4,2 5:6,1) 7:3,2* 9:7,1)\n");
 
 	h1 = hset.deletemin(h1);
-	Utest::assertTrue(hset.findmin(h1) == 3, "min item does not match");
-	cout << "after deletemin\n" << hset.toString() << endl;
+	chek(hset, hset.findmin(h1), "f hset.findmin(h1)", 3,
+		"(1:5,1 3:4,2* (9:7,1 5:6,1))\n");
 }
 
 /**
  *  Unit test for LheapSet data structure.
  */
 int main() {
-	cout << "running basic tests\n";
+	cout << "testing\n";
 	basicTests();
-	cout << "basic tests passed\n";
-
-	// add more systematic tests for each individual method
+	cout << "passed\n";
 }

@@ -28,7 +28,7 @@ typedef int32_t position;
  *  The data structures in grafalgo are built using integer index values
  *  to refer to specific items (set elements, nodes in search trees,
  *  vertices in graphs). In this context, an index is a positive integer
- *  in a bounded range 1..N, for some value of N.
+ *  in a bounded range 1..n, for some value of n.
  *
  *  The use of index values has a couple advantages over pointers.
  *  First, index values can serve as common "handles" for
@@ -52,12 +52,6 @@ public:
 
 	index	n() const { return nn; }
 	bool	valid(index i) const { return 1 <= i && i <= nn; }
-
-	// disallow copy, move constructors, assignments
-//	Adt(Adt&) = delete;
-//	Adt(Adt&&) = delete;
-//	Adt& operator=(Adt&) = delete;
-//	Adt& operator=(Adt&&) = delete;
 
 	// derived classes must provide these methods
 	void resize(int size) { nn = size; }
