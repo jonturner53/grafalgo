@@ -1,0 +1,25 @@
+#! /bin/bash
+#
+# usage: evalScript algorithm
+#
+# Run tests on series of random unweighted bipartite graphs,
+# with a specified algorithm.
+#
+# The algorithm argument is one of layers1, layers2
+#
+algo="layers1"
+if [ $# -eq 1 ] ; then
+	algo=$1
+fi;
+echo "evaluating algorithm: " $algo
+
+
+n1=100
+n2=1000
+d1=500
+g1=$((d1*n1/n2))
+seed=1
+for k in 50 51 52 53 54 55 56 57 58 59 60 ; do
+	echo -n $n1 $n2 $d1 $g1 $k " "
+	randGraph groupgraph ${n1} ${n2} ${d1} ${g1} $k ${seed} 1 | testGcolor $algo verify
+done

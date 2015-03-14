@@ -40,7 +40,10 @@ void Graph::init() {
 
 /** Free space used by graph. */
 void Graph::freeSpace() {
-	delete [] fe; delete [] evec; delete edges; delete adjLists;
+	delete [] fe;
+	delete [] evec;
+	delete edges;
+	delete adjLists;
 }
 
 /** Resize a Graph object.
@@ -49,7 +52,10 @@ void Graph::freeSpace() {
  *  @param maxe is the number of edges to allocate space for
  */
 void Graph::resize(int numv, int maxe) {
-	freeSpace(); Adt::resize(numv); makeSpace(numv,maxe); init();
+	freeSpace();
+	Adt::resize(numv);
+	makeSpace(numv,maxe);
+	init();
 }
 
 /** Expand the space available for this Graph.
@@ -88,9 +94,7 @@ void Graph::copyFrom(const Graph& source) {
 edge Graph::join(vertex u, vertex v) {
 	assert(validVertex(u) && validVertex(v));
 
-	edge e = edges->firstOut();
-	edge ee = joinWith(u,v,e);
-	return ee;
+	return joinWith(u,v,edges->firstOut());
 }
 
 /** Join two vertices with a specific edge.

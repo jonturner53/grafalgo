@@ -1,0 +1,29 @@
+This directory contains algorithms for the "edge-group coloring problem"
+
+In this problem, the edges are divided into groups.
+We let g_(e) denote the group at that contains edge e.
+
+We focus on the version of the problem in which graph is bipartite
+and all non-trivial groups form "stars" that are centered at an "input"
+
+Data structures for edge-group coloring
+- undirected graph
+- list pair defining inputs and outputs
+- array assigning a group number to each edge
+- a circular list set of edge numbers that partitions the
+  edge numbers by group
+- a circular list set of group numbers that partitions the
+  group numbers among inputs
+- a firstEdge array that gives a first edge in a specified group
+- a firstGroupAt array that gives a first edge group at an input
+- arrays delta(u) and d(u), also Delta_out and D_in
+
+Basic approx
+
+repeat until all edges are colored
+
+select a group at each input and let k be the max output degree
+of the subgraph defined by these groups; color the groups with k new colors
+- when selecting groups, seek to minimize max degree at outputs
+  and choose fanout close to (# of unmatched vertices)/(# of groups to select)
+

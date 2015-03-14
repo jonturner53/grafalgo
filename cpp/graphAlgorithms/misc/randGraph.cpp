@@ -10,6 +10,7 @@
 #include "Adt.h"
 #include "Rgraph.h"
 #include "Mflograph.h"
+#include "GroupGraph.h"
 
 using namespace grafalgo;
 
@@ -30,6 +31,7 @@ using namespace grafalgo;
  *       "tree"  n seed scram
  *    "regular"  n d seed scram
  *  "biregular"  n d seed scram
+ * "biregular2"  n1 n2 d1 seed scram
  *     "wgraph"  n m lo hi seed scram
  *   "wbigraph"  n m lo hi seed scram
  *    "wcgraph"  n m lo hi seed scram
@@ -43,6 +45,7 @@ using namespace grafalgo;
  *   "flograph"  n m mss ecap1 ecap2 seed scram
  *  "wflograph"  n m mss ecap1 ecap2 lo hi seed scram
  *  "mflograph"  n m mss ecap1 ecap2 lo hi seed scram
+ * "groupgraph"  n n1 n2 d1 gc1 k seed scram
  * 
  *  For bigraphs, n is the number of vertices in each part.
  *  For weighted graphs, [lo,hi] is the range of edge
@@ -53,7 +56,8 @@ using namespace grafalgo;
  *  of all other edges.
  */
 int main(int argc, char* argv[]) {
-	int n, m, d, mss, scram, lo, hi, ecap1, ecap2, seed = 0;
+	int n, m, d, n1, n2, d1, gc1, k, mss, scram, lo, hi, ecap1, ecap2, seed;
+	seed = 0;
 	char *gtyp = argv[1];
 
 	if (argc < 5 || argc > 11 ||
@@ -96,6 +100,14 @@ int main(int argc, char* argv[]) {
 	    	   sscanf(argv[3],"%d",&d) == 1) {
 		Graph rg(n,n*d);
 		Rgraph::regularBigraph(rg,n,d);
+		if (scram) Rgraph::scramble<Graph>(rg);
+		cout << rg;
+	} else if (strcmp(gtyp,"biregular2") == 0 && argc == 7 &&
+	    	   sscanf(argv[2],"%d",&n1) == 1 &&
+	    	   sscanf(argv[3],"%d",&n2) == 1 &&
+	    	   sscanf(argv[4],"%d",&d1) == 1) {
+		Graph rg(n1+n2,n1*d1);
+		Rgraph::regularBigraph(rg,n1,n2,d1);
 		if (scram) Rgraph::scramble<Graph>(rg);
 		cout << rg;
 	} else if (strcmp(gtyp,"wgraph") == 0 && argc == 8 &&
@@ -217,6 +229,16 @@ int main(int argc, char* argv[]) {
 		Rgraph::setMinFlows(g,lo,hi);
 		if (scram) Rgraph::scramble<Mflograph>(g);
 		cout << g;
+	} else if (strcmp(gtyp,"groupgraph") == 0 && argc == 9 &&
+	    	   sscanf(argv[2],"%d",&n1) == 1 &&
+	    	   sscanf(argv[3],"%d",&n2) == 1 &&
+	    	   sscanf(argv[4],"%d",&d1) == 1 &&
+	    	   sscanf(argv[5],"%d",&gc1) == 1 &&
+	    	   sscanf(argv[6],"%d",&k) == 1) {
+		GroupGraph gg(n1+n2,n1*d1);
+		Rgraph::groupGraph(gg,n1,n2,d1,gc1,k);
+		if (scram) Rgraph::scramble<GroupGraph>(gg);
+		cout << gg;
 	} else 
 		Util::fatal("usage: randGraph type n m scram [..] seed");
 	exit(0);

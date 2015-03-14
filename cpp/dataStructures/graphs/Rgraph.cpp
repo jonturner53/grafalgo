@@ -182,7 +182,7 @@ void Rgraph::tree(Graph& g, int numv) {
 
 /** Create a random simple, connected graph.
  *  @param g is an undirected graph object
- *  @param numv is the number of vertices on which the digraph is generated;
+ *  @param numv is the number of vertices on which the graph is generated;
  *  if this object has n()>numv, the random graph is defined over the first
  *  numv vertices, leaving the remaining vertices with no edges
  *  @param nume is the number of edges in the generated digraph
@@ -202,6 +202,14 @@ void Rgraph::connected(Graph& g, int numv, int nume) {
 	 addEdges(g,nume);
 }
 
+
+/** Create a random simple, regular graph.
+ *  @param g is an undirected graph object
+ *  @param numv is the number of vertices on which the graph is generated;
+ *  if this object has n()>numv, the random graph is defined over the first
+ *  numv vertices, leaving the remaining vertices with no edges
+ *  @param d is the number of edges incident to each vertex
+ */
 void Rgraph::regular(Graph& g, int numv, int d) {
 	g.resize(numv, numv*d/2);
 	if ((numv & 1) && (d & 1)) 
@@ -213,6 +221,11 @@ void Rgraph::regular(Graph& g, int numv, int d) {
 	while (!tryRegular(g,numv,d)) {}
 }
 
+/** Attempt to create a random simple, regular graph.
+ *  @param g is an undirected graph object
+ *  @param numv is the number of vertices on which the graph is generated
+ *  @param d is the number of edges incident to each vertex
+ */
 bool Rgraph::tryRegular(Graph& g, int numv, int d) {
 	// generate random list of "edge endpoints"
 	// endpoints  for vertex v are numbered (v-1)*d...v*d-1
@@ -242,6 +255,13 @@ bool Rgraph::tryRegular(Graph& g, int numv, int d) {
 	return true;
 }
 
+/** Create a random simple, regular bipartite graph.
+ *  @param g is an undirected graph object
+ *  @param numv is the number of vertices in each partition of the bigraph;
+ *  if this object has n()>2*numv, the random graph is defined over the first
+ *  2*numv vertices, leaving the remaining vertices with no edges
+ *  @param d is the number of edges incident to each vertex
+ */
 void Rgraph::regularBigraph(Graph& g, int numv, int d) {
 	g.resize(2*numv, numv*d);
 	if (numv < d)
@@ -254,18 +274,52 @@ void Rgraph::regularBigraph(Graph& g, int numv, int d) {
 	for (int i = 0; i < m-1; i ++) {
 		// select random endpoints from those remaining
 		int j = Util::randint(i, m-1);
-		int x = left[j]; left[j] = left[i];
+		vertex u = 1 + left[j]%numv; left[j] = left[i];
 		// select another random endpoint to a different vertex
 		// note: graph is usually simple, but small chance it's not
-		int k; int cnt = 0;
+		int k; int cnt = 0; vertex v;
 		do {
 			k = Util::randint(i, m-1);
-		} while (g.findEdge(1+x/d, numv+1+right[k]/d) && ++cnt<2*d);
-		int y = right[k]; right[k] = right[i];
+			v = numv + 1 + right[k]%numv;
+		} while (g.findEdge(u, v) && ++cnt<2*d);
 		// join the vertices for the selected endpoints
-		g.join(1+x/d, numv+1+y/d);
+		g.join(u,v); right[k] = right[i];
 	}
-	g.join(1+left[m-1]/d, numv+1+right[m-1]/d);
+	g.join(1+left[m-1]%numv, numv+1+right[m-1]%numv);
+	g.sortAdjLists();
+}
+
+/** Create a random simple, regular bipartite graph.
+ *  @param g is an undirected graph object
+ *  @param n1 is the # of vertices in the "left" partition of the bigraph
+ *  @param n2 is the # of vertices in the "right" partition
+ *  if d2=n1*d1/n2 is an integer, then the right-hand vertices all
+ *  have degree d2, otherwise they have degree floor(d2) or floor(d2)+1
+ *  @param d1 is the degree of the vertices in the "left" partition
+ */
+void Rgraph::regularBigraph(Graph& g, int n1, int n2, int d1) {
+	assert(n1 > 0 && d1 > 0 && n2 >= d1);
+	int m = d1*n1;
+	g.resize(n1+n2, m);
+
+	// generate two random list of "edge endpoints"
+	int left[m];  Util::genPerm(m,left);
+	int right[m]; Util::genPerm(m,right);
+	for (int i = 0; i < m-1; i ++) {
+		// select random endpoints from those remaining
+		int j = Util::randint(i, m-1);
+		vertex u = 1 + (left[j]%n1); left[j] = left[i];
+		// select another random endpoint to a different vertex
+		// note: graph is usually simple, but small chance it's not
+		int k; int cnt = 0; vertex v;
+		do {
+			k = Util::randint(i, m-1);
+			v = n1 + 1 + (right[k]%n2);
+		} while (g.findEdge(u,v) && ++cnt<2*d1);
+		// join the vertices for the selected endpoints
+		g.join(u,v); right[k] = right[i];
+	}
+	g.join(1+left[m-1]%n1, n1+1+right[m-1]%n2);
 	g.sortAdjLists();
 }
 
@@ -419,6 +473,62 @@ void Rgraph::dag(Digraph& g, int numv, int nume) {
 	 g.sortAdjLists();
 }
 
+/** Generate a random group graph
+ *  @param n1 is the number of input vertices
+ *  @param n2 is the number of output vertices
+ *  @param d1 is the degree of the input vertices;
+ *  the output vertices have degree floor(d2) or ceiling(d2), where d2=n1*d1/n2
+ *  @param gc1 is the maximum group count of the input vertices
+ *  @param k is an upper bound on the number of colors needed to
+ *  color the graph; must be at least as big as d1, gc1 and d2
+ */
+void Rgraph::groupGraph(GroupGraph& g, int n1, int n2, int d1, int gc1, int k) {
+	int d2 = n1*d1/n2;
+	assert(gc1 <= d1 && gc1 <= k && (d2*n2 == d1*n1 ? d2 : d2+1) <= k);
+	regularBigraph(g, n1, n2, d1);
+
+	// assign colors to the edges
+	int color[g.m()]; int cvec[k];
+	for (vertex u = g.firstOut(); u != 0; u = g.nextOut(u)) {
+		Util::genPerm(k,cvec); 
+		int i = 0;
+		for (edge e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+			int j = cvec[Util::randint(i,k-1)];
+			color[e] = cvec[j]; cvec[j] = cvec[i++];
+		}
+	}
+
+	// assign groups at inputs that are consistent with colors
+	int evec[k];
+	for (vertex u = g.firstIn(); u != 0; u = g.nextIn(u)) {
+		std::fill(evec, evec+k, 0);
+		for (edge e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+			int c = color[e];
+			if (evec[c] == 0) evec[c] = e;
+			else g.merge(e,evec[c]);
+		}
+	}
+
+	// merge groups at inputs so as to satisfy maximum group count
+	int gvec[g.M()];
+	for (vertex u = g.firstIn(); u != 0; u = g.nextIn(u)) {
+		int i = 0;
+		for (int grp = g.firstGroup(u); grp != 0;
+			 grp = g.nextGroup(u,grp))
+			gvec[i++] = grp;
+		i--;
+		while (i >= gc1) {
+			int j = Util::randint(0,i);
+			edge e1 = g.firstEdgeInGroup(gvec[j]);
+			gvec[j] = gvec[i--];
+			j = Util::randint(0,i);
+			edge e2 = g.firstEdgeInGroup(gvec[j]);
+			gvec[j] = gvec[i];
+			gvec[i] = g.merge(e1, e2);
+		}
+	}
+}
+
 /** Assign random weights to edges in a graph.
  *  @param g is a reference to the target Wgraph
  *  @param lo is the low end of the range
@@ -523,6 +633,16 @@ void Rgraph::shuffle(Wflograph& g, int vp[], int ep[]) {
 void Rgraph::shuffle(Mflograph& g, int vp[], int ep[]) {
 	shuffle((Flograph&) g,vp,ep);
 	Util::shuffle<flow>(g.mflo+1, ep, g.M());
+}
+
+void Rgraph::shuffle(GroupGraph& g, int vp[], int ep[]) {
+	GroupGraph gg(g.n(), g.M());
+	for (edge e = g.first(); e != 0; e = g.next(e)) {
+		vertex u = g.input(e); vertex v = g.output(e);
+		gg.joinWith(vp[u-1]+1, vp[v-1]+1,
+			    ep[g.groupNumber(e)-1]+1, ep[e-1]+1);
+	}
+	g.copyFrom(gg);
 }
 
 } // ends namespace

@@ -45,7 +45,7 @@ int ecVizing(Graph& g, int color[]) {
 		// depends on graph being bipartite
 		cu = avail[u].first(); cv = avail[v].first();
 		vertex w = v; int c = cu; edge f = e;
-		while (emap[w][c] != 0 && w != u) {
+		while (emap[w][c] != 0) {
 			// f is next edge on path to be colored
 			// w is the "leading endpoint of f"
 			// c is the color to use for f
@@ -60,7 +60,6 @@ int ecVizing(Graph& g, int color[]) {
 		color[f] = c;
 		emap[g.left(f)][c] = f; emap[g.right(f)][c] = f;
 		avail[u].remove(cu); avail[v].remove(cv);
-		if (w == u) continue;
 
 		// update available colors at last vertex on path
 		avail[w].remove(c);

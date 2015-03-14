@@ -129,7 +129,7 @@ void Dlist::insert(index i, index j) {
  *  @param i is an index to be removed
  */
 void Dlist::remove(index i) {
-	assert(member(i));
+	if (!member(i)) return;
 	if (i == first()) {
 		pred[next(i)] = 0; List::removeNext(0);
 	} else if (i == last()) {

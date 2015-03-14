@@ -11,6 +11,7 @@
 #include "Wgraph.h"
 #include "Wdigraph.h"
 #include "Wflograph.h"
+#include "GroupGraph.h"
 
 using namespace grafalgo;
 
@@ -46,6 +47,9 @@ int main(int argc, char *argv[]) {
 	} else if (strcmp(argv[1],"wflograph") == 0) {
 		Wflograph wfg; cin >> wfg; Wflograph wfg1;
 		wfg1.copyFrom(wfg); cout << wfg1;
+	} else if (strcmp(argv[1],"groupgraph") == 0) {
+		GroupGraph gg; cin >> gg; GroupGraph gg1;
+		gg1.copyFrom(gg); cout << gg1;
 	} else {
 		Util::fatal("usage: copyGraph type");
 	}

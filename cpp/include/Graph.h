@@ -117,7 +117,8 @@ protected:
 	// methods for sorting ajacency lists
 	int	ecmp(edge, edge, vertex) const;
 	void	sortAlist(vertex);
-friend class Rgraph;
+
+	friend class Rgraph;
 };
 
 /** Get the number of edges.
@@ -182,6 +183,7 @@ inline edge Graph::nextAt(vertex v, edge e) const {
  *  @return the left endpoint of e, or 0 if e is not a valid edge.
  */
 inline vertex Graph::left(edge e) const {
+if (!validEdge(e)) cerr << "left(" << e << ")\n";
 	assert(validEdge(e));
 	return evec[e].l;
 }
