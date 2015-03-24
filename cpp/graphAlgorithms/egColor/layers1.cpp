@@ -20,8 +20,10 @@ namespace grafalgo {
  */
 layers1::layers1(GroupGraph& g, int edgeColors[]) : egColor(g, edgeColors) {
 	// repeatedly peel off layers and color them
+cerr << "X\n";
 	vertex nextGroup[g.n()+1];
 	for (vertex u = 1; u <= g.n(); u++) nextGroup[u] = g.firstGroup(u);
+cerr << "Y\n";
 	while (true) {
 		bool done = true;
 		for (vertex u = 1; u <= g.n(); u++) {

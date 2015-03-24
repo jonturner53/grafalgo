@@ -29,13 +29,13 @@ void GroupGraph::makeSpace() {
 	groups = new ClistSet(M()); inGroups = new ClistSet(M());
 	fg = new int[n()+1]; feg = new edge[M()+1];
 	split = new ListPair(n());
-	deg = new int[n()+1]; gc = new int[n()+1];
+	deg = new int[n()+1]; gc = new int[n()+1]; gs = new int[n()+1]; 
 }
 
 void GroupGraph::init() {
 	for (vertex u = 0; u <= n(); u++) fg[u] = deg[u] = gc[u] = 0;
 	for (edge e = 0; e <= M(); e++) gNum[e] = 0;
-	for (int g = 0; g <= M(); g++) feg[g] = 0;
+	for (int g = 0; g <= M(); g++) feg[g] = gs[g] = 0;
 	freeGroup = 1;
 	for (int g = 2; g <= M(); g++) inGroups->join(g,freeGroup);
 }
@@ -44,7 +44,7 @@ void GroupGraph::init() {
 void GroupGraph::freeSpace() {
 	delete [] gNum; delete groups; delete inGroups;
 	delete [] fg; delete [] feg; delete split;
-	delete [] deg; delete [] gc;
+	delete [] deg; delete [] gc; delete [] gs;
 }
 
 /** Resize a GroupGraph object.
@@ -144,7 +144,7 @@ edge GroupGraph::joinWith(vertex u, vertex v, int g, edge e) {
 	assert(split->isIn(u) && split->isOut(v));
 	Graph::joinWith(u,v,e);
 	gNum[e] = g;
-	deg[u]++; deg[v]++; gc[v]++;
+	deg[u]++; deg[v]++; gc[v]++; gs[g]++;
 	if (feg[g] == 0) {
 		feg[g] = e; gc[u]++;
 		if (freeGroup == g) {
@@ -178,7 +178,7 @@ int GroupGraph::merge(edge e1, edge e2) {
 	if (fg[u] == g2) fg[u] = g1;
 	if (freeGroup == 0) freeGroup = g2;
 	else inGroups->join(g2,freeGroup);
-	gc[u]--;
+	gs[g1] += gs[g2]; gs[g2] = 0; gc[u]--;
 	return g1;
 }
 
@@ -190,7 +190,7 @@ bool GroupGraph::remove(edge e) {
 	int g = groupNumber(e);
 	vertex u = input(e); vertex v = output(e);
 	gNum[e] = 0; 
-	deg[u]--; deg[v]--; gc[v]--;
+	deg[u]--; deg[v]--; gc[v]--; gs[g]--;
 	if (groups->next(e) != e) {
 		if (feg[g] == e) feg[g] = groups->next(e);
 		groups->remove(e);
@@ -220,9 +220,7 @@ bool GroupGraph::readAdjList(istream& in) {
 	if (u > n()) expand(u,M());
 	if (!Util::verify(in,':')) return false;
 	while (in.good() && !Util::verify(in,']')) {
-		int g;
-		if (!Util::readInt(in,g) || !Util::verify(in,'('))
-			return false;
+		if (!Util::verify(in,'(')) return false;
 		while (in.good() && !Util::verify(in,')')) {
 			vertex v;
 			if (!Adt::readIndex(in,v)) return false;
@@ -234,10 +232,9 @@ bool GroupGraph::readAdjList(istream& in) {
 			if (Util::verify(in,'#')) {
 				if (!Util::readInt(in,e)) return false;
 			}
-			if (e > M() || g > M()) expand(n(),max(e,g));
-			if (e == 0) e = join(u,v,g);
-			else joinWith(u,v,g,e);
-			gNum[e] = g;
+			if (e > M()) expand(n(),e);
+			if (e == 0) e = join(u,v);
+			else joinWith(u,v,e);
 		}
 	}
 	return in.good();
@@ -266,7 +263,7 @@ string GroupGraph::adjList2string(vertex u) const {
 	int cnt = 0;
 	s += "[" + Adt::index2string(u) + ":";
 	for (int g = firstGroup(u); g != 0; g = nextGroup(u,g)) {
-		s += " " + to_string(g) + "(";
+		s += " (";
 		for (edge e = firstEdgeInGroup(g); e != 0;
 			  e = nextEdgeInGroup(g,e)) {
 			vertex v = output(e);
@@ -284,7 +281,7 @@ string GroupGraph::adjList2string(vertex u) const {
 }
 
 /** Construct a string in dot file format representation 
- * of the GroupGraph object.
+ *  of the GroupGraph object.
  *  For small graphs (at most 26 vertices), vertices are
  *  represented in the string as lower case letters.
  *  For larger graphs, vertices are represented by integers.

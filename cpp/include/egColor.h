@@ -34,6 +34,7 @@ protected:
 
 	void	colorGroup1(int);
 	void	colorGroup2(int);
+	int	findColor(int, vertex, vertex);
 	void	recolor(int);
 	bool	foundPath(edge, int, int);
 	bool	isConsistent();

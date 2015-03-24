@@ -1,8 +1,7 @@
 SHELL := /bin/bash
 ARCH := -m$(shell getconf LONG_BIT)
 BIN := ~/bin
-WARN := -Wall -Wno-c++11-extensions
-CXXFLAGS := ${WARN} ${ARCH} -O2
+CXXFLAGS := -Wall ${ARCH} -O2 -std-c++0x
 
 all:
 	make -C basic       BIN='${BIN}' ARCH='${ARCH}' \

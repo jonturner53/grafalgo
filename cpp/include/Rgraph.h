@@ -14,6 +14,7 @@
 #include "Wdigraph.h"
 #include "Wflograph.h"
 #include "Mflograph.h"
+#include "GroupGraph.h"
 #include "HashSet.h"
 #include "Dheap.h"
 
@@ -28,12 +29,14 @@ public:
 	static void tree(Graph&, int);
 	static void regular(Graph&, int, int);
 	static void regularBigraph(Graph&, int, int);
+	static void regularBigraph(Graph&, int, int, int);
 	static void connected(Graph&, int,int);
 	static void addEdges(Graph&, int);
 	static void addEdges(Graph&, int, int, int);
 	static void digraph(Digraph&, int, int);
 	static void dag(Digraph&, int, int);
 	static void flograph(Flograph&, int, int, int);
+	static void groupGraph(GroupGraph&, int, int, int, int, int);
 
 	static void setWeights(Wgraph&, int, int);
 	static void setLengths(Wdigraph&, int, int);
@@ -49,6 +52,7 @@ public:
 	static void shuffle(Flograph&, int*, int*);
 	static void shuffle(Wflograph&, int*, int*);
 	static void shuffle(Mflograph&, int*, int*);
+	static void shuffle(GroupGraph&, int*, int*);
 
 private:
 	static bool tryRegular(Graph&, int, int);

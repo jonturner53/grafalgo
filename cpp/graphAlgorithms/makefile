@@ -3,8 +3,7 @@ ARCH := -m$(shell getconf LONG_BIT)
 IDIR := ../include
 LDIR := ../lib
 BIN := ~/bin
-WARN := -Wall -Wno-c++11-extensions
-CXXFLAGS := ${WARN} ${ARCH} -O2
+CXXFLAGS := -Wall ${ARCH} -O2 -std=c++0x
 
 all:
 	make -C misc    IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
@@ -19,7 +18,9 @@ all:
 		       CXXFLAGS='${CXXFLAGS}' all
 	make -C match  IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
-	make -C eColor  IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
+	make -C eColor IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
+		       CXXFLAGS='${CXXFLAGS}' all
+	make -C egColor IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
 
 clean:
@@ -30,3 +31,4 @@ clean:
 	make -C mcFlo  clean
 	make -C match  clean
 	make -C eColor  clean
+	make -C egColor  clean

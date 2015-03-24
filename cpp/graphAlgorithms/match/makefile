@@ -3,8 +3,7 @@ ARCH := -m$(shell getconf LONG_BIT)
 IDIR := ../../include
 LDIR := ../../lib
 BIN := ~/bin
-WARN := -Wall 
-CXXFLAGS := ${WARN} ${ARCH} -O2 -std=c++0x
+CXXFLAGS := -Wall ${ARCH} -O2 -std=c++0x
 
 LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
@@ -15,7 +14,7 @@ HFILES = ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/List.h \
 	${IDIR}/edmondsGMGbi.h
 OFILES = flowMatch.o flowMatchWt.o hopcroftKarp.o hungarian.o \
 	edmondsGabow.o fastEdmondsGabow.o edmondsGMGbi.o \
-	maxdMatch.o fastMaxdMatch.o
+	flowMatch.o flowMatchWt.o maxdMatch.o fastMaxdMatch.o
 
 ${OFILES} : ${HFILES}
 

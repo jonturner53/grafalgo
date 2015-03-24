@@ -33,6 +33,7 @@ public:
 	int	numGroups() const;
 	int	degree(vertex) const;
 	int	groupCount(vertex) const;
+	int	groupSize(int) const;
 	int	maxDegree() const;
 	int	maxDegreeIn() const;
 	int	maxDegreeOut() const;
@@ -80,6 +81,7 @@ private:
 	ListPair *split;	///< defines inputs and outputs
 	int	*deg;		///< deg[u]=degree of u
 	int	*gc;		///< gc[u]=group count at u
+	int	*gs;		///< gs[g]=# of edges in group g
 
 	void	makeSpace();
 	void	init();
