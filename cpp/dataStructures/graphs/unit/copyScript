@@ -16,7 +16,7 @@ if [ $# -ge 3 ] ; then
 	seed=$3
 fi;
 echo -n "copying undirected graph:"
-randGraph ugraph $n $m 0 $seed >tg1
+randGraph ugraph $n $m $seed 0 >tg1
 copyGraph ugraph <tg1 >tg2
 if cmp -s tg1 tg2 ; then
 	echo " success"
@@ -27,7 +27,7 @@ else
 fi;
 
 echo -n "copying weighted undirected graph:"
-randGraph wgraph $n $m 0 1 $m $seed >tg1
+randGraph wgraph $n $m 1 $m $seed 0 >tg1
 copyGraph wgraph <tg1 >tg2
 if cmp -s tg1 tg2 ; then
 	echo " success" 
@@ -38,7 +38,7 @@ else
 fi;
 
 echo -n "copying directed graph:"
-randGraph digraph $n $m 0 $seed >tg1
+randGraph digraph $n $m $seed 0 >tg1
 copyGraph digraph <tg1 >tg2
 if cmp -s tg1 tg2 ; then
 	echo " success" 
@@ -49,7 +49,7 @@ else
 fi;
 
 echo -n "copying weighted directed graph:"
-randGraph wdigraph $n $m 0 1 $m $seed >tg1
+randGraph wdigraph $n $m 1 $m $seed 0 >tg1
 copyGraph wdigraph <tg1 >tg2
 if cmp -s tg1 tg2 ; then
 	echo " success" 
@@ -60,7 +60,7 @@ else
 fi;
 
 echo -n "copying flograph:"
-randGraph flograph $n $m $((m/5)) 100 20 10 $seed >tg1
+randGraph flograph $n $m $((n/5)) 100 20 $seed 0 >tg1
 copyGraph flograph <tg1 >tg2
 if cmp -s tg1 tg2 ; then
 	echo " success" 
@@ -71,8 +71,19 @@ else
 fi;
 
 echo -n "copying weighted flograph:"
-randGraph wflograph $n $m $((m/5)) 100 20 10 1 $m $seed >tg1
+randGraph wflograph $n $m $((n/5)) 100 20 1 $m $seed 0 >tg1
 copyGraph wflograph <tg1 >tg2
+if cmp -s tg1 tg2 ; then
+	echo " success" 
+else
+	echo "mismatch"
+	cat tg1 tg2
+	exit 1
+fi;
+
+echo -n "copying group graph:"
+randGraph groupgraph $n $((3*n)) 12 4 5 $seed 0 >tg1
+copyGraph groupgraph <tg1 >tg2
 if cmp -s tg1 tg2 ; then
 	echo " success" 
 else

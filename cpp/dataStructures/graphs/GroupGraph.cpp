@@ -29,7 +29,7 @@ void GroupGraph::makeSpace() {
 	groups = new ClistSet(M()); inGroups = new ClistSet(M());
 	fg = new int[n()+1]; feg = new edge[M()+1];
 	split = new ListPair(n());
-	deg = new int[n()+1]; gc = new int[n()+1]; gs = new int[n()+1]; 
+	deg = new int[n()+1]; gc = new int[n()+1]; gs = new int[M()+1]; 
 }
 
 void GroupGraph::init() {
@@ -65,7 +65,8 @@ void GroupGraph::resize(int numv, int maxe) {
  */
 void GroupGraph::expand(int numv, int maxe) {
 	if (numv <= n() && maxe <= M()) return;
-	GroupGraph old(this->n(),this->M()); old.copyFrom(*this);
+	GroupGraph old(this->n(),this->M());
+	old.copyFrom(*this);
 	resize(max(numv,n()),max(maxe,M()));
 	this->copyFrom(old);
 }
@@ -221,20 +222,29 @@ bool GroupGraph::readAdjList(istream& in) {
 	if (!Util::verify(in,':')) return false;
 	while (in.good() && !Util::verify(in,']')) {
 		if (!Util::verify(in,'(')) return false;
+		int grp = 0;
 		while (in.good() && !Util::verify(in,')')) {
 			vertex v;
 			if (!Adt::readIndex(in,v)) return false;
 			if (v > n()) {
 				expand(v,M());
 			}
-			if (m() == M()) expand(n(),max(1,2*M()));
+			if (m() == M()) {
+				expand(n(),2*M());
+			}
 			edge e = 0;
 			if (Util::verify(in,'#')) {
 				if (!Util::readInt(in,e)) return false;
 			}
 			if (e > M()) expand(n(),e);
-			if (e == 0) e = join(u,v);
-			else joinWith(u,v,e);
+			if (grp == 0) {
+				if (e == 0) e = join(u,v);
+				else joinWith(u,v,e);
+				grp = groupNumber(e);
+			} else {
+				if (e == 0) e = join(u,v,grp);
+				else joinWith(u,v,grp,e);
+			}
 		}
 	}
 	return in.good();

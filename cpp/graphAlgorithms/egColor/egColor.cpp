@@ -37,13 +37,18 @@ egColor::egColor(GroupGraph& g, int edgeColors[]) {
 	maxColor = 0;
 }
 
-egColor::~egColor() { delete [] avail; delete [] usr; delete [] nusr; }
+egColor::~egColor() {
+	delete [] avail;
+	for (vertex u = 1; u <= gp->n(); u++) {
+		delete [] usr[u]; delete [] nusr[u];
+	}
+	delete [] usr; delete [] nusr;
+}
 
 /** Color the edges in a group, without recoloring.
  *  @param grp is the group number of the group to be colored
  */
 void egColor::colorGroup1(int grp) {
-cerr << "A\n";
 	vertex u = gp->input(gp->firstEdgeInGroup(grp));
 	for (edge e = gp->firstEdgeInGroup(grp); e != 0;
 		  e = gp->nextEdgeInGroup(grp,e)) {
@@ -84,13 +89,10 @@ void egColor::colorGroup2(int grp) {
  *  otherwise, return the smallest viable color
  */
 int egColor::findColor(int grp, vertex u, vertex v) {
-cerr << "findColor(" << grp << "," << gp->index2string(u) << ","
-     << gp->index2string(v) << ")";
 	// look for viable color already used by grp
 	int c = avail[v].first();
 	while (c != 0) {
 		if (gp->groupNumber(usr[u][c]) == grp) {
-cerr << "=" << c << endl;
 			return c;
 		}
 		c = avail[v].next(c);
@@ -98,7 +100,6 @@ cerr << "=" << c << endl;
 	// settle for any viable color
 	c = avail[v].first();
 	while (!avail[u].member(c)) c = avail[v].next(c);
-cerr << "=" << c << "*" << endl;
 	return c;
 }
 
@@ -144,7 +145,6 @@ assert(isConsistent());
  *  @param j is a color that is viable at output(e) but not at input(e)
  */
 bool egColor::foundPath(edge e, int i, int j) {
-assert(isConsistent());
 	vertex u = gp->input(e); vertex v = gp->output(e);
 	// check for path
 	int c = j; edge f = usr[v][i]; vertex w = gp->input(f);
@@ -156,7 +156,7 @@ assert(isConsistent());
 		if (w == gp->input(f)) {
 			if (gp->groupNumber(ff) == gp->groupNumber(f)) {
 				break;
-			} else if (nusr[w][color[f]] > 1 || nusr[w][c] > 1) {
+			} else if (nusr[w][i] > 1 || nusr[w][j] > 1) {
 				return false;
 			}
 		}
@@ -165,7 +165,7 @@ assert(isConsistent());
 	vertex x = w; // last vertex in path
 	edge fx = f;  // last edge on path
 	int cx = c;   // color for last edge
-	// recolor the intermediate edges
+	// recolor path, not including last edge
 	c = j; f = usr[v][i]; w = gp->input(f);
 	while (w != x) {
 		edge ff = usr[w][c];
@@ -177,16 +177,19 @@ assert(isConsistent());
 	color[e] = i; avail[u].remove(i);
 	usr[u][i] = usr[v][i] = e; nusr[u][i]++;
 
+	// now, deal with last edge
 	if (nusr[x][color[fx]] == 1) {
 		// make the color currently used by last edge available at x
-		int ac = avail[x].first();
-		if (color[fx] < ac) {
+		// maintain sorted order for avail list
+		if (color[fx] < avail[x].first()) {
 			avail[x].addFirst(color[fx]);
+		} else if (color[fx] > avail[x].last()) {
+			avail[x].addLast(color[fx]);
 		} else {
-			while (ac != 0 && color[fx] > avail[x].next(ac))
+			int ac = avail[x].first();
+			while (color[fx] > avail[x].next(ac))
 				ac = avail[x].next(ac);
-			if (ac == 0) avail[x].addLast(color[fx]);
-			else avail[x].insert(color[fx],ac);
+			avail[x].insert(color[fx],ac);
 		}
 		usr[x][color[fx]] = nusr[x][color[fx]] = 0;
 	} else {
@@ -200,9 +203,10 @@ assert(isConsistent());
 			}
 		}
 	}
-
 	color[fx] = cx;
-	avail[x].remove(cx); usr[x][cx] = fx; nusr[x][cx]++;
+	avail[x].remove(cx);
+	usr[x][cx] = fx; nusr[x][cx]++;
+	usr[gp->mate(x,fx)][cx] = fx;
 
 	return true;
 }
