@@ -27,3 +27,115 @@ of the subgraph defined by these groups; color the groups with k new colors
 - when selecting groups, seek to minimize max degree at outputs
   and choose fanout close to (# of unmatched vertices)/(# of groups to select)
 
+Note: performance ratio is min{max # of groups per input, max degree of outputs}
+
+Can also reverse the algorithm. Select an edge at each output in each phase.
+# of colors per phase equals max group count at inputs.
+# of phases equals max output degree
+
+===============
+
+Todo
+
+Use matching to divide groups into layers.
+
+First iteration:
+create graph that has a vertex for each group and
+edges joining all pairs of vertices corresponding to pairs belonging to
+pairs of inputs (e.g groups from first two inputs, next two,...); edge
+weights are equal to the overlap between groups (note, graph is bipartite);
+find max size, min weight matching for this graph, then combine matched
+pairs
+
+Second iteration:
+do the same thing, but this time use the pairs formed in the first step
+as the vertices; form edges joining pairs containing groups from from 
+first two inputs, to pairs containing groups from second two inputs;
+and so forth; again form max size, min weight matching
+
+Continue in this fashion until all we have complete set of layers
+
+
+Another approach
+
+With randomly generated graphs having just a few extra colors,
+most groups with edges colored i have few conflicts, since they
+were generated as a single color class to begin with. A small
+fraction were generated from edges of multiple colors and these
+will have more conflicts with the others.
+
+Divide groups into layers, with at most one group from each input
+in a layer. Now two groups in the same layer conflict with each other
+if they have one or more outputs in common. Assign an edge weight
+equal to the number of outputs in common. Objective is to minimize
+the total edge weight associated with edges joining vertices in the same
+layer.  Do this by swapping groups. That is, let x and y be two groups at
+the same input. If moving x to the layer that now contains y and
+moving y to the layer that now contains x reduces the weight of the
+conflicts within the two layers, then make the swap. Continue so
+long as we get reductions. Now, within each layer, we'll have some
+groups that conflict with others in the group. Take the group with
+the highest weight on its incident edges and divide it, forming a
+subgroup from the conflicting edges. Set this subgroup to one side.
+Repeat with the vertex that now has the most conflicts, stopping when
+there are no more conflicts within the layer. Now all the original layers can
+each be colored with a single color. For the subgroups that were
+set aside, first color as many edges as possible using colors already
+assigned. Then repeat the process using the remaining edges in the
+subgroups that were set aside.
+
+Note, that if no extra colors were used when generating the graph,
+we should be able to split into layers with no internal conflicts
+Of course, this is equivalent to solving a graph coloring problem,
+so not clear we can expect simple swapping procedure to working well.
+However, the conflict weights may give us the guidance we need to
+be successful in this case. Maybe. Not clear, since we need 0 internal
+weight in each layer to be successful.
+
+
+Other thoughts
+
+After coloring a group try to reduce number of colors used by group.
+From the colors already used for the group, select the color that can
+be used for the largest number of edges in the group. Color all edges
+with that color. Repeat with remaining edges.
+
+
+
+Still, the main issue is selecting the groups that belong to the
+same layer. So far, the matching technique is the only one that
+really addresses this. And yet, it seems unlikely to do that well.
+At least, there's no reason to think it will reproduce the layering
+implied by the original coloring.
+
+Suppose output degree = k = input group count and k+2 colors are
+used to generate the graph. Also, assume n inputs, n^2 outputs.
+Typical input has about kn edges and k+2 colors with about n colors each.
+So, typically two groups will require 2 colors and these will be larger.
+We can probably identify the bicolored groups without difficulty.
+But then what?
+
+--------------
+
+The layering approach can be reversed. Select one edge at each output
+and call this a layer. Since number of groups per input is limited by
+group count, we can trivially color layer with that many colors.
+Might work well if we select edges so that we form large groups.
+Start by selecting edges that belong to the largest group. Then,
+select group that adds largest number of additional outputs. Just
+doing greedy set covering. May work well with large fanouts, but
+not so well with small fanouts. Note that to cover all outputs,
+must be ready to select multiple groups per input, so >1 color per
+layer.
+
+------------------
+
+Can we show that the number of edges colored per layer is at least n2/2?
+If so, we can get a 2x performance bound.
+
+May need to make an average argument.
+The first k layers cover at least k*n2/2, say.
+
+Not clear this really helps. We already have a good bound on number of
+passes with layer method. Might help with the cover method, since we
+have no bound on number of passes in that case.

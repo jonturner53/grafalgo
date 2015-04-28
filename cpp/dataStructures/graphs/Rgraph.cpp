@@ -493,7 +493,7 @@ void Rgraph::groupGraph(GroupGraph& g, int n1, int n2, int d1, int gc1, int k) {
 		Util::genPerm(k,cvec); 
 		int i = 0;
 		for (edge e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			int j = cvec[Util::randint(i,k-1)];
+			int j = Util::randint(i,k-1);
 			color[e] = cvec[j]; cvec[j] = cvec[i++];
 		}
 	}

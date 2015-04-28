@@ -40,10 +40,7 @@ void Graph::init() {
 
 /** Free space used by graph. */
 void Graph::freeSpace() {
-	delete [] fe;
-	delete [] evec;
-	delete edges;
-	delete adjLists;
+	delete [] fe; delete [] evec; delete edges; delete adjLists;
 }
 
 /** Resize a Graph object.

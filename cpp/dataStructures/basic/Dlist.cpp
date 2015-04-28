@@ -132,10 +132,9 @@ void Dlist::remove(index i) {
 	if (!member(i)) return;
 	if (i == first()) {
 		pred[next(i)] = 0; List::removeNext(0);
-	} else if (i == last()) {
-		List::removeNext(pred[i]);
 	} else {
-		pred[next(i)] = pred[i]; List::removeNext(pred[i]);
+		if (i != last()) pred[next(i)] = pred[i];
+		List::removeNext(pred[i]);
 	}
 	pred[i] = -1;
 }

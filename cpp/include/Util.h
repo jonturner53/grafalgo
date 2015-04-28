@@ -74,7 +74,7 @@ inline double Util:: randfrac() { return ((double) random())/BIGINT32; }
  *  very uniform for ranges larger than 10^7
  */
 inline int Util::randint(int lo, int hi) {
-	return lo + (random() % (hi + 1 - lo));
+	return lo + (random() % ((unsigned) (hi + 1 - lo)));
 }
 
 // Return a random number from an exponential distribution with mean mu 

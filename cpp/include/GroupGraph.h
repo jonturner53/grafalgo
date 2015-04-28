@@ -117,6 +117,14 @@ inline int GroupGraph::groupCount(vertex u) const {
  *  @param xxx
  *  @returns xxx
  */
+inline int GroupGraph::groupSize(int grp) const {
+	return gs[grp];
+}
+
+/** xxx
+ *  @param xxx
+ *  @returns xxx
+ */
 inline int GroupGraph::maxDegree() const {
 	int D = 0;
 	for (vertex u = 1; u <= n(); u++) D = max(D,degree(u));
@@ -200,7 +208,8 @@ inline int GroupGraph::output(edge e) const {
 inline int GroupGraph::groupNumber(edge e) const { return gNum[e]; }
 
 inline bool GroupGraph::isIn(vertex u) const { return split->isIn(u); }
-inline bool GroupGraph::isOut(vertex u) const { return split->isIn(u); }
+
+inline bool GroupGraph::isOut(vertex u) const { return split->isOut(u); }
 
 /** xxx
  *  @param xxx

@@ -14,7 +14,6 @@ fi;
 echo "testing algorithm: " $algo
 
 echo ""; echo "testing 20 vertex 4-colorable graph"
-randGraph groupgraph 5 15 9 3 4 1 0 
 randGraph groupgraph 5 15 9 3 4 1 0 | testGcolor $algo show verify
 
 echo ""; echo "testing another 20 vertex 4-colorable graph"

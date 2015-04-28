@@ -156,8 +156,10 @@ edge GroupGraph::joinWith(vertex u, vertex v, int g, edge e) {
 	} else {
 		groups->join(e,feg[g]);
 	}
-	if (fg[u] == 0) fg[u] = g;
-	else inGroups->join(g,fg[u]);
+	if (fg[u] == 0)
+		fg[u] = g;
+	else if (g != fg[u] && inGroups->next(g) == g)
+		inGroups->join(g,fg[u]);
 	return e;
 }
 
@@ -280,7 +282,7 @@ string GroupGraph::adjList2string(vertex u) const {
 			if (e != firstEdgeInGroup(g)) s += " ";
 			s += index2string(v);
 			if (shoEnum) s += "#" + to_string(e);
-			if (++cnt >= 10 && nextAt(u,e) != 0) {
+			if (++cnt >= 15 && nextAt(u,e) != 0) {
 				s +=  "\n"; cnt = 0;
 			}
 		}

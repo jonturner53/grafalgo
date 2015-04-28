@@ -158,6 +158,9 @@ void List::insert(index i, index j) {
  *  @return true if the list was modified, else false
  */
 void List::removeNext(index i) {
+if (!(i == 0 || (member(i) && next(i) != 0))) {
+cerr << "removeNext(" << i << ") from " << *this << endl;
+}
 	assert(i == 0 || (member(i) && next(i) != 0));
 	index j;
 	if (i == 0) { j = head;   head = succ[j]; }
