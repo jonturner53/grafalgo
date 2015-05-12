@@ -35,14 +35,13 @@ protected:
 	ClistSet *ugrp;		///< partition on uncolored group numbers
 	int	*ug;		///< fg[u] is some uncolored group at u
 
-	void	colorGroup0(int, int);
-	void	colorGroup1(int);
-	void	colorGroup2(int);
+	void	colorGroup(int, int=0);
 	int	findColor(int, vertex, vertex, int=1);
+	void	recolorGroup(int);
 	void	recolor(int);
 	bool	foundPath(edge, int, int);
 
-	void	greedyGroup(int, int);
+	void	fewColorGroup(int, int);
 
 	int	firstUgroup(vertex);
 	int	nextUgroup(vertex, int);

@@ -5,20 +5,17 @@
  *  argument is present (the string "verify"), the resulting coloring is
  *  checked for correctness, and a message is printed for each violation.
  * 
- *  Methods currently implemented include layers0-3 and greedy1-3;
- *  the greedy algorithms require an integer parameter k>0
+ *  Methods currently implemented include basicLayers, thinLayers, minColor,
+ *  recolor, fewColors. FewColors requires an integer parameter k>0
 */
 
 #include "stdinc.h"
 #include "GroupGraph.h"
-#include "layers0.h"
-#include "layers1.h"
-#include "layers2.h"
-#include "layers3.h"
-#include "greedy1.h"
-#include "greedy2.h"
-#include "greedy3.h"
-#include "cover.h"
+#include "egBasicLayers.h"
+#include "egThinLayers.h"
+#include "egMinColor.h"
+#include "egRecolor.h"
+#include "egFewColors.h"
 
 using namespace grafalgo;
 
@@ -33,31 +30,19 @@ int main(int argc, char *argv[]) {
 	for (edge e = 0; e <= g.M(); e++) color[e] = 0;
 
 	int numColors = 0;
-	if (strcmp(argv[1],"layers0") == 0) {
-		layers0(g,color);
-	} else if (strcmp(argv[1],"layers1") == 0) {
-		layers1(g,color);
-	} else if (strcmp(argv[1],"layers2") == 0) {
-		layers2(g,color);
-	} else if (strcmp(argv[1],"layers3") == 0) {
-		layers3(g,color);
-	} else if (strcmp(argv[1],"cover") == 0) {
-		cover(g,color);
-	} else if (strcmp(argv[1],"greedy1") == 0) {
+	if (strcmp(argv[1],"basicLayers") == 0) {
+		egBasicLayers(g,color);
+	} else if (strcmp(argv[1],"thinLayers") == 0) {
+		egThinLayers(g,color);
+	} else if (strcmp(argv[1],"minColor") == 0) {
+		egMinColor(g,color);
+	} else if (strcmp(argv[1],"recolor") == 0) {
+		egRecolor(g,color);
+	} else if (strcmp(argv[1],"fewColors") == 0) {
 		int k = 1;
 		if (argc < 3 || sscanf(argv[2],"%d",&k) != 1)
 			Util::fatal("usage: color method [k] [ show verify ]");
-		greedy1(g,k,color);
-	} else if (strcmp(argv[1],"greedy2") == 0) {
-		int k = 1;
-		if (argc < 3 || sscanf(argv[2],"%d",&k) != 1)
-			Util::fatal("usage: color method [k] [ show verify ]");
-		greedy2(g,k,color);
-	} else if (strcmp(argv[1],"greedy3") == 0) {
-		int k = 1;
-		if (argc < 3 || sscanf(argv[2],"%d",&k) != 1)
-			Util::fatal("usage: color method [k] [ show verify ]");
-		greedy3(g,k,color);
+		egFewColors(g,k,color);
 	} else {
 		Util::fatal("testColor: invalid method");
 	}

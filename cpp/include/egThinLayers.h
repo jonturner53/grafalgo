@@ -1,4 +1,4 @@
-/** @file layers2.h
+/** @file egThinLayers.h
  * 
  *  @author Jon Turner
  *  @date 2015
@@ -6,21 +6,23 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef LAYERS2_H
-#define LAYERS2_H
+#ifndef EGTHINLAYERS_H
+#define EGTHINLAYERS_H
 
 #include "GroupGraph.h"
 #include "egColor.h"
 
 namespace grafalgo {
 
-/** This class implements the a variant of the layers method for
- *  edge group coloring in a bipartite graph.
+/** This class implements the thin layers variant of the layering method for
+ *  edge group coloring in a bipartite graph. This version selects edge
+ *  groups that seek to minimize layer thickness.
+ *
  *  The algorithm is invoked using its constructor.
  */
-class layers2 : public egColor {
+class egThinLayers : public egColor {
 public:
-	layers2(GroupGraph&, int*);
+	egThinLayers(GroupGraph&, int*);
 };
 
 } // ends namespace

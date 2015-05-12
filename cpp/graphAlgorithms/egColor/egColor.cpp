@@ -59,9 +59,10 @@ egColor::~egColor() {
 
 /** Color the edges in a group, without recoloring.
  *  @param grp is the group number of the group to be colored
- *  @param lo is the smallest color to use for edges in this group
+ *  @param lo (optional) is the smallest color to use for edges in this group;
+ *  (default==0)
  */
-void egColor::colorGroup0(int grp, int lo) {
+void egColor::colorGroup(int grp, int lo) {
 	vertex u = gp->input(gp->firstEdgeInGroup(grp));
 	for (edge e = gp->firstEdgeInGroup(grp); e != 0;
 		  e = gp->nextEdgeInGroup(grp,e)) {
@@ -74,26 +75,34 @@ void egColor::colorGroup0(int grp, int lo) {
 	}
 }
 
-/** Color the edges in a group, without recoloring.
- *  @param grp is the group number of the group to be colored
+/** Find a viable color for an edge in a specified group (without recoloring).
+ *  @param grp is a group number
+ *  @param u is the input for the group
+ *  @param v is the output for a specific edge in the group
+ *  @param lo (optional) is a lower bound on the returned color (default=1)
+ *  @return a color that can be used to color an edge (u,v);
+ *  if there is a viable color already used by grp, return it;
+ *  otherwise, return the smallest viable color
  */
-void egColor::colorGroup1(int grp) {
-	vertex u = gp->input(gp->firstEdgeInGroup(grp));
-	for (edge e = gp->firstEdgeInGroup(grp); e != 0;
-		  e = gp->nextEdgeInGroup(grp,e)) {
-		vertex v = gp->output(e);
-		int c = findColor(grp, u, v);
-		color[e] = c;
-		avail[u].remove(c); usr[u][c] = e; nusr[u][c]++;
-		avail[v].remove(c); usr[v][c] = e; nusr[v][c] = 1;
-		maxColor = max(maxColor,c);
+int egColor::findColor(int grp, vertex u, vertex v, int lo) {
+	// look for viable color already used by grp
+	int c = avail[v].first();
+	while (c != 0) {
+		if (c >= lo && gp->groupNumber(usr[u][c]) == grp) {
+			return c;
+		}
+		c = avail[v].next(c);
 	}
+	// settle for any viable color
+	c = avail[v].first();
+	while (c < lo || !avail[u].member(c)) c = avail[v].next(c);
+	return c;
 }
 
 /** Color the edges in a group, using recoloring, when necessary.
  *  @param grp is the group number of the group to be colored
  */
-void egColor::colorGroup2(int grp) {
+void egColor::recolorGroup(int grp) {
 	vertex u = gp->input(gp->firstEdgeInGroup(grp));
 	for (edge e = gp->firstEdgeInGroup(grp); e != 0;
 		  e = gp->nextEdgeInGroup(grp,e)) {
@@ -116,7 +125,7 @@ void egColor::colorGroup2(int grp) {
  *  a new color is added if the group cannot be colored with <= k colors
  *  without expansion.
  */
-void egColor::greedyGroup(int grp, int k) {
+void egColor::fewColorGroup(int grp, int k) {
 	// select colors in greedy fashion
 	int gs = gp->groupSize(grp);
 	int colored = 0; int numColors = 0;
@@ -171,30 +180,6 @@ void egColor::greedyGroup(int grp, int k) {
 		usr[u][c] = usr[v][c] = e;
 		nusr[u][c]++; nusr[u][c] = 1;
 	}
-}
-
-/** Find a viable color for an edge in a specified group.
- *  @param grp is a group number
- *  @param u is the input for the group
- *  @param v is the output for a specific edge in the group
- *  @param lo (optional) is a lower bound on the returned color (default=1)
- *  @return a color that can be used to color an edge (u,v);
- *  if there is a viable color already used by grp, return it;
- *  otherwise, return the smallest viable color
- */
-int egColor::findColor(int grp, vertex u, vertex v, int lo) {
-	// look for viable color already used by grp
-	int c = avail[v].first();
-	while (c != 0) {
-		if (c >= lo && gp->groupNumber(usr[u][c]) == grp) {
-			return c;
-		}
-		c = avail[v].next(c);
-	}
-	// settle for any viable color
-	c = avail[v].first();
-	while (c < lo || !avail[u].member(c)) c = avail[v].next(c);
-	return c;
 }
 
 /** Color an edge by finding an augmenting path and recoloring it.

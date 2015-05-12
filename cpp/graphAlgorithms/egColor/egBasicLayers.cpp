@@ -1,4 +1,4 @@
-/** @file layers2.cpp
+/** @file egBasicLayers.cpp
  * 
  *  @author Jon Turner
  *  @date 2015
@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#include "layers2.h"
+#include "egBasicLayers.h"
 
 namespace grafalgo {
 
@@ -18,17 +18,19 @@ namespace grafalgo {
  *  by the caller; on return color[e] is the color assigned to edge e
  *  @return the number of colors used
  */
-layers2::layers2(GroupGraph& g, int edgeColors[]) : egColor(g, edgeColors) {
+egBasicLayers::egBasicLayers(GroupGraph& g, int edgeColors[])
+				: egColor(g, edgeColors) {
 	// repeatedly peel off layers and color them
 	vertex nextGroup[g.n()+1];
 	for (vertex u = 1; u <= g.n(); u++) nextGroup[u] = g.firstGroup(u);
 	while (true) {
 		bool done = true;
+		int lo = maxColor+1; // min color to use in this layer
 		for (vertex u = 1; u <= g.n(); u++) {
 			int grp = nextGroup[u];
 			if (grp == 0) continue;
 			done = false;
-			colorGroup2(grp);
+			colorGroup(grp,lo);
 			nextGroup[u] = g.nextGroup(u,grp);
 		}
 		if (done) break;
