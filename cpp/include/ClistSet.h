@@ -20,6 +20,7 @@ namespace grafalgo {
  */
 class ClistSet : public Adt {
 public:		ClistSet(int);
+		ClistSet();
 		~ClistSet();
 
 	// common methods

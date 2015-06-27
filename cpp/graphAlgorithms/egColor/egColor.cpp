@@ -12,8 +12,8 @@ namespace grafalgo {
 
 /** Constructor for egColor class.
  *  @param g is a reference to the graph
- *  @param color is an array indexed by edge numbers which is allocated
- *  by the caller; on return color[e] is the color assigned to edge e
+ *  @param edgeColors is an array indexed by edge numbers which is allocated
+ *  by the caller; on return edgeColors[e] is the color assigned to edge e
  *  @return the number of colors used
  */
 egColor::egColor(GroupGraph& g, int edgeColors[]) {

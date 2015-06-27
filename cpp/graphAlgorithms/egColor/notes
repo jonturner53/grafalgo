@@ -139,3 +139,166 @@ The first k layers cover at least k*n2/2, say.
 Not clear this really helps. We already have a good bound on number of
 passes with layer method. Might help with the cover method, since we
 have no bound on number of passes in that case.
+
+------------------
+
+Alternate algorithm.
+
+In each phase, attempt to cover each output exactly once.
+
+A group is eligible in the current phase if it has some uncolored
+edges and no other group at the same input has been selected yet.
+
+An output is critical if none of its edges has been selected in the
+current phase and only one eligible group has an edge incident to it.
+
+An eligible group is essential if it has at lease one edge incident 
+to some critical output.
+
+Let E_i be the set of edges selected in phase i.
+Repeatedly select a group as follows.
+- if there is an essential group, select the essential group that
+  has the most uncolored edges incident to critical outputs
+- otherwise, select an eligible group that has the most uncolored edges
+  incident to outputs not yet covered in this phase
+add to E_i the edges from the selected group that are incident to
+previously uncovered outputs
+At the end of the phase, color all of the edges in E_i with i.
+
+Let L be a heap containing the non-essential eligible groups,
+with key equal to the number of uncovered outputs reached by each group.
+Let S be a heap containing the essential groups, with key equal
+to the number of critical outputs reached by the group.
+
+=====================================
+
+Randomized approximation algorithm
+
+This algorithm is implicit in the proof of main theorem of paper by
+Kirkpatrick, Klawe and Pippenger.
+
+For each edge group, assign a "menu" of k colors that can be used by
+edges in the group (k to be determined later). For groups incident to
+the same input, the menus must be disjoint, but for groups incident to
+distinct inputs, they need not be.
+
+We color the edges incident to an output v as follows.
+Let M(v) be a bipartite graph with an input for every edge group
+that has an edge incident to v. The outputs of this graph are the
+colors in the menus of these groups. We include an edge from each
+group to each color in its menu. Next, we find a matching of M(v)
+that includes an edge incident to each of its inputs (assuming such
+a matching exists). For each edge (g,c) in the matching, use color
+c for the edge in g that is incident to v.
+
+If the menus are assigned randomly, there is a high probability that
+all M(v) have matchings. In order for this to be true, both k and
+c=k*max(a,b) must be large enough. However, they do not have to be
+exceptionally large; k=4, max(a,b)=20, is good enough for say s=10^6.
+
+Of course, it is true that for some graphs we need (a-1)b colors.
+These graphs have exceptionally large values of s. The KKR example
+has r=b[(a-1)b,b-1] and s=[ar,b]. For a=b=20, this is like 20^400.
+Still, for any fixed value of k, we must have max(a,b) grow faster
+than log(s). Implication is that we get an approximation for
+graphs that are not too sparse, but not for graphs that are
+very sparse (small a,b). So these graphs may be the more difficult
+ones to approximate.
+
+Seems likely that for random graphs, even k=2 or 3 would suffice.
+
+--------
+
+There may be some other ways we can refine this approach.
+For example, we could start by assigning single colors to some
+groups, making sure that groups with the same color do not share
+an output. Then distribute remaining colors among the groups at
+each vertex. We might also hold some colors in reserve and use
+them when needed. For example, when coloring edges incident to
+an output v, if there is no full matching from its input groups to
+the menu colors, find a max matching and then expand the menus
+of the unmatched inputs.
+
+We could also assign menus in a systematic way to increase the
+chances of success. Specifically, for groups with large overlap,
+try to minimize the overlap among their menus.
+
+is true for arbitrary graphs, not just random graphs. Well maybe not.
+KKP show that for some graphs more than (a-1)b colors are necessary,
+where a is max number of groups per input, b is the max output degree.
+So if we have 2a colors, with 2 per group, we will not be able to color
+these graphs. On the other hand, these graphs require exponentially
+more inputs and outputs than the values of a, b. Perhaps the choice of
+k will depend on the number of inputs/outputs and will be small for
+reasonable choices.
+
+----------
+
+We can take this idea further. For each output v, maintain graph M(v)
+representing the allocation of colors to its inputs and a matching
+on the graph. So long as some M(v) has an incomplete matching
+(not all inputs matched), allocate new colors, or swap a currently
+allocated color for a different available color, and update the
+matchings. We can use various strategies for allocating new colors.
+
+------
+
+Introduce a theorem to support the algorithm.
+
+Given a set of colors, a color allocation is a mapping from each group
+to a subset of the colors, such that no two groups at the same input
+share colors. We call the set of colors assigned to a given group
+as its menu.
+
+An allocation is complete if every every color is used by some group
+at every input. Otherwise, it is incomplete.
+
+Note that any valid edge group coloring defines an allocation.
+
+An allocation is effective if it is defined by some valid edge group 
+coloring.
+
+If v is an output, we define the bipartite graph M(v) with an
+input for each edge group incident to v, an output for every color,
+and edges linking groups to the colors in their menus.
+Call such a graph an m-graph. The set of m-graphs associated
+with the outputs of a group are called g's m-set.
+
+For a given group g, define its deficit to be the total number
+of graphs in its m-set in which g is unmatched.
+Define the gain of a new menu for g as the reduction in its
+deficit when the new menu is substituted for the current menu
+and new maximum matchings computed.
+
+The value of a color c in the menu of some group g is the number of
+graphs in the m-set for which (g,c) is in the matching or c is
+unmatched. The gain for a color c is that is not in the menu is
+the number of graphs in the m-set for g and c are unmatched.
+
+Theorem. An allocation is effective if and only if for every output v,
+M(v) has a matching that includes edges incident to all of its inputs.
+
+Claim. If a,b are large enough relative to r and s, and the number of
+colors is more than 3*max(a,b), a random allocation is effective with
+high probability.
+
+---------------------
+
+New algorithm
+
+Choose an initial allocation of colors to groups and
+compute max matchings for all m-graphs.
+
+While some group has a positive deficit, select one such group
+and replace its menu by another that yields a smaller deficit,
+then update the matchings for the graphs in its m-set.
+
+Greedy menu update. If there are no spare colors at the selected group's
+input, select the color of least value in its current menu and remove it.
+Select a new color with the largest gain. If none of the available
+colors produces a positive gain, allocate a new color and replace
+the menu with one containing just the one color.
+
+Variety of ways to define what's meant by spare color. We may limit
+the total number of colors used at each input and/or the number used
+by each group.

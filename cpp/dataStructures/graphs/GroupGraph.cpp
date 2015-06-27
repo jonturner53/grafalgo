@@ -165,7 +165,8 @@ edge GroupGraph::joinWith(vertex u, vertex v, int g, edge e) {
 
 /** Merge two edge groups.
  *  @param e1 is an edge
- *  @param e2 is a second edge with the same input vertex as e1
+ *  @param e2 is a second edge with the same input vertex as e1 but belonging
+ *  to a different edge group
  *  @returns the group number of the resulting edge group; or 0 on error
  */
 int GroupGraph::merge(edge e1, edge e2) {
@@ -174,6 +175,9 @@ int GroupGraph::merge(edge e1, edge e2) {
 	assert (input(e1) == input(e2));
 	vertex u = input(e1);
 
+	// note: could speed this up using Partition data structure 
+	// but since merge is only used in graph generation process,
+	// not much point
 	for (edge e = firstEdgeInGroup(g2); e != 0; e = nextEdgeInGroup(g2,e))
 		gNum[e] = g1;
 	groups->join(e1,e2); feg[g2] = 0;

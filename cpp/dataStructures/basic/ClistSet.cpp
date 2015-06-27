@@ -14,6 +14,10 @@ namespace grafalgo {
  */
 ClistSet::ClistSet(int n) : Adt(n) { makeSpace(); clear(); }
 
+/** Default constructor for ClistSet. 
+ */
+ClistSet::ClistSet() { ClistSet(10); }
+
 /** Destructor for ClistSet */
 ClistSet::~ClistSet() { freeSpace(); }
 
