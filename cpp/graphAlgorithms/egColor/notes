@@ -302,3 +302,12 @@ the menu with one containing just the one color.
 Variety of ways to define what's meant by spare color. We may limit
 the total number of colors used at each input and/or the number used
 by each group.
+
+----------
+
+Refinement
+
+Might handle singleton groups separately.
+Hold to end, then color using recolor method.
+Alternatively, color them first and freeze their menus while
+coloring others.

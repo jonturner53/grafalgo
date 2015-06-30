@@ -26,12 +26,15 @@ egRmenu::egRmenu(GroupGraph& g, int edgeColors[]) : egMenu(g, edgeColors) {
 	int lo = max(gp->maxGroupCountIn(), gp->maxDegreeOut());
 	int hi = 0;
 	int cb = lo;
-	while (hi >= lo) {
-		if (colorAll(cb)) hi = cb;
-		else {
-			lo = cb+1;
-			cb = (hi == 0 ? 2*cb : (hi+lo)/2);
+	while (hi == 0 || hi >= lo) {
+//cerr << "cb=" << cb << endl;
+		if (colorAll(cb)) {
+			if (cb == lo) return;
+			hi = cb;
+		} else {
+			lo = (cb==hi ? cb : cb+1);
 		}
+		cb = (hi == 0 ? 2*cb : (hi+lo+1)/2);
 	}
 }
 
@@ -43,24 +46,28 @@ egRmenu::egRmenu(GroupGraph& g, int edgeColors[]) : egMenu(g, edgeColors) {
  *  @return true if successful, else false
  */
 bool egRmenu::colorAll(int cb) {
-	for (vertex u = 1; u != gp->n(); u++) menus[u].resize(cb);
+	for (vertex u = 1; u <= gp->n(); u++) menus[u].resize(cb);
 	for (int grp = 1; grp <= gp->M(); grp++) fc[grp] = 0;
+	for (edge e = gp->first(); e != 0; e = gp->next(e)) color[e] = 0;
 	allocate(cb);
 
 	Graph mgraf(gp->maxDegreeOut()+cb, 10*gp->maxDegreeOut());
 	int ve[gp->maxDegreeOut()+1];    // edge at v in group with local index
 	for (vertex v = gp->firstOut(); v != 0; v = gp->nextOut(v)) {
-		menuGraf(v,mgraf,ve); // construct mgraf, ve
+		egMenu::menuGraf(v,mgraf,ve); // construct mgraf, ve
+//cerr << mgraf;
 
 		// find a max matching in the graph; fail if too small
 		Glist<int> match(mgraf.M());
 		hopcroftKarp(mgraf, match);
+//cerr << mgraf.elist2string(match) << endl;
 		if (match.length() != gp->degree(v)) return false;
 
 		// use matching to assign colors to edges
 		int dv = gp->degree(v);
 		for (edge me = match.first(); me != 0; me = match.next(me)) {
-			int gx = mgraf.left(me); int c = mgraf.right(me)-dv;
+			int gx = mgraf.left(match.value(me));
+			int c = mgraf.right(match.value(me))-dv;
 			color[ve[gx]] = c;
 		}
 	}
@@ -75,7 +82,7 @@ void egRmenu::allocate(int cb) {
 	int colors[cb];
 	for (vertex u = gp->firstIn(); u != 0; u = gp->nextIn(u)) {
 		Util::genPerm(cb, colors);
-		int i = 0;
+		int i = 0; int pass = 1;
 		int gcu = gp->groupCount(u);
 		while (i < cb && i <= 10*gcu) {
 			for (int grp = gp->firstGroup(u); grp != 0 && i < cb;
@@ -83,7 +90,12 @@ void egRmenu::allocate(int cb) {
 				addColor(colors[i]+1, grp);
 				i++;
 			}
+			pass++;
 		}
+//cerr << gp->index2string(u) << ": " << menus[u] << " [ ";
+//for (int grp = gp->firstGroup(u); grp != 0; grp = gp->nextGroup(u,grp))
+//	cerr << firstColor(grp) << " ";
+//cerr << "]\n";
 	}
 }
 

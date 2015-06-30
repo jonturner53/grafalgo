@@ -16,7 +16,7 @@ ClistSet::ClistSet(int n) : Adt(n) { makeSpace(); clear(); }
 
 /** Default constructor for ClistSet. 
  */
-ClistSet::ClistSet() { ClistSet(10); }
+ClistSet::ClistSet() : Adt(10) { makeSpace(); clear(); }
 
 /** Destructor for ClistSet */
 ClistSet::~ClistSet() { freeSpace(); }
@@ -87,6 +87,7 @@ void ClistSet::remove(index i) {
  */
 void ClistSet::join(index i, index j) {
 	if (i == 0 || j == 0) return;
+if (!valid(i) || !valid(j)) cerr << "join(" << i << "," << j << ") n=" << n() << "\n";
 	assert(valid(i) && valid(j));
 	node[node[i].succ].pred = node[j].pred;
 	node[node[j].pred].succ = node[i].succ;

@@ -14,17 +14,20 @@
 
 namespace grafalgo {
 
-/** This class implements the "few colors" method for
+/** This class is the base class for the "menu" method for
  *  edge group coloring in a bipartite graph. This method
- *  colors edge groups in decreasing order of size, coloring
- *  each group with a limited number of colors, using greedy
- *  set covering.
+ *  assigns a menu of colors to each group, then colors the
+ *  edges incident to each output by finding a matching in
+ *  an associated menu graph.
  *
- *  The algorithm is invoked using its constructor.
+ *  Each specific algorithm is invoked using the constructor
+ *  for its subclass.
  */
 class egMenu : public egColor {
 public:
 	egMenu(GroupGraph&, int*);
+	~egMenu();
+
 	ClistSet *menus;	// menus[u] defines menus for groups at input u
 	int	*fc;		// fc[grp] is first color in grp's menu
 
@@ -50,8 +53,11 @@ inline int egMenu::nextColor(int grp, int c) {
 inline void egMenu::addColor(int c, int grp) {
 	edge e = gp->firstEdgeInGroup(grp);
 	if (e == 0) return;
-	if (fc[grp] == 0) fc[grp] = c;
-	else menus[gp->input(e)].join(c,fc[grp]);
+	if (fc[grp] == 0) {
+		fc[grp] = c;
+	} else {
+		menus[gp->input(e)].join(c,fc[grp]);
+	}
 }
 
 inline void egMenu::removeColor(int c, int grp) {

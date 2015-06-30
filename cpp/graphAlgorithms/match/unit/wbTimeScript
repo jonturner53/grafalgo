@@ -1,0 +1,30 @@
+#! /bin/bash
+#
+# usage: wbTimeScript algorithm 
+#
+# Run timing tests with a specified algorithm.
+# The algorithm argument is one of flowMatchWt, hungarian,
+# edmondsGMGbi
+#
+algo="flowMatchWt"
+if [ $# -eq 1 ] ; then
+        algo=$1
+fi;
+
+echo "degree 3 graphs"
+echo "algorithm n d avg min max"
+k=6;
+while [ $k -le 12 ] ; do
+        n=$((2**k)); d=3
+        timeMatch $algo 20 $n $d 1 $((n*d)) 
+        k=$((k+1))
+done
+
+echo "degree lg(n) graphs"
+echo "algorithm n d avg min max"
+k=6; 
+while [ $k -le 12 ] ; do
+        n=$((2**k)); d=$k
+        timeMatch $algo 20 $n $d 1 $((n*d))
+        k=$((k+1))
+done

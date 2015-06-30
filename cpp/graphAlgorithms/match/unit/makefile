@@ -3,25 +3,26 @@ ARCH := -m$(shell getconf LONG_BIT)
 IDIR := ../../../include
 LDIR := ../../../lib
 BIN := ~/bin
-WARN := -Wall
-CXXFLAGS := ${WARN} ${ARCH} -O2 -std=c++0x
+WARN := -Wall 
+CXXFLAGS := ${WARN} ${ARCH} -I ${IDIR} -O2 -std=c++11
 
+LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
-XFILES = testGcolor evalGcolor
+HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/List.h
+XFILES = testMatch timeMatch
+
+${OFILES} : ${HFILES}
 
 .cpp.o:
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
 all:	${XFILES}
 
-testGcolor: testGcolor.o ${LIBS}
+testMatch: testMatch.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-evalGcolor: evalGcolor.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-foo: foo.o ${LIBS}
+timeMatch: timeMatch.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 clean:

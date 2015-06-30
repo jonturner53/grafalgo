@@ -22,10 +22,12 @@ namespace grafalgo {
  *  @return the number of colors used
  */
 egMenu::egMenu(GroupGraph& g, int edgeColors[]) : egColor(g, edgeColors) {
-	menus = new ClistSet[g.n()];
-	fc = new int[g.M()];
+	menus = new ClistSet[g.n()+1];
+	fc = new int[g.M()+1];
 	for (int grp = 1; grp <= g.M(); grp++) fc[grp] = 0;
 }
+
+egMenu::~egMenu() { delete [] menus; delete [] fc; }
 
 /** Construct menu graph for a specified output
  *  @param v is vertex for which menu graph is to be constructed
@@ -40,14 +42,14 @@ void egMenu::menuGraf(vertex v, Graph& mgraf, int *ve) {
 	// create bipartite graph from v's input groups to the colors
 	// in their menus
 	mgraf.clear();
-	int gx = 1;	// used to assign local index to groups
-			// incident to v
+	int gx = 1;	// used to assign local index to groups incident to v
 	int dv = gp->degree(v);
 	for (edge e = gp->firstAt(v); e != 0; e = gp->nextAt(v,e)) {
 		int grp = gp->groupNumber(e);
 		ve[gx] = e;	// e is edge at v in group with index gx
-		for (int c = firstColor(grp); c != 0; c = nextColor(grp,c))
+		for (int c = firstColor(grp); c != 0; c = nextColor(grp,c)) {
 			mgraf.join(gx,c+dv);
+		}
 		gx++;
 	}
 }

@@ -1,0 +1,31 @@
+#! /bin/bash
+#
+# usage: ubScript algorithm
+#
+# Run unit test on series of random unweighted bipartite graphs,
+# with a specified algorithm.
+#
+# The algorithm argument is one of hungarian, edmondsGMGbi
+#
+algo="hungarian"
+if [ $# -eq 1 ] ; then
+	algo=$1
+fi;
+echo "testing algorithm: " $algo
+
+echo ""; echo "testing 20 vertex regular bipartite graph"
+randGraph wbiregular 10 3 1 9 1 1 | testMatch $algo show verify
+
+echo ""; echo "testing 40 vertex bipartite graph"
+randGraph wbigraph 20 8 1 19 2 1 | testMatch $algo show verify
+
+echo ""; echo "testing 20 vertex tree"
+randGraph wtree 20 1 19 3 1 | testMatch $algo show verify
+
+echo ""; echo "testing 20 vertex non-bipartite graph"
+randGraph wgraph 20 50 1 19 4 1 | testMatch $algo show verify 
+
+echo ""; echo "testing 1000 vertex bipartite graphs"
+for seed in 5 6 7 8 9 10 11 12 13 14; do
+	randGraph wbigraph 500 5000 1 10000 $seed 1 | testMatch $algo verify 
+done

@@ -16,6 +16,8 @@
 #include "egMinColor.h"
 #include "egRecolor.h"
 #include "egFewColors.h"
+#include "egMenu.h"
+#include "egRmenu.h"
 
 using namespace grafalgo;
 
@@ -43,6 +45,8 @@ int main(int argc, char *argv[]) {
 		if (argc < 3 || sscanf(argv[2],"%d",&k) != 1)
 			Util::fatal("usage: color method [k] [ show verify ]");
 		egFewColors(g,k,color);
+	} else if (strcmp(argv[1],"rmenu") == 0) {
+		egRmenu(g,color);
 	} else {
 		Util::fatal("testColor: invalid method");
 	}

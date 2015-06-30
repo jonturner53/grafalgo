@@ -39,6 +39,7 @@ public:		ClistSet(int);
 
 	string&	toString(string&) const;
 	string	toString() const;
+
 private:
 	struct lnode {
 	int	succ;			// index of successor
