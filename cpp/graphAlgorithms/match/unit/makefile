@@ -10,7 +10,7 @@ LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/List.h
-XFILES = testMatch timeMatch
+XFILES = testMatch timeMatch testDmatch
 
 ${OFILES} : ${HFILES}
 
@@ -20,6 +20,9 @@ ${OFILES} : ${HFILES}
 all:	${XFILES}
 
 testMatch: testMatch.o ${LIBS}
+	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+
+testDmatch: testDmatch.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 timeMatch: timeMatch.o ${LIBS}

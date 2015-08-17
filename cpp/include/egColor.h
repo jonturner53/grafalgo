@@ -28,54 +28,13 @@ protected:
 	int	colorBound;	///< upper bound on number of colors needed
 	int	maxColor;	///< largest color used so far
 	int	*color;		///< color[e] is the color assigned to e
-	int	**usr;		///< usr[u][c]=an edge at u that uses color c
-	int	**nusr;		///< nusr[u][c]=# of edges at u that use c
 	Dlist	*avail;		///< avail[u] is list of unused colors at u
 
-	ClistSet *ugrp;		///< partition on uncolored group numbers
-	int	*ug;		///< fg[u] is some uncolored group at u
-
-	void	colorGroup(int, int=0);
-	int	findColor(int, vertex, vertex, int=1);
-	void	recolorGroup(int);
-	void	recolor(int);
-	bool	foundPath(edge, int, int);
-
-	void	fewColorGroup(int, int);
-
-	int	firstUgroup(vertex);
-	int	nextUgroup(vertex, int);
-	void	removeUgroup(int);
+	void	allocate(int, vertex);
+	void	free(int, vertex);
 
 	bool	isConsistent();
 };
-
-/** Get index of first uncolored group at an input.
- *  @param u is an input
- *  @return the index of the first uncolored edge group at u
- */
-inline int egColor::firstUgroup(vertex u) { return ug[u]; }
-
-/** Get index of next uncolored group at an input.
- *  @param u is an input
- *  @param grp is the index of a group at u
- *  @return the index of the first uncolored edge group at u
- */
-inline int egColor::nextUgroup(vertex u, int grp) {
-	return (ugrp->next(grp) == ug[u] ? 0 : ugrp->next(grp));
-}
-
-/** Remove an uncolored group.
- *  @param grp is the index of a group
- */
-inline void egColor::removeUgroup(int grp) {
-	vertex u = gp->input(gp->firstEdgeInGroup(grp));
-	if (grp == ug[u]) {
-		if (ugrp->next(grp) == grp) ug[u] = 0;
-		else ug[u] = ugrp->next(grp);
-	}
-	ugrp->remove(grp);
-}
 
 } // ends namespace
 

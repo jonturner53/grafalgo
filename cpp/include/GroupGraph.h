@@ -63,11 +63,14 @@ public:
 	edge	joinWith(vertex, vertex, int, edge);
 	int	merge(edge, edge);
 	bool	remove(edge);
+	bool	compare(int, int);
+	void	sortGroups(vertex);
 
 	friend istream& operator>>(istream&, Graph&);
 
 	bool	readAdjList(istream&);
 	string	edge2string(edge) const;
+	string	group2string(edge) const;
 	string	adjList2string(vertex) const;
         string	toDotString() const;
 private:

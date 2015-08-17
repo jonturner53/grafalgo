@@ -10,7 +10,7 @@
 #define EGMINCOLOR_H
 
 #include "GroupGraph.h"
-#include "egColor.h"
+#include "egLayers.h"
 
 namespace grafalgo {
 
@@ -19,7 +19,7 @@ namespace grafalgo {
  *  to use overlapping sets of colors.
  *  The algorithm is invoked using its constructor.
  */
-class egMinColor : public egColor {
+class egMinColor : public egLayers {
 public:
 	egMinColor(GroupGraph&, int*);
 };

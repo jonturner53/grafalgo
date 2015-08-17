@@ -1,4 +1,4 @@
-/** @file egRmenu.h
+/** @file egGmenu.h
  * 
  *  @author Jon Turner
  *  @date 2011
@@ -6,11 +6,16 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef EGRMENU_H
-#define EGRMENU_H
+#ifndef EGGMENU_H
+#define EGGMENU_H
 
+#include "Dheap.h"
+#include "Graph.h"
+#include "Hash.h"
+#include "HashMap.h"
 #include "GroupGraph.h"
 #include "egMenu.h"
+#include "dynamicMatch.h"
 
 namespace grafalgo {
 
@@ -22,13 +27,10 @@ namespace grafalgo {
  *
  *  The algorithm is invoked using its constructor.
  */
-class egRmenu : public egMenu {
+class egGmenu : public egMenu {
 public:
-	egRmenu(GroupGraph&, int*);
-
-	bool	colorAll(int);
-	void	assignMenus(int);
-	void	buildMgraf(int);
+	egGmenu(GroupGraph&, int*);
+	~egGmenu();
 };
 
 } // ends namespace

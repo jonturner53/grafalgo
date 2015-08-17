@@ -10,7 +10,7 @@
 #define EGRECOLOR_H
 
 #include "GroupGraph.h"
-#include "egColor.h"
+#include "egLayers.h"
 
 namespace grafalgo {
 
@@ -21,9 +21,13 @@ namespace grafalgo {
  *
  *  The algorithm is invoked using its constructor.
  */
-class egRecolor : public egColor {
+class egRecolor : public egLayers {
 public:
 	egRecolor(GroupGraph&, int*);
+private:
+	void	recolorGroup(int);
+	void	recolor(int);
+	bool	foundPath(edge, int, int);
 };
 
 } // ends namespace

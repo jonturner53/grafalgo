@@ -272,7 +272,10 @@ and new maximum matchings computed.
 
 The value of a color c in the menu of some group g is the number of
 graphs in the m-set for which (g,c) is in the matching or c is
-unmatched. The gain for a color c is that is not in the menu is
+unmatched.
+Alternate version for value is # of mgrafs for which c is used
+and cannot be directly replaced by another color in the menu
+The gain for a color c is that is not in the menu is
 the number of graphs in the m-set for g and c are unmatched.
 
 Theorem. An allocation is effective if and only if for every output v,
@@ -311,3 +314,40 @@ Might handle singleton groups separately.
 Hold to end, then color using recolor method.
 Alternatively, color them first and freeze their menus while
 coloring others.
+
+------------
+
+Results extend to off-line scheduling problem.
+Each group's menu is restricted to those colors at least as
+large as its lower bound. When assigning colors to menu
+give preference to close-in values. In random case, maybe
+flip coin for successive colors. Schedule groups in order
+of arrival.
+
+--------------
+
+Seems hard to get better results than with fewColors.
+Trouble is that groups with only one color in their menu
+do not allow flexibility for better matchings. Seems we
+need at least two colors per group.
+
+-------------
+
+while some group has a positive deficit
+	select group with largest deficit
+	if cannot add colors to this group, remove color with least value
+	select color that yields largest gain
+	if some color yields a positive gain
+		add selected color to menu and expand matchings
+	else
+		expand color set
+
+or
+
+for each output v
+	while matching is not full
+		select an unmatched group and add a color to its menu,
+		add corresponding edge to menu graph and extend matching
+		- select group at v with largest deficit
+		- add highest value color from among those available at v
+		  that are <=maxColor; if no such color allocate a new one

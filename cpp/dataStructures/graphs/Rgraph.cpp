@@ -476,23 +476,23 @@ void Rgraph::dag(Digraph& g, int numv, int nume) {
 /** Generate a random group graph
  *  @param n1 is the number of input vertices
  *  @param n2 is the number of output vertices
- *  @param d1 is the degree of the input vertices;
- *  the output vertices have degree floor(d2) or ceiling(d2), where d2=n1*d1/n2
  *  @param gc1 is the maximum group count of the input vertices
+ *  @param d2 is the degree of the input vertices
  *  @param k is an upper bound on the number of colors needed to
- *  color the graph; must be at least as big as d1, gc1 and d2
+ *  color the graph; must be at least as big as gc1 and d2
  */
-void Rgraph::groupGraph(GroupGraph& g, int n1, int n2, int d1, int gc1, int k) {
-	int d2 = n1*d1/n2;
-	assert(gc1 <= d1 && gc1 <= k && (d2*n2 == d1*n1 ? d2 : d2+1) <= k);
+void Rgraph::groupGraph(GroupGraph& g, int n1, int n2, int gc1, int d2, int k) {
+	int d1 = n2*d2/n1;
+	assert(gc1 <= d1 && gc1 <= k && d2 <= k && d2 <= n1 &&
+		d1 <= n2 && d1*n1 == d2*n2);
 	regularBigraph(g, n1, n2, d1);
 
 	// assign colors to the edges
 	int color[g.m()]; int cvec[k];
-	for (vertex u = g.firstOut(); u != 0; u = g.nextOut(u)) {
+	for (vertex v = g.firstOut(); v != 0; v = g.nextOut(v)) {
 		Util::genPerm(k,cvec); 
 		int i = 0;
-		for (edge e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+		for (edge e = g.firstAt(v); e != 0; e = g.nextAt(v,e)) {
 			int j = Util::randint(i,k-1);
 			color[e] = cvec[j]; cvec[j] = cvec[i++];
 		}

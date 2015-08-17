@@ -19,7 +19,7 @@ namespace grafalgo {
  *  @return the number of colors used
  */
 egMinColor::egMinColor(GroupGraph& g, int edgeColors[])
-			: egColor(g, edgeColors) {
+			: egLayers(g, edgeColors) {
 	// repeatedly peel off layers and color them
 	bool done;
 	do {

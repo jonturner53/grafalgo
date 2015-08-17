@@ -12,12 +12,12 @@ fi;
 echo "testing algorithm: " $algo
 
 echo ""; echo "testing 20 vertex 4-colorable graph"
-randGraph groupgraph 5 15 9 3 4 1 0 | testGcolor $algo show verify
+randGraph groupgraph 5 15 3 3 4 1 0 | testGcolor $algo show verify
 
 echo ""; echo "testing another 20 vertex 4-colorable graph"
-randGraph groupgraph 5 15 9 3 4 2 0 | testGcolor $algo show verify
+randGraph groupgraph 5 15 3 3 4 2 0 | testGcolor $algo show verify
 
 echo ""; echo "testing 1000 vertex 12-colorable graphs"
 for seed in 10 11 12 13 14 15 16 17 18 19 ; do
-	randGraph groupgraph 100 900 90 10 12 ${seed} 1 | testGcolor $algo verify
+	randGraph groupgraph 100 900 10 10 12 ${seed} 1 | testGcolor $algo verify
 done

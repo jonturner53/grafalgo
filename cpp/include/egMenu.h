@@ -10,6 +10,7 @@
 #define EGMENU_H
 
 #include "GroupGraph.h"
+#include "dynamicMatch.h"
 #include "egColor.h"
 
 namespace grafalgo {
@@ -28,60 +29,44 @@ public:
 	egMenu(GroupGraph&, int*);
 	~egMenu();
 
-	ClistSet *menus;	// menus[u] defines menus for groups at input u
+	ClistSet **menus;	// menus[u] defines menus for groups at input u
 	int	*fc;		// fc[grp] is first color in grp's menu
+	Graph **mgraf;		// *mgraf[v]: menu graph for v
+	int	*gx;		// gx[e] is group index for e
+	dynamicMatch **dymatch;	// dymatch[v] maintains matching on mgraf[v]
 
-	int	firstColor(int);
-	int	nextColor(int, int);
+	int	firstColor(int) const;
+	int	nextColor(int, int) const;
+	bool	inMenu(int, int) const;
+	int	menuSize(int) const;
+
 	void	addColor(int, int);
 	void	removeColor(int, int);
 	void	clearMenus();
-	void	menuGraf(int, Graph&, int*);
+
+	int	deficit(int);
+	int	value(int, int);
+	int	gain(int, int);
+
+	int	growMenu(int, int);
+	int	shrinkMenu(int, int);
+	void	resetMenu(int);
+	int	swapOut(int);
+
+	bool	isConsistent(vertex) const;
 };
 
-inline int egMenu::firstColor(int grp) {
+inline int egMenu::firstColor(int grp) const {
 	return fc[grp];
 }
 
-inline int egMenu::nextColor(int grp, int c) {
+inline int egMenu::nextColor(int grp, int c) const {
 	edge e = gp->firstEdgeInGroup(grp);
 	if (e == 0) return 0;
-	int x = menus[gp->input(e)].next(c);
+	int x = menus[gp->input(e)]->next(c);
 	return (x == fc[grp] ? 0 : x);
 }
 
-inline void egMenu::addColor(int c, int grp) {
-	edge e = gp->firstEdgeInGroup(grp);
-	if (e == 0) return;
-	if (fc[grp] == 0) {
-		fc[grp] = c;
-	} else {
-		menus[gp->input(e)].join(c,fc[grp]);
-	}
-}
-
-inline void egMenu::removeColor(int c, int grp) {
-	edge e = gp->firstEdgeInGroup(grp);
-	if (e == 0) return;
-	vertex u = gp->input(e);
-	if (fc[grp] == c) fc[grp] = menus[u].next(c);
-	if (fc[grp] == c) fc[grp] = 0;
-	else menus[u].remove(c);
-}
-
-inline void egMenu::clearMenus() {
-	for (vertex u = 1; u <= gp->n(); u++) {
-		for (int grp = gp->firstGroup(u); gp != 0;
-			 grp = gp->nextGroup(u,grp)) {
-			int c0 = fc[grp];
-			int c = menus[u].next(c0);
-			while (c != c0) {
-				menus[u].remove(c); c = menus[u].next(c0);
-			}
-			fc[grp] = 0;
-		}
-	}
-}
 
 } // ends namespace
 

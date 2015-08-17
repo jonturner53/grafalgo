@@ -110,9 +110,10 @@ index RlistSet::join(index t1, index t2) {
  *  reversing the original list.
  */
 index RlistSet::reverse(index t) {
+	if (t == 0) return t;
 	assert(valid(t));
 	index h = first(t);
-	if (t == 0 || h == t) return t;
+	if (h == t) return t;
 	if (t == node[h].p2) node[h].p2 = node[h].p1;
 	node[h].p1 = t;
 	canon[h] = true; canon[t] = false;

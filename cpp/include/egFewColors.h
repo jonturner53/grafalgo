@@ -24,7 +24,9 @@ namespace grafalgo {
  */
 class egFewColors : public egColor {
 public:
-	egFewColors(GroupGraph&, int, int*);
+	egFewColors(GroupGraph&, int*);
+private:
+	void	fewColorGroup(int);
 };
 
 } // ends namespace

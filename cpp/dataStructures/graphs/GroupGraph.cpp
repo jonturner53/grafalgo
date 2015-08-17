@@ -216,6 +216,29 @@ bool GroupGraph::remove(edge e) {
 	return true;
 }
 
+GroupGraph *ggpointer;
+
+bool ggcompare(int g1, int g2) {
+	return ggpointer->groupSize(g1) > ggpointer->groupSize(g2);
+}
+
+void GroupGraph::sortGroups(vertex u) {
+	int vec[groupCount(u)];
+	vec[0] = firstGroup(u);
+	int grp = nextGroup(u,vec[0]);
+	int i = 1;
+	while (grp != 0) {
+		vec[i++] = grp; inGroups->remove(grp);
+		grp = nextGroup(u,vec[0]);
+	}
+	ggpointer = this;
+	sort(vec, vec+groupCount(u), ggcompare);
+	fg[u] = vec[0];
+	i = 1;
+	for (int i = 1; i < groupCount(u); i++)
+		inGroups->join(vec[i-1], vec[i]);
+}
+
 /** Read adjacency list from an input stream, add it to the graph.
  *  @param in is an open input stream
  *  @return true on success, false on error.
@@ -266,6 +289,22 @@ string GroupGraph::edge2string(edge e) const {
         s += "(" + index2string(u);
 	s += "," + index2string(v) + "," + to_string(groupNumber(e)) + ")";
 	if (shoEnum) s += "#" + to_string(e);
+        return s;
+}
+
+/** Create a string representation of a group.
+ *  @param grp is a group number
+ *  @return the string
+ */
+string GroupGraph::group2string(int grp) const {
+	string s;
+	s += " (";
+	for (edge e = firstEdgeInGroup(grp); e!=0; e = nextEdgeInGroup(grp,e)) {
+		vertex v = output(e);
+		if (e != firstEdgeInGroup(grp)) s += " ";
+		s += index2string(v);
+	}
+	s += ")";
         return s;
 }
 

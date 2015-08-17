@@ -30,7 +30,7 @@ typedef int32_t edge;
  *  or all edges incident to a specific vertex.
  */
 class Graph : public Adt {
-public:		Graph(int=1,int=1);
+public:		Graph(int=2,int=1);
 		~Graph();
 
 	// common methods

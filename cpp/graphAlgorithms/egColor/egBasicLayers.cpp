@@ -19,19 +19,20 @@ namespace grafalgo {
  *  @return the number of colors used
  */
 egBasicLayers::egBasicLayers(GroupGraph& g, int edgeColors[])
-				: egColor(g, edgeColors) {
+				: egLayers(g, edgeColors) {
 	// repeatedly peel off layers and color them
-	vertex nextGroup[g.n()+1];
-	for (vertex u = 1; u <= g.n(); u++) nextGroup[u] = g.firstGroup(u);
+	vertex nextGroup[gp->n()+1];
+	for (vertex u = 1; u <= gp->n(); u++) nextGroup[u] = gp->firstGroup(u);
+	maxColor = 0;
 	while (true) {
 		bool done = true;
 		int lo = maxColor+1; // min color to use in this layer
-		for (vertex u = 1; u <= g.n(); u++) {
+		for (vertex u = 1; u <= gp->n(); u++) {
 			int grp = nextGroup[u];
 			if (grp == 0) continue;
 			done = false;
 			colorGroup(grp,lo);
-			nextGroup[u] = g.nextGroup(u,grp);
+			nextGroup[u] = gp->nextGroup(u,grp);
 		}
 		if (done) break;
 	}

@@ -10,7 +10,7 @@
 #define EGBASICLAYERS_H
 
 #include "GroupGraph.h"
-#include "egColor.h"
+#include "egLayers.h"
 
 namespace grafalgo {
 
@@ -18,7 +18,7 @@ namespace grafalgo {
  *  edge group coloring in a bipartite graph.
  *  The algorithm is invoked using its constructor.
  */
-class egBasicLayers : public egColor {
+class egBasicLayers : public egLayers {
 public:
 	egBasicLayers(GroupGraph&, int*);
 };

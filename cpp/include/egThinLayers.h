@@ -10,7 +10,7 @@
 #define EGTHINLAYERS_H
 
 #include "GroupGraph.h"
-#include "egColor.h"
+#include "egLayers.h"
 
 namespace grafalgo {
 
@@ -20,7 +20,7 @@ namespace grafalgo {
  *
  *  The algorithm is invoked using its constructor.
  */
-class egThinLayers : public egColor {
+class egThinLayers : public egLayers {
 public:
 	egThinLayers(GroupGraph&, int*);
 };

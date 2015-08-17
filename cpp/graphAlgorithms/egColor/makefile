@@ -9,11 +9,12 @@ LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/GroupGraph.h ${IDIR}/List.h \
-	 ${IDIR}/Dlist.h ${IDIR}/egColor.h ${IDIR}/egBasicLayers.h \
-	 ${IDIR}/egThinLayers.h ${IDIR}/egMinColor.h ${IDIR}/egRecolor.h \
-	 ${IDIR}/egFewColors.h ${IDIR}/egMenu.h ${IDIR}/egRmenu.h 
-OFILES = egColor.o egBasicLayers.o egThinLayers.o egMinColor.o egRecolor.o \
-	 egFewColors.o egMenu.o egRmenu.o
+	 ${IDIR}/Dlist.h ${IDIR}/egColor.h ${IDIR}/egLayers.h \
+	 ${IDIR}/egBasicLayers.h ${IDIR}/egThinLayers.h ${IDIR}/egMinColor.h \
+	 ${IDIR}/egRecolor.h ${IDIR}/egFewColors.h \
+	 ${IDIR}/egMenu.h ${IDIR}/egRmenu.h ${IDIR}/egGmenu.h ${IDIR}/egVmenu.h 
+OFILES = egColor.o egLayers.o egBasicLayers.o egThinLayers.o egMinColor.o \
+	 egRecolor.o egFewColors.o egMenu.o egRmenu.o egGmenu.o egVmenu.o
 
 ${OFILES} : ${HFILES}
 

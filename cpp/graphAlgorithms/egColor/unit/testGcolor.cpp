@@ -18,6 +18,7 @@
 #include "egFewColors.h"
 #include "egMenu.h"
 #include "egRmenu.h"
+#include "egGmenu.h"
 
 using namespace grafalgo;
 
@@ -25,7 +26,12 @@ bool gcCheck(GroupGraph&, int[]);
 
 int main(int argc, char *argv[]) {
 	if (argc < 2)
-		Util::fatal("usage: color method [k] [ show verify ]");
+		Util::fatal("usage: color method [ show verify ]");
+	bool show = false; bool verify = false;
+	for (int i = 2; i < argc; i++) {
+		     if (strcmp(argv[i],"show") == 0) show = true;
+		else if (strcmp(argv[i],"verify") == 0) verify = true;
+	}
 		
 	GroupGraph g; cin >> g;
 	int color[g.M()+1];
@@ -41,12 +47,11 @@ int main(int argc, char *argv[]) {
 	} else if (strcmp(argv[1],"recolor") == 0) {
 		egRecolor(g,color);
 	} else if (strcmp(argv[1],"fewColors") == 0) {
-		int k = 1;
-		if (argc < 3 || sscanf(argv[2],"%d",&k) != 1)
-			Util::fatal("usage: color method [k] [ show verify ]");
-		egFewColors(g,k,color);
+		egFewColors(g,color);
 	} else if (strcmp(argv[1],"rmenu") == 0) {
 		egRmenu(g,color);
+	} else if (strcmp(argv[1],"gmenu") == 0) {
+		egGmenu(g,color);
 	} else {
 		Util::fatal("testColor: invalid method");
 	}
@@ -55,11 +60,6 @@ int main(int argc, char *argv[]) {
 		numColors = max(numColors, color[e]);
 	cout << numColors << endl;
 
-	bool show = false; bool verify = false;
-	for (int i = 2; i < argc; i++) {
-		     if (strcmp(argv[i],"show") == 0) show = true;
-		else if (strcmp(argv[i],"verify") == 0) verify = true;
-	}
 	if (verify) gcCheck(g, color);
 	if (!show) exit(0);
 	cout << g;
@@ -92,13 +92,6 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		}
-/*
-		for (edge e = g.first(); e != 0; e = g.next(e)) {
-			if (color[e] == c) {
-				cout << g.edge2string(e) << " ";
-			}
-		}
-*/
 		cout << endl;
 	}
 }
