@@ -46,6 +46,7 @@ using namespace grafalgo;
  *  "wflograph"  n m mss ecap1 ecap2 lo hi seed scram
  *  "mflograph"  n m mss ecap1 ecap2 lo hi seed scram
  * "groupgraph"  n1 n2 gc1 d2 k seed scram
+ *    "becolor"  n1 n2 d1 cmax seed scram
  * 
  *  For bigraphs, n is the number of vertices in each part.
  *  For weighted graphs, [lo,hi] is the range of edge
@@ -57,7 +58,7 @@ using namespace grafalgo;
  */
 int main(int argc, char* argv[]) {
 	int n, m, d, n1, n2, d1, d2, gc1, k,
-	    mss, scram, lo, hi, ecap1, ecap2, seed;
+	    mss, scram, lo, hi, ecap1, ecap2, cmax, seed;
 	seed = 0;
 	char *gtyp = argv[1];
 
@@ -240,6 +241,15 @@ int main(int argc, char* argv[]) {
 		Rgraph::groupGraph(gg,n1,n2,gc1,d2,k);
 		if (scram) Rgraph::scramble<GroupGraph>(gg);
 		cout << gg;
+	} else if (strcmp(gtyp,"becolor") == 0 && argc == 8 &&
+	    	   sscanf(argv[2],"%d",&n1) == 1 &&
+	    	   sscanf(argv[3],"%d",&n2) == 1 &&
+	    	   sscanf(argv[4],"%d",&d1) == 1 &&
+	    	   sscanf(argv[5],"%d",&cmax) == 1) {
+		Wdigraph g(n1+n2,n1*d1);
+		Rgraph::beColor(g,n1,n2,d1,cmax);
+		if (scram) Rgraph::scramble<Wdigraph>(g);
+		cout << g;
 	} else 
 		Util::fatal("usage: randGraph type n m scram [..] seed");
 	exit(0);

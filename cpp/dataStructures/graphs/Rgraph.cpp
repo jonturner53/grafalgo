@@ -323,6 +323,59 @@ void Rgraph::regularBigraph(Graph& g, int n1, int n2, int d1) {
 	g.sortAdjLists();
 }
 
+/** Create a random regular bipartite multgraph.
+ *  @param g is an weighted graph object
+ *  @param n1 is the # of vertices in the "left" partition of the bigraph
+ *  @param n2 is the # of vertices in the "right" partition
+ *  if d2=n1*d1/n2 is an integer, then the right-hand vertices all
+ *  have degree d2, otherwise they have degree floor(d2) or floor(d2)+1
+ *  @param d1 is the degree of the vertices in the "left" partition
+ */
+void Rgraph::regularBiMultigraph(Graph& g, int n1, int n2, int d1) {
+	assert(n1 > 0 && d1 > 0 && n2 >= d1);
+	int m = d1*n1;
+	g.resize(n1+n2, m);
+
+	// generate two random list of "edge endpoints"
+	int left[m];  Util::genPerm(m,left);
+	int right[m]; Util::genPerm(m,right);
+	for (int i = 0; i < m-1; i ++) {
+		// select random endpoints from those remaining
+		int j = Util::randint(i, m-1);
+		vertex u = 1 + (left[j]%n1); left[j] = left[i];
+		// select another random endpoint to a different vertex
+		// note: graph is need not be simple
+		int k = Util::randint(i, m-1);
+		vertex v = n1 + 1 + (right[k]%n2);
+		// join the vertices for the selected endpoints
+		g.join(u,v); right[k] = right[i];
+	}
+	g.join(1+left[m-1]%n1, n1+1+right[m-1]%n2);
+	g.sortAdjLists();
+}
+
+/** Create a random bounded-edge-color graph.
+ *  @param g is an weighted digraph object
+ *  @param n1 is the # of vertices in the "left" partition of the bigraph
+ *  @param n2 is the # of vertices in the "right" partition
+ *  if d2=n1*d1/n2 is an integer, then the right-hand vertices all
+ *  have degree d2, otherwise they have degree floor(d2) or floor(d2)+1
+ *  @param d1 is the degree of the vertices in the "left" partition
+ *  @param cmax is an upper bound the colors to be used (0..cmax)
+ */
+void Rgraph::beColor(Wdigraph& g, int n1, int n2, int d1, int cmax) {
+	assert(cmax >= d1 && cmax >= (n2*d1+(n1-1))/n1);
+	regularBiMultigraph(g, n1, n2, d1);
+	// assign random bounds to edges at each input
+	int cvec[cmax];  // vector of colors;
+	for (vertex u = 1; u <= g.n(); u++) {
+		Util::genPerm(cmax,cvec);
+		int i = 0;
+		for (edge e = g.firstOut(u); e != 0; e = g.nextOut(u,e)) 
+			g.setLength(e,cvec[i++]+1);
+	}
+}
+
 /** Generate a random digraph.
  *  @param numv is the number of vertices on which the digraph is generated;
  *  if this object has n()>numv, the random graph is defined over the first
