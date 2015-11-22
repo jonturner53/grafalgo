@@ -16,6 +16,7 @@
 #include "edmondsGMGbi.h"
 #include "maxdMatch.h"
 #include "fastMaxdMatch.h"
+#include "vsetMatch.h"
 
 namespace grafalgo {
 extern bool findSplit(const Graph&, ListPair&);
@@ -27,6 +28,7 @@ using namespace grafalgo;
 
 bool checkMatch(Graph&, Glist<edge>&);
 bool checkMatch(Wgraph&, Glist<edge>&);
+bool checkMatch(Graph&, Dlist&, Glist<edge>&);
 
 /** usage: testMatch method
  * 
@@ -117,6 +119,26 @@ int main(int argc, char *argv[]) {
 		cout << size << " edges in matching\n";
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
+	} else if (strcmp(argv[1],"vsetMatch") == 0) {
+		Graph g; cin >> g; Dlist vset(g.n()); cin >> vset;
+		Glist<edge> match(g.n()/2); 
+		vsetMatch(g, vset, match);
+		int size = match.length();
+		cout << size << " edges in matching, ";
+		int count = 0;
+		for (grafalgo::index x = match.first(); x != 0;
+				     x = match.next(x)) {
+			edge e = match.value(x);
+			if (vset.member(g.left(e))) count++;
+			if (vset.member(g.right(e))) count++;
+		}
+		cout << count << " vertices matched from given set\n";
+			
+		if (show) {
+			cout << g << vset << "\n" 
+			     << "[" << g.elist2string(match) << "]\n";
+		}
+		if (verify) checkMatch(g,vset,match);
 	} else { 
 		Util::fatal("match: invalid method");
 	}
@@ -225,5 +247,66 @@ bool checkMatch(Wgraph& g, Glist<edge>& match) {
 			}
 		}
 	}
+	return status;
+}
+
+/** Verify a vset matching in a graph
+ *  @param g is a graph
+ *  @param vset is a list of vertices in g
+ *  @param match is a list of edges in g
+ *  @return true if match is a valid maximal matching of g;
+ *  does not verify maximum size, just maximality
+ */
+bool checkMatch(Graph& g, Dlist& vset, Glist<edge>& match) {
+	bool status = true;
+
+	// verify validity of edge numbers
+	for (grafalgo::index x = match.first(); x != 0; x = match.next(x)) {
+		edge e = match.value(x);
+		if (!g.validEdge(e)) {
+			cout << "edge number " << e << " is invalid\n";
+			status = false;
+		}
+	}
+	if (!status) return false;
+
+	// check validity of vset
+	for (vertex u = match.first(); u != 0; u = match.next(u)) {
+		if (u < 1 || u > g.n()) {
+			cout << "vertex number " << u << " is invalid\n";
+			status = false;
+		}
+	}
+	if (!status) return false;
+
+	// check for multiple edges at each vertex
+	bool mark[g.n()+1];
+	for (vertex u = 1; u <= g.n(); u++) mark[u] = false;
+	for (grafalgo::index x = match.first(); x != 0; x = match.next(x)) {
+		edge e = match.value(x);
+		if (mark[g.left(e)]) {
+			cout << "multiple matching edges at " << g.left(e)
+			     << endl;
+			status = false;
+		}
+		if (mark[g.right(e)]) {
+			cout << "multiple matching edges at " << g.right(e)
+			     << endl;
+			status = false;
+		}
+		mark[g.left(e)] = mark[g.right(e)] = true;
+	}
+	// check that no more vertices in vset can be trivially matched
+	for (vertex u = vset.first(); u != 0; u = vset.next(u)) {
+		if (mark[u]) continue;
+		for (edge e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+			if (!mark[g.mate(u,e)]) {
+				cout << "vertex " << g.index2string(u)
+				     << " could be matched, but is not\n";
+				status = false;
+			}
+		}
+	}
+
 	return status;
 }

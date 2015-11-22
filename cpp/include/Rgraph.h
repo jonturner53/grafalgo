@@ -31,7 +31,7 @@ public:
 	static void regularBigraph(Graph&, int, int);
 	static void regularBigraph(Graph&, int, int, int);
 	static void regularBiMultigraph(Graph&, int, int, int);
-	static void beColor(Wdigraph&, int, int, int, int);
+	static void beColor(Wdigraph&, int, int, int, int, double);
 	static void connected(Graph&, int,int);
 	static void addEdges(Graph&, int);
 	static void addEdges(Graph&, int, int, int);

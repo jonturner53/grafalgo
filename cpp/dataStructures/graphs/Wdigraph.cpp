@@ -98,7 +98,7 @@ bool Wdigraph::readAdjList(istream& in) {
  */
 string Wdigraph::adjList2string(vertex u) const {
 	string s = "";
-	if (firstAt(u) == 0) return s;
+	if (firstOut(u) == 0) return s;
 	int cnt = 0;
 	s += "[" + Adt::index2string(u) + ":";
 	for (edge e = firstOut(u); e != 0; e = nextOut(u,e)) {

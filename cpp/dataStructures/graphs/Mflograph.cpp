@@ -74,25 +74,25 @@ void Mflograph::copyFrom(const Mflograph& source) {
  *  @return true on success, false on error.
  */
 bool Mflograph::readAdjList(istream& in) {
-	if (!Util::verify(in,'[')) return 0;
+	if (!Util::verify(in,'[')) return false;
 	bool isSrc = false; bool isSnk = false;
 	if (Util::verify(in,'-')) {
-		if (!Util::verify(in,'>',true)) return 0;
+		if (!Util::verify(in,'>',true)) return false;
 		isSnk = true;
 	}
 	vertex u;
-	if (!Adt::readIndex(in,u)) return 0;
+	if (!Adt::readIndex(in,u)) return false;
 	if (Util::verify(in,'-')) {
-		if (!Util::verify(in,'>',true)) return 0;
+		if (!Util::verify(in,'>',true)) return false;
 		isSrc = true;
 	}
-	if (!Util::verify(in,':')) return 0;
+	if (!Util::verify(in,':')) return false;
 	if (u > n()) expand(u,M());
 	if (isSrc) setSrc(u);
 	if (isSnk) setSnk(u);
 	while (in.good() && !Util::verify(in,']')) {
 		vertex v; edge e;
-		if (!Adt::readIndex(in,v)) return 0;
+		if (!Adt::readIndex(in,v)) return false;
 		if (v > n()) expand(v,M());
 		if (m() >= M()) expand(n(),max(1,2*m()));
 		if (!Util::verify(in,'#')) {
@@ -103,11 +103,12 @@ bool Mflograph::readAdjList(istream& in) {
 			if (joinWith(u,v,e) != e) return false;
 		}
 		flow capacity, flow, minflow;
+
 		if (!Util::verify(in,'(') || !Util::readInt(in,capacity) ||
 		    !Util::verify(in,',') || !Util::readInt(in,minflow) ||
 		    !Util::verify(in,',') || !Util::readInt(in,flow) ||
 		    !Util::verify(in,')'))
-			return 0;
+			return false;
 		setCapacity(e,capacity); setFlow(e,flow); setMinFlo(e,minflow);
 	}
 	return in.good();

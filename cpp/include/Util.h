@@ -19,8 +19,6 @@ namespace grafalgo {
  */
 class Util {
 public:
-	static const int32_t BIGINT32 = 0x7ffffff;
-
 	// basic input helper functions
 	static bool skipSpace(istream& in, bool=false);
 	static bool skipBlank(istream& in);
@@ -65,7 +63,7 @@ inline void Util::fatal(const string& msg) {
 /** Generate a random fraction.
  *  @return a double in [0,1]
  */
-inline double Util:: randfrac() { return ((double) random())/BIGINT32; }
+inline double Util:: randfrac() { return ((double) random())/INT_MAX; }
 
 /** Generate a random integer in a range.
  *  @param lo is the low end of the range

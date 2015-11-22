@@ -25,7 +25,7 @@ namespace grafalgo {
 class ecGabow {
 public:
 	ecGabow(Graph&, int*);
-	ecGabow() {};		// for use with derived class
+	~ecGabow();
 private:
 	Graph 	*gp;		///< graph we're coloring
 	Graph 	*cg;		///< current graph in recursive algorithm

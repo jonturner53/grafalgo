@@ -351,3 +351,19 @@ for each output v
 		- select group at v with largest deficit
 		- add highest value color from among those available at v
 		  that are <=maxColor; if no such color allocate a new one
+
+----------------
+
+possible online algorithm based on menu method
+
+Each input maintains a count of the packets destined to each output
+and a count of the packets queued at each output.
+- inform each output of arrivals; crossbar sums this info for output
+- output sends its backlog info to inputs
+
+On receiving a packet, an input determines a deadline for achieving
+work conservation at each output. Group copies into "epochs" 
+with each twice as large as previous. For each group, assign a menu
+of colors. Problem - likely to have one packet per epoch; limited
+only by total buffering in switch; so need speedup larger than log of
+buffer capacity

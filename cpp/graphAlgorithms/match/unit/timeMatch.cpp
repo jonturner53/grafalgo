@@ -121,6 +121,7 @@ int main(int argc, char *argv[]) {
 		avgTime += diff.count();
 		minTime = min(minTime,diff.count());
 		maxTime = max(maxTime,diff.count());
+		match.clear();
 	}
 	avgTime /= reps;
 	cout << argv[1] << " " << n << " " << md << " ";

@@ -71,7 +71,7 @@ void fastMaxdMatch::init(Graph& g1) {
 }
 
 void fastMaxdMatch::cleanup() {
-	delete [] mEdge;  delete [] visited; delete roots;
+	delete q; delete [] visited; delete roots;
 }
 
 /** Extend the matching, so it covers at least one more max degree vertex.

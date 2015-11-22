@@ -15,7 +15,11 @@ extern bool findSplit(const Graph&, ListPair&);
 /** Find a maximum size matching in a bipartite graph using the
  *  Hopcroft-Karp algorithm.
  *  @param g1 is an undirected graph
- *  @param match is a list in which the result is returned
+ *  @param match is a list in which the result is returned; if it
+ *  is initially non-empty, the edges in the list are assumed to
+ *  form an initial matching that can be used as a starting point;
+ *  the returned matching matches all the vertices that were
+ *  matched in the original matching
  */
 hopcroftKarp::hopcroftKarp(Graph& g1, Glist<edge>& match) : g(&g1) {
 
@@ -24,9 +28,14 @@ hopcroftKarp::hopcroftKarp(Graph& g1, Glist<edge>& match) : g(&g1) {
 	if (!findSplit(*g,*split))
 		Util::fatal("hopcroftKarp: graph is not bipartite");
 
-	// construct initial matching
+	// initialize mEdge, reflecting any edges already in match
 	mEdge = new edge[g->n()+1];
 	for (vertex u = 1; u <= g->n(); u++) mEdge[u] = 0;
+	for (index x = match.first(); x != 0; x = match.next(x)) {
+		edge e = match.value(x);
+		mEdge[g->left(e)] = mEdge[g->right(e)] = e;
+	}
+	// add edges to match, yielding maximal (not maximum) matching
 	for (edge e = g->first(); e != 0; e = g->next(e)) {
 		vertex u = g->left(e); vertex v = g->right(e);
 		if (mEdge[u] == 0 && mEdge[v] == 0)

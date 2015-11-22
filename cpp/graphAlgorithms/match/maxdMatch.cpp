@@ -52,7 +52,6 @@ void maxdMatch::init(Graph& g1) {
 	pEdge = new edge[g->n()+1];
 
 	// compute vertex degrees and max degree
-	// find largest edge number
 	d = new int[g->n()+1];
 	for (vertex u = 0; u <= g->n(); u++) d[u] = mEdge[u] = 0;
 	maxd = 0; 

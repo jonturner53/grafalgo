@@ -10,6 +10,7 @@
 #include "Hash.h"
 #include "Pair.h"
 #include "Rgraph.h"
+#include "ecGabow.h"
 
 namespace grafalgo {
 
@@ -346,9 +347,9 @@ void Rgraph::regularBiMultigraph(Graph& g, int n1, int n2, int d1) {
 		// select another random endpoint to a different vertex
 		// note: graph is need not be simple
 		int k = Util::randint(i, m-1);
-		vertex v = n1 + 1 + (right[k]%n2);
+		vertex v = n1 + 1 + (right[k]%n2); right[k] = right[i];
 		// join the vertices for the selected endpoints
-		g.join(u,v); right[k] = right[i];
+		g.join(u,v);
 	}
 	g.join(1+left[m-1]%n1, n1+1+right[m-1]%n2);
 	g.sortAdjLists();
@@ -361,11 +362,48 @@ void Rgraph::regularBiMultigraph(Graph& g, int n1, int n2, int d1) {
  *  if d2=n1*d1/n2 is an integer, then the right-hand vertices all
  *  have degree d2, otherwise they have degree floor(d2) or floor(d2)+1
  *  @param d1 is the degree of the vertices in the "left" partition
- *  @param cmax is an upper bound the colors to be used (0..cmax)
+ *  @param cmax is an upper bound on the colors to be used (1..cmax)
+ *  @param p is probability used to control selection of bounds
  */
-void Rgraph::beColor(Wdigraph& g, int n1, int n2, int d1, int cmax) {
-	assert(cmax >= d1 && cmax >= (n2*d1+(n1-1))/n1);
+void Rgraph::beColor(Wdigraph& g, int n1, int n2, int d1, int cmax, double p) {
+	int d2 = (n2*d1+(n1-1))/n1;
+	assert(cmax >= d1 && cmax >= d2);
 	regularBiMultigraph(g, n1, n2, d1);
+	int Delta = max(d1, d2); // max degree
+
+	// color edges and create random mapping of edge colors
+	int color[g.M()+1]; ecGabow(g,color);
+	int cmap[cmax]; Util::genPerm(cmax, cmap);
+
+	// create list of available bounds for each vertex
+	Dlist *avail = new Dlist[g.n()+1];
+	for (vertex u = 1; u <= g.n(); u++) {
+		avail[u].resize(cmax);
+		for (int c = 1; c <= cmax; c++) avail[u].addLast(c);
+	}
+
+	// build heap of edges, sorted by mapped edge colors
+	Dheap<edge> edges(g.M());
+	for (edge e = g.first(); e != 0; e = g.next(e))
+		edges.insert(e,cmap[color[e]-1]+1);
+
+	// assign bounds in order of mapped colors
+	while (!edges.empty()) {
+		edge e = edges.deletemin();
+		vertex u = g.tail(e);
+		int b;
+		for (b = cmap[color[e]-1]+1; b > 0; b = avail[u].prev(b)) {
+			if (b <= Delta && Util::randfrac() < p) {
+				g.setLength(e,b); break;
+			}
+		}
+		if (b == 0) g.setLength(e, avail[u].first());
+		avail[u].remove(g.length(e));
+	}
+
+	delete [] avail;
+
+/* this code assigns random bounds, but does not limit # of colors
 	// assign random bounds to edges at each input
 	int cvec[cmax];  // vector of colors;
 	for (vertex u = 1; u <= g.n(); u++) {
@@ -374,6 +412,7 @@ void Rgraph::beColor(Wdigraph& g, int n1, int n2, int d1, int cmax) {
 		for (edge e = g.firstOut(u); e != 0; e = g.nextOut(u,e)) 
 			g.setLength(e,cvec[i++]+1);
 	}
+*/
 }
 
 /** Generate a random digraph.

@@ -8,6 +8,7 @@
 
 #include "ecGabow.h"
 #include "fastMaxdMatch.h"
+#include "maxdMatch.h"
 
 namespace grafalgo {
 
@@ -20,7 +21,8 @@ namespace grafalgo {
 ecGabow::ecGabow(Graph& g, int color[]) {
 	// initialize data structures
 	gp = &g;
-	cg = new Graph(g.n(),g.M()); cg->copyFrom(g);
+	cg = new Graph(g.n(),g.M());
+	cg->copyFrom(g);
 	this->color = color;
 	match = new Glist<edge>(g.n()/2);
 	euler = new ClistSet(g.M());
@@ -29,6 +31,10 @@ ecGabow::ecGabow(Graph& g, int color[]) {
 
 	nextColor = 1;
 	rColor(g.maxDegree());
+}
+
+ecGabow::~ecGabow() {
+	delete match; delete euler; delete handle; delete start;
 }
 
 /** Recursive helper function.

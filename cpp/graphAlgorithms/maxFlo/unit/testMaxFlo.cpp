@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
 			if (show) cout << mfg << endl;
 			if (verify) checkMaxFloMin(mfg);
 		} else {
-			cout << "could not satisfy min flow constraints\n";
+			cout << "cannot satisfy all min flow requirements\n";
 		}
 	} else if (strcmp(argv[1],"maxFloMinDinic") == 0) {
 		Mflograph mfg; cin >> mfg;
@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
 			if (show) cout << mfg << endl;
 			if (verify) checkMaxFloMin(mfg);
 		} else {
-			cout << "could not satisfy min flow constraints\n";
+			cout << "cannot satisfy all min flow requirements\n";
 		}
 	} else {
 		Util::fatal("maxFlo: undefined method");
