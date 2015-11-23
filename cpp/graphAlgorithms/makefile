@@ -10,25 +10,28 @@ all:
 		       CXXFLAGS='${CXXFLAGS}' all
 	make -C mst    IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
-	make -C sPath  IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
+	make -C spath  IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
-	make -C maxFlo IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
+	make -C mflo IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
-	make -C mcFlo  IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
+	make -C mcf  IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
 	make -C match  IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
-	make -C eColor IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
+	make -C ecolor IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
-	make -C egColor IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
+	make -C egcolor IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
+		       CXXFLAGS='${CXXFLAGS}' all
+	make -C becolor IDIR='../${IDIR}' LDIR='../${LDIR}' BIN='${BIN}' \
 		       CXXFLAGS='${CXXFLAGS}' all
 
 clean:
 	make -C misc   clean
 	make -C mst    clean
-	make -C sPath  clean
-	make -C maxFlo clean
-	make -C mcFlo  clean
+	make -C spath  clean
+	make -C mflo
+	make -C mcf  clean
 	make -C match  clean
-	make -C eColor  clean
-	make -C egColor  clean
+	make -C ecolor  clean
+	make -C egcolor  clean
+	make -C becolor  clean
