@@ -15,7 +15,7 @@ extern int ecolor_v(Graph&, int*);
 extern int becolorlb_d(Graph_wd&);
 extern int becolorlb_m(Graph_wd&);
 extern int becolorlb_f(Graph_wd&);
-extern bool mflof.cpp(Graph_ff&, string);
+extern bool mflof(Graph_ff&, string);
 extern void buildFlograf(Graph_wd&, int, int, Graph_ff&);
 
 /** Find a bounded edge coloring using the strict split method.
@@ -38,14 +38,14 @@ void becolor_ss(Graph_wd& g, int color[]) {
 	while (lo < hi) {
 		int mid = (lo + hi)/2;
 		buildFlograf(g,k,mid,fg);
-		if (mflof.cpp(fg,"mflo_ppf")) hi = mid;
+		if (mflof(fg,"mflo_ppf")) hi = mid;
 		else lo = mid+1;
 	}
 
 	// viable split when using hi colors
 	// build subgraphs defined by flow, color them and
 	// use the colorings to color the edges of g
-	buildFlograf(g,k,hi,fg); mflof.cpp(fg,"mflo_ppf");
+	buildFlograf(g,k,hi,fg); mflof(fg,"mflo_ppf");
 	Graph hk(g.n(),g.M()), jk(g.n(),g.M());
 	for (edge e = g.first(); e != 0; e = g.next(e)) {
 		vertex u = g.tail(e); vertex v = g.head(e);

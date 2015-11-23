@@ -1,4 +1,4 @@
-/** @file egColor.cpp
+/** @file egcolor.cpp
  * 
  *  @author Jon Turner
  *  @date 2015
@@ -6,17 +6,17 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#include "egColor.h"
+#include "egcolor.h"
 
 namespace grafalgo {
 
-/** Constructor for egColor class.
+/** Constructor for egcolor class.
  *  @param g is a reference to the graph
  *  @param edgeColors is an array indexed by edge numbers which is allocated
  *  by the caller; on return edgeColors[e] is the color assigned to edge e
  *  @return the number of colors used
  */
-egColor::egColor(Graph_g& g, int edgeColors[]) {
+egcolor::egcolor(Graph_g& g, int edgeColors[]) {
 	gp = &g;
 	color = edgeColors;
 	for (edge e = g.first(); e != 0; e = g.next(e)) color[e] = 0;
@@ -34,13 +34,13 @@ egColor::egColor(Graph_g& g, int edgeColors[]) {
 	maxColor = 1;
 }
 
-egColor::~egColor() { delete [] avail; }
+egcolor::~egcolor() { delete [] avail; }
 
 /** Allocate a color at a vertex.
  *  @param c is a color 
  *  @param u is a vertex
  */
-void egColor::allocate(int c, vertex u) {
+void egcolor::allocate(int c, vertex u) {
 	if (avail[u].member(c)) avail[u].remove(c);
 }
 
@@ -48,7 +48,7 @@ void egColor::allocate(int c, vertex u) {
  *  @param c is a color 
  *  @param u is a vertex
  */
-void egColor::free(int c, vertex u) {
+void egcolor::free(int c, vertex u) {
 	if (avail[u].member(c)) return;
 	if (c < avail[u].first()) {
 		avail[u].addFirst(c);
@@ -61,7 +61,7 @@ void egColor::free(int c, vertex u) {
 	}
 }
 	
-bool egColor::isConsistent() {
+bool egcolor::isConsistent() {
 	// check that no two adjacent edges have the same color
 	// unless they're in the same group
 	int inuse[gp->M()];

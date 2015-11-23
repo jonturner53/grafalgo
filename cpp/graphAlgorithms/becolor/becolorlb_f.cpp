@@ -14,7 +14,7 @@
 
 namespace grafalgo {
 
-extern bool mflof.cpp(Graph_ff&, string);
+extern bool mflof(Graph_ff&, string);
 extern int becolorlb_m(Graph_wd&);
 void buildFlograf(Graph_wd&, int, int, Graph_ff&);
 
@@ -36,7 +36,7 @@ cerr << C << ":";
 		int k;
 		for (k = bmax; k >= 1; k--) {
 			buildFlograf(g, k, C, fg);
-			if (!mflof.cpp(fg,"mflo_d")) {
+			if (!mflof(fg,"mflo_d")) {
 cerr << k << "." << C << " ";
 				loC = C; break;
 			}

@@ -9,12 +9,12 @@ LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph_g.h ${IDIR}/List.h \
-	 ${IDIR}/List_d.h ${IDIR}/egColor.h ${IDIR}/egcolor_l.h \
+	 ${IDIR}/List_d.h ${IDIR}/egcolor.h ${IDIR}/egcolor_l.h \
 	 ${IDIR}/egcolor_bl.h ${IDIR}/egcolor_tl.h ${IDIR}/egcolor_mc.h \
 	 ${IDIR}/egcolor_r.h ${IDIR}/egcolor_fc.h \
-	 ${IDIR}/egcolor_menu.h ${IDIR}/egColor_rm.h ${IDIR}/egcolor_gm.h ${IDIR}/egcolor_vm.h 
-OFILES = egColor.o egcolor_l.o egcolor_bl.o egcolor_tl.o egcolor_mc.o \
-	 egcolor_r.o egcolor_fc.o egcolor_menu.o egColor_rm.o egcolor_gm.o egcolor_vm.o
+	 ${IDIR}/egcolor_menu.h ${IDIR}/egcolor_rm.h ${IDIR}/egcolor_gm.h ${IDIR}/egcolor_vm.h 
+OFILES = egcolor.o egcolor_l.o egcolor_bl.o egcolor_tl.o egcolor_mc.o \
+	 egcolor_r.o egcolor_fc.o egcolor_menu.o egcolor_rm.o egcolor_gm.o egcolor_vm.o
 
 ${OFILES} : ${HFILES}
 

@@ -11,7 +11,7 @@ LIBS := ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph_w.h ${IDIR}/List.h ${IDIR}/List_g.h \
 	 ${IDIR}/Djheaps_ll.h ${IDIR}/Djsets_flt.h 
-OFILES = mst_k.o mst_p.o mst_pF.o mst_ct.o
+OFILES = mst_k.o mst_p.o mst_pf.o mst_ct.o
 
 ${OFILES} : ${HFILES}
 ${LIBGA} : ${OFILES}

@@ -15,7 +15,7 @@ HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph_f.h ${IDIR}/Heap_d.h \
 	 ${IDIR}/mflo_ppf.h ${IDIR}/mflo_pphl.h 
 
 OFILES = mflo_ff.o mflo_ffsp.o mflo_ffmc.o mflo_ffs.o \
-	mflo_d.o mflo_dDjsets_lct.o mflo_pp.o mflo_ppf.o mflo_pphl.o mflof.cpp.o
+	mflo_d.o mflo_dst.o mflo_pp.o mflo_ppf.o mflo_pphl.o mflof.o
 
 ${OFILES} : ${HFILES}
 

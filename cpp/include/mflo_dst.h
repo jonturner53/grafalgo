@@ -1,4 +1,4 @@
-/** @file mflo_dDjsets-lct.h
+/** @file mflo_dst.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,13 +6,13 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef MFLO_DDJSETS-LCT_H
-#define MFLO_DDJSETS-LCT_H
+#ifndef MFLO_DST_H
+#define MFLO_DST_H
 
 #include "stdinc.h"
 #include "Graph_f.h"
 #include "PathSet.h"
-#include "Djsets-lct.h"
+#include "Djsets_lct.h"
 #include "List.h"
 
 namespace grafalgo {
@@ -22,16 +22,16 @@ namespace grafalgo {
  *
  *  The algorithm is invoked using the constructor.
  */
-class mflo_dDjsets-lct {
+class mflo_dst {
 public:	
-		mflo_dDjsets-lct(Graph_f&);
-		mflo_dDjsets-lct(Graph_f&,string&);
+		mflo_dst(Graph_f&);
+		mflo_dst(Graph_f&,string&);
 private:
 	Graph_f* g;		///< graph we're finding flow on
 	int*	nextEdge;	///< pointer into adjacency list
 	int*	upEdge;		///< upEdge[u] is edge for dtrees link from u
 	int*	level;		///< level[u]=# of edges in path from source
-	Djsets-lct*	dt;		///< dynamic trees data structure
+	Djsets_lct*	dt;		///< dynamic trees data structure
 
 	bool	findPath();
 	int	augment();

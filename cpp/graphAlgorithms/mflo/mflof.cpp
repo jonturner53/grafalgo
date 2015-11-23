@@ -1,4 +1,4 @@
-/** @file mflof.cpp.cpp
+/** @file mflof.cpp
  * 
  *  @author Jon Turner
  *  @date 2013
@@ -21,7 +21,7 @@ namespace grafalgo {
  *  else false; in the latter case, the total flow on the edges with
  *  non-zero flow requirements is as large as it can be
  */
-bool mflof.cpp(Graph_ff& g, string floAlgo) {
+bool mflof(Graph_ff& g, string floAlgo) {
 	// Create separate flow graph for use in first phase
 	// First determine total capacity, number
 	// of edges with non-zero minimum flows and the sum of min flows

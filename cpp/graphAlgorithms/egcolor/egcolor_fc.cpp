@@ -21,7 +21,7 @@ namespace grafalgo {
  *  @return the number of colors used
  */
 egcolor_fc::egcolor_fc(Graph_g& g, int edgeColors[])
-		 : egColor(g, edgeColors) {
+		 : egcolor(g, edgeColors) {
 	// repeatedly select a group and color it with a greedy color
 	// selection strategy
 	Heap_d<int> groups(gp->M());

@@ -16,7 +16,7 @@ namespace grafalgo {
  *  by the caller; on return edgeColors[e] is the color assigned to edge e
  *  @return the number of colors used
  */
-egcolor_l::egcolor_l(Graph_g& g, int edgeColors[]) : egColor(g,edgeColors) {
+egcolor_l::egcolor_l(Graph_g& g, int edgeColors[]) : egcolor(g,edgeColors) {
 	// create and initialize usr[u][c] and nusr[u][c]
 	ug = new int[gp->n()+1]; ugrp = new Djsets_cl(gp->M());
 	usr = new int*[gp->n()+1]; nusr = new int*[gp->n()+1];

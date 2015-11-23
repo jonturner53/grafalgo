@@ -9,14 +9,14 @@
 #ifndef MATCH_EG_H
 #define MATCH_EG_H
 
-#include "match_egCore.h"
+#include "match_egc.h"
 
 namespace grafalgo {
 
 /** Encapsulates data and methods used to implement Gabow's version
  *  of Edmond's algorithm for finding a maximum size matching in a graph.
  */
-class match_eg : public match_egCore {
+class match_eg : public match_egc {
 public: match_eg(Graph&, List_g<edge>&);
 private:
 	edge findpath();

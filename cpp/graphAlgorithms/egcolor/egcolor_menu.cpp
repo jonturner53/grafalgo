@@ -21,7 +21,7 @@ namespace grafalgo {
  *  by the caller; on return edgeColors[e] is the color assigned to edge e
  *  @return the number of colors used
  */
-egcolor_menu::egcolor_menu(Graph_g& g, int edgeColors[]) : egColor(g, edgeColors) {
+egcolor_menu::egcolor_menu(Graph_g& g, int edgeColors[]) : egcolor(g, edgeColors) {
 	maxColor = max(gp->maxGroupCountIn(), gp->maxDegreeOut());
 
 	// initialize empty menus

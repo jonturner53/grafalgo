@@ -15,7 +15,7 @@ namespace grafalgo {
  *  @param match is a list in which the matching is returned
  */
 match_eg::match_eg(Graph& g1, List_g<edge>& match)
-		: match_egCore(g1) {
+		: match_egc(g1) {
 	// Create initial maximal (not maximum) matching
 	for (vertex u = 1; u <= g->n(); u++) {
 		mEdge[u] = 0; mark[u] = false;

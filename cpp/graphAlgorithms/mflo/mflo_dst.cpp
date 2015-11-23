@@ -1,4 +1,4 @@
-/** @file mflo_dDjsets_lct.cpp
+/** @file mflo_dst.cpp
  * 
  *  @author Jon Turner
  *  @date 2011
@@ -6,14 +6,14 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#include "mflo_dDjsets_lct.h"
+#include "mflo_dst.h"
 
 namespace grafalgo {
 
 /** Find a max flow using Dinic's algorith with dynamic trees.
  *  @param g1 is a flow graph
  */
-mflo_dDjsets_lct::mflo_dDjsets_lct(Graph_f& g1) : g(&g1) {
+mflo_dst::mflo_dst(Graph_f& g1) : g(&g1) {
 	level  = new int[g->n()+1]; nextEdge = new int[g->n()+1];
 	upEdge = new int[g->n()+1]; dt = new Djsets_lct(g->n());
 
@@ -31,7 +31,7 @@ mflo_dDjsets_lct::mflo_dDjsets_lct(Graph_f& g1) : g(&g1) {
 /** Find an augmenting path.
  *  @return true if there is an augmenting path.
  */
-bool mflo_dDjsets_lct::findPath() {
+bool mflo_dst::findPath() {
         vertex u, v; edge e;
 
 	while (nextEdge[g->src()] != 0) {
@@ -68,7 +68,7 @@ bool mflo_dDjsets_lct::findPath() {
  *  dynamic trees data structure
  *  @return the amount of flow added to the path
  */
-int mflo_dDjsets_lct::augment() {
+int mflo_dst::augment() {
 	vertex u; edge e;
 
 	NodeCostPair p = dt->findcost(g->src());
@@ -86,7 +86,7 @@ int mflo_dDjsets_lct::augment() {
 /** Prepare for a new phase. 
  *  @return true if there is are still augmenting paths.
  */
-bool mflo_dDjsets_lct::newPhase() {
+bool mflo_dst::newPhase() {
 	vertex u, v; edge e;
 	List q(g->n());
 	for (u = 1; u <= g->n(); u++) {

@@ -72,7 +72,7 @@ void ecolor_g::rColor(int Delta) {
 
 	// find Euler partition and return in euler and handle;
 	// on completion, cg has no edges
-	eulerDjsets_flt();
+	eulerPartition();
 
 	// rebuild cg using half of the edges, place others in list
 	List_g<edge> L(m/2); 

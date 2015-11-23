@@ -28,7 +28,7 @@ protected:
 	int	**usr;		///< usr[u][c]=an edge at u that uses color c
 	int	**nusr;		///< nusr[u][c]=# of edges at u that use c
 
-	Djsets_cl *ugrp;		///< partition on uncolored group numbers
+	Djsets_cl *ugrp;	///< disjoint sets on uncolored group numbers
 	int	*ug;		///< fg[u] is some uncolored group at u
 
 	void	colorGroup(int, int=0);

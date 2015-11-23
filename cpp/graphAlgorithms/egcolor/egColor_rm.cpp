@@ -1,4 +1,4 @@
-/** @file egColor_rm.cpp
+/** @file egcolor_rm.cpp
  * 
  *  @author Jon Turner
  *  @date 2015
@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#include "egColor_rm.h"
+#include "egcolor_rm.h"
 #include "matchb_hk.h"
 
 namespace grafalgo {
@@ -21,7 +21,7 @@ namespace grafalgo {
  *  by the caller; on return edgeColors[e] is the color assigned to edge e
  *  @return the number of colors used
  */
-egColor_rm::egColor_rm(Graph_g& g, int edgeColors[]) : egcolor_menu(g, edgeColors) {
+egcolor_rm::egcolor_rm(Graph_g& g, int edgeColors[]) : egcolor_menu(g, edgeColors) {
 	// use binary search to find the minimum number of colors
 	int cb = max(gp->maxGroupCountIn(), gp->maxDegreeOut());
 	while (cb <= colorBound) {
@@ -38,7 +38,7 @@ egColor_rm::egColor_rm(Graph_g& g, int edgeColors[]) : egcolor_menu(g, edgeColor
  *  @param cb is a bound on the number of colors
  *  @return true if successful, else false
  */
-bool egColor_rm::colorAll(int cb) {
+bool egcolor_rm::colorAll(int cb) {
 	clearMenus(); assignMenus(cb);
 	for (vertex v = gp->firstOut(); v != 0; v = gp->nextOut(v)) {
 		Graph& mg = *mgraf[v]; dmatch& dm = *dymatch[v];
@@ -59,7 +59,7 @@ bool egColor_rm::colorAll(int cb) {
  *  Colors are assigned randomly, but as evenly as possible at each input.
  *  @param cb is a bound on the number of colors
  */
-void egColor_rm::assignMenus(int cb) {
+void egcolor_rm::assignMenus(int cb) {
 	int colors[cb];
 	for (vertex u = gp->firstIn(); u != 0; u = gp->nextIn(u)) {
 		gp->sortGroups(u);
@@ -77,7 +77,7 @@ void egColor_rm::assignMenus(int cb) {
 /** Construct menu graph for a specified output
  *  @param v is vertex for which menu graph is to be constructed
  */
-void egColor_rm::buildMgraf(vertex v) {
+void egcolor_rm::buildMgraf(vertex v) {
 	Graph& mg = *mgraf[v];
 	int dv = gp->degree(v);
 	for (edge e = gp->firstAt(v); e != 0; e = gp->nextAt(v,e)) {

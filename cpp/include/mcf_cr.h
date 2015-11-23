@@ -16,8 +16,8 @@
 #include "Graph_wf.h"
 #include "List.h"
 #include "PathSet.h"
-#include "Djsets-lct.h"
-#include "mflo_dDjsets-lct.h"
+#include "Djsets_lct.h"
+#include "mflo_dst.h"
 
 namespace grafalgo {
 
