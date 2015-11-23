@@ -1,4 +1,4 @@
-/** \file Map_bst.h
+/** \file Map_rbt.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef MAP_BST_H
-#define MAP_BST_H
+#ifndef MAP_RBT_H
+#define MAP_RBT_H
 
 #include "Adt.h"
 #include "Ssets_rbt.h"
@@ -23,18 +23,18 @@ namespace grafalgo {
  *    put - adds a (key,value) pair
  *    remove - removes the pair for a given key
  * 
- *  The implementation uses a balanced binary search tree.
+ *  The implementation uses a red-black search tree.
  */
-class Map_bst : Adt {
+class Map_rbt : Adt {
 public:
-		Map_bst(int);
-		~Map_bst();
+		Map_rbt(int);
+		~Map_rbt();
 
 	// common methods
 	void	clear();
 	void	resize(int);
 	void	expand(int);
-	void	copyFrom(const Map_bst&);
+	void	copyFrom(const Map_rbt&);
 
 	int	get(keytyp); 		
 	bool	put(keytyp, uint32_t); 

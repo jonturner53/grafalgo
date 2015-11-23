@@ -9,13 +9,13 @@
 #include <chrono>
 #include "stdinc.h"
 #include "Rgraph.h"
-#include "Glist.h"
-#include "ecGabow.h"
+#include "List_g.h"
+#include "ecolor_g.h"
 
 namespace grafalgo {
-extern int ecMatch(Graph&, int*);
-extern int ecFmatch(Graph&, int*);
-extern int ecVizing(Graph&, int*);
+extern int ecolor_m(Graph&, int*);
+extern int ecolor_fm(Graph&, int*);
+extern int ecolor_v(Graph&, int*);
 }
 
 using namespace chrono;
@@ -58,16 +58,16 @@ int main(int argc, char *argv[]) {
 		Rgraph::ugraph(g,n,m);
 		if (strcmp(argv[1],"match") == 0) {
 			t1 = high_resolution_clock::now();
-			ecMatch(g,color);
+			ecolor_m(g,color);
 		} else if (strcmp(argv[1],"fmatch") == 0) {
 			t1 = high_resolution_clock::now();
-			ecFmatch(g,color);
+			ecolor_fm(g,color);
 		} else if (strcmp(argv[1],"vizing") == 0) {
 			t1 = high_resolution_clock::now();
-			ecVizing(g,color);
+			ecolor_v(g,color);
 		} else if (strcmp(argv[1],"gabow") == 0) {
 			t1 = high_resolution_clock::now();
-			ecGabow(g,color);
+			ecolor_g(g,color);
 		} else { 
 			Util::fatal("match: invalid method");
 		}

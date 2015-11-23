@@ -10,7 +10,7 @@ LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Dlist.h ${IDIR}/Wflograph.h \
 	 ${IDIR}/mcfCycRed.h ${IDIR}/mcfLcap.h ${IDIR}/mcfScale.h
-XFILES = testMaxFlo timeMaxFlo badCaseAugPath
+XFILES = testMflo timeMflo badCaseAugPath
 
 ${OFILES} : ${HFILES}
 
@@ -19,10 +19,10 @@ ${OFILES} : ${HFILES}
 
 all:	${XFILES}
 
-testMaxFlo: testMaxFlo.o ${LIBS}
+testMflo: testMflo.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-timeMaxFlo: timeMaxFlo.o ${LIBS}
+timeMflo: timeMflo.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 badCaseAugPath: badCaseAugPath.o ${LIBS}

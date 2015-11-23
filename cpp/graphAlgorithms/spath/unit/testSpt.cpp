@@ -7,16 +7,16 @@
  */
 
 #include "stdinc.h"
-#include "Wdigraph.h"
+#include "Graph_wd.h"
 
 namespace grafalgo {
-extern bool dijkstra(Wdigraph&, vertex, edge*, edgeLength*);
-extern bool bellmanMoore(Wdigraph&, vertex, edge*, edgeLength*);
+extern bool spt_d(Graph_wd&, vertex, edge*, edgeLength*);
+extern bool spt_bm(Graph_wd&, vertex, edge*, edgeLength*);
 }
 
 using namespace grafalgo;
 
-bool checkSpt(Wdigraph&, vertex, edge*, edgeLength*);
+bool checkSpt(Graph_wd&, vertex, edge*, edgeLength*);
 
 /** usage: testSpt method [src] [ show verify ]
  * 
@@ -33,7 +33,7 @@ bool checkSpt(Wdigraph&, vertex, edge*, edgeLength*);
  *  checked for correctness, potentially producing error messages
  */
 int main(int argc, char *argv[]) {
-	Wdigraph g; cin >> g;
+	Graph_wd g; cin >> g;
 	
 	if (argc < 2)
 		Util::fatal("usage: spt method [src] [show verify]");
@@ -42,10 +42,10 @@ int main(int argc, char *argv[]) {
 
 	edge pEdge[g.n()+1]; edgeLength d[g.n()+1];
 
-	if (strcmp(argv[1],"dijkstra") == 0)
-		dijkstra(g,s,pEdge,d);
-	else if (strcmp(argv[1],"bellmanMoore") == 0)
-		bellmanMoore(g,s,pEdge,d);
+	if (strcmp(argv[1],"spt_d") == 0)
+		spt_d(g,s,pEdge,d);
+	else if (strcmp(argv[1],"spt_bm") == 0)
+		spt_bm(g,s,pEdge,d);
 	else
 		Util::fatal("spt: undefined method");
 
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
  *  that is, d[u] is the distance from the source to u
  *  @return true if sptree is a shortest path tree
  */
-bool checkSpt(Wdigraph& g, vertex s, edge* pEdge, edgeLength* d) {
+bool checkSpt(Graph_wd& g, vertex s, edge* pEdge, edgeLength* d) {
 	bool status = true;
 	// source checks
 	if (s < 0 || s > g.n()) {

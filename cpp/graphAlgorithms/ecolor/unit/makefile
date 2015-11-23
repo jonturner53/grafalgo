@@ -9,11 +9,8 @@ CXXFLAGS := ${WARN} ${ARCH} -O2 -std=c++0x
 LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
-HFILES = ${IDIR}/stdinc.h \
-	 ${IDIR}/Graph.h ${IDIR}/Graph_d.h ${IDIR}/Graph_f.h \
-	 ${IDIR}/Graph_w.h ${IDIR}/Graph_wd.h ${IDIR}/Graph_wf.h
-XFILES = copyGraph 
-OFILES = copyGraph.o
+HFILES = ${IDIR}/stdinc.h 
+XFILES = testColor timeColor
 
 ${OFILES} : ${HFILES}
 
@@ -22,8 +19,11 @@ ${OFILES} : ${HFILES}
 
 all:	${XFILES}
 
-copyGraph: copyGraph.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+testColor: testColor.o ${LIBS} ${LIBGA}
+	${CXX} ${CXXFLAGS} $< ${LIBGA} ${LIBS} -o $@
+
+timeColor: timeColor.o ${LIBS} ${LIBGA}
+	${CXX} ${CXXFLAGS} $< ${LIBGA} ${LIBS} -o $@
 
 clean:
 	rm -f *.o ${XFILES}

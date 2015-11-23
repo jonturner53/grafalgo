@@ -10,10 +10,10 @@
 #include "Adt.h"
 #include "Util.h"
 #include "List.h"
-#include "Digraph.h"
+#include "Graph_d.h"
 
 namespace grafalgo {
-extern bool toposort(const Digraph&, List&);
+extern bool toposort(const Graph_d&, List&);
 }
 
 using namespace grafalgo;
@@ -26,7 +26,7 @@ using namespace grafalgo;
  *  to stdout.
  */
 int main() {
-	Digraph dg; cin >> dg; cout << dg;
+	Graph_d dg; cin >> dg; cout << dg;
 	List vlist(dg.n());
 	if (toposort(dg,vlist))
 		cout << vlist << endl;

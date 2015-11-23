@@ -10,7 +10,7 @@ LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Dlist.h ${IDIR}/Wflograph.h \
 	 ${IDIR}/mcfCycRed.h ${IDIR}/mcfLcap.h ${IDIR}/mcfScale.h
-XFILES = testMcFlo timeMcFlo checkMcFlo
+XFILES = testMcf timeMcf
 
 ${OFILES} : ${HFILES}
 
@@ -19,13 +19,10 @@ ${OFILES} : ${HFILES}
 
 all:	${XFILES}
 
-testMcFlo: testMcFlo.o ${LIBS}
+testMcf: testMcf.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-timeMcFlo: timeMcFlo.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-checkMcFlo: checkMcFlo.o ${LIBS}
+timeMcf: timeMcf.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 clean:

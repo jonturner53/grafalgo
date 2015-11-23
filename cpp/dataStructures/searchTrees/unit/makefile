@@ -4,26 +4,26 @@ LIBS = ${LDIR}/lib-util.a ${LDIR}/lib-ds.a
 
 CXXFLAGS = -Wall -Wno-c++11-extensions -O2 -m64 
 
-XFILES = testBstSet testBalBstSet testSaBstSet testTreeMap testSaTreeMap
+XFILES = testSsets testSsets_rbt testSsets_sat testMap_sat testMap_rbt
 
 .cpp.o :
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
 all : ${XFILES}
 
-testBstSet: testBstSet.o ${LIBS}
+testSsets: testSsets.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testBalBstSet: testBalBstSet.o ${LIBS}
+testSsets_rbt: testSsets_rbt.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testSaBstSet: testSaBstSet.o ${LIBS}
+testSsets_sat: testSsets_sat.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testTreeMap: testTreeMap.o ${LIBS}
+testMap_sat: testMap_sat.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testSaTreeMap: testSaTreeMap.o ${LIBS}
+testMap_rbt: testMap_rbt.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 clean :

@@ -7,24 +7,21 @@ CXXFLAGS = -Wall -O2 -m64 -std=c++0x
 %.o : %.cpp
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-all : testDheap testDdheap testDheapSet testFheapSet testLheapSet
+all : testHeap_d testHeap_dd testDjheaps_d testDjheaps_f testDjheaps_l
 
-testDheap: testDheap.o ${LIBS}
+testHeap_d: testHeap_d.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testDdheap: testDdheap.o ${LIBS}
+testHeap_dd: testHeap_dd.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testDheapSet: testDheapSet.o ${LIBS}
+testDjheaps_d: testDjheaps_d.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testFheapSet: testFheapSet.o ${LIBS}
+testDjheaps_f: testDjheaps_f.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testLfheapSet: testLfheapSet.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-testLheapSet: testLheapSet.o ${LIBS}
+testDjheaps_l: testDjheaps_l.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 clean :

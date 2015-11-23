@@ -1,4 +1,4 @@
-/** @file Map_bst.cpp 
+/** @file Map_rbt.cpp 
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,40 +6,40 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#include "Map_bst.h"
+#include "Map_rbt.h"
 
 namespace grafalgo {
 
-/** Constructor for Map_bst class.
+/** Constructor for Map_rbt class.
  *  @param n defines the index range for the constructed object.
  */
-Map_bst::Map_bst(int n) : Adt(n) { makeSpace(); init(); }
+Map_rbt::Map_rbt(int n) : Adt(n) { makeSpace(); init(); }
 
-/** Destructor for Map_bst class. */
-Map_bst::~Map_bst() { freeSpace(); }
+/** Destructor for Map_rbt class. */
+Map_rbt::~Map_rbt() { freeSpace(); }
 
-/** Allocate and initialize space for Map_bst.
+/** Allocate and initialize space for Map_rbt.
  */
-void Map_bst::makeSpace() {
+void Map_rbt::makeSpace() {
 	st = new Ssets_rbt(n());
 	values = new uint32_t[n()+1];
 	nodes = new ListPair(n());
 }
 
-/** Free dynamic storage used by Map_bst. */
-void Map_bst::freeSpace() {
+/** Free dynamic storage used by Map_rbt. */
+void Map_rbt::freeSpace() {
 	delete st; delete [] values; delete nodes;
 }
 
 /** Reinitialize data structure, creating single node trees. */
-void Map_bst::clear() {
+void Map_rbt::clear() {
 	while (root != 0) { remove(st->key(root)); }
 }
 
-/** Resize a Map_bst object, discarding old value.
+/** Resize a Map_rbt object, discarding old value.
  *  @param n is the size of the resized object.
  */
-void Map_bst::resize(int n) {
+void Map_rbt::resize(int n) {
 	freeSpace(); Adt::resize(n); makeSpace(); init();
 }
 
@@ -47,15 +47,15 @@ void Map_bst::resize(int n) {
  *  Rebuilds old value in new space.
  *  @param n is the size of the expanded object.
  */
-void Map_bst::expand(int n) {
+void Map_rbt::expand(int n) {
 	if (n <= this->n()) return;
-	Map_bst old(this->n()); old.copyFrom(*this);
+	Map_rbt old(this->n()); old.copyFrom(*this);
 	resize(n); this->copyFrom(old);
 }
 /** Copy another object to this one.
  *  @param source is object to be copied to this one
  */
-void Map_bst::copyFrom(const Map_bst& source) {
+void Map_rbt::copyFrom(const Map_rbt& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
 	else clear();
@@ -70,7 +70,7 @@ void Map_bst::copyFrom(const Map_bst& source) {
  *  @param key is the key to be looked up in the table
  *  @return the value stored for the given key, or UNDEF_VAL if there is none.
  */
-int Map_bst::get(keytyp key) {
+int Map_rbt::get(keytyp key) {
 	if (root == 0) return UNDEF_VAL;
 	index x = st->access(key,root);
 	if (x == 0) return UNDEF_VAL;
@@ -84,7 +84,7 @@ int Map_bst::get(keytyp key) {
  *  @param val is the value part of the pair
  *  @return true on success, false on failure.
  */
-bool Map_bst::put(uint64_t key, uint32_t val) {
+bool Map_rbt::put(uint64_t key, uint32_t val) {
 	index x;
 	if (root == 0 || (x = st->access(key,root)) == 0) {
 		x = nodes->firstOut();
@@ -101,7 +101,7 @@ bool Map_bst::put(uint64_t key, uint32_t val) {
 /** Remove a (key, value) pair from the table.
  *  @param key is the key of the pair to be removed
  */
-void Map_bst::remove(uint64_t key) {
+void Map_rbt::remove(uint64_t key) {
 	index x;
 	if (root != 0 && (x = st->access(key,root)) != 0) {
 		st->remove(x,root); nodes->swap(x);
@@ -110,7 +110,7 @@ void Map_bst::remove(uint64_t key) {
 }
 
 // Construct string listing the key,value pairs in the map
-string Map_bst::toString() const {
+string Map_rbt::toString() const {
 	string s;
 	for (index u = nodes->firstIn(); u != 0; u = nodes->nextIn(u)) {
 		s += " " + to_string(st->key(u)) + "," + to_string(values[u]);

@@ -8,12 +8,12 @@
 
 #include <chrono>
 #include "stdinc.h"
-#include "Wdigraph.h"
+#include "Graph_wd.h"
 #include "Rgraph.h"
 
 namespace grafalgo {
-extern bool dijkstra(Wdigraph&, vertex, edge*, edgeLength*);
-extern bool bellmanMoore(Wdigraph&, vertex, edge*, edgeLength*);
+extern bool spt_d(Graph_wd&, vertex, edge*, edgeLength*);
+extern bool spt_bm(Graph_wd&, vertex, edge*, edgeLength*);
 }
 
 using namespace chrono;
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	vertex *p = new vertex[n+1]; vertex *d = new vertex[n+1];
-	Wdigraph g; Wdigraph *sptree;
+	Graph_wd g; Graph_wd *sptree;
 	high_resolution_clock::time_point t1, t2;
 	nanoseconds diff;
 	int64_t avgTime, minTime, maxTime;
@@ -57,13 +57,13 @@ int main(int argc, char *argv[]) {
 	for (i = 1; i <= reps; i++) {
 		Rgraph::digraph(g,n,m); 
 		Rgraph::setLengths(g,lo,hi);
-		sptree = new Wdigraph(g.n(),g.n()-1);
-		if (strcmp(argv[1],"dijkstra") == 0) {
+		sptree = new Graph_wd(g.n(),g.n()-1);
+		if (strcmp(argv[1],"spt_d") == 0) {
 			t1 = high_resolution_clock::now();
-			dijkstra(g,1,p,d);
-		} else if (strcmp(argv[1],"bellmanMoore") == 0) {
+			spt_d(g,1,p,d);
+		} else if (strcmp(argv[1],"spt_bm") == 0) {
 			t1 = high_resolution_clock::now();
-			bellmanMoore(g,1,p,d);
+			spt_bm(g,1,p,d);
 		} else {
 			Util::fatal("sptRep: undefined method");
 		}

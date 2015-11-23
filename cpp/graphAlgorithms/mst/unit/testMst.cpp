@@ -7,21 +7,21 @@
  */
 
 #include "stdinc.h"
-#include "Glist.h"
-#include "Wgraph.h"
-#include "ClistSet.h"
-#include "Partition.h"
+#include "List_g.h"
+#include "Graph_w.h"
+#include "Djsets_cl.h"
+#include "Djsets_flt.h"
 
 namespace grafalgo {
-extern void kruskal(Wgraph&, Glist<edge>&);
-extern void prim(Wgraph&, Glist<edge>&);
-extern void primF(Wgraph&, Glist<edge>&);
-extern void cheritonTarjan(Wgraph&, Glist<edge>&);
+extern void mst_k(Graph_w&, List_g<edge>&);
+extern void mst_p(Graph_w&, List_g<edge>&);
+extern void mst_pF(Graph_w&, List_g<edge>&);
+extern void mst_ct(Graph_w&, List_g<edge>&);
 }
 
 using namespace grafalgo;
 
-bool checkMst(Wgraph&, Wgraph&);
+bool checkMst(Graph_w&, Graph_w&);
 
 /** usage: mst method [ show verify ]
  * 
@@ -29,7 +29,7 @@ bool checkMst(Wgraph&, Wgraph&);
  *  using the method specified by the argument. The total weight of the
  *  tree is then printed
  * 
- *  The method argument is one of kruskal, prim, primF or cheritonTarjan.
+ *  The method argument is one of mst_k, mst_p, mst_pF or mst_ct.
  * 
  *  If the show argument (string "show") is present, the original graph
  *  and mst are also printed.
@@ -39,19 +39,19 @@ bool checkMst(Wgraph&, Wgraph&);
  *  case of an invalid tree.
  */
 int main(int argc, char *argv[]) {
-	Wgraph g; cin >> g;
-	Glist<edge> mst;
+	Graph_w g; cin >> g;
+	List_g<edge> mst;
 	
 	if (argc < 2) Util::fatal("usage: testMst method [ show verify]");
 
-	if (strcmp(argv[1],"kruskal") == 0)
-		kruskal(g,mst);
-	else if (strcmp(argv[1],"prim") == 0)
-		prim(g,mst);
-	else if (strcmp(argv[1],"primF") == 0)
-		primF(g,mst);
-	else if (strcmp(argv[1],"cheritonTarjan") == 0)
-		cheritonTarjan(g,mst);
+	if (strcmp(argv[1],"mst_k") == 0)
+		mst_k(g,mst);
+	else if (strcmp(argv[1],"mst_p") == 0)
+		mst_p(g,mst);
+	else if (strcmp(argv[1],"mst_pF") == 0)
+		mst_pF(g,mst);
+	else if (strcmp(argv[1],"mst_ct") == 0)
+		mst_ct(g,mst);
 	else
 		Util::fatal("mst: undefined method");
 
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 
 	if (show) cout << g << endl << g.elist2string(mst) << endl;
 	if (verify) {
-		Wgraph mstg(g.n(), g.n()-1);
+		Graph_w mstg(g.n(), g.n()-1);
 		for (grafalgo::index x = mst.first(); x != 0; x = mst.next(x)) {
 			edge e = mst.value(x);
 			edge ee = mstg.join(g.left(e),g.right(e));
@@ -79,13 +79,13 @@ int main(int argc, char *argv[]) {
 	}
 }
 
-bool verify(Wgraph&, Wgraph&);
-bool rverify(Wgraph&, Wgraph&, vertex, vertex, vertex*,
-	     ClistSet&, vertex*, int*);
+bool verify(Graph_w&, Graph_w&);
+bool rverify(Graph_w&, Graph_w&, vertex, vertex, vertex*,
+	     Djsets_cl&, vertex*, int*);
 int max_wt(vertex, vertex, vertex*, vertex*);
-void nca(Wgraph&, Wgraph&, vertex*, ClistSet&);
-void nca_search(Wgraph&, Wgraph&, vertex, vertex, vertex*,
-	ClistSet&, Partition&, vertex*, int*);
+void nca(Graph_w&, Graph_w&, vertex*, Djsets_cl&);
+void nca_search(Graph_w&, Graph_w&, vertex, vertex, vertex*,
+	Djsets_cl&, Djsets_flt&, vertex*, int*);
 
 
 /** Verify that one graph is an MST of another.
@@ -93,7 +93,7 @@ void nca_search(Wgraph&, Wgraph&, vertex, vertex, vertex*,
  *  @param mstg is second weighted graph that is to be checked
  *  against g; an error message is printed for each discrepancy
  */
-bool checkMst(Wgraph& g, Wgraph& mstg) {
+bool checkMst(Graph_w& g, Graph_w& mstg) {
 	vertex u,v; edge e, f; bool status = true;
 
 	// check that mstg is a subgraph of g
@@ -150,10 +150,10 @@ bool checkMst(Wgraph& g, Wgraph& mstg) {
  *  @param mstg is a second graph that is assumed to be a spanning tree.
  *  @return true if mstg has minimum cost
  */
-bool verify(Wgraph& g, Wgraph& mstg) {
+bool verify(Graph_w& g, Graph_w& mstg) {
 	// Determine nearest common ancestor for each edge.
 	vertex* first_edge = new edge[g.n()+1];
-	ClistSet edge_sets(g.m());
+	Djsets_cl edge_sets(g.m());
 	nca(g,mstg,first_edge,edge_sets);
 
 	// Check paths from endpoints to nca, and compress.
@@ -170,8 +170,8 @@ bool verify(Wgraph& g, Wgraph& mstg) {
  *  @param pu is the parent of u in mstg
  *  @return true if the subtree can be verified, else false
  */
-bool rverify(Wgraph& g, Wgraph& mstg, vertex u, vertex pu,
-	    vertex first_edge[], ClistSet& edge_sets, vertex a[], int mw[]) {
+bool rverify(Graph_w& g, Graph_w& mstg, vertex u, vertex pu,
+	    vertex first_edge[], Djsets_cl& edge_sets, vertex a[], int mw[]) {
 	vertex v; edge e; int m; bool status = true;
 	for (e = mstg.firstAt(u); e != 0; e = mstg.nextAt(u,e)) {
 		v = mstg.mate(u,e);
@@ -219,8 +219,8 @@ int max_wt(vertex u, vertex v, vertex a[], int mw[]) {
  *  @param edge_sets is used to return a collection of lists that partition
  *  the edges; two edges appear on the same list if they have the same nca
  */
-void nca(Wgraph& g, Wgraph& mstg, edge *first_edge, ClistSet& edge_sets) {
-	Partition npap(g.n());
+void nca(Graph_w& g, Graph_w& mstg, edge *first_edge, Djsets_cl& edge_sets) {
+	Djsets_flt npap(g.n());
 	vertex *npa = new vertex[g.n()+1];
 	int *mark = new int[g.m()+1];
 
@@ -241,9 +241,9 @@ void nca(Wgraph& g, Wgraph& mstg, edge *first_edge, ClistSet& edge_sets) {
  *  @param edge_sets is used to return a collection of lists that partition
  *  the edges; two edges appear on the same list if they have the same nca
  */
-void nca_search(Wgraph& g, Wgraph& mstg, vertex u, vertex pu,
+void nca_search(Graph_w& g, Graph_w& mstg, vertex u, vertex pu,
 		edge first_edge[],
-	ClistSet& edge_sets, Partition& npap, vertex npa[], int mark[]) {
+	Djsets_cl& edge_sets, Djsets_flt& npap, vertex npa[], int mark[]) {
 	vertex v, w; edge e;
 
 	for (e = mstg.firstAt(u); e != 0; e = mstg.nextAt(u,e)) {

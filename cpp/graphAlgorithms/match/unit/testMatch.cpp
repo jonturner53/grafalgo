@@ -7,28 +7,28 @@
  */
 
 #include "stdinc.h"
-#include "Dlist.h"
-#include "Wgraph.h"
-#include "hopcroftKarp.h"
-#include "hungarian.h"
-#include "edmondsGabow.h"
-#include "fastEdmondsGabow.h"
-#include "edmondsGMGbi.h"
-#include "maxdMatch.h"
-#include "fastMaxdMatch.h"
-#include "vsetMatch.h"
+#include "List_d.h"
+#include "Graph_w.h"
+#include "matchb_hk.h"
+#include "matchwb_h.h"
+#include "match_eg.h"
+#include "match_egf.h"
+#include "matchb_gmg.h"
+#include "mdmatch.h"
+#include "mdmatch_f.h"
+#include "p2matchb_t.h"
 
 namespace grafalgo {
 extern bool findSplit(const Graph&, ListPair&);
-extern void flowMatch(Graph&, Glist<edge>&);
-extern void flowMatchWt(Wgraph&, Glist<edge>&);
+extern void flowMatch(Graph&, List_g<edge>&);
+extern void flowMatchWt(Graph_w&, List_g<edge>&);
 }
 
 using namespace grafalgo;
 
-bool checkMatch(Graph&, Glist<edge>&);
-bool checkMatch(Wgraph&, Glist<edge>&);
-bool checkMatch(Graph&, Dlist&, Glist<edge>&);
+bool checkMatch(Graph&, List_g<edge>&);
+bool checkMatch(Graph_w&, List_g<edge>&);
+bool checkMatch(Graph&, List_d&, List_g<edge>&);
 
 /** usage: testMatch method
  * 
@@ -36,10 +36,10 @@ bool checkMatch(Graph&, Dlist&, Glist<edge>&);
  *  using the method specified by the argument and then prints the
  *  resulting matching.
  * 
- *  Methods currently implemented include hopcroftKarp (bipartite/unweighted),
- *  hungarian (bipartite/weighted), edmondsGabow (general/unweighted),
- *  fastEdmondsGabow (general/unweighted), edmondsGMGbi (bipartite/weighted),
- *  maxdMatch (bipartite/unweighted), fastMaxdMatch (bipartite/unweighted)
+ *  Methods currently implemented include matchb_hk (bipartite/unweighted),
+ *  matchwb_h (bipartite/weighted), match_eg (general/unweighted),
+ *  match_egf (general/unweighted), matchb_gmg (bipartite/weighted),
+ *  mdmatch (bipartite/unweighted), mdmatch_f (bipartite/unweighted)
  */
 int main(int argc, char *argv[]) {
 	if (argc < 2) Util::fatal("usage: match method");
@@ -51,21 +51,21 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (strcmp(argv[1],"flowMatch") == 0) {
-		Graph g; cin >> g; Glist<edge> match(g.n()/2);
+		Graph g; cin >> g; List_g<edge> match(g.n()/2);
 		flowMatch(g,match);
 		int size = match.length();
 		cout << size << " edges in matching\n";
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
-	} else if (strcmp(argv[1],"hopcroftKarp") == 0) {
-		Graph g; cin >> g; Glist<edge> match(g.n()/2);
-		hopcroftKarp(g,match);
+	} else if (strcmp(argv[1],"matchb_hk") == 0) {
+		Graph g; cin >> g; List_g<edge> match(g.n()/2);
+		matchb_hk(g,match);
 		int size = match.length();
 		cout << size << " edges in matching\n";
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
 	} else if (strcmp(argv[1],"flowMatchWt") == 0) {
-		Wgraph g; cin >> g; Glist<edge> match(g.n()/2);
+		Graph_w g; cin >> g; List_g<edge> match(g.n()/2);
 		flowMatchWt(g,match);
 		int size = match.length();
 		edgeWeight totalWeight = g.weight(match);
@@ -73,56 +73,56 @@ int main(int argc, char *argv[]) {
 		     << totalWeight << "\n";
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
-	} else if (strcmp(argv[1],"hungarian") == 0) {
-		Wgraph g; cin >> g; Glist<edge> match(g.n()/2);
-		hungarian(g,match);
+	} else if (strcmp(argv[1],"matchwb_h") == 0) {
+		Graph_w g; cin >> g; List_g<edge> match(g.n()/2);
+		matchwb_h(g,match);
 		int size = match.length();
 		edgeWeight totalWeight = g.weight(match);
 		cout << size << " edges in matching with total weight "
 		     << totalWeight << "\n";
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
-	} else if (strcmp(argv[1],"edmondsGabow") == 0) {
-		Graph g; cin >> g; Glist<edge> match(g.n()/2);
-		edmondsGabow(g,match);
+	} else if (strcmp(argv[1],"match_eg") == 0) {
+		Graph g; cin >> g; List_g<edge> match(g.n()/2);
+		match_eg(g,match);
 		int size = match.length();
 		cout << size << " edges in matching\n";
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
-	} else if (strcmp(argv[1],"fastEdmondsGabow") == 0) {
-		Graph g; cin >> g; Glist<edge> match(g.n()/2);
-		fastEdmondsGabow(g,match);
+	} else if (strcmp(argv[1],"match_egf") == 0) {
+		Graph g; cin >> g; List_g<edge> match(g.n()/2);
+		match_egf(g,match);
 		int size = match.length();
 		cout << size << " edges in matching\n";
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
-	} else if (strcmp(argv[1],"edmondsGMGbi") == 0) {
-		Wgraph g; cin >> g; Glist<edge> match(g.n()/2);
-		edmondsGMGbi(g,match);
+	} else if (strcmp(argv[1],"matchb_gmg") == 0) {
+		Graph_w g; cin >> g; List_g<edge> match(g.n()/2);
+		matchb_gmg(g,match);
 		int size = match.length();
 		edgeWeight totalWeight = g.weight(match);
 		cout << size << " edges in matching with total weight "
 		     << totalWeight << "\n";
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
-	} else if (strcmp(argv[1],"maxdMatch") == 0) {
-		Graph g; cin >> g; Glist<edge> match(g.n()/2);
-		maxdMatch(g,match);
+	} else if (strcmp(argv[1],"mdmatch") == 0) {
+		Graph g; cin >> g; List_g<edge> match(g.n()/2);
+		mdmatch(g,match);
 		int size = match.length();
 		cout << size << " edges in matching\n";
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
-	} else if (strcmp(argv[1],"fastMaxdMatch") == 0) {
-		Graph g; cin >> g; Glist<edge> match(g.n()/2);
-		fastMaxdMatch(g,match);
+	} else if (strcmp(argv[1],"mdmatch_f") == 0) {
+		Graph g; cin >> g; List_g<edge> match(g.n()/2);
+		mdmatch_f(g,match);
 		int size = match.length();
 		cout << size << " edges in matching\n";
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
-	} else if (strcmp(argv[1],"vsetMatch") == 0) {
-		Graph g; cin >> g; Dlist vset(g.n()); cin >> vset;
-		Glist<edge> match(g.n()/2); 
-		vsetMatch(g, vset, match);
+	} else if (strcmp(argv[1],"p2matchb_t") == 0) {
+		Graph g; cin >> g; List_d vset(g.n()); cin >> vset;
+		List_g<edge> match(g.n()/2); 
+		p2matchb_t(g, vset, match);
 		int size = match.length();
 		cout << size << " edges in matching, ";
 		int count = 0;
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
  *  @return true if match is a valid maximal matching of g;
  *  does not verify maximum size, just maximality
  */
-bool checkMatch(Graph& g, Glist<edge>& match) {
+bool checkMatch(Graph& g, List_g<edge>& match) {
 	bool status = true;
 
 	// verify validity of edge numbers
@@ -203,7 +203,7 @@ bool checkMatch(Graph& g, Glist<edge>& match) {
  *  @return true if match is a valid maximal matching of g;
  *  does not verify maximum size, just maximality
  */
-bool checkMatch(Wgraph& g, Glist<edge>& match) {
+bool checkMatch(Graph_w& g, List_g<edge>& match) {
 	bool status = true;
 
 	// verify validity of edge numbers
@@ -257,7 +257,7 @@ bool checkMatch(Wgraph& g, Glist<edge>& match) {
  *  @return true if match is a valid maximal matching of g;
  *  does not verify maximum size, just maximality
  */
-bool checkMatch(Graph& g, Dlist& vset, Glist<edge>& match) {
+bool checkMatch(Graph& g, List_d& vset, List_g<edge>& match) {
 	bool status = true;
 
 	// verify validity of edge numbers

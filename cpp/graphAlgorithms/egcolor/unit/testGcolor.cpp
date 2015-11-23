@@ -10,19 +10,19 @@
 */
 
 #include "stdinc.h"
-#include "GroupGraph.h"
-#include "egBasicLayers.h"
-#include "egThinLayers.h"
-#include "egMinColor.h"
-#include "egRecolor.h"
-#include "egFewColors.h"
-#include "egMenu.h"
-#include "egRmenu.h"
-#include "egGmenu.h"
+#include "Graph_g.h"
+#include "egcolor_bl.h"
+#include "egcolor_tl.h"
+#include "egcolor_mc.h"
+#include "egcolor_r.h"
+#include "egcolor_fc.h"
+#include "egcolor_menu.h"
+#include "egcolor_rm.h"
+#include "egcolor_gm.h"
 
 using namespace grafalgo;
 
-bool gcCheck(GroupGraph&, int[]);
+bool gcCheck(Graph_g&, int[]);
 
 int main(int argc, char *argv[]) {
 	if (argc < 2)
@@ -33,25 +33,25 @@ int main(int argc, char *argv[]) {
 		else if (strcmp(argv[i],"verify") == 0) verify = true;
 	}
 		
-	GroupGraph g; cin >> g;
+	Graph_g g; cin >> g;
 	int color[g.M()+1];
 	for (edge e = 0; e <= g.M(); e++) color[e] = 0;
 
 	int numColors = 0;
 	if (strcmp(argv[1],"basicLayers") == 0) {
-		egBasicLayers(g,color);
+		egcolor_bl(g,color);
 	} else if (strcmp(argv[1],"thinLayers") == 0) {
-		egThinLayers(g,color);
+		egcolor_tl(g,color);
 	} else if (strcmp(argv[1],"minColor") == 0) {
-		egMinColor(g,color);
+		egcolor_mc(g,color);
 	} else if (strcmp(argv[1],"recolor") == 0) {
-		egRecolor(g,color);
+		egcolor_r(g,color);
 	} else if (strcmp(argv[1],"fewColors") == 0) {
-		egFewColors(g,color);
+		egcolor_fc(g,color);
 	} else if (strcmp(argv[1],"rmenu") == 0) {
-		egRmenu(g,color);
+		egcolor_rm(g,color);
 	} else if (strcmp(argv[1],"gmenu") == 0) {
-		egGmenu(g,color);
+		egcolor_gm(g,color);
 	} else {
 		Util::fatal("testColor: invalid method");
 	}
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
  *  @param color[e] is the color assigned to edge e
  *  @return true if this is a valid coloring
  */
-bool gcCheck(GroupGraph& g, int color[]) {
+bool gcCheck(Graph_g& g, int color[]) {
 	bool status = true;
 
 	// check that no two adjacent edges have the same color

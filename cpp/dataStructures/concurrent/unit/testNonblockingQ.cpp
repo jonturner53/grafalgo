@@ -1,13 +1,13 @@
 // usage:
-//	testNonblockingQ
+//	testQueue_nb
 //
-// Simple test of NonblockingQ data structure
+// Simple test of Queue_nb data structure
 
 #include <chrono>
 #include <atomic>
 #include <thread>
 #include <mutex>
-#include "NonblockingQ.h"
+#include "Queue_nb.h"
 
 using std::thread;
 using std::mutex;
@@ -16,7 +16,7 @@ using std::unique_lock;
 
 using namespace forest;
 
-NonblockingQ<int> q(4);
+Queue_nb<int> q(4);
 
 void f() {
 	for (int i = 0; i < 3333333; i++) {

@@ -10,22 +10,22 @@
 */
 
 #include "stdinc.h"
-#include "Wdigraph.h"
-#include "beGreedy.h"
-#include "beAugPath.h"
+#include "Graph_wd.h"
+#include "becolor_g.h"
+#include "becolor_ap.h"
 
 namespace grafalgo {
-extern void beRepMatch(Wdigraph&, int[]);
-extern void beMaxDegMatch(Wdigraph&, int[]);
-extern void beStrictSplit(Wdigraph&, int[]);
-extern int degBound(Wdigraph&);
-extern int matchBound(Wdigraph&);
-extern int flowBound(Wdigraph&);
+extern void becolor_rm(Graph_wd&, int[]);
+extern void becolor_mdm(Graph_wd&, int[]);
+extern void becolor_ss(Graph_wd&, int[]);
+extern int becolorlb_d(Graph_wd&);
+extern int becolorlb_m(Graph_wd&);
+extern int becolorlb_f(Graph_wd&);
 }
 
 using namespace grafalgo;
 
-bool beCheck(Wdigraph&, int[], int);
+bool beCheck(Graph_wd&, int[], int);
 
 int main(int argc, char *argv[]) {
 	if (argc < 2)
@@ -36,20 +36,20 @@ int main(int argc, char *argv[]) {
 		else if (strcmp(argv[i],"verify") == 0) verify = true;
 	}
 		
-	Wdigraph g; cin >> g;
+	Graph_wd g; cin >> g;
 	int color[g.M()+1];
 	for (edge e = 1; e <= g.M(); e++) color[e] = 0;
 
 	if (strcmp(argv[1],"repMatch") == 0) {
-		beRepMatch(g,color);
+		becolor_rm(g,color);
 	} else if (strcmp(argv[1],"maxDegMatch") == 0) {
-		beMaxDegMatch(g,color);
+		becolor_mdm(g,color);
 	} else if (strcmp(argv[1],"greedy") == 0) {
-		beGreedy(g,color);
+		becolor_g(g,color);
 	} else if (strcmp(argv[1],"strictSplit") == 0) {
-		beStrictSplit(g,color);
+		becolor_ss(g,color);
 	} else if (strcmp(argv[1],"augPath") == 0) {
-		beAugPath(g,color);
+		becolor_ap(g,color);
 	} else {
 		Util::fatal("testBecolor: invalid method");
 	}
@@ -57,8 +57,8 @@ int main(int argc, char *argv[]) {
 	for (edge e = g.first(); e != 0; e = g.next(e)) {
 		cmax = max(cmax, color[e]);
 	}
-	cout << cmax << " " << degBound(g) << " " << matchBound(g) << " "
-	     << flowBound(g) << endl;
+	cout << cmax << " " << becolorlb_d(g) << " " << becolorlb_m(g) << " "
+	     << becolorlb_f(g) << endl;
 
 	if (verify) beCheck(g, color, cmax);
 	if (!show) exit(0);
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
  *  @param color[e] is the color assigned to edge e
  *  @return true if this is a valid coloring
  */
-bool beCheck(Wdigraph& g, int color[], int cmax) {
+bool beCheck(Graph_wd& g, int color[], int cmax) {
 	bool status = true;
 
 	// check that no two adjacent edges have the same color

@@ -1,4 +1,4 @@
-/** \file Heap_dSet.h
+/** \file Djheaps_d.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef HEAP_DSET_H
-#define HEAP_DSET_H
+#ifndef DJHEAPS_D_H
+#define DJHEAPS_D_H
 
 #include <list>
 #include "stdinc.h"
@@ -63,9 +63,9 @@ namespace grafalgo {
  *  cases like empty heaps. The values of the root and bot pointers
  *  of an empty heap are undefined.
  */
-template<class K> class Heap_dSet : public Adt {
-public:		Heap_dSet(int=50,int=4,int=8);
-		~Heap_dSet();
+template<class K> class Djheaps_d : public Adt {
+public:		Djheaps_d(int=50,int=4,int=8);
+		~Djheaps_d();
 
 	// common methods
 	void	init();
@@ -73,7 +73,7 @@ public:		Heap_dSet(int=50,int=4,int=8);
 	void	resize(int size) { resize(size,size); }
 	void	expand(int,int);
 	void	expand(int size) { expand(size,max(size,maxHeap)); }
-	void	copyFrom(const Heap_dSet&);
+	void	copyFrom(const Djheaps_d&);
 
 	// access methods
 	index	findMin(int) const;
@@ -117,23 +117,23 @@ private:
 	void	freeSpace();
 };
 
-/** Constructor for Heap_dSet.
+/** Constructor for Djheaps_d.
  *  @param size is the maximum index of any item
  *  @param maxHeap1 is the maximum heap number
  */
 template<class K>
-Heap_dSet<K>::Heap_dSet(int size, int maxh, int dd) :
+Djheaps_d<K>::Djheaps_d(int size, int maxh, int dd) :
 		   Adt(size), maxHeap(maxh), d(dd) { makeSpace(); init(); }
 
-/** Destructor for Heap_dSet. */
+/** Destructor for Djheaps_d. */
 template<class K>
-Heap_dSet<K>::~Heap_dSet() { freeSpace(); }
+Djheaps_d<K>::~Djheaps_d() { freeSpace(); }
 
-/** Allocate and initialize space for Heap_dSet.
+/** Allocate and initialize space for Djheaps_d.
  *  @param size is number of index values to provide space for
  */
 template<class K>
-void Heap_dSet<K>::makeSpace() {
+void Djheaps_d<K>::makeSpace() {
 	numNodes = (n()/d) + maxHeap;
 	heaps = new index[numNodes*d]; // each d-word block is a "node"
 	child = new int[numNodes*d];    // each item in heaps has child
@@ -149,29 +149,29 @@ void Heap_dSet<K>::makeSpace() {
 	hSize = new int[maxHeap+1];
 }
 
-/** Free dynamic storage used by Heap_dSet. */
+/** Free dynamic storage used by Djheaps_d. */
 template<class K>
-void Heap_dSet<K>::freeSpace() { 
+void Djheaps_d<K>::freeSpace() { 
 	delete [] heaps; delete [] child; delete [] parent;
 	delete [] pred; delete [] key; delete [] root;
 	delete [] bot; delete [] hSize;
 }
 
-/** Copy into Heap_dSet .
- *  @param src is another Heap_dSet object to be copied to this object.
+/** Copy into Djheaps_d .
+ *  @param src is another Djheaps_d object to be copied to this object.
  */
 template<class K>
-void Heap_dSet<K>::copyFrom(const Heap_dSet& src) {
-	Util::fatal("Heap_dSet::copyFrom not implemented.");
+void Djheaps_d<K>::copyFrom(const Djheaps_d& src) {
+	Util::fatal("Djheaps_d::copyFrom not implemented.");
 }
 
-/** Resize a Heap_dSet object.
+/** Resize a Djheaps_d object.
  *  The old value is discarded.
  *  @param size is the size of the resized object.
  *  @param maxh is the maximum number of heaps in the new object
  */
 template<class K>
-void Heap_dSet<K>::resize(int size, int maxh) {
+void Djheaps_d<K>::resize(int size, int maxh) {
 	freeSpace(); Adt::resize(size); maxHeap = maxh; makeSpace(); init();
 }
 
@@ -180,15 +180,15 @@ void Heap_dSet<K>::resize(int size, int maxh) {
  *  @param size is the size of the resized object.
  */
 template<class K>
-void Heap_dSet<K>::expand(int size, int maxh) {
+void Djheaps_d<K>::expand(int size, int maxh) {
 	if (size <= n() && maxh <= maxHeap) return;
-	Heap_dSet old(n(),maxHeap,d); old.copyFrom(*this);
+	Djheaps_d old(n(),maxHeap,d); old.copyFrom(*this);
 	resize(size,maxh); this->copyFrom(old);
 }
 
 /** Initialize all the heaps. */
 template<class K>
-void Heap_dSet<K>::init() {
+void Djheaps_d<K>::init() {
 	for (index h = 1; h <= maxHeap; h++) hSize[h] = 0;
 	for (int p = 0; p < numNodes*d; p++) heaps[p] = 0;
 
@@ -201,7 +201,7 @@ void Heap_dSet<K>::init() {
 
 /** Remove all elements from all heaps. */
 template<class K>
-void Heap_dSet<K>::clear() {
+void Djheaps_d<K>::clear() {
 	for (index h = 1; h <= maxHeap; h++) 
 		while (hSize[h] > 0) deleteMin(h);
 }
@@ -213,7 +213,7 @@ void Heap_dSet<K>::clear() {
  *  @return true on success, false on failure
  */
 template<class K>
-bool Heap_dSet<K>::insert(index i, const K& k, index h) {
+bool Djheaps_d<K>::insert(index i, const K& k, index h) {
 	key[i] = k;
 	if (i == 0) return false;
 	int n = hSize[h]; int r = (n-1)%d;
@@ -256,7 +256,7 @@ bool Heap_dSet<K>::insert(index i, const K& k, index h) {
  *  removing the index from h.
  */
 template<class K>
-int Heap_dSet<K>::deleteMin(index h) {
+int Djheaps_d<K>::deleteMin(index h) {
         int hn = hSize[h];
         if (hn == 0) return 0;
         int i, p;
@@ -295,7 +295,7 @@ int Heap_dSet<K>::deleteMin(index h) {
  *  @param p is the position from which i is to be shifted up
  */
 template<class K>
-void Heap_dSet<K>::siftup(index i, int p) {
+void Djheaps_d<K>::siftup(index i, int p) {
 	int pp = parent[p/d];
 	while (pp >= 0 && key[heaps[pp]] > key[i]) {
 		heaps[p] = heaps[pp]; p = pp; pp = parent[pp/d];
@@ -308,7 +308,7 @@ void Heap_dSet<K>::siftup(index i, int p) {
  *  @param p is the position from which i is to be shifted down
  */
 template<class K>
-void Heap_dSet<K>::siftdown(index i, int p) {
+void Djheaps_d<K>::siftdown(index i, int p) {
 	int cp = nodeMinPos(child[p]);
 	while (cp >= 0 && key[heaps[cp]] < key[i]) {
 		heaps[p] = heaps[cp]; p = cp;
@@ -323,17 +323,17 @@ void Heap_dSet<K>::siftdown(index i, int p) {
  *  be adjusted
  */
 template<class K>
-void Heap_dSet<K>::changeKeyMin(const K& k, index h) {
+void Djheaps_d<K>::changeKeyMin(const K& k, index h) {
 	int p = nodeMinPos(root[h]);
 	index i = heaps[p]; key[i] = k;
 	siftdown(i,p);
 }
 
-/** Create a human-readable representation of the Heap_dSet object.
+/** Create a human-readable representation of the Djheaps_d object.
  *  @return the string representing the object
  */ 
 template<class K>
-string Heap_dSet<K>::toString() const {
+string Djheaps_d<K>::toString() const {
 	string s;
 	for (index h = 1; h <= maxHeap; h++) {
 		if (!empty(h)) s += toString(h) + "\n";
@@ -345,7 +345,7 @@ string Heap_dSet<K>::toString() const {
  *  @return the string representing the heap
  */ 
 template<class K>
-string Heap_dSet<K>::toString(index h) const {
+string Djheaps_d<K>::toString(index h) const {
 	if (hSize[h] == 0) return "[]";
 
 	list<int> nodeList;
@@ -376,7 +376,7 @@ string Heap_dSet<K>::toString(index h) const {
  *  if there is no valid item at position p, return -1
  */ 
 template<class K>
-inline int Heap_dSet<K>::nodeMinPos(int p) const {
+inline int Djheaps_d<K>::nodeMinPos(int p) const {
 	if (p == -1 || heaps[p] == 0) return -1;
 	int minPos = p;
 	for (int q = p+1; q < p+d && heaps[q] != 0; q++)
@@ -390,7 +390,7 @@ inline int Heap_dSet<K>::nodeMinPos(int p) const {
  *  @return the item at the top of h or 0 if h is empty
  */
 template<class K>
-inline int Heap_dSet<K>::findMin(index h) const {
+inline int Djheaps_d<K>::findMin(index h) const {
 	if (hSize[h] == 0) return 0;
 	int p = nodeMinPos(root[h]);
 	return (p < 0 ? 0 : heaps[p]);
@@ -401,21 +401,21 @@ inline int Heap_dSet<K>::findMin(index h) const {
  *  @return the key for item i
  */
 template<class K>
-inline const K& Heap_dSet<K>::getKey(index i) const { return key[i]; }
+inline const K& Djheaps_d<K>::getKey(index i) const { return key[i]; }
 
 /** Determine if a heap is empty.
  *  @param h is the index of a heap
  *  @return true if h is empty
  */
 template<class K>
-inline bool Heap_dSet<K>::empty(index h) const { return hSize[h] == 0; };
+inline bool Djheaps_d<K>::empty(index h) const { return hSize[h] == 0; };
 
 /** Return the size of a heap.
  *  @param h is the index of a heap
  *  @return the number of items in h
  */
 template<class K>
-inline int Heap_dSet<K>::heapSize(index h) const { return hSize[h]; };
+inline int Djheaps_d<K>::heapSize(index h) const { return hSize[h]; };
 
 } // ends namespace
 

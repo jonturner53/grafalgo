@@ -7,11 +7,11 @@
  */
 #include "Adt.h"
 #include "Util.h"
-#include "Flograph.h"
+#include "Graph_f.h"
 
 using namespace grafalgo;
 
-void badCaseAugPath(int, int, Flograph&);
+void badCaseAugPath(int, int, Graph_f&);
 
 /**
  *  usage: badCaseAugPath k1 k2
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 			 (sscanf(argv[2],"%d",&k2)) != 1)
 		Util::fatal("usage badCaseAugPath k1 k2");
 
-	Flograph fg(10,20);
+	Graph_f fg(10,20);
 	badCaseAugPath(k1,k2,fg);
 
 	string s;
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
  *  The generated graphs have 16*k1 + 2*k2 + 6 vertices and
  *  20*k1 + k2^2 + 4*k2 edges.
  */
-void badCaseAugPath(int k1, int k2, Flograph& fg) {
+void badCaseAugPath(int k1, int k2, Graph_f& fg) {
 	// determine first vertex in each group
 	int c1 = 2;		// start of short chain from source
 	int c2 = c1 + 4*k1;	// start of long chain from source

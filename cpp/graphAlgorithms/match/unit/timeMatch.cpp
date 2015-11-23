@@ -9,19 +9,19 @@
 #include <chrono>
 #include "stdinc.h"
 #include "Rgraph.h"
-#include "Glist.h"
-#include "Wgraph.h"
-#include "hopcroftKarp.h"
-#include "hungarian.h"
-#include "edmondsGabow.h"
-#include "fastEdmondsGabow.h"
-#include "edmondsGMGbi.h"
-#include "maxdMatch.h"
-#include "fastMaxdMatch.h"
+#include "List_g.h"
+#include "Graph_w.h"
+#include "matchb_hk.h"
+#include "matchwb_h.h"
+#include "match_eg.h"
+#include "match_egf.h"
+#include "matchb_gmg.h"
+#include "mdmatch.h"
+#include "mdmatch_f.h"
 
 namespace grafalgo {
-extern void flowMatch(Graph&, Glist<edge>&);
-extern void flowMatchWt(Wgraph&, Glist<edge>&);
+extern void flowMatch(Graph&, List_g<edge>&);
+extern void flowMatchWt(Graph_w&, List_g<edge>&);
 }
 
 using namespace chrono;
@@ -33,10 +33,10 @@ using namespace grafalgo;
  *  using the specified method.
  * 
  *  Methods currently implemented include flowMatch (bipartite/unweighted),
- *  flowMatchWt (bipartite/weighted), hopcroftKarp (bipartite/unweighted),
- *  hungarian (bipartite/weighted), edmondsGabow (general/unweighted),
- *  fastEdmondsGabow (general/unweighted), edmondsGMGbi (bipartite/weighted),
- *  maxdMatch (bipartite/unweighted), fastMaxdMatch (bipartite/unweighted)
+ *  flowMatchWt (bipartite/weighted), matchb_hk (bipartite/unweighted),
+ *  matchwb_h (bipartite/weighted), match_eg (general/unweighted),
+ *  match_egf (general/unweighted), matchb_gmg (bipartite/weighted),
+ *  mdmatch (bipartite/unweighted), mdmatch_f (bipartite/unweighted)
  *
  *  Reps is the number of repetitions
  *  N is the number of vertices
@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 		exit(1); // redundant exit to shutup compiler
 	}
 
-	Graph g(n,md); Wgraph wg(n,md); Glist<edge> match(n/2);
+	Graph g(n,md); Graph_w wg(n,md); List_g<edge> match(n/2);
 	high_resolution_clock::time_point t1, t2;
 	nanoseconds diff;
 	int64_t avgTime, minTime, maxTime;
@@ -78,41 +78,41 @@ int main(int argc, char *argv[]) {
 			Rgraph::bigraph(g,n,n,md);
 			t1 = high_resolution_clock::now();
 			flowMatch(g,match);
-		} else if (strcmp(argv[1],"hopcroftKarp") == 0) {
+		} else if (strcmp(argv[1],"matchb_hk") == 0) {
 			Rgraph::bigraph(g,n,n,md);
 			t1 = high_resolution_clock::now();
-			hopcroftKarp(g,match);
+			matchb_hk(g,match);
 		} else if (strcmp(argv[1],"flowMatchWt") == 0) {
 			Rgraph::bigraph(wg,n,n,md);
 			Rgraph::setWeights(wg,lo,hi);
 			t1 = high_resolution_clock::now();
 			flowMatchWt(wg,match);
-		} else if (strcmp(argv[1],"hungarian") == 0) {
+		} else if (strcmp(argv[1],"matchwb_h") == 0) {
 			Rgraph::bigraph(wg,n,n,md);
 			Rgraph::setWeights(wg,lo,hi);
 			t1 = high_resolution_clock::now();
-			hungarian(wg,match);
-		} else if (strcmp(argv[1],"edmondsGabow") == 0) {
+			matchwb_h(wg,match);
+		} else if (strcmp(argv[1],"match_eg") == 0) {
 			Rgraph::ugraph(g,n,md);
 			t1 = high_resolution_clock::now();
-			edmondsGabow(g,match);
-		} else if (strcmp(argv[1],"fastEdmondsGabow") == 0) {
+			match_eg(g,match);
+		} else if (strcmp(argv[1],"match_egf") == 0) {
 			Rgraph::ugraph(g,n,md);
 			t1 = high_resolution_clock::now();
-			fastEdmondsGabow(g,match);
-		} else if (strcmp(argv[1],"edmondsGMGbi") == 0) {
+			match_egf(g,match);
+		} else if (strcmp(argv[1],"matchb_gmg") == 0) {
 			Rgraph::bigraph(wg,n,n,md);
 			Rgraph::setWeights(wg,lo,hi);
 			t1 = high_resolution_clock::now();
-			edmondsGMGbi(wg,match);
-		} else if (strcmp(argv[1],"maxdMatch") == 0) {
+			matchb_gmg(wg,match);
+		} else if (strcmp(argv[1],"mdmatch") == 0) {
 			Rgraph::regularBigraph(wg,n,md);
 			t1 = high_resolution_clock::now();
-			maxdMatch(g,match);
-		} else if (strcmp(argv[1],"fastMaxdMatch") == 0) {
+			mdmatch(g,match);
+		} else if (strcmp(argv[1],"mdmatch_f") == 0) {
 			Rgraph::regularBigraph(wg,n,md);
 			t1 = high_resolution_clock::now();
-			fastMaxdMatch(g,match);
+			mdmatch_f(g,match);
 		} else { 
 			Util::fatal("match: invalid method");
 		}

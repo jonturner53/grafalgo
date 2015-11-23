@@ -6,7 +6,7 @@
 */
 
 #include "stdinc.h"
-#include "Wdigraph.h"
+#include "Graph_wd.h"
 
 using namespace grafalgo;
 
@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 	int n = 4;
 	if (argc != 2 || sscanf(argv[1],"%d", &n) != 1)
 		Util::fatal("usage: badCase n");
-	Wdigraph g(3*n-1, n*n);
+	Graph_wd g(3*n-1, n*n);
 	for (vertex u = 1; u <= n; u++) {
 		for (vertex v = 1; v <= u; v++) {
 			edge e = g.join(u, v+n); g.setLength(e, v);

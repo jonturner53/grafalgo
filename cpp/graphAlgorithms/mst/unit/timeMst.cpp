@@ -10,16 +10,16 @@
 #include <sys/times.h>
 #include <unistd.h>
 #include <chrono>
-#include "Glist.h"
-#include "Wgraph.h"
+#include "List_g.h"
+#include "Graph_w.h"
 #include "Rgraph.h"
 #include "Util.h"
 
 namespace grafalgo {
-extern void kruskal(Wgraph&, Glist<int>&);
-extern void prim(Wgraph&, Glist<int>&);
-extern void primF(Wgraph&, Glist<int>&);
-extern void cheritonTarjan(Wgraph&, Glist<int>&);
+extern void mst_k(Graph_w&, List_g<int>&);
+extern void mst_p(Graph_w&, List_g<int>&);
+extern void mst_pF(Graph_w&, List_g<int>&);
+extern void mst_ct(Graph_w&, List_g<int>&);
 }
 
 using namespace grafalgo;
@@ -34,7 +34,7 @@ using namespace chrono;
  *  n is the number of vertices, m is the number of edges,
  *  maxkey is the maximum key
  * 
- *  Method may be prim, primF, kruskal or cheritonTarjan.
+ *  Method may be mst_p, mst_pF, mst_k or mst_ct.
  * 
  *  The output is a single line containing
  *
@@ -55,8 +55,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	srand(1);
-	Wgraph wg(n,m);
-	Glist<edge> mst;
+	Graph_w wg(n,m);
+	List_g<edge> mst;
 	high_resolution_clock::time_point time1, time2;
 	nanoseconds diff;
 	int64_t avgTime, minTime, maxTime;
@@ -65,18 +65,18 @@ int main(int argc, char* argv[]) {
 		Rgraph::connected(wg,n,m); 
 		Rgraph::setWeights(wg,0,maxkey);
 
-		if (strcmp(argv[1],"kruskal") == 0) {
+		if (strcmp(argv[1],"mst_k") == 0) {
 			time1 = high_resolution_clock::now();
-			kruskal(wg,mst);
-		} else if (strcmp(argv[1],"prim") == 0) {
+			mst_k(wg,mst);
+		} else if (strcmp(argv[1],"mst_p") == 0) {
 			time1 = high_resolution_clock::now();
-			prim(wg,mst);
-		} else if (strcmp(argv[1],"primF") == 0) {
+			mst_p(wg,mst);
+		} else if (strcmp(argv[1],"mst_pF") == 0) {
 			time1 = high_resolution_clock::now();
-			primF(wg,mst);
-		} else if (strcmp(argv[1],"cheritonTarjan") == 0) {
+			mst_pF(wg,mst);
+		} else if (strcmp(argv[1],"mst_ct") == 0) {
 			time1 = high_resolution_clock::now();
-			cheritonTarjan(wg,mst);
+			mst_ct(wg,mst);
 		} else {
 			Util::fatal("mstRep: undefined method");
 		}

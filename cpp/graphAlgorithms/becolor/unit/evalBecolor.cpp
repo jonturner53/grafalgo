@@ -9,16 +9,16 @@
 #include <chrono>
 #include "stdinc.h"
 #include "Rgraph.h"
-#include "beGreedy.h"
-#include "beAugPath.h"
+#include "becolor_g.h"
+#include "becolor_ap.h"
 
 namespace grafalgo {
-extern int degBound(Wdigraph&);
-extern int matchBound(Wdigraph&);
-extern int flowBound(Wdigraph&);
-extern void beStrictSplit(Wdigraph&, int*);
-extern void beRepMatch(Wdigraph&, int*);
-extern void beMaxDegMatch(Wdigraph&, int*);
+extern int becolorlb_d(Graph_wd&);
+extern int becolorlb_m(Graph_wd&);
+extern int becolorlb_f(Graph_wd&);
+extern void becolor_ss(Graph_wd&, int*);
+extern void becolor_rm(Graph_wd&, int*);
+extern void becolor_mdm(Graph_wd&, int*);
 }
 
 using namespace chrono;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 	}
 	method = argv[5];
 
-	Wdigraph g(2*n,n*d); int color[n*d+1];
+	Graph_wd g(2*n,n*d); int color[n*d+1];
 	high_resolution_clock::time_point t1, t2;
 	nanoseconds diff;
 	int totc = 0, minc = 2*d, maxc = 0;
@@ -67,22 +67,22 @@ int main(int argc, char *argv[]) {
 	avgTime = maxTime = 0; minTime = ((int64_t) 1) << 62;
 	int totx = 0; int minx = d; int maxx = 0;
 	for (int i = 1; i <= reps; i++) {
-		Rgraph::beColor(g,n,n,d,colorBound,.25);
+		Rgraph::becolor(g,n,n,d,colorBound,.25);
 		if (strcmp(method,"strictSplit") == 0) {
 			t1 = high_resolution_clock::now();
-			beStrictSplit(g,color);
+			becolor_ss(g,color);
 		} else if (strcmp(method,"greedy") == 0) {
 			t1 = high_resolution_clock::now();
-			beGreedy(g,color);
+			becolor_g(g,color);
 		} else if (strcmp(method,"repMatch") == 0) {
 			t1 = high_resolution_clock::now();
-			beRepMatch(g,color);
+			becolor_rm(g,color);
 		} else if (strcmp(method,"maxDegMatch") == 0) {
 			t1 = high_resolution_clock::now();
-			beMaxDegMatch(g,color);
+			becolor_mdm(g,color);
 		} else if (strcmp(method,"augPath") == 0) {
 			t1 = high_resolution_clock::now();
-			beAugPath(g,color);
+			becolor_ap(g,color);
 		} else { 
 			Util::fatal("match: invalid method");
 		}
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 		for (edge e = g.first(); e != 0; e = g.next(e))
 			c = max(c,color[e]);
 		totc += c; minc = min(c,minc); maxc = max(c,maxc);
-		int lb = max(degBound(g),max(matchBound(g),flowBound(g)));
+		int lb = max(becolorlb_d(g),max(becolorlb_m(g),becolorlb_f(g)));
 		int x = c - lb; // difference between c and lower bound
 		totx += x; minx = min(x,minx); maxx = max(x,maxx);
 	}

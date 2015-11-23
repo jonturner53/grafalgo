@@ -8,16 +8,16 @@
 
 #include <chrono>
 #include "stdinc.h"
-#include "GroupGraph.h"
+#include "Graph_g.h"
 #include "Rgraph.h"
-#include "egBasicLayers.h"
-#include "egThinLayers.h"
-#include "egMinColor.h"
-#include "egReColor.h"
-#include "egFewColors.h"
-#include "egRmenu.h"
-#include "egGmenu.h"
-#include "egMenu.h"
+#include "egcolor_bl.h"
+#include "egcolor_tl.h"
+#include "egcolor_mc.h"
+#include "egcolor_r.h"
+#include "egcolor_fc.h"
+#include "egColor_rm.h"
+#include "egcolor_gm.h"
+#include "egcolor_menu.h"
 
 using namespace chrono;
 using namespace grafalgo;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 	}
 	method = argv[7];
 
-	GroupGraph g(n1+n2,n2*d2); int color[n2*d2+1];
+	Graph_g g(n1+n2,n2*d2); int color[n2*d2+1];
 	high_resolution_clock::time_point t1, t2;
 	nanoseconds diff;
 	int avgc = 0, minc = n2*d2, maxc = 0;
@@ -69,25 +69,25 @@ int main(int argc, char *argv[]) {
 		Rgraph::groupGraph(g,n1,n2,g1,d2,colorBound);
 		if (strcmp(method,"basicLayers") == 0) {
 			t1 = high_resolution_clock::now();
-			egBasicLayers(g,color);
+			egcolor_bl(g,color);
 		} else if (strcmp(method,"thinLayers") == 0) {
 			t1 = high_resolution_clock::now();
-			egThinLayers(g,color);
+			egcolor_tl(g,color);
 		} else if (strcmp(method,"minColor") == 0) {
 			t1 = high_resolution_clock::now();
-			egMinColor(g,color);
+			egcolor_mc(g,color);
 		} else if (strcmp(method,"recolor") == 0) {
 			t1 = high_resolution_clock::now();
-			egRecolor(g,color);
+			egcolor_r(g,color);
 		} else if (strcmp(method,"fewColors") == 0) {
 			t1 = high_resolution_clock::now();
-			egFewColors(g,color);
+			egcolor_fc(g,color);
 		} else if (strcmp(method,"rmenu") == 0) {
 			t1 = high_resolution_clock::now();
-			egRmenu(g,color);
+			egcolor_rm(g,color);
 		} else if (strcmp(method,"gmenu") == 0) {
 			t1 = high_resolution_clock::now();
-			egGmenu(g,color);
+			egcolor_gm(g,color);
 		} else { 
 			Util::fatal("match: invalid method");
 		}

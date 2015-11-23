@@ -1,13 +1,13 @@
 // usage:
-//	testNonblockingQ11
+//	testQueue_nb11
 //
-// Simple test of NonblockingQ11 data structure
+// Simple test of Queue_nb11 data structure
 
 #include <chrono>
 #include <atomic>
 #include <thread>
 #include <mutex>
-#include "NonblockingQ11.h"
+#include "Queue_nb11.h"
 
 using std::thread;
 using std::mutex;
@@ -16,8 +16,8 @@ using std::unique_lock;
 
 using namespace grafalgo;
 
-NonblockingQ11<int,128> q0(16);
-NonblockingQ11<int,128> q1(16);
+Queue_nb11<int,128> q0(16);
+Queue_nb11<int,128> q1(16);
 
 void f(int i) {
 	int x;
