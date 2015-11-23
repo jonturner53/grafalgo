@@ -5,11 +5,11 @@ LDIR := ../../lib
 BIN := ~/bin
 CXXFLAGS := -Wall ${ARCH} -O2 -std=c++0x
 
-HFILES = ${IDIR}/stdinc.h ${IDIR}/Adt.h ${IDIR}/ListPair.h ${IDIR}/ClistSet.h \
-	 ${IDIR}/HashSet.h ${IDIR}/Graph.h ${IDIR}/Digraph.h \
-	 ${IDIR}/Flograph.h ${IDIR}/Wflograph.h ${IDIR}/Mflograph.h 
-OFILES = Graph.o Wgraph.o Digraph.o Wdigraph.o Flograph.o Wflograph.o \
-	 Mflograph.o GroupGraph.o Rgraph.o
+HFILES = ${IDIR}/stdinc.h ${IDIR}/Adt.h ${IDIR}/ListPair.h ${IDIR}/Djsets_cl.h \
+	 ${IDIR}/Set_h.h ${IDIR}/Graph.h ${IDIR}/Graph_d.h \
+	 ${IDIR}/Graph_f.h ${IDIR}/Graph_wf.h ${IDIR}/Graph_ff.h 
+OFILES = Graph.o Graph_w.o Graph_d.o Graph_wd.o Graph_f.o Graph_wf.o \
+	 Graph_ff.o Graph_g.o Rgraph.o
 ${OFILES} : ${HFILES}
 
 .cpp.o:

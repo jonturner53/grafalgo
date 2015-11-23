@@ -3,18 +3,17 @@ ARCH := -m$(shell getconf LONG_BIT)
 IDIR := ../../include
 LDIR := ../../lib
 BIN := ~/bin
-WARN := -Wall -Wno-c++11-extensions
-CXXFLAGS := ${WARN} ${ARCH} -O2
+CXXFLAGS := ${ARCH} -O2
 
-HFILES = ${IDIR}/Adt.h ${IDIR}/PathSet.h ${IDIR}/Dtrees.h
-OFILES = PathSet.o Dtrees.o
+HFILES = ${IDIR}/Adt.h ${IDIR}/PathSet.h ${IDIR}/Djsets_lct.h
+OFILES = PathSet.o Djsets_lct.o
 ${OFILES} : ${HFILES}
 
 .cpp.o:
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
 PathSet.o : ${IDIR}/stdinc.h ${IDIR}/PathSet.h
-Dtrees.o :  ${IDIR}/stdinc.h ${IDIR}/Dtrees.h
+Djsets_lct.o :  ${IDIR}/stdinc.h ${IDIR}/Djsets_lct.h
 
 all:	${OFILES}
 	ar -ru ${LDIR}/lib-ds.a ${OFILES}

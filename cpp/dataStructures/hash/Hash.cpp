@@ -107,7 +107,7 @@ uint32_t Hash::u32u16(const Pair<uint32_t,uint16_t>& key, int hf) {
  *  @param key is the value to be hashed
  *  @param hf must be 0 or 1; it specifies one of two hash functions to
  *  be used in the hash computation
- *  @return an unsigned 32 bit value suitable for use by HashSet or HashMap
+ *  @return an unsigned 32 bit value suitable for use by Set_h or Map_h
  */
 uint32_t Hash::string(const std::string& key, int hf) {
 	uint32_t z = 0;

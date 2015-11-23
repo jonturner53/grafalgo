@@ -9,9 +9,9 @@ CXXFLAGS := ${WARN} ${ARCH} -O2 -std=c++0x
 LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
-HFILES = ${IDIR}/stdinc.h ${IDIR}/Dlist.h ${IDIR}/Wflograph.h \
-	 ${IDIR}/mcfCycRed.h ${IDIR}/mcfLcap.h ${IDIR}/mcfScale.h
-OFILES = mcfCycRed.o mcfLcap.o mcfScale.o
+HFILES = ${IDIR}/stdinc.h ${IDIR}/List_d.h ${IDIR}/Graph_wf.h \
+	 ${IDIR}/mcf_cr.h ${IDIR}/mcf_lc.h ${IDIR}/mcf_s.h
+OFILES = mcf_cr.o mcf_lc.o mcf_s.o
 
 ${OFILES} : ${HFILES}
 

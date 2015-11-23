@@ -1,4 +1,4 @@
-/** @file beColor.h
+/** @file becolor.h
  * 
  *  @author Jon Turner
  *  @date 2015
@@ -9,9 +9,9 @@
 #ifndef BECOLOR_H
 #define BECOLOR_H
 
-#include "Wdigraph.h"
-#include "Dlist.h"
-#include "Dheap.h"
+#include "Graph_wd.h"
+#include "List_d.h"
+#include "Heap_d.h"
 
 namespace grafalgo {
 
@@ -20,19 +20,19 @@ namespace grafalgo {
  *  used as a base class by various algorithms.
  *  Each algorithm is invoked using its constructor.
  */
-class beColor {
+class becolor {
 public:
-	beColor(const Wdigraph&, int*);
-	~beColor();
+	becolor(const Graph_wd&, int*);
+	~becolor();
 protected:
-	const Wdigraph *gp;	///< graph being colored
+	const Graph_wd *gp;	///< graph being colored
 	int	*color;		///< color[e] is the color assigned to e
 	int	bmax;		///< largest edge bound
 	int	cmax;		///< upper bound on number of colors needed
 	int	maxColor;	///< largest color used so far
-	Dlist	*avail;		///< avail[u] is list of unused colors at u
-	Wdigraph *ugp;		///< uncolored subgraph
-	Dheap<int> *vbd;	///< vertices ordered by degree in ugp
+	List_d	*avail;		///< avail[u] is list of unused colors at u
+	Graph_wd *ugp;		///< uncolored subgraph
+	Heap_d<int> *vbd;	///< vertices ordered by degree in ugp
 
 	void	allocate(int, vertex);
 	void	free(int, vertex);
@@ -41,7 +41,7 @@ protected:
 	bool	isConsistent();
 };
 
-inline void beColor::assign(int c, edge e) {
+inline void becolor::assign(int c, edge e) {
 	vertex u = gp->tail(e); vertex v = gp->head(e);
 	color[e] = c; allocate(c,u); allocate(c,v);
 	vbd->changekey(u,vbd->key(u)+1); vbd->changekey(v,vbd->key(v)+1);

@@ -16,7 +16,7 @@ namespace grafalgo {
  *  by the caller; on return edgeColors[e] is the color assigned to edge e
  *  @return the number of colors used
  */
-egColor::egColor(GroupGraph& g, int edgeColors[]) {
+egColor::egColor(Graph_g& g, int edgeColors[]) {
 	gp = &g;
 	color = edgeColors;
 	for (edge e = g.first(); e != 0; e = g.next(e)) color[e] = 0;
@@ -24,7 +24,7 @@ egColor::egColor(GroupGraph& g, int edgeColors[]) {
 	colorBound = 10 * max(g.maxGroupCountIn(),g.maxDegreeOut());
 
 	// create list of available colors at each vertex
-	avail = new Dlist[g.n()+1];
+	avail = new List_d[g.n()+1];
 	for (vertex u = 1; u <= g.n(); u++) {
 		avail[u].resize(colorBound);
 		for (int c = 1; c <= colorBound; c++) {

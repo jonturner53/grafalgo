@@ -21,7 +21,7 @@ StairFunc::~StairFunc() { freeSpace(); }
 /** Allocate space for StairFunc.
  */
 void StairFunc::makeSpace() {
-	points = new DkBstSet(2*size+1); free = new List(2*size+1);
+	points = new DkSsets(2*size+1); free = new List(2*size+1);
 }
 
 /** Free dynamic storage used by StairFunc. */
@@ -81,7 +81,7 @@ index StairFunc::value(int x)  {
 int StairFunc::findmin(int lo, int hi) {
 	assert(0 <= lo && lo <= hi);
 	int min = INT_MAX;
-	BstSet::BstPair pairA(0,0); BstSet::BstPair pairB(0,0);
+	Ssets::BstPair pairA(0,0); Ssets::BstPair pairB(0,0);
 	
 	//lowNode is largest node with key1 <= lo
 	index lowNode = points->access(lo,points->find(1));
@@ -114,7 +114,7 @@ void StairFunc::change(int lo, int hi, int diff) {
 	// from free list and insert that point into points
 	// after removing an index from points, put it back on free
 	// note - never remove index #1 from the search tree
-	BstSet::BstPair pairA(0,0); BstSet::BstPair pairB(0,0);
+	Ssets::BstPair pairA(0,0); Ssets::BstPair pairB(0,0);
 	
 	//lowNode is largest node with key1 <= lo
 	index lowNode = points->access(lo,points->find(1));

@@ -17,7 +17,7 @@ using namespace std;
 
 namespace grafalgo {
 
-/** Collection of hash functions that can be used with HashSet and HashMap
+/** Collection of hash functions that can be used with Set_h and Map_h
  *  data structures. Users may also supply their own, but these can be used
  *  for some common cases.
  */

@@ -29,7 +29,7 @@ void Graph::makeSpace(int numv, int maxe) {
 	fe = new edge[numv+1];
 	evec = new EdgeInfo[maxe+1];
 	edges = new ListPair(maxe);
-	adjLists = new ClistSet(2*maxe+1);
+	adjLists = new Djsets_cl(2*maxe+1);
 }
 
 /** Initialize a Graph object. */
@@ -269,7 +269,7 @@ string Graph::elist2string(list<edge>& elist) const {
  *  @param elist is a reference to a list of edge numbers
  *  @return the string
  */
-string Graph::elist2string(Glist<edge>& elist) const {
+string Graph::elist2string(List_g<edge>& elist) const {
 	string s;
 	int i = elist.length();
 	for (index x = elist.first(); x != 0; x = elist.next(x)) {

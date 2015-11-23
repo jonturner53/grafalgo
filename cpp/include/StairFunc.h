@@ -9,7 +9,7 @@
 #ifndef STAIRFUNC_H
 #define STAIRFUNC_H
 
-#include "DkBstSet.h"
+#include "DkSsets.h"
 #include "List.h"
 
 namespace grafalgo {
@@ -41,7 +41,7 @@ public: 	StairFunc(int);
 	string&	toString(string&) const;
 	string 	toString() const;
 protected:
-	DkBstSet *points;		// data structure for "change points"
+	DkSsets *points;		// data structure for "change points"
 	List	*free;			// list of unused items in points
 
 	void	makeSpace();

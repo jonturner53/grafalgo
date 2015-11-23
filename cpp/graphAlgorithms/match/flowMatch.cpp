@@ -7,11 +7,11 @@
  */
 
 #include "Graph.h"
-#include "Flograph.h"
-#include "Glist.h"
+#include "Graph_f.h"
+#include "List_g.h"
 #include "ListPair.h"
 #include "Util.h"
-#include "dinic.h"
+#include "mflo_d.h"
 
 namespace grafalgo {
 
@@ -22,14 +22,14 @@ extern bool findSplit(const Graph&, ListPair&);
  *  @param g1 is an undirected graph
  *  @param match is a list in which the result is returned
  */
-void flowMatch(Graph& g, Glist<edge>& match) {
+void flowMatch(Graph& g, List_g<edge>& match) {
 	// divide vertices into two independent sets
 	ListPair split(g.n());
 	if (!findSplit(g,split))
 		Util::fatal("flowMatch: graph is not bipartite");
 
 	// create flow graph, taking care to maintain edge numbers
-	Flograph fg(g.n()+2, g.M()+g.n(), g.n()+1, g.n()+2);
+	Graph_f fg(g.n()+2, g.M()+g.n(), g.n()+1, g.n()+2);
 	for (edge e = g.first(); e != 0; e = g.next(e)) {
 		vertex u = (split.isIn(g.left(e)) ? g.left(e) : g.right(e));
 		fg.joinWith(u,g.mate(u,e),e); fg.setCapacity(e,1);
@@ -42,7 +42,7 @@ void flowMatch(Graph& g, Glist<edge>& match) {
 	}
 
 	// solve flow problem
-	(dinic(fg)); // parens added to eliminate ambiguity
+	(mflo_d(fg)); // parens added to eliminate ambiguity
 
 	// now construct matching from flow
 	match.clear();

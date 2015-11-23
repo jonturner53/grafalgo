@@ -9,7 +9,7 @@
 #include "stdinc.h"
 #include "Adt.h"
 #include "List.h"
-#include "Digraph.h"
+#include "Graph_d.h"
 
 namespace grafalgo {
 
@@ -18,7 +18,7 @@ namespace grafalgo {
  *  @param vlist is a List object in which result is returned;
  *  on return, the vertices in vlist are in topogical order
  */
-bool toposort(const Digraph& dg, List& vlist) {
+bool toposort(const Graph_d& dg, List& vlist) {
 	List q(dg.n());
 	int *nin = new int[dg.n()+1];
 

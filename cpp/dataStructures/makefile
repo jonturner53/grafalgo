@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 ARCH := -m$(shell getconf LONG_BIT)
 BIN := ~/bin
-CXXFLAGS := -Wall ${ARCH} -O2 -std-c++0x
+CXXFLAGS := -Wall ${ARCH} -O2 -std=c++0x
 
 all:
 	make -C basic       BIN='${BIN}' ARCH='${ARCH}' \

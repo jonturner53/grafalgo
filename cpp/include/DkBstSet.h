@@ -1,4 +1,4 @@
-/** @file DkBstSet.h
+/** @file DkSsets.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,10 +6,10 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef DKBSTSET_H
-#define DKBSTSET_H
+#ifndef DKSSETS_H
+#define DKSSETS_H
 
-#include "BalBstSet.h"
+#include "Ssets_rbt.h"
 
 namespace grafalgo {
 
@@ -19,16 +19,16 @@ namespace grafalgo {
  *
  *  Note: implementation not yet complete
  */
-class DkBstSet : public BalBstSet {
-public: 	DkBstSet(int);
-		~DkBstSet();
+class DkSsets : public Ssets_rbt {
+public: 	DkSsets(int);
+		~DkSsets();
 	static	const int MAX2 = INT_MAX-1;  ///< max allowed key2 value
 
 	// common methods
 	void	clear();
 	void	resize(int);
 	void	expand(int);
-	void	copyFrom(const DkBstSet&);
+	void	copyFrom(const DkSsets&);
 
 	// access methods
 	keytyp	key1(index);		   
@@ -61,7 +61,7 @@ private:
 /** Set key values of a node
  *  @param i is the index of an isolated node (that is, a single node bst)
  */
-void inline DkBstSet::setkey(index i, keytyp k1, keytyp k2) {
+void inline DkSsets::setkey(index i, keytyp k1, keytyp k2) {
 	assert(0 <= i && i <= n() && k2 <= MAX2);
 	assert(node[i].p == 0 && node[i].left == 0 && node[i].right == 0);
 	node[i].kee = k1; dmin[i] = k2; dkey[i] = 0;
@@ -71,7 +71,7 @@ void inline DkBstSet::setkey(index i, keytyp k1, keytyp k2) {
  *  @param i is the index of a node in a BST
  *  @return the value of the first key of i
  */
-keytyp inline DkBstSet::key1(index i) {
+keytyp inline DkSsets::key1(index i) {
 	assert(1 <= i && i <= n());
 	return node[i].kee;
 }
@@ -80,7 +80,7 @@ keytyp inline DkBstSet::key1(index i) {
  *  @param t is a canonical element of some bst (root of the BST)
  *  @return the smallest key2 value for any element in the bst
  */
-keytyp inline DkBstSet::min2(bst t) {
+keytyp inline DkSsets::min2(bst t) {
 	assert(1 <= t && t <= n());
 	return dmin[t];
 }
@@ -91,7 +91,7 @@ keytyp inline DkBstSet::min2(bst t) {
  *  @param t is the index for the root of the bst whose key2 values are
  *  to be changed
  */
-void inline DkBstSet::change2(keytyp diff, bst t) {
+void inline DkSsets::change2(keytyp diff, bst t) {
 	assert(1 <= t && t <= n());
 	dmin[t] += diff;
 }

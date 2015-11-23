@@ -9,8 +9,8 @@
 #include "stdinc.h"
 #include "Adt.h"
 #include "Rgraph.h"
-#include "Mflograph.h"
-#include "GroupGraph.h"
+#include "Graph_ff.h"
+#include "Graph_g.h"
 
 using namespace grafalgo;
 
@@ -117,42 +117,42 @@ int main(int argc, char* argv[]) {
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
 	    	   sscanf(argv[5],"%d",&hi) == 1) {
-		Wgraph g(n,m);
+		Graph_w g(n,m);
 		Rgraph::ugraph(g,n,m);
 		Rgraph::setWeights(g,lo,hi);
-		if (scram) Rgraph::scramble<Wgraph>(g);
+		if (scram) Rgraph::scramble<Graph_w>(g);
 		cout << g;
 	} else if (strcmp(gtyp,"wbigraph") == 0 && argc == 8 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
 	    	   sscanf(argv[5],"%d",&hi) == 1) {
-		Wgraph g(2*n,m);
+		Graph_w g(2*n,m);
 		Rgraph::bigraph(g,n,n,m);
 		Rgraph::setWeights(g,lo,hi);
-		if (scram) Rgraph::scramble<Wgraph>(g);
+		if (scram) Rgraph::scramble<Graph_w>(g);
 		cout << g;
 	} else if (strcmp(gtyp,"wcgraph") == 0 && argc == 8 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
 	    	   sscanf(argv[5],"%d",&hi) == 1) {
-		Wgraph g(n,m);
+		Graph_w g(n,m);
 		Rgraph::connected(g,n,m);
 		Rgraph::setWeights(g,lo,hi);
-		if (scram) Rgraph::scramble<Wgraph>(g);
+		if (scram) Rgraph::scramble<Graph_w>(g);
 		cout << g;
 	} else if (strcmp(gtyp,"wtree") == 0 && argc == 7 &&
 	    	   sscanf(argv[3],"%d",&lo) == 1 &&
 	    	   sscanf(argv[4],"%d",&hi) == 1) {
-		Wgraph g(n,n-1);
+		Graph_w g(n,n-1);
 		Rgraph::tree(g,n);
 		Rgraph::setWeights(g,lo,hi);
-		if (scram) Rgraph::scramble<Wgraph>(g);
+		if (scram) Rgraph::scramble<Graph_w>(g);
 		cout << g;
 	} else if (strcmp(gtyp,"wregular") == 0 && argc == 8 &&
 	    	   sscanf(argv[3],"%d",&d) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
 	    	   sscanf(argv[5],"%d",&hi) == 1) {
-		Wgraph rg(n,n*d/2);
+		Graph_w rg(n,n*d/2);
 		Rgraph::regular(rg,n,d);
 		Rgraph::setWeights(rg,lo,hi);
 		if (scram) Rgraph::scramble<Graph>(rg);
@@ -161,50 +161,50 @@ int main(int argc, char* argv[]) {
 	    	   sscanf(argv[3],"%d",&d) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
 	    	   sscanf(argv[5],"%d",&hi) == 1) {
-		Wgraph g(n,n*d);
+		Graph_w g(n,n*d);
 		Rgraph::regularBigraph(g,n,d);
 		Rgraph::setWeights(g,lo,hi);
 		if (scram) Rgraph::scramble<Graph>(g);
 		cout << g;
 	} else if (strcmp(gtyp,"digraph") == 0 && argc == 6 &&
 	    	   sscanf(argv[3],"%d",&m) == 1) {
-		Digraph g(n,m);
+		Graph_d g(n,m);
 		Rgraph::digraph(g,n,m);
-		if (scram) Rgraph::scramble<Digraph>(g);
+		if (scram) Rgraph::scramble<Graph_d>(g);
 		cout << g;
 	} else if (strcmp(gtyp,"dag") == 0 && argc == 6 &&
 	    	   sscanf(argv[3],"%d",&m) == 1) {
-		Digraph g(n,m);
+		Graph_d g(n,m);
 		Rgraph::dag(g,n,m);
-		if (scram) Rgraph::scramble<Digraph>(g);
+		if (scram) Rgraph::scramble<Graph_d>(g);
 		cout << g;
 	} else if (strcmp(gtyp,"wdigraph") == 0 && argc == 8 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
 	    	   sscanf(argv[5],"%d",&hi) == 1) {
-		Wdigraph g(n,m);
+		Graph_wd g(n,m);
 		Rgraph::digraph(g,n,m);
 		Rgraph::setLengths(g,lo,hi);
-		if (scram) Rgraph::scramble<Wdigraph>(g);
+		if (scram) Rgraph::scramble<Graph_wd>(g);
 		cout << g;
 	} else if (strcmp(gtyp,"wdag") == 0 && argc == 8 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&lo) == 1 &&
 	    	   sscanf(argv[5],"%d",&hi) == 1) {
-		Wdigraph waD(n,m);
+		Graph_wd waD(n,m);
 		Rgraph::dag(waD,n,m);
 		Rgraph::setLengths(waD,lo,hi);
-		if (scram) Rgraph::scramble<Wdigraph>(waD);
+		if (scram) Rgraph::scramble<Graph_wd>(waD);
 		cout << waD;
 	} else if (strcmp(gtyp,"flograph") == 0 && argc == 9 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
 	    	   sscanf(argv[4],"%d",&mss) == 1 &&
 	    	   sscanf(argv[5],"%d",&ecap1) == 1 &&
 	    	   sscanf(argv[6],"%d",&ecap2) == 1) {
-		Flograph g(n,m,1,2);
+		Graph_f g(n,m,1,2);
 		Rgraph::flograph(g,n,m,mss);
 		Rgraph::setCapacities(g,ecap1,ecap2);
-		if (scram) Rgraph::scramble<Flograph>(g);
+		if (scram) Rgraph::scramble<Graph_f>(g);
 		cout << g;
 	} else if (strcmp(gtyp,"wflograph") == 0 && argc == 11 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
@@ -213,11 +213,11 @@ int main(int argc, char* argv[]) {
 	    	   sscanf(argv[6],"%d",&ecap2) == 1 &&
 	    	   sscanf(argv[7],"%d",&lo) == 1 &&
 	    	   sscanf(argv[8],"%d",&hi) == 1) {
-		Wflograph g(n,m,1,2);
+		Graph_wf g(n,m,1,2);
 		Rgraph::flograph(g,n,m,mss);
 		Rgraph::setCapacities(g,ecap1,ecap2);
 		Rgraph::setCosts(g,lo,hi);
-		if (scram) Rgraph::scramble<Wflograph>(g);
+		if (scram) Rgraph::scramble<Graph_wf>(g);
 		cout << g;
 	} else if (strcmp(gtyp,"mflograph") == 0 && argc == 11 &&
 	    	   sscanf(argv[3],"%d",&m) == 1 &&
@@ -226,11 +226,11 @@ int main(int argc, char* argv[]) {
 	    	   sscanf(argv[6],"%d",&ecap2) == 1 &&
 	    	   sscanf(argv[7],"%d",&lo) == 1 &&
 	    	   sscanf(argv[8],"%d",&hi) == 1) {
-		Mflograph g(n,m,1,2);
+		Graph_ff g(n,m,1,2);
 		Rgraph::flograph(g,n,m,mss);
 		Rgraph::setCapacities(g,ecap1,ecap2);
 		Rgraph::setMinFlows(g,lo,hi);
-		if (scram) Rgraph::scramble<Mflograph>(g);
+		if (scram) Rgraph::scramble<Graph_ff>(g);
 		cout << g;
 	} else if (strcmp(gtyp,"groupgraph") == 0 && argc == 9 &&
 	    	   sscanf(argv[2],"%d",&n1) == 1 &&
@@ -238,9 +238,9 @@ int main(int argc, char* argv[]) {
 	    	   sscanf(argv[4],"%d",&gc1) == 1 &&
 	    	   sscanf(argv[5],"%d",&d2) == 1 &&
 	    	   sscanf(argv[6],"%d",&k) == 1) {
-		GroupGraph gg(n1+n2,n1*d1);
+		Graph_g gg(n1+n2,n1*d1);
 		Rgraph::groupGraph(gg,n1,n2,gc1,d2,k);
-		if (scram) Rgraph::scramble<GroupGraph>(gg);
+		if (scram) Rgraph::scramble<Graph_g>(gg);
 		cout << gg;
 	} else if (strcmp(gtyp,"becolor") == 0 && argc == 9 &&
 	    	   sscanf(argv[2],"%d",&n1) == 1 &&
@@ -248,9 +248,9 @@ int main(int argc, char* argv[]) {
 	    	   sscanf(argv[4],"%d",&d1) == 1 &&
 	    	   sscanf(argv[5],"%d",&cmax) == 1 &&
 	    	   sscanf(argv[6],"%lf",&p) == 1) {
-		Wdigraph g(n1+n2,n1*d1);
-		Rgraph::beColor(g,n1,n2,d1,cmax,p);
-		if (scram) Rgraph::scramble<Wdigraph>(g);
+		Graph_wd g(n1+n2,n1*d1);
+		Rgraph::becolor(g,n1,n2,d1,cmax,p);
+		if (scram) Rgraph::scramble<Graph_wd>(g);
 		cout << g;
 	} else 
 		Util::fatal("usage: randGraph type n m scram [..] seed");

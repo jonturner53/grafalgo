@@ -10,7 +10,7 @@
 #include "Hash.h"
 #include "Pair.h"
 #include "Rgraph.h"
-#include "ecGabow.h"
+#include "ecolor_g.h"
 
 namespace grafalgo {
 
@@ -36,7 +36,7 @@ void Rgraph::ugraph(Graph& g, int numv, int nume) {
 void Rgraph::addEdges(Graph& g, int nume) {
 	 if (nume <= g.m()) return;
 	 // build set containing edges already in graph
-	 HashSet<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
+	 Set_h<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
 	 for (edge e = g.first(); e != 0; e = g.next(e)) {
 		 Pair<vertex,vertex> vpair;
 		 vpair.first =  min(g.left(e), g.right(e));
@@ -104,7 +104,7 @@ void Rgraph::bigraph(Graph& g, int n1, int n2, int nume) {
 void Rgraph::addEdges(Graph& g, int n1, int n2, int nume) {
 	 if (nume <= g.m()) return;
 	 // build set containing edges already in graph
-	 HashSet<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
+	 Set_h<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
 	 for (edge e = g.first(); e != 0; e = g.next(e)) {
 		 Pair<vertex,vertex> vpair;
 		 vpair.first =  min(g.left(e), g.right(e));
@@ -166,7 +166,7 @@ void Rgraph::tree(Graph& g, int numv) {
 	 }
 	 // now build a heap containing all leaves in the tree
 	 // being generated
-	 Dheap<int> degOne(numv,2);      // vertices with one more edge to go
+	 Heap_d<int> degOne(numv,2);      // vertices with one more edge to go
 	 for (vertex u = 1; u <= numv; u++) {
 		 if (d[u] == 1) degOne.insert(u,u);
 	 }
@@ -365,25 +365,25 @@ void Rgraph::regularBiMultigraph(Graph& g, int n1, int n2, int d1) {
  *  @param cmax is an upper bound on the colors to be used (1..cmax)
  *  @param p is probability used to control selection of bounds
  */
-void Rgraph::beColor(Wdigraph& g, int n1, int n2, int d1, int cmax, double p) {
+void Rgraph::becolor(Graph_wd& g, int n1, int n2, int d1, int cmax, double p) {
 	int d2 = (n2*d1+(n1-1))/n1;
 	assert(cmax >= d1 && cmax >= d2);
 	regularBiMultigraph(g, n1, n2, d1);
 	int Delta = max(d1, d2); // max degree
 
 	// color edges and create random mapping of edge colors
-	int color[g.M()+1]; ecGabow(g,color);
+	int color[g.M()+1]; ecolor_g(g,color);
 	int cmap[cmax]; Util::genPerm(cmax, cmap);
 
 	// create list of available bounds for each vertex
-	Dlist *avail = new Dlist[g.n()+1];
+	List_d *avail = new List_d[g.n()+1];
 	for (vertex u = 1; u <= g.n(); u++) {
 		avail[u].resize(cmax);
 		for (int c = 1; c <= cmax; c++) avail[u].addLast(c);
 	}
 
 	// build heap of edges, sorted by mapped edge colors
-	Dheap<edge> edges(g.M());
+	Heap_d<edge> edges(g.M());
 	for (edge e = g.first(); e != 0; e = g.next(e))
 		edges.insert(e,cmap[color[e]-1]+1);
 
@@ -421,13 +421,13 @@ void Rgraph::beColor(Wdigraph& g, int n1, int n2, int d1, int cmax, double p) {
  *  numv vertices, leaving the remaining vertices with no edges
  *  @param nume is the number of edges in the generated digraph
  */
-void Rgraph::digraph(Digraph& dg, int numv, int nume) {
+void Rgraph::digraph(Graph_d& dg, int numv, int nume) {
 	 numv = max(0,numv); nume = max(0,nume);
 	 if (numv > dg.n() || nume > dg.M()) dg.resize(numv,nume); 
 	 else dg.clear();
 
 	 // build set containing edges already in graph
-	 HashSet<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
+	 Set_h<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
 	 for (edge e = dg.first(); e != 0; e = dg.next(e)) {
 		 Pair<vertex,vertex> vpair;
 		 vpair.first =  min(dg.tail(e), dg.head(e));
@@ -479,10 +479,10 @@ void Rgraph::digraph(Digraph& dg, int numv, int nume) {
  *  
  *  The generated graph has a "core" subgraph with numv-2 nodes and
  *  nume-2*mss edges and the specified span. It is generated using
- *  Digraph::rgraph. The source and sink are then added to the core.
+ *  Graph_d::rgraph. The source and sink are then added to the core.
  *  If mss>(numv-2)/4, it is first reduced to (numv-2)/4.
  */
-void Rgraph::flograph(Flograph& fg, int numv, int nume, int mss) {
+void Rgraph::flograph(Graph_f& fg, int numv, int nume, int mss) {
 	 mss = max(1,mss); mss = min(mss,(numv-2)/4); 
 	 numv = max(numv,3); nume = max(2*mss,nume);
 
@@ -514,14 +514,14 @@ void Rgraph::flograph(Flograph& fg, int numv, int nume, int mss) {
  *  numv vertices, leaving the remaining vertices with no edges
  *  @param nume is the number of edges in the generated digraph
  */
-void Rgraph::dag(Digraph& g, int numv, int nume) {
+void Rgraph::dag(Graph_d& g, int numv, int nume) {
 	 numv = max(0,numv); nume = max(0,nume);
 	 if (g.n() < numv || g.M() < nume)
 		 g.resize(numv,nume); 
 	 else g.clear();
 
 	 // build set containing edges already in graph
-	 HashSet<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
+	 Set_h<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
 	 for (edge e = g.first(); e != 0; e = g.next(e)) {
 		 Pair<vertex,vertex> vpair;
 		 vpair.first =  min(g.tail(e), g.head(e));
@@ -573,7 +573,7 @@ void Rgraph::dag(Digraph& g, int numv, int nume) {
  *  @param k is an upper bound on the number of colors needed to
  *  color the graph; must be at least as big as gc1 and d2
  */
-void Rgraph::groupGraph(GroupGraph& g, int n1, int n2, int gc1, int d2, int k) {
+void Rgraph::groupGraph(Graph_g& g, int n1, int n2, int gc1, int d2, int k) {
 	int d1 = n2*d2/n1;
 	assert(gc1 <= d1 && gc1 <= k && d2 <= k && d2 <= n1 &&
 		d1 <= n2 && d1*n1 == d2*n2);
@@ -622,32 +622,32 @@ void Rgraph::groupGraph(GroupGraph& g, int n1, int n2, int gc1, int d2, int k) {
 }
 
 /** Assign random weights to edges in a graph.
- *  @param g is a reference to the target Wgraph
+ *  @param g is a reference to the target Graph_w
  *  @param lo is the low end of the range
  *  @param hi is the high end of the range
  */
-void Rgraph::setWeights(Wgraph& g, int lo, int hi) {
+void Rgraph::setWeights(Graph_w& g, int lo, int hi) {
 	 for (edge e = g.first(); e != 0; e = g.next(e))
 		 g.setWeight(e,Util::randint(lo,hi));
 }
 
 /** Assign random lengths to edges in a graph.
- *  @param dg is a reference to the target Wdigraph
+ *  @param dg is a reference to the target Graph_wd
  *  @param lo is the low end of the range
  *  @param hi is the high end of the range
  */
-void Rgraph::setLengths(Wdigraph& dg, int lo, int hi) {
+void Rgraph::setLengths(Graph_wd& dg, int lo, int hi) {
 	 for (edge e = dg.first(); e != 0; e = dg.next(e))
 		 dg.setLength(e,Util::randint(lo,hi));
 }
 
-/** Assign random edge capacities to edges in a Flograph.
- *  @param fg is a reference to the target Flograph.
+/** Assign random edge capacities to edges in a Graph_f.
+ *  @param fg is a reference to the target Graph_f.
  *  @param ec1 is the max capacity of the source/sink edges
  *  @param ec2 is the max capacity of the remaining edges
  *  edge capacities are selected uniformly with a minimum of 1
  */
-void Rgraph::setCapacities(Flograph& fg, flow ec1, flow ec2) {
+void Rgraph::setCapacities(Graph_f& fg, flow ec1, flow ec2) {
 	 for (edge e = fg.first(); e != 0; e = fg.next(e)) {
 		 if (fg.tail(e) == fg.src() || fg.head(e) == fg.snk())
 			 fg.setCapacity(e,Util::randint(1,ec1));
@@ -657,12 +657,12 @@ void Rgraph::setCapacities(Flograph& fg, flow ec1, flow ec2) {
 }
 
 /** Generate random costs to edges in a weighted flograph.
- *  @param fg is a reference to the target Wflograph
+ *  @param fg is a reference to the target Graph_wf
  *  @param lo is the low end of the range of costs
  *  @param hi is the high end of the range of costs
  *  costs are generated uniformly in [lo,hi]
  */
-void Rgraph::setCosts(Wflograph& fg, floCost lo, floCost hi) {
+void Rgraph::setCosts(Graph_wf& fg, floCost lo, floCost hi) {
 	 for (edge e = fg.first(); e != 0; e = fg.next(e))
 		 fg.setCost(e,Util::randint(lo,hi));
 }
@@ -672,7 +672,7 @@ void Rgraph::setCosts(Wflograph& fg, floCost lo, floCost hi) {
  *  @param hi is the high end of the range of min flows
  *  min flows are generated uniformly in [lo,hi]
  */
-void Rgraph::setMinFlows(Mflograph& fg, flow lo, flow hi) {
+void Rgraph::setMinFlows(Graph_ff& fg, flow lo, flow hi) {
 	 for (edge e = fg.first(); e != 0; e = fg.next(e))
 		 fg.setMinFlo(e,Util::randint(lo,hi));
 }
@@ -701,34 +701,34 @@ void Rgraph::shuffle(Graph& g, int vp[], int ep[]) {
 	 }
 }
 
-void Rgraph::shuffle(Wgraph& g, int vp[], int ep[]) {
+void Rgraph::shuffle(Graph_w& g, int vp[], int ep[]) {
 	shuffle((Graph&) g,vp,ep);
 	Util::shuffle<edgeWeight>(g.wt+1, ep, g.M());
 }
 
-void Rgraph::shuffle(Wdigraph& g, int vp[], int ep[]) {
-	shuffle((Digraph&) g,vp,ep);
+void Rgraph::shuffle(Graph_wd& g, int vp[], int ep[]) {
+	shuffle((Graph_d&) g,vp,ep);
 	Util::shuffle<edgeLength>(g.len+1,ep,g.M());
 }
 	
-void Rgraph::shuffle(Flograph& g, int vp[], int ep[]) {
+void Rgraph::shuffle(Graph_f& g, int vp[], int ep[]) {
 	shuffle((Graph&) g,vp,ep);
-	Util::shuffle<Flograph::FloInfo>(g.floInfo+1, ep, g.M());
+	Util::shuffle<Graph_f::FloInfo>(g.floInfo+1, ep, g.M());
 	g.setSrc(1+vp[g.src()-1]); g.setSnk(1+vp[g.snk()-1]);
 }
 
-void Rgraph::shuffle(Wflograph& g, int vp[], int ep[]) {
-	shuffle((Flograph&) g,vp,ep);
+void Rgraph::shuffle(Graph_wf& g, int vp[], int ep[]) {
+	shuffle((Graph_f&) g,vp,ep);
 	Util::shuffle<flow>(g.cst+1, ep, g.M());
 }
 
-void Rgraph::shuffle(Mflograph& g, int vp[], int ep[]) {
-	shuffle((Flograph&) g,vp,ep);
+void Rgraph::shuffle(Graph_ff& g, int vp[], int ep[]) {
+	shuffle((Graph_f&) g,vp,ep);
 	Util::shuffle<flow>(g.mflo+1, ep, g.M());
 }
 
-void Rgraph::shuffle(GroupGraph& g, int vp[], int ep[]) {
-	GroupGraph gg(g.n(), g.M());
+void Rgraph::shuffle(Graph_g& g, int vp[], int ep[]) {
+	Graph_g gg(g.n(), g.M());
 	for (edge e = g.first(); e != 0; e = g.next(e)) {
 		vertex u = g.input(e); vertex v = g.output(e);
 		gg.joinWith(vp[u-1]+1, vp[v-1]+1,

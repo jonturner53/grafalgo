@@ -8,9 +8,9 @@ CXXFLAGS := -Wall ${ARCH} -O2 -std=c++0x
 LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
-HFILES = ${IDIR}/stdinc.h ${IDIR}/beColor.h 
-OFILES = beColor.o beGreedy.o beRepMatch.o beMaxDegMatch.o beAugPath.o \
-	 beStrictSplit.o degBound.o matchBound.o flowBound.o
+HFILES = ${IDIR}/stdinc.h ${IDIR}/becolor.h 
+OFILES = becolor.o becolor_g.o becolor_rm.o becolor_mdm.o becolor_ap.o \
+	 becolor_ss.o becolorlb_d.o becolorlb_m.o becolorlb_f.o
 
 ${OFILES} : ${HFILES}
 

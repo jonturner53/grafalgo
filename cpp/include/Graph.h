@@ -12,9 +12,9 @@
 #include "Adt.h"
 #include "Util.h"
 #include "List.h"
-#include "ClistSet.h"
+#include "Djsets_cl.h"
 #include "ListPair.h"
-#include "Glist.h"
+#include "List_g.h"
 #include <list>
 #include <vector>
 
@@ -80,7 +80,7 @@ public:		Graph(int=2,int=1);
 	virtual	string toString() const;
         virtual	string toDotString() const;
 	virtual	string elist2string(list<edge>&) const;
-	virtual	string elist2string(Glist<edge>&) const;
+	virtual	string elist2string(List_g<edge>&) const;
 	virtual	string elist2string(List&) const;
 
 	// sort adjacency lists by other endpont
@@ -100,7 +100,7 @@ protected:
 
 	ListPair *edges; 		///< sets of in-use and free edges
 
-	ClistSet *adjLists;		///< set of edge adjacency lists
+	Djsets_cl *adjLists;		///< set of edge adjacency lists
 					///< each "edge endpoint" appears
 					///< on one list; the endpoints
 					///< for edge e are 2e and 2e+1

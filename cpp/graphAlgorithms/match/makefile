@@ -8,16 +8,16 @@ CXXFLAGS := -Wall ${ARCH} -O2 -std=c++0x
 LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
-HFILES = ${IDIR}/stdinc.h ${IDIR}/Wgraph.h ${IDIR}/List.h \
-	 ${IDIR}/RlistSet.h ${IDIR}/Partition.h ${IDIR}/hopcroftKarp.h \
-	 ${IDIR}/hungarian.h ${IDIR}/edmondsGabowCore.h ${IDIR}/edmondsGabow.h \
-	 ${IDIR}/fastEdmondsGabow.h \
-	${IDIR}/edmondsGMGbi.h ${IDIR}/dynamicMatch.h \
-	${IDIR}/maxdMatch.h ${IDIR}/fastMaxdMatch.h ${IDIR}/vsetMatch.h
-OFILES = flowMatch.o flowMatchWt.o hopcroftKarp.o hungarian.o \
-	edmondsGabowCore.o edmondsGabow.o fastEdmondsGabow.o edmondsGMGbi.o \
-	flowMatch.o flowMatchWt.o maxdMatch.o fastMaxdMatch.o vsetMatch.o \
-	dynamicMatch.o
+HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph_w.h ${IDIR}/List.h \
+	 ${IDIR}/Djsets_rl.h ${IDIR}/Djsets_flt.h ${IDIR}/matchb_hk.h \
+	 ${IDIR}/matchwb_h.h ${IDIR}/match_egCore.h ${IDIR}/match_eg.h \
+	 ${IDIR}/match_egf.h \
+	${IDIR}/matchb_gmg.h ${IDIR}/dmatch.h \
+	${IDIR}/mdmatch.h ${IDIR}/mdmatch_f.h ${IDIR}/p2matchb_t.h
+OFILES = flowMatch.o flowMatchWt.o matchb_hk.o matchwb_h.o \
+	match_egCore.o match_eg.o match_egf.o matchb_gmg.o \
+	flowMatch.o flowMatchWt.o mdmatch.o mdmatch_f.o p2matchb_t.o \
+	dmatch.o
 
 ${OFILES} : ${HFILES}
 

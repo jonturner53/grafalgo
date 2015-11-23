@@ -6,11 +6,11 @@ BIN := ~/bin
 WARN := -Wall -Wno-c++11-extensions
 CXXFLAGS := ${WARN} ${ARCH} -O2
 
-HFILES = ${IDIR}/Adt.h ${IDIR}/stdinc.h ${IDIR}/List.h ${IDIR}/Dlist.h \
-	${IDIR}/ListSet.h ${IDIR}/ClistSet.h ${IDIR}/ListPair.h \
-	${IDIR}/Partition.h ${IDIR}/RlistSet.h
-OFILES = List.o Dlist.o ListSet.o ClistSet.o ListPair.o \
-	Partition.o RlistSet.o
+HFILES = ${IDIR}/Adt.h ${IDIR}/stdinc.h ${IDIR}/List.h ${IDIR}/List_d.h \
+	${IDIR}/ListSet.h ${IDIR}/Djsets_cl.h ${IDIR}/ListPair.h \
+	${IDIR}/Djsets_flt.h ${IDIR}/Djsets_rl.h
+OFILES = List.o List_d.o ListSet.o Djsets_cl.o ListPair.o \
+	Djsets_flt.o Djsets_rl.o
 ${OFILES} : ${HFILES}
 
 .cpp.o : 

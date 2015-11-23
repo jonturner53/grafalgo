@@ -10,13 +10,13 @@
 #define RGRAPH_H
 
 #include "Adt.h"
-#include "Wgraph.h"
-#include "Wdigraph.h"
-#include "Wflograph.h"
-#include "Mflograph.h"
-#include "GroupGraph.h"
-#include "HashSet.h"
-#include "Dheap.h"
+#include "Graph_w.h"
+#include "Graph_wd.h"
+#include "Graph_wf.h"
+#include "Graph_ff.h"
+#include "Graph_g.h"
+#include "Set_h.h"
+#include "Heap_d.h"
 
 namespace grafalgo {
 
@@ -31,37 +31,37 @@ public:
 	static void regularBigraph(Graph&, int, int);
 	static void regularBigraph(Graph&, int, int, int);
 	static void regularBiMultigraph(Graph&, int, int, int);
-	static void beColor(Wdigraph&, int, int, int, int, double);
+	static void becolor(Graph_wd&, int, int, int, int, double);
 	static void connected(Graph&, int,int);
 	static void addEdges(Graph&, int);
 	static void addEdges(Graph&, int, int, int);
-	static void digraph(Digraph&, int, int);
-	static void dag(Digraph&, int, int);
-	static void flograph(Flograph&, int, int, int);
-	static void groupGraph(GroupGraph&, int, int, int, int, int);
+	static void digraph(Graph_d&, int, int);
+	static void dag(Graph_d&, int, int);
+	static void flograph(Graph_f&, int, int, int);
+	static void groupGraph(Graph_g&, int, int, int, int, int);
 
-	static void setWeights(Wgraph&, int, int);
-	static void setLengths(Wdigraph&, int, int);
-	static void setCapacities(Flograph&, int, int);
-	static void setCosts(Wflograph&, int, int);
-	static void setMinFlows(Mflograph&, int, int);
+	static void setWeights(Graph_w&, int, int);
+	static void setLengths(Graph_wd&, int, int);
+	static void setCapacities(Graph_f&, int, int);
+	static void setCosts(Graph_wf&, int, int);
+	static void setMinFlows(Graph_ff&, int, int);
 
 	template<class T> static void scramble(T&);
 
 	static void shuffle(Graph&, int*, int*);
-	static void shuffle(Wgraph&, int*, int*);
-	static void shuffle(Wdigraph&, int*, int*);
-	static void shuffle(Flograph&, int*, int*);
-	static void shuffle(Wflograph&, int*, int*);
-	static void shuffle(Mflograph&, int*, int*);
-	static void shuffle(GroupGraph&, int*, int*);
+	static void shuffle(Graph_w&, int*, int*);
+	static void shuffle(Graph_wd&, int*, int*);
+	static void shuffle(Graph_f&, int*, int*);
+	static void shuffle(Graph_wf&, int*, int*);
+	static void shuffle(Graph_ff&, int*, int*);
+	static void shuffle(Graph_g&, int*, int*);
 
 private:
 	static bool tryRegular(Graph&, int, int);
 };
 
 /** Scramble the vertices and edges in a graph.
- *  @param graf is a graph object (Graph, Wgraph, Digraph,...);
+ *  @param graf is a graph object (Graph, Graph_w, Graph_d,...);
  *  on return the vertices and edge numbers are permuted to give
  *  a graph that is structurally identical to the original but
  *  which "looks different"

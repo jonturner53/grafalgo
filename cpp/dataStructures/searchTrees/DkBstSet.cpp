@@ -1,11 +1,11 @@
-/** @file DkBstSet.cpp
+/** @file DkSsets.cpp
  *
  *  @author Jon Turner
  *  @date 2011
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-#include "DkBstSet.h"
+#include "DkSsets.h"
 
 #define left(x) node[x].left
 #define right(x) node[x].right
@@ -16,60 +16,60 @@
 
 namespace grafalgo {
 
-/** Constructor for DkBstSet class.
+/** Constructor for DkSsets class.
  *  @param n defines the index range for the constructed object.
  */
-DkBstSet::DkBstSet(int n) : BalBstSet(n) {
+DkSsets::DkSsets(int n) : Ssets_rbt(n) {
 	makeSpace(); init();
 }
 
-/** Destructor for DkBstSet class. */
-DkBstSet::~DkBstSet() { freeSpace(); }
+/** Destructor for DkSsets class. */
+DkSsets::~DkSsets() { freeSpace(); }
 
-/** Allocate space for DkBstSet.  */
-void DkBstSet::makeSpace() {
+/** Allocate space for DkSsets.  */
+void DkSsets::makeSpace() {
 	dmin = new keytyp[n()+1]; dkey = new keytyp[n()+1];
 }
 
-/** Free dynamic storage used by DkBstSet. */
-void DkBstSet::freeSpace() { delete [] dmin; delete [] dkey; }
+/** Free dynamic storage used by DkSsets. */
+void DkSsets::freeSpace() { delete [] dmin; delete [] dkey; }
 
 /** Reinitialize data structure, creating single node trees. */
-void DkBstSet::clear() {
+void DkSsets::clear() {
 	BalBastSet::clear(); init();
 }
 
-/** Initialize data for the DkBstSet subclass. */
-void DkBstSet::init() {
+/** Initialize data for the DkSsets subclass. */
+void DkSsets::init() {
 	for (int i = 0; i <= n(); i++) dmin(i) = dkey(i) = 0; 
 }
 
-/** Resize a DkBstSet object, discarding old value.
+/** Resize a DkSsets object, discarding old value.
  *  @param n is the size of the resized object.
  */
-void DkBstSet::resize(int n) {
-	freeSpace(); BalBstSet::resize(n); makeSpace(); init();
+void DkSsets::resize(int n) {
+	freeSpace(); Ssets_rbt::resize(n); makeSpace(); init();
 }
 
 /** Expand the space available for this ojbect.
  *  Rebuilds old value in new space.
  *  @param n is the size of the expanded object.
  */
-void DkBstSet::expand(int n) {
+void DkSsets::expand(int n) {
 	if (n <= this->n()) return;
-	DkBstSet old(this->n()); old.copyFrom(*this);
+	DkSsets old(this->n()); old.copyFrom(*this);
 	resize(n); this->copyFrom(old);
 }
 
 /** Copy another object to this one.
  *  @param source is object to be copied to this one
  */
-void DkBstSet::copyFrom(const DkBstSet& source) {
+void DkSsets::copyFrom(const DkSsets& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
 	else clear();
 
-	BalBstSet::copyFrom(source);
+	Ssets_rbt::copyFrom(source);
 	for (index x = 1; x <= n(); x++) {
 		dmin(x) = source.dmin[x]; dkey(x) = source.dkey[x];
 	}
@@ -79,7 +79,7 @@ void DkBstSet::copyFrom(const DkBstSet& source) {
  *  @param i is a node in a search tree
  *  @return the value of the second key at i
  */
-keytyp DkBstSet::key2(index i) {
+keytyp DkSsets::key2(index i) {
 	assert(valid(i));
 	return dmin(i) + dkey(i);
 }
@@ -88,13 +88,13 @@ keytyp DkBstSet::key2(index i) {
  *  @param x is a node in a bst (node in a search tree); the operation
  *  moves x up into its parent's place
  */
-void DkBstSet::rotate(index x) {
+void DkSsets::rotate(index x) {
 	assert(valid(x) && valid(p(x));
 	index y = p(x); if (y == 0) return;
 	index a, b, c;
 	if (x == left(y)) { a = left(x);  b = right(x); c = right(y); }
 	else 		  { a = right(x); b = left(x);  c = left(y);  }
-	BalBstSet::rotate(x);
+	Ssets_rbt::rotate(x);
 
 	if (a != 0) dmin(a) += dmin(x); 
 	if (b != 0) dmin(b) += dmin(x);
@@ -117,7 +117,7 @@ void DkBstSet::rotate(index x) {
  *  @return the node with the largest key1 value that is <=k;
  *  if there is no such node, return the node with the smallest key1
  */
-index DkBstSet::access(keytyp k, bst t)  {
+index DkSsets::access(keytyp k, bst t)  {
 	if (t == 0) return 0;
 	assert(valid(t));
 	index v = 0;
@@ -139,7 +139,7 @@ index DkBstSet::access(keytyp k, bst t)  {
  *  @param i is a node in a search tree
  *  @param t is the root of a search tree
  */
-void inline DkBstSet::change2(keytyp diff, index i, bst t) {
+void inline DkSsets::change2(keytyp diff, index i, bst t) {
         assert(valid(i) && valid(t) && p(t) == 0);
 
 	mc = mincost(i);
@@ -216,7 +216,7 @@ rework for balanced trees
 
 
 
-index DkBstSet::insert(index i, bst t) {
+index DkSsets::insert(index i, bst t) {
 	assert (1 <= i && i <= n() && 1 <= t && t <= n() && i != t);
 	keytyp key2i = dmin(i);
 
@@ -268,7 +268,7 @@ case 1. node x with no children
 case 2. node with one child; if 
 
 
-index DkBstSet::remove(index i, bst t) {
+index DkSsets::remove(index i, bst t) {
 	assert(1 <= i && i <= n() && 1 <= t && t <= n());
 	assert (left(0) == 0 && right(0) == 0 && p(0) == 0);
 
@@ -314,8 +314,8 @@ index DkBstSet::remove(index i, bst t) {
  *  and smaller than that of any node in t2
  *  @return the new bst formed by combining t1, i and t2
  */
-bst DkBstSet::join(bst t1, index i, bst t2) {
-	SaBstSet::join(t1,i,t2);
+bst DkSsets::join(bst t1, index i, bst t2) {
+	SaSsets::join(t1,i,t2);
 	keytyp key2i = dmin(i) + dkey(i);
 	if (t1 != 0) dmin(i) = min(dmin(i),dmin(t1));
 	if (t2 != 0) dmin(i) = min(dmin(i),dmin(t2));
@@ -332,8 +332,8 @@ bst DkBstSet::join(bst t1, index i, bst t2) {
  *  t1,i and t2, where the keys of the nodes in t1 are smaller than the key
  *  of i and keys of nodes in t2 are larger than the key of i
  */
-BstSet::BstPair DkBstSet::split(index i, bst t) {
-	BstPair pair = SaBstSet::split(i,t);
+Ssets::BstPair DkSsets::split(index i, bst t) {
+	BstPair pair = SaSsets::split(i,t);
 	if (pair.t1 != 0) dmin(pair.t1) += dmin(i);
 	if (pair.t2 != 0) dmin(pair.t2) += dmin(i);
 	dmin(i) += dkey(i); dkey(i) = 0;
@@ -344,7 +344,7 @@ BstSet::BstPair DkBstSet::split(index i, bst t) {
  *  @param i is a node in some bst
  *  @return the string
  */
-string DkBstSet::node2string(index i) const {
+string DkSsets::node2string(index i) const {
 	string s;
 	if (i == 0) return s;
 	s += Adt::index2string(i);

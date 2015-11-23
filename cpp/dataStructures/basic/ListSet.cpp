@@ -11,7 +11,7 @@
 namespace grafalgo {
 
 /** Constructor for ListSet.
- *  @param nitems defines the set of integers 1..nn1 on which the
+ *  @param nitems defines the set of integers 1..nitems on which the
  *  lists are defined; each integer can be on at most one list
  *  @param nlists specifies the number of lists in the set
  */

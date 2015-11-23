@@ -8,9 +8,9 @@
 
 #include "stdinc.h"
 #include "Adt.h"
-#include "Wgraph.h"
-#include "Wdigraph.h"
-#include "Wflograph.h"
+#include "Graph_w.h"
+#include "Graph_wd.h"
+#include "Graph_wf.h"
 
 using namespace grafalgo;
 
@@ -33,15 +33,15 @@ int main(int argc, char *argv[]) {
 	if (strcmp(argv[1],"ugraph") == 0) {
 		Graph g; cin >>g; cout << g.toDotString();
 	} else if (strcmp(argv[1],"wgraph") == 0) {
-		Wgraph wg; cin >> wg; cout << wg.toDotString();
+		Graph_w wg; cin >> wg; cout << wg.toDotString();
 	} else if (strcmp(argv[1],"digraph") == 0) {
-		Digraph dig; cin >> dig; cout << dig.toDotString();
+		Graph_d dig; cin >> dig; cout << dig.toDotString();
 	} else if (strcmp(argv[1],"wdigraph") == 0) {
-		Wdigraph wdig; cin >> wdig; cout << wdig.toDotString();
+		Graph_wd wdig; cin >> wdig; cout << wdig.toDotString();
 	} else if (strcmp(argv[1],"flograph") == 0) {
-		Flograph fg; cin >> fg; cout << fg.toDotString();
+		Graph_f fg; cin >> fg; cout << fg.toDotString();
 	} else if (strcmp(argv[1],"wflograph") == 0) {
-		Wflograph wfg; cin >> wfg; cout << wfg.toDotString();
+		Graph_wf wfg; cin >> wfg; cout << wfg.toDotString();
 	} else {
 		Util::fatal("usage: toDot type");
 	}

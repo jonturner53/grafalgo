@@ -6,9 +6,9 @@ BIN := ~/bin
 WARN := -Wall -Wno-c++11-extensions
 CXXFLAGS := ${WARN} ${ARCH} -O2
 
-HFILES = ${IDIR}/Adt.h ${IDIR}/ClistSet.h \
-	${IDIR}/LheapSet.h ${IDIR}/LlheapSet.h ${IDIR}/FheapSet.h 
-OFILES = LheapSet.o LlheapSet.o FheapSet.o 
+HFILES = ${IDIR}/Adt.h ${IDIR}/Djsets_cl.h \
+	${IDIR}/Djheaps_l.h ${IDIR}/Djheaps_ll.h ${IDIR}/Djheaps_f.h 
+OFILES = Djheaps_l.o Djheaps_ll.o Djheaps_f.o 
 ${OFILES} : ${HFILES}
 
 .cpp.o:

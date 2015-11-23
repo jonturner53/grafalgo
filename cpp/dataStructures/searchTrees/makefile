@@ -3,15 +3,14 @@ ARCH := -m$(shell getconf LONG_BIT)
 IDIR := ../../include
 LDIR := ../../lib
 BIN := ~/bin
-WARN := -Wall -Wno-c++11-extensions
-CXXFLAGS := ${WARN} ${ARCH} -O2
+CXXFLAGS := ${ARCH} -O2
 
-HFILES = ${IDIR}/Adt.h ${IDIR}/stdinc.h ${IDIR}/BstSet.h ${IDIR}/BalBstSet.h \
-	${IDIR}/SaBstSet.h ${IDIR}/DkBstSet.h \
-	 ${IDIR}/StairFunc.h ${IDIR}/TreeMap.h ${IDIR}/SaTreeMap.h
-OFILES = BstSet.o BalBstSet.o SaBstSet.o \
-	 TreeMap.o SaTreeMap.o
-	 #omit for now: DkBstSet.o StairFunc.o 
+HFILES = ${IDIR}/Adt.h ${IDIR}/stdinc.h ${IDIR}/Ssets.h ${IDIR}/Ssets_rbt.h \
+	${IDIR}/Ssets_sat.h ${IDIR}/Map_bst.h ${IDIR}/Map_sat.h
+	# omit for now ${IDIR}/DkSsets.h ${IDIR}/StairFunc.h
+OFILES = Ssets.o Ssets_rbt.o Ssets_sat.o \
+	 Map_bst.o Map_sat.o
+	 #omit for now: DkSsets.o StairFunc.o 
 ${OFILES} : ${HFILES}
 
 .cpp.o:
