@@ -20,8 +20,8 @@
 
 namespace grafalgo {
 extern bool findSplit(const Graph&, ListPair&);
-extern void flowMatch(Graph&, List_g<edge>&);
-extern void flowMatchWt(Graph_w&, List_g<edge>&);
+extern void matchb_f(Graph&, List_g<edge>&);
+extern void matchwb_f(Graph_w&, List_g<edge>&);
 }
 
 using namespace grafalgo;
@@ -42,7 +42,7 @@ bool checkMatch(Graph&, List_d&, List_g<edge>&);
  *  mdmatch (bipartite/unweighted), mdmatch_f (bipartite/unweighted)
  */
 int main(int argc, char *argv[]) {
-	if (argc < 2) Util::fatal("usage: match method");
+	if (argc < 2) Util::fatal("usage: testMatch method");
 
 	bool show = false; bool verify = false;
 	for (int i = 2; i < argc; i++) {
@@ -50,9 +50,9 @@ int main(int argc, char *argv[]) {
 		else if (strcmp(argv[i],"verify") == 0) verify = true;
 	}
 
-	if (strcmp(argv[1],"flowMatch") == 0) {
+	if (strcmp(argv[1],"matchb_f") == 0) {
 		Graph g; cin >> g; List_g<edge> match(g.n()/2);
-		flowMatch(g,match);
+		matchb_f(g,match);
 		int size = match.length();
 		cout << size << " edges in matching\n";
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
@@ -64,9 +64,9 @@ int main(int argc, char *argv[]) {
 		cout << size << " edges in matching\n";
 		if (show) cout << g << "[" << g.elist2string(match) << "]\n";
 		if (verify) checkMatch(g,match);
-	} else if (strcmp(argv[1],"flowMatchWt") == 0) {
+	} else if (strcmp(argv[1],"matchwb_f") == 0) {
 		Graph_w g; cin >> g; List_g<edge> match(g.n()/2);
-		flowMatchWt(g,match);
+		matchwb_f(g,match);
 		int size = match.length();
 		edgeWeight totalWeight = g.weight(match);
 		cout << size << " edges in matching with total weight "
@@ -140,7 +140,7 @@ int main(int argc, char *argv[]) {
 		}
 		if (verify) checkMatch(g,vset,match);
 	} else { 
-		Util::fatal("match: invalid method");
+		Util::fatal("testMatch: invalid method");
 	}
 }
 

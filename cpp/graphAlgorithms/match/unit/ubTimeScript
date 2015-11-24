@@ -3,8 +3,8 @@
 # usage: ubTimeScript algorithm 
 #
 # Run timing tests with a specified algorithm.
-# The algorithm argument is one of flowMatch, hopcroftKarp,
-# maxdMatch, fastMaxDmatch
+# The algorithm argument is one of flowMatch, matchb_hk,
+# mdmatch, fastMaxDmatch
 #
 algo="flowMatch"
 if [ $# -eq 1 ] ; then

@@ -27,7 +27,6 @@ bool spt_bm(Graph_wd& g, vertex s, edge pEdge[], edgeLength d[]) {
 		}
 		last = g.n();
 	}
-
 	int pass = 0; int cnt = 0;
 	while (!q.empty()) {
 		vertex v = q.first(); q.removeFirst();
@@ -42,7 +41,7 @@ bool spt_bm(Graph_wd& g, vertex s, edge pEdge[], edgeLength d[]) {
 		if (v == last && !q.empty()) { pass++; last = q.last(); }
 		if (pass == g.n()) return false;
 	}
-	return cnt == g.n();
+	return true;
 }
 
 } // ends namespace

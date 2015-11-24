@@ -64,11 +64,13 @@ vertex match_egc::nca(vertex u, vertex v) {
 		if (pEdge[x] == 0 && pEdge[y] == 0) { result = 0; break; }
 		if (pEdge[x] != 0) {
 			mark[x] = true;
-			x = g->mate(x,pEdge[x]); x = base(g->mate(x,pEdge[x]));
+			x = g->mate(x,pEdge[x]);
+ 			x = base(g->mate(x,pEdge[x]));
 		}
 		if (pEdge[y] != 0) {
 			mark[y] = true;
-			y = g->mate(y,pEdge[y]); y = base(g->mate(y,pEdge[y]));
+			y = g->mate(y,pEdge[y]);
+			y = base(g->mate(y,pEdge[y]));
 		}
 	}
 	// second pass to clear mark bits
@@ -88,23 +90,24 @@ vertex match_egc::nca(vertex u, vertex v) {
 /** Find path joining two vertices in the same tree.
  *  @param a is a matched vertex in some tree defined by parent
  *  pointers
- *  @param b is an ancestor of a, and the path from a to b is
- *  @return the path in the augpath object
+ *  @param b is an ancestor of a
+ *  @return the ab-path that starts with the matching edge incident to a;
+ *  specifically, return the index of the id of the list of vertices in
+ *  the path using the augpath object
  */
 edge match_egc::path(vertex a, vertex b) {
-	vertex pa, p2a, da; edge e, e1, e2;
 	if (a == b) return 0;
 	if (state[a] == even) {
-		e1 = pEdge[a];  
-		pa = g->mate(a,e1);
+		edge e1 = pEdge[a];  
+		vertex pa = g->mate(a,e1);
 		if (pa == b) return e1;
-		e2 = pEdge[pa]; 
-		p2a = g->mate(pa,e2);
-		e = augpath->join(e1,e2);
+		edge e2 = pEdge[pa]; 
+		vertex p2a = g->mate(pa,e2);
+		edge e = augpath->join(e1,e2);
 		e = augpath->join(e,path(p2a,b));
 		return e;
 	} else {
-		e = bridge[a].e; da = bridge[a].v;
+		edge e = bridge[a].e; vertex da = bridge[a].v;
 		e = augpath->join(augpath->reverse(path(da,a)),e);
 		e = augpath->join(e,path(g->mate(da,e),b));
 		return e;

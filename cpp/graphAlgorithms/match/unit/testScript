@@ -7,31 +7,31 @@
 #
 echo "unweighted bipartite graphs"
 for seed in 1 2 3 4 5 6 7 8 9 10 ; do
-	echo -n "flowMatch "
-	randGraph bigraph 1000 2000 ${seed} 1 | testMatch flowMatch
-	echo -n "hopcroftKarp "
-	randGraph bigraph 1000 2000 ${seed} 1 | testMatch hopcroftKarp
-	echo -n "edmondsGabow "
-	randGraph bigraph 1000 2000 ${seed} 1 | testMatch edmondsGabow
-	echo -n "fastEdmondsGabow "
-	randGraph bigraph 1000 2000 ${seed} 1 | testMatch fastEdmondsGabow
+	echo -n "matchb_f"
+	randGraph bigraph 1000 2000 ${seed} 1 | testMatch matchb_f
+	echo -n "matchb_hk "
+	randGraph bigraph 1000 2000 ${seed} 1 | testMatch matchb_hk
+	echo -n "match_eg "
+	randGraph bigraph 1000 2000 ${seed} 1 | testMatch match_eg
+	echo -n "match_egf "
+	randGraph bigraph 1000 2000 ${seed} 1 | testMatch match_egf
 	echo " "
 done
 echo "weighted bipartite graphs"
 for seed in 1 2 3 4 5 6 7 8 9 10 ; do
-	echo -n "flowMatchWt "
-	randGraph wbigraph 1000 2000 1 10000 ${seed} 1 | testMatch flowMatchWt
-	echo -n "hungarian "
-	randGraph wbigraph 1000 2000 1 10000 ${seed} 1 | testMatch hungarian
-	echo -n "edmondsGMGbi "
-	randGraph wbigraph 1000 2000 1 10000 ${seed} 1 | testMatch edmondsGMGbi
+	echo -n "matchwb_f "
+	randGraph wbigraph 1000 2000 1 10000 ${seed} 1 | testMatch matchwb_f
+	echo -n "matchwb_h "
+	randGraph wbigraph 1000 2000 1 10000 ${seed} 1 | testMatch matchwb_h
+	echo -n "matchb_gmg "
+	randGraph wbigraph 1000 2000 1 10000 ${seed} 1 | testMatch matchb_gmg
 	echo " "
 done
 echo "unweighted general graphs"
 for seed in 1 2 3 4 5 6 7 8 9 10 ; do
-	echo -n "edmondsGabow "
-	randGraph ugraph 1000 2000 ${seed} 1 | testMatch edmondsGabow
-	echo -n "fastEdmondsGabow "
-	randGraph ugraph 1000 2000 ${seed} 1 | testMatch fastEdmondsGabow
+	echo -n "match_eg "
+	randGraph ugraph 1000 2000 ${seed} 1 | testMatch match_eg
+	echo -n "match_egf "
+	randGraph ugraph 1000 2000 ${seed} 1 | testMatch match_egf
 	echo " "
 done

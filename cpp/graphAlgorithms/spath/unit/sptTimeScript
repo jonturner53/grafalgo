@@ -3,9 +3,9 @@
 # usage: sptTimeScript algorithm
 #
 # Run timing tests with a specified algorithm.
-# The algorithm argument may be dijkstra of bellmanMoore
+# The algorithm argument may be spt_d of spt_bm
 #
-algo="dijkstra"
+algo="spt_d"
 if [ $# -eq 1 ] ; then
 	algo=$1
 fi;

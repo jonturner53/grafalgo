@@ -1,4 +1,4 @@
-/** @file flowMatch.cpp
+/** @file matchb_f.cpp
  * 
  *  @author Jon Turner
  *  @date 2014
@@ -22,11 +22,11 @@ extern bool findSplit(const Graph&, ListPair&);
  *  @param g1 is an undirected graph
  *  @param match is a list in which the result is returned
  */
-void flowMatch(Graph& g, List_g<edge>& match) {
+void matchb_f(Graph& g, List_g<edge>& match) {
 	// divide vertices into two independent sets
 	ListPair split(g.n());
 	if (!findSplit(g,split))
-		Util::fatal("flowMatch: graph is not bipartite");
+		Util::fatal("matchb_f: graph is not bipartite");
 
 	// create flow graph, taking care to maintain edge numbers
 	Graph_f fg(g.n()+2, g.M()+g.n(), g.n()+1, g.n()+2);

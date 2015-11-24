@@ -3,9 +3,9 @@
 # usage: timeScript algorithm
 #
 # Run timing tests with a specified algorithm.
-# The algorithm argument is prim, primF, kruskal or cheritonTarjan.
+# The algorithm argument is mst_p, mst_pF, mst_k or mst_ct.
 #
-algo="prim"
+algo="mst_p"
 if [ $# -eq 1 ] ; then
 	algo=$1
 fi;

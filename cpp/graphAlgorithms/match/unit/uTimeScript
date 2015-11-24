@@ -3,9 +3,9 @@
 # usage: uTimeScript algorithm 
 #
 # Run timing tests with a specified algorithm.
-# The algorithm argument is one of edmondsGabow, fastEdmondsGabow
+# The algorithm argument is one of match_eg, match_egf
 #
-algo="edmondsGabow"
+algo="match_eg"
 if [ $# -eq 1 ] ; then
         algo=$1
 fi;

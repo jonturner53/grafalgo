@@ -5,10 +5,10 @@
 # Run unit test on series of random unweighted bipartite graphs,
 # with a specified algorithm.
 #
-# The algorithm argument is one of hopcroftKarp, edmondsGabow,
-# fastEdmondsGabow, maxdMatch, fastMaxdMatch
+# The algorithm argument is one of matchb_hk, match_eg,
+# match_egf, mdmatch, mdmatch_f
 #
-algo="hopcroftKarp"
+algo="matchb_hk"
 if [ $# -eq 1 ] ; then
 	algo=$1
 fi;

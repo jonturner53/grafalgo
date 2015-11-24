@@ -3,11 +3,11 @@
 # usage: sptTestScript algorithm lo hi
 #
 # Run unit test on series of random graphs, with a specified algorithm.
-# The algorithm argument is one of dijkstra, bellmanMoore.
+# The algorithm argument is one of spt_d, spt_bm.
 # The lo and hi arguments, specify the range of edge lengths.
-# For bellmanMoore, negative edge lengths can be used.
+# For spt_bm, negative edge lengths can be used.
 #
-algo="dijkstra"
+algo="spt_d"
 if [ $# -ge 1 ] ; then
 	algo=$1
 fi;

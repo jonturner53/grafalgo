@@ -5,9 +5,9 @@
 # Run unit test on series of random unweighted bipartite graphs,
 # with a specified algorithm.
 #
-# The algorithm argument is one of hungarian, edmondsGMGbi
+# The algorithm argument is one of matchwb_h, matchb_gmg
 #
-algo="hungarian"
+algo="matchwb_h"
 if [ $# -eq 1 ] ; then
 	algo=$1
 fi;

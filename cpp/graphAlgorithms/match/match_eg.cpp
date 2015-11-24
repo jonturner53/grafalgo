@@ -44,7 +44,6 @@ match_eg::match_eg(Graph& g1, List_g<edge>& match)
  *  structure that includes the returned edge defines the augmenting path.
  */
 edge match_eg::findpath() {
-cerr << "a\n";
 	blossoms->clear();
 	List q(g->m()); // list of edges to be processed in main loop
 	for (vertex u = 1; u <= g->n(); u++) {
@@ -57,16 +56,13 @@ cerr << "a\n";
 		}
 	}
 
-cerr << "b\n";
 	while (!q.empty()) {
 		edge e = q.first(); q.removeFirst();
 		vertex u = g->left(e); vertex up = base(u);
 		if (state[up] != even) { u = g->right(e); up = base(u); }
 		vertex v = g->mate(u,e); vertex vp = base(v);
 		if (up == vp) continue; // skip internal edges in a blossom
-cerr << g->edge2string(e) << " " << g->index2string(u) << " "
-     << g->index2string(up) << " " << g->index2string(v) << " "
-     << g->index2string(vp) << endl;
+		if (state[vp] == odd) continue;
 		if (state[vp] == unreached) {
 			// v is not contained in a blossom and is matched
 			// so extend tree and add newly eligible edges to q
@@ -80,41 +76,41 @@ cerr << g->edge2string(e) << " " << g->index2string(u) << " "
 			}
 			continue;
 		}
+		// up and vp are both even
 		vertex a = nca(up,vp);
-		if (state[vp] == even && a == 0) {
+		if (a == 0) {
 			// up, vp are different trees - construct path & return
 			edge ee = augpath->join(
 					augpath->reverse(path(u,root(up))),e);
 			return augpath->join(ee,path(v,root(vp)));
-		} else if (state[vp] == even) {
-			// vp and wp are in same tree - collapse blossom
-			vertex x = up;
-			while (x != a) {
-				x = g->mate(x,pEdge[x]); // x now odd
-				origin[blossoms->link(x,blossoms->find(a))] = a;
-				bridge[x].e = e; bridge[x].v = v;
-				for (edge ee = g->firstAt(x); ee != 0;
-				     	  ee = g->nextAt(x,ee)) {
-					if (!q.member(ee)) q.addLast(ee);
-				}
-				x = base(g->mate(x,pEdge[x]));
-				origin[blossoms->link(blossoms->find(x),
-						      blossoms->find(a))] = a;
+		}
+		// up and vp are in same tree - collapse blossom
+		vertex x = up;
+		while (x != a) {
+			origin[blossoms->link(blossoms->find(x),
+					      blossoms->find(a))] = a;
+			x = g->mate(x,pEdge[x]); // x now odd
+			origin[blossoms->link(x,blossoms->find(a))] = a;
+			bridge[x].e = e; bridge[x].v = u;
+			for (edge ee = g->firstAt(x); ee != 0;
+			     	  ee = g->nextAt(x,ee)) {
+				if (!q.member(ee)) q.addLast(ee);
 			}
-			x = vp;
-			while (x != a) {
-				x = g->mate(x,pEdge[x]); // x now odd
-				origin[blossoms->link(x,blossoms->find(a))] = a;
-				bridge[x].e = e; bridge[x].v = v;
-				for (edge ee = g->firstAt(x); ee != 0;
-				     	  ee = g->nextAt(x,ee)) {
-					if (!q.member(ee)) q.addLast(ee);
-				}
-				x = base(g->mate(x,pEdge[x]));
-				origin[blossoms->link(blossoms->find(x),
-						      blossoms->find(a))] = a;
+			x = base(g->mate(x,pEdge[x]));
+		}
+		x = vp;
+		while (x != a) {
+			origin[blossoms->link(blossoms->find(x),
+					      blossoms->find(a))] = a;
+			x = g->mate(x,pEdge[x]); // x now odd
+			origin[blossoms->link(x,blossoms->find(a))] = a;
+			bridge[x].e = e; bridge[x].v = v;
+			for (edge ee = g->firstAt(x); ee != 0;
+			     	  ee = g->nextAt(x,ee)) {
+				if (!q.member(ee)) q.addLast(ee);
 			}
-		} 
+			x = base(g->mate(x,pEdge[x]));
+		}
 	}
 	return 0;
 }

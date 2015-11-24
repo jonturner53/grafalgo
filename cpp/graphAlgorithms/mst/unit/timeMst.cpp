@@ -18,7 +18,7 @@
 namespace grafalgo {
 extern void mst_k(Graph_w&, List_g<int>&);
 extern void mst_p(Graph_w&, List_g<int>&);
-extern void mst_pF(Graph_w&, List_g<int>&);
+extern void mst_pf(Graph_w&, List_g<int>&);
 extern void mst_ct(Graph_w&, List_g<int>&);
 }
 
@@ -34,7 +34,7 @@ using namespace chrono;
  *  n is the number of vertices, m is the number of edges,
  *  maxkey is the maximum key
  * 
- *  Method may be mst_p, mst_pF, mst_k or mst_ct.
+ *  Method may be mst_p, mst_pf, mst_k or mst_ct.
  * 
  *  The output is a single line containing
  *
@@ -71,9 +71,9 @@ int main(int argc, char* argv[]) {
 		} else if (strcmp(argv[1],"mst_p") == 0) {
 			time1 = high_resolution_clock::now();
 			mst_p(wg,mst);
-		} else if (strcmp(argv[1],"mst_pF") == 0) {
+		} else if (strcmp(argv[1],"mst_pf") == 0) {
 			time1 = high_resolution_clock::now();
-			mst_pF(wg,mst);
+			mst_pf(wg,mst);
 		} else if (strcmp(argv[1],"mst_ct") == 0) {
 			time1 = high_resolution_clock::now();
 			mst_ct(wg,mst);

@@ -20,8 +20,8 @@
 #include "mdmatch_f.h"
 
 namespace grafalgo {
-extern void flowMatch(Graph&, List_g<edge>&);
-extern void flowMatchWt(Graph_w&, List_g<edge>&);
+extern void matchb_f(Graph&, List_g<edge>&);
+extern void matchwb_f(Graph_w&, List_g<edge>&);
 }
 
 using namespace chrono;
@@ -32,8 +32,8 @@ using namespace grafalgo;
  *  TimeMatch repeated generates a random graph and computes a matching
  *  using the specified method.
  * 
- *  Methods currently implemented include flowMatch (bipartite/unweighted),
- *  flowMatchWt (bipartite/weighted), matchb_hk (bipartite/unweighted),
+ *  Methods currently implemented include matchb_f (bipartite/unweighted),
+ *  matchwb_f (bipartite/weighted), matchb_hk (bipartite/unweighted),
  *  matchwb_h (bipartite/weighted), match_eg (general/unweighted),
  *  match_egf (general/unweighted), matchb_gmg (bipartite/weighted),
  *  mdmatch (bipartite/unweighted), mdmatch_f (bipartite/unweighted)
@@ -74,19 +74,19 @@ int main(int argc, char *argv[]) {
 	int64_t avgTime, minTime, maxTime;
 	avgTime = maxTime = 0; minTime = ((int64_t) 1) << 62;
 	for (int i = 1; i <= reps; i++) {
-		if (strcmp(argv[1],"flowMatch") == 0) {
+		if (strcmp(argv[1],"matchb_f") == 0) {
 			Rgraph::bigraph(g,n,n,md);
 			t1 = high_resolution_clock::now();
-			flowMatch(g,match);
+			matchb_f(g,match);
 		} else if (strcmp(argv[1],"matchb_hk") == 0) {
 			Rgraph::bigraph(g,n,n,md);
 			t1 = high_resolution_clock::now();
 			matchb_hk(g,match);
-		} else if (strcmp(argv[1],"flowMatchWt") == 0) {
+		} else if (strcmp(argv[1],"matchwb_f") == 0) {
 			Rgraph::bigraph(wg,n,n,md);
 			Rgraph::setWeights(wg,lo,hi);
 			t1 = high_resolution_clock::now();
-			flowMatchWt(wg,match);
+			matchwb_f(wg,match);
 		} else if (strcmp(argv[1],"matchwb_h") == 0) {
 			Rgraph::bigraph(wg,n,n,md);
 			Rgraph::setWeights(wg,lo,hi);

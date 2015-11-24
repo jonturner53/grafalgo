@@ -14,7 +14,7 @@ HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph_w.h ${IDIR}/List.h \
 	 ${IDIR}/match_egf.h \
 	${IDIR}/matchb_gmg.h ${IDIR}/dmatch.h \
 	${IDIR}/mdmatch.h ${IDIR}/mdmatch_f.h ${IDIR}/p2matchb_t.h
-OFILES = matchb_f.o matchbw_f.o matchb_hk.o matchwb_h.o \
+OFILES = matchb_f.o matchwb_f.o matchb_hk.o matchwb_h.o \
 	match_egc.o match_eg.o match_egf.o matchb_gmg.o \
 	mdmatch.o mdmatch_f.o p2matchb_t.o \
 	dmatch.o

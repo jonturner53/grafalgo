@@ -15,7 +15,7 @@
 namespace grafalgo {
 extern void mst_k(Graph_w&, List_g<edge>&);
 extern void mst_p(Graph_w&, List_g<edge>&);
-extern void mst_pF(Graph_w&, List_g<edge>&);
+extern void mst_pf(Graph_w&, List_g<edge>&);
 extern void mst_ct(Graph_w&, List_g<edge>&);
 }
 
@@ -48,8 +48,8 @@ int main(int argc, char *argv[]) {
 		mst_k(g,mst);
 	else if (strcmp(argv[1],"mst_p") == 0)
 		mst_p(g,mst);
-	else if (strcmp(argv[1],"mst_pF") == 0)
-		mst_pF(g,mst);
+	else if (strcmp(argv[1],"mst_pf") == 0)
+		mst_pf(g,mst);
 	else if (strcmp(argv[1],"mst_ct") == 0)
 		mst_ct(g,mst);
 	else
