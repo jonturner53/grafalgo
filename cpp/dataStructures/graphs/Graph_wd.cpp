@@ -52,7 +52,7 @@ void Graph_wd::expand(int numv, int maxe) {
 void Graph_wd::copyFrom(const Graph_wd& source) {
 	if (&source == this) return;
 	if (source.n() > n() || source.m() > M())
-		resize(source.n(),source.m());
+		resize(source.n(),source.M());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
 		joinWith(source.tail(e),source.head(e),e);

@@ -90,7 +90,7 @@ void buildFlograf(Graph_wd& g, int k, int C, Graph_ff& fg) {
 		if (g.firstOut(u) != 0) {  // u is an input
 			edge e = fg.join(fg.src(), u);
 			fg.setCapacity(e, k);
-			fg.setMinFlo(e, max(0, du - (C - k)));
+			fg.setFloor(e, max(0, du - (C - k)));
 			if (k == 1) continue;
 			vertex x = g.n()+(u-1)*(k-1)+1;
 			int ecap = k-1;
@@ -102,7 +102,7 @@ void buildFlograf(Graph_wd& g, int k, int C, Graph_ff& fg) {
 		} else if (g.firstIn(u) != 0) { // u is an output
 			edge e = fg.join(u, fg.snk());
 			fg.setCapacity(e, k);
-			fg.setMinFlo(e, max(0, du - (C - k)));
+			fg.setFloor(e, max(0, du - (C - k)));
 			if (k == 1) continue;
 			vertex x = g.n()+(u-1)*(k-1)+1;
 			int ecap = k-1;

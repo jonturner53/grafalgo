@@ -15,7 +15,7 @@
 
 namespace grafalgo {
 
-/** Class representing a flow graph with minimum flow constraints.
+/** Class representing a flow graph with flow floor values.
  *  Inherits many methods from the Graph_f class and adds methods
  *  for dealing with min flow constraints.
  */
@@ -33,14 +33,14 @@ public:		Graph_ff(int=3,int=2,int=1,int=2);
 	virtual edge join(vertex,vertex);
 	virtual edge joinWith(vertex,vertex,edge);
 
-	flow	minFlo(edge) const;
-	void	setMinFlo(edge,flow);
+	flow	floor(edge) const;
+	void	setFloor(edge,flow);
 
 	string	edge2string(edge) const;
 	string	toDotString() const;
 
 protected:
-	flow	*mflo;				///< mflo[e] is min flow for e
+	flow	*flor;				///< flor[e] is flow floor for e
 
 	// various helper methods
         void    makeSpace(int,int);    		
@@ -59,8 +59,8 @@ private:
  *  @param e is an edge that is incident to v
  *  @return the cost of e in the direction from v to mate(v)
  */
-inline flow Graph_ff::minFlo(edge e) const { 
-	return mflo[e];
+inline flow Graph_ff::floor(edge e) const { 
+	return flor[e];
 }
 
 /** Set the min flow constraint of an edge.
@@ -69,8 +69,8 @@ inline flow Graph_ff::minFlo(edge e) const {
  *  if the specified c is smaller than the max edge capacity,
  *  the min flow contraint is set equal to the max capacity
  */
-inline void Graph_ff::setMinFlo(edge e, flow c) { 
-	mflo[e] = min(c,cap(tail(e),e));
+inline void Graph_ff::setFloor(edge e, flow c) { 
+	flor[e] = min(c,cap(tail(e),e));
 }
 
 /** Get the residual capacity of an edge.
@@ -80,7 +80,7 @@ inline void Graph_ff::setMinFlo(edge e, flow c) {
  */
 inline flow Graph_ff::res(vertex v, edge e) const {
         return tail(e) == v ? floInfo[e].cpy - floInfo[e].flo
-			    : floInfo[e].flo - mflo[e];
+			    : floInfo[e].flo - flor[e];
 }
 
 } // ends namespace

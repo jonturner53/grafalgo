@@ -45,7 +45,7 @@ match_eg::match_eg(Graph& g1, List_g<edge>& match)
  */
 edge match_eg::findpath() {
 	blossoms->clear();
-	List q(g->m()); // list of edges to be processed in main loop
+	List q(g->M()); // list of edges to be processed in main loop
 	for (vertex u = 1; u <= g->n(); u++) {
 		pEdge[u] = 0; origin[u] = u; state[u] = unreached;
 		if (mEdge[u] == 0) {

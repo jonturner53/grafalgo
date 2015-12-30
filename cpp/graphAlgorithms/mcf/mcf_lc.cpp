@@ -12,8 +12,9 @@ namespace grafalgo {
 
 /** Find minimum cost, flow in weighted flow graph using the least-cost
  *  augmenting path algorithm.
- *  @param wfg1 is a flow graph; the final flow is returned in its edges'
- *  flow field
+ *  @param wfg1 is a flow graph; if it has an initial non-zero flow, it is
+ *  assumed to be min-cost flow among all flows with the same value;
+ *  the final flow is returned in its edges' flow field; 
  *  @param mostNeg is a flag; if it is true, the algorithm finds a
  *  flow with the largest negative cost (this may not be a max value flow);
  *  otherwise, it finds a min cost, max flow. 
@@ -51,8 +52,9 @@ void mcf_lc::initLabels() {
         pass = 0; last = q.last();
         while (!q.empty()) {
 		u = q.first(); q.removeFirst();
-                for (e = wfg->firstOut(u); e != 0; e = wfg->nextOut(u,e)) {
-                        v = wfg->head(e);
+                for (e = wfg->firstAt(u); e != 0; e = wfg->nextAt(u,e)) {
+			if (wfg->res(u,e) == 0) continue;
+                        v = wfg->mate(u,e);
                         if (lab[v] > lab[u] + wfg->cost(u,e)) {
                                 lab[v] = lab[u] + wfg->cost(u,e); pEdge[v] = e;
                                 if (!q.member(v)) q.addLast(v);

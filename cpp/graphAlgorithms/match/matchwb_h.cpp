@@ -13,7 +13,7 @@ namespace grafalgo {
 extern bool findSplit(const Graph&, ListPair&);
 
 /** Find a maximum weight matching in a bipartite graph using the
- *  matchwb_h algorithm algorithm.
+ *  hungarian algorithm.
  *  @param g1 is an undirected graph
  *  @param match is a list in which the result is returned
  */

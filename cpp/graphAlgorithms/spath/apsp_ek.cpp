@@ -48,7 +48,7 @@ bool apsp_ek(Graph_wd& g, edgeLength* dist[], edge* pEdge[]) {
 	}
 
 	// Restore original edge costs.
-	for (edge e = 1; e <= g.m(); e++) {
+	for (edge e = g.first(); e != 0; e = g.next(e)) {
 		vertex u = g.tail(e); vertex v = g.head(e);
 		g.setLength(e,g.length(e)-(d1[u]-d1[v]));
 	}

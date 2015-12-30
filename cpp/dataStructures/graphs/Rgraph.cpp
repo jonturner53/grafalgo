@@ -359,60 +359,24 @@ void Rgraph::regularBiMultigraph(Graph& g, int n1, int n2, int d1) {
  *  @param g is an weighted digraph object
  *  @param n1 is the # of vertices in the "left" partition of the bigraph
  *  @param n2 is the # of vertices in the "right" partition
- *  if d2=n1*d1/n2 is an integer, then the right-hand vertices all
- *  have degree d2, otherwise they have degree floor(d2) or floor(d2)+1
  *  @param d1 is the degree of the vertices in the "left" partition
- *  @param cmax is an upper bound on the colors to be used (1..cmax)
+ *  if d2=n1*d1/n2 is an integer, then the right-hand vertices all;
+ *  have degree d2, otherwise they have degree floor(d2) or floor(d2)+1
+ *  @param bmax is an upper bound on the bounds (1..bmax)
  *  @param p is probability used to control selection of bounds
  */
-void Rgraph::becolor(Graph_wd& g, int n1, int n2, int d1, int cmax, double p) {
+void Rgraph::becolor(Graph_wd& g, int n1, int n2, int d1, int bmax, double p) {
 	int d2 = (n2*d1+(n1-1))/n1;
-	assert(cmax >= d1 && cmax >= d2);
+	assert(bmax >= d1 && bmax >= d2);
 	regularBiMultigraph(g, n1, n2, d1);
-	int Delta = max(d1, d2); // max degree
-
-	// color edges and create random mapping of edge colors
-	int color[g.M()+1]; ecolor_g(g,color);
-	int cmap[cmax]; Util::genPerm(cmax, cmap);
-
-	// create list of available bounds for each vertex
-	List_d *avail = new List_d[g.n()+1];
-	for (vertex u = 1; u <= g.n(); u++) {
-		avail[u].resize(cmax);
-		for (int c = 1; c <= cmax; c++) avail[u].addLast(c);
-	}
-
-	// build heap of edges, sorted by mapped edge colors
-	Heap_d<edge> edges(g.M());
-	for (edge e = g.first(); e != 0; e = g.next(e))
-		edges.insert(e,cmap[color[e]-1]+1);
-
-	// assign bounds in order of mapped colors
-	while (!edges.empty()) {
-		edge e = edges.deletemin();
-		vertex u = g.tail(e);
-		int b;
-		for (b = cmap[color[e]-1]+1; b > 0; b = avail[u].prev(b)) {
-			if (b <= Delta && Util::randfrac() < p) {
-				g.setLength(e,b); break;
-			}
-		}
-		if (b == 0) g.setLength(e, avail[u].first());
-		avail[u].remove(g.length(e));
-	}
-
-	delete [] avail;
-
-/* this code assigns random bounds, but does not limit # of colors
 	// assign random bounds to edges at each input
-	int cvec[cmax];  // vector of colors;
+	int bvec[bmax];  // vector of colors;
 	for (vertex u = 1; u <= g.n(); u++) {
-		Util::genPerm(cmax,cvec);
+		Util::genPerm(bmax,bvec);
 		int i = 0;
 		for (edge e = g.firstOut(u); e != 0; e = g.nextOut(u,e)) 
-			g.setLength(e,cvec[i++]+1);
+			g.setLength(e,bvec[i++]+1);
 	}
-*/
 }
 
 /** Generate a random digraph.
@@ -580,7 +544,7 @@ void Rgraph::groupGraph(Graph_g& g, int n1, int n2, int gc1, int d2, int k) {
 	regularBigraph(g, n1, n2, d1);
 
 	// assign colors to the edges
-	int color[g.m()]; int cvec[k];
+	int color[g.M()+1]; int cvec[k];
 	for (vertex v = g.firstOut(); v != 0; v = g.nextOut(v)) {
 		Util::genPerm(k,cvec); 
 		int i = 0;
@@ -674,7 +638,7 @@ void Rgraph::setCosts(Graph_wf& fg, floCost lo, floCost hi) {
  */
 void Rgraph::setMinFlows(Graph_ff& fg, flow lo, flow hi) {
 	 for (edge e = fg.first(); e != 0; e = fg.next(e))
-		 fg.setMinFlo(e,Util::randint(lo,hi));
+		 fg.setFloor(e,Util::randint(lo,hi));
 }
 
 /** Shuffle the vertices and edges according to the given permutations.
@@ -724,7 +688,7 @@ void Rgraph::shuffle(Graph_wf& g, int vp[], int ep[]) {
 
 void Rgraph::shuffle(Graph_ff& g, int vp[], int ep[]) {
 	shuffle((Graph_f&) g,vp,ep);
-	Util::shuffle<flow>(g.mflo+1, ep, g.M());
+	Util::shuffle<flow>(g.flor+1, ep, g.M());
 }
 
 void Rgraph::shuffle(Graph_g& g, int vp[], int ep[]) {

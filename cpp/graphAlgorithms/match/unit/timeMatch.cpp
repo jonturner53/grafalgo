@@ -18,6 +18,8 @@
 #include "matchb_gmg.h"
 #include "mdmatch.h"
 #include "mdmatch_f.h"
+#include "pmatchb_hkt.h"
+#include "pmatch_egt.h"
 
 namespace grafalgo {
 extern void matchb_f(Graph&, List_g<edge>&);
@@ -37,6 +39,7 @@ using namespace grafalgo;
  *  matchwb_h (bipartite/weighted), match_eg (general/unweighted),
  *  match_egf (general/unweighted), matchb_gmg (bipartite/weighted),
  *  mdmatch (bipartite/unweighted), mdmatch_f (bipartite/unweighted)
+ *  pmatchb_hkt (bipartite/unweighted), pmatch_egt (general/unweighted)
  *
  *  Reps is the number of repetitions
  *  N is the number of vertices
@@ -113,6 +116,20 @@ int main(int argc, char *argv[]) {
 			Rgraph::regularBigraph(wg,n,md);
 			t1 = high_resolution_clock::now();
 			mdmatch_f(g,match);
+		} else if (strcmp(argv[1],"pmatchb_hkt") == 0) {
+			Rgraph::bigraph(g,n,n,md);
+			int priority[g.n()+1];
+			for (vertex u = 1; u <= g.n(); u++)
+				priority[u] = Util::randint(1,min(10,g.n()));
+			t1 = high_resolution_clock::now();
+			pmatchb_hkt(g, priority, match);
+		} else if (strcmp(argv[1],"pmatch_egt") == 0) {
+			Rgraph::bigraph(g,n,n,md);
+			int priority[g.n()+1];
+			for (vertex u = 1; u <= g.n(); u++)
+				priority[u] = Util::randint(1,min(10,g.n()));
+			t1 = high_resolution_clock::now();
+			pmatch_egt(g, priority, match);
 		} else { 
 			Util::fatal("match: invalid method");
 		}

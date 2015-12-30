@@ -54,7 +54,7 @@ void Graph_w::expand(int numv, int maxe) {
 void Graph_w::copyFrom(const Graph_w& source) {
 	if (&source == this) return;
 	if (source.n() > n() || source.m() > M())
-		resize(source.n(),source.m());
+		resize(source.n(),source.M());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
 		joinWith(source.left(e),source.right(e),e);

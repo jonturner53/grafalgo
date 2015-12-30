@@ -9,7 +9,6 @@
 
 #define flo(x) floInfo[x].flo
 #define cpy(x) floInfo[x].cpy
-#define mflo(x) mflo[x]
 
 namespace grafalgo {
 
@@ -30,10 +29,10 @@ Graph_ff::~Graph_ff() { freeSpace(); }
  *  @param numv is the number of vertices to allocate space for
  *  @param maxe is the number of edges to allocate space for
  */
-void Graph_ff::makeSpace(int numv, int maxe) { mflo = new flow[maxe+1]; }
+void Graph_ff::makeSpace(int numv, int maxe) { flor = new flow[maxe+1]; }
 
 /** Free space used by graph. */
-void Graph_ff::freeSpace() { delete [] mflo; }
+void Graph_ff::freeSpace() { delete [] flor; }
 
 /** Resize a Graph_ff object.
  *  The old value is discarded.
@@ -58,13 +57,13 @@ void Graph_ff::expand(int numv, int maxe) {
 void Graph_ff::copyFrom(const Graph_ff& source) {
 	if (&source == this) return;
 	if (source.n() > n() || source.M() > M())
-		resize(source.n(),source.m());
+		resize(source.n(),source.M());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
 		joinWith(source.tail(e),source.head(e),e);
 		setCapacity(e,source.cap(source.tail(e),e));
 		setFlow(e,source.f(source.tail(e),e));
-		setMinFlo(e,source.minFlo(e));
+		setFloor(e,source.floor(e));
 	}
         sortAdjLists();
 }
@@ -109,7 +108,7 @@ bool Graph_ff::readAdjList(istream& in) {
 		    !Util::verify(in,',') || !Util::readInt(in,flow) ||
 		    !Util::verify(in,')'))
 			return false;
-		setCapacity(e,capacity); setFlow(e,flow); setMinFlo(e,minflow);
+		setCapacity(e,capacity); setFlow(e,flow); setFloor(e,minflow);
 	}
 	return in.good();
 }
@@ -132,7 +131,7 @@ string Graph_ff::adjList2string(vertex u) const {
 		s += " " + index2string(v);
 		if (shoEnum) s += "#" + to_string(e);
 		s += "(" + to_string(cap(u,e)) + ","
-		   + to_string(minFlo(e)) + "," + to_string(f(u,e)) + ")";
+		   + to_string(floor(e)) + "," + to_string(f(u,e)) + ")";
 		if (++cnt >= 10 && nextAt(u,e) != 0) {
 			s +=  "\n"; cnt = 0;
 		}
@@ -153,7 +152,7 @@ string Graph_ff::edge2string(edge e) const {
 	} else {
 		s += "(" + index2string(u);
 		s += "," + index2string(v) + "," + to_string(cap(u,e))
-		     + "," + to_string(minFlo(e)) + ","
+		     + "," + to_string(floor(e)) + ","
 		     +  to_string(f(u,e)) + ")";
 		if (shoEnum) s += "#" + to_string(e);
         }
@@ -176,7 +175,7 @@ string Graph_ff::toDotString() const {
 		s += Adt::index2string(u) + " -> ";
 		s += Adt::index2string(v);
 		s += " [label = \"(" + to_string(cap(u,e)) + ","
-		     + to_string(minFlo(e)) + ","
+		     + to_string(floor(e)) + ","
 		     + to_string(f(u,e)) + ")\"]; ";
 		if (++cnt == 10) { s += "\n"; cnt = 0; }
 	}
@@ -191,7 +190,7 @@ string Graph_ff::toDotString() const {
  */
 edge Graph_ff::join(vertex u, vertex v) {
 	assert(1 <= u && u <= n() && 1 <= v && v <= n() && m() < M());
-	edge e = Graph_f::join(u,v); mflo[e] = 0;
+	edge e = Graph_f::join(u,v); flor[e] = 0;
 	return e;
 }
 
@@ -203,7 +202,7 @@ edge Graph_ff::join(vertex u, vertex v) {
  */
 edge Graph_ff::joinWith(vertex u, vertex v, edge e) {
 	assert(1 <= u && u <= n() && 1 <= v && v <= n() && e <= M());
-	Graph_f::joinWith(u,v,e); mflo[e] = 0;
+	Graph_f::joinWith(u,v,e); flor[e] = 0;
 	return e;
 }
 

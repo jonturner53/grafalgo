@@ -18,6 +18,7 @@ namespace grafalgo {
 extern void becolor_rm(Graph_wd&, int[]);
 extern void becolor_mdm(Graph_wd&, int[]);
 extern void becolor_ss(Graph_wd&, int[]);
+extern void becolor_pmd(Graph_wd&, int[]);
 extern int becolorlb_d(Graph_wd&);
 extern int becolorlb_m(Graph_wd&);
 extern int becolorlb_f(Graph_wd&);
@@ -50,6 +51,8 @@ int main(int argc, char *argv[]) {
 		becolor_ss(g,color);
 	} else if (strcmp(argv[1],"augPath") == 0) {
 		becolor_ap(g,color);
+	} else if (strcmp(argv[1],"pmatch") == 0) {
+		becolor_pmd(g,color);
 	} else {
 		Util::fatal("testBecolor: invalid method");
 	}

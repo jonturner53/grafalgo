@@ -8,7 +8,7 @@
 
 #include "Graph_wd.h"
 #include "List_g.h"
-#include "p2matchb_t.h"
+#include "pmatchb_hkt.h"
 
 namespace grafalgo {
 
@@ -23,11 +23,10 @@ void becolor_mdm(Graph_wd& g, int color[]) {
 	for (vertex u = 1; u <= g.n(); u++) {
 		d[u] = g.degree(u); maxd = max(maxd, d[u]);
 	}
-	// form set of max degree vertices
-	List_d vset(g.n());
-	for (vertex u = 1; u <= g.n(); u++) {
-		if (d[u] == maxd) vset.addLast(u);
-	}
+	// assign priorities
+	int priority[g.n()+1];
+	for (vertex u = 1; u <= g.n(); u++)
+		priority[u] = (d[u] == maxd ? 1 : 2);
 
 	Graph gc(g.n(),g.M()); List_g<edge> match; 
 	int c; int cnt = 0;
@@ -39,7 +38,7 @@ void becolor_mdm(Graph_wd& g, int color[]) {
 		}
 		// find matching in gc that favors vertices with max
 		// degree in uncolored subgraph
-		p2matchb_t(gc, vset, match);
+		pmatchb_hkt(gc, priority, match);
 
 		// color matching edges, then remove from gc and match
 		// also update degrees in uncolored subgraph
@@ -51,10 +50,8 @@ void becolor_mdm(Graph_wd& g, int color[]) {
 		// recompute max degree vertices
 		maxd = 0;
 		for (vertex u = 1; u <= g.n(); u++) maxd = max(maxd, d[u]);
-		vset.clear(); 
-		for (vertex u = 1; u <= g.n(); u++) {
-			if (d[u] == maxd) vset.addLast(u);
-		}
+		for (vertex u = 1; u <= g.n(); u++) 
+			priority[u] = (d[u] == maxd ? 1 : 2);
 	}
 }
 

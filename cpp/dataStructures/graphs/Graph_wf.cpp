@@ -58,7 +58,7 @@ void Graph_wf::expand(int numv, int maxe) {
 void Graph_wf::copyFrom(const Graph_wf& source) {
 	if (&source == this) return;
 	if (source.n() > n() || source.m() > M())
-		resize(source.n(),source.m());
+		resize(source.n(),source.M());
 	else clear();
 	for (edge e = source.first(); e != 0; e = source.next(e)) {
 		joinWith(source.tail(e),source.head(e),e);
@@ -200,8 +200,20 @@ string Graph_wf::edge2string(edge e) const {
  */
 edge Graph_wf::join(vertex u, vertex v) {
 	assert(1 <= u && u <= n() && 1 <= v && v <= n() && m() < M());
-	edge e = Graph_f::join(u,v); cst[e] = 0;
+	edge e = Graph_f::join(u,v); setCost(e,0);
 	return e;
+}
+
+/** Join two vertices with a specified edge.
+ *  @param u is a vertex number
+ *  @param v is a vertex number
+ *  @param e is the number of the edge to be created (if available)
+ *  @return number of new edge from u to v
+ */
+edge Graph_wf::joinWith(vertex u, vertex v, edge e) {
+	assert(1 <= u && u <= n() && 1 <= v && v <= n() && m() < M());
+	edge ee = Graph_f::joinWith(u,v,e); setCost(ee,0);
+	return ee;
 }
 
 } // ends namespace

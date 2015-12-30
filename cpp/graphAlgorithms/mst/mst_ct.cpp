@@ -33,12 +33,12 @@ bool delf(edge e) {
  */
 void mst_ct(Graph_w& g, List_g<edge>& mst) {
 	edge e; vertex u,v,cu,cv;
-	List_d q(g.n()); List elist(2*g.m());
+	List_d q(g.n()); List elist(2*g.M());
 	lheap *h = new lheap[g.n()+1];
 	Djsets_flt prtn(g.n());
-	Djheaps_ll heapSet(2*g.m(),delf);
+	Djheaps_ll heapSet(2*g.M(),delf);
 	gp = &g; pp = &prtn;
-	for (e = 1; e <= g.m(); e++) {
+	for (e = g.first(); e != 0; e = g.next(e)) {
 		heapSet.setkey(2*e,g.weight(e));
 		heapSet.setkey(2*e-1,g.weight(e));
 	}

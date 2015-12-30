@@ -11,18 +11,16 @@
 namespace grafalgo {
 
 /** Find a bounded edge coloring in a bipartite graph.
- *  The algorithm colors edges in decreasing order of their maximum
- *  endpoint degree.
+ *  The algorithm colors edges in increasing order of their bounds.
  *  @param g is a reference to the graph
  *  @param color is an array indexed by an edge number; on return
  *  color[e] is the color assigned to edge e
  */
 becolor_g::becolor_g(const Graph_wd& g, int color[]) : becolor(g,color) {
 	while (ugp->m() > 0) {
-		// select edge of max degree in uncolored subgraph
 		vertex u = vbd->findmin();
-		edge e = ugp->firstAt(u);
-		vertex v = ugp->mate(u,e);
+                edge e = ugp->firstAt(u);
+                vertex v = ugp->mate(u,e);
 
 		// color it with first available color >= bound
 		List_d& au = avail[u]; List_d& av = avail[v];

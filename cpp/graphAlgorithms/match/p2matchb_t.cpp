@@ -12,13 +12,13 @@
 namespace grafalgo {
 
 /** Find a matching in a bipartite graph that matches as many vertices
- *  as possible.
+ *  in a given set as possible.
  *  @param g1 is a reference to the graph
  *  @param vset is a list of vertices in g1
  *  @param match is a reference to a list of edges in which the result is
  *  returned; if match is initially non-empty, it is assumed to contain an
- *  initial matching to be used by the algorithm; vertices that are matched
- *  by this initial matching are also matched in the returned matching
+ *  initial matching to be used by the algorithm; vertices in vset1 that are
+ *  matched by this initial matching are also matched in the returned matching
  */
 p2matchb_t::p2matchb_t(Graph& g1, List_d& vset1, List_g<edge>& match) {
 	g = &g1; vset = &vset1;

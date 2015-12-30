@@ -59,6 +59,7 @@ void Graph_d::expand(int numv, int maxe) {
  *  @return the edge number for the new edge, or 0 on failure
  */
 edge Graph_d::joinWith(vertex u, vertex v, edge e) {
+if (!edges->isOut(e)) cerr << *edges << endl;
 	assert(validVertex(u) && validVertex(v) && edges->isOut(e));
 	edges->swap(e);
 

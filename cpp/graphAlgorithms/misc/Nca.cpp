@@ -17,7 +17,7 @@ namespace grafalgo {
  *  the edges of g define the pairs for which the nca is to be computed
  *  @param ncav1 is an array used to return the nca values; on return,
  *  ncav1[e] is the nearest common ancestor of the pair defined by edge e;
- *  the size of ncav1 is assumed to be at least g.m()+1
+ *  the size of ncav1 is assumed to be at least g.M()+1
  */
 Nca::Nca(Graph& t, vertex root1, Graph& g, vertex ncav1[])
 	   : tp(&t), root(root1), gp(&g), ncav(ncav1) {

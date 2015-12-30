@@ -10,13 +10,13 @@
 
 namespace grafalgo {
 
-/** c data and methods for Gabow's implementation of Edmonds' algorithm.
+/** Constructor for core of Edmonds-Gabow algorithm.
  *  @param g1 is an undirected graph
  *  @param match is a list in which the matching is returned
  */
 match_egc::match_egc(Graph& g1) : g(&g1) {
 	blossoms = new Djsets_flt(g->n()); // set per blossom
-	augpath = new Djsets_rl(g->m());    // reversible list
+	augpath = new Djsets_rl(g->M());    // reversible list
 	origin = new vertex[g->n()+1];    // original vertex for each blossom
 	bridge = new BridgePair[g->n()+1];// edge that formed a blossom
 	state = new stype[g->n()+1];	     // state used in path search
@@ -98,11 +98,9 @@ vertex match_egc::nca(vertex u, vertex v) {
 edge match_egc::path(vertex a, vertex b) {
 	if (a == b) return 0;
 	if (state[a] == even) {
-		edge e1 = pEdge[a];  
-		vertex pa = g->mate(a,e1);
+		edge e1 = pEdge[a];  vertex pa = g->mate(a,e1);
 		if (pa == b) return e1;
-		edge e2 = pEdge[pa]; 
-		vertex p2a = g->mate(pa,e2);
+		edge e2 = pEdge[pa]; vertex p2a = g->mate(pa,e2);
 		edge e = augpath->join(e1,e2);
 		e = augpath->join(e,path(p2a,b));
 		return e;

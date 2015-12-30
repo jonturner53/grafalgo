@@ -12,8 +12,6 @@ namespace grafalgo {
 
 /** Compute a max flow using Dinic's algorithm.
  *  @param g1 is a flow graph; possibly with an initial non-zero flow
- *  @param floVal is a reference to an integer in which the maximum
- *  flow is returned.
  */
 mflo_d::mflo_d(Graph_f& g1) : mflo_ff(g1) {
         level = new int[g->n()+1];

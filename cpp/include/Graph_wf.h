@@ -34,6 +34,7 @@ public:		Graph_wf(int=3,int=2,int=1,int=2);
         void	copyFrom(const Graph_wf&);
 
 	virtual edge join(vertex,vertex);
+	virtual edge joinWith(vertex,vertex,edge);
 
 	floCost	cost(vertex,edge) const;
 	void	setCost(edge,floCost);

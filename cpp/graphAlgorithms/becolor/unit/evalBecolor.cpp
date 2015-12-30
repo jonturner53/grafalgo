@@ -19,6 +19,7 @@ extern int becolorlb_f(Graph_wd&);
 extern void becolor_ss(Graph_wd&, int*);
 extern void becolor_rm(Graph_wd&, int*);
 extern void becolor_mdm(Graph_wd&, int*);
+extern void becolor_pmd(Graph_wd&, int*);
 }
 
 using namespace chrono;
@@ -80,6 +81,9 @@ int main(int argc, char *argv[]) {
 		} else if (strcmp(method,"maxDegMatch") == 0) {
 			t1 = high_resolution_clock::now();
 			becolor_mdm(g,color);
+		} else if (strcmp(method,"pmatch") == 0) {
+			t1 = high_resolution_clock::now();
+			becolor_pmd(g,color);
 		} else if (strcmp(method,"augPath") == 0) {
 			t1 = high_resolution_clock::now();
 			becolor_ap(g,color);

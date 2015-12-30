@@ -17,6 +17,8 @@
 #include "mdmatch.h"
 #include "mdmatch_f.h"
 #include "p2matchb_t.h"
+#include "pmatchb_hkt.h"
+#include "pmatch_egt.h"
 
 namespace grafalgo {
 extern bool findSplit(const Graph&, ListPair&);
@@ -40,6 +42,7 @@ bool checkMatch(Graph&, List_d&, List_g<edge>&);
  *  matchwb_h (bipartite/weighted), match_eg (general/unweighted),
  *  match_egf (general/unweighted), matchb_gmg (bipartite/weighted),
  *  mdmatch (bipartite/unweighted), mdmatch_f (bipartite/unweighted)
+ *  pmatchb_hkt (bipartite/unweighted), pmatch_egt (general/unweighted)
  */
 int main(int argc, char *argv[]) {
 	if (argc < 2) Util::fatal("usage: testMatch method");
@@ -139,6 +142,62 @@ int main(int argc, char *argv[]) {
 			     << "[" << g.elist2string(match) << "]\n";
 		}
 		if (verify) checkMatch(g,vset,match);
+	} else if (strcmp(argv[1],"pmatchb_hkt") == 0) {
+		Graph g; cin >> g; List_d vset(g.n());
+		List_g<edge> match(g.n()/2); 
+		int priority[g.n()+1];
+		for (vertex u = 1; u <= g.n(); u++)
+			priority[u] = Util::randint(1,min(10,g.n()));
+		pmatchb_hkt(g, priority, match);
+		int size = match.length();
+		cout << size << " edges in matching, ";
+		int count[11];
+		for (int i = 1; i <= 10; i++) count[i] = 0;
+		for (grafalgo::index x = match.first(); x != 0;
+				     x = match.next(x)) {
+			edge e = match.value(x);
+			count[priority[g.left(e)]]++;
+			count[priority[g.right(e)]]++;
+		}
+		cout <<  "counts for 10 priority classes: ";
+		for (int i = 1; i <= 10; i++) cout << count[i] << " ";
+		cout << endl;
+			
+		if (show) {
+			cout << g;
+			for (vertex u = 1; u <= g.n(); u++)
+				cout << priority[u] << " ";
+			cout << "\n[" << g.elist2string(match) << "]\n";
+		}
+		if (verify) checkMatch(g,match);
+	} else if (strcmp(argv[1],"pmatch_egt") == 0) {
+		Graph g; cin >> g; List_d vset(g.n());
+		List_g<edge> match(g.n()/2); 
+		int priority[g.n()+1];
+		for (vertex u = 1; u <= g.n(); u++)
+			priority[u] = Util::randint(1,min(10,g.n()));
+		pmatch_egt(g, priority, match);
+		int size = match.length();
+		cout << size << " edges in matching, ";
+		int count[11];
+		for (int i = 1; i <= 10; i++) count[i] = 0;
+		for (grafalgo::index x = match.first(); x != 0;
+				     x = match.next(x)) {
+			edge e = match.value(x);
+			count[priority[g.left(e)]]++;
+			count[priority[g.right(e)]]++;
+		}
+		cout <<  "counts for 10 priority classes: ";
+		for (int i = 1; i <= 10; i++) cout << count[i] << " ";
+		cout << endl;
+			
+		if (show) {
+			cout << g;
+			for (vertex u = 1; u <= g.n(); u++)
+				cout << priority[u] << " ";
+			cout << "\n[" << g.elist2string(match) << "]\n";
+		}
+		if (verify) checkMatch(g,match);
 	} else { 
 		Util::fatal("testMatch: invalid method");
 	}
