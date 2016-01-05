@@ -7,7 +7,7 @@
  */
 
 #include "stdinc.h"
-#include "Djsets_flt.h"
+#include "Dsets.h"
 #include "Graph_w.h"
 #include "List_g.h"
 
@@ -64,7 +64,7 @@ void sortEdges(const Graph_w& g, edge *elist) {
  */
 void mst_k(Graph_w& g, List_g<edge>& mst) {
 	edge e, e1; vertex u,v,cu,cv;
-	Djsets_flt vsets(g.n());
+	Dsets vsets(g.n());
 	edge *elist = new edge[g.m()+1];
 	mst.clear();
 	int i = 1;

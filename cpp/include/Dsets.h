@@ -1,4 +1,4 @@
-/** @file Djsets_flt.h
+/** @file Dsets.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -7,26 +7,24 @@
  */
 
 
-#ifndef DJSETS_FLT_H
-#define DJSETS_FLT_H
+#ifndef DSETS_H
+#define DSETS_H
 
 #include "Adt.h"
 
 namespace grafalgo {
 
-/** Maintain a partition on positive integers 1..n.
- *  Also known as "disjoint sets" and "union-find".
- */
-class Djsets_flt : public Adt {
-public:		Djsets_flt(int=26);
-		~Djsets_flt();
+/** Maintain a collection of disjoint sets on index set 1..n. */
+class Dsets : public Adt {
+public:		Dsets(int=26);
+		~Dsets();
 
 	// common methods
 	void	clear();
 	void	clear(index);
 	void	resize(int);
 	void	expand(int);
-	void	copyFrom(const Djsets_flt&);
+	void	copyFrom(const Dsets&);
 
 	index	link(index,index);
 	index	find(index);
@@ -34,6 +32,7 @@ public:		Djsets_flt(int=26);
 	string&	toString(string&) const;
 	string 	toString() const;
 private:
+	/** node in the forest that implements the disjoint sets */
 	struct	pnode {
 	index	p;			///< parent of node
 	int	rank;			///< rank of node
@@ -47,7 +46,7 @@ private:
 /** Clear a single node in the data structure.
  *  This method provided for the use of match_egf algorithm.
  */
-inline void Djsets_flt::clear(index u) {
+inline void Dsets::clear(index u) {
         node[u].p = u; node[u].rank = 0;
 }
 

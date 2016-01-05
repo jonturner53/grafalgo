@@ -17,7 +17,7 @@
 namespace grafalgo {
 
 /** This class encapsulates data and methods used by the capacity scaling
- *  variant of the mflo_ff algorithm.
+ *  variant of the Fofd-Fulkerson algorithm.
  *
  *  Use the constructor to invoke the algorithm.
  */

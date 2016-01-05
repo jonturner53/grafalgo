@@ -1,11 +1,11 @@
-/** @file Djheaps_l.cpp
+/** @file Mheaps_l.cpp
  *
  *  @author Jon Turner
  *  @date 2011
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-#include "Djheaps_l.h"
+#include "Mheaps_l.h"
 
 #define kee(x) node[x].kee
 #define rank(x) node[x].rank
@@ -14,25 +14,25 @@
 
 namespace grafalgo {
 
-/** Constructor for Djheaps_l class
+/** Constructor for Mheaps_l class
  *  @param n is the number of items in the constructed object
  */
-Djheaps_l::Djheaps_l(int n) : Adt(n) {
+Mheaps_l::Mheaps_l(int n) : Adt(n) {
 	makeSpace(); clear();
 }
 
-/** Destructor for Djheaps_l class. */
-Djheaps_l::~Djheaps_l() { freeSpace(); }
+/** Destructor for Mheaps_l class. */
+Mheaps_l::~Mheaps_l() { freeSpace(); }
 
-/** Allocate and initialize space for Djheaps_l.
+/** Allocate and initialize space for Mheaps_l.
  */
-void Djheaps_l::makeSpace() { node = new hnode[n()+1]; }
+void Mheaps_l::makeSpace() { node = new hnode[n()+1]; }
 
-/** Free dynamic storage used by Djheaps_l. */
-void Djheaps_l::freeSpace() { delete [] node; }
+/** Free dynamic storage used by Mheaps_l. */
+void Mheaps_l::freeSpace() { delete [] node; }
 
-/** Copy into Djheaps_l from source. */
-void Djheaps_l::copyFrom(const Djheaps_l& source) {
+/** Copy into Mheaps_l from source. */
+void Mheaps_l::copyFrom(const Mheaps_l& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
 	else clear();
@@ -41,26 +41,26 @@ void Djheaps_l::copyFrom(const Djheaps_l& source) {
 	}
 }
 
-/** Resize a Djheaps_l object.
+/** Resize a Mheaps_l object.
  *  The old value is discarded.
  *  @param n is the size of the resized object.
  */
-void Djheaps_l::resize(int n) {
+void Mheaps_l::resize(int n) {
 	freeSpace(); Adt::resize(n); makeSpace(); clear();
 }
 
-/** Expand the space available for this Djheaps_l.
+/** Expand the space available for this Mheaps_l.
  *  Rebuilds old value in new space.
  *  @param n is the size of the resized object.
  */
-void Djheaps_l::expand(int n) {
+void Mheaps_l::expand(int n) {
 	if (n <= this->n()) return;
-	Djheaps_l old(this->n()); old.copyFrom(*this);
+	Mheaps_l old(this->n()); old.copyFrom(*this);
 	resize(n); this->copyFrom(old);
 }
 
 /** Remove all elements from heap. */
-void Djheaps_l::clear() {
+void Mheaps_l::clear() {
 	for (int i = 1; i <= n(); i++) {
 		left(i) = right(i) = 0; rank(i) = 1; kee(i) = 0;
 	}
@@ -72,7 +72,7 @@ void Djheaps_l::clear() {
  *  @return the new heap obtained by combining all the heaps
  *  in the list into one heap
  */
-lheap Djheaps_l::heapify(List& hlst) {
+lheap Mheaps_l::heapify(List& hlst) {
 	if (hlst.empty()) return 0;
 	while (hlst.get(2) != 0) {
 		lheap h = meld(hlst.get(1), hlst.get(2));
@@ -87,7 +87,7 @@ lheap Djheaps_l::heapify(List& hlst) {
  *  @param return the canonical element of the heap obtained
  *  by combining h1 and h2
  */
-lheap Djheaps_l::meld(lheap h1, lheap h2) {
+lheap Mheaps_l::meld(lheap h1, lheap h2) {
 	assert((h1 == 0 || valid(h1)) && (h2 == 0 || valid(h2)));
 	     if (h1 == 0) return h2;
 	else if (h2 == 0) return h1;
@@ -109,7 +109,7 @@ lheap Djheaps_l::meld(lheap h1, lheap h2) {
  *  @return the canonical element of the heap that results from inserting
  *  i into h
  */
-lheap Djheaps_l::insert(index i, lheap h) {
+lheap Mheaps_l::insert(index i, lheap h) {
 	assert((i == 0 || valid(i)) && (h == 0 || valid(h)));
 	assert(left(i) == 0 && right(i) == 0 && rank(i) == 1);
 	return meld(i,h);
@@ -119,7 +119,7 @@ lheap Djheaps_l::insert(index i, lheap h) {
  *  @param h is the canonical element of some heap
  *  @return the canonical element of the resulting heap
  */
-index Djheaps_l::deletemin(lheap h) {
+index Mheaps_l::deletemin(lheap h) {
 	assert(valid(h));
 	lheap h1 = meld(left(h),right(h));
 	left(h) = right(h) = 0; rank(h) = 1;
@@ -129,7 +129,7 @@ index Djheaps_l::deletemin(lheap h) {
 /** Construct a string representation of this object.
  *  @return the string
  */
-string Djheaps_l::toString() const {
+string Mheaps_l::toString() const {
 	string s = "";
 	int i; bool *isroot = new bool[n()+1];
 	for (i = 1; i <= n(); i++) isroot[i] = true;
@@ -149,7 +149,7 @@ string Djheaps_l::toString() const {
  *  @param isroot is true if h is the canonical element of the heap
  *  @return the string
  */
-string Djheaps_l::heap2string(lheap h, bool isroot) const {
+string Mheaps_l::heap2string(lheap h, bool isroot) const {
 	string s = "";
 	if (h == 0) return s;
 	if (left(h) == 0 && right(h) == 0) {

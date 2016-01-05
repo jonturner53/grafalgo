@@ -9,7 +9,7 @@ CXXFLAGS := ${WARN} ${ARCH} -O2 -std=c++0x
 LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
-HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/Djsets_flt.h \
+HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph.h ${IDIR}/Dsets.h \
 	 ${IDIR}/Util.h ${IDIR}/Nca.h 
 XFILES = randGraph toDot
 OFILES = bfs.o toposort.o Nca.o findSplit.o toDot.o

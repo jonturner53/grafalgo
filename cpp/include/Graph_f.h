@@ -56,6 +56,7 @@ public:		Graph_f(int=3,int=2,int=1,int=2);
 
 protected:
 	vertex	s, t;			///< source and sink vertices
+	/** information about capacity and flow on an edge */
 	struct FloInfo {		///< flow and capacity of an edge
 	flow	cpy;			///< edge capacity
 	flow	flo;			///< flow on edge

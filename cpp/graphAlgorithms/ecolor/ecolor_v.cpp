@@ -72,6 +72,7 @@ int ecolor_v(Graph& g, int color[]) {
 		// update available colors at last vertex on path
 		avail[w].remove(c);
 		c = (c == cu ? cv : cu);
+		emap[w][c] = 0;
 		int ac = avail[w].first();
 		if (c < ac) avail[w].addFirst(c);
 		else {

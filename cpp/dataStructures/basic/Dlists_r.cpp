@@ -1,57 +1,57 @@
-/** @file Djsets_rl.cpp
+/** @file Dlists_r.cpp
  *
  *  @author Jon Turner
  *  @date 2011
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-#include "Djsets_rl.h"
+#include "Dlists_r.h"
 
 namespace grafalgo {
 
-/** Constructor for Djsets_rl class.
+/** Constructor for Dlists_r class.
  *  @param n defines the index set for the new object
  */
-Djsets_rl::Djsets_rl(int n) : Adt(n) { makeSpace(); clear(); }
+Dlists_r::Dlists_r(int n) : Adt(n) { makeSpace(); clear(); }
 
-/** Destructor for Djsets_rl class. */
-Djsets_rl::~Djsets_rl() { freeSpace(); }
+/** Destructor for Dlists_r class. */
+Dlists_r::~Dlists_r() { freeSpace(); }
 
 /** Allocate space for object. */
-void Djsets_rl::makeSpace() {
+void Dlists_r::makeSpace() {
 	node = new ListNode[n()+1]; canon = new bool[n()+1];
 }
 
 /** Free dynamic storage used by list. */
-void Djsets_rl::freeSpace() { delete [] node; }
+void Dlists_r::freeSpace() { delete [] node; }
 
-/** Resize a Djsets_rl object.
+/** Resize a Dlists_r object.
  *  The old value is discarded.
  *  @param size is the size of the resized object.
  */
-void Djsets_rl::resize(int size) {
+void Dlists_r::resize(int size) {
 	freeSpace(); makeSpace(); clear();
 }
 
-/** Expand the space available for this Djsets_rl.
+/** Expand the space available for this Dlists_r.
  *  Rebuilds old value in new space.
  *  @param size is the size of the resized object.
  */
-void Djsets_rl::expand(int size) {
+void Dlists_r::expand(int size) {
 	if (size <= n()) return;
-	Djsets_rl old(this->n()); old.copyFrom(*this);
+	Dlists_r old(this->n()); old.copyFrom(*this);
 	resize(size); this->copyFrom(old);
 }
 
 /** Return all elements into singleton lists. */
-void Djsets_rl::clear() {
+void Dlists_r::clear() {
 	for (index x = 0; x <= n(); x++) {
 		node[x].p1 = node[x].p2 = x; canon[x] = true;
 	}
 }
 
 /** Copy into list from source. */
-void Djsets_rl::copyFrom(const Djsets_rl& source) {
+void Dlists_r::copyFrom(const Dlists_r& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
 	else clear();
@@ -68,7 +68,7 @@ void Djsets_rl::copyFrom(const Djsets_rl& source) {
  *  @param t is the index of the canonical element of some list
  *  @return the index of the canonical element of the modified list
  */
-index Djsets_rl::pop(index t) {
+index Dlists_r::pop(index t) {
 	assert(valid(t));
 	index h = first(t);
 	if (h == t) return h;
@@ -88,7 +88,7 @@ index Djsets_rl::pop(index t) {
  *  @return the index of the canonical item of the list formed by appending
  *  the second list to the end of the first
  */
-index Djsets_rl::join(index t1, index t2) {
+index Dlists_r::join(index t1, index t2) {
 	assert((t1 == 0 || valid(t1)) && (t2 == 0 || valid(t2)));
 	if (t1 == 0) return t2;
 	else if (t2 == 0 || t2 == t1) return t1;
@@ -109,7 +109,7 @@ index Djsets_rl::join(index t1, index t2) {
  *  @return the index of the canonical item on the list obtained by
  *  reversing the original list.
  */
-index Djsets_rl::reverse(index t) {
+index Dlists_r::reverse(index t) {
 	if (t == 0) return t;
 	assert(valid(t));
 	index h = first(t);
@@ -124,7 +124,7 @@ index Djsets_rl::reverse(index t) {
  *  All lists with at least two items are printed, one per line.
  *  @return the string
  */
-string Djsets_rl::toString() const {
+string Dlists_r::toString() const {
 	string s = "";
 	for (index x = 1; x <= n(); x++) {
 		if (canon[x] && first(x) != x) {
@@ -138,7 +138,7 @@ string Djsets_rl::toString() const {
  *  @param t is the index of the canonical item of some list
  *  @return the string
  */
-string Djsets_rl::toString(index t) const {
+string Dlists_r::toString(index t) const {
 	assert(valid(t));
 	index h = first(t);
 	string s = "[ ";

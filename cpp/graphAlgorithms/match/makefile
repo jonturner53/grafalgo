@@ -9,7 +9,7 @@ LIBGA := ${LDIR}/lib-ga.a
 LIBS := ${LDIR}/lib-ga.a ${LDIR}/lib-ds.a ${LDIR}/lib-util.a
 
 HFILES = ${IDIR}/stdinc.h ${IDIR}/Graph_w.h ${IDIR}/List.h \
-	 ${IDIR}/Djsets_rl.h ${IDIR}/Djsets_flt.h ${IDIR}/matchb_hk.h \
+	 ${IDIR}/Dlists_r.h ${IDIR}/Dsets.h ${IDIR}/matchb_hk.h \
 	 ${IDIR}/matchwb_h.h ${IDIR}/match_egc.h ${IDIR}/match_eg.h \
 	 ${IDIR}/match_egf.h ${IDIR}/matchb_egmg.h ${IDIR}/dmatch.h \
 	${IDIR}/mdmatch.h ${IDIR}/mdmatch_f.h ${IDIR}/pmatch_egt.h \

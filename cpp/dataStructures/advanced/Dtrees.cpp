@@ -1,47 +1,47 @@
-/** @file Djsets_lct.cpp
+/** @file Dtrees.cpp
  *
  *  @author Jon Turner
  *  @date 2011
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-#include "Djsets_lct.h"
+#include "Dtrees.h"
 
 #define succ(x) successor[x]
 
 namespace grafalgo {
 
-/** Constructor for Djsets_lct class.
+/** Constructor for Dtrees class.
  *  @param n defines the index range for the constructed object.
  */
-Djsets_lct::Djsets_lct(int n) : Adt(n) {
+Dtrees::Dtrees(int n) : Adt(n) {
 	makeSpace(); clear();
 }
 
-/** Destructor for Djsets_lct class. */
-Djsets_lct::~Djsets_lct() { freeSpace(); }
+/** Destructor for Dtrees class. */
+Dtrees::~Dtrees() { freeSpace(); }
 
-/** Allocate and initialize space for Djsets_lct.
+/** Allocate and initialize space for Dtrees.
  */
-void Djsets_lct::makeSpace() {
+void Dtrees::makeSpace() {
 	successor = new index[n()+1]; ps = new PathSet(n(),successor);
 }
 
-/** Free dynamic storage used by Djsets_lct. */
-void Djsets_lct::freeSpace() {
+/** Free dynamic storage used by Dtrees. */
+void Dtrees::freeSpace() {
 	delete ps; delete [] successor;
 }
 
 /** Reinitialize data structure, creating single node trees. */
-void Djsets_lct::clear() {
+void Dtrees::clear() {
 	ps->clear();
 	for (index x = 1; x <= n(); x++) succ(x) = 0;
 }
 
-/** Resize a Djsets_lct object, discarding old value.
+/** Resize a Dtrees object, discarding old value.
  *  @param n is the size of the resized object.
  */
-void Djsets_lct::resize(int n) {
+void Dtrees::resize(int n) {
 	freeSpace(); Adt::resize(n); makeSpace(); clear();
 }
 
@@ -49,15 +49,15 @@ void Djsets_lct::resize(int n) {
  *  Rebuilds old value in new space.
  *  @param n is the size of the expanded object.
  */
-void Djsets_lct::expand(int n) {
+void Dtrees::expand(int n) {
 	if (n <= this->n()) return;
-	Djsets_lct old(this->n()); old.copyFrom(*this);
+	Dtrees old(this->n()); old.copyFrom(*this);
 	resize(n); this->copyFrom(old);
 }
 /** Copy another object to this one.
  *  @param source is object to be copied to this one
  */
-void Djsets_lct::copyFrom(const Djsets_lct& source) {
+void Dtrees::copyFrom(const Dtrees& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
 	else clear();
@@ -74,7 +74,7 @@ void Djsets_lct::copyFrom(const Djsets_lct& source) {
  *  Restructures underlying path set, so the path from i to the root is
  *  a single path.
  */
-path Djsets_lct::expose(index i) {
+path Dtrees::expose(index i) {
 	assert(valid(i));
 	PathNodePair pnPair(0,i);
 	while (pnPair.i != 0) pnPair = splice(pnPair);
@@ -90,7 +90,7 @@ path Djsets_lct::expose(index i) {
  *  the last part of the path originally containing i, effectively
  *  extending p furtrher up the tree.
  */ 
-Djsets_lct::PathNodePair Djsets_lct::splice(PathNodePair pnPair) {
+Dtrees::PathNodePair Dtrees::splice(PathNodePair pnPair) {
 	index w = succ(ps->findpath(pnPair.i));
 	PathSet::PathPair pp = ps->split(pnPair.i);
 	if (pp.p1 != 0) succ(pp.p1) = pnPair.i;
@@ -102,7 +102,7 @@ Djsets_lct::PathNodePair Djsets_lct::splice(PathNodePair pnPair) {
  *  @param i is a node in some tree
  *  @return the root of the tree containing i
  */
-index Djsets_lct::findroot(index i) {
+index Dtrees::findroot(index i) {
 	assert(valid(i));
 	index x;
 	x = ps->findtail(expose(i));
@@ -115,7 +115,7 @@ index Djsets_lct::findroot(index i) {
  *  @return a pair consisting of the last min cost node on the path from
  *  i to the root and its cost
  */
-NodeCostPair Djsets_lct::findcost(index i) {
+NodeCostPair Dtrees::findcost(index i) {
 	NodeCostPair cp = ps->findpathcost(expose(i));
 	succ(cp.x) = 0;
 	return cp;
@@ -126,7 +126,7 @@ NodeCostPair Djsets_lct::findcost(index i) {
  *  @param x is an increment to be added to the costs of the nodes on the
  *  path from i to the tree root
  */
-void Djsets_lct::addcost(index i, cost x) {
+void Dtrees::addcost(index i, cost x) {
 	assert(valid(i));
 	ps->addpathcost(expose(i),x);
 }
@@ -137,7 +137,7 @@ void Djsets_lct::addcost(index i, cost x) {
  *  the tree t to the tree containing i at i.
  *  This operation makes i the parent of t.
  */
-void Djsets_lct::link(tree t, index i) {
+void Dtrees::link(tree t, index i) {
 	assert(valid(t) && valid(i));
 	succ(ps->findpath(t)) = i;
 }
@@ -146,7 +146,7 @@ void Djsets_lct::link(tree t, index i) {
  *  @param i is a node in some tree.
  *  The operation removes the edge from i to its parent.
  */
-void Djsets_lct::cut(index i) {
+void Dtrees::cut(index i) {
 	assert(valid(i));
 	PathSet::PathPair pp = ps->split(i);
 	if (pp.p2 != 0) succ(pp.p2) = succ(i); 
@@ -159,17 +159,17 @@ void Djsets_lct::cut(index i) {
  *  @param q is a path in some tree
  *  @return the string
  */
-string Djsets_lct::path2string(path q) const {
+string Dtrees::path2string(path q) const {
 	string s = ps->path2string(q);
 	s += " succ(" + Adt::index2string(q);
 	s += ")=" + Adt::index2string(succ(q)) + "\n";
 	return s;
 }
 
-/** Create a string representing all the trees in this Djsets_lct object.
+/** Create a string representing all the trees in this Dtrees object.
  *  @return the string
  */
-string Djsets_lct::toString() const {
+string Dtrees::toString() const {
 	string s;
 	for (index i = 1; i <= n(); i++) {
 		index j = ps->findtreeroot(i);

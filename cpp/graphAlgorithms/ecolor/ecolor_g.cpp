@@ -25,7 +25,7 @@ ecolor_g::ecolor_g(Graph& g, int color[]) {
 	cg->copyFrom(g);
 	this->color = color;
 	match = new List_g<edge>(g.n()/2);
-	euler = new Djsets_cl(g.M());
+	euler = new Dlists(g.M());
 	handle = new List_g<edge>(g.M());
 	start = new List_d(g.n());
 
@@ -85,8 +85,8 @@ void ecolor_g::rColor(int Delta) {
 			odd = not odd;
 			edge tmp = ee;
 			ee = euler->next(ee);
-			if (tmp != e) euler->remove(tmp);
-		} while (ee != e);
+			if (tmp != e) euler->remove(tmp,e);
+		} while (ee != 0);
 	}
 	// note: euler and handle now ready for re-use
 
@@ -121,7 +121,7 @@ void ecolor_g::eulerPartition() {
 		if (e == 0) continue;
 		vertex v = s; edge ee = e;
 		do {
-			if (ee != e) euler->join(ee,e);
+			if (ee != e) euler->join(e,ee);
 			v = cg->mate(v,ee);
 			cg->remove(ee);
 			ee = cg->firstAt(v);

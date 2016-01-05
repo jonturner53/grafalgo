@@ -1,4 +1,4 @@
-/** @file becolor_rm.cpp
+/** @file becolor_mdm.cpp
  * 
  *  @author Jon Turner
  *  @date 2015

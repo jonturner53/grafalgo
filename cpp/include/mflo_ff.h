@@ -16,9 +16,9 @@
 
 namespace grafalgo {
 
-/** This class encapsulates data and routines used by the augmenting
- *  path algorithms for max flow. This serves as a base class for
- *  specific variants of the augmenting path algorithm.
+/** This class encapsulates data and routines used by the Ford-Fulkerson
+ *  algorithms for max flow (aka augmenting path algoriths).
+ *  This serves as a base class for specific variants.
  */
 class mflo_ff {
 public: 

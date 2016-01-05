@@ -1,4 +1,4 @@
-/** @file DkSsets.h
+/** @file Ssets2k.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef DKSSETS_H
-#define DKSSETS_H
+#ifndef SSETS2K_H
+#define SSETS2K_H
 
 #include "Ssets_rbt.h"
 
@@ -19,16 +19,16 @@ namespace grafalgo {
  *
  *  Note: implementation not yet complete
  */
-class DkSsets : public Ssets_rbt {
-public: 	DkSsets(int);
-		~DkSsets();
+class Ssets2k : public Ssets_rbt {
+public: 	Ssets2k(int);
+		~Ssets2k();
 	static	const int MAX2 = INT_MAX-1;  ///< max allowed key2 value
 
 	// common methods
 	void	clear();
 	void	resize(int);
 	void	expand(int);
-	void	copyFrom(const DkSsets&);
+	void	copyFrom(const Ssets2k&);
 
 	// access methods
 	keytyp	key1(index);		   
@@ -61,7 +61,7 @@ private:
 /** Set key values of a node
  *  @param i is the index of an isolated node (that is, a single node bst)
  */
-void inline DkSsets::setkey(index i, keytyp k1, keytyp k2) {
+void inline Ssets2k::setkey(index i, keytyp k1, keytyp k2) {
 	assert(0 <= i && i <= n() && k2 <= MAX2);
 	assert(node[i].p == 0 && node[i].left == 0 && node[i].right == 0);
 	node[i].kee = k1; dmin[i] = k2; dkey[i] = 0;
@@ -71,7 +71,7 @@ void inline DkSsets::setkey(index i, keytyp k1, keytyp k2) {
  *  @param i is the index of a node in a BST
  *  @return the value of the first key of i
  */
-keytyp inline DkSsets::key1(index i) {
+keytyp inline Ssets2k::key1(index i) {
 	assert(1 <= i && i <= n());
 	return node[i].kee;
 }
@@ -80,7 +80,7 @@ keytyp inline DkSsets::key1(index i) {
  *  @param t is a canonical element of some bst (root of the BST)
  *  @return the smallest key2 value for any element in the bst
  */
-keytyp inline DkSsets::min2(bst t) {
+keytyp inline Ssets2k::min2(bst t) {
 	assert(1 <= t && t <= n());
 	return dmin[t];
 }
@@ -91,7 +91,7 @@ keytyp inline DkSsets::min2(bst t) {
  *  @param t is the index for the root of the bst whose key2 values are
  *  to be changed
  */
-void inline DkSsets::change2(keytyp diff, bst t) {
+void inline Ssets2k::change2(keytyp diff, bst t) {
 	assert(1 <= t && t <= n());
 	dmin[t] += diff;
 }

@@ -1,4 +1,4 @@
-/** @file Djsets_rl.h
+/** @file Dlists_r.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef DJSETS_RL_H
-#define DJSETS_RL_H
+#ifndef DLISTS_R_H
+#define DLISTS_R_H
 
 #include "Adt.h"
 
@@ -23,15 +23,15 @@ namespace grafalgo {
  *  the role of the two pointers is fixed, but for all others,
  *  it can be reversed.
  */
-class Djsets_rl : public Adt {
-public:		Djsets_rl(int=26);
-		~Djsets_rl();
+class Dlists_r : public Adt {
+public:		Dlists_r(int=26);
+		~Dlists_r();
 
 	// common methods
 	void	clear();
 	void	resize(int);
 	void	expand(int);
-	void	copyFrom(const Djsets_rl&);
+	void	copyFrom(const Dlists_r&);
 
 	index	first(index) const;
 	index	last(index) const;
@@ -49,6 +49,7 @@ public:		Djsets_rl(int=26);
 	string&	toString(index, string&) const;
 	string	toString(index) const;
 private:
+	/** node in a list */
 	struct ListNode {
 	int	p1;			// index of predecessor or successor
 	int	p2;			// index of the other
@@ -65,7 +66,7 @@ private:
  *  @param x is the index of the canonical item of a list
  *  @return the first index on the list containing x
  */
-inline index Djsets_rl::first(index x) const {
+inline index Dlists_r::first(index x) const {
 	assert(valid(x)); return node[x].p1;
 }
 
@@ -73,14 +74,14 @@ inline index Djsets_rl::first(index x) const {
  *  @param x is the index of the canonical item of a list
  *  @return the last index on the list containing x
  */
-inline index Djsets_rl::last(index x) const { assert(valid(x)); return x; }
+inline index Dlists_r::last(index x) const { assert(valid(x)); return x; }
 
 /** Get the index of the next item on a list.
  *  @param x is the index of some item of a list
  *  @param prev is the index of the item that comes before x on its list
  *  @return the last index on the list containing x
  */
-inline index Djsets_rl::next(index x, index prev) const {
+inline index Dlists_r::next(index x, index prev) const {
 	assert(valid(x) && valid(prev) &&
 	       (prev == node[x].p1 || prev == node[x].p2));
 	return (prev == node[x].p2 ? node[x].p1 : node[x].p2);
@@ -91,7 +92,7 @@ inline index Djsets_rl::next(index x, index prev) const {
  *  @param next is the index of the item that comes after x on its list
  *  @return the index of the previous item on the list containing x
  */
-inline index Djsets_rl::prev(index x, index next) const {
+inline index Dlists_r::prev(index x, index next) const {
 	assert(valid(x) && valid(next) &&
 	       (next == node[x].p1 || next == node[x].p2));
 	return (next == node[x].p2 ? node[x].p1 : node[x].p2);
@@ -103,7 +104,7 @@ inline index Djsets_rl::prev(index x, index next) const {
  *  @param y is a reference to the index of the predecessor of x;
  *  on return, y is the original value of x
  */
-inline void Djsets_rl::advance(index& x, index& y) const {
+inline void Dlists_r::advance(index& x, index& y) const {
 	assert(valid(x) && valid(y) && (y == node[x].p1 || y == node[x].p2));
 	index xx = x; x = next(x,y); y = xx;
 }
@@ -114,7 +115,7 @@ inline void Djsets_rl::advance(index& x, index& y) const {
  *  @param y is a reference to the index of the successor of x;
  *  on return, y is the original value of x
  */
-inline void Djsets_rl::retreat(index& x, index& y) const {
+inline void Dlists_r::retreat(index& x, index& y) const {
 	assert(valid(x) && valid(y) && (y == node[x].p1 || y == node[x].p2));
 	index xx = x; x = prev(x,y); y = xx;
 }

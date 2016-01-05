@@ -59,7 +59,6 @@ void Graph_d::expand(int numv, int maxe) {
  *  @return the edge number for the new edge, or 0 on failure
  */
 edge Graph_d::joinWith(vertex u, vertex v, edge e) {
-if (!edges->isOut(e)) cerr << *edges << endl;
 	assert(validVertex(u) && validVertex(v) && edges->isOut(e));
 	edges->swap(e);
 
@@ -67,12 +66,10 @@ if (!edges->isOut(e)) cerr << *edges << endl;
 	evec[e].l = u; evec[e].r = v;
 
 	// add edge to the adjacency lists
-	// in the adjLists data structure, each endpoint appears twice,
-	// as 2*e and 2*e+1
-	if (fe[u] == 0) fe[u] = 2*e;
-	else adjLists->join(2*e,fe[u]);
-	if (fi[v] == 0) fi[v] = 2*e+1;
-	else adjLists->join(2*e+1,fi[v]);
+	// in the adjLists data structure, the endpoints of each
+	// each edge appears separately, as 2*e and 2*e+1
+	fe[u] = adjLists->join(fe[u],2*e);
+	fi[v] = adjLists->join(fi[v],2*e+1);
 
 	return e;
 }
@@ -86,15 +83,9 @@ bool Graph_d::remove(edge e) {
 	edges->swap(e);
 
 	vertex u = evec[e].l;
-	if (fe[u] == 2*e)
-		fe[u] = (adjLists->next(2*e) == 2*e ? 0 : adjLists->next(2*e));
+	fe[u] = adjLists->remove(2*e,fe[u]);
 	u = evec[e].r;
-	if (fi[u] == 2*e+1)
-		fi[u] = (adjLists->next(2*e+1) == 2*e+1 ?
-				0 : adjLists->next(2*e+1));
-
-	adjLists->remove(2*e); adjLists->remove(2*e+1);
-
+	fi[u] = adjLists->remove(2*e+1,fi[u]);
 	evec[e].l = 0;
 
 	return true;

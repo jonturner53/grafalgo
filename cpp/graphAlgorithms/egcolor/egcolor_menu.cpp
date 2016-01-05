@@ -25,9 +25,9 @@ egcolor_menu::egcolor_menu(Graph_g& g, int edgeColors[]) : egcolor(g, edgeColors
 	maxColor = max(gp->maxGroupCountIn(), gp->maxDegreeOut());
 
 	// initialize empty menus
-	menus = new Djsets_cl*[g.n()+1];
+	menus = new Dlists*[g.n()+1];
 	for (vertex u = 1; u <= g.n(); u++)
-		menus[u] = new Djsets_cl(colorBound);
+		menus[u] = new Dlists(colorBound);
 	fc = new int[g.M()+1];
 	for (int grp = 1; grp <= g.M(); grp++) fc[grp] = 0;
 
@@ -99,9 +99,7 @@ void egcolor_menu::removeColor(int c, int grp) {
 	edge e = gp->firstEdgeInGroup(grp);
 	if (e == 0) return;
 	vertex u = gp->input(e);
-	if (fc[grp] == c) fc[grp] = menus[u]->next(c);
-	if (fc[grp] == c) fc[grp] = 0;
-	else menus[u]->remove(c);
+	fc[grp] = menus[u]->remove(c,fc[grp]);
 }
 
 /** Clear all menus.  */

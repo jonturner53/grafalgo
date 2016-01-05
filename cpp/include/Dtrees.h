@@ -1,4 +1,4 @@
-/** @file Djsets_lct.h
+/** @file Dtrees.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef DJSETS_LCT_H
-#define DJSETS_LCT_H
+#ifndef DTREES_H
+#define DTREES_H
 
 #include "stdinc.h"
 #include "Adt.h"
@@ -19,21 +19,19 @@ namespace grafalgo {
 typedef int tree;
 typedef PathSet::PathCostPair NodeCostPair;
 
-/** This class implements a collection trees.
- *  The trees are defined on nodes with node numbers 1..n where n is
- *  specified when the object is constructed. Each node is in one tree
- *  at a time. Each node has an integer cost and methods are provided
+/** This class implements a collection of trees with node numbers in 1..n.
+ *  Each node has an integer cost and methods are provided
  *  for restructuring trees and manipulating costs
  */
-class Djsets_lct : public Adt {
-public: 	Djsets_lct(int=100);
-		~Djsets_lct();
+class Dtrees : public Adt {
+public: 	Dtrees(int=100);
+		~Dtrees();
 
 	// common methods
 	void	clear();
 	void	resize(int);
 	void	expand(int);
-	void	copyFrom(const Djsets_lct&);
+	void	copyFrom(const Dtrees&);
 
 	index	findroot(index);	
 	NodeCostPair findcost(path);
@@ -50,6 +48,7 @@ private:
 	index	*successor;		///< successor[i] is link to next path
 	PathSet *ps;			///< underlying path set data structure
 	
+	/** pair of values returned by splice method */
 	struct PathNodePair {
 		path p; index i;
 		PathNodePair(path pp, index ii) : p(pp), i(ii) {}
@@ -65,7 +64,7 @@ private:
  *  @param i is a node in a tree
  *  @return the cost of i
  */
-inline cost Djsets_lct::nodeCost(index i) const { return ps->nodeCost(i); }
+inline cost Dtrees::nodeCost(index i) const { return ps->nodeCost(i); }
 
 } // ends namespace
 

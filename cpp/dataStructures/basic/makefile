@@ -7,10 +7,10 @@ WARN := -Wall -Wno-c++11-extensions
 CXXFLAGS := ${WARN} ${ARCH} -O2
 
 HFILES = ${IDIR}/Adt.h ${IDIR}/stdinc.h ${IDIR}/List.h ${IDIR}/List_d.h \
-	${IDIR}/ListSet.h ${IDIR}/Djsets_cl.h ${IDIR}/ListPair.h \
-	${IDIR}/Djsets_flt.h ${IDIR}/Djsets_rl.h
-OFILES = List.o List_d.o ListSet.o Djsets_cl.o ListPair.o \
-	Djsets_flt.o Djsets_rl.o
+	${IDIR}/ListSet.h ${IDIR}/Dlists.h ${IDIR}/ListPair.h \
+	${IDIR}/Dsets.h ${IDIR}/Dlists_r.h
+OFILES = List.o List_d.o ListSet.o Dlists.o ListPair.o \
+	Dsets.o Dlists_r.o
 ${OFILES} : ${HFILES}
 
 .cpp.o : 

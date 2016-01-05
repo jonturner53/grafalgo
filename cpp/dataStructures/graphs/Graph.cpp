@@ -29,7 +29,7 @@ void Graph::makeSpace(int numv, int maxe) {
 	fe = new edge[numv+1];
 	evec = new EdgeInfo[maxe+1];
 	edges = new ListPair(maxe);
-	adjLists = new Djsets_cl(2*maxe+1);
+	adjLists = new Dlists(2*maxe+1);
 }
 
 /** Initialize a Graph object. */
@@ -66,7 +66,11 @@ void Graph::expand(int numv, int maxe) {
 }
 
 /** Remove all edges from graph. */
-void Graph::clear() { while (first() != 0) remove(first()); }
+void Graph::clear() {
+	while (first() != 0) {
+		remove(first());
+	}
+}
 
 /** Copy another graph to this one.
  *  @param source is the graph to be copied
@@ -89,8 +93,6 @@ void Graph::copyFrom(const Graph& source) {
  *  on failure
  */
 edge Graph::join(vertex u, vertex v) {
-	assert(validVertex(u) && validVertex(v));
-
 	return joinWith(u,v,edges->firstOut());
 }
 
@@ -111,10 +113,8 @@ edge Graph::joinWith(vertex u, vertex v, edge e) {
 	// add edge to the adjacency lists
 	// the adjLists data structure stores "edge endpoints",
 	// where 2*e is left endpoint of e, 2*e+1 is right endpoint
-	if (fe[u] == 0) fe[u] = 2*e;
-	else		adjLists->join(2*e,fe[u]);
-	if (fe[v] == 0) fe[v] = 2*e+1;
-	else		adjLists->join(2*e+1,fe[v]);
+	fe[u] = adjLists->join(fe[u],2*e);
+	fe[v] = adjLists->join(fe[v],2*e+1);
 
 	return e;
 }
@@ -126,17 +126,8 @@ edge Graph::joinWith(vertex u, vertex v, edge e) {
 bool Graph::remove(edge e) {
 	assert(validEdge(e));
 	edges->swap(e);
-
-	vertex u = evec[e].l;
-	if (fe[u] == 2*e)
-		fe[u] = (adjLists->next(2*e) == 2*e ? 0 : adjLists->next(2*e));
-	u = evec[e].r;
-	if (fe[u] == 2*e+1)
-		fe[u] = (adjLists->next(2*e+1) == 2*e+1 ?
-				0 : adjLists->next(2*e+1));
-
-	adjLists->remove(2*e); adjLists->remove(2*e+1);
-
+	vertex u = evec[e].l; fe[u] = adjLists->remove(2*e,fe[u]);
+	       u = evec[e].r; fe[u] = adjLists->remove(2*e+1,fe[u]);
 	evec[e].l = 0;
 
 	return true;
@@ -174,9 +165,7 @@ void Graph::sortAlist(vertex u) {
 
 	for (ep = fe[u]; ep != 0; ep = fe[u]) {
 		elist[k++] = ep;
-		fe[u] = adjLists->next(ep);
-		if (fe[u] == ep) fe[u] = 0;
-		else		 adjLists->remove(ep);
+		fe[u] = adjLists->remove(ep,fe[u]);
 	}
 	k--;
 	// put edge list in heap-order using mate(u) as key
@@ -215,10 +204,10 @@ void Graph::sortAlist(vertex u) {
 	// now elist is sorted by mate(u)
 
 	// now rebuild links forming adjacency list for u
-	for (j = 2; j <= k; j++) {
-		adjLists->join(elist[j-1],elist[j]);
-	}
 	fe[u] = elist[1];
+	for (j = 2; j <= k; j++) {
+		fe[u] = adjLists->join(fe[u],elist[j]);
+	}
 
 	delete [] elist;
 }

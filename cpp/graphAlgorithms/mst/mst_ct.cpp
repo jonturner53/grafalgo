@@ -9,14 +9,14 @@
 #include "stdinc.h"
 #include "List_d.h"
 #include "List_g.h"
-#include "Djsets_flt.h"
-#include "Djheaps_ll.h"
+#include "Dsets.h"
+#include "Mheaps_ll.h"
 #include "Graph_w.h"
 
 namespace grafalgo {
 
 Graph_w *gp;	// pointer to graph, used by delf function
-Djsets_flt *pp;  // pointer to partition of vertices, used by delf function
+Dsets *pp;  // pointer to partition of vertices, used by delf function
 
 /** Determine if an edge joins two vertices in the same tree.
  *  @param e is an edge in the graph.
@@ -35,8 +35,8 @@ void mst_ct(Graph_w& g, List_g<edge>& mst) {
 	edge e; vertex u,v,cu,cv;
 	List_d q(g.n()); List elist(2*g.M());
 	lheap *h = new lheap[g.n()+1];
-	Djsets_flt prtn(g.n());
-	Djheaps_ll heapSet(2*g.M(),delf);
+	Dsets prtn(g.n());
+	Mheaps_ll heapSet(2*g.M(),delf);
 	gp = &g; pp = &prtn;
 	for (e = g.first(); e != 0; e = g.next(e)) {
 		heapSet.setkey(2*e,g.weight(e));

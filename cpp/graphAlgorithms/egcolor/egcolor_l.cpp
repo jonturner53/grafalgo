@@ -18,7 +18,7 @@ namespace grafalgo {
  */
 egcolor_l::egcolor_l(Graph_g& g, int edgeColors[]) : egcolor(g,edgeColors) {
 	// create and initialize usr[u][c] and nusr[u][c]
-	ug = new int[gp->n()+1]; ugrp = new Djsets_cl(gp->M());
+	ug = new int[gp->n()+1]; ugrp = new Dlists(gp->M());
 	usr = new int*[gp->n()+1]; nusr = new int*[gp->n()+1];
 	for (vertex u = 1; u <= gp->n(); u++) {
 		usr[u] = new int[colorBound+1]; nusr[u] = new int[colorBound+1];
@@ -29,8 +29,7 @@ egcolor_l::egcolor_l(Graph_g& g, int edgeColors[]) : egcolor(g,edgeColors) {
 		if (gp->isOut(u)) continue;
 		for (int grp = gp->firstGroup(u); grp != 0;
 			 grp = gp->nextGroup(u,grp)) {
-			if (grp == gp->firstGroup(u)) ug[u] = grp;
-			else ugrp->join(grp,ug[u]);
+			ug[u] = ugrp->join(ug[u],grp);
 		}
 	}
 	maxColor = 1;

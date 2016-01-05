@@ -1,6 +1,10 @@
-// Header file for class that implements Edmond's algorithm for
-// finding a maximum size matching in a general graph. To use,
-// invoke the constructor.
+/** @file Match_egf.h
+ *
+ *  @author Jon Turner
+ *  @date 2015
+ *  This is open source software licensed under the Apache 2.0 license.
+ *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+ */
 
 #ifndef MATCH_EGF_H
 #define MATCH_EGF_H
@@ -9,6 +13,10 @@
 
 namespace grafalgo {
 
+/** Encapsulates data and methods used to implement a fast version
+ *  of Gabow's implementation of Edmonds' algorithm. To invoke,
+ *  use constructor.
+ */
 class match_egf : public match_egc {
 public: match_egf(Graph&, List_g<edge>&);
 private:

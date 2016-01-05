@@ -18,7 +18,7 @@
 namespace grafalgo {
 
 /** This class encapsulates data and methods for the maximum capacity
- *  variant of the mflo_ff path algorithm.
+ *  variant of the Ford-Fulkerson algorithm.
  *
  *  Use the constructor to invoke the algorithm.
  */

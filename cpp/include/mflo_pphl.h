@@ -29,7 +29,7 @@ protected:
 	int	*ubVec;		// ubVec[i] is an unbalanced vertex
 				// with label i
 	int	top;		// highest index into ubVec with ubVec[i]!=0
-	Djsets_cl *unbal;	// collection of circular lists of vertices
+	Dlists *unbal;	// collection of circular lists of vertices
 
 	void	addUnbal(vertex);
 	vertex	removeUnbal();

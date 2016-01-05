@@ -12,7 +12,7 @@
 #include "Adt.h"
 #include "Util.h"
 #include "List.h"
-#include "Djsets_cl.h"
+#include "Dlists.h"
 #include "ListPair.h"
 #include "List_g.h"
 #include <list>
@@ -92,6 +92,7 @@ public:		Graph(int=2,int=1);
 protected:
 	edge	*fe;			///< fe[v] is first edge incident to v
 
+	/** endpoints of an edge */
 	struct EdgeInfo {
 	vertex	l;			///< l is left endpoint of edge
 	vertex	r;			///< r is right endpoint of edge
@@ -100,7 +101,7 @@ protected:
 
 	ListPair *edges; 		///< sets of in-use and free edges
 
-	Djsets_cl *adjLists;		///< set of edge adjacency lists
+	Dlists *adjLists;		///< set of edge adjacency lists
 					///< each "edge endpoint" appears
 					///< on one list; the endpoints
 					///< for edge e are 2e and 2e+1

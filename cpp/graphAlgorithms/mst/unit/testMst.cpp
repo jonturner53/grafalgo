@@ -9,8 +9,8 @@
 #include "stdinc.h"
 #include "List_g.h"
 #include "Graph_w.h"
-#include "Djsets_cl.h"
-#include "Djsets_flt.h"
+#include "Dlists.h"
+#include "Dsets.h"
 
 namespace grafalgo {
 extern void mst_k(Graph_w&, List_g<edge>&);
@@ -81,11 +81,11 @@ int main(int argc, char *argv[]) {
 
 bool verify(Graph_w&, Graph_w&);
 bool rverify(Graph_w&, Graph_w&, vertex, vertex, vertex*,
-	     Djsets_cl&, vertex*, int*);
+	     Dlists&, vertex*, int*);
 int max_wt(vertex, vertex, vertex*, vertex*);
-void nca(Graph_w&, Graph_w&, vertex*, Djsets_cl&);
+void nca(Graph_w&, Graph_w&, vertex*, Dlists&);
 void nca_search(Graph_w&, Graph_w&, vertex, vertex, vertex*,
-	Djsets_cl&, Djsets_flt&, vertex*, int*);
+	Dlists&, Dsets&, vertex*, int*);
 
 
 /** Verify that one graph is an MST of another.
@@ -153,7 +153,7 @@ bool checkMst(Graph_w& g, Graph_w& mstg) {
 bool verify(Graph_w& g, Graph_w& mstg) {
 	// Determine nearest common ancestor for each edge.
 	vertex* first_edge = new edge[g.n()+1];
-	Djsets_cl edge_sets(g.m());
+	Dlists edge_sets(g.m());
 	nca(g,mstg,first_edge,edge_sets);
 
 	// Check paths from endpoints to nca, and compress.
@@ -171,7 +171,7 @@ bool verify(Graph_w& g, Graph_w& mstg) {
  *  @return true if the subtree can be verified, else false
  */
 bool rverify(Graph_w& g, Graph_w& mstg, vertex u, vertex pu,
-	    vertex first_edge[], Djsets_cl& edge_sets, vertex a[], int mw[]) {
+	    vertex first_edge[], Dlists& edge_sets, vertex a[], int mw[]) {
 	vertex v; edge e; int m; bool status = true;
 	for (e = mstg.firstAt(u); e != 0; e = mstg.nextAt(u,e)) {
 		v = mstg.mate(u,e);
@@ -219,8 +219,8 @@ int max_wt(vertex u, vertex v, vertex a[], int mw[]) {
  *  @param edge_sets is used to return a collection of lists that partition
  *  the edges; two edges appear on the same list if they have the same nca
  */
-void nca(Graph_w& g, Graph_w& mstg, edge *first_edge, Djsets_cl& edge_sets) {
-	Djsets_flt npap(g.n());
+void nca(Graph_w& g, Graph_w& mstg, edge *first_edge, Dlists& edge_sets) {
+	Dsets npap(g.n());
 	vertex *npa = new vertex[g.n()+1];
 	int *mark = new int[g.m()+1];
 
@@ -243,7 +243,7 @@ void nca(Graph_w& g, Graph_w& mstg, edge *first_edge, Djsets_cl& edge_sets) {
  */
 void nca_search(Graph_w& g, Graph_w& mstg, vertex u, vertex pu,
 		edge first_edge[],
-	Djsets_cl& edge_sets, Djsets_flt& npap, vertex npa[], int mark[]) {
+	Dlists& edge_sets, Dsets& npap, vertex npa[], int mark[]) {
 	vertex v, w; edge e;
 
 	for (e = mstg.firstAt(u); e != 0; e = mstg.nextAt(u,e)) {

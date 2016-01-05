@@ -5,9 +5,6 @@
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-// Header file for class that implements Edmond's algorithm for
-// finding a maximum size matching in a general graph. To use,
-// invoke the constructor.
 
 #ifndef MATCHWB_H_H
 #define MATCHWB_H_H
@@ -22,6 +19,10 @@
 
 namespace grafalgo {
 
+/** Header file for class that implements Hungarian algorithm for
+ *  finding a weighted matching in a bipartite graph. To use,
+ *  invoke the constructor.
+ */
 class matchwb_h {
 public: matchwb_h(Graph_w&, List_g<edge>&);
 private:

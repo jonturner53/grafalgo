@@ -1,4 +1,4 @@
-/** @file Djheaps_ll.cpp 
+/** @file Mheaps_ll.cpp 
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#include "Djheaps_ll.h"
+#include "Mheaps_ll.h"
 
 #define kee(x) node[x].kee
 #define rank(x) node[x].rank
@@ -17,7 +17,7 @@
 
 namespace grafalgo {
 
-/** Constructor for the Djheaps_ll class.
+/** Constructor for the Mheaps_ll class.
  *  @param n is the number of items that the constructed object can hold;
  *  the index set is actually twice as large, to allow space for dummy nodes
  *  @param delftyp is pointer to a "deleted function"
@@ -25,24 +25,24 @@ namespace grafalgo {
  *  if that item should be considered deleted from the heap
  *  in which it is present
  */
-Djheaps_ll::Djheaps_ll(int n, delftyp f) : Djheaps_l(2*n) {
+Mheaps_ll::Mheaps_ll(int n, delftyp f) : Mheaps_l(2*n) {
 	makeSpace(); clear(); delf = f;
 }
 
-/** Destructor for the Djheaps_ll class. */
-Djheaps_ll::~Djheaps_ll() { freeSpace(); }
+/** Destructor for the Mheaps_ll class. */
+Mheaps_ll::~Mheaps_ll() { freeSpace(); }
 
-/** Allocate and initialize space for Djheaps_ll.
+/** Allocate and initialize space for Mheaps_ll.
  */
-void Djheaps_ll::makeSpace() { tmplst = new List(n()); }
+void Mheaps_ll::makeSpace() { tmplst = new List(n()); }
 
-/** Free dynamic storage used by Djheaps_ll. */
-void Djheaps_ll::freeSpace() { delete tmplst; }
+/** Free dynamic storage used by Mheaps_ll. */
+void Mheaps_ll::freeSpace() { delete tmplst; }
 
-/** Copy another Djheaps_ll object to this one.
+/** Copy another Mheaps_ll object to this one.
  *  @param source is the source object to be copied
  */
-void Djheaps_ll::copyFrom(const Djheaps_ll& source) {
+void Mheaps_ll::copyFrom(const Mheaps_ll& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
 	else clear();
@@ -51,28 +51,28 @@ void Djheaps_ll::copyFrom(const Djheaps_ll& source) {
 	dummy = source.dummy; delf = source.delf;
 }
 
-/** Resize a Djheaps_ll object.
+/** Resize a Mheaps_ll object.
  *  The old value is discarded.
  *  @param n is the size of the resized object.
  */
-void Djheaps_ll::resize(int n) {
-	freeSpace(); Djheaps_l::resize(2*n); makeSpace(); clear();
+void Mheaps_ll::resize(int n) {
+	freeSpace(); Mheaps_l::resize(2*n); makeSpace(); clear();
 }
 
-/** Expand the space available for this Djheaps_ll.
+/** Expand the space available for this Mheaps_ll.
  *  Rebuilds old value in new space.
  *  @param n is the size of the resized object.
  */
-void Djheaps_ll::expand(int n) {
+void Mheaps_ll::expand(int n) {
 	if (n <= (this->n()/2)) return;
-	Djheaps_ll old(this->n()); old.copyFrom(*this);
+	Mheaps_ll old(this->n()); old.copyFrom(*this);
 	resize(n); this->copyFrom(old);
 }
 
 /** Remove all elements from heap. */
-void Djheaps_ll::clear() {
+void Mheaps_ll::clear() {
 	// build list of dummy nodes linked using left pointers
-	Djheaps_l::clear(); tmplst->clear();
+	Mheaps_l::clear(); tmplst->clear();
 	for (index i = (n()/2)+1; i <= n() ; i++) left(i) = i+1;
 	dummy = (n()/2)+1; left(2*n()) = 0;
 	rank(0) = 0; left(0) = right(0) = 0;
@@ -84,7 +84,7 @@ void Djheaps_ll::clear() {
  *  @param h2 is the canonical element of a heap
  *  @return the canonical element of the heap obtained by combining h1 and h2
  */
-lheap Djheaps_ll::lmeld(lheap h1, lheap h2) {
+lheap Mheaps_ll::lmeld(lheap h1, lheap h2) {
 	assert((h1 == 0 || valid(h1)) && (h2 == 0 || valid(h2)) && dummy != 0);
 	int i = dummy; dummy = left(dummy);
 	left(i) = h1; right(i) = h2;
@@ -96,7 +96,7 @@ lheap Djheaps_ll::lmeld(lheap h1, lheap h2) {
  *  @param h is the caonical element of some heap
  *  @return the canonical element of the heap obtained by inserting i into h
  */
-lheap Djheaps_ll::insert(index i, lheap h) {
+lheap Mheaps_ll::insert(index i, lheap h) {
 	assert(0 <= i && i <= (n()/2) && left(i) == 0 && right(i) == 0 &&
 		rank(i) ==1 && valid(h));
 	tmplst->clear(); purge(h,*tmplst); h = heapify(*tmplst);
@@ -107,7 +107,7 @@ lheap Djheaps_ll::insert(index i, lheap h) {
  *  @param h is the canonical element of some heap
  *  @return the item in h that has the smallest key
  */
-index Djheaps_ll::findmin(lheap h) {
+index Mheaps_ll::findmin(lheap h) {
 	assert(h == 0 || valid(h));
 	tmplst->clear(); purge(h,*tmplst); return heapify(*tmplst);
 }
@@ -120,7 +120,7 @@ index Djheaps_ll::findmin(lheap h) {
  *  if h is a non-deleted node, it is removed and its children are
  *  purged.
  */
-void Djheaps_ll::purge(lheap h, List& hlst) {
+void Mheaps_ll::purge(lheap h, List& hlst) {
 	if (h == 0) return;
 	assert(valid(h));
 	if (!deleted(h)) {
@@ -139,7 +139,7 @@ void Djheaps_ll::purge(lheap h, List& hlst) {
  *  @param s is a string in which the result is returned
  *  @return a reference to s
  */
-string Djheaps_ll::toString() const {
+string Mheaps_ll::toString() const {
 	string s = "";
 	int i; bool *isroot = new bool[n()+1];
 	for (i = 1; i <= n(); i++) isroot[i] = true;
@@ -159,7 +159,7 @@ string Djheaps_ll::toString() const {
  *  @param isroot is true if h is the canonical element of the heap
  *  @return the string
  */
-string Djheaps_ll::heap2string(lheap h, bool isroot) const {
+string Mheaps_ll::heap2string(lheap h, bool isroot) const {
 	string s = "";
 	if (h == 0) return s;
 	if (left(h) == 0 && right(h) == 0) {

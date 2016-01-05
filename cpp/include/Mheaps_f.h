@@ -1,4 +1,4 @@
-/** @file Djheaps_f.h
+/** @file Mheaps_f.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -13,26 +13,26 @@
 #include "Adt.h"
 #include "Util.h"
 #include "List.h"
-#include "Djsets_cl.h"
+#include "Dlists.h"
 
 namespace grafalgo {
 
 typedef int keytyp;
 typedef index fheap;
 
-/** The Djheaps_f class represents a collection of Fibonacci heaps.
+/** The Mheaps_f class represents a collection of Fibonacci heaps.
  *  The heaps are defined over nodes numbered 1..n where n is specified
  *  when the object is constructed. Each node is in one heap at a time.
  */
-class Djheaps_f : public Adt {
-public:		Djheaps_f(int=26);
-		~Djheaps_f();
+class Mheaps_f : public Adt {
+public:		Mheaps_f(int=26);
+		~Mheaps_f();
 
 	// common methods
 	void	clear();
 	void	resize(int);
 	void	expand(int);
-	void	copyFrom(const Djheaps_f&);
+	void	copyFrom(const Mheaps_f&);
 
 	keytyp	key(index) const;		
 	void	setKey(index,keytyp);
@@ -50,6 +50,7 @@ public:		Djheaps_f(int=26);
 
 protected:
 	static const int MAXRANK = 32;
+	/** node in a Fibonacci heap */
 	struct Fnode {			///< node object
 	keytyp	kee;			///< key values
 	int	rank;			///< rank values
@@ -57,7 +58,7 @@ protected:
 	fheap	p, c;			///< parent and child pointers
 	};
  	Fnode	*node;			///< node[u] contains fields for node u
-	Djsets_cl *sibs;			///< collection of sibling lists
+	Dlists *sibs;			///< collection of sibling lists
 	int	rvec[MAXRANK+1];	///< temporary vector of ranks
 	List	*tmpq;			///< temporary queue
 
@@ -71,14 +72,14 @@ protected:
  *  @param i is the index of an item in some heap
  *  @return the key of i
  */
-inline keytyp Djheaps_f::key(index i) const { return node[i].kee; }
+inline keytyp Mheaps_f::key(index i) const { return node[i].kee; }
 
 /** Set the key of a singleton item.
  *  @param i is the index of a singleton item.
  *  @return the key of i
  */
-inline void Djheaps_f::setKey(index i, keytyp k) {
-	assert(sibs->next(i) == i && node[i].p == 0 && node[i].c == 0);
+inline void Mheaps_f::setKey(index i, keytyp k) {
+	assert(sibs->singleton(i) && node[i].p == 0 && node[i].c == 0);
 	node[i].kee = k;
 }
 
@@ -86,13 +87,13 @@ inline void Djheaps_f::setKey(index i, keytyp k) {
  *  @param i is the index of a singleton item.
  *  @return the key of i
  */
-inline fheap Djheaps_f::insert(index i, fheap h) { return meld(i,h); }
+inline fheap Mheaps_f::insert(index i, fheap h) { return meld(i,h); }
 	
 /** Find the item with smallest key in a heap.
  *  @param h is the canonical element of some heap
  *  @return the the index of item in h that has the smallest key
  */
-inline fheap Djheaps_f::findmin(fheap h) const { return h; }
+inline fheap Mheaps_f::findmin(fheap h) const { return h; }
 
 } // ends namespace
 

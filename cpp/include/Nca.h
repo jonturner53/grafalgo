@@ -13,7 +13,7 @@
 #include "Adt.h"
 #include "Util.h"
 #include "Pair.h"
-#include "Djsets_flt.h"
+#include "Dsets.h"
 #include "Graph.h"
 
 namespace grafalgo {
@@ -30,7 +30,7 @@ private:
 	vertex	*ncav;		// pointer to nca vector
 
 	Graph	*gp;		// pointer to graph used to represent pairs
-	Djsets_flt *pp;		// groups closed vertices by their noa
+	Dsets *pp;		// groups closed vertices by their noa
 	vertex	*noa;		// if u is a canonical element, noa[u] is noa
 
 	enum state_t { unreached, open, closed };

@@ -7,7 +7,7 @@ CXXFLAGS = -Wall -O2 -m64 -std=c++0x
 %.o : %.cpp
 	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
 
-all : testHeap_d testHeap_dd testDjheaps_d testDjheaps_f testDjheaps_l
+all : testHeap_d testHeap_dd testDheaps testMheaps_f testMheaps_l
 
 testHeap_d: testHeap_d.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
@@ -15,13 +15,13 @@ testHeap_d: testHeap_d.o ${LIBS}
 testHeap_dd: testHeap_dd.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testDjheaps_d: testDjheaps_d.o ${LIBS}
+testDheaps: testDheaps.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testDjheaps_f: testDjheaps_f.o ${LIBS}
+testMheaps_f: testMheaps_f.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
-testDjheaps_l: testDjheaps_l.o ${LIBS}
+testMheaps_l: testMheaps_l.o ${LIBS}
 	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
 
 clean :

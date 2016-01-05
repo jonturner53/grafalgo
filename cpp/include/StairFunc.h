@@ -1,4 +1,4 @@
-/** @file StarFunc.cpp
+/** @file StairFunc.h
  * 
  *  @author Jon Turner
  *  @date 2011

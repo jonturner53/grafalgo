@@ -22,7 +22,7 @@ namespace grafalgo {
 Nca::Nca(Graph& t, vertex root1, Graph& g, vertex ncav1[])
 	   : tp(&t), root(root1), gp(&g), ncav(ncav1) {
 
-	pp = new Djsets_flt(tp->n());
+	pp = new Dsets(tp->n());
 	noa = new vertex[tp->n()+1];
 	state = new state_t[tp->n()+1];
 	for (vertex u = 1; u <= tp->n(); u++) state[u] = unreached;
@@ -69,7 +69,7 @@ Pair<Pair<vertex,vertex>,vertex> to pass in the pairs and return
 result.
 
 To eliminate graph, we need a list of pairs for each vertex.
-Could replicate the use of Djsets_cl used in graphs.
+Could replicate the use of Dlists used in graphs.
 */
 
 } // ends namespace

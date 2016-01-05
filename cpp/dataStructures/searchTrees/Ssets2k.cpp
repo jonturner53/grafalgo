@@ -1,11 +1,11 @@
-/** @file DkSsets.cpp
+/** @file Ssets2k.cpp
  *
  *  @author Jon Turner
  *  @date 2011
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-#include "DkSsets.h"
+#include "Ssets2k.h"
 
 #define left(x) node[x].left
 #define right(x) node[x].right
@@ -16,38 +16,38 @@
 
 namespace grafalgo {
 
-/** Constructor for DkSsets class.
+/** Constructor for Ssets2k class.
  *  @param n defines the index range for the constructed object.
  */
-DkSsets::DkSsets(int n) : Ssets_rbt(n) {
+Ssets2k::Ssets2k(int n) : Ssets_rbt(n) {
 	makeSpace(); init();
 }
 
-/** Destructor for DkSsets class. */
-DkSsets::~DkSsets() { freeSpace(); }
+/** Destructor for Ssets2k class. */
+Ssets2k::~Ssets2k() { freeSpace(); }
 
-/** Allocate space for DkSsets.  */
-void DkSsets::makeSpace() {
+/** Allocate space for Ssets2k.  */
+void Ssets2k::makeSpace() {
 	dmin = new keytyp[n()+1]; dkey = new keytyp[n()+1];
 }
 
-/** Free dynamic storage used by DkSsets. */
-void DkSsets::freeSpace() { delete [] dmin; delete [] dkey; }
+/** Free dynamic storage used by Ssets2k. */
+void Ssets2k::freeSpace() { delete [] dmin; delete [] dkey; }
 
 /** Reinitialize data structure, creating single node trees. */
-void DkSsets::clear() {
+void Ssets2k::clear() {
 	BalBastSet::clear(); init();
 }
 
-/** Initialize data for the DkSsets subclass. */
-void DkSsets::init() {
+/** Initialize data for the Ssets2k subclass. */
+void Ssets2k::init() {
 	for (int i = 0; i <= n(); i++) dmin(i) = dkey(i) = 0; 
 }
 
-/** Resize a DkSsets object, discarding old value.
+/** Resize a Ssets2k object, discarding old value.
  *  @param n is the size of the resized object.
  */
-void DkSsets::resize(int n) {
+void Ssets2k::resize(int n) {
 	freeSpace(); Ssets_rbt::resize(n); makeSpace(); init();
 }
 
@@ -55,16 +55,16 @@ void DkSsets::resize(int n) {
  *  Rebuilds old value in new space.
  *  @param n is the size of the expanded object.
  */
-void DkSsets::expand(int n) {
+void Ssets2k::expand(int n) {
 	if (n <= this->n()) return;
-	DkSsets old(this->n()); old.copyFrom(*this);
+	Ssets2k old(this->n()); old.copyFrom(*this);
 	resize(n); this->copyFrom(old);
 }
 
 /** Copy another object to this one.
  *  @param source is object to be copied to this one
  */
-void DkSsets::copyFrom(const DkSsets& source) {
+void Ssets2k::copyFrom(const Ssets2k& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
 	else clear();
@@ -79,7 +79,7 @@ void DkSsets::copyFrom(const DkSsets& source) {
  *  @param i is a node in a search tree
  *  @return the value of the second key at i
  */
-keytyp DkSsets::key2(index i) {
+keytyp Ssets2k::key2(index i) {
 	assert(valid(i));
 	return dmin(i) + dkey(i);
 }
@@ -88,7 +88,7 @@ keytyp DkSsets::key2(index i) {
  *  @param x is a node in a bst (node in a search tree); the operation
  *  moves x up into its parent's place
  */
-void DkSsets::rotate(index x) {
+void Ssets2k::rotate(index x) {
 	assert(valid(x) && valid(p(x));
 	index y = p(x); if (y == 0) return;
 	index a, b, c;
@@ -117,7 +117,7 @@ void DkSsets::rotate(index x) {
  *  @return the node with the largest key1 value that is <=k;
  *  if there is no such node, return the node with the smallest key1
  */
-index DkSsets::access(keytyp k, bst t)  {
+index Ssets2k::access(keytyp k, bst t)  {
 	if (t == 0) return 0;
 	assert(valid(t));
 	index v = 0;
@@ -139,7 +139,7 @@ index DkSsets::access(keytyp k, bst t)  {
  *  @param i is a node in a search tree
  *  @param t is the root of a search tree
  */
-void inline DkSsets::change2(keytyp diff, index i, bst t) {
+void inline Ssets2k::change2(keytyp diff, index i, bst t) {
         assert(valid(i) && valid(t) && p(t) == 0);
 
 	mc = mincost(i);
@@ -216,7 +216,7 @@ rework for balanced trees
 
 
 
-index DkSsets::insert(index i, bst t) {
+index Ssets2k::insert(index i, bst t) {
 	assert (1 <= i && i <= n() && 1 <= t && t <= n() && i != t);
 	keytyp key2i = dmin(i);
 
@@ -268,7 +268,7 @@ case 1. node x with no children
 case 2. node with one child; if 
 
 
-index DkSsets::remove(index i, bst t) {
+index Ssets2k::remove(index i, bst t) {
 	assert(1 <= i && i <= n() && 1 <= t && t <= n());
 	assert (left(0) == 0 && right(0) == 0 && p(0) == 0);
 
@@ -314,7 +314,7 @@ index DkSsets::remove(index i, bst t) {
  *  and smaller than that of any node in t2
  *  @return the new bst formed by combining t1, i and t2
  */
-bst DkSsets::join(bst t1, index i, bst t2) {
+bst Ssets2k::join(bst t1, index i, bst t2) {
 	SaSsets::join(t1,i,t2);
 	keytyp key2i = dmin(i) + dkey(i);
 	if (t1 != 0) dmin(i) = min(dmin(i),dmin(t1));
@@ -332,7 +332,7 @@ bst DkSsets::join(bst t1, index i, bst t2) {
  *  t1,i and t2, where the keys of the nodes in t1 are smaller than the key
  *  of i and keys of nodes in t2 are larger than the key of i
  */
-Ssets::BstPair DkSsets::split(index i, bst t) {
+Ssets::BstPair Ssets2k::split(index i, bst t) {
 	BstPair pair = SaSsets::split(i,t);
 	if (pair.t1 != 0) dmin(pair.t1) += dmin(i);
 	if (pair.t2 != 0) dmin(pair.t2) += dmin(i);
@@ -344,7 +344,7 @@ Ssets::BstPair DkSsets::split(index i, bst t) {
  *  @param i is a node in some bst
  *  @return the string
  */
-string DkSsets::node2string(index i) const {
+string Ssets2k::node2string(index i) const {
 	string s;
 	if (i == 0) return s;
 	s += Adt::index2string(i);

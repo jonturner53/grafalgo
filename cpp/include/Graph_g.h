@@ -12,7 +12,7 @@
 #include "Graph.h"
 #include "List_d.h"
 #include "List_g.h"
-#include "Djsets_cl.h"
+#include "Dlists.h"
 
 namespace grafalgo {
 
@@ -74,10 +74,9 @@ public:
 	string	adjList2string(vertex) const;
         string	toDotString() const;
 private:
-	int	ng;		///< number of edge groups
 	int	*gNum;		///< gNum[e] is group number for e
-	Djsets_cl *groups;	///< partitions edges by group number
-	Djsets_cl *inGroups;	///< partitions groups among inputs & free list
+	Dlists *groups;		///< partitions edges by group number
+	Dlists *inGroups;	///< partitions groups among inputs & free list
 	int	freeGroup;	///< group in list of free groups
 	int	*fg;		///< fg[u] is first group at input u
 	edge	*feg;		///< feg[g] is first edge in group g
@@ -92,13 +91,6 @@ private:
 
 	friend class Rgraph;
 };
-/** xxx
- *  @param xxx
- *  @returns xxx
- */
-inline int Graph_g::numGroups() const {
-	return ng;
-}
 
 /** xxx
  *  @param xxx

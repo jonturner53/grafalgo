@@ -1,4 +1,4 @@
-/** @file fastMaxDmatch.cpp
+/** @file mdmatch_f.cpp
  * 
  *  @author Jon Turner
  *  @date 2012

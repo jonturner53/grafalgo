@@ -1,7 +1,7 @@
 /** @file ecolor_g.cpp
  * 
  *  @author Jon Turner
- *  @date 2011
+ *  @date 2015
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
@@ -12,7 +12,7 @@
 #include "Graph.h"
 #include "List_d.h"
 #include "List_g.h"
-#include "Djsets_cl.h"
+#include "Dlists.h"
 
 namespace grafalgo {
 
@@ -31,9 +31,9 @@ private:
 	Graph 	*cg;		///< current graph in recursive algorithm
 	int	*color;		///< color[e] is the color assigned to e
 	List_g<edge> *match;	///< used by matching method
-	Djsets_cl *euler;	///< used to define euler partition on edges
+	Dlists *euler;		///< used to define euler partition on edges
 	List_g<edge> *handle;	///< reference edge for each subset of euler
-	List_d	*start;		///< used by eulerDjsets_flt method
+	List_d	*start;		///< used by eulerDsets method
 	
 	int	nextColor;	///< next edge color to be used
 

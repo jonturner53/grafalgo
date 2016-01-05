@@ -1,4 +1,4 @@
-/** \file Djheaps_d.h
+/** \file Dheaps.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef DJHEAPS_D_H
-#define DJHEAPS_D_H
+#ifndef DHEAPS_H
+#define DHEAPS_H
 
 #include <list>
 #include "stdinc.h"
@@ -63,9 +63,9 @@ namespace grafalgo {
  *  cases like empty heaps. The values of the root and bot pointers
  *  of an empty heap are undefined.
  */
-template<class K> class Djheaps_d : public Adt {
-public:		Djheaps_d(int=50,int=4,int=8);
-		~Djheaps_d();
+template<class K> class Dheaps : public Adt {
+public:		Dheaps(int=50,int=4,int=8);
+		~Dheaps();
 
 	// common methods
 	void	init();
@@ -73,7 +73,7 @@ public:		Djheaps_d(int=50,int=4,int=8);
 	void	resize(int size) { resize(size,size); }
 	void	expand(int,int);
 	void	expand(int size) { expand(size,max(size,maxHeap)); }
-	void	copyFrom(const Djheaps_d&);
+	void	copyFrom(const Dheaps&);
 
 	// access methods
 	index	findMin(int) const;
@@ -117,23 +117,23 @@ private:
 	void	freeSpace();
 };
 
-/** Constructor for Djheaps_d.
+/** Constructor for Dheaps.
  *  @param size is the maximum index of any item
  *  @param maxHeap1 is the maximum heap number
  */
 template<class K>
-Djheaps_d<K>::Djheaps_d(int size, int maxh, int dd) :
+Dheaps<K>::Dheaps(int size, int maxh, int dd) :
 		   Adt(size), maxHeap(maxh), d(dd) { makeSpace(); init(); }
 
-/** Destructor for Djheaps_d. */
+/** Destructor for Dheaps. */
 template<class K>
-Djheaps_d<K>::~Djheaps_d() { freeSpace(); }
+Dheaps<K>::~Dheaps() { freeSpace(); }
 
-/** Allocate and initialize space for Djheaps_d.
+/** Allocate and initialize space for Dheaps.
  *  @param size is number of index values to provide space for
  */
 template<class K>
-void Djheaps_d<K>::makeSpace() {
+void Dheaps<K>::makeSpace() {
 	numNodes = (n()/d) + maxHeap;
 	heaps = new index[numNodes*d]; // each d-word block is a "node"
 	child = new int[numNodes*d];    // each item in heaps has child
@@ -149,29 +149,29 @@ void Djheaps_d<K>::makeSpace() {
 	hSize = new int[maxHeap+1];
 }
 
-/** Free dynamic storage used by Djheaps_d. */
+/** Free dynamic storage used by Dheaps. */
 template<class K>
-void Djheaps_d<K>::freeSpace() { 
+void Dheaps<K>::freeSpace() { 
 	delete [] heaps; delete [] child; delete [] parent;
 	delete [] pred; delete [] key; delete [] root;
 	delete [] bot; delete [] hSize;
 }
 
-/** Copy into Djheaps_d .
- *  @param src is another Djheaps_d object to be copied to this object.
+/** Copy into Dheaps .
+ *  @param src is another Dheaps object to be copied to this object.
  */
 template<class K>
-void Djheaps_d<K>::copyFrom(const Djheaps_d& src) {
-	Util::fatal("Djheaps_d::copyFrom not implemented.");
+void Dheaps<K>::copyFrom(const Dheaps& src) {
+	Util::fatal("Dheaps::copyFrom not implemented.");
 }
 
-/** Resize a Djheaps_d object.
+/** Resize a Dheaps object.
  *  The old value is discarded.
  *  @param size is the size of the resized object.
  *  @param maxh is the maximum number of heaps in the new object
  */
 template<class K>
-void Djheaps_d<K>::resize(int size, int maxh) {
+void Dheaps<K>::resize(int size, int maxh) {
 	freeSpace(); Adt::resize(size); maxHeap = maxh; makeSpace(); init();
 }
 
@@ -180,15 +180,15 @@ void Djheaps_d<K>::resize(int size, int maxh) {
  *  @param size is the size of the resized object.
  */
 template<class K>
-void Djheaps_d<K>::expand(int size, int maxh) {
+void Dheaps<K>::expand(int size, int maxh) {
 	if (size <= n() && maxh <= maxHeap) return;
-	Djheaps_d old(n(),maxHeap,d); old.copyFrom(*this);
+	Dheaps old(n(),maxHeap,d); old.copyFrom(*this);
 	resize(size,maxh); this->copyFrom(old);
 }
 
 /** Initialize all the heaps. */
 template<class K>
-void Djheaps_d<K>::init() {
+void Dheaps<K>::init() {
 	for (index h = 1; h <= maxHeap; h++) hSize[h] = 0;
 	for (int p = 0; p < numNodes*d; p++) heaps[p] = 0;
 
@@ -201,7 +201,7 @@ void Djheaps_d<K>::init() {
 
 /** Remove all elements from all heaps. */
 template<class K>
-void Djheaps_d<K>::clear() {
+void Dheaps<K>::clear() {
 	for (index h = 1; h <= maxHeap; h++) 
 		while (hSize[h] > 0) deleteMin(h);
 }
@@ -213,7 +213,7 @@ void Djheaps_d<K>::clear() {
  *  @return true on success, false on failure
  */
 template<class K>
-bool Djheaps_d<K>::insert(index i, const K& k, index h) {
+bool Dheaps<K>::insert(index i, const K& k, index h) {
 	key[i] = k;
 	if (i == 0) return false;
 	int n = hSize[h]; int r = (n-1)%d;
@@ -256,7 +256,7 @@ bool Djheaps_d<K>::insert(index i, const K& k, index h) {
  *  removing the index from h.
  */
 template<class K>
-int Djheaps_d<K>::deleteMin(index h) {
+int Dheaps<K>::deleteMin(index h) {
         int hn = hSize[h];
         if (hn == 0) return 0;
         int i, p;
@@ -295,7 +295,7 @@ int Djheaps_d<K>::deleteMin(index h) {
  *  @param p is the position from which i is to be shifted up
  */
 template<class K>
-void Djheaps_d<K>::siftup(index i, int p) {
+void Dheaps<K>::siftup(index i, int p) {
 	int pp = parent[p/d];
 	while (pp >= 0 && key[heaps[pp]] > key[i]) {
 		heaps[p] = heaps[pp]; p = pp; pp = parent[pp/d];
@@ -308,7 +308,7 @@ void Djheaps_d<K>::siftup(index i, int p) {
  *  @param p is the position from which i is to be shifted down
  */
 template<class K>
-void Djheaps_d<K>::siftdown(index i, int p) {
+void Dheaps<K>::siftdown(index i, int p) {
 	int cp = nodeMinPos(child[p]);
 	while (cp >= 0 && key[heaps[cp]] < key[i]) {
 		heaps[p] = heaps[cp]; p = cp;
@@ -323,17 +323,17 @@ void Djheaps_d<K>::siftdown(index i, int p) {
  *  be adjusted
  */
 template<class K>
-void Djheaps_d<K>::changeKeyMin(const K& k, index h) {
+void Dheaps<K>::changeKeyMin(const K& k, index h) {
 	int p = nodeMinPos(root[h]);
 	index i = heaps[p]; key[i] = k;
 	siftdown(i,p);
 }
 
-/** Create a human-readable representation of the Djheaps_d object.
+/** Create a human-readable representation of the Dheaps object.
  *  @return the string representing the object
  */ 
 template<class K>
-string Djheaps_d<K>::toString() const {
+string Dheaps<K>::toString() const {
 	string s;
 	for (index h = 1; h <= maxHeap; h++) {
 		if (!empty(h)) s += toString(h) + "\n";
@@ -345,7 +345,7 @@ string Djheaps_d<K>::toString() const {
  *  @return the string representing the heap
  */ 
 template<class K>
-string Djheaps_d<K>::toString(index h) const {
+string Dheaps<K>::toString(index h) const {
 	if (hSize[h] == 0) return "[]";
 
 	list<int> nodeList;
@@ -376,7 +376,7 @@ string Djheaps_d<K>::toString(index h) const {
  *  if there is no valid item at position p, return -1
  */ 
 template<class K>
-inline int Djheaps_d<K>::nodeMinPos(int p) const {
+inline int Dheaps<K>::nodeMinPos(int p) const {
 	if (p == -1 || heaps[p] == 0) return -1;
 	int minPos = p;
 	for (int q = p+1; q < p+d && heaps[q] != 0; q++)
@@ -390,7 +390,7 @@ inline int Djheaps_d<K>::nodeMinPos(int p) const {
  *  @return the item at the top of h or 0 if h is empty
  */
 template<class K>
-inline int Djheaps_d<K>::findMin(index h) const {
+inline int Dheaps<K>::findMin(index h) const {
 	if (hSize[h] == 0) return 0;
 	int p = nodeMinPos(root[h]);
 	return (p < 0 ? 0 : heaps[p]);
@@ -401,21 +401,21 @@ inline int Djheaps_d<K>::findMin(index h) const {
  *  @return the key for item i
  */
 template<class K>
-inline const K& Djheaps_d<K>::getKey(index i) const { return key[i]; }
+inline const K& Dheaps<K>::getKey(index i) const { return key[i]; }
 
 /** Determine if a heap is empty.
  *  @param h is the index of a heap
  *  @return true if h is empty
  */
 template<class K>
-inline bool Djheaps_d<K>::empty(index h) const { return hSize[h] == 0; };
+inline bool Dheaps<K>::empty(index h) const { return hSize[h] == 0; };
 
 /** Return the size of a heap.
  *  @param h is the index of a heap
  *  @return the number of items in h
  */
 template<class K>
-inline int Djheaps_d<K>::heapSize(index h) const { return hSize[h]; };
+inline int Dheaps<K>::heapSize(index h) const { return hSize[h]; };
 
 } // ends namespace
 

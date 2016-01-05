@@ -1,4 +1,4 @@
-/** \file Djheaps_ll.h
+/** \file Mheaps_ll.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,10 +6,10 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef LDJHEAPS_L_H
-#define LDJHEAPS_L_H
+#ifndef LMHEAPS_L_H
+#define LMHEAPS_L_H
 
-#include "Djheaps_l.h"
+#include "Mheaps_l.h"
 #include "List.h"
 
 namespace grafalgo {
@@ -23,15 +23,15 @@ typedef int lheap;
  *  true if that item has been removed from a heap. Deleted items should not
  *  be re-inserted into another heap.
  */
-class Djheaps_ll : public Djheaps_l {
-public:		Djheaps_ll(int=26,delftyp=NULL);
-		~Djheaps_ll();
+class Mheaps_ll : public Mheaps_l {
+public:		Mheaps_ll(int=26,delftyp=NULL);
+		~Mheaps_ll();
 
 	// common methods
 	void	clear();
 	void	resize(int);
 	void	expand(int);
-	void	copyFrom(const Djheaps_ll&);
+	void	copyFrom(const Mheaps_ll&);
 
 	index	findmin(lheap);		
 	lheap	lmeld(lheap,lheap);
@@ -58,7 +58,7 @@ private:
  *  @param s is a reference to a string in which result is returned
  *  @return a reference to s
  */
-inline string Djheaps_ll::heap2string(lheap h) const {
+inline string Mheaps_ll::heap2string(lheap h) const {
 	return heap2string(h,true);
 }
 

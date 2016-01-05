@@ -26,7 +26,7 @@ Graph_g::~Graph_g() { freeSpace(); }
 /** Allocate dynamic storage for Graph_g.  */
 void Graph_g::makeSpace() {
 	gNum = new int[M()+1];
-	groups = new Djsets_cl(M()); inGroups = new Djsets_cl(M());
+	groups = new Dlists(M()); inGroups = new Dlists(M());
 	fg = new int[n()+1]; feg = new edge[M()+1];
 	split = new ListPair(n());
 	deg = new int[n()+1]; gc = new int[n()+1]; gs = new int[M()+1]; 
@@ -37,7 +37,7 @@ void Graph_g::init() {
 	for (edge e = 0; e <= M(); e++) gNum[e] = 0;
 	for (int g = 0; g <= M(); g++) feg[g] = gs[g] = 0;
 	freeGroup = 1;
-	for (int g = 2; g <= M(); g++) inGroups->join(g,freeGroup);
+	for (int g = 2; g <= M(); g++) freeGroup = inGroups->join(freeGroup,g);
 }
 
 /** Free space used by graph. */
@@ -74,7 +74,11 @@ void Graph_g::expand(int numv, int maxe) {
 /** Clear all edges.
  */
 void Graph_g::clear() {
-	Graph::clear(); groups->clear(); inGroups->clear(); split->clear();
+        while (first() != 0) {
+                remove(first());
+        }
+	split->clear();
+	inGroups->clear();
 	init();
 }
 
@@ -97,12 +101,8 @@ void Graph_g::copyFrom(const Graph_g& source) {
  *  @returns the edge number of the new edge or 0 on failure
  */
 edge Graph_g::join(vertex u, vertex v) {
-	if (freeGroup == 0) return 0;
-	int g = freeGroup;
-	freeGroup = inGroups->next(g);
-	if (freeGroup == g) freeGroup = 0;
-	inGroups->remove(g);
-	return join(u,v,g);
+	assert(freeGroup != 0);
+	return join(u,v,freeGroup);
 }
 
 /** Join two vertices with an edge.
@@ -124,12 +124,8 @@ edge Graph_g::join(vertex u, vertex v, int g) {
  *  @returns the edge number of the new edge or 0 on failure
  */
 edge Graph_g::joinWith(vertex u, vertex v, edge e) {
-	if (freeGroup == 0) return 0;
-	int g = freeGroup;
-	freeGroup = groups->next(g);
-	if (freeGroup == g) freeGroup = 0;
-	inGroups->remove(g);
-	return joinWith(u,v,g,e);
+	assert(freeGroup != 0);
+	return joinWith(u,v,freeGroup,e);
 }
 
 /** Join two vertices with a specified group and edge.
@@ -147,19 +143,10 @@ edge Graph_g::joinWith(vertex u, vertex v, int g, edge e) {
 	gNum[e] = g;
 	deg[u]++; deg[v]++; gc[v]++; gs[g]++;
 	if (feg[g] == 0) {
-		feg[g] = e; gc[u]++;
-		if (freeGroup == g) {
-			freeGroup = inGroups->next(freeGroup);
-			if (freeGroup == g) freeGroup = 0;
-		}
-		inGroups->remove(g);
-	} else {
-		groups->join(e,feg[g]);
+		gc[u]++; freeGroup = inGroups->remove(g,freeGroup);
 	}
-	if (fg[u] == 0)
-		fg[u] = g;
-	else if (g != fg[u] && inGroups->next(g) == g)
-		inGroups->join(g,fg[u]);
+	feg[g] = groups->join(feg[g],e);
+	if (inGroups->singleton(g)) fg[u] = inGroups->join(fg[u],g);
 	return e;
 }
 
@@ -167,24 +154,23 @@ edge Graph_g::joinWith(vertex u, vertex v, int g, edge e) {
  *  @param e1 is an edge
  *  @param e2 is a second edge with the same input vertex as e1 but belonging
  *  to a different edge group
- *  @returns the group number of the resulting edge group; or 0 on error
+ *  @returns the group number of the resulting edge group
  */
-int Graph_g::merge(edge e1, edge e2) {
+index Graph_g::merge(edge e1, edge e2) {
 	int g1 = gNum[e1]; int g2 = gNum[e2];
-	if (g1 == g2) return g1;
+	if (g1 == g2 || g2 == 0) return g1;
+	if (g1 == 0) return g2;
 	assert (input(e1) == input(e2));
 	vertex u = input(e1);
 
-	// note: could speed this up using Djsets_flt data structure 
+	// note: could speed this up using Dsets data structure 
 	// but since merge is only used in graph generation process,
 	// not much point
 	for (edge e = firstEdgeInGroup(g2); e != 0; e = nextEdgeInGroup(g2,e))
 		gNum[e] = g1;
-	groups->join(e1,e2); feg[g2] = 0;
-	inGroups->remove(g2);
-	if (fg[u] == g2) fg[u] = g1;
-	if (freeGroup == 0) freeGroup = g2;
-	else inGroups->join(g2,freeGroup);
+	feg[g1] = groups->join(feg[g1],feg[g2]); feg[g2] = 0;
+	fg[u] = inGroups->remove(g2,fg[u]);
+	freeGroup = inGroups->join(freeGroup,g2);
 	gs[g1] += gs[g2]; gs[g2] = 0; gc[u]--;
 	return g1;
 }
@@ -198,19 +184,10 @@ bool Graph_g::remove(edge e) {
 	vertex u = input(e); vertex v = output(e);
 	gNum[e] = 0; 
 	deg[u]--; deg[v]--; gc[v]--; gs[g]--;
-	if (groups->next(e) != e) {
-		if (feg[g] == e) feg[g] = groups->next(e);
-		groups->remove(e);
-	} else {
-		feg[g] = 0;
-		if (inGroups->next(g) != g) {
-			if (fg[u] == g) fg[u] = inGroups->next(g);
-			inGroups->remove(g);
-		} else {
-			fg[u] = 0;
-		}
-		if (freeGroup == 0) freeGroup = g;
-		else inGroups->join(g,freeGroup);
+	feg[g] = groups->remove(e,feg[g]);
+	if (feg[g] == 0) {
+		fg[u] = inGroups->remove(g,fg[u]);
+		gc[u]--; freeGroup = inGroups->join(freeGroup,g);
 	}
 	Graph::remove(e);
 	return true;
@@ -225,18 +202,15 @@ bool ggcompare(int g1, int g2) {
 void Graph_g::sortGroups(vertex u) {
 	int vec[groupCount(u)];
 	vec[0] = firstGroup(u);
-	int grp = nextGroup(u,vec[0]);
 	int i = 1;
-	while (grp != 0) {
-		vec[i++] = grp; inGroups->remove(grp);
-		grp = nextGroup(u,vec[0]);
+	while (fg[u] != 0) {
+		vec[i++] = fg[u]; fg[u] = inGroups->remove(fg[u],fg[u]);
 	}
 	ggpointer = this;
 	sort(vec, vec+groupCount(u), ggcompare);
 	fg[u] = vec[0];
-	i = 1;
 	for (int i = 1; i < groupCount(u); i++)
-		inGroups->join(vec[i-1], vec[i]);
+		fg[u] = inGroups->join(fg[u], vec[i]);
 }
 
 /** Read adjacency list from an input stream, add it to the graph.

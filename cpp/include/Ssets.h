@@ -28,7 +28,7 @@ public:
 		Ssets(int=26);
 		virtual ~Ssets();
 
-	// pair of bsts, returned by split
+	/** pair of search trees returned by split method */
 	struct BstPair {
 		bst t1, t2;
 		BstPair(bst tt1, bst tt2) : t1(tt1), t2(tt2) {}
@@ -57,6 +57,7 @@ public:
 	string	bst2string(bst) const;
 	string	toString() const;
 protected:
+	/** node in a binary search tree */
 	struct BstNode {
 	index left, right, p;	///< left child, right, parent
 	keytyp 	kee;		///< key value

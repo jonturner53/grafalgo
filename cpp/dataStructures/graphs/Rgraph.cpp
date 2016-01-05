@@ -559,14 +559,12 @@ void Rgraph::groupGraph(Graph_g& g, int n1, int n2, int gc1, int d2, int k) {
 	for (vertex u = g.firstIn(); u != 0; u = g.nextIn(u)) {
 		std::fill(evec, evec+k, 0);
 		for (edge e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			int c = color[e];
-			if (evec[c] == 0) evec[c] = e;
-			else g.merge(e,evec[c]);
+			int c = color[e]; evec[c] = g.merge(evec[c],e);
 		}
 	}
 
 	// merge groups at inputs so as to satisfy maximum group count
-	int gvec[g.M()];
+	int gvec[gc1];
 	for (vertex u = g.firstIn(); u != 0; u = g.nextIn(u)) {
 		int i = 0;
 		for (int grp = g.firstGroup(u); grp != 0;

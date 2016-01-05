@@ -82,7 +82,7 @@ else
 fi;
 
 echo -n "copying group graph:"
-randGraph groupgraph $n $((3*n)) 12 4 5 $seed 0 >tg1
+randGraph groupgraph $n $((3*n)) 4 4 5 $seed 0 >tg1
 copyGraph groupgraph <tg1 >tg2
 if cmp -s tg1 tg2 ; then
 	echo " success" 

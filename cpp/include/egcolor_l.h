@@ -28,7 +28,7 @@ protected:
 	int	**usr;		///< usr[u][c]=an edge at u that uses color c
 	int	**nusr;		///< nusr[u][c]=# of edges at u that use c
 
-	Djsets_cl *ugrp;	///< disjoint sets on uncolored group numbers
+	Dlists *ugrp;	///< disjoint sets on uncolored group numbers
 	int	*ug;		///< fg[u] is some uncolored group at u
 
 	void	colorGroup(int, int=0);
@@ -51,7 +51,7 @@ inline int egcolor_l::firstUgroup(vertex u) { return ug[u]; }
  *  @return the index of the first uncolored edge group at u
  */
 inline int egcolor_l::nextUgroup(vertex u, int grp) {
-	return (ugrp->next(grp) == ug[u] ? 0 : ugrp->next(grp));
+	return ugrp->next(grp);
 }
 
 /** Remove an uncolored group.
@@ -59,11 +59,7 @@ inline int egcolor_l::nextUgroup(vertex u, int grp) {
  */
 inline void egcolor_l::removeUgroup(int grp) {
 	vertex u = gp->input(gp->firstEdgeInGroup(grp));
-	if (grp == ug[u]) {
-		if (ugrp->next(grp) == grp) ug[u] = 0;
-		else ug[u] = ugrp->next(grp);
-	}
-	ugrp->remove(grp);
+	ug[u] = ugrp->remove(grp,ug[u]);
 }
 
 } // ends namespace

@@ -1,4 +1,4 @@
-/** @file Djheaps_l.h
+/** @file Mheaps_l.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef DJHEAPS_L_H
-#define DJHEAPS_L_H
+#ifndef MHEAPS_L_H
+#define MHEAPS_L_H
 
 #include "Adt.h"
 #include "Util.h"
@@ -23,15 +23,15 @@ typedef int lheap;
  *  specified at the time an object is constructed.
  *  Leftist heaps can be efficiently "melded"
  */
-class Djheaps_l : public Adt {
-public:		Djheaps_l(int=100);
-		~Djheaps_l();
+class Mheaps_l : public Adt {
+public:		Mheaps_l(int=100);
+		~Mheaps_l();
 
 	// common methods
 	void	clear();
 	void	resize(int);
 	void	expand(int);
-	void	copyFrom(const Djheaps_l&);
+	void	copyFrom(const Mheaps_l&);
 
 	keytyp	key(index) const;		
 	void	setkey(index,keytyp);	
@@ -46,6 +46,7 @@ public:		Djheaps_l(int=100);
 	string 	heap2string(lheap) const;
 
 protected:
+	/** heap node structure */
 	struct hnode {
 	keytyp	kee;		///< kee[i] = key of item i
 	int	rank;		///< rank[i] = rank of item i
@@ -62,26 +63,26 @@ protected:
  *  @param i is an item in a heap
  *  @return the key of i
  */
-inline keytyp Djheaps_l::key(index i) const { return node[i].kee; };
+inline keytyp Mheaps_l::key(index i) const { return node[i].kee; };
 	
 /** Set the key of an item.
  *  @param i is an item in a heap
  *  @param k is a new key value for i
  */
-inline void Djheaps_l::setkey(index i,keytyp k) { node[i].kee = k; };
+inline void Mheaps_l::setkey(index i,keytyp k) { node[i].kee = k; };
 
 /** Get the item with the smallest key in a heap.
  *  @param h is the canonical element of some heap
  *  @return the index of the item in h with the smallest key
  */
-inline lheap Djheaps_l::findmin(lheap h) const { return h; };
+inline lheap Mheaps_l::findmin(lheap h) const { return h; };
 
 /** Create a string representation of a single heap.
  *  @param h is the canonical element of some heap
  *  @param s is a reference to a string in which result is returned
  *  @return s
  */
-inline string Djheaps_l::heap2string(lheap h) const {
+inline string Mheaps_l::heap2string(lheap h) const {
 	return heap2string(h,true);
 }
 

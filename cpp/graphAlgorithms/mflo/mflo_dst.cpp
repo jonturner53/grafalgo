@@ -15,7 +15,7 @@ namespace grafalgo {
  */
 mflo_dst::mflo_dst(Graph_f& g1) : g(&g1) {
 	level  = new int[g->n()+1]; nextEdge = new int[g->n()+1];
-	upEdge = new int[g->n()+1]; dt = new Djsets_lct(g->n());
+	upEdge = new int[g->n()+1]; dt = new Dtrees(g->n());
 
 	for (vertex u = 1; u <= g->n(); u++) {
 		dt->addcost(u,INT_MAX);

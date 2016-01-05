@@ -21,6 +21,9 @@
 
 namespace grafalgo {
 
+/** Encapsulates data and methods used to implement the Hopcroft-Karp
+ *  algorithm for maximum size matching.
+ */
 class matchb_hk {
 public: matchb_hk(Graph&, List_g<edge>&);
 private:

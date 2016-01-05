@@ -65,7 +65,7 @@ private:
 	static const int LG_BKT_SIZ = 3; ///< log2(BKT_SIZ)
 	typedef uint32_t bkt_t[BKT_SIZ]; ///< bucket type
 
-	int     nb;		///< # of buckets in each half
+	int     nb;		///< number of buckets in each half
 	uint32_t bktMsk;	///< mask used to extract bucket number
 	uint32_t fpMsk;		///< mask used to extract fingerprint
 	uint32_t indexMsk;	///< mask used to extract index value
@@ -80,7 +80,6 @@ private:
 };
 
 /** Constructor for Set_h, allocates space and initializes table.
- *  @param h is a pointer to the hash function to b used
  *  @param n1 is an optional limit on the range of values;
  *  it must be less than 2^24; the default is 10
  *  @param autoX is an optional parameter that determines whether the
@@ -139,6 +138,7 @@ void Set_h<E,H>::makeSpace() {
 template<class E, uint32_t (*H)(const E&, int)>
 void Set_h<E,H>::freeSpace() { delete [] bkt; delete idx; }
 
+/** Determine the number of buckets to use. */
 template<class E, uint32_t (*H)(const E&, int)>
 int Set_h<E,H>::numBuckets() {
 	int k;
@@ -146,6 +146,7 @@ int Set_h<E,H>::numBuckets() {
 	return k;
 }
 
+/** Initialize supporting data */
 template<class E, uint32_t (*H)(const E&, int)>
 void Set_h<E,H>::init() {
 	// set masks for bucket, index and fingerprint

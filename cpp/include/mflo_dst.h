@@ -12,7 +12,7 @@
 #include "stdinc.h"
 #include "Graph_f.h"
 #include "PathSet.h"
-#include "Djsets_lct.h"
+#include "Dtrees.h"
 #include "List.h"
 
 namespace grafalgo {
@@ -31,7 +31,7 @@ private:
 	int*	nextEdge;	///< pointer into adjacency list
 	int*	upEdge;		///< upEdge[u] is edge for dtrees link from u
 	int*	level;		///< level[u]=# of edges in path from source
-	Djsets_lct*	dt;		///< dynamic trees data structure
+	Dtrees*	dt;		///< dynamic trees data structure
 
 	bool	findPath();
 	int	augment();

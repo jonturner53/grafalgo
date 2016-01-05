@@ -15,8 +15,8 @@ namespace grafalgo {
  *  @param match is a list in which the matching is returned
  */
 match_egc::match_egc(Graph& g1) : g(&g1) {
-	blossoms = new Djsets_flt(g->n()); // set per blossom
-	augpath = new Djsets_rl(g->M());    // reversible list
+	blossoms = new Dsets(g->n()); // set per blossom
+	augpath = new Dlists_r(g->M());    // reversible list
 	origin = new vertex[g->n()+1];    // original vertex for each blossom
 	bridge = new BridgePair[g->n()+1];// edge that formed a blossom
 	state = new stype[g->n()+1];	     // state used in path search

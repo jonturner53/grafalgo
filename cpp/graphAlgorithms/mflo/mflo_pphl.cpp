@@ -23,7 +23,7 @@ mflo_pphl::mflo_pphl(Graph_f& g1, bool batch) : mflo_pp(g1) {
 	// vertices on the same list are unbalanced and have the same
 	// distance label; balanced vertices each form singleton lists
 	ubVec = new int[2*g->n()];
-	unbal = new Djsets_cl(g->n());
+	unbal = new Dlists(g->n());
 	top = 0;
 	for (int i = 0; i < 2*g->n(); i++) ubVec[i] = 0;
 
@@ -36,9 +36,8 @@ mflo_pphl::mflo_pphl(Graph_f& g1, bool batch) : mflo_pp(g1) {
  *  of unbalanced vertices with the same distance label as u
  */
 void mflo_pphl::addUnbal(vertex u) {
-	if (ubVec[d[u]] == u || unbal->next(u) != u) return;
-	if (ubVec[d[u]] == 0) ubVec[d[u]] = u;
-	else unbal->join(ubVec[d[u]],u);
+	if (ubVec[d[u]] == u || !unbal->singleton(u)) return;
+	ubVec[d[u]] = unbal->join(ubVec[d[u]],u);
 	top = max(top,d[u]);
 }
 
@@ -51,14 +50,8 @@ void mflo_pphl::addUnbal(vertex u) {
 vertex mflo_pphl::removeUnbal() {
 	if (top == 0) return 0;
 	vertex u = ubVec[top]; 
-	vertex v = unbal->next(u);
-	if (v != u) {
-		unbal->remove(u);
-		ubVec[top] = v;
-	} else {
-		ubVec[top] = 0;
-		while (top > 0 && ubVec[top] == 0) top--;
-	}
+	ubVec[top] = unbal->remove(u,ubVec[top]);
+	while (top > 0 && ubVec[top] == 0) top--;
 	return u;
 }
 

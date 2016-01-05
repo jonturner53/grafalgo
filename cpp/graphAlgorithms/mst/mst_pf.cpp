@@ -9,7 +9,7 @@
 #include "stdinc.h"
 #include "List_g.h"
 #include "Graph_w.h"
-#include "Djheaps_f.h"
+#include "Mheaps_f.h"
 
 namespace grafalgo {
 
@@ -22,7 +22,7 @@ namespace grafalgo {
 void mst_pF(Graph_w& wg, List_g<edge>& mst) {
         vertex u,v; edge e;
         edge* cheap = new edge[wg.n()+1];
-        Djheaps_f nheap(wg.n()); fheap root;
+        Mheaps_f nheap(wg.n()); fheap root;
         bool *inHeap = new bool[wg.n()+1]; // inHeap[u]=true if u is in heap
         bool *inTree = new bool[wg.n()+1]; // inTree[u]=true if u is in tree
         int numInHeap = 0;

@@ -1,4 +1,4 @@
-/** \file Queue_nb11.h
+/** \file Queue_nbss.h
  *
  *  @author Jon Turner
  *  @date 2014
@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#ifndef NONBLOCKING11_H
-#define NONBLOCKING11_H
+#ifndef QUEUE_NBSS_H
+#define QUEUE_NBSS_H
 
 #include <sstream>
 #include <chrono>
@@ -30,9 +30,9 @@ namespace grafalgo {
  *  of cache lines by different threads;
  *  default value of 64 is suitable for 64 byte cache lines
  */
-template<class T,int pad=64> class Queue_nb11 : public Adt {
-public:		Queue_nb11(int=4);
-		~Queue_nb11();
+template<class T,int pad=64> class Queue_nbss : public Adt {
+public:		Queue_nbss(int=4);
+		~Queue_nbss();
 
 	void	reset();
 	void	resize(int);
@@ -61,11 +61,11 @@ private:
 	T	*buf;			///< where values are stored
 };
 
-/** Constructor for Queue_nb11 objects.
+/** Constructor for Queue_nbss objects.
  *  @param capacity is the specified capacity of the queue
  */
 template<class T, int pad>
-inline Queue_nb11<T,pad>::Queue_nb11(int capacity) {
+inline Queue_nbss<T,pad>::Queue_nbss(int capacity) {
 	padT = 1+(pad-1)/sizeof(T);
 	if (padT < 1) Util::fatal("padding must be greater than 0");
 	N = capacity + padT;
@@ -73,25 +73,25 @@ inline Queue_nb11<T,pad>::Queue_nb11(int capacity) {
 	rp.store(0); wp.store(0); rpOld = rp; wpOld = wp;
 }
 
-/** Destructor for Queue_nb11 objects. */
+/** Destructor for Queue_nbss objects. */
 template<class T, int pad>
-inline Queue_nb11<T,pad>::~Queue_nb11() { delete [] buf; }
+inline Queue_nbss<T,pad>::~Queue_nbss() { delete [] buf; }
 
 /** Reset the queue, discarding any contents.
  *  This should only be used in contexts where there is a single writer,
  *  and only the writing thread should do it.
  */
 template<class T, int pad>
-inline void Queue_nb11<T,pad>::reset() {
+inline void Queue_nbss<T,pad>::reset() {
 	rp.store(0); wp.store(0); rpOld = rp; wpOld = wp;
 }
 
 /** Resize the queue, discarding any contents.
- *  This should only before any threads are using the Queue_nb11.
+ *  This should only before any threads are using the Queue_nbss.
  *  @param capacity is the new specified capacity of the queue
  */
 template<class T, int pad>
-inline void Queue_nb11<T,pad>::resize(int capacity) {
+inline void Queue_nbss<T,pad>::resize(int capacity) {
 	N = capacity + padT; delete [] buf; buf = new int[N];
 	rp.store(0); wp.store(0); rpOld = rp; wpOld = wp;
 }
@@ -100,13 +100,13 @@ inline void Queue_nb11<T,pad>::resize(int capacity) {
  *  @return true if the queue is empty, else false
  */
 template<class T, int pad>
-inline bool Queue_nb11<T,pad>::empty() const { return rp == wp; }
+inline bool Queue_nbss<T,pad>::empty() const { return rp == wp; }
 
 /** Determine if queue is full.
  *  @return true if the queue is full, else false
  */
 template<class T, int pad>
-inline bool Queue_nb11<T,pad>::full() const {
+inline bool Queue_nbss<T,pad>::full() const {
 	return (wp+padT)%N == rp;
 }
 
@@ -115,7 +115,7 @@ inline bool Queue_nb11<T,pad>::full() const {
  *  @param return true on success, false on failure
  */
 template<class T, int pad>
-inline bool Queue_nb11<T,pad>::enq(T x) {
+inline bool Queue_nbss<T,pad>::enq(T x) {
 	if ((wp+padT)%N != rpOld) {
 		buf[wp] = x; wp.store((wp+1)%N); return true;
 	}
@@ -131,7 +131,7 @@ inline bool Queue_nb11<T,pad>::enq(T x) {
  *  @return the next item in the queue, or 0 is if the queue is empty
  */
 template<class T, int pad>
-inline T Queue_nb11<T,pad>::deq() {
+inline T Queue_nbss<T,pad>::deq() {
 /*
 	if (cache is not empty) return cache.deq();
 	else {
@@ -150,7 +150,7 @@ inline T Queue_nb11<T,pad>::deq() {
 }
 
 template<class T, int pad>
-inline string Queue_nb11<T,pad>::toString() const {
+inline string Queue_nbss<T,pad>::toString() const {
 	stringstream ss;
 	int rpc = rp.load(); int wpc = wp.load();
 	ss << "rp=" << rpc << " wp=" << wpc << ": ";

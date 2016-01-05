@@ -1,4 +1,4 @@
-/** @file Djheaps_f.h
+/** @file Mheaps_f.h
  *
  *  @author Jon Turner
  *  @date 2011
@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-#include "Djheaps_f.h"
+#include "Mheaps_f.h"
 
 namespace grafalgo {
 
@@ -17,24 +17,24 @@ namespace grafalgo {
 #define p(x) node[x].p
 #define c(x) node[x].c
 
-/** Constructor for Djheaps_f class.
+/** Constructor for Mheaps_f class.
  *  @param n is the number of items in the constructed object
  */
-Djheaps_f::Djheaps_f(int n) : Adt(n) { makeSpace(); clear(); }
+Mheaps_f::Mheaps_f(int n) : Adt(n) { makeSpace(); clear(); }
 
-/** Destructor for Djheaps_f class. */
-Djheaps_f::~Djheaps_f() { freeSpace(); }
+/** Destructor for Mheaps_f class. */
+Mheaps_f::~Mheaps_f() { freeSpace(); }
 
-/** Allocate space for Djheaps_f. */
-void Djheaps_f::makeSpace() {
-	node = new Fnode[n()+1]; sibs = new Djsets_cl(n()); tmpq = new List(n());
+/** Allocate space for Mheaps_f. */
+void Mheaps_f::makeSpace() {
+	node = new Fnode[n()+1]; sibs = new Dlists(n()); tmpq = new List(n());
 }
 
-/** Free dynamic storage used by Djheaps_f. */
-void Djheaps_f::freeSpace() { delete [] node; delete sibs; delete tmpq; }
+/** Free dynamic storage used by Mheaps_f. */
+void Mheaps_f::freeSpace() { delete [] node; delete sibs; delete tmpq; }
 
-/** Copy into Djheaps_f from source. */
-void Djheaps_f::copyFrom(const Djheaps_f& source) {
+/** Copy into Mheaps_f from source. */
+void Mheaps_f::copyFrom(const Mheaps_f& source) {
 	if (&source == this) return;
 	if (source.n() > n()) resize(source.n());
 	else clear();
@@ -49,26 +49,26 @@ void Djheaps_f::copyFrom(const Djheaps_f& source) {
 	}
 }
 
-/** Resize a Djheaps_f object.
+/** Resize a Mheaps_f object.
  *  The old value is discarded.
  *  @param n is the size of the resized object.
  */
-void Djheaps_f::resize(int n) {
+void Mheaps_f::resize(int n) {
 	freeSpace(); Adt::resize(n); makeSpace(); clear();
 }
 
-/** Expand the space available for this Djheaps_f.
+/** Expand the space available for this Mheaps_f.
  *  Rebuilds old value in new space.
  *  @param n is the size of the resized object.
  */
-void Djheaps_f::expand(int n) {
+void Mheaps_f::expand(int n) {
 	if (n <= this->n()) return;
-	Djheaps_f old(this->n()); old.copyFrom(*this);
+	Mheaps_f old(this->n()); old.copyFrom(*this);
 	resize(n); this->copyFrom(old);
 }
 
 /** Convert all heaps to singletons. */
-void Djheaps_f::clear() {
+void Mheaps_f::clear() {
 	sibs->clear();
 	for (index x = 0; x <= n(); x++) {
 		c(x) = p(x) = rank(x) = kee(x) = 0; mark(x) = false;
@@ -78,13 +78,13 @@ void Djheaps_f::clear() {
 /** Build a heap from a list of nodes.
  *  @param lst is a list of heaps.
  */
-fheap Djheaps_f::makeheap(const List& lst) {
+fheap Mheaps_f::makeheap(const List& lst) {
 	fheap h = lst.first();
 	if (h == 0) return 0;
 	fheap minh = h;
 	for (fheap h1 = lst.next(h); h1 != 0; h1 = lst.next(h1)) {
 		if (kee(h1) < kee(minh)) minh = h1;
-		sibs->join(h,h1);
+		sibs->join(h1,h); // h1 is id of list
 	}
 	return minh;
 }
@@ -95,13 +95,15 @@ fheap Djheaps_f::makeheap(const List& lst) {
  *  @param return the canonical element of the heap obtained
  *  by combining h1 and h2
  */
-fheap Djheaps_f::meld(fheap h1, fheap h2) {
+fheap Mheaps_f::meld(fheap h1, fheap h2) {
 	assert((h1 == 0 || (valid(h1) && p(h1) == 0)) &&
 	       (h2 == 0 || (valid(h2) && p(h2) == 0)));
 	if (h1 == 0) return h2;
 	if (h2 == 0) return h1;
-	sibs->join(h1,h2);
-	return kee(h1) <= kee(h2) ? h1 : h2;
+	fheap h;
+	if (kee(h1) <= kee(h2)) h = sibs->join(h1,h2);
+	else			h = sibs->join(h2,h1);
+	return h;
 }
 
 /** Insert a singleton item into a heap.
@@ -111,7 +113,7 @@ fheap Djheaps_f::meld(fheap h1, fheap h2) {
  *  @return the canonical element of the heap that results from inserting
  *  i into h
  */
-fheap Djheaps_f::insert(index i, fheap h, keytyp x) {
+fheap Mheaps_f::insert(index i, fheap h, keytyp x) {
 	assert(valid(i) && valid(h) && p(h) == 0);
 	setKey(i,x);
 	return meld(i,h);
@@ -124,16 +126,18 @@ fheap Djheaps_f::insert(index i, fheap h, keytyp x) {
  *  @return the canonical element of the heap that results from reducing
  *  i's key by delta
  */
-fheap Djheaps_f::decreasekey(index i, keytyp delta, fheap h) {
+fheap Mheaps_f::decreasekey(index i, keytyp delta, fheap h) {
 	assert(valid(i) && valid(h) && p(h) == 0);
 	fheap pi = p(i);
 	kee(i) -= delta;
-	if (pi == 0) return (kee(i) < kee(h) ? i : h);
+	if (pi == 0) {
+		if (kee(h) <= kee(i)) return h;
+		sibs->rename(h,i); return i;
+	}
 	if (kee(i) >= kee(pi)) return h;
 	do {
-		c(pi) = (rank(pi) == 1 ? 0: sib(i));
 		rank(pi)--;
-		sibs->remove(i);
+		c(pi) = sibs->remove(i,c(pi));
 		p(i) = 0; mark(i) = false;
 		h = meld(i,h);
 		i = pi; pi = p(i);
@@ -145,23 +149,24 @@ fheap Djheaps_f::decreasekey(index i, keytyp delta, fheap h) {
 
 /** Merge the tree roots in heap, to eliminate repeated ranks.
  *  @param r is a tree root in a heap; all tree roots are assumed
- *  to be non-deleted nodes
+ *  to be non-deleted nodes; also r is the id of the root list in sibs
  *  @return the resulting root with the smallest key
  */
-fheap Djheaps_f::mergeRoots(fheap r) {
+fheap Mheaps_f::mergeRoots(fheap r) {
 	assert(valid(r) && p(r) == 0);
 	// Build queue of roots and find root with smallest key
 	index minRoot = r;
-	tmpq->addLast(r); p(r) = 0;
-	for (fheap sr = sib(r); sr != r; sr = sib(sr)) {
+	for (fheap sr = sibs->first(r); sr != 0; sr = sibs->next(sr)) {
 		if (kee(sr) < kee(minRoot)) minRoot = sr;
 		tmpq->addLast(sr); p(sr) = 0; mark(sr) = false;
 	}
+	sibs->rename(r,minRoot);
+	r = minRoot; // r is now id of root list and has min key
 	// scan roots, merging trees of equal rank
 	int maxRank = -1; // maxRank = maximum rank seen so far
 	while (!tmpq->empty()) {
 		index r1 = tmpq->first(); tmpq->removeFirst();
-		if (rank(r1) > Djheaps_f::MAXRANK)
+		if (rank(r1) > Mheaps_f::MAXRANK)
 			Util::fatal("mergeRoots: rank too large");
 		index r2 = rvec[rank(r1)];
 		if (maxRank < rank(r1)) {
@@ -170,23 +175,22 @@ fheap Djheaps_f::mergeRoots(fheap r) {
 			rvec[rank(r1)] = r1;
 		} else if (r2 == 0) {
 			rvec[rank(r1)] = r1;
-		} else if (kee(r1) < kee(r2)) {
-			sibs->remove(r2);
-			sibs->join(c(r1),r2); c(r1) = r2;
+		} else if (kee(r1) < kee(r2) || (kee(r1)==kee(r2) && r1 == r)) {
+			r = sibs->remove(r2,r);
+			c(r1) = sibs->join(c(r1),r2);
 			rvec[rank(r1)] = 0;
 			rank(r1)++; p(r2) = r1;
 			tmpq->addLast(r1);
 		} else {
-			sibs->remove(r1);
-			sibs->join(c(r2),r1); c(r2) = r1;
+			r = sibs->remove(r1,r);
+			c(r2) = sibs->join(c(r2),r1);
 			rvec[rank(r1)] = 0;
 			rank(r2)++; p(r1) = r2; 
 			tmpq->addLast(r2);
-			if (r1 == minRoot) minRoot = r2;
 		}
 	}
 	//for (int k = 0; k <= maxRank; k++) rvec[k] = 0;
-	return minRoot;
+	return r;
 }
 
 /** Remove the item with smallest key from a heap.
@@ -194,23 +198,19 @@ fheap Djheaps_f::mergeRoots(fheap r) {
  *  @return the canonical element of the heap that results from
  *  removing the item with the smallest key
  */
-fheap Djheaps_f::deletemin(fheap h) {
+fheap Mheaps_f::deletemin(fheap h) {
 	assert(valid(h) && p(h) == 0);
 
 	// Merge h's children into root list and remove it
 	// First, make parent pointers of new root nodes 0
 	if (c(h) != 0) {
-		index x = c(h);
-		do { p(x) = 0; x = sibs->next(x); } while (x != c(h));
-		sibs->join(h,x);
-		c(h) = 0;
+		for (index x = sibs->first(c(h)); x != 0; x = sibs->next(x))
+			p(x) = 0;
+		sibs->join(h,c(h)); c(h) = 0;
 	}
 	rank(h) = 0;
-	index x = sib(h);
-	if (x == h) return 0;
-	sibs->remove(h);
-
-	return mergeRoots(x);
+	if (sibs->singleton(h)) return 0;
+	return mergeRoots(sibs->remove(h,h));
 }
 
 /** Remove an item from a heap.
@@ -218,7 +218,7 @@ fheap Djheaps_f::deletemin(fheap h) {
  *  @param h is the canonical element of the heap containing i
  *  @return the heap that results from removing i from h
  */
-fheap Djheaps_f::remove(index i, fheap h) {
+fheap Mheaps_f::remove(index i, fheap h) {
 	assert(valid(i) && valid(h) && p(h) == 0);
 	keytyp k = kee(i);
 	h = decreasekey(i,(kee(i)-kee(h))+1,h);
@@ -230,22 +230,19 @@ fheap Djheaps_f::remove(index i, fheap h) {
 /** Create a string representation of this object.
  *  @return the string
  */
-string Djheaps_f::toString() const {
+string Mheaps_f::toString() const {
 	string s = "";
 	bool *pmark = new bool[n()+1];
-	for (fheap h = 1; h <= n(); h++) pmark[h] = false;
-	for (fheap h = 1; h <= n(); h++) {
-		if (p(h) == 0 && !pmark[h]) {
-			// h is a root in a new heap
-			if (c(h) == 0 && sib(h) == h) continue;
-			// find minkey item, mark all tree roots in this heap
-			pmark[h] = true;
-			fheap minroot = h;
-			for (fheap sh = sib(h); sh != h; sh = sib(sh)) {
-				if (key(sh) < key(minroot)) minroot = sh; 
-				pmark[sh] = true;
+	for (index r = 1; r <= n(); r++) pmark[r] = false;
+	for (index r = 1; r <= n(); r++) {
+		if (p(r) == 0 && !pmark[r]) {
+			fheap h = sibs->findList(r);  // h is minkey root
+			for (index r1 = sibs->first(h); r1 != 0;
+				   r1 = sibs->next(r1)) {
+				pmark[r1] = true;
 			}
-			s += heap2string(minroot) + "\n";
+			if (c(h) != 0 || !sibs->singleton(h))
+				s += heap2string(h) + "\n";
 		}
 	}
 	delete [] pmark;
@@ -253,23 +250,20 @@ string Djheaps_f::toString() const {
 }
 
 /** Create a string representation of a heap.
- *  @param h is the canonical element of some heap
+ *  @param x is the id of some list in sibs
  *  @return a reference to s
  */
-string Djheaps_f::heap2string(fheap h) const {
+string Mheaps_f::heap2string(index x) const {
 	string s = "";
-	if (h == 0 || (p(h) == 0 && c(h) == 0 && sib(h) == h)) return s;
-	s += "[" + index2string(h);
-	if (mark(h)) s += "!";
-	else s += ":";
-	s += to_string(kee(h)) + "," + to_string(rank(h));
-	s += heap2string(c(h));
-	for (fheap sh = sib(h); sh != h; sh = sib(sh)) {
-		s += " " + index2string(sh);
-		if (mark(sh)) s += "!";
-		else s += ":";
-		s += to_string(key(sh)) + "," + to_string(rank(sh));
-		s += heap2string(c(sh));
+	if (x == 0 || (p(x) == 0 && c(x) == 0 && sibs->singleton(x)))
+		return s; // skip heaps with <2 items
+	s += "[";
+	for (index r = sibs->first(x); r != 0; r = sibs->next(r)) {
+		if (r != sibs->first(x)) s += " ";
+		s += index2string(r);
+		s += (mark(r) ? "!" : ":");
+		s += to_string(key(r)) + "," + to_string(rank(r));
+		s += heap2string(c(r));
 	}
 	s += "]";
 	return s;

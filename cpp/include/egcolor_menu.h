@@ -29,7 +29,7 @@ public:
 	egcolor_menu(Graph_g&, int*);
 	~egcolor_menu();
 
-	Djsets_cl **menus;	// menus[u] defines menus for groups at input u
+	Dlists **menus;	// menus[u] defines menus for groups at input u
 	int	*fc;		// fc[grp] is first color in grp's menu
 	Graph **mgraf;		// *mgraf[v]: menu graph for v
 	int	*gx;		// gx[e] is group index for e

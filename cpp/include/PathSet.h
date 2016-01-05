@@ -5,9 +5,6 @@
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-// Header file for path set data structure used to implement
-// dynamic trees. Maintains a set of paths on nodes numbered
-// {1,...,n}.
 
 #ifndef PATHSET_H
 #define PATHSET_H
@@ -33,10 +30,12 @@ class PathSet : public Adt {
 public: 	PathSet(int,int*);
 		~PathSet();
 
+	/** pair of values returned by findpathcost method */
 	struct PathCostPair {
 		index x; cost c;
 		PathCostPair(index xx, cost cc) : x(xx), c(cc) {}
 	}; 
+	/** pair of values returned by split method */
 	struct PathPair {
 		path p1, p2;
 		PathPair(path pp1, path pp2) : p1(pp2), p2(pp2) {}
@@ -62,6 +61,7 @@ public: 	PathSet(int,int*);
 	string	pathTree2string(path) const;
 	string  toString() const;
 protected:
+	/** information that defines a node in a path */
 	struct PathNode {
 	index	left, right, p;		// /<left child, right child, parent
 	cost	dcost, dmin;		// /<delta cost and delta min
