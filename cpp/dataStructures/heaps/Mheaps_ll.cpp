@@ -74,7 +74,7 @@ void Mheaps_ll::clear() {
 	// build list of dummy nodes linked using left pointers
 	Mheaps_l::clear(); tmplst->clear();
 	for (index i = (n()/2)+1; i <= n() ; i++) left(i) = i+1;
-	dummy = (n()/2)+1; left(2*n()) = 0;
+	dummy = (n()/2)+1; left(n()) = 0;
 	rank(0) = 0; left(0) = right(0) = 0;
 }
 

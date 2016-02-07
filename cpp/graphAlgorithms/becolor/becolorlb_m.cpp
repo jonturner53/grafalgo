@@ -17,8 +17,9 @@ namespace grafalgo {
  *  used to represent lower bounds on the edge colors
  */
 int becolorlb_m(Graph_wd& g) {
-	Graph gc(g.n(),g.M()); List_g<edge> match; int total = 0;
-	int c;
+	Graph gc(g.n(),g.M());
+	edge mEdge[g.n()+1]; for (vertex u = 1; u <= g.n(); u++) mEdge[u] = 0;
+	int total = 0; int c;
 	for (c = 1; total < g.m(); c++) {
 		// construct G_c (by adding edges to previous G_c)
 		for (edge e = g.first(); e != 0; e = g.next(e)) {
@@ -26,9 +27,12 @@ int becolorlb_m(Graph_wd& g) {
 				gc.joinWith(g.left(e), g.right(e), e);
 		}
 		// find max matching in gc and add its size to total
-		match.clear();
-		matchb_hk(gc, match);
-		total += match.length();
+		matchb_hk(gc, mEdge);
+		int siz = 0;
+		for (vertex u = 1; u <= g.n(); u++) {
+			if (mEdge[u] != 0) siz++; mEdge[u] = 0;
+		}
+		total += siz/2;
 	}
 	return c-1;
 }

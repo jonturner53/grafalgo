@@ -17,7 +17,7 @@ extern int becolorlb_d(Graph_wd&);
 extern int becolorlb_m(Graph_wd&);
 extern int becolorlb_f(Graph_wd&);
 extern void becolor_ss(Graph_wd&, int*);
-extern void becolor_rm(Graph_wd&, int*);
+extern void becolor_msm(Graph_wd&, int*);
 extern void becolor_mdm(Graph_wd&, int*);
 extern void becolor_pmd(Graph_wd&, int*);
 }
@@ -30,7 +30,7 @@ using namespace grafalgo;
  *  EvalBecolor repeated generates a random graph and computes a
  *  bounded edge coloring using the specified method.
  * 
- *  Methods currently implemented include strictSplit, greedy, repMatch,
+ *  Methods currently implemented include strictSplit, greedy, maxSizeMatch,
  *  maxDegMatch and augPath
  *
  *  Reps is the number of repetitions, n is the number of inputs (and outputs)
@@ -75,9 +75,9 @@ int main(int argc, char *argv[]) {
 		} else if (strcmp(method,"greedy") == 0) {
 			t1 = high_resolution_clock::now();
 			becolor_g(g,color);
-		} else if (strcmp(method,"repMatch") == 0) {
+		} else if (strcmp(method,"maxSizeMatch") == 0) {
 			t1 = high_resolution_clock::now();
-			becolor_rm(g,color);
+			becolor_msm(g,color);
 		} else if (strcmp(method,"maxDegMatch") == 0) {
 			t1 = high_resolution_clock::now();
 			becolor_mdm(g,color);

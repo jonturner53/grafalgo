@@ -175,8 +175,7 @@ inline edge Graph::nextAt(vertex v, edge e) const {
 	assert(validVertex(v) && validEdge(e));
 	if (v != evec[e].l && v != evec[e].r) return 0;
 	int ee = (v == evec[e].l ? 2*e : 2*e+1);
-	int ff = adjLists->next(ee);
-	return (fe[v] == ff ? 0 : ff/2);
+	return adjLists->next(ee)/2;
 }
 
 /** Get the left endpoint of an edge.

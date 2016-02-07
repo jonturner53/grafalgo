@@ -16,17 +16,20 @@ namespace grafalgo {
 int ecolor_m(Graph& g1, int color[]) {
 	Graph g;
 	g.copyFrom(g1);
-	List_g<edge> match(g.M());
+	edge mEdge[g.n()+1];
+	for (vertex u = 1; u <= g.n(); u++) mEdge[u] = 0;
 
 	int c = 0;
 	while (g.m() != 0) {
 		c++; // color to use next
-		mdmatch(g,match);
-		while (!match.empty()) {
-			edge e = match.value(match.first());
-			match.removeFirst();
-			color[e] = c;
-			g.remove(e);
+		mdmatch(g,mEdge);
+		for (vertex u = 1; u <= g.n(); u++) {
+			edge e = mEdge[u];
+			if (e != 0) {
+				color[e] = c;
+				mEdge[u] = mEdge[g.mate(u,e)] = 0;
+				g.remove(e);
+			}
 		}
 	}
 	return c;

@@ -24,9 +24,9 @@ namespace grafalgo {
  *  invoke the constructor.
  */
 class matchwb_h {
-public: matchwb_h(Graph_w&, List_g<edge>&);
+public: matchwb_h(const Graph_w&, edge*);
 private:
-	Graph_w* g;		// graph we're finding matching for
+	const Graph_w* gp;	// graph we're finding matching for
 	ListPair *split;	// splits bipartite graph into independent sets
 	List_d	*roots;		// unmatched vertices in "in-set"
 	edge	*mEdge;		// mEdge[u]=matching edge incident to u

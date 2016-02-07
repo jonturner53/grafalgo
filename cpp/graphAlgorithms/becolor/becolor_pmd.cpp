@@ -19,13 +19,13 @@ namespace grafalgo {
  *  by the caller; on return color[e] is the color assigned to edge e
  */
 void becolor_pmd(Graph_wd& g, int color[]) {
-	// initialize priorites
-	int prty[g.n()+1];  // priority
+	// initialize priorites and matching edges
+	int prio[g.n()+1]; edge mEdge[g.n()+1];
 	for (vertex u = 1; u <= g.n(); u++) {
-		prty[u] = min(g.n(),(g.n()+1)-g.degree(u));
+		prio[u] = min(g.n(),(g.n()+1)-g.degree(u)); mEdge[u] = 0;
 	}
 
-	Graph gc(g.n(),g.M()); List_g<edge> match; 
+	Graph gc(g.n(),g.M());
 	int c; int cnt = 0;
 	for (c = 1; cnt < g.m(); c++) {
 		// construct gc (by adding edges to previous gc)
@@ -35,17 +35,16 @@ void becolor_pmd(Graph_wd& g, int color[]) {
 		}
 		// find priority matching in gc that favors vertices with high
 		// degree in uncolored subgraph
-		pmatch_egt(gc, prty, match);
+		pmatch_egt(gc, prio, mEdge);
 		// color matching edges, then remove from gc and match
 		// also update degrees in uncolored subgraph
-		for (index x = match.first(); x != 0; x = match.next(x)) {
-			edge e = match.value(x);
-			color[e] = c; gc.remove(e); cnt++;
-			vertex u = g.left(e); vertex v = g.right(e);
-			prty[u] = min(g.n(), prty[u]+1);
-			prty[v] = min(g.n(), prty[v]+1);
+		for (vertex u = 1; u <= g.n(); u++) {
+			edge e = mEdge[u]; if (e == 0) continue;
+			vertex v = gc.mate(u,e); if (u > v) continue;
+			color[e] = c; gc.remove(e); mEdge[u] = mEdge[v] = 0; cnt++;
+			prio[u] = min(g.n(), prio[u]+1);
+			prio[v] = min(g.n(), prio[v]+1);
 		}
-		match.clear();
 	}
 }
 

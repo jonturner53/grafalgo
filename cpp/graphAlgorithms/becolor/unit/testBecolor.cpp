@@ -15,7 +15,7 @@
 #include "becolor_ap.h"
 
 namespace grafalgo {
-extern void becolor_rm(Graph_wd&, int[]);
+extern void becolor_msm(Graph_wd&, int[]);
 extern void becolor_mdm(Graph_wd&, int[]);
 extern void becolor_ss(Graph_wd&, int[]);
 extern void becolor_pmd(Graph_wd&, int[]);
@@ -41,8 +41,8 @@ int main(int argc, char *argv[]) {
 	int color[g.M()+1];
 	for (edge e = 1; e <= g.M(); e++) color[e] = 0;
 
-	if (strcmp(argv[1],"repMatch") == 0) {
-		becolor_rm(g,color);
+	if (strcmp(argv[1],"maxSizeMatch") == 0) {
+		becolor_msm(g,color);
 	} else if (strcmp(argv[1],"maxDegMatch") == 0) {
 		becolor_mdm(g,color);
 	} else if (strcmp(argv[1],"greedy") == 0) {

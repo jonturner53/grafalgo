@@ -11,46 +11,30 @@
 namespace grafalgo {
 
 /** Find a maximum size matching in a graph.
- *  @param g1 is a graph
- *  @param match is a reference to a list in which the matching is returned.
+ *  @param[in] g is a graph
+ *  @param[in,out] matchingEdge[u] is (on return) the matching edge incident
+ *  to u or 0 if us is unmatched; if matchingEdge is not all 0 initially,
+ *  it is assumed to represent a valid initial matching
  */
-match_egf::match_egf(Graph& g1, List_g<edge>& match) : match_egc(g1) {
-	vertex u, v; edge e;
-
+match_egf::match_egf(const Graph& g, edge *matchingEdge)
+		     : match_egc(g,matchingEdge) {
 	// auxiliary data structures for reducing initialization overhead
 	// in findpath
 	searchNum = 0;
-	latestSearch = new int[g->n()+1]; // equals search number if reached
-	nextEdge = new edge[g->n()+1];    // next edge to search at u
-	pending = new List(g->n());     // used by findpath
-	unmatched = new List_d(g->n());  // list of unmatched vertices
+	latestSearch = new int[gp->n()+1]; // equals search number if reached
+	nextEdge = new edge[gp->n()+1];    // next edge to search at u
+	pending = new List(gp->n());       // used by findpath
+	unmatched = new List_d(gp->n());   // list of unmatched vertices
 
-	// Create initial maximal (not maximum) matching
-	for (u = 1; u <= g->n(); u++) {
-		mEdge[u] = 0; mark[u] = false; latestSearch[u] = 0;
-		nextEdge[u] = g->firstAt(u);
-		unmatched->addLast(u);
-	}
-	for (u = 1; u <= g->n(); u++) {
-		if (mEdge[u] != 0) continue;
-		for (e = g->firstAt(u); e != 0; e = g->nextAt(u,e)) {
-			v = g->mate(u,e);
-			if (mEdge[v] == 0) {
-				mEdge[u] = mEdge[v] = e;
-				unmatched->remove(u);
-				unmatched->remove(v);
-				break;
-			}
-		}
+	for (vertex u = 1; u <= gp->n(); u++) {
+		latestSearch[u] = 0;
+		nextEdge[u] = gp->firstAt(u);
+		if (mEdge[u] == 0) unmatched->addLast(u);
 	}
 		
+	edge e;
 	while((e = findpath()) != 0) { augment(e); } 
 
-	match.clear();
-	for (vertex u = 1; u <= g->n(); u++) {
-		edge e = mEdge[u];
-		if (e != 0 && u < g->mate(u,e)) match.addLast(e);
-	}
 	delete [] latestSearch; delete [] nextEdge;
 	delete pending; delete unmatched;
 }
@@ -77,7 +61,7 @@ edge match_egf::findpath() {
 			origin[nextUnmatched] = nextUnmatched;
 			blossoms->clear(nextUnmatched);
 			latestSearch[nextUnmatched] = searchNum;
-			nextEdge[nextUnmatched] = g->firstAt(nextUnmatched);
+			nextEdge[nextUnmatched] = gp->firstAt(nextUnmatched);
 			nextUnmatched = unmatched->next(nextUnmatched);
 		}
 		if (pending->empty()) break;
@@ -86,21 +70,21 @@ edge match_egf::findpath() {
 		if (e == 0) {
 			pending->removeFirst(); continue;
 		} else {
-			nextEdge[u] = g->nextAt(u,e);
+			nextEdge[u] = gp->nextAt(u,e);
 		}
-		vertex v = g->mate(u,e);
+		vertex v = gp->mate(u,e);
 		if (latestSearch[v] != searchNum && mEdge[v] != 0) {
 			// v not yet reached in this search, so can't be
 			// part of any blossom yet
 			// extend the tree
-			vertex w = g->mate(v,mEdge[v]);
+			vertex w = gp->mate(v,mEdge[v]);
 			state[v] = odd;  pEdge[v] = e;
 			state[w] = even; pEdge[w] = mEdge[v];
 			origin[v] = v; origin[w] = w;
 			latestSearch[v] = latestSearch[w] = searchNum;
 			blossoms->clear(v); blossoms->clear(w);
 			pending->addLast(w);
-			nextEdge[w] = g->firstAt(w);
+			nextEdge[w] = gp->firstAt(w);
 			continue;
 		}
 		if (latestSearch[v] != searchNum) {
@@ -112,7 +96,7 @@ edge match_egf::findpath() {
 			origin[v] = v;
 			blossoms->clear(v);
 			latestSearch[v] = searchNum;
-			nextEdge[v] = g->firstAt(v);
+			nextEdge[v] = gp->firstAt(v);
 		}
 		vertex up = base(u); vertex vp = base(v);
 		if (up == vp) continue; // skip internal edges in a blossom
@@ -131,21 +115,21 @@ edge match_egf::findpath() {
                 while (x != a) {
                         origin[blossoms->link(blossoms->find(x),
                                               blossoms->find(a))] = a;
-                        x = g->mate(x,pEdge[x]); // x now odd
+                        x = gp->mate(x,pEdge[x]); // x now odd
                         origin[blossoms->link(x,blossoms->find(a))] = a;
                         bridge[x].e = e; bridge[x].v = u;
                         if (!pending->member(x)) pending->addLast(x);
-                        x = base(g->mate(x,pEdge[x]));
+                        x = base(gp->mate(x,pEdge[x]));
                 }
                 x = vp;
                 while (x != a) {
                         origin[blossoms->link(blossoms->find(x),
                                               blossoms->find(a))] = a;
-                        x = g->mate(x,pEdge[x]); // x now odd
+                        x = gp->mate(x,pEdge[x]); // x now odd
                         origin[blossoms->link(x,blossoms->find(a))] = a;
                         bridge[x].e = e; bridge[x].v = v;
                         if (!pending->member(x)) pending->addLast(x);
-                        x = base(g->mate(x,pEdge[x]));
+                        x = base(gp->mate(x,pEdge[x]));
                 }
 	}
 	return 0;

@@ -16,7 +16,6 @@ namespace grafalgo {
 mflo_d::mflo_d(Graph_f& g1) : mflo_ff(g1) {
         level = new int[g->n()+1];
         nextEdge = new edge[g->n()+1];
-
         while (newPhase()) { main(); }
 
 	delete [] level; delete [] nextEdge;

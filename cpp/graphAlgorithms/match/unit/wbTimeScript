@@ -6,7 +6,7 @@
 # The algorithm argument is one of flowMatchWt, matchwb_h,
 # matchb_gmg
 #
-algo="flowMatchWt"
+algo="matchwb_f"
 if [ $# -eq 1 ] ; then
         algo=$1
 fi;

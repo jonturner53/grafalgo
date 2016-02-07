@@ -24,7 +24,7 @@ ecolor_g::ecolor_g(Graph& g, int color[]) {
 	cg = new Graph(g.n(),g.M());
 	cg->copyFrom(g);
 	this->color = color;
-	match = new List_g<edge>(g.n()/2);
+	mEdge = new edge[g.n()+1];
 	euler = new Dlists(g.M());
 	handle = new List_g<edge>(g.M());
 	start = new List_d(g.n());
@@ -34,7 +34,7 @@ ecolor_g::ecolor_g(Graph& g, int color[]) {
 }
 
 ecolor_g::~ecolor_g() {
-	delete match; delete euler; delete handle; delete start;
+	delete [] mEdge; delete euler; delete handle; delete start;
 }
 
 /** Recursive helper function.
@@ -55,13 +55,15 @@ void ecolor_g::rColor(int Delta) {
 
 	if ((Delta&1) == 1) {
 		// find matching in cg that includes every max degree vertex
-		match->clear();
-		mdmatch_f(*cg, *match);
+		for (vertex u = 1; u <= cg->n(); u++) mEdge[u] = 0;
+		mdmatch_f(*cg, mEdge);
 
 		// now, color edges in matching and remove from cg
-		for (index x = match->first(); x != 0; x = match->next(x)) {
-			edge e = match->value(x);
-			color[e] = nextColor; cg->remove(e);
+		for (vertex u = 1; u <= cg->n(); u++) {
+			edge e = mEdge[u];
+			if (e != 0 && u > cg->mate(u,e)) {
+				color[e] = nextColor; cg->remove(e);
+			}
 		}
 		nextColor++;
 

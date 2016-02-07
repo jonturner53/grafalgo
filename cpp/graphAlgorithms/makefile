@@ -29,7 +29,7 @@ clean:
 	make -C misc   clean
 	make -C mst    clean
 	make -C spath  clean
-	make -C mflo
+	make -C mflo clean
 	make -C mcf  clean
 	make -C match  clean
 	make -C ecolor  clean

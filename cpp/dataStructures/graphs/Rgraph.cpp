@@ -28,57 +28,81 @@ void Rgraph::ugraph(Graph& g, int numv, int nume) {
 	 addEdges(g,nume);
 }
 
-/** Add random edges to a graph.
+bool rgraphSortVpairs(Pair<vertex,vertex> x, Pair<vertex,vertex> y) {
+	return (x.first < y.first || (x.first == y.first && x.second < y.second));
+}
+
+/** Add random edges to yield a random simple graph.
  *  @param nume is the target number of edges; if the graph already
- *  has some edges, additional edges will be added until the
- *  graph has nume edges
+ *  has some edges, they are assumed to all be unique; additional edges
+ *  will be added until the graph has nume edges
  */
 void Rgraph::addEdges(Graph& g, int nume) {
-	 if (nume <= g.m()) return;
-	 // build set containing edges already in graph
-	 Set_h<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
-	 for (edge e = g.first(); e != 0; e = g.next(e)) {
-		 Pair<vertex,vertex> vpair;
-		 vpair.first =  min(g.left(e), g.right(e));
-		 vpair.second = max(g.left(e), g.right(e));
-		 edgeSet.insert(vpair);
-	 }
-
-	 // add edges using random sampling of vertex pairs
-	 // stop early if graph gets so dense that most samples
-	 // repeat edges already in graph
-	 while (g.m() < nume && g.m()/g.n() < g.n()/4) {
-		 vertex u = Util::randint(1,g.n());
-		 vertex v = Util::randint(1,g.n());
-		 if (u == v) continue;
-		 if (u > v) { vertex w = u; u = v; v = w; }
-		 Pair<vertex,vertex> vpair(u,v);
-		 if (!edgeSet.contains(vpair)) {
-			 edgeSet.insert(vpair); g.join(u,v);
-		 }
-	 }
-	 if (g.m() == nume) {
-	 	g.sortAdjLists(); return;
+	if (nume <= g.m()) return;
+	if (nume + g.m() > g.n()*(g.n()-1)/2)
+		Util::fatal("Rgraph::addEdges: too many edges");
+	Pair<vertex, vertex> *pvec; int pvsiz;
+	if (nume/g.n() > g.n()/8) { // dense graphs
+		// build complete vector of candidate edges
+		pvsiz = g.n()*(g.n()-1)/2;
+		pvec = new Pair<vertex,vertex>[pvsiz];
+		int i = 0;
+		for (vertex u = 1; u < g.n(); u++) {
+			for (vertex v = u+1; v <= g.n(); v++) {
+				pvec[i].first = u; pvec[i].second = v; i++;
+			}
+		}
+	} else { // sparse graphs
+		// build oversize, but incomplete vector of candidate edges
+		pvsiz = nume + max(nume, 1000);
+		pvec = new Pair<vertex,vertex>[pvsiz];
+		for (int i = 0; i < pvsiz; i++) {
+			pvec[i].first = Util::randint(1,g.n()-1);
+			pvec[i].second = Util::randint(pvec[i].first+1,g.n());
+		}
+		// sort pairs and remove duplicates
+		std::sort(pvec, pvec+pvsiz, rgraphSortVpairs);
+		int i = 0; int j = 0;
+		while (++j < pvsiz) {
+			if (pvec[j] != pvec[i]) pvec[++i] = pvec[j];
+		}
+		pvsiz = i+1;
+		if (pvsiz < nume - g.m())
+			Util::fatal("Rgraph::addEdges: program error, too few "
+			      "candidate edges");
 	}
 
-	 // if more edges needed, build a vector containing remaining 
-	 // "candidate" edges and then sample from this vector
-	 vector<Pair<vertex,vertex>> vpVec;
-	 for (vertex u = 1; u < g.n(); u++) {
-		 for (vertex v = u+1; v <= g.n(); v++) {
-			 Pair<vertex,vertex> vpair(u,v);
-			 if (!edgeSet.contains(vpair)) vpVec.push_back(vpair);
-		 }
-	 }
-	 // sample remaining edges from vector
-	 unsigned int i = 0;
-	 while (g.m() < nume && i < vpVec.size()) {
-		 int j = Util::randint(i,vpVec.size()-1);
-		 vertex u = vpVec[j].first;
-		 vertex v = vpVec[j].second;
-		 g.join(u,v); vpVec[j] = vpVec[i++];
-	 }
-	 g.sortAdjLists();
+	// mark current edges in list of pairs
+	int cp = 0; List nbors(g.n());
+	for (vertex u = 1; u <= g.n(); u++) {
+		if (u < pvec[cp].first) continue;
+		for (edge e = g.firstAt(u); e != 0; e = g.nextAt(u,e))
+			nbors.addLast(g.mate(u,e));
+		while (pvec[cp].first == u) {
+			if (nbors.member(pvec[cp].second)) pvec[cp].first = 0;
+			cp++;
+		}
+		nbors.clear();
+	}
+	// remove current edges from pvec
+	int i = 0;
+	while (i < pvsiz && pvec[i].first != 0) i++;
+	int j = i;
+	while (++j < pvsiz) {
+		if (pvec[j].first != 0) {
+			pvec[i++] = pvec[j]; pvec[j].first = 0;
+		}
+	}
+	pvsiz = i;
+
+	// sample from remaining pairs
+	int k = pvsiz-1;
+	while (g.m() < nume) {
+		int i = Util::randint(0,k);
+		g.join(pvec[i].first, pvec[i].second);
+		pvec[i] = pvec[k--];
+	}
+	g.sortAdjLists();
 }
 
 /** Generate a random bipartite graph.
@@ -102,48 +126,73 @@ void Rgraph::bigraph(Graph& g, int n1, int n2, int nume) {
  *  @param nume is the desired number of edges in the graph
  */
 void Rgraph::addEdges(Graph& g, int n1, int n2, int nume) {
-	 if (nume <= g.m()) return;
-	 // build set containing edges already in graph
-	 Set_h<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
-	 for (edge e = g.first(); e != 0; e = g.next(e)) {
-		 Pair<vertex,vertex> vpair;
-		 vpair.first =  min(g.left(e), g.right(e));
-		 vpair.second = max(g.left(e), g.right(e));
-		 edgeSet.insert(vpair);
-	 }
-
-	 // add edges using random sampling of vertex pairs
-	 // stop early if graph gets so dense that most samples
-	 // repeat edges already in graph
-	 while (g.m() < nume && g.m()/n1 < n2/2) {
-		 vertex u = Util::randint(1,n1);
-		 vertex v = Util::randint(n1+1,n1+n2);
-		 Pair<vertex,vertex> vpair(u,v);
-		 if (!edgeSet.contains(vpair)) {
-			 edgeSet.insert(vpair); g.join(u,v);
-		 }
-	 }
-	 if (g.m() == nume) {
-	 	g.sortAdjLists(); return;
+	if (nume <= g.m()) return;
+	if (nume + g.m() > n1*n2)
+		Util::fatal("Rgraph::addEdges: too many edges");
+	if (n1+n2 > g.n())
+		Util::fatal("Rgraph::addEdges: too few vertices");
+	Pair<vertex, vertex> *pvec; int pvsiz;
+	if (nume/n1 > n2/4) { // dense graphs
+		// build complete vector of candidate edges
+		pvsiz = n1*n2;
+		pvec = new Pair<vertex,vertex>[pvsiz];
+		int i = 0;
+		for (vertex u = 1; u < n1; u++) {
+			for (vertex v = n1+1; v <= n1+n2; v++) {
+				pvec[i].first = u; pvec[i].second = v; i++;
+			}
+		}
+	} else { // sparse graphs
+		// build oversize, but incomplete vector of candidate edges
+		pvsiz = nume + max(nume, 1000);
+		pvec = new Pair<vertex,vertex>[pvsiz];
+		for (int i = 0; i < pvsiz; i++) {
+			pvec[i].first = Util::randint(1,n1);
+			pvec[i].second = Util::randint(n1+1,n1+n2);
+		}
+		// sort pairs and remove duplicates
+		std::sort(pvec, pvec+pvsiz, rgraphSortVpairs);
+		int i = 0; int j = 0;
+		while (++j < pvsiz) {
+			if (pvec[j] != pvec[i]) pvec[++i] = pvec[j];
+		}
+		pvsiz = i+1;
+		if (pvsiz < nume - g.m())
+			Util::fatal("Rgraph::addEdges: program error, too few "
+			      "candidate edges");
 	}
 
-	 // if more edges needed, build a vector containing remaining 
-	 // "candidate" edges and then sample from this vector
-	 vector<Pair<vertex,vertex>> vpVec;
-	 for (vertex u = 1; u <= n1; u++) {
-		 for (vertex v = n1+1; v <= n1+n2; v++) {
-			 Pair<vertex,vertex> vpair(u,v);
-			 if (!edgeSet.contains(vpair)) vpVec.push_back(vpair);
-		 }
-	 }
-	 // sample remaining edges from vector
-	 unsigned int i = 0;
-	 while (g.m() < nume && i < vpVec.size()) {
-		 int j = Util::randint(i,vpVec.size()-1);
-		 vertex u = vpVec[j].first; vertex v = vpVec[j].second;
-		 g.join(u,v); vpVec[j] = vpVec[i++];
-	 }
-	 g.sortAdjLists();
+	// mark current edges in list of pairs
+	int cp = 0; List nbors(g.n());
+	for (vertex u = 1; u <= g.n(); u++) {
+		if (u < pvec[cp].first) continue;
+		for (edge e = g.firstAt(u); e != 0; e = g.nextAt(u,e))
+			nbors.addLast(g.mate(u,e));
+		while (pvec[cp].first == u) {
+			if (nbors.member(pvec[cp].second)) pvec[cp].first = 0;
+			cp++;
+		}
+		nbors.clear();
+	}
+	// remove current edges from pvec
+	int i = 0;
+	while (i < pvsiz && pvec[i].first != 0) i++;
+	int j = i;
+	while (++j < pvsiz) {
+		if (pvec[j].first != 0) {
+			pvec[i++] = pvec[j]; pvec[j].first = 0;
+		}
+	}
+	pvsiz = i;
+
+	// sample from remaining pairs
+	int k = pvsiz-1;
+	while (g.m() < nume) {
+		int i = Util::randint(0,k);
+		g.join(pvec[i].first, pvec[i].second);
+		pvec[i] = pvec[k--];
+	}
+	g.sortAdjLists();
 }
 
 /** Generate a random tree. 
@@ -264,30 +313,7 @@ bool Rgraph::tryRegular(Graph& g, int numv, int d) {
  *  @param d is the number of edges incident to each vertex
  */
 void Rgraph::regularBigraph(Graph& g, int numv, int d) {
-	g.resize(2*numv, numv*d);
-	if (numv < d)
-		Util::fatal("regular bipartite graph must have vertex count "
-			    "at least equal to the vertex degree");
-	// generate two random list of "edge endpoints"
-	int m = numv*d; 
-	int left[m];  Util::genPerm(m,left);
-	int right[m]; Util::genPerm(m,right);
-	for (int i = 0; i < m-1; i ++) {
-		// select random endpoints from those remaining
-		int j = Util::randint(i, m-1);
-		vertex u = 1 + left[j]%numv; left[j] = left[i];
-		// select another random endpoint to a different vertex
-		// note: graph is usually simple, but small chance it's not
-		int k; int cnt = 0; vertex v;
-		do {
-			k = Util::randint(i, m-1);
-			v = numv + 1 + right[k]%numv;
-		} while (g.findEdge(u, v) && ++cnt<2*d);
-		// join the vertices for the selected endpoints
-		g.join(u,v); right[k] = right[i];
-	}
-	g.join(1+left[m-1]%numv, numv+1+right[m-1]%numv);
-	g.sortAdjLists();
+	regularBigraph(g, numv, numv, d);
 }
 
 /** Create a random simple, regular bipartite graph.
@@ -345,7 +371,7 @@ void Rgraph::regularBiMultigraph(Graph& g, int n1, int n2, int d1) {
 		int j = Util::randint(i, m-1);
 		vertex u = 1 + (left[j]%n1); left[j] = left[i];
 		// select another random endpoint to a different vertex
-		// note: graph is need not be simple
+		// note: graph need not be simple
 		int k = Util::randint(i, m-1);
 		vertex v = n1 + 1 + (right[k]%n2); right[k] = right[i];
 		// join the vertices for the selected endpoints
@@ -386,54 +412,51 @@ void Rgraph::becolor(Graph_wd& g, int n1, int n2, int d1, int bmax, double p) {
  *  @param nume is the number of edges in the generated digraph
  */
 void Rgraph::digraph(Graph_d& dg, int numv, int nume) {
-	 numv = max(0,numv); nume = max(0,nume);
-	 if (numv > dg.n() || nume > dg.M()) dg.resize(numv,nume); 
-	 else dg.clear();
+	numv = max(0,numv); nume = max(0,nume); nume = min(nume,numv*(numv-1));
+	if (numv > dg.n() || nume > dg.M()) dg.resize(numv,nume); 
+	else dg.clear();
 
-	 // build set containing edges already in graph
-	 Set_h<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
-	 for (edge e = dg.first(); e != 0; e = dg.next(e)) {
-		 Pair<vertex,vertex> vpair;
-		 vpair.first =  min(dg.tail(e), dg.head(e));
-		 vpair.second = max(dg.tail(e), dg.head(e));
-		 edgeSet.insert(vpair);
-	 }
-
-	 // add edges using random sampling of vertex pairs
-	 // stop early if graph gets so dense that most samples
-	 // repeat edges already in graph
-	 while (dg.m() < nume && dg.m()/numv < numv/2) {
-		 vertex u = Util::randint(1,numv);
-		 vertex v = Util::randint(1,numv);
-		 if (u == v) continue;
-		 Pair<vertex,vertex> vpair(u,v);
-		 if (!edgeSet.contains(vpair)) {
-			 edgeSet.insert(vpair); dg.join(u,v);
-		 }
-	 }
-	 if (dg.m() == nume) {
-	 	dg.sortAdjLists(); return;
+	Pair<vertex, vertex> *pvec; int pvsiz;
+	if (nume/numv > numv/4) { // dense graphs
+		// build complete vector of candidate edges
+		pvsiz = numv*(numv-1);
+		pvec = new Pair<vertex,vertex>[pvsiz];
+		int i = 0;
+		for (vertex u = 1; u <= numv; u++) {
+			for (vertex v = 1; v <= numv; v++) {
+				if (v == u) continue;
+				pvec[i].first = u; pvec[i].second = v; i++;
+			}
+		}
+	} else { // sparse graphs
+		// build oversize, but incomplete vector of candidate edges
+		pvsiz = nume + max(nume, 1000);
+		pvec = new Pair<vertex,vertex>[pvsiz];
+		for (int i = 0; i < pvsiz; i++) {
+			pvec[i].first = Util::randint(1,dg.n());
+			pvec[i].second = Util::randint(1,dg.n()-1);
+			if (pvec[i].second >= pvec[i].first)
+				pvec[i].second++;
+		}
+		// sort pairs and remove duplicates
+		std::sort(pvec, pvec+pvsiz, rgraphSortVpairs);
+		int i = 0; int j = 0;
+		while (++j < pvsiz) {
+			if (pvec[j] != pvec[i]) pvec[++i] = pvec[j];
+		}
+		pvsiz = i+1;
+		if (pvsiz < nume)
+			Util::fatal("Rgraph::digraph: program error, too few "
+			      "candidate edges");
 	}
-
-	 // if more edges needed, build a vector containing remaining 
-	 // "candidate" edges and then sample from this vector
-	 vector<Pair<vertex,vertex>> vpVec;
-	 unsigned int i = 0;
-	 for (vertex u = 1; u < numv; u++) {
-		 for (vertex v = 1; v <= numv; v++) {
-			 if (v == u) continue;
-			 Pair<vertex,vertex> vpair(u,v);
-			 if (!edgeSet.contains(vpair)) vpVec.push_back(vpair);
-		 }
-	 }
-	 // sample remaining edges from vector
-	 i = 0;
-	 while (dg.m() < nume && i < vpVec.size()) {
-		 int j = Util::randint(i,vpVec.size()-1);
-		 vertex u = vpVec[j].first; vertex v = vpVec[j].second;
-		 dg.join(u,v); vpVec[j] = vpVec[i++];
-	 }
-	 dg.sortAdjLists();
+	// sample from pvec
+	int k = pvsiz-1;
+	while (dg.m() < nume) {
+		int i = Util::randint(0,k);
+		dg.join(pvec[i].first, pvec[i].second);
+		pvec[i] = pvec[k--];
+	}
+	dg.sortAdjLists();
 }
 
 /** Generate random flow graph.
@@ -479,54 +502,49 @@ void Rgraph::flograph(Graph_f& fg, int numv, int nume, int mss) {
  *  @param nume is the number of edges in the generated digraph
  */
 void Rgraph::dag(Graph_d& g, int numv, int nume) {
-	 numv = max(0,numv); nume = max(0,nume);
-	 if (g.n() < numv || g.M() < nume)
-		 g.resize(numv,nume); 
-	 else g.clear();
+	numv = max(0,numv); nume = max(0,nume);
+	if (g.n() < numv || g.M() < nume)
+		g.resize(numv,nume); 
+	else g.clear();
 
-	 // build set containing edges already in graph
-	 Set_h<Pair<vertex,vertex>,Hash::s32s32> edgeSet(nume);
-	 for (edge e = g.first(); e != 0; e = g.next(e)) {
-		 Pair<vertex,vertex> vpair;
-		 vpair.first =  min(g.tail(e), g.head(e));
-		 vpair.second = max(g.tail(e), g.head(e));
-		 edgeSet.insert(vpair);
-	 }
-
-	 // add edges using random sampling of vertex pairs
-	 // stop early if graph gets so dense that most samples
-	 // repeat edges already in graph
-	 while (g.m() < g.M() && g.m()/numv < numv/4) {
-		 vertex u = Util::randint(1,numv-1);
-		 vertex v = Util::randint(u+1,numv);
-		 if (u == v) continue;
-		 Pair<vertex,vertex> vpair(u,v);
-		 if (!edgeSet.contains(vpair)) {
-			 edgeSet.insert(vpair); g.join(u,v);
-		 }
-	 }
-	 if (g.m() == g.M()) {
-	 	g.sortAdjLists(); return;
+	Pair<vertex, vertex> *pvec; int pvsiz;
+	if (nume/numv > numv/8) { // dense graphs
+		// build complete vector of candidate edges
+		pvsiz = numv*(numv-1)/2;
+		pvec = new Pair<vertex,vertex>[pvsiz];
+		int i = 0;
+		for (vertex u = 1; u <= numv; u++) {
+			for (vertex v = u+1; v <= numv; v++) {
+				pvec[i].first = u; pvec[i].second = v; i++;
+			}
+		}
+	} else { // sparse graphs
+		// build oversize, but incomplete vector of candidate edges
+		pvsiz = nume + max(nume, 1000);
+		pvec = new Pair<vertex,vertex>[pvsiz];
+		for (int i = 0; i < pvsiz; i++) {
+			pvec[i].first = Util::randint(1,g.n()-1);
+			pvec[i].second = Util::randint(pvec[i].first+1,g.n());
+		}
+		// sort pairs and remove duplicates
+		std::sort(pvec, pvec+pvsiz, rgraphSortVpairs);
+		int i = 0; int j = 0;
+		while (++j < pvsiz) {
+			if (pvec[j] != pvec[i]) pvec[++i] = pvec[j];
+		}
+		pvsiz = i+1;
+		if (pvsiz < nume)
+			Util::fatal("Rgraph::dag: program error, too few "
+			      "candidate edges");
 	}
-
-	 // if more edges needed, build a vector containing remaining 
-	 // "candidate" edges and then sample from this vector
-	 vector<Pair<vertex,vertex>> vpVec;
-	 for (vertex u = 1; u < numv; u++) {
-		 for (vertex v = u+1; v <= numv; v++) {
-			 if (v == u) continue;
-			 Pair<vertex,vertex> vpair(u,v);
-			 if (!edgeSet.contains(vpair)) vpVec.push_back(vpair);
-		 }
-	 }
-	 // sample remaining edges from vector
-	 int i = 0;
-	 while (g.m() < nume && i < vpVec.size()) {
-		 int j = Util::randint(i,vpVec.size()-1);
-		 vertex u = vpVec[j].first; vertex v = vpVec[j].second;
-		 g.join(u,v); vpVec[j] = vpVec[i++];
-	 }
-	 g.sortAdjLists();
+	// sample from pvec
+	int k = pvsiz-1;
+	while (g.m() < nume) {
+		int i = Util::randint(0,k);
+		g.join(pvec[i].first, pvec[i].second);
+		pvec[i] = pvec[k--];
+	}
+	g.sortAdjLists();
 }
 
 /** Generate a random group graph

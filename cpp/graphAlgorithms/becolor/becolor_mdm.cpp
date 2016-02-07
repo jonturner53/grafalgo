@@ -28,7 +28,8 @@ void becolor_mdm(Graph_wd& g, int color[]) {
 	for (vertex u = 1; u <= g.n(); u++)
 		priority[u] = (d[u] == maxd ? 1 : 2);
 
-	Graph gc(g.n(),g.M()); List_g<edge> match; 
+	Graph gc(g.n(),g.M());
+	edge mEdge[g.n()+1]; for (vertex u = 1; u <= g.n(); u++) mEdge[u] = 0;
 	int c; int cnt = 0;
 	for (c = 1; cnt < g.m(); c++) {
 		// construct gc (by adding edges to previous gc)
@@ -38,14 +39,14 @@ void becolor_mdm(Graph_wd& g, int color[]) {
 		}
 		// find matching in gc that favors vertices with max
 		// degree in uncolored subgraph
-		pmatchb_hkt(gc, priority, match);
-
+		pmatchb_hkt(gc, priority, mEdge);
 		// color matching edges, then remove from gc and match
 		// also update degrees in uncolored subgraph
-		for (index x = match.first(); x != 0; x = match.first()) {
-			edge e = match.value(x);
-			color[e] = c; gc.remove(e); match.removeFirst(); cnt++;
-			d[g.left(e)]--; d[g.right(e)]--;
+		for (vertex u = 1; u <= gc.n(); u++) {
+			edge e = mEdge[u]; if (e == 0) continue;
+			vertex v = gc.mate(u,e);
+			color[e] = c; gc.remove(e); mEdge[u] = mEdge[v] = 0; cnt++;
+			d[u]--; d[v]--;
 		}
 		// recompute max degree vertices
 		maxd = 0;

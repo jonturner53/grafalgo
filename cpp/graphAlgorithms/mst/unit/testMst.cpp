@@ -29,7 +29,7 @@ bool checkMst(Graph_w&, Graph_w&);
  *  using the method specified by the argument. The total weight of the
  *  tree is then printed
  * 
- *  The method argument is one of mst_k, mst_p, mst_pF or mst_ct.
+ *  The method argument is one of mst_k, mst_p, mst_pf or mst_ct.
  * 
  *  If the show argument (string "show") is present, the original graph
  *  and mst are also printed.
@@ -162,7 +162,7 @@ bool verify(Graph_w& g, Graph_w& mstg) {
 						// between u, a[u]
 	return rverify(g,mstg,1,1,first_edge,edge_sets,a,mw);
 }
-
+int cnt = 0;
 /** Recursively verify a subtree
  *  @param g is the graph
  *  @param mstg is the candidate MST
@@ -171,7 +171,7 @@ bool verify(Graph_w& g, Graph_w& mstg) {
  *  @return true if the subtree can be verified, else false
  */
 bool rverify(Graph_w& g, Graph_w& mstg, vertex u, vertex pu,
-	    vertex first_edge[], Dlists& edge_sets, vertex a[], int mw[]) {
+	     vertex first_edge[], Dlists& edge_sets, vertex a[], int mw[]) {
 	vertex v; edge e; int m; bool status = true;
 	for (e = mstg.firstAt(u); e != 0; e = mstg.nextAt(u,e)) {
 		v = mstg.mate(u,e);
@@ -191,7 +191,7 @@ bool rverify(Graph_w& g, Graph_w& mstg, vertex u, vertex pu,
 			status = false;
 		}
 		e = edge_sets.next(e);
-		if (e == first_edge[u]) break;
+		if (e == 0) break;
 	}
 	return status;
 }
@@ -242,8 +242,8 @@ void nca(Graph_w& g, Graph_w& mstg, edge *first_edge, Dlists& edge_sets) {
  *  the edges; two edges appear on the same list if they have the same nca
  */
 void nca_search(Graph_w& g, Graph_w& mstg, vertex u, vertex pu,
-		edge first_edge[],
-	Dlists& edge_sets, Dsets& npap, vertex npa[], int mark[]) {
+		edge first_edge[], Dlists& edge_sets, Dsets& npap,
+		vertex npa[], int mark[]) {
 	vertex v, w; edge e;
 
 	for (e = mstg.firstAt(u); e != 0; e = mstg.nextAt(u,e)) {
@@ -258,8 +258,7 @@ void nca_search(Graph_w& g, Graph_w& mstg, vertex u, vertex pu,
 		if (! mark[e]) mark[e] = 1;
 		else {
 			w = npa[npap.find(v)];
-			edge_sets.join(e,first_edge[w]);
-			first_edge[w] = e;
+			first_edge[w] = edge_sets.join(e,first_edge[w]);
 		}
 	}
 }

@@ -30,8 +30,8 @@ private:
 	Graph 	*gp;		///< graph we're coloring
 	Graph 	*cg;		///< current graph in recursive algorithm
 	int	*color;		///< color[e] is the color assigned to e
-	List_g<edge> *match;	///< used by matching method
-	Dlists *euler;		///< used to define euler partition on edges
+	edge 	*mEdge;		///< used by matching method
+	Dlists	*euler;		///< used to define euler partition on edges
 	List_g<edge> *handle;	///< reference edge for each subset of euler
 	List_d	*start;		///< used by eulerDsets method
 	

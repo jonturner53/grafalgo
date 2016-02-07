@@ -18,7 +18,7 @@ namespace grafalgo {
  *  use constructor.
  */
 class match_egf : public match_egc {
-public: match_egf(Graph&, List_g<edge>&);
+public: match_egf(const Graph&, edge*);
 private:
 	int  searchNum;		///< number of current path search
 	int* latestSearch;	///< latestSearch[u] == searchNum <=>

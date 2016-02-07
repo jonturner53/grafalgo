@@ -17,7 +17,7 @@ namespace grafalgo {
  *  of Edmond's algorithm for finding a maximum size matching in a graph.
  */
 class match_eg : public match_egc {
-public: match_eg(Graph&, List_g<edge>&);
+public: match_eg(const Graph&, edge*);
 private:
 	edge findpath();
 };

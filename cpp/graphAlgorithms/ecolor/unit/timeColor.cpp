@@ -15,7 +15,7 @@
 namespace grafalgo {
 extern int ecolor_m(Graph&, int*);
 extern int ecolor_fm(Graph&, int*);
-extern int ecolor_v(Graph&, int*);
+extern int ecolor_ap(Graph&, int*);
 }
 
 using namespace chrono;
@@ -26,7 +26,7 @@ using namespace grafalgo;
  *  TimeColor repeated generates a random graph and computes an edge coloring
  *  using the specified method.
  * 
- *  Methods currently implemented include match, fmatch, vizing and gabow.
+ *  Methods currently implemented include match, fmatch, augpath and gabow.
  *
  *  Reps is the number of repetitions, n is the number of vertices,
  *  m is the number of edges
@@ -62,9 +62,9 @@ int main(int argc, char *argv[]) {
 		} else if (strcmp(argv[1],"fmatch") == 0) {
 			t1 = high_resolution_clock::now();
 			ecolor_fm(g,color);
-		} else if (strcmp(argv[1],"vizing") == 0) {
+		} else if (strcmp(argv[1],"augpath") == 0) {
 			t1 = high_resolution_clock::now();
-			ecolor_v(g,color);
+			ecolor_ap(g,color);
 		} else if (strcmp(argv[1],"gabow") == 0) {
 			t1 = high_resolution_clock::now();
 			ecolor_g(g,color);

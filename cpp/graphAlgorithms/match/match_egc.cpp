@@ -11,23 +11,35 @@
 namespace grafalgo {
 
 /** Constructor for core of Edmonds-Gabow algorithm.
- *  @param g1 is an undirected graph
- *  @param match is a list in which the matching is returned
+ *  @param[in] g is an undirected graph
+ *  @param[in,out] matchingEdge[u] is the matching edge incident
+ *  to u or 0 if u is unmatched; if matchingEdge is not all zero on input,
+ *  it is assumed to represent a valid initial matching
  */
-match_egc::match_egc(Graph& g1) : g(&g1) {
-	blossoms = new Dsets(g->n()); // set per blossom
-	augpath = new Dlists_r(g->M());    // reversible list
-	origin = new vertex[g->n()+1];    // original vertex for each blossom
-	bridge = new BridgePair[g->n()+1];// edge that formed a blossom
-	state = new stype[g->n()+1];	     // state used in path search
-	pEdge = new edge[g->n()+1];	     // edge to parent in tree
-	mEdge = new edge[g->n()+1];	     // incident matching edge (if any)
-	mark = new bool[g->n()+1];	     // mark bits used by nca
+match_egc::match_egc(const Graph& g, edge *matchingEdge)
+		     : gp(&g), mEdge(matchingEdge) {
+	blossoms = new Dsets(gp->n());     // set per blossom
+	augpath = new Dlists_r(gp->M());   // used to extract augmenting paths
+	origin = new vertex[gp->n()+1];    // original vertex for each blossom
+	bridge = new BridgePair[gp->n()+1];// edge that formed a blossom
+	state = new stype[gp->n()+1];	   // state used in path search
+	pEdge = new edge[gp->n()+1];	   // edge to parent in tree
+
+	mark = new bool[gp->n()+1];	     // mark bits used by nca
+	for (vertex u = 1; u <= gp->n(); u++) mark[u] = false;
+
+	// Create initial maximal (not maximum) matching
+	for (edge e = gp->first(); e != 0; e = gp->next(e)) {
+		vertex u = gp->left(e); vertex v = gp->right(e);
+		if (mEdge[u] == 0 && mEdge[v] == 0) {
+			mEdge[u] = mEdge[v] = e;
+		}
+	}
 }
 
 match_egc::~match_egc() {
 	delete blossoms; delete augpath; delete [] origin;
-	delete [] bridge; delete [] pEdge; delete [] mEdge; delete[] mark;
+	delete [] bridge; delete [] pEdge; delete[] mark;
 }
 
 /** Augment the matching.
@@ -36,7 +48,7 @@ match_egc::~match_egc() {
 void match_egc::augment(edge e) {
 	while (true) {
 		edge e1 = augpath->first(e);
-		mEdge[g->left(e1)] = mEdge[g->right(e1)] = e1;
+		mEdge[gp->left(e1)] = mEdge[gp->right(e1)] = e1;
 		if (e == augpath->first(e)) { return; }
 		e = augpath->pop(e); e = augpath->pop(e);
 	}
@@ -64,25 +76,25 @@ vertex match_egc::nca(vertex u, vertex v) {
 		if (pEdge[x] == 0 && pEdge[y] == 0) { result = 0; break; }
 		if (pEdge[x] != 0) {
 			mark[x] = true;
-			x = g->mate(x,pEdge[x]);
- 			x = base(g->mate(x,pEdge[x]));
+			x = gp->mate(x,pEdge[x]);
+ 			x = base(gp->mate(x,pEdge[x]));
 		}
 		if (pEdge[y] != 0) {
 			mark[y] = true;
-			y = g->mate(y,pEdge[y]);
-			y = base(g->mate(y,pEdge[y]));
+			y = gp->mate(y,pEdge[y]);
+			y = base(gp->mate(y,pEdge[y]));
 		}
 	}
 	// second pass to clear mark bits
 	x = u;
 	while (mark[x]) {
 		mark[x] = false;
-		x = g->mate(x,pEdge[x]); x = base(g->mate(x,pEdge[x]));
+		x = gp->mate(x,pEdge[x]); x = base(gp->mate(x,pEdge[x]));
 	}
 	y = v;
 	while (mark[y]) {
 		mark[y] = false;
-		y = g->mate(y,pEdge[y]); y = base(g->mate(y,pEdge[y]));
+		y = gp->mate(y,pEdge[y]); y = base(gp->mate(y,pEdge[y]));
 	}
 	return result;
 }
@@ -98,16 +110,16 @@ vertex match_egc::nca(vertex u, vertex v) {
 edge match_egc::path(vertex a, vertex b) {
 	if (a == b) return 0;
 	if (state[a] == even) {
-		edge e1 = pEdge[a];  vertex pa = g->mate(a,e1);
+		edge e1 = pEdge[a];  vertex pa = gp->mate(a,e1);
 		if (pa == b) return e1;
-		edge e2 = pEdge[pa]; vertex p2a = g->mate(pa,e2);
+		edge e2 = pEdge[pa]; vertex p2a = gp->mate(pa,e2);
 		edge e = augpath->join(e1,e2);
 		e = augpath->join(e,path(p2a,b));
 		return e;
 	} else {
 		edge e = bridge[a].e; vertex da = bridge[a].v;
 		e = augpath->join(augpath->reverse(path(da,a)),e);
-		e = augpath->join(e,path(g->mate(da,e),b));
+		e = augpath->join(e,path(gp->mate(da,e),b));
 		return e;
 	}
 }
@@ -119,7 +131,7 @@ edge match_egc::path(vertex a, vertex b) {
 vertex match_egc::root(vertex vp) {
 	vertex rv = vp;
 	while (pEdge[rv] != 0) {
-		rv = g->mate(rv,pEdge[rv]); rv = base(g->mate(rv,pEdge[rv]));
+		rv = gp->mate(rv,pEdge[rv]); rv = base(gp->mate(rv,pEdge[rv]));
 	}
 	return rv;
 }

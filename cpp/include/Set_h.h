@@ -60,7 +60,8 @@ protected:
 	bool	autoExpand;
 	int	numBuckets();
 private:
-	static const int MAXINDEX = (1 << 24)-1;  ///< largest possible index
+	static const int MAXINDEX = (1 << 24)-1; ///< largest index value
+	static const int MAXSIZE = 2*MAXINDEX/3; ///< largest allowed set size
 	static const int BKT_SIZ = 8;   ///< # of entries per bucket
 	static const int LG_BKT_SIZ = 3; ///< log2(BKT_SIZ)
 	typedef uint32_t bkt_t[BKT_SIZ]; ///< bucket type
@@ -80,15 +81,16 @@ private:
 };
 
 /** Constructor for Set_h, allocates space and initializes table.
- *  @param n1 is an optional limit on the range of values;
- *  it must be less than 2^24; the default is 10
+ *  @param n1 is an optional limit on the number of possible values;
+ *  it must be less than (2^24-1)*(2/3); the default is 10
  *  @param autoX is an optional parameter that determines whether the
  *  the data structure expands automatically, as needed; the default
  *  value is true
  */
 template<class E, uint32_t (*H)(const E&, int)>
 Set_h<E,H>::Set_h(int n1, bool autoX) : Adt(n1), autoExpand(autoX) {
-	nb = numBuckets(); makeSpace(); init();
+	if (n() > MAXSIZE) Util::fatal("Set_h::Set_h: exceeds size limit");
+	makeSpace(); init();
 };
 
 /** Copy constructor.
@@ -196,7 +198,9 @@ Set_h<E,H>& Set_h<E,H>::operator=(Set_h&& src) {
  */
 template<class E, uint32_t (*H)(const E&, int)>
 void Set_h<E,H>::resize(int size) {
-	freeSpace(); Adt::resize(size); nb = numBuckets(); makeSpace(); init();
+	if (size > MAXSIZE) Util::fatal("Set_h::resize: exceeds size limit");
+	freeSpace(); Adt::resize(size);
+	nb = numBuckets(); makeSpace(); init();
 }
 
 /** Expand the space available for this Set_h.
@@ -206,6 +210,7 @@ void Set_h<E,H>::resize(int size) {
 template<class E, uint32_t (*H)(const E&, int)>
 void Set_h<E,H>::expand(int size) {
 	if (size <= n()) return;
+	if (size > MAXSIZE) Util::fatal("Set_h::expand: exceeds size limit");
 	delete [] bkt; auto old_eVec = eVec; auto old_idx = idx;
 	Adt::resize(size); nb = numBuckets();
 	bkt = new bkt_t[2*nb]; eVec = new E[n()+1]; idx = new ListPair(n());

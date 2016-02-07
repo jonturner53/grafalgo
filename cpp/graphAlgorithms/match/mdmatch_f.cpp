@@ -12,20 +12,23 @@ namespace grafalgo {
 
 /** Find a matching in a bipartite graph graf that includes an
  *  edge at every vertex of maximum degree.
- *  This version includes some opimtimizations to speed up execution
+ *  This version includes some optimizations to speed up execution
  *  for typical graphs.
- *  @param g1 is a reference to the graph
- *  @param match is a reference to a list in which the matching is returned
+ *  @param[in] g is a graph
+ *  @param[in,out] matchingEdge[u] is (on return) the matching edge incident
+ *  to u or 0 if u is unmatched; if matchingEdge is not all 0 initially,
+ *  it is assumed to represent a valid initial matching
  */
-mdmatch_f::mdmatch_f(Graph& g1, List_g<edge>& match) {
-	init(g1);
+mdmatch_f::mdmatch_f(const Graph& g, edge *matchingEdge)
+		     : mdmatch(g,matchingEdge) {
+	init();
 
 	// find an initial matching, by examining edges at max degree
 	// vertices and adding the first non-conflicting edge we find (if any)
-	for (vertex u = 1; u <= g->n(); u++) {
+	for (vertex u = 1; u <= gp->n(); u++) {
 		if (d[u] != maxd || mEdge[u] != 0) continue;
-		for (edge e = g->firstAt(u); e != 0; e = g->nextAt(u,e)) {
-			vertex v = g->mate(u,e);
+		for (edge e = gp->firstAt(u); e != 0; e = gp->nextAt(u,e)) {
+			vertex v = gp->mate(u,e);
 			if (mEdge[v] == 0) {
 				mEdge[u] = mEdge[v] = e;
 				if (roots->member(u)) roots->remove(u);
@@ -39,12 +42,6 @@ mdmatch_f::mdmatch_f(Graph& g1, List_g<edge>& match) {
 	phase = 1;
 	while((e = findPath()) != 0) { extend(e); phase++; }
 
-	match.clear(); 
-	for (vertex u = 1; u <= g->n(); u++) {
-		edge e = mEdge[u];
-		if (e != 0 && u < g->mate(u,e)) match.addLast(e); 
-	}
-
 	mdmatch::cleanup(); cleanup();
 }
 
@@ -55,18 +52,18 @@ mdmatch_f::mdmatch_f(Graph& g1, List_g<edge>& match) {
  *  the queue used by findpath and the array visited[] which keeps track
  *  of the most recent phase in which each vertex has been visited.
  */
-void mdmatch_f::init(Graph& g1) {
+void mdmatch_f::init() {
 	// initialize stuff in base class
-	mdmatch::init(g1);
+	mdmatch::init();
 
 	// allocate storage for added data structures
-	roots = new List_d(g->n());
-	visited = new int[g->n()+1];    
-	q = new List(g->M());
+	roots = new List_d(gp->n());
+	visited = new int[gp->n()+1];    
+	q = new List(gp->M());
 
-	for (vertex u = 1; u <= g->n(); u++) {
-		pEdge[u] = mEdge[u] = visited[u] = 0;
-		if (d[u] == maxd) roots->addLast(u);
+	for (vertex u = 1; u <= gp->n(); u++) {
+		pEdge[u] = visited[u] = 0;
+		if (d[u] == maxd && mEdge[u] == 0) roots->addLast(u);
 	}
 }
 
@@ -81,25 +78,25 @@ void mdmatch_f::cleanup() {
  *  a vertex in the tree and the tree path plus e forms an augmenting path.
  */
 void mdmatch_f::extend(edge e) {
-	vertex u = g->left(e);
+	vertex u = gp->left(e);
 	if (mEdge[u] == e) {
-		if (pEdge[u] != e) u = g->right(e);
+		if (pEdge[u] != e) u = gp->right(e);
 		mEdge[u] = 0;
 		while (pEdge[u] != 0) {
-			e = pEdge[u]; u = g->mate(u,e); e = pEdge[u];
-			mEdge[u] = e; u = g->mate(u,e); mEdge[u] = e;
+			e = pEdge[u]; u = gp->mate(u,e); e = pEdge[u];
+			mEdge[u] = e; u = gp->mate(u,e); mEdge[u] = e;
 		}
 		return;
 	}
 
-	u = g->left(e);
-	if (pEdge[u] == 0) u = g->right(e);
-	vertex v = g->mate(u,e);
+	u = gp->left(e);
+	if (pEdge[u] == 0) u = gp->right(e);
+	vertex v = gp->mate(u,e);
 	if (roots->member(v)) roots->remove(v);
 	mEdge[u] = mEdge[v] = e;
 	while (pEdge[u] != 0) {
-		e = pEdge[u]; u = g->mate(u,e); e = pEdge[u];
-		mEdge[u] = e; u = g->mate(u,e); mEdge[u] = e;
+		e = pEdge[u]; u = gp->mate(u,e); e = pEdge[u];
+		mEdge[u] = e; u = gp->mate(u,e); mEdge[u] = e;
 	}
 }
 
@@ -114,23 +111,23 @@ edge mdmatch_f::findPath() {
 	visited[root] = phase;
 
 	q->clear();
-	for (edge e = g->firstAt(root); e != 0; e = g->nextAt(root,e)) {
+	for (edge e = gp->firstAt(root); e != 0; e = gp->nextAt(root,e)) {
 		q->addLast(e);
 	}
 	edge e;
 	while (!q->empty()) {
 		e = q->first(); q->removeFirst();
-		vertex v = (visited[g->left(e)] == phase ?
-				g->left(e) : g->right(e));
-		vertex w = g->mate(v,e);
+		vertex v = (visited[gp->left(e)] == phase ?
+				gp->left(e) : gp->right(e));
+		vertex w = gp->mate(v,e);
 		if (visited[w] == phase) continue;
 		if (mEdge[w] == 0) { pEdge[w] = 0; break; }
-		vertex x = g->mate(w,mEdge[w]);
+		vertex x = gp->mate(w,mEdge[w]);
 		visited[w] = phase; pEdge[w] = e;
 		visited[x] = phase; pEdge[x] = mEdge[x];
 		if (d[x] < maxd) { e = pEdge[x]; break; }
-		for (edge ee = g->firstAt(x); ee != 0;
-		          ee = g->nextAt(x,ee)) {
+		for (edge ee = gp->firstAt(x); ee != 0;
+		          ee = gp->nextAt(x,ee)) {
 			if ((ee != mEdge[x]) && !q->member(ee))
 				q->addLast(ee);
 		}

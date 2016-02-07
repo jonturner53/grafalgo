@@ -11,31 +11,15 @@
 namespace grafalgo {
 
 /** Find a maximum size matching.
- *  @param g1 is an undirected graph
- *  @param match is a list in which the matching is returned
+ *  @param[in] g is an undirected graph
+ *  @param[in,out] matchingEdge[u] is (on return) the matching edge incident
+ *  to u, or 0 if u is unmatched; if matchingEdge is not all zero initially, it
+ *  is assumed to represent a valid initial matching
  */
-match_eg::match_eg(Graph& g1, List_g<edge>& match)
-		: match_egc(g1) {
-	// Create initial maximal (not maximum) matching
-	for (vertex u = 1; u <= g->n(); u++) {
-		mEdge[u] = 0; mark[u] = false;
-	}
-	for (edge e = g->first(); e != 0; e = g->next(e)) {
-		vertex u = g->left(e); vertex v = g->right(e);
-		if (mEdge[u] == 0 && mEdge[v] == 0) {
-			mEdge[u] = mEdge[v] = e;
-		}
-	}
-		
+match_eg::match_eg(const Graph& g, edge *matchingEdge)
+		   : match_egc(g,matchingEdge) {
 	edge e;
-	while((e = findpath()) != 0) augment(e);
-
-	match.clear(); 
-	for (vertex u = 1; u <= g->n(); u++) {
-		if (mEdge[u] != 0 && u < g->mate(u,mEdge[u])) {
-			match.addLast(mEdge[u]); 
-		}
-	}
+	while ((e = findpath()) != 0) augment(e);
 }
 
 /** Search for an augmenting path.
@@ -45,32 +29,32 @@ match_eg::match_eg(Graph& g1, List_g<edge>& match)
  */
 edge match_eg::findpath() {
 	blossoms->clear();
-	List q(g->M()); // list of edges to be processed in main loop
-	for (vertex u = 1; u <= g->n(); u++) {
+	List q(gp->M()); // list of edges to be processed in main loop
+	for (vertex u = 1; u <= gp->n(); u++) {
 		pEdge[u] = 0; origin[u] = u; state[u] = unreached;
 		if (mEdge[u] == 0) {
 			state[u] = even;
-			for (edge e = g->firstAt(u); e != 0;
-				  e = g->nextAt(u,e))
+			for (edge e = gp->firstAt(u); e != 0;
+				  e = gp->nextAt(u,e))
 				q.addLast(e);
 		}
 	}
 
 	while (!q.empty()) {
 		edge e = q.first(); q.removeFirst();
-		vertex u = g->left(e); vertex up = base(u);
-		if (state[up] != even) { u = g->right(e); up = base(u); }
-		vertex v = g->mate(u,e); vertex vp = base(v);
+		vertex u = gp->left(e); vertex up = base(u);
+		if (state[up] != even) { u = gp->right(e); up = base(u); }
+		vertex v = gp->mate(u,e); vertex vp = base(v);
 		if (up == vp) continue; // skip internal edges in a blossom
 		if (state[vp] == odd) continue;
 		if (state[vp] == unreached) {
 			// v is not contained in a blossom and is matched
 			// so extend tree and add newly eligible edges to q
-			vertex w = g->mate(v,mEdge[v]);
+			vertex w = gp->mate(v,mEdge[v]);
 			state[v] = odd;  pEdge[v] = e;
 			state[w] = even; pEdge[w] = mEdge[v];
-			for (edge ee = g->firstAt(w); ee != 0;
-			     	  ee = g->nextAt(w,ee)) {
+			for (edge ee = gp->firstAt(w); ee != 0;
+			     	  ee = gp->nextAt(w,ee)) {
 				if ((ee != mEdge[w]) && !q.member(ee))
 					q.addLast(ee);
 			}
@@ -89,27 +73,27 @@ edge match_eg::findpath() {
 		while (x != a) {
 			origin[blossoms->link(blossoms->find(x),
 					      blossoms->find(a))] = a;
-			x = g->mate(x,pEdge[x]); // x now odd
+			x = gp->mate(x,pEdge[x]); // x now odd
 			origin[blossoms->link(x,blossoms->find(a))] = a;
 			bridge[x].e = e; bridge[x].v = u;
-			for (edge ee = g->firstAt(x); ee != 0;
-			     	  ee = g->nextAt(x,ee)) {
+			for (edge ee = gp->firstAt(x); ee != 0;
+			     	  ee = gp->nextAt(x,ee)) {
 				if (!q.member(ee)) q.addLast(ee);
 			}
-			x = base(g->mate(x,pEdge[x]));
+			x = base(gp->mate(x,pEdge[x]));
 		}
 		x = vp;
 		while (x != a) {
 			origin[blossoms->link(blossoms->find(x),
 					      blossoms->find(a))] = a;
-			x = g->mate(x,pEdge[x]); // x now odd
+			x = gp->mate(x,pEdge[x]); // x now odd
 			origin[blossoms->link(x,blossoms->find(a))] = a;
 			bridge[x].e = e; bridge[x].v = v;
-			for (edge ee = g->firstAt(x); ee != 0;
-			     	  ee = g->nextAt(x,ee)) {
+			for (edge ee = gp->firstAt(x); ee != 0;
+			     	  ee = gp->nextAt(x,ee)) {
 				if (!q.member(ee)) q.addLast(ee);
 			}
-			x = base(g->mate(x,pEdge[x]));
+			x = base(gp->mate(x,pEdge[x]));
 		}
 	}
 	return 0;

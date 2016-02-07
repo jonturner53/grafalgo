@@ -18,9 +18,9 @@ namespace grafalgo {
  *  the Edmonds-Gabow algorithm for ordinary matching.
  */
 class pmatch_egt : public match_egc {
-public: pmatch_egt(Graph&, int*, List_g<edge>&);
+public: pmatch_egt(const Graph&, int*, edge*);
 private:
-	int*  prty;		// prty[u] is priority of vertex u
+	int*  prio;		// prio[u] is priority of vertex u
 
 	void augment(edge);
 	edge findpath(int);

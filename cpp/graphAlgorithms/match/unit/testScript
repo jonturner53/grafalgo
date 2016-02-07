@@ -7,7 +7,7 @@
 #
 echo "unweighted bipartite graphs"
 for seed in 1 2 3 4 5 6 7 8 9 10 ; do
-	echo -n "matchb_f"
+	echo -n "matchb_f "
 	randGraph bigraph 1000 2000 ${seed} 1 | testMatch matchb_f
 	echo -n "matchb_hk "
 	randGraph bigraph 1000 2000 ${seed} 1 | testMatch matchb_hk
@@ -24,7 +24,7 @@ for seed in 1 2 3 4 5 6 7 8 9 10 ; do
 	echo -n "matchwb_h "
 	randGraph wbigraph 1000 2000 1 10000 ${seed} 1 | testMatch matchwb_h
 	echo -n "matchb_gmg "
-	randGraph wbigraph 1000 2000 1 10000 ${seed} 1 | testMatch matchb_gmg
+	randGraph wbigraph 1000 2000 1 10000 ${seed} 1 | testMatch matchwb_egmg
 	echo " "
 done
 echo "unweighted general graphs"

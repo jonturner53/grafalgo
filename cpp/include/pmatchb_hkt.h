@@ -22,10 +22,8 @@ namespace grafalgo {
  *  the Hopcroft-Karp algorithm for ordinary matching.
  */
 class pmatchb_hkt {
-public: pmatchb_hkt(Graph&, int*, List_g<edge>&);
+public: pmatchb_hkt(Graph&, int*, edge*);
 private:
-	int*  prty;		// prty[u] is priority of vertex u
-
 	void augment(edge);
 	edge findpath(int);
 };

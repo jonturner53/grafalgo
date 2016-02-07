@@ -25,9 +25,9 @@ namespace grafalgo {
  *  algorithm for maximum size matching.
  */
 class matchb_hk {
-public: matchb_hk(Graph&, List_g<edge>&);
+public: matchb_hk(const Graph&, edge*);
 private:
-	Graph* g;		// graph we're finding matching for
+	const Graph* gp;	// graph we're finding matching for
 	ListPair *split;	// splits bipartite graph into independent sets
 	List_d	*roots;		// unmatched vertices in "in-set"
 	edge	*mEdge;		// mEdge[u]=matching edge incident to u

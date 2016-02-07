@@ -30,6 +30,9 @@ public:
 	bool	operator==(const Pair<F,S>& other) const {
 		return first == other.first && second == other.second;
 	}
+	bool	operator!=(const Pair<F,S>& other) const {
+		return first != other.first || second != other.second;
+	}
 	string	toString() const {
 		stringstream ss;
 		ss << "(" << first << ", " << second << ")";

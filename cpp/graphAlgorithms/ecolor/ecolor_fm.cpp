@@ -18,17 +18,20 @@ using namespace grafalgo;
  */
 int ecolor_fm(Graph& g1, int color[]) {
 	Graph g; g.copyFrom(g1);
-	List_g<edge> match(g.M());
+	edge mEdge[g.n()+1];
+	for (vertex u = 1; u <= g.n(); u++) mEdge[u] = 0;
 
 	int c = 0;
 	while (g.m() != 0) {
 		c++;	// color to use next
-		mdmatch_f(g,match);
-		while (!match.empty()) {
-			edge e = match.value(match.first());
-			color[e] = c;
-			g.remove(e);
-			match.removeFirst();
+		mdmatch_f(g,mEdge);
+		for (vertex u = 1; u <= g.n(); u++) {
+			edge e = mEdge[u];
+			if (e != 0) {
+				color[e] = c;
+				mEdge[u] = mEdge[g.mate(u,e)] = 0;
+				g.remove(e);
+			}
 		}
 	}
 	return c;

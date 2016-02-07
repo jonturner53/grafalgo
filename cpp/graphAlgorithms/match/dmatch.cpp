@@ -15,8 +15,6 @@ namespace grafalgo {
  *  @param g1 is an undirected bipartite graph
  *  @param k1 defines "left" subset of vertices {1,...,k1};
  *  vertices in the left subset are also the left endpoints of their edges
- *  
- *  in the "left" set are always the left endpoint of their incident edges
  */
 dmatch::dmatch(Graph& g1, int k1) : Adt(g1.n()), g(&g1), k(k1) {
 	// construct initial maximal matching

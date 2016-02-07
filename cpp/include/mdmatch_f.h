@@ -27,7 +27,7 @@ namespace grafalgo {
 class mdmatch_f : public mdmatch {
 public:
 
-	mdmatch_f(Graph&, List_g<edge>&);
+	mdmatch_f(const Graph&, edge*);
 private:
 	List_d*	roots;		///< list of potential tree roots
 	List*	q;		///< queue of edges used in findpath
@@ -37,7 +37,7 @@ private:
 	void 	extend(edge);	
 	edge 	findPath();
 
-	void	init(Graph&);
+	void	init();
 	void	cleanup();
 };
 

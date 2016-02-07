@@ -19,7 +19,7 @@ namespace grafalgo {
  *  @param mst is a list in which the edge numbers for the edges in
  *  the the minimum spanning tree are returned
  */
-void mst_pF(Graph_w& wg, List_g<edge>& mst) {
+void mst_pf(Graph_w& wg, List_g<edge>& mst) {
         vertex u,v; edge e;
         edge* cheap = new edge[wg.n()+1];
         Mheaps_f nheap(wg.n()); fheap root;
