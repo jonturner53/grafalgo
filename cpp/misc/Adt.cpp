@@ -37,6 +37,12 @@ bool Adt::readIndex(istream& in, index& x) {
 	return false;
 }
 
+/** Convert an index to a string.
+ *  @param[in] x is a valid index for the data structure
+ *  @return a string that represents the value of x; if n()>26, this is
+ *  just the string representing the number x, otherwise, it is a lower-case
+ *  letter.
+ */
 string Adt::index2string(index x) const {
 	string s = "";
 	if (n() <= 26) {

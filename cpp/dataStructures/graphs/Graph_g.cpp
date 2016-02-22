@@ -1,7 +1,7 @@
 /** @file Graph_g.cpp
  *
  *  @author Jon Turner
- *  @date 2011
+ *  @date 2015
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
@@ -13,8 +13,8 @@ namespace grafalgo {
 
 /** Construct a Graph_g with space for a specified number of
  *  vertices and edges.
- *  @param numv is number of vertices in the graph
- *  @param maxe is the maximum number of edges
+ *  @param[in] numv is number of vertices in the graph
+ *  @param[in] maxe is the maximum number of edges
  */
 Graph_g::Graph_g(int numv, int maxe) : Graph(numv,maxe) {
 	makeSpace(); init();
@@ -32,6 +32,7 @@ void Graph_g::makeSpace() {
 	deg = new int[n()+1]; gc = new int[n()+1]; gs = new int[M()+1]; 
 }
 
+/** Initialize the internal data for the graph. */
 void Graph_g::init() {
 	for (vertex u = 0; u <= n(); u++) fg[u] = deg[u] = gc[u] = 0;
 	for (edge e = 0; e <= M(); e++) gNum[e] = 0;
@@ -49,8 +50,8 @@ void Graph_g::freeSpace() {
 
 /** Resize a Graph_g object.
  *  The old value is discarded.
- *  @param numv is the number of vertices to allocate space for
- *  @param maxe is the number of edges to allocate space for
+ *  @param[in] numv is the number of vertices to allocate space for
+ *  @param[in] maxe is the number of edges to allocate space for
  */
 void Graph_g::resize(int numv, int maxe) {
 	freeSpace();
@@ -61,7 +62,7 @@ void Graph_g::resize(int numv, int maxe) {
 
 /** Expand the space available for this Graph_g.
  *  Rebuilds old value in new space.
- *  @param size is the size of the resized object.
+ *  @param[in] size is the size of the resized object.
  */
 void Graph_g::expand(int numv, int maxe) {
 	if (numv <= n() && maxe <= M()) return;
@@ -82,7 +83,9 @@ void Graph_g::clear() {
 	init();
 }
 
-/** Copy into this object from source. */
+/** Copy into this object from source.
+ *  @param[in] source is object to be copied to this one
+ */
 void Graph_g::copyFrom(const Graph_g& source) {
 	if (&source == this) return;
 	if (source.n() > n() || source.m() > M())
@@ -96,8 +99,8 @@ void Graph_g::copyFrom(const Graph_g& source) {
 }
 
 /** Join two vertices with an edge, assigning edge to new group.
- *  @param u is an input vertex
- *  @param v is an output vertex
+ *  @param[in] u is an input vertex
+ *  @param[in] v is an output vertex
  *  @returns the edge number of the new edge or 0 on failure
  */
 edge Graph_g::join(vertex u, vertex v) {
@@ -106,10 +109,10 @@ edge Graph_g::join(vertex u, vertex v) {
 }
 
 /** Join two vertices with an edge.
- *  @param u is an input vertex or a vertex with no edges yet;
+ *  @param[in] u is an input vertex or a vertex with no edges yet;
  *  in the latter case, the join converts it to an input
- *  @param v is an output vertex
- *  @param g is the group number to be assigned to the new edge
+ *  @param[in] v is an output vertex
+ *  @param[in] g is the group number to be assigned to the new edge
  *  @returns the edge number of the new edge or 0 on failure
  */
 edge Graph_g::join(vertex u, vertex v, int g) {
@@ -117,10 +120,10 @@ edge Graph_g::join(vertex u, vertex v, int g) {
 }
 
 /** Join two vertices with a specified edge.
- *  @param u is an input vertex or a vertex with no edges yet;
+ *  @param[in] u is an input vertex or a vertex with no edges yet;
  *  in the latter case, the join converts it to an input
- *  @param v is an output vertex
- *  @param e is the edge number to use
+ *  @param[in] v is an output vertex
+ *  @param[in] e is the edge number to use
  *  @returns the edge number of the new edge or 0 on failure
  */
 edge Graph_g::joinWith(vertex u, vertex v, edge e) {
@@ -129,11 +132,11 @@ edge Graph_g::joinWith(vertex u, vertex v, edge e) {
 }
 
 /** Join two vertices with a specified group and edge.
- *  @param u is an input vertex or a vertex with no edges yet;
+ *  @param[in] u is an input vertex or a vertex with no edges yet;
  *  in the latter case, the join converts it to an input
- *  @param v is an output vertex
- *  @param g is the group number to be assigned to the new edge
- *  @param e is the edge number to use
+ *  @param[in] v is an output vertex
+ *  @param[in] g is the group number to be assigned to the new edge
+ *  @param[in] e is the edge number to use
  *  @returns the edge number of the new edge or 0 on failure
  */
 edge Graph_g::joinWith(vertex u, vertex v, int g, edge e) {
@@ -151,8 +154,8 @@ edge Graph_g::joinWith(vertex u, vertex v, int g, edge e) {
 }
 
 /** Merge two edge groups.
- *  @param e1 is an edge
- *  @param e2 is a second edge with the same input vertex as e1 but belonging
+ *  @param[in] e1 is an edge
+ *  @param[in] e2 is a second edge with the same input vertex as e1 but belonging
  *  to a different edge group
  *  @returns the group number of the resulting edge group
  */
@@ -176,7 +179,7 @@ index Graph_g::merge(edge e1, edge e2) {
 }
 
 /** Remove an edge from the graph.
- *  @param e is edge to be removed
+ *  @param[in] e is edge to be removed
  *  @return true on success
  */
 bool Graph_g::remove(edge e) {
@@ -199,6 +202,9 @@ bool ggcompare(int g1, int g2) {
 	return ggpointer->groupSize(g1) > ggpointer->groupSize(g2);
 }
 
+/** Sort the groups at a vertex by size.
+ *  @param[in] u is a vertex
+ */
 void Graph_g::sortGroups(vertex u) {
 	int vec[groupCount(u)];
 	vec[0] = firstGroup(u);
@@ -214,7 +220,7 @@ void Graph_g::sortGroups(vertex u) {
 }
 
 /** Read adjacency list from an input stream, add it to the graph.
- *  @param in is an open input stream
+ *  @param[in] in is an open input stream
  *  @return true on success, false on error.
  */
 bool Graph_g::readAdjList(istream& in) {
@@ -254,7 +260,7 @@ bool Graph_g::readAdjList(istream& in) {
 }
 
 /** Create a string representation of an edge.
- *  @param e is an edge number
+ *  @param[in] e is an edge number
  *  @return the string
  */
 string Graph_g::edge2string(edge e) const {
@@ -267,7 +273,7 @@ string Graph_g::edge2string(edge e) const {
 }
 
 /** Create a string representation of a group.
- *  @param grp is a group number
+ *  @param[in] grp is a group number
  *  @return the string
  */
 string Graph_g::group2string(int grp) const {
@@ -283,7 +289,7 @@ string Graph_g::group2string(int grp) const {
 }
 
 /** Create a string representation of an adjacency list.
- *  @param u is a vertex number
+ *  @param[in] u is a vertex number
  *  @return the string
  */
 string Graph_g::adjList2string(vertex u) const {

@@ -92,33 +92,32 @@ private:
 	friend class Rgraph;
 };
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the degree of a vertex.
+ *  @param[in] u is a vertex
+ *  @returns return the number of edges incident to u
  */
 inline int Graph_g::degree(vertex u) const {
 	return deg[u];
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the number of groups at a vertex.
+ *  @param[in] u is a vertex
+ *  @returns the number of groups that have an edge incident to u
  */
 inline int Graph_g::groupCount(vertex u) const {
 	return gc[u];
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the size of a group.
+ *  @param[in] grp is a group number
+ *  @returns the number of edges in the group
  */
 inline int Graph_g::groupSize(int grp) const {
 	return gs[grp];
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Determine the maximum vertex degree.
+ *  @returns the largest vertex degree
  */
 inline int Graph_g::maxDegree() const {
 	int D = 0;
@@ -126,9 +125,8 @@ inline int Graph_g::maxDegree() const {
 	return D;
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Determine the maximum group count.
+ *  @returns the largest group count
  */
 inline int Graph_g::maxGroupCount() const {
 	int D = 0;
@@ -136,9 +134,8 @@ inline int Graph_g::maxGroupCount() const {
 	return D;
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Determine the maximimum degree among the inputs.
+ *  @returns the largest vertex degree over the input vertices
  */
 inline int Graph_g::maxDegreeIn() const {
 	int D = 0;
@@ -147,9 +144,8 @@ inline int Graph_g::maxDegreeIn() const {
 	return D;
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Determine the maximum degree among the outputs
+ *  @returns the largest vertex degree among the outputs
  */
 inline int Graph_g::maxDegreeOut() const {
 	int D = 0;
@@ -158,9 +154,8 @@ inline int Graph_g::maxDegreeOut() const {
 	return D;
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Determine the maximimum group count among the inputs.
+ *  @returns the largest group count over the input vertices
  */
 inline int Graph_g::maxGroupCountIn() const {
 	int D = 0;
@@ -169,9 +164,8 @@ inline int Graph_g::maxGroupCountIn() const {
 	return D;
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Determine the maximimum group count among the outputs.
+ *  @returns the largest group count over the output vertices
  */
 inline int Graph_g::maxGroupCountOut() const {
 	int D = 0;
@@ -180,91 +174,99 @@ inline int Graph_g::maxGroupCountOut() const {
 	return D;
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the input vertex for a given edge.
+ *  @param[in] e is an edge
+ *  @returns returns the input vertex in e
  */
 inline int Graph_g::input(edge e) const {
 	return left(e);
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the output vertex for a given edge.
+ *  @param[in] e is an edge
+ *  @returns returns the output vertex in e
  */
 inline int Graph_g::output(edge e) const {
 	return right(e);
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the group number for a given edge.
+ *  @param[in] e is an edge
+ *  @returns returns the number of the group containing e
  */
 inline int Graph_g::groupNumber(edge e) const { return gNum[e]; }
 
+/** Determine if a vertex is an input.
+ *  @param[in] u is a vertex
+ *  @returns true if u is an input, else false
+ */
 inline bool Graph_g::isIn(vertex u) const { return split->isIn(u); }
 
+/** Determine if a vertex is an output.
+ *  @param[in] u is a vertex
+ *  @returns true if u is an output, else false
+ */
 inline bool Graph_g::isOut(vertex u) const { return split->isOut(u); }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the first input vertex.
+ *  @returns the index of the first input vertex
  */
 inline int Graph_g::firstIn() const {
 	return split->firstIn();
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the next input vertex.
+ *  @param[in] u is an input vertex
+ *  @returns the index of the next input vertex following u
  */
 inline int Graph_g::nextIn(vertex u) const {
 	return split->nextIn(u);
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the first output vertex.
+ *  @returns the index of the first output vertex
  */
 inline int Graph_g::firstOut() const {
 	return split->firstOut();
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the next output vertex.
+ *  @param[in] u is an output vertex
+ *  @returns the index of the next output vertex following u
  */
 inline int Graph_g::nextOut(vertex u) const {
 	return split->nextOut(u);
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the number of the first group at an input.
+ *  @param[in] u is an input vertex
+ *  @returns the index of the first group with an edge incident to u
  */
 inline int Graph_g::firstGroup(vertex u) const {
 	return fg[u];
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the number of the next group at an input.
+ *  @param[in] u is an input vertex
+ *  @param[in] grp is the number of a group with an edge incident to u
+ *  @returns the index of the next group at u, after grp
  */
 inline int Graph_g::nextGroup(vertex u, int g) const {
 	return (inGroups->next(g) == fg[u] ? 0 : inGroups->next(g));
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the number of the first edge in a group.
+ *  @param[in] grp is a group number
+ *  @returns the index of the first edge in grp
  */
 inline int Graph_g::firstEdgeInGroup(int g) const {
 	return feg[g];
 }
 
-/** xxx
- *  @param xxx
- *  @returns xxx
+/** Get the number of the next edge in a group.
+ *  @param[in] grp is a group number
+ *  @param[in] e is an edge in grp
+ *  @returns the index of the next edge in grp, after e
  */
 inline int Graph_g::nextEdgeInGroup(int g, edge e) const {
 	return (groups->next(e) == feg[g] ? 0 : groups->next(e));

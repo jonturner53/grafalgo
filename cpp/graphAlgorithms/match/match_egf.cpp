@@ -26,6 +26,14 @@ match_egf::match_egf(const Graph& g, edge *matchingEdge)
 	pending = new List(gp->n());       // used by findpath
 	unmatched = new List_d(gp->n());   // list of unmatched vertices
 
+	// Create initial maximal (not maximum) matching
+	for (edge e = gp->first(); e != 0; e = gp->next(e)) {
+		vertex u = gp->left(e); vertex v = gp->right(e);
+		if (mEdge[u] == 0 && mEdge[v] == 0) {
+			mEdge[u] = mEdge[v] = e;
+		}
+	}
+
 	for (vertex u = 1; u <= gp->n(); u++) {
 		latestSearch[u] = 0;
 		nextEdge[u] = gp->firstAt(u);

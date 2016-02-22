@@ -2,8 +2,8 @@
 SHELL := /bin/bash
 ARCH := -m$(shell getconf LONG_BIT)
 BIN := ~/bin
-#CXXFLAGS := -Wall ${ARCH} -O2 -DNDEBUG -std=c++0x
-CXXFLAGS := -Wall ${ARCH} -std=c++0x
+CXXFLAGS := -Wall ${ARCH} -O2 -DNDEBUG -std=c++0x
+#CXXFLAGS := -Wall ${ARCH} -std=c++0x
 
 all:
 	make -C misc            WARN='${WARN}' ARCH='${ARCH}' \

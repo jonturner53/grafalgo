@@ -54,15 +54,6 @@ pmatchb_hkt::pmatchb_hkt(Graph& g, int* priority, edge *matchingEdge) {
 	if (!findSplit(g,split))
 		Util::fatal("pmatchb_hkt: graph is not bipartite");
 
-/*
-Can we reduce the overhead? Currently, spending lots of time building 
-source/sink edges and recording matched vertices. Suppose we just start
-with matching and maintain list of left/right roots. At start of phase,
-do bfs from one set of roots to compute level values. During phase,
-use dfs from roots, using eligible edges. This eliminates most of the
-overhead. Not sure it's worth the trouble.
-*/
-
 	// build flow graph core and set initial flows to correspond to
 	// initial matching
 	Graph_f fg(g.n()+2, g.M() + g.n());
@@ -90,7 +81,8 @@ overhead. Not sure it's worth the trouble.
 				edge e = fg.join(u,t); fg.setCapacity(e,1);
 			}
 		}
-		(mflo_d(fg)); // augment flow
+		if (fg.firstAt(s) != 0 && fg.firstAt(t) != 0)
+			(mflo_d(fg)); // augment flow
 		// record newly matched/unmatched vertices and remove s/s edges
 		for (edge e = fg.firstAt(s); e != 0; e = fg.firstAt(s)) {
 			matched[fg.mate(s,e)] = (fg.f(s,e) != 0); fg.remove(e);
@@ -106,7 +98,8 @@ overhead. Not sure it's worth the trouble.
 				edge e = fg.join(s,v); fg.setCapacity(e,1);
 			}
 		}
-		(mflo_d(fg)); // augment flow
+		if (fg.firstAt(s) != 0 && fg.firstAt(t) != 0)
+			(mflo_d(fg)); // augment flow
 		// record newly matched/unmatched vertices and remove s/s edges
 		for (edge e = fg.firstAt(s); e != 0; e = fg.firstAt(s)) {
 			matched[fg.mate(s,e)] = (fg.f(s,e) != 0); fg.remove(e);
@@ -114,51 +107,6 @@ overhead. Not sure it's worth the trouble.
 		for (edge e = fg.firstAt(t); e != 0; e = fg.firstAt(t)) {
 			matched[fg.mate(t,e)] = (fg.f(t,e) == 0); fg.remove(e);
 		}
-/*
-		if (classId[i] == 0) continue;
-		// add new source/sink edges to/from left vertices
-		for (vertex u = split.firstIn(); u != 0; u = split.nextIn(u)) {
-			if (priority[u] == i && matchingEdge[u] == 0) {
-				edge e = fg.join(s,u); fg.setCapacity(e,1);
-			} else if (priority[u] > i && matchingEdge[u] != 0) {
-				edge e = fg.join(u,t); fg.setCapacity(e,1);
-			}
-		}
-		(mflo_d(fg)); // augment flow
-		// record newly matched/unmatched vertices and remove s/s edges
-		for (vertex u = 1; u <= g.n(); u++) matchingEdge[u] = 0;
-		for (edge e = g.first(); e != 0; e = g.next(e)) {
-			vertex u = g.left(e); vertex v = g.right(e);
-			if (split.isOut(u)) { vertex w = u; u = v; v = w; }
-			if (fg.f(u,e) == 1)
-				matchingEdge[u] = matchingEdge[v] = e;
-		}
-		for (edge e = fg.firstAt(s); e != 0; e = fg.firstAt(s))
-			fg.remove(e);
-		for (edge e = fg.firstAt(t); e != 0; e = fg.firstAt(t))
-			fg.remove(e);
-		// add new source/sink edges to/from right vertices
-		for (vertex v = split.firstOut(); v!=0; v = split.nextOut(v)) {
-			if (priority[v] == i && matchingEdge[v] == 0) {
-				edge e = fg.join(v,t); fg.setCapacity(e,1);
-			} else if (priority[v] > i && matchingEdge[v] != 0) {
-				edge e = fg.join(s,v); fg.setCapacity(e,1);
-			}
-		}
-		(mflo_d(fg)); // augment flow
-		// record newly matched/unmatched vertices and remove s/s edges
-		for (vertex u = 1; u <= g.n(); u++) matchingEdge[u] = 0;
-		for (edge e = g.first(); e != 0; e = g.next(e)) {
-			vertex u = g.left(e); vertex v = g.right(e);
-			if (split.isOut(u)) { vertex w = u; u = v; v = w; }
-			if (fg.f(u,e) == 1)
-				matchingEdge[u] = matchingEdge[v] = e;
-		}
-		for (edge e = fg.firstAt(s); e != 0; e = fg.firstAt(s))
-			fg.remove(e);
-		for (edge e = fg.firstAt(t); e != 0; e = fg.firstAt(t))
-			fg.remove(e);
-*/
 	}
 	// record matched/unmatched vertices
 	for (vertex u = 1; u <= g.n(); u++) matchingEdge[u] = 0;

@@ -96,7 +96,7 @@ bool matchb_hk::newPhase() {
 }
 
 /** Find an augmenting path from specified vertex.
- *  @param u is a vertex in the in-set
+ *  @param[in] u is a vertex in the in-set
  *  @return an unmatched vertex in the out-set, or 0 if there is no
  *  "legal" path to such a vertex in the current phase;
  *  on successful return, the pEdge array defines

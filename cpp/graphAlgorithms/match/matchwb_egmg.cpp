@@ -35,7 +35,7 @@ matchwb_egmg::matchwb_egmg(const Graph_w& g, edge *matchingEdge)
 }
 
 /** Augment the current matching, using the path found by findpath.
- *  @param e is an edge joining two trees in the forest built by
+ *  @param[in] e is an edge joining two trees in the forest built by
  *  findpath; the path joining the tree roots that passes through e
  *  is an augmenting path
  */

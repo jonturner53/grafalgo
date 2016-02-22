@@ -34,11 +34,8 @@ typedef int32_t position;
  *  First, index values can serve as common "handles" for
  *  items in multiple data structures, eliminating the need to have
  *  explicit mappings to relate such items. As one example,
- *  when graph vertices are identified by indexes, we can maintain
- *  a separate array of application-specific vertex attributes,
- *  allowing us to conveniently associate such information without
- *  having to embed it in the graph (as we might using templates).
- *
+ *  in an algorithm that uses a graph and a separate list of vertices,
+ *  both can use the same indexes to represent the vertices.
  *  Index values also make it trivial to have fast membership tests
  *  for index lists and similar data structures.
  */
@@ -50,17 +47,45 @@ public:
 	Adt(index size=26) : nn(size) {}
 	virtual ~Adt() {}
 
+	/** Get the maximum index value for the data structure
+	 *  @return the largest allowed index value
+	 */
 	index	n() const { return nn; }
+
+	/** Determine if a given index is valid.
+	 *  @param[in] i is an integer
+	 *  @return true if i lies within the allowed range of index values,
+	 *  else false
+	 */
 	bool	valid(index i) const { return 1 <= i && i <= nn; }
 
-	// derived classes must provide these methods
+	/** Resize a data structure (discarding its contents).
+	 *  Derived classes required to implement this method
+	 *  @param[in] size is the new maximum index value
+	 */
 	void resize(int size) { nn = size; }
+
+	/** Expand a data structure (retaining its contents).
+	 *  Derived classes required to implement this method
+	 *  @param[in] size is the new maximum index value
+	 */
 	void expand(int size) { nn = size; }
 
 	// input/output
 	static bool readIndex(istream&, index&);
 	string index2string(index) const;
+
+	/** Create a string representation of the data structure.
+	 *  Derived classes are required to implement this method.
+ 	 */
 	virtual string toString() const = 0;
+
+
+	/** Send string representation to an output stream.
+	 *  @param[in] out is an output stream
+	 *  @param[in] a is an object belonging to some derived class
+	 *  @return the output stream
+ 	 */
 	friend ostream& operator<<(ostream& out, const Adt& a) {
 		return out << a.toString();
 	}

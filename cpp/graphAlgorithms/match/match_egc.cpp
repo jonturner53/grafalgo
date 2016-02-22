@@ -27,14 +27,6 @@ match_egc::match_egc(const Graph& g, edge *matchingEdge)
 
 	mark = new bool[gp->n()+1];	     // mark bits used by nca
 	for (vertex u = 1; u <= gp->n(); u++) mark[u] = false;
-
-	// Create initial maximal (not maximum) matching
-	for (edge e = gp->first(); e != 0; e = gp->next(e)) {
-		vertex u = gp->left(e); vertex v = gp->right(e);
-		if (mEdge[u] == 0 && mEdge[v] == 0) {
-			mEdge[u] = mEdge[v] = e;
-		}
-	}
 }
 
 match_egc::~match_egc() {
@@ -43,7 +35,7 @@ match_egc::~match_egc() {
 }
 
 /** Augment the matching.
- *  @param e is the "last" edge in the augmenting path
+ *  @param[in] e is the "last" edge in the augmenting path
  */
 void match_egc::augment(edge e) {
 	while (true) {
@@ -60,9 +52,9 @@ void match_egc::augment(edge e) {
  *  parallel, using mark bits to identify the nca. Before returning,
  *  clear the mark bits by traversing the paths a second time.
  *  The mark bits are initialized in the constructor.
- *  @param u is an external vertex or the base of a blossom
- *  @param v is another external vertex or the base of a blossom
- *  @param return the nearest common ancestor of u and v or 0 if none
+ *  @param[in] u is an external vertex or the base of a blossom
+ *  @param[in] v is another external vertex or the base of a blossom
+ *  @returns the nearest common ancestor of u and v or 0 if none
  */
 vertex match_egc::nca(vertex u, vertex v) {
 	vertex result;
@@ -100,9 +92,9 @@ vertex match_egc::nca(vertex u, vertex v) {
 }
 
 /** Find path joining two vertices in the same tree.
- *  @param a is a matched vertex in some tree defined by parent
+ *  @param[in] a is a matched vertex in some tree defined by parent
  *  pointers
- *  @param b is an ancestor of a
+ *  @param[in] b is an ancestor of a
  *  @return the ab-path that starts with the matching edge incident to a;
  *  specifically, return the index of the id of the list of vertices in
  *  the path using the augpath object

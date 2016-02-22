@@ -20,8 +20,6 @@ namespace grafalgo {
 pmatch_egt::pmatch_egt(const Graph& g, int* priority, edge *matchingEdge)
 		: match_egc(g,matchingEdge), prio(priority) {
 
-	for (vertex u = 1; u <= gp->n(); u++) mark[u] = false;
-
 	// partition vertices by priority
 	Dlists pclass(gp->n()); vertex classId[gp->n()+1];
 	for (int i = 1; i <= gp->n(); i++) classId[i] = 0;
@@ -41,19 +39,19 @@ pmatch_egt::pmatch_egt(const Graph& g, int* priority, edge *matchingEdge)
 					beste = e; bestPrio = prio[v];
 				}
 			}
-			if (beste != 0)
+			if (beste != 0) {
 				mEdge[u] = mEdge[gp->mate(u,beste)] = beste;
+			}
 		}
 	}
 
 	// now, make it maximum size
 	match_eg(g,mEdge);
-
 	int i = 1; // now, convert to max priority
 	while(i <= gp->n()) {
 		if (classId[i] == 0) { i++; continue; }
 		edge e;
-		if ((e = findpath(i)) != 0) augment(e);
+		if ((e = findpath(i)) != 0) { augment(e); }
 		else i++;
 	}
 }
@@ -61,7 +59,7 @@ pmatch_egt::pmatch_egt(const Graph& g, int* priority, edge *matchingEdge)
 /** Advance the matching.
  *  Replaces version in base class, as we need to unmatch the last vertex
  *  in the case of even-length path.
- *  @param e is the "last" edge in the advancing path;
+ *  @param[in] e is the "last" edge in the advancing path;
  *  the first edge is assumed to be unmatched
  */
 void pmatch_egt::augment(edge e) {
@@ -77,7 +75,7 @@ void pmatch_egt::augment(edge e) {
 }
 
 /** Search for an advancing path.
- *  @param i is an integer corresponding to the current priority class
+ *  @param[in] i is an integer corresponding to the current priority class
  *  @return an unmatched edge on the i-augmenting path or 0 if
  *  no advancing path is found; on success, the list in the augpath data
  *  structure that includes the returned edge defines the advancing path.

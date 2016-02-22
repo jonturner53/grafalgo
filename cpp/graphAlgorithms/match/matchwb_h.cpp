@@ -66,7 +66,7 @@ void matchwb_h::initLabels() {
  *  Matched edges are "directed" from the "out-set" to the "in-set".
  *  The cost of a path is the weight of its matched edges minus the
  *  weight of its unmatched edges.
- *  @param return the sink vertex of the path found, or 0 if no such path
+ *  @returns the sink vertex of the path found, or 0 if no such path
  */
 vertex matchwb_h::findPath() {
 	int w[gp->n()+1];		// w[u]=current tree path weight to u
@@ -123,7 +123,7 @@ vertex matchwb_h::findPath() {
 
 
 /** Flip the edges along an augmenting path
- *  @param u is an endpoint of an augmenting path; the edges in
+ *  @param[in] u is an endpoint of an augmenting path; the edges in
  *  the path can be found using the pEdge pointers
  */
 void matchwb_h::augment(vertex u) {

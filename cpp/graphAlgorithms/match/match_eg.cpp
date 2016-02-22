@@ -18,6 +18,14 @@ namespace grafalgo {
  */
 match_eg::match_eg(const Graph& g, edge *matchingEdge)
 		   : match_egc(g,matchingEdge) {
+	// Create initial maximal (not maximum) matching
+	for (edge e = gp->first(); e != 0; e = gp->next(e)) {
+		vertex u = gp->left(e); vertex v = gp->right(e);
+		if (mEdge[u] == 0 && mEdge[v] == 0) {
+			mEdge[u] = mEdge[v] = e;
+		}
+	}
+	// Make it maximum
 	edge e;
 	while ((e = findpath()) != 0) augment(e);
 }
