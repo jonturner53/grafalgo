@@ -85,7 +85,7 @@ void egcolor_menu::addColor(int c, int grp) {
 	if (fc[grp] == 0) {
 		fc[grp] = c;
 	} else {
-		menus[gp->input(e)]->join(c,fc[grp]);
+		fc[grp] = menus[gp->input(e)]->join(c,fc[grp]);
 	}
 }
 

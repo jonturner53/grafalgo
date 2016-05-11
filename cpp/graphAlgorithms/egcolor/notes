@@ -367,3 +367,55 @@ with each twice as large as previous. For each group, assign a menu
 of colors. Problem - likely to have one packet per epoch; limited
 only by total buffering in switch; so need speedup larger than log of
 buffer capacity
+
+---------------
+
+color reduction method
+
+Given an initial coloring, attempt to remove colors
+
+First select the color c that has the fewest matching edges in the menu graphs.
+Make a list cgrp of all the groups that have a matching edge to c in one of
+their menu graphs.
+
+For each group g in cgrp
+ - first, in all of g's color graphs where it is unmatched,
+   attempt to re-match it without adding any more colors
+ - if g remains unmatched in some color graphs, attempt to find
+   a color that can be added to g's menu that allows it to be
+   re-matched in these menu graphs
+   - for each menu graph, build alternating tree rooted at g and
+     keep expanding the tree as long as possible - the unmatched
+     colors that are adjacent to even vertices in the tree are
+     potential candidates for g's menu
+   - take the intersection of the lists of potential candidates for
+     g's menu and if it's non-empty, select one of its colors;
+     otherwise, select a color that appears in the largest number
+     of lists and add it; then, look for another color that matches
+     the most remaining lists, continuing in this fashion until g
+     has either been matched in all menu graphs or we are forced
+     to give up
+
+Continue attempting to eliminate colors until all colors have been
+attempted, or we collide with a lower bound
+
+-------------
+
+Initial assignment of colors to menus
+
+For each group define a set S_i of outputs equal to its output set,
+partition the sets into blocks B_j, where each B_j contains the sets
+corresponding to groups from input j
+
+Repeatedly select a pair of blocks B_j1, B_j2
+- construct a weighted bipartite graph with a vertex for each set in B_j1, B_j2 and
+  an edge joining every pair of sets, with one set in B_j1, on in B_j2,
+  and a weight equal to the size of their intersection
+- find a min weight, max size matching on the graph and merge the set pairs for
+  each matching edge and call the new collection of sets B_j1
+- keep track of the original sets merged together and when only one block remains,
+  for each set, assign a unique color c to the menu of all groups that contributed
+  to each set
+  
+
+Then, 
