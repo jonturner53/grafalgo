@@ -1,4 +1,4 @@
-/** \file TestGraph.java
+/** \file TestGraph.mjs
  *
  *  @author Jon Turner
  *  @date 2021
