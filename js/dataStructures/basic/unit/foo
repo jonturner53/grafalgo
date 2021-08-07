@@ -1,0 +1,7 @@
+    if (e instanceof AssertError)
+		if (e.message.length > 0)
+        	console.log(e.name + ': ' + e.message);
+		else
+			console.error(e.stack);
+    else
+        throw(e);
