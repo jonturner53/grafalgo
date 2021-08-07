@@ -45,7 +45,7 @@ bool Util::skipBlank(istream& in) {
 }
 
 /** Advance to the start of the next line.
- *  @eturn false on error or eof.
+ *  @return false on error or eof.
  */
 bool Util::nextLine(istream& in) {
 	while (true) {
@@ -133,25 +133,6 @@ bool Util::readInt(istream& in, int64_t& i, bool sameline) {
 		char c = in.peek();
 		if (!in.good()) return false;
 		if (isdigit(c) || c == '-') {
-			in >> i; return in.good();
-		}
-		in.get();
-	}
-	return false;
-}
-
-/** Read an integer from the input stream.
- *  @param in is an open input stream
- *  @param i is a uint64_t in which result is returned
- *  @param sameline is an optional argument; if it is true, do not
- *  scan past the end of the line; default is false
- *  @return true on success, else false
- */
-bool Util::readInt(istream& in, uint64_t& i, bool sameline) {
-	if (skipSpace(in,sameline)) {
-		char c = in.peek();
-		if (!in.good()) return false;
-		if (isdigit(c)) {
 			in >> i; return in.good();
 		}
 		in.get();

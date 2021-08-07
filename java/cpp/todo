@@ -1,7 +1,0 @@
-Complete documentation of graph algorithms
-
-Add unit tests for all data structures; replace old dvr programs
-
-Add unit tests for graph algorithms; when multiple
-algorithms for same problem, can do random generation
-and check values returned as one simple approach

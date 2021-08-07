@@ -1,13 +1,11 @@
-JROOT = ~/bin/java
-CLASSFILES = Partition.class List.class HashTbl.class HashSet.class \
-		Clist.class SetPair.class IdMap.class
+CLASSFILES = List.class List_d.class Dlists.class ListPair.class Dsets.class
+
+${CLASSFILES} : ../Adt.class
 
 %.class: %.java
-	javac -cp ~/bin/java $<
-	cp *.class ${JROOT}/algoLib/dataStructures/basic
+	javac $<
 
 all : ${CLASSFILES}
 
 clean :
-	make -C unit clean
 	rm -f *.class

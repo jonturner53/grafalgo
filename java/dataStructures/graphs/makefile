@@ -1,14 +1,11 @@
-ALGOLIBROOT = ../..
-JAVAROOT = ~/bin/java
+CLASSFILES = Graph.class Graph_w.class
 
-CLASSFILES = Graph.class Wgraph.class 
-
-all:	${CLASSFILES}
+${CLASSFILES} : ../Adt.class
 
 %.class: %.java
-	javac -cp ${JAVAROOT} $<
-	cp *.class ${JAVAROOT}/algoLib/dataStructures/graphs
+	javac $<
 
-clean:
-	rm -f *.o *.class
-	#make -C unit clean
+all : ${CLASSFILES}
+
+clean :
+	rm -f *.class

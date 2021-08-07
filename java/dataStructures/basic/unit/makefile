@@ -1,31 +1,17 @@
-IDIR = ../../../include
-LDIR = ../../../lib
-LIBS = ${LDIR}/lib-util.a ${LDIR}/lib-ds.a
+ROOT = ../../..
+CLASSFILES = testList.class testList_d.class testDlists.class \
+	testListPair.class testDsets.class
 
-CXXFLAGS = -O2 -m64 
+testList.class : ../List.class
+testList_d.class : ../List_d.class
+testDlists.class : ../Dlists.class
+testListPair.class : ../ListPair.class
+testDsets.class : ../Dsets.class
 
-%.o : %.cpp
-	${CXX} ${CXXFLAGS} -I ${IDIR} -c $<
+%.class: %.java
+	javac $<
 
-all : testUiList testUiDlist testIdMap testUiClist testUiSetPair testPartition
-
-testUiList: testUiList.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-testUiDlist: testUiDlist.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-testIdMap: testIdMap.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-testUiClist: testUiClist.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-testUiSetPair: testUiSetPair.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
-
-testPartition: testPartition.o ${LIBS}
-	${CXX} ${CXXFLAGS} $< ${LIBS} -o $@
+all : ${CLASSFILES}
 
 clean :
-	rm -f *.o
+	rm -f *.class

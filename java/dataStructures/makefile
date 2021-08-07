@@ -1,13 +1,17 @@
-JROOT := ~/bin/java
+CLASSFILES = Adt.class
 
-all:
-	make -C basic 		JROOT='${JROOT}' all
-	make -C graphs		JROOT='${JROOT}' all
-	make -C heaps		JROOT='${JROOT}' all
-	make -C searchTrees	JROOT='${JROOT}' all
-	make -C advanced	JROOT='${JROOT}' all
+%.class: %.java
+	javac $<
+
+all : ${CLASSFILES}
+	make -C basic 		all
+	make -C graphs		all
+	make -C heaps		all
+	make -C searchTrees	all
+	make -C advanced	all
 
 clean:
+	rm -f *.class
 	make -C basic       clean
 	make -C graphs      clean
 	make -C heaps       clean

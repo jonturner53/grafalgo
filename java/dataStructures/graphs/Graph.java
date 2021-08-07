@@ -6,107 +6,116 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-package algoLib.dataStructures.graphs;
+package grafalgo.dataStructures.graphs;
 
 import java.io.*;
-import java.util.Vector;
-import algoLib.misc.Util;
-import algoLib.dataStructures.basic.List;
-import algoLib.dataStructures.basic.Clist;
-import algoLib.dataStructures.basic.SetPair;
-import algoLib.dataStructures.heaps.Dheap;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Scanner;
+import grafalgo.misc.Util;
+import grafalgo.dataStructures.Adt;
+import grafalgo.dataStructures.basic.List;
+import grafalgo.dataStructures.basic.Dlists;
+import grafalgo.dataStructures.basic.ListPair;
 
 /** Data structure for undirected graph.
  *
  *  Graph size (number of vertices and max number of edges) must
  *  be specified when a Graph object is instantiated.
- *  Edges can be added and removed from the graph.
+ *  Edges can be added and deleted from the graph.
  *  Methods are provided to facilitate graph traversal,
  *  either by iterating through all edges of the graph
  *  or all edges incident to a specific vertex.
  */
-public class Graph {
-	protected int N;		///< number of vertices 
-	protected int M;		///< number of edges
-	protected int maxEdge;		///< max number of edges
-
-	private int[] fe;		///< fe[v] is first int incident to v
-
-	private class EdgeInfo {
-	int	l;			///< l is left endpoint of int
-	int	r;			///< r is right endpoint of int
-	};
-	EdgeInfo[] evec;		///< array of int structures
-	private SetPair edges;	///< sets of in-use and free edges
-	private Clist adjLists;	///< collection of int adjacency lists
-					///< stores int e as both 2e and 2e+1
+public class Graph extends Adt {
+	protected int[] firstEp;	 ///< firstEp[v] is first edge endpoint at v
+	protected int[] Left;		///< Left[e] is left endpoint of edge e
+	private int[] Right;		///< Right[e] is right endpoint of edge e
+	private ListPair edges;		///< sets of in-use and free edges
+	private Dlists epLists;		///< lists of the edge endpoints at each vertex
 
 	/** Construct Graph with space for a specified # of vertices and edges.
-	 *  @param N1 is number of vertices in the graph
-	 *  @param maxEdge1 is the maximum number of edges
 	 */
-	public Graph(int N, int maxEdge) {
-		this.N = N; this.maxEdge = maxEdge; M = 0;
-		makeSpace(N,maxEdge);
+	public Graph(int n, int nMax, int mMax) { super(n); init(n, nMax, mMax); }
+	public Graph(int n) { super(n); init(n, n, 3*n()); }
+	public Graph() { super(); init(n(), n(), 3*n()); }
+
+	private void init(int n, int nMax, int mMax) {
+		assert(n > 0 && nMax >= n && mMax > 0);
+		firstEp = new int[nMax+1]; Arrays.fill(firstEp, 0);
+		Left = new int[mMax+1]; Right = new int[mMax+1];
+		edges = new ListPair(mMax);
+		epLists = new Dlists(2*(mMax+1));
 	}
 
-	private void makeSpace(int numv, int maxe) {
-		fe = new int[numv+1];
-		evec = new EdgeInfo[maxe+1];
-		edges = new SetPair(maxe);
-		adjLists = new Clist(2*maxe+1);
-		for (int u = 1; u <= numv; u++) fe[u] = 0;
-		for (int e = 0; e <= maxEdge; e++) {
-			evec[e] = new EdgeInfo();
-			evec[e].l = evec[e].r = 0;
+	public void reset(int n, int nMax, int mMax) {
+		assert(n > 0 && nMax >= n && mMax > 0);
+		super.setRange(n); init(n, nMax, mMax);
+	}
+
+	public void reset(int n) { reset(n, n, 3*n); }
+
+	public void expand(int n, int m) {
+		if (n <= n() && m <= m()) return;
+		if (n+1 > firstEp.length || m+1 > Left.length) {
+			int nMax = (n+1 <= firstEp.length ? firstEp.length-1 :
+							Math.max(n+1, (int) (1.25*firstEp.length)));
+			int mMax = (m+1 <= Left.length ? Left.length-1:
+							Math.max(m+1, (int) (1.25*Left.length)));
+			Graph nu = new Graph(n(), nMax, mMax);
+			nu.assign(this); this.xfer(nu);
 		}
+		Arrays.fill(firstEp, n()+1, n+1, 0);
+		setRange(n);
 	}
 
-	/** Resize the dynamic storage for a graph, discarding old contents.
-	 *  @param numv is the number of vertices to allocate space for
-	 *  @param maxe is the number of edges to allocate space for
+	/** Assign one graph to another.
+	 *  @param g is another graph that is to replace this one.
 	 */
-	protected void resize(int numv, int maxe) {
-		N = numv; maxEdge = maxe; M = 0;
-		makeSpace(numv, maxe);
-	}
-	
-	/** Remove/initialize all the edges from a graph.  */
-	public void reset() {
-		adjLists.reset(); edges.reset();
-		for (int u = 1; u <= n(); u++) fe[u] = 0;
-		M = 0;
-	}
-
-	/** Copy another Graph to this one.
-	 *  @param original is another graph that is to replace this one.
-	 */
-	public void copyFrom(Graph original) {
-		if (N != original.n() || maxEdge < original.m()) {
-			resize(original.n(), original.m());
+	public void assign(Graph g) {
+		if (g == this) return;
+		if (g.n()+1 > firstEp.length || g.m()+1 > Left.length) {
+			reset(g.n(), g.n(), g.m());
 		} else {
-			reset();
+			clear(); setRange(g.n());
 		}
-		N = original.n();
-		for (int e = original.first(); e != 0; e = original.next(e)) {
-			join(original.left(e),original.right(e));
+		for (int e = g.first(); e != 0; e = g.next(e)) {
+			join(g.left(e), g.right(e));
 		}
-		sortAdjLists();
+		sortEndpointLists();
+	}
+
+	/** Assign one graph to another by transferring its contents.
+	 *  @param g is another graph that is to replace this one.
+	 */
+	protected void xfer(Graph g) {
+		firstEp = g.firstEp; Left = g.Left; Right = g.Right;
+		edges = g.edges; epLists = g.epLists;
+		g.firstEp = g.Left = g.Right = null;
+		g.edges = null; g.epLists = null;
+	}
+
+	/** Remove all the edges from a graph.  */
+	public void clear() {
+		epLists.clear(); edges.clear();
+		for (int u = 1; u <= n(); u++) firstEp[u] = 0;
 	}
 
 	/** Get the number of vertices.
 	 *  @return the number of vertices in the graph.
 	 */
-	public int n() { return N; }
+	public int n() { return super.n(); }
 	
 	/** Get the number of edges.
 	 *  @return the number of edges in the graph.
 	 */
-	public int m() { return M; }
+	public int m() { return edges.nIn(); }
 	
+	public boolean validVertex(int u) { return 1 <= u && u <= n(); }
+
 	/** Determine if an edge number corresponds to a valid edge.
-	 *  @param e is the int number to be verified
-	 *  @return true if e is a valid int number, else false.
+	 *  @param e is the edge number to be verified
+	 *  @return true if e is a valid edge number, else false.
 	 */
 	public boolean validEdge(int e) { return edges.isIn(e); }
 	
@@ -127,7 +136,7 @@ public class Graph {
 	 *  @return the first edge incident to v
 	 */
 	public int firstAt(int v) { 
-		assert(1 <= v && v <= N); return fe[v]/2;
+		assert(validVertex(v)); return firstEp[v]/2;
 	}
 	
 	/** Get the next edge in the adjacency list for a specific vertex.
@@ -137,11 +146,10 @@ public class Graph {
 	 *  or 0 if e is not incident to v or is the last edge on the list
 	 */
 	public int nextAt(int v, int e) {
-		assert(1 <= v && v <= N && 1 <= e && e <= maxEdge);
-		if (v != evec[e].l && v != evec[e].r) return 0;
-		int ee = (v == evec[e].l ? 2*e : 2*e+1);
-		int ff = adjLists.suc(ee);
-		return (fe[v] == ff ? 0 : ff/2);
+		assert(validVertex(v) && validEdge(e));
+		if (v != Left[e] && v != Right[e]) return 0;
+		int ep = (v == Left[e] ? 2*e : 2*e+1);
+		return epLists.next(ep) / 2;
 	}
 	
 	/** Get the left endpoint of an edge.
@@ -149,8 +157,8 @@ public class Graph {
 	 *  @return the left endpoint of e, or 0 if e is not a valid edge.
 	 */
 	public int left(int e) {
-		assert(0 <= e && e <= maxEdge);
-		return evec[e].l;
+		assert(e == 0 || validEdge(e));
+		return Left[e];
 	}
 	
 	/** Get the right endpoint of an edge.
@@ -158,78 +166,58 @@ public class Graph {
 	 *  @return the right endpoint of e, or 0 if e is not a valid edge.
 	 */
 	public int right(int e) {
-		assert(0 <= e && e <= maxEdge);
-		return (evec[e].l == 0 ? 0 : evec[e].r);
+		assert(e == 0 || validEdge(e));
+		return Right[e];
 	}
 	
 	/** Get the other endpoint of an edge.
 	 *  @param v is a vertex
 	 *  @param e is an edge incident to v
-	 *  @return the other vertex incident to e, or 0 if e is not 
-	 *  a valid edge or it is not incident to v.
+	 *  @return the other vertex incident to e
 	 */
-	// Return other endpoint of e.
 	public int mate(int v, int e) {
-		assert(1 <= v && v <= N && 1 <= e && e <= maxEdge);
-		return (evec[e].l == 0 ?
-			0 : (v == evec[e].l ?
-			     evec[e].r : (v == evec[e].r ? evec[e].l : 0)));
+		assert(validVertex(v) && validEdge(e) &&
+			   (v == Left[e] || v == Right[e]));
+		return v == Left[e] ? Right[e] : Left[e];
 	}
 
 	public int join(int u, int v) {
-		int e = edges.firstOut(); return joinWith(u,v,e);
+		//assert(validVertex(u) && validVertex(v));
+		return joinWith(u, v, edges.firstOut());
 	}
 
 	/** Join two vertices with a specific edge.
 	 *  @param u is the left endpoint for the new edge
 	 *  @param v is the right endpoint for the new edge
-	 *  @param e is the number of an idle edge
+	 *  @param e is the number of an "unused" edge
 	 *  @return the edge number for the new edge or 0
 	 *  on failure
 	 */
-	private int joinWith(int u, int v, int e) {
-		if (e == 0 || !edges.isOut(e)) return 0;
+	protected int joinWith(int u, int v, int e) {
+		assert(u > 0 && v > 0 && e > 0 && !edges.isIn(e));
+		if (u > n() || v > n() || !edges.isOut(e))
+			expand(Math.max(u, v), e);
 		edges.swap(e);
 
 		// initialize edge information
-		evec[e].l = u; evec[e].r = v;
+		Left[e] = u; Right[e] = v;
 	
-		// add edge to the adjacency lists
-		// in the adjLists data structure, each edge appears twice,
-		// as 2*e and 2*e+1
-		if (fe[u] != 0) adjLists.join(2*e,fe[u]);
-		if (fe[v] != 0) adjLists.join(2*e+1,fe[v]);
-		if (fe[u] == 0) fe[u] = 2*e;
-		if (fe[v] == 0) fe[v] = 2*e+1;
-	
-		M++;
+		// add edge to the endpoint lists
+		firstEp[u] = epLists.join(firstEp[u], 2*e);
+		firstEp[v] = epLists.join(firstEp[v], 2*e+1);
 	
 		return e;
 	}
 	
-	/** Remove an edge from the graph.
-	 *  @param e is the edge to be removed.
+	/** Delete an edge from the graph.
+	 *  @param e is the edge to be deleted.
 	 *  @return true on success, false on failure
 	 */
-	public boolean remove(int e) {
-		assert(1 <= e && e <= maxEdge);
-		if (edges.isOut(e)) return false;
+	public boolean delete(int e) {
+		assert(validEdge(e));
 		edges.swap(e);
-	
-		int u = evec[e].l;
-		if (fe[u] == 2*e)
-			fe[u] = (adjLists.suc(2*e) == 2*e ?
-				 0 :adjLists.suc(2*e));
-		u = evec[e].r;
-		if (fe[u] == 2*e+1)
-			fe[u] = (adjLists.suc(2*e+1) == 2*e+1 ?
-					0 : adjLists.suc(2*e+1));
-	
-		adjLists.remove(2*e); adjLists.remove(2*e+1);
-	
-		evec[e].l = 0;
-	
-		M--;
+		int u = Left[e];  firstEp[u] = epLists.delete(2*e,   firstEp[u]);
+		int v = Right[e]; firstEp[v] = epLists.delete(2*e+1, firstEp[v]);
 		return true;
 	}
 	
@@ -237,52 +225,55 @@ public class Graph {
 	// Return -1 if u's mate in e1 is less than u's mate in e2.
 	// Return +1 if u's mate in e1 is greater than than u's mate in e2.
 	// Return  0 if u's mate in e1 is equal to its mate in e2.
-	public int ecmp(int e1, int e2, int u) {
-		if (mate(u,e1) < mate(u,e2)) return -1;
-		else if (mate(u,e1) > mate(u,e2)) return 1;
+	protected int ecmp(int e1, int e2, int u) {
+		assert(validVertex(u) && validEdge(e1) && validEdge(e2));
+		if (mate(u, e1) < mate(u, e2)) return -1;
+		else if (mate(u, e1) > mate(u, e2)) return 1;
 		else return 0;
 	}
 	
-	/** Sort an adjacency list for a specified vertex using ecmp().
+	/** Sort an endpoint list for a specified vertex using ecmp().
 	 *  @param u is the vertex whose adjacency list is to be sorted.
 	 */
-	public void sortAlist(int u) {
-		int e; int j, k, p, c;
+	public void sortEndpointList(int u) {
+		assert(u != 0 && validVertex(u));
+		if (firstEp[u] == 0) return; // empty list
+
+		// if already sorted, skip sorting step
+		for (int e = firstAt(u); e != 0; e = nextAt(u, e)) {
+			if (nextAt(u, e) == 0) return; // already sorted
+			if (ecmp(e, nextAt(u, e), u) > 0) break; // edge out of order
+		}
 	
-		if (fe[u] == 0) return; // empty list
-	
-		int [] elist = new int[N+1];
-	
-		// copy edges in adjacency list for u into an array
-		k = 1; elist[k++] = fe[u];
-		for (e = adjLists.suc(fe[u]); e != fe[u]; ) {
-			if (k > N) Util.fatal("sortAlist: adjacency list "
-						+ "too long");
-			elist[k++] = e;
-			int f = e; e = adjLists.suc(e); adjLists.remove(f);
+		// copy endpoints in endpoint list for u into an array
+		// and remove them from endpoint list
+		int k = 1; int ep; int[] epl = new int[n()+1];
+		for (ep = firstEp[u]; ep != 0; ep = firstEp[u]) {
+			epl[k++] = ep; firstEp[u] = epLists.delete(ep, firstEp[u]);
 		}
 		k--;
 		// put int list in heap-order using mate(u) as key
+		int j, p, c;
 		for (j = k/2; j >= 1; j--) {
 			// do pushdown starting at position j
-			e = elist[j]; p = j;
+			ep = epl[j]; p = j;
 			while (true) {
 				c = 2*p;
 				if (c > k) break;
 				if (c+1 <= k &&
-				    ecmp(elist[c+1]/2,elist[c]/2,u) > 0)
+					ecmp(epl[c+1]/2,epl[c]/2,u) > 0)
 					c++;
-				if (ecmp(elist[c]/2,e/2,u) <= 0) break;
-				elist[p] = elist[c]; p = c;
+				if (ecmp(epl[c]/2,ep/2,u) <= 0) break;
+				epl[p] = epl[c]; p = c;
 			}
-			elist[p] = e;
+			epl[p] = ep;
 		}
 		// repeatedly extract the edge with largest mate(u) from heap
 		// and restore heap order
 		for (j = k-1; j >= 1; j--) {
-			e = elist[j+1]; elist[j+1] = elist[1];
+			ep = epl[j+1]; epl[j+1] = epl[1];
 			// now largest edges are in positions j+1,...,k
-			// elist[1,...,j] forms a heap with edge having
+			// epl[1,...,j] forms a heap with edge having
 			// largest mate(u) on top
 			// pushdown from 1 in this restricted heap
 			p = 1;
@@ -290,39 +281,25 @@ public class Graph {
 				c = 2*p;
 				if (c > j) break;
 				if (c+1 <= j &&
-				    ecmp(elist[c+1]/2,elist[c]/2,u) > 0)
+					ecmp(epl[c+1]/2,epl[c]/2,u) > 0)
 					c++;
-				if (ecmp(elist[c]/2,e/2,u) <= 0) break;
-				elist[p] = elist[c]; p = c;
+				if (ecmp(epl[c]/2,ep/2,u) <= 0) break;
+				epl[p] = epl[c]; p = c;
 			}
-			elist[p] = e;
+			epl[p] = ep;
 		}
-		// now elist is sorted by mate(u)
+		// now epl is sorted by mate(u)
 	
 		// now rebuild links forming adjacency list for u
 		for (j = k-1; j >= 1; j--) {
-			adjLists.join(elist[j],elist[j+1]);
+			epLists.join(epl[j], epl[j+1]);
 		}
-		fe[u] = elist[1];
+		firstEp[u] = epl[1];
 	}
 	
-	/** Sort all the adjacency lists. */
-	public void sortAdjLists() {
-		for (int u = 1; u <= N; u++) sortAlist(u);
-	}
-	
-	/** Create a string representation of an edge.
-	 *  In the returned string, the "left" endpoint of the edge appears
-	 *  first.
-	 *  @param e is an edge number
-	 *  @return a String representing the edge
-	 */
-	public String edge2string(int e) {
-		String s = "(";
-		int u = left(e); int v = right(e);
-		s += Util.node2string(u,n()) + ",";
-		s += Util.node2string(v,n()) + ")";
-		return s;
+	/** Sort adjacency lists for all vertices by "other endpoinnt". */
+	public void sortEndpointLists() {
+		for (int u = 1; u <= n(); u++) sortEndpointList(u);
 	}
 	
 	/** Create a string representation of an edge.
@@ -332,28 +309,77 @@ public class Graph {
 	 *  @return a string representing the edge
 	 */
 	public String edge2string(int e, int u) {
-		String s = "(";
-		int v = mate(u,e);
-		s += Util.node2string(u,n()) + ",";
-		s += Util.node2string(v,n()) + ")";
-		return s;
+		int v = mate(u, e);
+		return "(" + index2string(u) + ","  + index2string(v) + ")";
 	}
 	
+	/** Create a string representation of an edge.
+	 *  In the returned string, the "left" endpoint of the edge appears
+	 *  first.
+	 *  @param e is an edge number
+	 *  @return a String representing the edge
+	 */
+	public String edge2string(int e) { return edge2string(e, left(e)); }
+
+	/** Create a string representation of an edge list.
+	 *  @param elist is a list of edge numbers
+	 *  @return the string
+	 */
+	public String elist2string(ArrayList<Integer> elist) {
+		String s = "";
+		for (int e : elist) {
+			if (s.length() > 0) s += " ";
+			s += edge2string(e);
+		}
+		return "[" + s + "]";
+	}
+
 	/** Create a string representation of an adjacency list.
 	 *  @param u is a vertex number
 	 *  @return a String representing the list
 	 */
-	public String alist2string(int u) {
+	public String adjacencyList2string(int u, boolean showEdgeNum) {
 		String s = "";
-		if (firstAt(u) == 0) return s;
-		int cnt = 0;
-		for (int e = firstAt(u); e != 0; e = nextAt(u,e)) {
-			s += edge2string(e,u) + " ";
-			cnt++;
-			if (cnt >= 10) { s += "\n"; cnt = 0; }
+		s += "[" + index2string(u) + "|";
+		int lineStart = 0;
+		for (int e = firstAt(u); e != 0; e = nextAt(u, e)) {
+			s += " " + index2string(mate(u, e));
+			if (showEdgeNum) s += "." + e;
+			if (s.length()-lineStart > 65 && nextAt(u, e) != 0) {
+				s += "\n";
+				lineStart = s.length();
+			}
 		}
-		if (cnt != 0) s += "\n";
+		s += "]\n";
 		return s;
+	}
+	public String adjacencyList2string(int u) {
+		return adjacencyList2string(u, false);
+	}
+
+	/** Compare another graph to this one.
+	 *  @param a is a Graph object
+	 *  @return true if a is equal to this; that is, it has the same
+	 *  vertices and edges; note: the adjacency lists will be sorted
+	 *  as a side-effect
+	 */
+	public boolean equals(Adt a) {
+		if (a == this) return true;
+        if (!(a instanceof Graph)) return false;
+        Graph g = (Graph) a;
+
+		if (g.n() != n() || g.m() != m()) return false;
+		sortEndpointLists(); g.sortEndpointLists();
+		for (int u = 1; u <= n(); u++) {
+			int e = firstAt(u); int eg = g.firstAt(u);
+			while (e != 0 && eg != 0) {
+				if (mate(u, e) != g.mate(u, eg))
+					return false;
+				e = nextAt(u, e); eg = g.nextAt(u, eg);
+			}
+			if (e != eg) return false;
+		}
+		return true;
 	}
 	
 	/** Construct a string representation of the Graph object.
@@ -362,12 +388,13 @@ public class Graph {
 	 *  For larger graphs, vertices are represented by integers.
 	 *  @return a reference to the string
 	 */
-	public String toString() {
-		String s = n() + " " + m() + "\n";
+	public String toString(boolean showEdgeNum) {
+		String s = "";
 		for (int u = 1; u <= n(); u++) 
-			s += alist2string(u);
-		return s;
+			s += adjacencyList2string(u, showEdgeNum);
+		return "{\n" + s + "}\n";
 	}
+	public String toString() { return toString(false); }
 	
 	/** Construct a string in dot file format representation 
 	 *  of the Graph object.
@@ -380,299 +407,126 @@ public class Graph {
 	 */
 	public String toDotString() {
 		// undirected graph
-		String s = "graph G { " + "\n";
-		for (int u = 1; u <= n(); u++) {
-			if (firstAt(u) == 0) break;
-			String su = "";
-			for (int e = firstAt(u); e != 0; e = nextAt(u,e)) {
-				int v = mate(u,e);
-	                        if (v > u)  break;
-				su += Util.node2string(u,n()) + " -- ";
-				su += Util.node2string(v,n());
-				su += " ; "; 
-			}
-	                if (su.length() != 0) s += su + "\n";
+		String s = "graph G {\n";
+		int cnt = 0;
+		for (int e = first(); e != 0; e = next(e)) {
+			int u = Math.min(left(e),right(e));
+			int v = Math.max(left(e),right(e));
+			s += index2string(u) + " -- ";
+			s += index2string(v) + " ; ";
+			if (++cnt == 15) { cnt = 0; s += "\n"; }
 		}
 		s += " }\n";
 		return s;
 	}
-	
+		
 	/** Read one edge from an input stream, add it to the graph.
 	 *  Since for undirected graphs, edges appear on both adjacency lists,
 	 *  ignore an edge if its second vertex is larger than the first.
 	 *  @param in is an open input stream
 	 *  @return true on success, false on error.
 	 */
-	public boolean readEdge(PushbackReader in) {
-	        int u=-1, v=-1;
-	        if (!Util.verify(in,'(') || (u = Util.readNode(in,n())) == 0 ||
-	            !Util.verify(in,',') || (v = Util.readNode(in,n())) == 0 ||
-	            !Util.verify(in,')')) {
-	                return false;
-	        }
-	        if (u < 1 || u > n() || v < 1 || v > n()) return false;
-	        if (u < v) join(u,v);
-	        return true;
+	public boolean readEdge(Scanner in) {
+			int u=-1, v=-1;
+			if (!verify(in, "\\(") || (u = readIndex(in)) == 0 ||
+				!verify(in, ",")   || (v = readIndex(in)) == 0 ||
+				!verify(in, "\\)")) {
+					return false;
+			}
+			if (u < 1 || u > n() || v < 1 || v > n()) return false;
+			if (u < v) join(u,v);
+			return true;
 	}
-	
+		
+	/** Read adjacency list from an input stream, add it to the graph.
+	 *  @param in is an open input stream
+	 *  @return true on success, false on error.
+	 */
+	public boolean readAdjacencyList(Scanner in) {
+		if (!verify(in, "\\[")) return false;
+		int u = readIndex(in);
+		if (u == 0) return false;
+		if (u > n()) expand(u, Left.length);
+		if (!verify(in, "\\|")) return false;
+		while (!verify(in, "\\]")) {
+			int v = readIndex(in);
+			if (v == 0) return false;
+			if (v > n()) expand(v, Left.length);
+			if (!verify(in, "\\.")) {
+				if (u < v) join(u, v);
+			} else {
+				int e;
+				try { e = in.nextInt(); } catch(Exception x) { return false; }
+				if (e >= m()) expand(n(), e);
+				if (u < v) {
+					if (joinWith(u, v, e) != e) return false;
+				} else { // endpoints already joined, just verify
+					if ((u == left(e)  && v != right(e)) ||
+						(u == right(e) && v != left(e)))
+						return false;
+				}
+			}
+		}
+		return true;
+	}
+
 	/** Read a graph.
 	 *  @param in is an open input stream
 	 *  @return true on success, else false
 	 */
-	public boolean read(PushbackReader in) {
-	        Util.MutableInt numv = new Util.MutableInt();
-	        Util.MutableInt nume = new Util.MutableInt();
-		
-		if (!Util.readNum(in,numv) || !Util.readNum(in,nume))
-			return false;
-		if (N != numv.val || maxEdge < nume.val)
-			resize(numv.val,nume.val); 
-	        else reset();
-	        for (int i = 1; i <= 2*nume.val; i++) {
-	                if (!readEdge(in)) return false;
-	        }
-	        if (M != nume.val) return false;
-	        sortAdjLists();
-	        return true;
-	}
-	
-	/** Scamble the vertices and edges in the graph.
-	 */
-	public void scramble() {
-		int [] vp = new int[N+1]; int [] ep = new int[maxEdge+1];
-		Util.genPerm(N,vp); Util.genPerm(maxEdge,ep);
-		shuffle(vp,ep);
-		sortAdjLists();
-	}
-	
-	/** Shuffle the vertices and edges according to the given permutations.
-	 *  More precisely, remap all vertices u to vp[u] and all
-	 *  edges e to ep[e].
-	 */
-	public void shuffle(int vp[], int ep[]) {
-		int u; int e;
-		EdgeInfo [] evec1 = new EdgeInfo[maxEdge+1];
-	
-		for (e = 1; e <= maxEdge; e++) evec1[e].l = evec1[e].r = 0;
-		for (e = first(); e != 0; e = next(e)) evec1[e] = evec[e];
-		adjLists.reset(); edges.reset();
-		for (u = 1; u <= N; u++) fe[u] = 0;
-		for (e = 1; e <= maxEdge; e++) {
-			if (evec1[e].l != 0)
-				joinWith(vp[evec1[e].l],vp[evec1[e].r],ep[e]);
+	public boolean read(Scanner in) {
+		clear();
+		if (!verify(in, "\\{")) return false;
+		while (readAdjacencyList(in)) {
+			if (verify(in, "\\}")) {
+				sortEndpointLists(); return true;
+			}
 		}
-	}
-	
-	/** Generate a random graph. 
-	 *  @param numv is the number of vertices in the random graph;
-	 *  if this object has N>numv, the graph is generated over the
-	 *  first numv vertices, leaving the remaining vertices with no edges
-	 *  @param nume is the number of edges in the graph
-	 */  
-	public void rgraph(int numv, int nume) {
-		numv = Math.max(0,numv); nume = Math.max(0,nume);
-		if (numv > N || nume > maxEdge) resize(numv,nume); 
-	        else reset();
-		addEdges(numv,nume);
-		sortAdjLists();
-	}
-
-	/** Test to see if two vertices are connected */
-	public boolean connected(int u, int v) {
-		for (int e = firstAt(u); e != 0; e = nextAt(u,e))
-			if (v == mate(u,e)) return true;
 		return false;
 	}
 	
-	/** Add random edges to a graph.
-	 *  @param numv is the number of vertices; edges are generated
-	 *  joining vertices with vertex numbers in 1..numv
-	 *  @param nume is the target number of edges; if the graph already
-	 *  has some edges, additional edges will be added until the
-	 *  graph has nume edges
-	 */
-	public void addEdges(int numv, int nume) {
-		// build set containing edges already in graph
-		algoLib.dataStructures.basic.HashSet edgeSet;
-		edgeSet = new algoLib.dataStructures.basic.HashSet(nume);
-		for (int e = first(); e != 0; e = next(e)) {
-			int u = Math.min(left(e), right(e));
-			int v = Math.max(left(e), right(e));
-			long vpair = u; vpair <<= 32; vpair |= v;
-			edgeSet.insert(vpair);
-		}
-	
-		// add edges using random sampling of vertex pairs
-		// stop early if graph gets so dense that most samples
-		// repeat edges already in graph
-		while (m() < nume && m()/numv < numv/4) {
-			int u = Util.randint(1,numv);
-			int v = Util.randint(1,numv);
-			if (u == v) continue;
-			if (u > v) { int w = u; u = v; v = w; }
-			long vpair = u; vpair <<= 32; vpair |= v;
-			if (!edgeSet.member(vpair)) {
-				edgeSet.insert(vpair); join(u,v);
-			}
-		}
-		if (m() == nume) return;
-	
-		// if more edges needed, build a vector containing remaining 
-		// "candidate" edges and then sample from this vector
-		Vector<Long> vpVec = new Vector<Long>();
-		for (int u = 1; u < numv; u++) {
-			int v;
-			for (v = u+1; v <= numv; v++) {
-				long vpair = u; vpair <<= 32; vpair |= v;
-				if (!edgeSet.member(vpair)) vpVec.add(vpair);
-			}
-		}
-		// sample remaining edges from vector
-		int i = 0;
-		while (m() < nume && i < vpVec.size()) {
-			int j = Util.randint(i,vpVec.size()-1);
-			long vpair = vpVec.get(j);
-			int u = (int) (vpair >> 32);
-			int v = (int) (vpair & 0xffffffff);
-			join(u,v); vpVec.set(j,vpVec.get(i++));
-		}
-	}
-	
-	
-	/** Generate a random bipartite graph.
-	 *  @param numv specifies the number of vertices per "part";
-	 *  so the resulting graph will have 2*numv vertices;
-	 *  if this object has N>2*numv, the random graph is generated
-	 *  over the first 2*numv vertices,
-	 *  leaving the remaining vertices with no edges
-	 *  @param maxEdge is the max number of edges in the random graph
-	 */
-	public void rbigraph(int numv, int nume) {
-		numv = Math.max(1,numv); nume = Math.max(0,nume);
-		if (N < 2*numv || maxEdge < nume) resize(2*numv,nume); 
-	        else reset();
-	
-		// build set containing edges already in graph
-		algoLib.dataStructures.basic.HashSet edgeSet;
-		edgeSet = new algoLib.dataStructures.basic.HashSet(nume);
-		for (int e = first(); e != 0; e = next(e)) {
-			int u = Math.min(left(e), right(e));
-			int v = Math.max(left(e), right(e));
-			long vpair = u; vpair <<= 32; vpair |= v;
-			edgeSet.insert(vpair);
-		}
-	
-		// add edges using random sampling of int pairs
-		// stop early if graph gets so dense that most samples
-		// repeat edges already in graph
-		while (m() < nume && m()/numv < numv/2) {
-			int u = Util.randint(1,numv);
-			int v = Util.randint(1,numv); v += numv;
-			long vpair = u; vpair <<= 32; vpair |= v;
-			if (!edgeSet.member(vpair)) {
-				edgeSet.insert(vpair); join(u,v);
-			}
-		}
-		if (m() == nume) return;
-	
-		// if more edges needed, build a vector containing remaining 
-		// "candidate" edges and then sample from this vector
-		Vector<Long> vpVec = new Vector<Long>();
-		for (int u = 1; u <= numv; u++) {
-			for (int v = numv+1; v <= 2*numv; v++) {
-				long vpair = u; vpair <<= 32; vpair |= v;
-				if (!edgeSet.member(vpair)) vpVec.add(vpair);
-			}
-		}
-		// sample remaining edges from vector
-		int i = 0;
-		while (m() < nume && i < vpVec.size()) {
-			int j = Util.randint(i,vpVec.size()-1);
-			int u = (int) (vpVec.get(j) >> 32);
-			int v = (int) (vpVec.get(j) & 0xffffffff);
-			join(u,v); vpVec.set(j,vpVec.get(i++));
-		}
-		sortAdjLists();
-	}
-
-	/** Generate a random tree. 
-	 *  Generates random trees with equal probability assigned to each
-	 *  labeled tree; method based on Cayley's theorem
-	 *  @param numv is the number of vertices in the random tree;
-	 *  if this object has N>numv, the tree is generated over the first numv
-	 *  vertices, leaving the remaining vertices with no edges
-	 */
-	public void rtree(int numv) {
-		// build a random sequence of n-2 vertex numbers
-		// these can be interpreted as "edge endpoints" for
-		// the non-leaf vertices in the tree to be generated;
-		// as we're doing this, compute the vertex degrees
-		int [] endpoints = new int[numv-1];
-		int [] d = new int[numv+1];
-		for (int i = 1; i <= numv; i++) d[i] = 1;
-		for (int i = 1; i <= numv-2; i++) {
-			endpoints[i] = Util.randint(1,numv);
-			d[endpoints[i]]++;
-		}
-		// now build a heap containing all leaves in the tree
-		// being generated
-		Dheap degOne = new Dheap(numv,2);
-		for (int u = 1; u <= numv; u++) {
-			if (d[u] == 1) degOne.insert(u,u);
-		}
-		// construct tree based on Cayley's theorem
-		for (int i = 1; i <= numv-2; i++) {
-			int u = degOne.deletemin();
-			int v = endpoints[i];
-			join(u,v);
-			if (--d[v] == 1) degOne.insert(v,v);
-		}
-		join(degOne.deletemin(),degOne.deletemin());
-		sortAdjLists();
-	}
-	
-	/** Create a random simple, connected graph.
-	 */
-	public void rcgraph(int numv, int nume) {
-		// try standard random graph generation
-		rgraph(numv,nume);
-	
-		if (getComponents(null) == 1) return;
-		
-		// graph too sparse for standard method to produce
-		// connected graph so start over, adding edges to a random
-		// tree
-		reset();
-		rtree(numv);
-		addEdges(numv,nume);
-		sortAdjLists();
-	}
-	
-	/** Get an edge joining two vertices.
+	/** Find an edge joining two vertices.
 	 *  @param u is a vertex number
 	 *  @param v is a vertex number
 	 *  @return the number of some edge joining u and v, or 0 if there
 	 *  is no such edge
 	 */
-	int getEdge(int u, int v) {
+	public int findEdge(int u, int v) {
+		assert(validVertex(u) && validVertex(v));
 		for (int e = firstAt(u); e != 0; e = nextAt(u,e))
 			if (mate(u,e) == v) return e;
 		return 0;
 	}
+
+	/** Compute the degree of a vertex.
+	 *  @param u is a vertex
+	 *  @return the number of edges incident to u
+	 */
+	public int degree(int u) {
+		assert(validVertex(u));
+		int d = 0;
+		for (int e = firstAt(u); e != 0; e = nextAt(u,e)) d++;
+		return d;
+	}
+	
+	/** Compute the maximum degree.
+	 *  @return the maximum degree of any vertex.
+	 */
+	public int maxDegree() {
+		int d = 0;
+		for (int u = 1; u <= n(); u++) d = Math.max(d, degree(u));
+		return d;
+	}
 	
 	/** Get the components of a graph.
-	 *  @param component is an array that is used to return the result of
-	 *  the computation; if component is not null, then it is expected to
-	 *  point to an array with at least n()+1 integers;
-	 *  on return component[u] is an integer "component number";
-	 *  vertices with the same component number are in the same
-	 *  connected of the graph; callers interested
-	 *  only in the number of components may use a null argument
-	 *  @return the number of connected components
+	 *  @return a component vector, that assigns a "component number" to each
+	 *  vertex; that is, vertices in the same component have the same
+	 *  component number
 	 */
-	public int getComponents(int [] component) {
-		if (component == null) component = new int[n()+1];
+	public int[] getComponents() {
+		int[] component = new int[n()+1];
 		for (int u = 1; u <= n(); u++) component[u] = 0;
+		Arrays.fill(component, 0);
 		
 		List q = new List(n());
 		int curComp = 0;
@@ -680,15 +534,13 @@ public class Graph {
 		while (s <= n()) {
 			// do a breadth-first search from s, labeling all
 			// vertices found with the current component number
-			component[s] = ++curComp; q.addLast(s);
+			component[s] = ++curComp; q.enq(s);
 			while (!q.empty()) {
-				int u = q.first(); q.removeFirst();
-				for (int e = firstAt(u); e != 0;
-					 e = nextAt(u,e)) {
+				int u = q.deq();
+				for (int e = firstAt(u); e != 0; e = nextAt(u,e)) {
 					int v = mate(u,e);
 					if (component[v] == 0) {
-						component[v] = curComp;
-						q.addLast(v);
+						component[v] = curComp; q.enq(v);
 					}
 				}
 			}
@@ -696,6 +548,6 @@ public class Graph {
 			// placed in some component
 			while (s <= n() && component[s] != 0) s++;
 		}
-		return curComp;
+		return component;
 	}
 }

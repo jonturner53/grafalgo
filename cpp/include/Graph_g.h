@@ -16,9 +16,11 @@
 
 namespace grafalgo {
 
-/** This class encapsulates data and methods used by algorithms to find an
- *  edge group coloring in bipartite graphs. It serves as a base class for
- *  several different algorithms.
+/** This class implements a bipartite "group graph", which is an undirected 
+ *  graph in which the edges incident to each "input" are divided into groups
+ *  of one or more edge. Edge-group coloring algorithms color the edges
+ *  in a group graph, with edges in distinct groups at each input having
+ *  disjoint color sets.
  */
 class Graph_g : public Graph {
 public:

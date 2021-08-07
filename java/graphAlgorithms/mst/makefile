@@ -1,13 +1,11 @@
-JROOT = ~/bin/java
+CLASSFILES = Mst.class testMst.class
 
-CLASSFILES = Prim.class Mst.class MstRep.class
+testMst.class: Mst.class
 
 %.class: %.java
-	javac -cp ~/bin/java $<
-	cp *.class ${JROOT}/algoLib/graphAlgorithms/mst
+	javac $<
 
 all : ${CLASSFILES}
 
 clean :
-	#make -C unit clean
 	rm -f *.class
