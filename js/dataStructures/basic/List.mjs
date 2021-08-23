@@ -28,12 +28,11 @@ export default class List extends Adt {
 	 *  @param n is the range for the list
 	 *  @param capacity is the max range to allocate space for
 	 */
-	constructor(n, capacity=n) { super(n); this.init(capacity); }
-	
-	/** Allocate space and initialize List.
-	 *  @param capacity is the maximum range to allocate space for
-	 */
-	init(capacity) {
+	constructor(n, capacity=n) {
+		super(n); this.#init(capacity);
+	}
+
+	#init(capacity) {
 		assert(capacity >= this.n);
 		this.#next = new Array(capacity+1).fill(-1, 1, this.n+1);
 		this.#next[0] = this.#first = this.#last = this.#length = 0;
@@ -44,7 +43,7 @@ export default class List extends Adt {
 	 *  @param capacity the max range for which space is to be allocated
 	 */
 	reset(n, capacity=n) {
-		assert(capacity >= n); this._n = n; this.init(capacity);
+		assert(capacity >= n); this._n = n; this.#init(capacity);
 	}
 
 	expand(n) {
@@ -97,6 +96,7 @@ export default class List extends Adt {
 	 *  @return the first item on the list or 0 if the list is empty
 	 */
 	first() { return this.#first; }
+	top() { return this.#first; }
 	
 	/** Get the last item on list. O(1)
 	 *  @return the last item on the list or 0 if the list is empty
@@ -125,7 +125,7 @@ export default class List extends Adt {
 	 *  @param i is an item
 	 *  @return true if i is in the list, else false
 	 */
-	member(i) { return this.valid(i) && (i != 0 && this.#next[i] != -1); } 
+	contains(i) { return this.valid(i) && (i != 0 && this.#next[i] != -1); } 
 
 	/** Compare two lists for equality. O(length)
 	 *
@@ -151,8 +151,8 @@ export default class List extends Adt {
 	 *  if zero, i is inserted at the front of the list
 	 */
 	insert(i, j) {
-		assert(this.valid(i) && i != 0 && !this.member(i) &&
-					   (j == 0 || this.member(j)));
+		assert(this.valid(i) && i != 0 && !this.contains(i) &&
+					   (j == 0 || this.contains(j)));
 		if (j == 0) {
 			if (this.empty()) this.#last = i;
 			this.#next[i] = this.#first; this.#first = i; this.#length++;
@@ -169,7 +169,7 @@ export default class List extends Adt {
 	 *  @return the deleted item
 	 */
 	deleteNext(i) {
-		assert(i == 0 || this.member(i));
+		assert(i == 0 || this.contains(i));
 		if (i == this.last()) return;
 		let j;
 		if (i == 0) { j = this.#first;   this.#first = this.#next[j]; }

@@ -1,4 +1,4 @@
-/** \file TestMst.java
+/** \file testPrim.java
  *
  *  @author Jon Turner
  *  @date 2021
@@ -6,68 +6,47 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import java.util.Scanner;
-import java.util.ArrayList;
-import grafalgo.misc.Util;
-import grafalgo.dataStructures.Adt;
-import grafalgo.dataStructures.basic.List;
-import grafalgo.dataStructures.heaps.Heap_d;
-import grafalgo.dataStructures.graphs.Graph_w;
-import grafalgo.graphAlgorithms.mst.Mst;
+import { assert, AssertError} from '../../../Errors.mjs';
+import mst_prim from '../mst_prim.mjs';
+import mst_verify from '../mst_verify.mjs';
+import List from '../../../dataStructures/basic/List.mjs';
+import Graph_w from '../../../dataStructures/graphs/Graph_w.mjs';
 
-public final class testMst {
-	/**
-	 *  Unit test for List data structure.
-	 *
-	 *  usage: testMst algorithm
-	 *
-	 *  where algorithm is "prim", "kruskal" or "cheriton"
-	 */
-	public static void main(String[] args) {
-		System.out.println("running basic tests");
-		if (basicTests(args)) System.out.println("basic tests passed");
-	
-		// add more systematic tests for each individual method
-	}
+try {
+	console.log("running basic tests");
 
-	private static String gstring =
-		"{\n[a| b:3 d:2 e:5]\n[b| a:3 c:7 f:4]\n[c| b:7 d:1 f:2]\n" +
-		"[d| a:2 c:1 e:3]\n[e| a:5 d:3 f:1]\n[f| b:4 c:2]\n}\n";
+	let n = 6; let l1 = new List(n);
+	let g = new Graph_w(n);
+	g.fromString("{a[b:3 d:2 e:5] b[a:3 c:7 f:4] c[b:7 d:1 f:2] " +
+				 "d[a:2 c:1 e:3] e[a:5 d:3 f:1] f[b:4 c:2]}");
 
-	public static boolean basicTests(String[] args) {
-		int n = 6; List l1 = new List(n);
-		Scanner in = new Scanner(gstring);
-		Graph_w g = new Graph_w(n);
-		g.read(in);
-		Mst mst = new Mst();
+	let treeEdges = mst_prim(g);
+	assert(g.elist2string(treeEdges),
+				  '[(a,d,2) (c,d,1) (c,f,2) (e,f,1) (a,b,3)]', 'a1');
+	assert(mst_verify(g, treeEdges), 'ok', 'a2');
+	assert(mst_verify(g, treeEdges.slice(0, 4)), 'mst_verify: size error', 'a3');
+	let e = g.join(2, 4); g.setWeight(e, 1);
+	assert(mst_verify(g, treeEdges),
+			  'mst_verify: cheap cross-edge 10=(b,d,1) in g', 'a5');
+	e = g.join(3, 10); g.setWeight(e, 2);
+	e = g.join(6, 10); g.setWeight(e, 5);
+	e = g.join(6, 7); g.setWeight(e, 2);
+	e = g.join(3, 8); g.setWeight(e, 6);
+	e = g.join(2, 9); g.setWeight(e, 1);
+	e = g.join(9, 10); g.setWeight(e, 1);
+	treeEdges = mst_prim(g);
+	assert(g.elist2string(treeEdges),
+				  '[(a,d,2) (b,d,1) (c,d,1) (b,i,1) (i,j,1) (c,f,2) ' +
+				  '(e,f,1) (f,g,2) (c,h,6)]', 'a6');
+	assert(mst_verify(g, treeEdges), 'ok', 'a7');
 
-		if (args[0].equals("prim")) {
-			ArrayList<Integer> tree = mst.prim(g);
-			g.assertEqual(g.elist2string(tree),
-						  "[(a,d,2) (c,d,1) (c,f,2) (e,f,1) (a,b,3)]", "a1");
-			g.assertEqual(mst.check(g, tree), "ok", "a2");
-			tree.remove(4);
-			g.assertEqual(mst.check(g, tree), "Mst.check: size error", "a3");
-			tree.add(g.findEdge(1, 2));
-			g.assertEqual(mst.check(g, tree), "ok", "a4");
-			int e = g.join(2, 4); g.setWeight(e, 1);
-			g.assertEqual(mst.check(g, tree),
-						  "Mst.check: cheap cross-edge 10=(b,d,1) in g", "a5");
-			e = g.join(3, 10); g.setWeight(e, 2);
-			e = g.join(6, 10); g.setWeight(e, 5);
-			e = g.join(6, 7); g.setWeight(e, 2);
-			e = g.join(3, 8); g.setWeight(e, 6);
-			e = g.join(2, 9); g.setWeight(e, 1);
-			e = g.join(9, 10); g.setWeight(e, 1);
-			tree = mst.prim(g);
-			g.assertEqual(g.elist2string(tree),
-						  "[(a,d,2) (b,d,1) (c,d,1) (b,i,1) (i,j,1) (c,f,2) " +
-						  "(e,f,1) (f,g,2) (c,h,6)]", "a6");
-			g.assertEqual(mst.check(g, tree), "ok", "a7");
-		} else {
-			Util.fatal("unrecognized algorithm: " + args[0]);
-		}
-		
-		return true;
-	}
+	console.log('passed tests');
+} catch (e) {
+	if (e instanceof AssertError)
+		if (e.message.length > 0)
+			console.log(e.name + ': ' + e.message);
+		else
+			console.error(e.stack);
+	else
+		throw(e);
 }

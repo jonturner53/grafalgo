@@ -24,13 +24,13 @@ export default class List_d extends List {
 	 *  @param n is the range of the list
 	 *  @param capacity is the max range to allocate space for
 	 */
-	constructor(n=10, capacity=n) { super(n); this.#init(capacity); }
+	constructor(n=10, capacity=n) { super(n); this.#init_d(capacity); }
 
 	/** Allocate space for and initialize List_d object.
 	 *  More precisely, the parts that are not initialize in parent class.
 	 *  @param capacity is the max range
 	 */
-	#init(capacity) {
+	#init_d(capacity) {
 		assert(this.n <= capacity);
 		this.#prev = new Array(capacity+1).fill(-1, 1, this.n+1);
 		this.#prev[0] = 0;
@@ -80,7 +80,7 @@ export default class List_d extends List {
 	 *  @return the item that precedes i or 0, if none
 	 */
 	prev(i) {
-		assert(this.member(i)); return this.#prev[i];
+		assert(this.contains(i)); return this.#prev[i];
 	}
 	
 	/** Get an item based on its position in the list.
@@ -102,8 +102,8 @@ export default class List_d extends List {
 	 *  if j == 0, i is inserted at the front of the list
 	 */
 	insert(i, j) {
-		assert(this.valid(i) && !this.member(i) &&
-					   (j == 0 || this.member(j)));
+		assert(this.valid(i) && !this.contains(i) &&
+					   (j == 0 || this.contains(j)));
 		super.insert(i, j);
 		// now update this.#prev
 		this.#prev[i] = j;
@@ -115,7 +115,7 @@ export default class List_d extends List {
 	 */
 	delete(i) {
 		assert(this.valid(i));
-		if (!this.member(i)) return;
+		if (!this.contains(i)) return;
 		if (i == this.first()) {
 			this.#prev[this.next(i)] = 0; super.deleteNext(0);
 		} else {
@@ -130,7 +130,7 @@ export default class List_d extends List {
 	 *  first item is removed
 	 */
 	deleteNext(i) {
-		assert(i == 0 || this.member(i));
+		assert(i == 0 || this.contains(i));
 		if (i == this.last()) return;
 		super.deleteNext(i);
 		if (this.next(i) != 0) this.#prev[this.next(i)] = i;

@@ -19,33 +19,36 @@ import ListPair from '../basic/ListPair.mjs';
 export default class Graph_w extends Graph {
 	#weight; ///< #weight[e] is weight of edge e
 
-	/** Construct Graph_w with space for a specified # of vertices and edges.
+	/** Construct Graph with space for a specified # of vertices and edges.
+	 *  @param n is the number of vertices in the graph
+	 *  @param ecap is the initial edge capacity (defaults to n)
+	 *  @param vcap is the initial vertex capacity (defaults to n);
+	 *  this argument is intended for internal use of Graph class
 	 */
-	constructor(n, vcap, ecap) {
-		super(n, vcap, ecap); this.#init(this._ecap);
+	constructor(n, ecap, vcap) {
+		super(n, ecap, vcap); this.#init_w();
+	}
+	
+	#init_w(ecap) {
+		this.#weight = new Array(this._ecap+1).fill(0);
 	} 
 
-	#init(ecap) {
-		assert(ecap > 0);
-		this.#weight = new Array(ecap+1).fill(0);
-	}
-
-	reset(n, vcap, ecap) {
+	reset(n, ecap, vcap) {
 		assert(n > 0 && vcap >= n && ecap > 0);
-		super.reset(n, vcap, ecap); this.#init(this._ecap);
+		super.reset(n, ecap, vcap); this.#init_w();
 	}
 
 	expand(n, m) {
-		if (n <= n() && m <= m()) return;
-        if (n+1 > firstEp.length || m+1 > Left.length) {
-            let vcap = (n+1 <= firstEp.length ? firstEp.length-1 :
-                            Math.max(n+1, Math.trunc(1.25*firstEp.length)));
-            let ecap = (m+1 <= Left.length ? Left.length-1:
-                            Math.max(m+1, Math.trunc(1.25*Left.length)));
-			let nu = new Graph_w(this.n, vcap, ecap);
+		if (n <= this.n && m <= this.m) return;
+        if (n > this._vcap || m > this._ecap) {
+            let vcap = (n <= this._vcap ? this._vcap :
+                            Math.max(n, Math.trunc(1.25*this._vcap)));
+            let ecap = (m <= this._ecap ? this._ecap :
+                            Math.max(m, Math.trunc(1.25*this._ecap)));
+			let nu = new Graph_w(n, ecap, vcap);
 			nu.assign(this); this.xfer(nu);
 		}
-		this.#weight.fill(0, this.m+1, ecap+1);
+		this.#weight.fill(0, this.m+1, this._ecap+1);
 		super.expand(n, m);
 	}
 
@@ -54,7 +57,8 @@ export default class Graph_w extends Graph {
 	 */
 	assign(g) {
 		super.assign(g);
-		if (this.#weight.length != Left.length) this.#init(Left.length-1);
+		if (this.#weight.length != this._ecap+1)
+			this.#weight = new Array(this._ecap);
 		for (let e = g.first(); e != 0; e = g.next(e))
 			this.#weight[e] = g.#weight[e];
 	}
@@ -122,7 +126,7 @@ export default class Graph_w extends Graph {
 	 *  it will appear first in the string
 	 *  @return a string representing the edge
 	 */
-	edge2string(e, u) {
+	edge2string(e, u=this.left(e)) {
 		let v = this.mate(u, e);
 		return "(" + this.index2string(u) + ","  + this.index2string(v) +
 			   "," + this.weight(e) + ")";

@@ -55,7 +55,7 @@ export function assert() {
 			throw new AssertError(`${tag} ${args[0].toString()} ` +
 										 `${args[1].toString()}`);
 	} else if (args.length == 5) {
-		if (!args[0].equals(args[1]) && args[2] != args[3])
+		if (!args[0].equals(args[1]) || args[2] != args[3])
 			throw new AssertError(`${tag} ${args[0].toString()} ` +
 										 `${args[1].toString()} ` +
 										 `${args[2]} ${args[3]}`);
@@ -68,11 +68,4 @@ export function assert() {
 		}
 		throw new AssertError("invalid arguments " + s);
 	}
-}
-
-export class AssertFailure extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "AssertFailure";
-  }
 }

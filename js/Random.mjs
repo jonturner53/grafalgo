@@ -1,4 +1,4 @@
-/** @file Util.mjs 
+ /** @file Random.mjs 
  *
  *  @author Jon Turner
  *  @date 2021
@@ -6,62 +6,34 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-export warning(msg) {
-	console.error(`Warning: ${msg}`);
-}
-
-export error(msg) {
-	console.error(`Error: ${msg}`);
-	console.stacktrace();
-}
-
-export fatal(msg) {
-	console.error(`Fatal: ${msg}`);
-	console.stacktrace();
-	process.exit();
-}
-
-fatal(msg) {
-	System.err.println("Fatal: " + msg);
-	System.exit(1);
-}
-
-private static Random myRand = null;
-
-// Set the seed for the random number generator, myRand.
-setSeed(seed) {
-	if (myRand == null) myRand = new Random();
-	myRand.setSeed(seed);
-}
-
 // Return a random number in [0,1] 
-randfrac() {
-	if (myRand == null) myRand = new Random();
-	return myRand.nextDouble();
+export function randomFraction() {
+	return Math.random();
 }
 
-// Return a random integer in the range [lo,hi].
-randint(int lo, int hi) {
-	if (myRand == null) myRand = new Random();
-	return lo + myRand.nextInt((hi+1) - lo);
+/** Return a random integer in the range [lo,hi].
+ *  @param lo is an integer
+ *  @param hi is a larger integer
+ *  @return an integer in the range [lo, hi] (inclusive)
+ */
+export function randomInteger(lo, hi) {
+	lo = Math.floor(lo); hi = Math.floor(hi);
+	return lo + Math.floor(Math.random() * ((hi+1) - lo));
 }
 
 // Return a random number from an exponential distribution with mean mu 
-randexp(double mu) {
-	if (myRand == null) myRand = new Random();
-	return -mu*Math.log(myRand.nextDouble());
+export function randexp(mu) {
+	return -mu * Math.log(randomFraction());
 }
 
 /** Return a random number from a geometric distribution.
  *  @param p is 1/(the mean of the distribution)
  *  @return a random sample
  */
-randgeo(double p) {
-	if (myRand == null) myRand = new Random();
-	if (p > .999999) return 1;
-	double x;
-	x = (.999999 + Math.log(myRand.nextDouble())/Math.log(1-p));
-	return Math.max(1,(int) x);
+export function randomGeometric(p) {
+	if (p > .999999999) return 1.0;
+	let x = (.999999999 + Math.log(randomFraction())/Math.log(1-p));
+	return Math.max(1, x);
 }
 
 /** Return a random number from a truncated geometric distribution.
@@ -69,31 +41,32 @@ randgeo(double p) {
  *  @param k is the max value in the distribution
  *  @return a random sample
  */
-randTruncGeo(double p, int k) {
-	if (myRand == null) myRand = new Random();
-	double x = 1 - Math.exp((k-1)*Math.log(1-p));
-	double r;
-	r = .999999 + Math.log(myRand.nextDouble()/x)/Math.log(1-p);
-	return ((p > .999999) ? 1 : Math.max(1,Math.min((int) r,k)));
+export function randomTruncatedGeomentric(p, k) {
+	let x = 1 - Math.exp((k-1)*Math.log(1-p));
+	let r = .999999999 + Math.log(randomFraction()/x) / Math.log(1-p);
+	return ((p > .999999999) ? 1 : Math.max(1,Math.min(Math.floor(r), k)));
 }
 
 /** Return a random number from a Pareto distribution.
  *  @param mu is the mean of the distribution
  *  @param s is the shape parameter
-	 *  @return a random sample
+ *  @return a random sample
  */
-randpar(double mu, double s) {
-	if (myRand == null) myRand = new Random();
-	return mu*(1-1/s)/Math.exp((1/s)*Math.log(myRand.nextDouble()));
+export function randomPareto(mu, s) {
+	return mu*(1-1/s) / Math.exp((1/s)*Math.log(randfrad()));
 }
 
-/** Create random permutation on integers 1..n and return in p.
+/** Create random permutation.
+ *  @param n is an integer
+ *  @return an array containing a random permutation on [1, n].
+ *  in the entries with indices in [1, n]
  */
-genPerm(int n, int p[]) {
-	int i, j, k;
-	for (i = 1; i <= n; i++) p[i] = i;
-	for (i = 1; i <= n; i++) {
-		j = randint(i,n);
-		k = p[i]; p[i] = p[j]; p[j] = k;
+export function randomPermutation(n) {
+	let p = new Array(n+1);
+	for (let i = 1; i <= n; i++) p[i] = i;
+	for (let i = 1; i <= n; i++) {
+		let j = randomInteger(i,n);
+		let k = p[i]; p[i] = p[j]; p[j] = k;
 	}
+	return p;
 }

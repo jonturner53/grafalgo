@@ -19,9 +19,11 @@ export default class Dsets extends Adt {
 	#p;			///< #p[i] is parent of i
 	#rank;	 	///< #rank[i] is rank of i
 	
-	constructor(n, capacity=n) { super(n); this.init(capacity); }
+	constructor(n, capacity=n) {
+		super(n); this.#init(capacity);
+	}
 
-	init(capacity) {
+	#init(capacity) {
 		assert(this.n <= capacity);
 		this.#p = new Array(capacity+1); 
 		this.#rank = new Array(capacity+1);
@@ -35,7 +37,7 @@ export default class Dsets extends Adt {
 	 */
 	reset(n, capacity=n) {
 		assert(0 < this.n && n <= capacity);
-		this._n = n; this.init(capacity);
+		this._n = n; this.#init();
 	}
 
 	/** Expand the space available for this object.

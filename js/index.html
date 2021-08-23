@@ -1,0 +1,279 @@
+<!doctype html5>
+<html>
+<head>
+<style>
+
+.headerFooter {
+	position: absolute;
+	background-color: navy;
+	margin: 0px;
+	font-family: "Verdana", sans-serif;
+	color: cyan;
+}
+
+.stdButton {
+	padding: 1px 5px 1px 5px;
+	border: 1px solid black;
+	background-color: beige;
+	font-family: "Verdana", sans-serif;
+	font-size: 100%;
+	border-radius: 5px;
+}
+
+.fixedWidthButton {
+	width: 50;
+	border: 1px solid black;
+	margin: 1px 0px 1px 0px;
+	padding: 1px 1px 1px 1px;
+	background-color: beige;
+	font-family: "Verdana", sans-serif;
+	font-size: 100%;
+	border-radius: 5px;
+}
+
+.smallButton {
+	width: 13px;
+	height: 13px;
+	border: 1px solid black;
+	padding: 0px 0px 2px 0px;
+	margin: 0px 0px 0px 0px;
+	background-color: beige;
+	border-radius: 2px;
+}
+</style>
+</head>
+
+<body>
+<div style="position:absolute; width: 750px; height: 595;
+			border-style: solid; border-width: 1px;">
+
+	<div id="header" class="headerFooter"
+		 style="top: 1; left: 1; width: 748;
+				text-align: center; padding: 4px 0 4px 0;"
+	>Advanced Algorithms and Data Structures</div>
+
+	<textarea id="codeArea"
+		style="position: absolute; left: 3; top: 30;
+		width: 600; height: 265;
+		color: black; font-family: courier; font-size: 75%;"
+	></textarea>
+
+	<textarea id="outputArea"
+		style="position: absolute; left: 3; top: 300;
+		width: 600; height: 265;
+		color: black; font-family: courier; font-size: 75%;"
+	></textarea>
+
+	<div style="font-family: Verdana; font-size: 75%; position: absolute;
+			   top:30; left:605;">
+		data structures<br>
+		<button id="dstructButton" class="smallButton"></button>
+		<select id="dstructMenu" style="font-size: 100%; width:120">
+			<option value="List">index list</option>
+			<option value="Graph">undirected graph</option>
+			<option value="digraph">directed graph</option>
+			<option value="Heap">d-heap</option>
+		</select>
+	</div>
+	<div style="font-family: Verdana; font-size: 75%; position: absolute;
+			   top:65; left:605;">
+		<button id="testDstructButton" class="smallButton"></button>
+		<select id="testDstructMenu" style="font-size: 100%; width:120">
+			<option value="testList">test List</option>
+			<option value="testGraph">test Graph</option>
+		</select>
+	</div>
+
+	<div style="font-family: Verdana; font-size: 75%; position: absolute;
+			   top:100; left:605;">
+		algorithms<br>
+		<button id="algoButton" class="smallButton"></button>
+		<select id="algoMenu" style="font-size: 100%; width:120">
+			<option value="prim">Prim</option>
+			<option value="kruskal">Kruskal</option>
+		</select>
+	</div>
+	<div style="font-family: Verdana; font-size: 75%; position: absolute;
+			   top:135; left:605;">
+		<button id="testAlgoButton" class="smallButton"></button>
+		<select id="testAlgoMenu" style="font-size: 100%; width:120">
+			<option value="testPrim">test Prim</option>
+			<option value="testKruskal">test Kruskal</option>
+		</select>
+	</div>
+
+	<div style="font-family: Verdana; font-size: 80%;
+				position: absolute; top: 300; left: 605;">
+		<button id="runButton" class="fixedWidthButton">run</button> <br>
+	</div>
+
+	<div style="font-family: Verdana; font-size: 80%;
+				position: absolute; top: 320; left: 605;">
+		<button id="clearButton" class="fixedWidthButton">clear</button> <br>
+	</div>
+
+	<div id="footerLeft" class="headerFooter"
+		style="left: 1; bottom: 1; width: 510;
+			   text-align: left; padding: 4px 0 4px 4px;"
+	>footerLeft</div>
+
+	<div id="footerRight" class="headerFooter"
+		 style="right: 1; bottom: 1; width: 310;
+				text-align: right; padding: 4px 4px 4px 0;"
+	>Jon Turner</div>
+</div>
+
+<script type="module">
+/** Send a get request and process reply.
+ *  @param path is a relative path to the file to be retrieved.
+ *  @return a promise; use the promises then() method to define
+ *  the handler for the reply; use catch() method to handler errors
+ */
+function serverRequest(path, args=[]) {
+	return new Promise(function(resolve, reject) {
+		let request = new XMLHttpRequest();
+		request.open("GET", path, true);
+		request.onload = function() {
+			if (this.responseText.startsWith("Error")) {
+				console.log('serverRequest error:\n' +
+						 '\trequest: ' + commandString + '\n' +
+						 '\tresponse: ' + this.responseText + '\n');
+				if (reject) reject();
+			} else if (resolve) {
+				if (args.length == 0) resolve(this.responseText);
+				else resolve([this.responseText].concat(args));
+			}
+		}
+		request.onerror = function() {
+			if (reject) {
+				reject(request.status, request.statusText);
+			} else {
+				console.log("serverRequest Error: " + request.statusText +
+							" [" + request.status + "]");
+			};
+		}
+		request.send();
+	});
+}
+
+import List from './dataStructures/basic/List.mjs';
+import { assert, AssertError } from './Errors.mjs';
+
+/*
+Ok, we now have something that works. Does require use of .js files
+instead of .mjs but can live with that, even if it means different
+names for node version and browser version. Maybe Mark can configure
+web server to use proper mime encoding for .mjs files.
+
+So, we do need to import modules from html files that would
+otherwise be imported directly from test scripts. Basically
+all the data structure files and algorithms.
+
+Some processing tricks for scripts. Comment out all import lines
+before evaluating. Also, replace console.log(...) with
+log(... + '\n'); Not a big deal with reg exp.
+
+Would 
+*/
+
+let codeArea = document.getElementById("codeArea");
+let outputArea = document.getElementById("outputArea");
+function log(s) { outputArea.value += s + '\n'; }
+
+let clearButton = document.getElementById("clearButton");
+clearButton.addEventListener("click", () => { outputArea.value = ''; } );
+
+function runCode(s) {
+	eval(s);
+/*
+	const js = `log('Hello everyone!');`;
+	const encodedJs = encodeURIComponent(js);
+	const dataUri = 'data:text/javascript;charset=utf-8,' + encodedJs;
+	import(dataUri);
+*/
+};
+let runButton = document.getElementById("runButton");
+runButton.addEventListener("click", () => { runCode(codeArea.value); } );
+
+let currentMenu = null;
+
+/** Menu class implements selector/button combo */
+class Menu {
+	constructor(selector, button, fileMap) {
+		this.string = '';
+		this.selector = selector;
+		this.button = button;
+		this.fileMap = fileMap;
+		this.selector.addEventListener("change", () => this.select());
+		this.button.addEventListener("click", () => this.click());
+	}
+
+	select() {
+		let file = this.fileMap[this.selector.value];
+		serverRequest(file)
+			.then((reply) => {
+				this.updateCurrentMenu();
+				this.string = this.fixup(reply);
+				codeArea.value = this.string;
+			});
+	}
+
+	click() {
+		if (this.string == '') {
+			this.select();
+		} else {
+			this.updateCurrentMenu();
+			codeArea.value = this.string;
+		}
+	}
+
+	updateCurrentMenu() {
+		if (currentMenu != null) {
+			currentMenu.button.style.backgroundColor = "beige";
+			currentMenu.string = codeArea.value;
+		}
+		currentMenu = this;
+		currentMenu.button.style.backgroundColor = "lightGreen";
+	}
+	
+	fixup(s) {
+		return s.replace(/^[ \t]*import/gm, '// import')
+				.replace(/console.log/gm, 'log')
+				.replace(/[\t]/gm, '    ');
+	}
+}
+
+let dstruct = new Menu(
+		document.getElementById("dstructMenu"),
+		document.getElementById("dstructButton"),
+		{ 'List'		: 'dataStructures/basic/List.mjs',
+		  'Graph'		: 'dataStructures/graphs/Graph.js',
+		  'digraph'		: 'dataStructures/graphs/Digraph.mjs',
+		  'Heap'		: 'dataStructures/heaps/Heap_d.mjs'
+});
+dstruct.select();
+
+let testDstruct = new Menu(
+		document.getElementById("testDstructMenu"),
+		document.getElementById("testDstructButton"),
+		{ 'testList' 	: 'dataStructures/basic/unit/testList.js',
+		  'testGraph'	: 'dataStructures/graphs/unit/testGraph.js'
+});
+
+let algo = new Menu(
+		document.getElementById("algoMenu"),
+		document.getElementById("algoButton"),
+		{ 'prim'		: 'graphAlgorithms/mst/mst_prim.js',
+		  'kruskal'		: 'graphAlgorithms/mst/mst_kruskal.js'
+});
+
+let testAlgo = new Menu(
+		document.getElementById("testAlgoMenu"),
+		document.getElementById("testAlgoButton"),
+		{ 'testPrim'		: 'graphAlgorithms/mst/unit/testPrim.js',
+		  'testKruskal'		: 'graphAlgorithms/mst/unit/testKruskal.js'
+});
+
+</script>
+</body>
+</html>

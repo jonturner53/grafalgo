@@ -202,6 +202,8 @@ export default class ListPair extends Adt {
 	 */
 	equals(l) {
 		if (l == this) return true;
+		if (typeof l == 'string') return this.toString() == l;
+		if (!(l instanceof ListPair)) return false;
 		if (this.firstIn() !=  l.firstIn()) return false;
 		for (let i = this.firstIn(); i != 0; i = this.nextIn(i))
 			if (l.nextIn(i) != this.nextIn(i)) return false;

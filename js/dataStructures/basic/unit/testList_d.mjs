@@ -20,18 +20,18 @@ try {
 	assert(l1.consistent(), "a3");
 
 	for (let i = 1; i <= n1; i++)
-		assert(!l1.member(i), "a4 " + i);
+		assert(!l1.contains(i), "a4 " + i);
 
 	l1.insert(1, 0); assert(l1, "[a]", "b1");
 	assert(l1.consistent(), "b2");
 	assert(!l1.empty(),"b3");
-	assert(l1.member(1),"b4");
+	assert(l1.contains(1),"b4");
 
 	for (let i = 3; i <= n1; i += 2) l1.enq(i);
 	assert(l1, "[a c e g i]", "c1");
 	assert(l1.consistent(), "c2");
-	assert(l1.member(5), "c3");
-	assert(!l1.member(4), "c4");
+	assert(l1.contains(5), "c3");
+	assert(!l1.contains(4), "c4");
 	assert(l1.prev(9), 7, "c5");
 	assert(l1.prev(7), 5, "c6");
 	assert(l1.prev(5), 3, "c7");
@@ -39,7 +39,7 @@ try {
 
 	let v = l1.pop(); assert(l1, "[c e g i]", v, 1, "d1");
 	assert(l1.consistent(), "d2");
-	assert(!l1.member(1), "d3");
+	assert(!l1.contains(1), "d3");
 	l1.insert(8, 5); assert(l1, "[c e h g i]", "d4");
 	l1.delete(7); assert(l1, "[c e h i]", "d5");
 	l1.delete(9); assert(l1, "[c e h]", "d6");

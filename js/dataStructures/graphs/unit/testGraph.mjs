@@ -12,8 +12,8 @@ import Graph from '../Graph.mjs';
 try {
 	console.log('running basic tests');
 
-	let n = 8; let vcap = 12; let ecap = 30;
-	let g = new Graph(n, vcap, ecap);
+	let n = 8; let ecap = 30;
+	let g = new Graph(n, ecap);
 
 	assert(g.n==n, 'a1');
 	assert(g.m==0, 'a2');
@@ -27,17 +27,17 @@ try {
 	elist.push(g.join(5, 9));
 	elist.push(g.join(7, 8));
 	elist.push(g.join(9, 4)); 
-	assert(g, '{a[d c e] b[d g] c[a e g] d[a b i] ' +
-				    'e[c a i] f[] g[b c h] h[g] i[e d]}', 'a6');
+	assert(g, '{a[c d e] b[d g] c[a e g] d[a b i] ' +
+				    'e[a c i] f[] g[b c h] h[g] i[e d]}', 'a6');
 	g.delete(g.findEdge(1, 3)); g.delete(g.findEdge(4, 2));
 	assert(g, '{a[d e] b[g] c[e g] d[a i] ' +
-				    'e[c a i] f[] g[b c h] h[g] i[e d]}', 'a7');
+				    'e[a c i] f[] g[b c h] h[g] i[e d]}', 'a7');
 	assert(g.degree(1)==2, 'a8');
 	assert(g.degree(2)==1, 'a80');
 	assert(g.degree(6)==0, 'a81');
 	assert(g.degree(7)==3, 'a82');
 	assert(g.maxDegree()==3, 'a83');
-	assert(g.elist2string(elist)=='[(e,i) (g,h) (i,d)]', 'a9');
+	assert(g.elist2string(elist), '[{e,i} {g,h} {i,d}]', 'a9');
 
 	let g2 = new Graph(); g2.assign(g);
 	assert(g.toString() != g2.toString(), 'b1');

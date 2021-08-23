@@ -1,45 +1,43 @@
 /** @file Heap_d.java
  *
  *  @author Jon Turner
- *  @date 2011
+ *  @date 2021
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-package grafalgo.dataStructures.heaps;
-
-import java.util.Arrays;
-import grafalgo.dataStructures.Adt;
+import { assert, AssertError} from '../../Errors.mjs';
+import Adt from '../Adt.mjs';
+import Scanner from '../basic/Scanner.mjs';
 
 /** This class implements a heap data structure.
  *  The heap elements are identified by indexes in 1..n where n
  *  is specified when a heap object is constructed.
  */
-public class Heap_d extends Adt {
-	private int d;			///< base of heap
-	private int	m;			///< # of items in the heap set
+export default class Heap_d extends Adt {
+	#d;			///< base of heap
+	#m;			///< # of items in the heap set
 
-	private int[] hs;		///< {hs[1],...,hs[m]} is heap set
-	private int[] pos;		///< pos[i] gives position of i in h
-	private int[] Key;		///< Key[i] is key of int i
+	#hs;			///< {#hs[1],...,#hs[m]} is the items in the heap
+	#pos;		///< #pos[i] gives position of i in #hs
+	#key;		///< #key[i] is key of item i
 
 	/** Constructor for Heap_d object.
 	 *  @param n is index range for object
-	 *  @param nMax is maximum index range
-	 *  @parm d is the base of the heap
+	 *  @parm d is the base of the heap (defaults to 2)
+	 *  @param capacity is maximum index range (defaults to n)
 	 */
-	public Heap_d(int n, int d) { super(n); init(n, d); }
-	public Heap_d(int n) { super(n); init(n(), 2); }
-	public Heap_d() { super(); init(n(), 2); }
+	constructor(n, d=2, capacity=n) { super(n); this.#init(d, capacity); }
 	
 	/** Allocate space and initialize Heap_d object.
 	 *  @param nMax is the maximum range
 	 *  @param d is the base of the heap.
 	 */
-	public void init(int nMax, int d) {
-		hs = new int[nMax+1]; pos = new int[nMax+1]; Key = new int[nMax+1];
-		for (int i = 1; i <= n(); i++) pos[i] = 0;
-		hs[0] = pos[0] = m = 0; this.d = d;
+	#init(d, capacity) {
+		this.#hs = new Array(capacity+1);
+		this.#pos = new Array(capacity+1).fill(0);
+		this.#key = new Array(capacity+1);
+		this.#hs[0] = this.#m = 0; this.#d = d;
 	}
 
 	/** Reset the heap discarding old value.
@@ -47,33 +45,33 @@ public class Heap_d extends Adt {
 	 *  @param nMax the new max range.
 	 *  Wparam d is the new base of the heap.
 	 */
-	public void reset(int n, int nMax, int d) {
-		assert(nMax >= n); setRange(n); init(nMax, d);
+	reset(n, d=2, capacity=n) {
+		assert(capacity >= n); this._n = n; this.#init(d, capacity);
 	}
-	public void reset(int n) { reset(n, n, 2); }
 	
 	/** Assign a new value by copying from another heap.
 	 *  @param h is another heap
 	 */
-	public void assign(Heap_d h) {
+	assign(h) {
 		if (h == this) return;
-		if (h.n() > n()) { reset(h.n()); }
-		else { clear(); setRange(h.n()); }
+		if (h.n > this.n) { reset(h.n, h.d); }
+		else { clear(); this._n = h.n; }
 
-		d = h.d; m = h.m;
-		for (int p = 1; p <= h.m; p--) {
-			int x = h.hs[p];
-			hs[p] = x; pos[x] = p; Key[x] = h.Key[x];
+		this.m = h.m;
+		for (p = 1; p <= h.m; p--) {
+			x = h.#hs[p];
+			this.#hs[p] = x; this.#pos[x] = p; this.#key[x] = h.#key[x];
 		}
 	}
 
 	/** Assign a new value by transferring from another heap.
 	 *  @param h is another heap
 	 */
-	public void xfer(Heap_d h) {
+	xfer(h) {
 		if (h == this) return;
-		d = h.d; m = h.m;
-		hs = h.hs; pos = h.pos; Key = h.Key;
+		if (!(h instanceof Heap_d)) return;
+		this.#d = h.#d; this.#m = h.#m;
+		this.#hs = h.hs; this.#pos = h.pos; this.#key = h.#key;
 		h.hs = h.pos = h.Key = null;
 	}
 	
@@ -81,86 +79,91 @@ public class Heap_d extends Adt {
 	 *  Rebuilds old value in new space.
 	 *  @param size is the size of the resized object.
 	 */
-
-	public void expand(int n) {
-		if (n <= n()) return;
-		if (n+1 > hs.length) {
-			Heap_d nu;
-			nu = new Heap_d(n(), Math.max(n, (int) (1.25 * hs.length)));
+	expand(n) {
+		if (n <= this.n) return;
+		if (n > this._capacity) {
+			let nu = new Heap_d(this.n, this.#d,
+							    Math.max(n, Math.floor(1.25 * this._capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
-		Arrays.fill(pos, n()+1, n+1, 0);
-		setRange(n);
+		this.#pos.fill(0, this.n+1, n+1);
+		this._n = n;
 	}
 
 	/** Remove all elements from heap. */
-	public void clear() {
-		for (int x = 1; x <= m; x++) pos[hs[x]] = 0;
-		m = 0;
+	clear() {
+		for (let x = 1; x <= this.#m; x++) this.#pos[this.#hs[x]] = 0;
+		this.#m = 0;
 	}
 
 	/** Return parent of a node. */
-	private int p(int x) { return (x+(d-2))/d; }
+	#p(x) { return Math.floor((x+(this.#d-2))/this.#d); }
 
 	/** Return leftmost child of a node. */
-	private int left(int x) { return d*(x-1)+2; }
+	#left(x) { return this.#d*(x-1)+2; }
 
 	/** Return rightmost child of a node. */
-	private int right(int x) { return d*x+1; }
+	#right(x) { return this.#d*x+1; }
+
+	get _capacity() { return this.#hs.length-1; }
+
+	get m() { return this.#m; }
 	
 	/** Find an int in the heap with the smallest key.
 	 *  @return the number of an int that has the smallest key
 	 */
-	public int findmin() { return empty() ? 0 : hs[1]; }
+	findmin() { return this.empty() ? 0 : this.#hs[1]; }
 	
 	/** Delete a minimum key int from the heap and return it.
 	 *  @return an int of minimum key from the heap, after deleting it
 	 *  from the heap
 	 */
-	public int deletemin() {
-		if (empty()) return 0;
-		int i = hs[1]; delete(hs[1]);
+	deletemin() {
+		if (this.empty()) return 0;
+		let i = this.#hs[1]; this.delete(this.#hs[1]);
 		return i;
 	}
 	
-	/** Get the key of int.
-	 *  @param i is an int in the heap
+	/** Get the key of an item.
+	 *  @param i is an item in the heap
 	 *  @return the value of i's key
 	 */
-	public int key(int i) { return Key[i]; }
+	key(i) { return this.#key[i]; }
 	
-	/** Determine if an index is in the heap.
-	 *  @param i is an index
+	/** Determine if an item is in the heap.
+	 *  @param i is an item
 	 *  @return true if i is in the heap, else false
 	 */
-	public boolean member(int i) { return pos[i] != 0; }
+	contains(i) { return this.#pos[i] != 0; }
 	
 	/** Determine if the heap is empty.
 	 *  @return true if heap is empty, else false
 	 */
-	public boolean empty() { return m == 0; };
+	empty() { return this.#m == 0; };
 	
 	/** Add index to the heap.
 	 *  @param i is an index that is not in the heap
-	 *  @param k is the key value under which i is to be inserted
+	 *  @param key is the key value under which i is to be inserted
 	 */
-	public void insert(int i, int k) {
-		assert i > 0;
-		if (i > hs.length) expand(i);
-		Key[i] = k; m++; siftup(i, m);
+	insert(i, key) {
+		assert(i > 0);
+		if (i > this._capacity) this.expand(i);
+		this.#key[i] = key; this.#m++; this.#siftup(i, this.m);
 	}
 	
 	/** Remove an index from the heap.
 	 *  @param i is an index in the heap
 	 */
-	public void delete(int i) {
-		assert i > 0;
-		int j = hs[m--];
+	delete(i) {
+		assert(i > 0);
+		let j = this.#hs[this.#m--];
 		if (i != j) {
-			if (Key[j] <= Key[i]) siftup(j, pos[i]);
-			else siftdown(j,pos[i]);
+			if (this.#key[j] <= this.#key[i])
+				this.#siftup(j, this.#pos[i]);
+			else
+				this.#siftdown(j, this.#pos[i]);
 		}
-		pos[i] = 0;
+		this.#pos[i] = 0;
 	}
 	
 	/** Perform siftup operation to restore heap order.
@@ -168,13 +171,13 @@ public class Heap_d extends Adt {
 	 *  @param i is an index to be positioned in the heap
 	 *  @param x is a tentative position for i in the heap
 	 */
-	private void siftup(int i, int x) {
-		int px = p(x);
-		while (x > 1 && Key[i] < Key[hs[px]]) {
-			hs[x] = hs[px]; pos[hs[x]] = x;
-			x = px; px = p(x);
+	#siftup(i, x) {
+		let px = this.#p(x);
+		while (x > 1 && this.#key[i] < this.#key[this.#hs[px]]) {
+			this.#hs[x] = this.#hs[px]; this.#pos[this.#hs[x]] = x;
+			x = px; px = this.#p(x);
 		}
-		hs[x] = i; pos[i] = x;
+		this.#hs[x] = i; this.#pos[i] = x;
 	}
 	
 	/** Perform siftdown operation to restore heap order.
@@ -182,13 +185,13 @@ public class Heap_d extends Adt {
 	 *  @param i is an index to be positioned in the heap
 	 *  @param x is a tentative position for i in the heap
 	 */
-	private void siftdown(int i, int x) {
-		int cx = minchild(x);
-		while (cx != 0 && Key[hs[cx]] < Key[i]) {
-			hs[x] = hs[cx]; pos[hs[x]] = x;
-			x = cx; cx = minchild(x);
+	#siftdown(i, x) {
+		let cx = this.#minchild(x);
+		while (cx != 0 && this.#key[this.#hs[cx]] < this.#key[i]) {
+			this.#hs[x] = this.#hs[cx]; this.#pos[this.#hs[x]] = x;
+			x = cx; cx = this.#minchild(x);
 		}
-		hs[x] = i; pos[i] = x;
+		this.#hs[x] = i; this.#pos[i] = x;
 	}
 	
 	/** Find the position of the child with the smallest key.
@@ -197,24 +200,25 @@ public class Heap_d extends Adt {
 	 *  @return the position of the child of the int at x, that has
 	 *  the smallest key
 	 */
-	private int minchild(int x) {
-		int y; int minc = left(x);
-		if (minc > m) return 0;
-		for (y = minc + 1; y <= right(x) && y <= m; y++) {
-			if (Key[hs[y]] < Key[hs[minc]]) minc = y;
+	#minchild(x) {
+		let minc = this.#left(x);
+		if (minc > this.m) return 0;
+		for (let y = minc + 1; y <= this.#right(x) && y <= this.m; y++) {
+			if (this.#key[this.#hs[y]] < this.#key[this.#hs[minc]])
+				minc = y;
 		}
 		return minc;
 	}
 	
-	/** Change the key of an index in the heap.
-	 *  @param i is an index in the heap
-	 *  @param k is a new key value for index i
+	/** Change the key of an item in the heap.
+	 *  @param i is an item in the heap
+	 *  @param k is a new key value for item i
 	 */
-	public void changekey(int i, int k) {
-		int ki = Key[i]; Key[i] = k;
+	changekey(i, k) {
+		let ki = this.#key[i]; this.#key[i] = k;
 		if (k == ki) return;
-		if (k < ki) siftup(i,pos[i]);
-		else siftdown(i,pos[i]);
+		if (k < ki) this.#siftup(i, this.#pos[i]);
+		else this.#siftdown(i, this.#pos[i]);
 	}
 
 	/** Determine if two heaps are equal.
@@ -222,16 +226,16 @@ public class Heap_d extends Adt {
 	 *  @return true if both heap sets contain the same items with the
 	 *  the same keys; otherwise, return false
 	 */
-	@Override
-	public boolean equals(Adt a) {
-		if (!(a instanceof Heap_d)) return false;
-		Heap_d h = (Heap_d) a;
-		if (m != h.m) return false;
-		for (int i = 1; i <= m; i++) {
-			int x = hs[i];
-			if (!h.member(x) || key(x) != h.key(x)) return false;
-			int y = h.hs[i];
-			if (!member(y) || key(y) != h.key(y)) return false;
+	equals(h) {
+		if (this == h) return true;
+		if (typeof h == 'string') return this.toString() == h;
+		if (!(h instanceof Heap_d)) return false;
+		if (this.m != h.m) return false;
+		for (let i = 1; i <= this.#m; i++) {
+			let x = this.#hs[i];
+			if (!h.contains(x) || this.key(x) != h.key(x)) return false;
+			let y = h.#hs[i];
+			if (!this.contains(y) || this.key(y) != h.key(y)) return false;
 		}
 		return true;
 	}
@@ -240,13 +244,32 @@ public class Heap_d extends Adt {
 	 *  @param s is a string in which the result is returned
 	 *  @return the string
 	 */
-	@Override
-	public String toString() {
-		String s = "";
-		for (int i = 1; i <= m; i++) {
-			if (i > 1) s += " ";
-			s += index2string(hs[i]) + ":" + Key[hs[i]];
+	toString() {
+		let s = '';
+		for (let i = 1; i <= this.m; i++) {
+			if (i > 1) s += ' ';
+			s += this.index2string(this.#hs[i]) + ':' + this.#key[this.#hs[i]];
 		}
-		return "{" + s + "}";
+		return '{' + s + '}';
+	}
+
+	/** Initialize this Heap_d object from a string.
+	 *  @param s is a string representing a heap.
+	 *  @return on if success, else false
+	 */
+	fromString(s) {
+		let sc = new Scanner(s);
+		this.clear();
+		if (!sc.verify('{')) return false;
+		let i = sc.nextIndex();
+		while (i != 0) {
+			if (!sc.verify(':')) { this.clear(); return false; }
+			let key = sc.nextFloat();
+			if (isNaN(key)) { this.clear(); return false; }
+			this.insert(i, key);
+			i = sc.nextIndex();
+		}
+		if (!sc.verify('}')) { this.clear(); return false; }
+		return true;
 	}
 }

@@ -17,9 +17,11 @@ export default class Dlists extends Adt {
 	#next;
 	#prev;
 
-	constructor(n, capacity=n) { super(n); this.init(capacity); }
+	constructor(n, capacity=n) {
+		super(n); this.#init(capacity);
+	}
 
-	init(capacity) {
+	#init(capacity) {
 		assert(this.n <= capacity);
 		this.#next = new Array(capacity+1);
 		this.#prev = new Array(capacity+1);
@@ -30,7 +32,8 @@ export default class Dlists extends Adt {
 	}
 
 	reset(n, capacity=n) {
-		assert(n <= capacity); this._n = n; this.init(capacity);
+		assert(n <= capacity);
+		this._n = n; this.#init(capacity);
 	}
 
 	/** Get the capacity of the list (max number of items it has space for). */
@@ -179,13 +182,13 @@ export default class Dlists extends Adt {
 		return l1;
 	}
 	
-	/** Produce a String representation of the object.
+	/** Produce a string representation of the object.
 	 *  @return a string such as "[(a c), (d b e), (f), (g)]".
 	 */
 	toString() {
 		let s = '';
 		for (let l = 1; l <= this.n; l++) {
-			if (!this.#isFirst(l)) continue;
+			if (!this.#isFirst(l) || this.singleton(l)) continue;
 			if (s.length > 0) s += ', ';
 			s += '(';
 			for (let i = this.first(l); i != 0; i = this.next(i)) {
