@@ -11,11 +11,13 @@ import { assert } from '../../Errors.mjs';
 import Scanner from './Scanner.mjs';
 
 /** The Dlists class maintains a collection of disjoint lists defined
- *  over a set of integers 1..n.
+ *  over a set of integers 1..n. Each list in the collection is identified
+ *  by its first item.
  */
 export default class Dlists extends Adt {
-	#next;
-	#prev;
+	_next;		// _next[i] is next item on list or 0 for last item
+	_prev;		// _prev[i] is previous item on list or -last for first item,
+				// where last is the last item on the list
 
 	constructor(n, capacity=n) {
 		super(n); this.#init(capacity);
@@ -23,12 +25,13 @@ export default class Dlists extends Adt {
 
 	#init(capacity) {
 		assert(this.n <= capacity);
-		this.#next = new Array(capacity+1);
-		this.#prev = new Array(capacity+1);
+		this._next = new Array(capacity+1);
+		this._prev = new Array(capacity+1);
 		// initialize to singleton lists
 		for (let i = 0; i <= this.n; i++) {
-			this.#next[i] = 0; this.#prev[i] = i;
+			this._next[i] = 0; this._prev[i] = -i;
 		}
+		this._prev[0] = 0;
 	}
 
 	reset(n, capacity=n) {
@@ -37,7 +40,7 @@ export default class Dlists extends Adt {
 	}
 
 	/** Get the capacity of the list (max number of items it has space for). */
-	get _capacity() { return this.#next.length - 1; }
+	get _capacity() { return this._next.length - 1; }
 
 	expand(n) {
 		if (n <= this.n) return;
@@ -46,9 +49,9 @@ export default class Dlists extends Adt {
 				Math.floor(Math.max(n, 1.25 * this._capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
-		// make singletons from items in expanded range`
+		// make singletons from items in expanded range
 		for (let i = this.n+1; i <= n; i++) {
-			this.#next[i] = 0; this.#prev[i] = i;
+			this._next[i] = 0; this._prev[i] = -i;
 		}
 		this._n = n;
 	}
@@ -57,43 +60,33 @@ export default class Dlists extends Adt {
 		if (dl == this) return;
 		if (dl.n > this.capacity) this.reset(dl.n);
 		else { this.clear(); this._n = dl.n; }
-		for (let i = 0; i <= this.n; i++) {
-			this.#next[i] = dl.#next[i]; this.#prev[i] = dl.#prev[i];
+		for (let i = 1; i <= this.n; i++) {
+			this._next[i] = dl._next[i]; this._prev[i] = dl._prev[i];
 		}
 	}
 	xfer(dl) {
 		if (dl == this) return;
-		this.#next = dl.#next; this.#prev = dl.#prev;
-		dl.#next = dl.#prev = null;
+		this._next = dl._next; this._prev = dl._prev;
+		dl._next = dl._prev = null;
 	}
 	
 	/** Clear the data structure, moving all items into single node lists.
 	*/
 	clear() {
-		for (let i = 0; i <= this.n; i++) {
-			this.#next[i] = 0; this.#prev[i] = i;
+		for (let i = 1; i <= this.n; i++) {
+			this._next[i] = 0; this._prev[i] = -i;
 		}
 	}
 
-	/** Get the first item in a list.
-	 *  @param l is the id of a list.
-	 *  @return the index of the first item in the list
-	 */
-	first(l) {
-		assert(this.valid(l)); return l;
-	}
-
-	#isFirst(i) {
-		return this.#next[this.#prev[i]] == 0;
-	}
+	isFirst(i) { assert(this.valid(i)); return this._prev[i] < 0; }
 	
 	/** Get the last item in a list.
-	 *  @param l is the id of list.
+	 *  @param f is the first item on a list.
 	 *  @return the last item in the list
 	 */
-	last(l) {
-		assert(this.valid(l) && this.#isFirst(l));
-		return this.#prev[l];
+	last(f) {
+		assert(this.isFirst(f));
+		return -this._prev[f];
 	}
 
 	/** Get the next list item.
@@ -101,16 +94,15 @@ export default class Dlists extends Adt {
 	 *  @return the item that follows i in its list
 	 */
 	next(i) {
-		assert(this.valid(i)); return this.#next[i];
+		assert(this.valid(i)); return this._next[i];
 	}
 	
 	/** Get the previous list item.
 	 *  @param i is a list item
-	 *  @return the int that precedes i in its list
+	 *  @return the item that precedes i in its list
 	 */
 	prev(i) {
-		assert(this.valid(i));
-		return (this.#isFirst(i) ? 0 : this.#prev[i]);
+		return (this.isFirst(i) ? 0 : this._prev[i]);
 	}
 
 	/** Determine if an item is in a singleton list.
@@ -119,85 +111,116 @@ export default class Dlists extends Adt {
 	 */
 	singleton(i) {
 		assert(this.valid(i));
-		return this.#prev[i] == i;
+		return this._prev[i] == -i;
 	}
 	
-	/** Change the id for a given list.
-	 *  @param l is an id of some list
-	 *  @param j is the index of some item in the list; on return j is the id
-	 */
-	rename(l, j) {
-		assert(this.valid(l) && this.valid(j) && this.#isFirst(l));
-		this.#next[this.prev(l)] = l; this.#next[this.prev(j)] = 0;
-	}
-
-	/** Find the identifier of a list.
+	/** Find the start of a list.
 	 *  @param i is an item on some list
-	 *  @return the id of the list
+	 *  @return the first item on the list
 	 */
 	findList(i) {
 		assert(this.valid(i));
-		while (!this.#isFirst(i)) i = this.prev(i);
+		while (this.prev(i) != 0) i = this.prev(i);
+		return i;
+	}
+
+	/** Rotate list l to make i it's first item.
+	 *  @param f is the first item on a list.
+	 *  @param i is another item on the same list
+	 *  @return the modified list
+	 */
+	rotate(f, i) {
+		if (i == f) return i;
+		this._next[this.last(f)] = f;
+		this._prev[f] = -this._prev[f];
+		this._next[this._prev[i]] = 0;
+		this._prev[i] = -this._prev[i];
 		return i;
 	}
 	
 	/** Remove an item from its list.
 	 *  This method turns the deleted item into a singleton list.
 	 *  @param i is an item in a list
-	 *  @param l is a list id
-	 *  @return the id of the modified list, or 0 if l was a singleton
+	 *  @param f is the first item of a list
+	 *  @return the first item of the modified list, or 0 if f was a singleton
 	 */
-	delete(i, l) {
-		assert(this.valid(i) && this.valid(l) && this.#isFirst(l));
-		if (this.singleton(l)) return 0;
-		if (i == l) {
-			this.#prev[this.#next[l]] = this.prev(l);
-			l = this.#next[l]; // l is now the new id
-		} else if (i == this.last(l)) {
-			this.#prev[l] = this.#prev[l];
-			this.#next[this.#prev[i]] = 0;
+	delete(i, f) {
+		assert(this.valid(i) && this.valid(f) && this.isFirst(f));
+		if (this.singleton(f)) return 0;
+		let l = this.last(f); let nf = this.next(f);
+		let pi = this.prev(i); let ni = this.next(i);
+		if (i == f) {
+			this._prev[nf] = this._prev[f]; f = nf;
+		} else if (i == l) {
+			this._prev[f] = -pi; this._next[pi] = 0;
 		} else {
-			this.#prev[this.#next[i]] = this.#prev[i];
-			this.#next[this.#prev[i]] = this.#next[i];
+			this._prev[ni] = pi; this._next[pi] = ni;
 		}
-		this.#next[i] = 0; this.#prev[i] = i;
-		return l;
+		this._next[i] = 0; this._prev[i] = -i;
+		return f;
 	}
 	
 	/** Join two lists together.
-	 *  @param l1 is a list id
-	 *  @param l2 is a second list id
+	 *  @param f1 is the first item on a list
+	 *  @param f2 is the first item on another list
 	 *  @return the id of the list formed by joining the two lists;
-	 *  defined to be l1, for non-zero l1
+	 *  defined to be f1, for non-zero f1
 	 */
-	join(l1, l2) {
-		assert(this.valid(l1) && this.valid(l2));
-		if (l2 == 0 || l1 == l2) return l1;
-		if (l1 == 0) return l2;
-		assert(this.#isFirst(l1) && this.#isFirst(l2));
-		let last2 = this.last(l2);
-		this.#next[this.#prev[l1]] = l2;
-		this.#prev[l2] = this.#prev[l1];
-		this.#prev[l1] = last2;
-		return l1;
+	join(f1, f2) {
+		assert(this.valid(f1) && this.valid(f2));
+		if (f2 == 0 || f1 == f2) return f1;
+		if (f1 == 0) return f2;
+		assert(this.isFirst(f1) && this.isFirst(f2));
+		let l1 = this.last(f1); let l2 = this.last(f2);
+		this._next[l1] = f2;
+		this._prev[f2] = l1;
+		this._prev[f1] = -l2
+		return f1;
+	}
+
+	/** Determine if two Dlists are equal.
+	 *  @param dl is a second Dlist or a string representing a Dlist
+	 *  @return true if the two Dlists contain identical lists.
+	 */
+	equals(dl) {
+		if (this === dl) return true;
+		if (typeof dl == 'string') {
+			let s = dl; dl = new Dlists(this.n); dl.fromString(s);
+		} else if (!(dl instanceof Dlists))
+			return false;
+		if (this.n != dl.n) return false;
+		for (let i = 1; i < this.n; i++) {
+			if (this.isFirst(i) != dl.isFirst(i)) return false;
+			if (!this.isFirst(i)) continue;
+			let j1 = i; let j2 = i;
+			do {
+				j1 = this.next(j1); j2 = this.next(j2);
+				if (j1 != j2) return false;
+			} while (j1 != 0);
+		}
+		return true;
 	}
 	
 	/** Produce a string representation of the object.
-	 *  @return a string such as "[(a c), (d b e), (f), (g)]".
+	 *  @param details causes singletons to be shown, when true
+	 *  @param strict forces items to be displayed as integers, not letters
+	 *  @param pretty causes lists to be separated with newlines
+	 *  @return a string such as "[(a c), (d b g)]".
 	 */
-	toString() {
+	toString(details=false, strict=false, pretty=false) {
 		let s = '';
 		for (let l = 1; l <= this.n; l++) {
-			if (!this.#isFirst(l) || this.singleton(l)) continue;
-			if (s.length > 0) s += ', ';
+			if (!this.isFirst(l) || (this.singleton(l) && !details))
+				continue;
+			if (s.length > 0) s += ',' + (pretty ? '\n ' : ' ');
 			s += '(';
-			for (let i = this.first(l); i != 0; i = this.next(i)) {
-				if (i != this.first(l)) s += ' ';
-				s += this.index2string(i);
+			for (let i = l; i != 0; i = this.next(i)) {
+				if (i != l) s += ' ';
+				s += this.index2string(i, strict);
 			}
 			s += ')';
 		}
-		return '[' + s + ']';
+		return '[' + s + (pretty ? ']\n' : ']');
 	}
 
 	/** Initialize this from a string representation.
@@ -213,9 +236,11 @@ export default class Dlists extends Adt {
 			let n = 0;
 			for (let i of l) n = Math.max(i, n);
 			if (n > this.n) this.expand(n);
-			for (let i = 1; i < l.length; i++)
+			for (let i = 1; i < l.length; i++) {
 				this.join(l[0], l[i]);
+			}
 			if (!sc.verify(',')) break;
+
 		}
 		if (sc.verify(']')) return true;
 		this.clear(); return false;

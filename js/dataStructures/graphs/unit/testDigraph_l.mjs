@@ -1,4 +1,4 @@
-/** \file TestGraph_w.java
+/** \file TestDigraph_l.java
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,24 +8,22 @@
 
 import { assert, AssertError } from '../../../Errors.mjs';
 import Adt from '../../Adt.mjs';
-import Graph_w from '../Graph_w.mjs';
+import Digraph_l from '../Digraph_l.mjs';
 
 try {
 	console.log('running basic tests');
 
 	let n = 8; let nMax = 12; let mMax = 30;
-	let g = new Graph_w(n, nMax, mMax);
+	let g = new Digraph_l(n, nMax, mMax);
 
 	g.join(1, 4); g.join(1, 3); g.join(2, 4); g.join(3, 5);
-	g.setWeight(g.findEdge(1,4), 7);
-	g.setWeight(g.findEdge(3,5), 8);
-	assert(g, '{a[d:7 c:0] b[d:0] c[a:0 e:8] ' + 
-			  'd[a:7 b:0] e[c:8] f[] g[] h[]}', 'a1');
+	g.setLength(g.findEdge(1,4), 7);
+	g.setLength(g.findEdge(3,5), 8);
+	assert(g, '{a[d:7 c:0] b[d:0] c[e:8] ' + 
+			  'd[] e[] f[] g[] h[]}', 'a1');
 	assert(g.toString(true),
-			  '{a[d:7:1 c:0:2] b[d:0:3] c[a:0:2 e:8:4] ' + 
-			  'd[a:7:1 b:0:3] e[c:8:4] f[] g[] h[]}', 'a2');
-
-
+			  '{a[d:7:1 c:0:2] b[d:0:3] c[e:8:4] ' + 
+			  'd[] e[] f[] g[] h[]}', 'a2');
 
 	g.reset(4, 10, 10);
 	g.fromString('{a[d:1 b:2] b[a:2 c:3] c[b:3 d:4] d[a:1 c:4]}');

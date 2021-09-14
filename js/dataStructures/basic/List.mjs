@@ -1,4 +1,4 @@
-/** @file List.js
+/** @file List.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -135,8 +135,12 @@ export default class List extends Adt {
 	 *  they need not have the same storage capacity to be equal
 	 */
 	equals(l) {
-		if (this == l) return true;
-		if (!(l instanceof List)) return false;
+		if (this === l) return true;
+		if (typeof l == 'string') {
+			let s = l; l = new List(this.n); l.fromString(s);
+		} else if (!(l instanceof List)) {
+			return false;
+		}
 		let i = this.first(); let j = l.first();
 		while (i == j) {
 			if (i == 0) return true;
@@ -198,16 +202,16 @@ export default class List extends Adt {
 	 *  @return the item removed, or 0
 	 */
 	deq() { return this.pop(); }
-	
+
 	/** Create a string representation of a given string.
 	 *
 	 *  @param s is string used to return value
 	 */
-	toString() {
+	toString(strict=false) {
 		let s = "[";
 		for (let i = this.first(); i != 0; i = this.next(i)) {
 			if (i != this.first()) s += " ";
-			s += this.index2string(i);
+			s += this.index2string(i, strict);
 		}
 		return s + "]";
 	}

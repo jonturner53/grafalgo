@@ -1,7 +1,45 @@
-    if (e instanceof AssertError)
-		if (e.message.length > 0)
-        	console.log(e.name + ': ' + e.message);
-		else
-			console.error(e.stack);
-    else
-        throw(e);
+
+	/** Determine if two Dlists are equal.
+	 *  @param dl is a second Dlist or a string representing a Dlist
+	 *  @return true if the two Dlists contain identical lists.
+	 */
+	equals(dl) {
+		if (this === dl) return true;
+		if (typeof dl == 'string') {
+			let s = dl; dl = new Dlists(this.n); dl.fromString(s);
+		} else if (!(dl instanceof Dlists))
+			return false;
+		if (this.n != dl.n) return false;
+		for (let i = 1; i < this.n; i++) {
+			if (this.isFirst(i) != dl.isFirst(i)) return false;
+			if (!this.isFirst(i)) continue;
+			let j1 = i; let j2 = i;
+			do {
+				j1 = this.next(j1); j2 = this.next(j2);
+				if (j1 != j2) return false;
+			} while (j1 != 0);
+		}
+		return true;
+	}
+	
+	/** Produce a string representation of the object.
+	 *  @param details causes singletons to be shown, when true
+	 *  @param strict forces items to be displayed as integers, not letters
+	 *  @param pretty causes lists to be separated with newlines
+	 *  @return a string such as "[(a c), (d b g)]".
+	 */
+	toString(details=false, strict=false, pretty=false) {
+		let s = '';
+		for (let l = 1; l <= this.n; l++) {
+			if (!this.isFirst(l) || (this.singleton(l) && !details))
+				continue;
+			if (s.length > 0) s += ',' + (pretty ? '\n ' : ' ');
+			s += '(';
+			for (let i = l; i != 0; i = this.next(i)) {
+				if (i != l) s += ' ';
+				s += this.index2string(i, strict);
+			}
+			s += ')';
+		}
+		return '[' + s + (pretty ? ']\n' : ']');
+	}

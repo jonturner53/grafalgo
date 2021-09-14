@@ -1,4 +1,4 @@
-/** \file TestList.java
+/** \file TestList.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -50,7 +50,7 @@ try {
 	assert(l2, "[3 2 1]", "e1");
 	assert(l2.consistent(), "e2");
 	l1.clear(); l1.enq(3); l1.enq(2); l1.enq(1);
-	assert(l1, l2,"e3");
+	assert(l1, l2, "e3");
 	assert(l1, "[c b a]", "e4");
 
 	l1.fromString("[b c d e]");

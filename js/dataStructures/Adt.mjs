@@ -52,14 +52,6 @@ export default class Adt {
  	 */
 	toString() { return ""; };
 
-	/** Create an alternate string representation of the data structure,
-	 *  showing implementation details.
-	 *  @returns a string that represents the internal details of the
-	 *  data structure; for subclasses that do not provide their own
-	 *  long string representation, the "short" string is used by default.
- 	 */
-	toLongString() { return this.toString(); };
-
 	/** Compare two Adts for equality.
 	 *  @param a2 is an Adt object to be compared to this.
 	 *  @return true if this is equal to a2; for subclasses that do not
@@ -94,10 +86,10 @@ export default class Adt {
 	 *  just the string representing the number x, otherwise, it is a lower-case
 	 *  letter.
 	 */
-	index2string(x) {
+	index2string(x, strict=false) {
 		const alpha = '-abcdefghijklmnopqrstuvwxyz';
 		let s = "";
-		if (0 <= this.n && this.n <= 26) {
+		if (!strict && 0 <= this.n && this.n <= 26) {
 			s += alpha[x];
 		} else {
 			s += x;
@@ -105,93 +97,4 @@ export default class Adt {
 		return s;
 	}
 
-	/* Handy methods for unit testing. */
-
-/*
-	assertEqual() {
-		if (arguments.length < 2 || arguments.length > 4)
-			throw new AssertFailure("too few or to many arguments");
-		let tag = "no valid tag";
-		if ((typeof arguments[arguments.length-1]) == 'string')
-			tag = arguments[arguments.length-1];
-		if (arguments.length == 2 &&
-			(arguments[0] instanceof Adt ||
-			 (typeof arguments[0]) == 'string')) {
-			if (!this.equals(arguments[0]))
-				throw new AssertFailure(
-					`${tag} [${this.toString()} ${arguments[0].toString()}]`);
-		} else if (arguments.length == 3 &&
-				   ((typeof arguments[0]) == 'number' &&
-				    (typeof arguments[1]) == 'number') ||
-				   ((typeof arguments[0]) == 'string' &&
-				    (typeof arguments[1]) == 'string')) {
-            if (arguments[0] != arguments[1])
-				throw new AssertFailure(
-					`${tag} [${arguments[0]} ${arguments[1]}]`);
-		} else if (arguments.length == 4 &&
-				   ((typeof arguments[0] instanceof Adt ||
-					(typeof arguments[0]) == 'string') &&
-				   (typeof arguments[1]) == 'number' &&
-				   (typeof arguments[2]) == 'number')) {
-			if (!this.equals(arguments[0]) || arguments[1] != arguments[2])
-				throw new AssertFailure(
-					`${tag} [${this.toString()} ${arguments[0].toString()} ` +
-					`${arguments[0]} ${arguments[1]}]`);
-		} else {
-			//throw new AssertFailure("invalid arguments");
-			let s = "";
-			for (let i = 0; i < arguments.length; i++) {
-				if (i > 0) s += ', ';
-				if (arguments[i] == null)
-					s += 'null';
-				else if (arguments[i])
-					s += arguments[i].toString();
-			}
-			throw "assertEqual: invalid arguments: " + s;
-		}
-	}
-
-	assertEqualLong() {
-		if (arguments.length != 2 && arguments.length != 4)
-			throw new AssertFailure("must have 2 or 4 arguments");
-		let tag = "no valid tag";
-		if ((typeof arguments[arguments.length-1]) == 'string')
-			tag = arguments[arguments.length-1];
-		if (arguments.length == 2 &&
-			(arguments[0] instanceof Adt ||
-			 (typeof arguments[0]) == 'string')) {
-			if (!this.longEquals(arguments[0]))
-				throw new AssertFailure(
-					`${tag} [${this.toString()} ${arguments[0].toString()}]`);
-		} else if (arguments.length == 4 &&
-				   ((typeof arguments[0] instanceof Adt ||
-					(typeof arguments[0]) == 'string') &&
-				   (typeof arguments[1]) == 'number' &&
-				   (typeof arguments[2]) == 'number')) {
-			if (!this.longEquals(arguments[0]) || arguments[1] != arguments[2])
-				throw new AssertFailure(
-					`${tag} [${this.toString()} ${arguments[0].toString()} ` +
-					`${arguments[0]} ${arguments[1]}]`);
-		} else {
-			throw new AssertFailure("invalid arguments");
-		}
-	}
-
-	assertTrue(success, tag) {
-		if (!success) throw new AssertFailure(tag);
-	}
-
-	assertConsistent(tag) {
-		if (!this.consistent()) throw new AssertFailure(tag);
-	}
-*/
 }
-
-/*
-export class AssertFailure extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "AssertFailure";
-  }
-}
-*/

@@ -1,4 +1,4 @@
-/** \file TestListPair.java
+/** \file TestListPair.mjs
  *
  *  @author Jon Turner
  *  @date 2021

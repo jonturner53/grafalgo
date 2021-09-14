@@ -1,4 +1,4 @@
-/** @file Scanner.java
+/** @file Scanner.mjs
  *
  *  @author Jon Turner
  *  @date 2021

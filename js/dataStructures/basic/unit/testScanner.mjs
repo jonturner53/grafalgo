@@ -17,9 +17,11 @@ try {
 	let s = new Scanner("  123  45.5abc_2C.  a  23 \n xx");
 	assert(s.nextInt(), 123, 'a1');
 	assert(s.nextFloat(), 45.5, 'a2');
+	assert(s, 'abc_2C.  a  23 \n xx', 'b1');
 	assert(s.nextWord(), 'abc_2C', 'a3');
 	assert(s.verify('.'), 'a4');
 	assert(s.nextIndex(), 1, 'a5');
+	assert(s, '  23 \n xx', 'b1');
 	assert(s.nextIndex(), 23, 'a6');
 	assert(s.verify('x'), 'a7');
 
@@ -30,7 +32,6 @@ try {
 	assert(s.nextInt(), 45, 'b4');
 	assert(s.equals('.5abc_2C.  a  23 \n xx'), 'b5');
 	assert(s.length, 21, 'b6');
-	
 
 	console.log('passed tests');
 } catch(e) {

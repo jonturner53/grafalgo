@@ -105,7 +105,9 @@ export default class Graph extends Adt {
 	 */
 	equals(g) {
 		if (g == this) return true;
-		if (typeof g == 'string') return this.toString() == g;
+		if (typeof g == 'string') {
+			let s = g; let g = new Graph(this.n, this.m); g.fromString(s); 
+		}
         if (!(g instanceof Graph)) return false;
 
 		if (g.n != this.n || g.m != this.m) return false;
@@ -321,12 +323,11 @@ export default class Graph extends Adt {
 	 *  @param u is a vertex number
 	 *  @return a string representing the list
 	 */
-	alist2string(u, showEdgeNum=false) {
+	alist2string(u, details=false, strict=false) {
 		let s = '';
 		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u, e)) {
-			let ns = this.nabor2string(u, e, showEdgeNum);
-			if (ns == null) continue;
-			if (s.length > 0) s += ' ';
+			let ns = this.nabor2string(u, e, details, strict);
+			if (s.length > 0 && ns.length > 0) s += ' ';
 			s += ns;
 		}
 		return this.index2string(u) + '[' + s + ']';
@@ -340,8 +341,9 @@ export default class Graph extends Adt {
 	 *  @return a string that represents the neighbor of u, suitable for
 	 *  use in an adjacency list string.
 	 */
-	nabor2string(u, e, showEdgeNum=false) {
-		return this.index2string(this.mate(u, e)) + (showEdgeNum ? '.'+e : '');
+	nabor2string(u, e, details=false, strict=false) {
+		return this.index2string(this.mate(u, e), strict) +
+				(details ? ':'+e : '');
 	}
 	
 	/** Construct a string representation of the Graph object.
@@ -350,13 +352,13 @@ export default class Graph extends Adt {
 	 *  For larger graphs, vertices are represented by integers.
 	 *  @return a reference to the string
 	 */
-	toString(addNewlines=false, showEdgeNum=false) {
+	toString(details=false, strict=false, pretty=false) {
 		let s = '';
 		for (let u = 1; u <= this.n; u++) {
-			s += this.alist2string(u, showEdgeNum);
-			s += (addNewlines ? '\n' : (u < this.n ? ' ' : ''));
+			s += this.alist2string(u, details, strict);
+			s += (pretty ? '\n' : (u < this.n ? ' ' : ''));
 		}
-		return (addNewlines ? '{\n' : '{')  + s + (addNewlines ? '}\n' : '}');
+		return (pretty ? '{\n' : '{')  + s + (pretty ? '}\n' : '}');
 	}
 	
 	/** Construct a string in dot file format representation 

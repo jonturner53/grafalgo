@@ -1,4 +1,4 @@
-/** \file ListPair.h
+/** \file ListPair.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -197,16 +197,26 @@ export default class ListPair extends Adt {
 	}
 	
 	/** Compare two list pairs for equality.
-	 *  @param l is another list pair
+	 *  @param lp is another list pair
 	 *  @return true if the in-lists are identical; the out-lists may differ
 	 */
-	equals(l) {
-		if (l == this) return true;
-		if (typeof l == 'string') return this.toString() == l;
-		if (!(l instanceof ListPair)) return false;
-		if (this.firstIn() !=  l.firstIn()) return false;
-		for (let i = this.firstIn(); i != 0; i = this.nextIn(i))
-			if (l.nextIn(i) != this.nextIn(i)) return false;
+	equals(lp) {
+		if (lp === this) return true;
+		if (typeof lp == 'string') {
+			let s = lp; lp = new ListPair(this.n); lp.fromString(s);
+		}
+		if (!(lp instanceof ListPair)) return false;
+		if (this.nIn != lp.nIn || this.nOut != lp.nOut) return false;
+		let i = this.firstIn(); let j = lp.firstIn();
+		while (i != 0) {
+			if (i != j) return false;
+			i = this.nextIn(i); j = lp.nextIn(j);
+		}
+		i = this.firstOut(); j = lp.firstOut();
+		while (i != 0) {
+			if (i != j) return false;
+			i = this.nextOut(i); j = lp.nextOut(j);
+		}
 		return true;
 	}
 	
@@ -275,20 +285,26 @@ export default class ListPair extends Adt {
 	}
 	
 	/** Create a string representation of a given string.
+	 *  @param details enables inclusion of out-string when true,
+	 *  otherwise, only the in-string is shown
+	 *  @param strict forces all items to be displayed as numbers,
+	 *  not as letters
+	 *  @param pretty uses newline to separate in-list from out-list
 	 *  @return the string
 	 */
-	toString() {
+	toString(details=false, strict=false, pretty=false) {
 		let s = '';
 		for (let i = this.firstIn(); i != 0; i = this.nextIn(i)) {
-			s += this.index2string(i);
+			s += this.index2string(i, strict);
 			if (i != this.lastIn()) s += ' ';
 		}
-		s += ' : ';
+		if (!details) return'[' + s + ']';
+		s += (pretty ? '\n:' : ' : ');
 		for (let i = this.firstOut(); i != 0; i = this.nextOut(i)) {
-			s += this.index2string(i);
+			s += this.index2string(i, strict);
 			if (i != this.lastOut()) s += ' ';
 		}
-		return '[' + s + ']';
+		return (pretty ? '[' + s + ']\n' : '[' + s + ']');
 	}
 
 	/** Initialize this from a string representation.

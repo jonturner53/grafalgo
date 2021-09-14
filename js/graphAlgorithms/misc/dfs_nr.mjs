@@ -27,7 +27,9 @@ export default function dfs_nr(g, s) {
 	while (!stk.empty()) {
 		let u = stk.top(); let e = next[u];
 		if (e == 0) {
-			stk.pop();
+			let w = stk.pop();
+			if (w != 0 && next[w] != 0)
+				next[w] = g.nextAt(w, next[w]);
 		} else if (mark[g.mate(u, e)]) {
 			next[u] = g.nextAt(u,e);
 		} else {

@@ -1,4 +1,4 @@
-/** \file testList_d.java
+/** \file testList_d.mjs
  *
  *  @author Jon Turner
  *  @date 2021
