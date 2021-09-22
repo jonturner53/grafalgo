@@ -24,19 +24,19 @@ try {
 	assert(fh, '{(a:1) (b:2 c:3 d:4 e:5 f:6 g:7 h:8 i:9 j:10)}', 'a2');
 	fh.deletemin(2);
 	assert(fh, '{(a:1) (b:2) (c:3 d:4 e:5 f:6 g:7 h:8 i:9 j:10)}', 'a3');
-	assert(fh.toString(true),
+	assert(fh.toString(1),
 		   '{(a:1:0) (b:2:0) (c:3:3(j:10:0 h:8:1(i:9:0) d:4:2(e:5:0 ' +
 		   'f:6:1(g:7:0))))}', 'a4');
 	fh.decreaseKey(9, 7, 3);
-	assert(fh.toString(true),
+	assert(fh.toString(1),
 		   '{(a:1:0) (b:2:0) (i:2:0 c:3:3(j:10:0 h:8*0 d:4:2(e:5:0 ' +
 		   'f:6:1(g:7:0))))}', 'a5');
 	fh.meld(1,9); fh.meld(2,1); fh.deletemin(1);
-	assert(fh.toString(true),
+	assert(fh.toString(1),
 		   '{(a:1:0) (i:2:1(b:2:0) c:3:3(j:10:0 h:8*0 d:4:2(e:5:0 ' +
 		   'f:6:1(g:7:0))))}', 'a6');
 	fh.decreaseKey(5, 4, 9); fh.decreaseKey(6, 6, 5);
-	assert(fh.toString(true),
+	assert(fh.toString(1),
 		   '{(a:1:0) (f:0:1(g:7:0) e:1:0 i:2:1(b:2:0) ' +
 		   'c:3:2(j:10:0 h:8*0) d:4:0)}', 'a7');
 

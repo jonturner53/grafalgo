@@ -323,7 +323,7 @@ export default class Graph extends Adt {
 	 *  @param u is a vertex number
 	 *  @return a string representing the list
 	 */
-	alist2string(u, details=false, strict=false) {
+	alist2string(u, details=0, strict=0) {
 		let s = '';
 		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u, e)) {
 			let ns = this.nabor2string(u, e, details, strict);
@@ -341,7 +341,7 @@ export default class Graph extends Adt {
 	 *  @return a string that represents the neighbor of u, suitable for
 	 *  use in an adjacency list string.
 	 */
-	nabor2string(u, e, details=false, strict=false) {
+	nabor2string(u, e, details=0, strict=0) {
 		return this.index2string(this.mate(u, e), strict) +
 				(details ? ':'+e : '');
 	}
@@ -352,7 +352,7 @@ export default class Graph extends Adt {
 	 *  For larger graphs, vertices are represented by integers.
 	 *  @return a reference to the string
 	 */
-	toString(details=false, strict=false, pretty=false) {
+	toString(details=0, pretty=0, strict=0) {
 		let s = '';
 		for (let u = 1; u <= this.n; u++) {
 			s += this.alist2string(u, details, strict);

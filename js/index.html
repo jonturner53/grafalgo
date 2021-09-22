@@ -159,39 +159,27 @@ function serverRequest(path, args=[]) {
 import List from './dataStructures/basic/List.mjs';
 import { assert, AssertError } from './Errors.mjs';
 
-/*
-Ok, we now have something that works. Does require use of .js files
-instead of .mjs but can live with that, even if it means different
-names for node version and browser version. Maybe Mark can configure
-web server to use proper mime encoding for .mjs files.
-
-So, we do need to import modules from html files that would
-otherwise be imported directly from test scripts. Basically
-all the data structure files and algorithms.
-
-Some processing tricks for scripts. Comment out all import lines
-before evaluating. Also, replace console.log(...) with
-log(... + '\n'); Not a big deal with reg exp.
-
-Would 
-*/
-
 let codeArea = document.getElementById("codeArea");
 let outputArea = document.getElementById("outputArea");
-function log(s) { outputArea.value += s + '\n'; }
+
+/** Substitute for console.log. */
+function log() {
+	let s = '';
+	for (let i = 0; i < arguments.length; i++) 
+		s += arguments[i] + ' ';
+	outputArea.value += s + '\n';
+}
 
 let clearButton = document.getElementById("clearButton");
 clearButton.addEventListener("click", () => { outputArea.value = ''; } );
 
+/** Run code in the codeArea, after making minor fixes. */
 function runCode(s) {
-	eval(s);
-/*
-	const js = `log('Hello everyone!');`;
-	const encodedJs = encodeURIComponent(js);
-	const dataUri = 'data:text/javascript;charset=utf-8,' + encodedJs;
-	import(dataUri);
-*/
+	eval(s.replace(/^[ \t]*import/gm, '// import')
+		  .replace(/console.log/gm, 'log')
+		  .replace(/[\t]/gm, '    '));
 };
+
 let runButton = document.getElementById("runButton");
 runButton.addEventListener("click", () => { runCode(codeArea.value); } );
 
@@ -213,7 +201,7 @@ class Menu {
 		serverRequest(file)
 			.then((reply) => {
 				this.updateCurrentMenu();
-				this.string = this.fixup(reply);
+				this.string = reply;
 				codeArea.value = this.string;
 			});
 	}
@@ -234,12 +222,6 @@ class Menu {
 		}
 		currentMenu = this;
 		currentMenu.button.style.backgroundColor = "lightGreen";
-	}
-	
-	fixup(s) {
-		return s.replace(/^[ \t]*import/gm, '// import')
-				.replace(/console.log/gm, 'log')
-				.replace(/[\t]/gm, '    ');
 	}
 }
 

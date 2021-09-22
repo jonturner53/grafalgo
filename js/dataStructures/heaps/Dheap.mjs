@@ -106,7 +106,7 @@ export default class Dheap extends Adt {
 	 *  @param p is position of item in heap
 	 *  @param return position where parent would go if there were one
 	 */
-	p(pos) { return Math.floor((pos+(this.d-2))/this.d); }
+	p(pos) { return Math.floor(((pos-2)+this.d)/this.d); }
 
 	/** Return position of leftmost child of a heap item.
 	 *  @param pos is position of item in heap
@@ -131,7 +131,7 @@ export default class Dheap extends Adt {
 	 */
 	deletemin() {
 		if (this.empty()) return 0;
-		let i = this.#hs[1]; this.delete(this.#hs[1]);
+		let i = this.#hs[1]; this.delete(i);
 		return i;
 	}
 	
@@ -179,7 +179,7 @@ export default class Dheap extends Adt {
 	
 	/** Perform siftup operation to restore heap order.
 	 *  This is a private helper function.
-	 *  @param i is an index to be positioned in the heap
+	 *  @param i is an item to be positioned in the heap
 	 *  @param x is a tentative position for i in the heap
 	 */
 	#siftup(i, x) {
@@ -193,9 +193,9 @@ export default class Dheap extends Adt {
 	
 	/** Perform siftdown operation to restore heap order.
 	 *  This is a private helper function.
-	 *  @param i is an index to be positioned in the heap
-	 *  @param x is a tentative position for i in the heap
-	 */
+	 *  @param i is an item to be positioned in the heap
+ 	 *  @param x is a tentative position for i in the heap
+ 	 */
 	#siftdown(i, x) {
 		let cx = this.#minchild(x);
 		while (cx != 0 && this.#key[this.#hs[cx]] < this.#key[i]) {
@@ -253,62 +253,18 @@ export default class Dheap extends Adt {
 		return true;
 	}
 	
-	/** Construct a string representation of this object.
-	 *  @param s is a string in which the result is returned
-	 *  @return the string
-	toString(details=false, strict=false, pretty=false) {
-		let s = '';
-		if (!pretty) {
-			s += '{'
-			for (let i = 1; i <= this.m; i++) {
-				if (i > 1) s += ' ';
-				s += this.index2string(this.#hs[i], strict) + ':' +
-					 this.#key[this.#hs[i]];
-				continue;
-			}
-			s += '}';
-		} else {
-			// find item at start of last line
-			let m = this.m; let pm = this.p(m);
-			let start = 1;
-			while (this.left(start) <= this.m) start = this.left(start);
-			let offset = new Array(this.n+1).fill(0);
-				// offset[i] is position of string for item i on its line
-			while (start >= 1) {
-				let fin = (start==1 ? 1 : Math.min(m, this.right(start-1)));
-				let lastLine = this.left(start) > m;
-				let line = '';
-				for (let i = start; i <= fin; i++) {
-					if (i <= pm) {
-						offset[i] = Math.floor(
-									(offset[this.left(i)] +
-								     offset[Math.min(this.right(i), m)]) / 2);
-					}
-					if (line.length > 0)
-						offset[i] = Math.max(offset[i],
-										line.length + 
-										  ((i-start)%this.d == 0 ? 2 : 1));
-					line = line.padEnd(offset[i]) +
-								this.index2string(this.#hs[i], strict) +
-						 		':' + this.#key[this.#hs[i]];
-				}
-				s = line + '\n' + s;
-				start = this.p(start);
-			}
-		}
-		if (details) {
-			s += (pretty ? '[' : '\n[');
-			for (let i = 1; i < this.n; i++)  {
-				if (i > 1) s += ' ';
-				s += this.#pos[i];
-			}
-			s += ']'; if (pretty) s += '\n';
-		}
-		return s;
-	}
+	/** Produce a string representation of the heap.
+	 *  @param details is a flag that (when true) causes implementation
+	 *  details to be shown.
+	 *  @param pretty is a flag that (when true) produces a more readable
+	 *  representation
+	 *  @param strict is a a flag that forces items to always be shown as
+	 *  numerical values, not letters.
+	 *  @param u is intended only for recursive calls to toString; it
+	 *  identifies a position in the heap structure
 	 */
-
-	toString(details=false, strict=false, pretty=false, u=1) {
+	toString(details=0, pretty=0, strict=0, u=1) {
+		if (this.empty()) return '{}';
 		if (u == 0) return '';
 		let s = this.index2string(this.#hs[u], strict) +
 				':' + this.#key[this.#hs[u]];

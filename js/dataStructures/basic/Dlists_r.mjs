@@ -252,7 +252,7 @@ export default class Dlists_r extends Dlists {
 	 *  @param pretty causes lists to be separated with newlines
 	 *  @return a string such as "[(a c), (d b g)]".
 	 */
-	toString(details=false, strict=false, pretty=false) {
+	toString(details=0, pretty=0, strict=0) {
 		let s = '';
 		for (let l = 1; l <= this.n; l++) {
 			if (!this.isFirst(l) || (this.singleton(l) && !details))

@@ -41,7 +41,7 @@ try {
 
 	let h3 = new Dheap(25, 2);
 	h3.fromString('{g:1 f:2 c:5 a:5 d:2 h:7 j:8 k:6 m:4}');
-	assert(h3.toString(true),'{g:1(f:2(m:4(k:6 a:5) d:2) c:5(h:7 j:8))}','f1');
+	assert(h3.toString(1),'{g:1(f:2(m:4(k:6 a:5) d:2) c:5(h:7 j:8))}','f1');
 
 	console.log('passed tests');
 } catch(e) {

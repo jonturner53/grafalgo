@@ -265,7 +265,7 @@ export default class Digraph extends Graph {
 	 *  an edge number, and definitely followed by the edge weight, but only
 	 *  if e is an out-going edge of u; otherwise return null
 	 */
-	nabor2string(u, e, details=false, strict=false) {
+	nabor2string(u, e, details=0, strict=0) {
 		return (u != this.tail(e) ? '' :
 				this.index2string(this.mate(u, e), strict) +
 				(details ? ':'+e : ''));

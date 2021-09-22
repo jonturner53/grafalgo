@@ -21,17 +21,17 @@ try {
 	assert(ds, "{{a c} {d b e}}", "a3");
 	ds.link(6, 7); ds.link(8, 9); ds.link(8, 10);
 	assert(ds, "{{a c} {d b e} {f g} {h i j}}", "a4");
-	assert(ds.toString(true),'{a:1(c) d:1(b e) f:1(g) h:1(i j)}', 'a5');
+	assert(ds.toString(1),'{a:1(c) d:1(b e) f:1(g) h:1(i j)}', 'a5');
 	ds.link(1, 4); ds.link(6, 8);
 	assert(ds, "{{a b c d e} {f g h i j}}", "a6");
 	ds.link(1, 6);
 	assert(ds, "{{a b c d e f g h i j}}", "a7");
-	assert(ds.toString(true), '{a:3(c d:1(b e) f:2(g h:1(i j)))}', 'a8');
+	assert(ds.toString(1), '{a:3(c d:1(b e) f:2(g h:1(i j)))}', 'a8');
 	let r = ds.find(10);
-	assert(ds.toString(true), '{a:3(c d:1(b e) f:2(g) h:1(i) j)}', 'a9');
+	assert(ds.toString(1), '{a:3(c d:1(b e) f:2(g) h:1(i) j)}', 'a9');
 	assert(r, 1, "a10");
 	r = ds.find(2);
-	assert(ds.toString(true), '{a:3(b c d:1(e) f:2(g) h:1(i) j)}', 'a9');
+	assert(ds.toString(1), '{a:3(b c d:1(e) f:2(g) h:1(i) j)}', 'a9');
 	assert(r, 1, "a12");
 	console.log("passed tests");
 } catch(e) {

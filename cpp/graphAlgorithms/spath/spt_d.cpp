@@ -35,8 +35,8 @@ bool spt_d(Graph_wd& g, vertex s, edge* pEdge, edgeLength* d) {
 			vertex w = g.head(e);
 			if (d[w] > d[v] + g.length(e)) {
 				d[w] = d[v] + g.length(e); pEdge[w] = e;
-				if (nheap.member(w)) nheap.changekey(w,d[w]);
-				else nheap.insert(w,d[w]);
+				if (nheap.member(w)) nheap.changekey(w, d[w]);
+				else nheap.insert(w, d[w]);
 			}
 		}
 	}

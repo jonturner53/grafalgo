@@ -21,7 +21,7 @@ try {
 	g.setLength(g.findEdge(3,5), 8);
 	assert(g, '{a[d:7 c:0] b[d:0] c[e:8] ' + 
 			  'd[] e[] f[] g[] h[]}', 'a1');
-	assert(g.toString(true),
+	assert(g.toString(1),
 			  '{a[d:7:1 c:0:2] b[d:0:3] c[e:8:4] ' + 
 			  'd[] e[] f[] g[] h[]}', 'a2');
 

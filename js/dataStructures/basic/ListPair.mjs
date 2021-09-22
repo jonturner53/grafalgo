@@ -292,7 +292,7 @@ export default class ListPair extends Adt {
 	 *  @param pretty uses newline to separate in-list from out-list
 	 *  @return the string
 	 */
-	toString(details=false, strict=false, pretty=false) {
+	toString(details=0, pretty=0, strict=0) {
 		let s = '';
 		for (let i = this.firstIn(); i != 0; i = this.nextIn(i)) {
 			s += this.index2string(i, strict);

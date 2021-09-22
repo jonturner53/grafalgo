@@ -352,7 +352,7 @@ export default class Fheaps extends Adt {
 	 *  @param s is a string in which the result is returned
 	 *  @return the string
 	 */
-	toString(details=false, strict=false, pretty=false) {
+	toString(details=0, pretty=0, strict=0) {
 		let s = '';
 		let done = new Array(this.n+1).fill(false);
 		for (let i = 1; i < this.n; i++) {
@@ -375,7 +375,7 @@ export default class Fheaps extends Adt {
 	 *  @return a string that represents the heap, or the
 	 *  portion of the heap including h and its siblings
 	 */
-	#heap2string(h, details=false, strict=false) {
+	#heap2string(h, details=0, strict=0) {
 		let s = '';
 		for (let i = h; i != 0; i = this.#sibs.next(i)) {
 			if (i != h) s += ' ';
@@ -387,39 +387,6 @@ export default class Fheaps extends Adt {
 		}
 		return (details || this.p(h) == 0 ? '(' + s + ')' : ' ' + s);
 	}
-
-
-
-/*
-
-	heap2string(h, details=false, strict=false) {
-		let s = ''; let sibs = this.#sibs;
-		let stk = new List(this.n);
-		let next = new Array(this.n+1).fill(0);
-	
-		stk.push(h); next[h] = this.c(h);
-		s += this.index2string(h, strict) + ':' + this.key(h);
-		if (details) {
-			s += (this.mark(h) ? '*' : ':') + this.rank(r);
-			if (next[h] != 0) s += '(';
-		}
-		while (!stk.empty()) {
-			let u = stk.top(); let v = next[u];
-			if (v == 0) {
-				let w = stk.pop(); next[w] = sibs.next(u);
-			} else {
-				stk.push(v); next[v] = this.c(v);
-				if (v != this.c(u)) s += ' ';
-				s += this.index2string(v, strict) + ':' + this.key(v);
-				if (details) {
-					s += (this.mark(v) ? '*' : ':') + this.rank(v);
-					if (next[v] != 0) s += '(';
-				}
-			}
-		}
-		return '(' + s + ')';
-	}
-*/
 
 	/** Initialize this Fheaps object from a string.
 	 *  @param s is a string representing a heap.

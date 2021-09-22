@@ -178,6 +178,22 @@ export default class Dlists extends Adt {
 		return f1;
 	}
 
+	/** Sort the lists by item number */
+	sort() {
+		let vec = [];
+		for (let i = 1; i <= this.n; i++) {
+			if (this.singleton(i) || !this.isFirst(i)) continue;
+			let j = i; vec.length = 0;
+			while (!this.singleton(j)) {
+				vec.push(j); j = this.delete(j, j);
+			}
+			vec.push(j);
+			vec.sort((a,b) => a-b);
+			for (j = 1; j < vec.length; j++)
+				this.join(vec[0], vec[j])
+		}
+	}
+
 	/** Determine if two Dlists are equal.
 	 *  @param dl is a second Dlist or a string representing a Dlist
 	 *  @return true if the two Dlists contain identical lists.
@@ -194,7 +210,7 @@ export default class Dlists extends Adt {
 			if (!this.isFirst(i)) continue;
 			let j1 = i; let j2 = i;
 			do {
-				j1 = this.next(j1); j2 = this.next(j2);
+				j1 = this.next(j1); j2 = dl.next(j2);
 				if (j1 != j2) return false;
 			} while (j1 != 0);
 		}
@@ -207,7 +223,7 @@ export default class Dlists extends Adt {
 	 *  @param pretty causes lists to be separated with newlines
 	 *  @return a string such as "[(a c), (d b g)]".
 	 */
-	toString(details=false, strict=false, pretty=false) {
+	toString(details=0, pretty=0, strict=0) {
 		let s = '';
 		for (let l = 1; l <= this.n; l++) {
 			if (!this.isFirst(l) || (this.singleton(l) && !details))

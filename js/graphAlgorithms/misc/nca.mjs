@@ -41,7 +41,7 @@ export default function nca(t, root, pairs, u=root, pu=u) {
 	// first initialize shared references to G and graph version of T
 
 	if (u == root) { // top-level invocation, so initialize data structures
-		g = new Graph(t.n, t.n, pairs.length);
+		g = new Graph(t.n, pairs.length);
 		noa = new Array(g.n+1);	
 		noaSets = new Dsets(t.n);
 		mark = new Array(pairs.length);

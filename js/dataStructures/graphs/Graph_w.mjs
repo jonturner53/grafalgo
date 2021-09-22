@@ -142,7 +142,7 @@ export default class Graph_w extends Graph {
 	 *  @return a string representing the mate(u,e), possibly followed by
 	 *  an edge number, and definitely followed by the edge weight
 	 */
-	nabor2string(u, e, details=false, strict=false) {
+	nabor2string(u, e, details=0, strict=0) {
         return this.index2string(this.mate(u, e), strict) +
 				':' + this.weight(e) + (details ? ':'+e : '');
 	}

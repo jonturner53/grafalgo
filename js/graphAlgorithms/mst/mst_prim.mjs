@@ -1,4 +1,4 @@
-/** @file List.js
+/** @file mst_prim.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,32 +8,44 @@
 
 import List from '../../dataStructures/basic/List.mjs';
 import Dsets from '../../dataStructures/basic/Dsets.mjs';
-import Heap_d from '../../dataStructures/heaps/Heap_d.mjs';
+import Dheap from '../../dataStructures/heaps/Dheap.mjs';
 import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
 
 /** Compute min spanning tree of a graph using Prim's algorithm.
  *  @param g is weighted graph
- *  @return a list or edges that defines an mst in g
+ *  @param trace controls the amount of trace output produced, larger
+ *  values produce more output
+ *  @return a list of edges that defines an mst in g or a minimum
+ *  spanning forest of the component containing s, if g is not connected
  */
-export default function mst_prim(g) {
-	let tree = [];
+export default function mst_prim(g, trace=0) {
+	let elist = [];
 	let cheap = new Array(g.n+1).fill(0);
-	let h = new Heap_d(g.n, 2+Math.floor(g.m/g.n));
+	let h = new Dheap(g.n, 2+Math.floor(g.m/g.n));
 
-	for (let e = g.firstAt(1); e != 0; e = g.nextAt(1,e)) {
-		let u = g.mate(1,e); h.insert(u, g.weight(e)); cheap[u] = e;
-	}
-	cheap[1] = 1;	// dummy value, any non-zero value will do
-	while (!h.empty()) {
-		let u = h.deletemin(); tree.push(cheap[u]);
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			let v = g.mate(u,e);
-			if (h.contains(v) && g.weight(e) < h.key(v)) {
-				h.changekey(v, g.weight(e)); cheap[v] = e;
-			} else if (!h.contains(v) && cheap[v] == 0) {
-				h.insert(v, g.weight(e)); cheap[v] = e;
+	let mark = new Array(g.n).fill(false);
+	for (let s = 1; s <= g.n; s++) {
+		if (mark[s]) continue;
+		mark[s] = true;
+		for (let e = g.firstAt(s); e != 0; e = g.nextAt(s,e)) {
+			let u = g.mate(s,e); h.insert(u, g.weight(e)); cheap[u] = e;
+		}
+		cheap[s] = 1;	// dummy value, anything non-zero will do
+		while (!h.empty()) {
+			let u = h.deletemin(); elist.push(cheap[u]);
+			if (trace) {
+				console.log(g.index2string(u) + ' ' + g.elist2string(elist) +
+							'\n' + h);
+			}
+			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+				let v = g.mate(u,e); mark[v] = true;
+				if (h.contains(v) && g.weight(e) < h.key(v)) {
+					h.changekey(v, g.weight(e)); cheap[v] = e;
+				} else if (!h.contains(v) && cheap[v] == 0) {
+					h.insert(v, g.weight(e)); cheap[v] = e;
+				}
 			}
 		}
 	}
-	return tree;
+	return elist;
 }

@@ -40,6 +40,8 @@ try {
 	assert(dl.n, 12, "c2");
 	dl.rotate(4, 8); dl.rotate(7, 12); 
 	assert(dl, "[(e a c), (h k d i), (j f), (l g b)]", "c3");
+	dl.sort();
+	assert(dl, "[(a c e), (d h i k), (f j), (b g l)]", "c4");
 
 	console.log('passed tests');
 } catch(e) {

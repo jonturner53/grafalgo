@@ -161,7 +161,7 @@ export default class Dsets extends Adt {
 		return true;
 	}
 
-	toString(details=false, strict=false, pretty=false) {
+	toString(details=0, pretty=0, strict=0) {
 		// create a graph structure using parent info
 		let F = new Digraph(this.n);
 		for (let u = 1; u <= this.n; u++)
@@ -182,7 +182,7 @@ export default class Dsets extends Adt {
 	 *  @param r is an item that identifies a set with more than one element
 	 *  @return a string that represents r
 	 */
-	#set2string(u, F, details=false, strict=false) {
+	#set2string(u, F, details=0, strict=0) {
 		if (u == 0) return;
 		let s = this.index2string(u, strict) +
 				(details && this.rank(u) > 0 ? ':' + this.rank(u) : '');
@@ -221,7 +221,7 @@ export default class Dsets extends Adt {
 	/** Create a string representation of a non-singleton set.
 	 *  @param r is an item that identifies a set with more than one element
 	 *  @return a string that represents r
-	#set2string(r, F, details=false, strict=false) {
+	#set2string(r, F, details=0, strict=0) {
 		let s = '';
 		let stk = new List(this.n);
 		let next = new Array(this.n+1).fill(0);

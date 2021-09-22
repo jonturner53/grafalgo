@@ -13,7 +13,7 @@ import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
  *  @param g is a weighted graph
  *  @return a vector containing the edges in the mst.
  */
-export default function kruskal(g) {
+export default function kruskal(g, trace) {
 	// first make a sorted list of the edges in g
 	let i = 0; let elist = new Array(g.m);
 	for (let e = g.first(); e != 0; e = g.next(e)) elist[i++] = e;
@@ -28,6 +28,9 @@ export default function kruskal(g) {
 		if (cu != cv) {
 			treeEdges.push(e); subtrees.link(cu, cv);
 		}
+		if (trace)
+			console.log(e + ':' + g.edge2string(e) + '\n' +
+						treeEdges + '\n' + subtrees);
 	}
 	return treeEdges;
 }
