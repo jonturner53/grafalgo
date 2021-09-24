@@ -69,19 +69,12 @@
 		data structures<br>
 		<button id="dstructButton" class="smallButton"></button>
 		<select id="dstructMenu" style="font-size: 100%; width:120">
-			<option value="List">index list</option>
-			<option value="Graph">undirected graph</option>
-			<option value="digraph">directed graph</option>
-			<option value="Heap">d-heap</option>
-			<option value="foo">foo</option>
 		</select>
 	</div>
 	<div style="font-family: Verdana; font-size: 75%; position: absolute;
 			   top:65; left:605;">
 		<button id="testDstructButton" class="smallButton"></button>
 		<select id="testDstructMenu" style="font-size: 100%; width:120">
-			<option value="testList">test List</option>
-			<option value="testGraph">test Graph</option>
 		</select>
 	</div>
 
@@ -90,16 +83,12 @@
 		algorithms<br>
 		<button id="algoButton" class="smallButton"></button>
 		<select id="algoMenu" style="font-size: 100%; width:120">
-			<option value="prim">Prim</option>
-			<option value="kruskal">Kruskal</option>
 		</select>
 	</div>
 	<div style="font-family: Verdana; font-size: 75%; position: absolute;
 			   top:135; left:605;">
 		<button id="testAlgoButton" class="smallButton"></button>
 		<select id="testAlgoMenu" style="font-size: 100%; width:120">
-			<option value="testPrim">test Prim</option>
-			<option value="testKruskal">test Kruskal</option>
 		</select>
 	</div>
 
@@ -162,6 +151,25 @@ import Digraph_l from './dataStructures/graphs/Digraph_l.mjs';
 import Graph from './dataStructures/graphs/Graph.mjs';
 import Graph_w from './dataStructures/graphs/Graph_w.mjs';
 
+import Dheap from './dataStructures/heaps/Dheap.mjs';
+import Fheaps from './dataStructures/heaps/Fheaps.mjs';
+
+import bfs from './graphAlgorithms/misc/bfs.mjs';
+import components from './graphAlgorithms/misc/components.mjs';
+import dfs from './graphAlgorithms/misc/dfs.mjs';
+import dfs_nr from './graphAlgorithms/misc/dfs_nr.mjs';
+import findSplit from './graphAlgorithms/misc/findSplit.mjs';
+import nca from './graphAlgorithms/misc/nca.mjs';
+//import toposort from './graphAlgorithms/misc/toposort.mjs';
+
+import mst_kruskal from './graphAlgorithms/mst/mst_kruskal.mjs';
+import mst_prim from './graphAlgorithms/mst/mst_prim.mjs';
+import mst_verify from './graphAlgorithms/mst/mst_verify.mjs';
+
+import spt_dijkstra from './graphAlgorithms/spath/spt_dijkstra.mjs';
+import spt_verify from './graphAlgorithms/spath/spt_verify.mjs';
+
+
 let codeArea = document.getElementById("codeArea");
 let outputArea = document.getElementById("outputArea");
 
@@ -179,8 +187,7 @@ clearButton.addEventListener("click", () => { outputArea.value = ''; } );
 /** Run code in the codeArea, after making minor fixes. */
 function runCode(s) {
 	eval(s.replace(/^[ \t]*import/gm, '// import')
-		  .replace(/console.log/gm, 'log')
-		  .replace(/[\t]/gm, '    '));
+		  .replace(/console.log/gm, 'log'));
 };
 
 let runButton = document.getElementById("runButton");
@@ -295,7 +302,6 @@ let dstruct = new Menu(
 		document.getElementById("dstructButton"),
 		'dataStructures/', false
 );
-dstruct.select();
 
 let testDstruct = new Menu(
 		document.getElementById("testDstructMenu"),
@@ -314,6 +320,8 @@ let testAlgo = new Menu(
 		document.getElementById("testAlgoButton"),
 		'graphAlgorithms/', true
 );
+
+//dstruct.select();
 
 </script>
 </body>

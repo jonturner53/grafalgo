@@ -1,4 +1,4 @@
-/** \file testPrim.java
+/** \file testFindSplit.java
  *
  *  @author Jon Turner
  *  @date 2021

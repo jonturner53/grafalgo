@@ -17,7 +17,7 @@ import List from '../../dataStructures/basic/List.mjs';
 export default function toposort(dg) {
 	let vlist = new List(g.n);
 	let q = new List(g.n);
-	let *nin = new Array(dg.n+1).fill(0);
+	let nin = new Array(dg.n+1).fill(0);
 
 	// Let nin[u]=in-degree of u and put nodes u with nin[u]=0 on q
 	for (let u = 1; u <= dg.n; u++) {
