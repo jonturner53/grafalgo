@@ -16,7 +16,7 @@ try {
 
 	let s = new Scanner("  123  45.5abc_2C.  a  23 \n xx");
 	assert(s.nextInt(), 123, 'a1');
-	assert(s.nextFloat(), 45.5, 'a2');
+	assert(s.nextNumber(), 45.5, 'a2');
 	assert(s, 'abc_2C.  a  23 \n xx', 'b1');
 	assert(s.nextWord(), 'abc_2C', 'a3');
 	assert(s.verify('.'), 'a4');
@@ -28,7 +28,7 @@ try {
 	s.reset();
 	assert(s, '  123  45.5abc_2C.  a  23 \n xx', 'b1');
 	assert(s.nextWord(), '', 'b2');
-	assert(s.nextFloat(), 123, 'b3');
+	assert(s.nextNumber(), 123, 'b3');
 	assert(s.nextInt(), 45, 'b4');
 	assert(s.equals('.5abc_2C.  a  23 \n xx'), 'b5');
 	assert(s.length, 21, 'b6');

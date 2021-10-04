@@ -16,7 +16,7 @@ import Scanner from './Scanner.mjs';
  */
 export default class Dlists extends Adt {
 	_next;		// _next[i] is next item on list or 0 for last item
-	_prev;		// _prev[i] is previous item on list or -last for first item,
+	_prev;		// _prev[i] is previous item on list or last for first item,
 				// where last is the last item on the list
 
 	constructor(n, capacity=n) {
@@ -29,7 +29,7 @@ export default class Dlists extends Adt {
 		this._prev = new Array(capacity+1);
 		// initialize to singleton lists
 		for (let i = 0; i <= this.n; i++) {
-			this._next[i] = 0; this._prev[i] = -i;
+			this._next[i] = 0; this._prev[i] = i;
 		}
 		this._prev[0] = 0;
 	}
@@ -51,7 +51,7 @@ export default class Dlists extends Adt {
 		}
 		// make singletons from items in expanded range
 		for (let i = this.n+1; i <= n; i++) {
-			this._next[i] = 0; this._prev[i] = -i;
+			this._next[i] = 0; this._prev[i] = i;
 		}
 		this._n = n;
 	}
@@ -74,11 +74,11 @@ export default class Dlists extends Adt {
 	*/
 	clear() {
 		for (let i = 1; i <= this.n; i++) {
-			this._next[i] = 0; this._prev[i] = -i;
+			this._next[i] = 0; this._prev[i] = i;
 		}
 	}
 
-	isFirst(i) { assert(this.valid(i)); return this._prev[i] < 0; }
+	isFirst(i) { assert(this.valid(i)); return this._next[this._prev[i]] == 0; }
 	
 	/** Get the last item in a list.
 	 *  @param f is the first item on a list.
@@ -86,7 +86,7 @@ export default class Dlists extends Adt {
 	 */
 	last(f) {
 		assert(this.isFirst(f));
-		return -this._prev[f];
+		return this._prev[f];
 	}
 
 	/** Get the next list item.
@@ -111,7 +111,7 @@ export default class Dlists extends Adt {
 	 */
 	singleton(i) {
 		assert(this.valid(i));
-		return this._prev[i] == -i;
+		return this._prev[i] == i;
 	}
 	
 	/** Find the start of a list.
@@ -132,9 +132,8 @@ export default class Dlists extends Adt {
 	rotate(f, i) {
 		if (i == f) return i;
 		this._next[this.last(f)] = f;
-		this._prev[f] = -this._prev[f];
+		this._prev[f] = this._prev[f];
 		this._next[this._prev[i]] = 0;
-		this._prev[i] = -this._prev[i];
 		return i;
 	}
 	
@@ -152,11 +151,11 @@ export default class Dlists extends Adt {
 		if (i == f) {
 			this._prev[nf] = this._prev[f]; f = nf;
 		} else if (i == l) {
-			this._prev[f] = -pi; this._next[pi] = 0;
+			this._prev[f] = pi; this._next[pi] = 0;
 		} else {
 			this._prev[ni] = pi; this._next[pi] = ni;
 		}
-		this._next[i] = 0; this._prev[i] = -i;
+		this._next[i] = 0; this._prev[i] = i;
 		return f;
 	}
 	
@@ -174,7 +173,7 @@ export default class Dlists extends Adt {
 		let l1 = this.last(f1); let l2 = this.last(f2);
 		this._next[l1] = f2;
 		this._prev[f2] = l1;
-		this._prev[f1] = -l2
+		this._prev[f1] = l2
 		return f1;
 	}
 

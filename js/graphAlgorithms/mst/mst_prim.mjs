@@ -16,36 +16,40 @@ import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
  *  @param trace controls the amount of trace output produced, larger
  *  values produce more output
  *  @return a list of edges that defines an mst in g or a minimum
- *  spanning forest of the component containing s, if g is not connected
+ *  spanning forest of the component containing s, if g is not connected;
+ *  also a trace string
  */
 export default function mst_prim(g, trace=0) {
-	let elist = [];
-	let cheap = new Array(g.n+1).fill(0);
+	let elist = []; let traceString = '';
+	let light = new Array(g.n+1).fill(0);
 	let h = new Dheap(g.n, 2+Math.floor(g.m/g.n));
 
+	if (trace) traceString += g + '\n';
 	let mark = new Array(g.n).fill(false);
 	for (let s = 1; s <= g.n; s++) {
 		if (mark[s]) continue;
 		mark[s] = true;
 		for (let e = g.firstAt(s); e != 0; e = g.nextAt(s,e)) {
-			let u = g.mate(s,e); h.insert(u, g.weight(e)); cheap[u] = e;
+			let u = g.mate(s,e); h.insert(u, g.weight(e)); light[u] = e;
 		}
-		cheap[s] = 1;	// dummy value, anything non-zero will do
+		light[s] = 1;	// dummy value, anything non-zero will do
 		while (!h.empty()) {
-			let u = h.deletemin(); elist.push(cheap[u]);
 			if (trace) {
-				console.log(g.index2string(u) + ' ' + g.elist2string(elist) +
-							'\n' + h);
+				let u = h.findmin();
+				traceString += g.index2string(u) + ' ' +
+							   g.edge2string(light[u]) + ' ' +
+							   g.elist2string(elist) + '\n' + h +'\n\n';
 			}
+			let u = h.deletemin(); elist.push(light[u]);
 			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 				let v = g.mate(u,e); mark[v] = true;
 				if (h.contains(v) && g.weight(e) < h.key(v)) {
-					h.changekey(v, g.weight(e)); cheap[v] = e;
-				} else if (!h.contains(v) && cheap[v] == 0) {
-					h.insert(v, g.weight(e)); cheap[v] = e;
+					h.changekey(v, g.weight(e)); light[v] = e;
+				} else if (!h.contains(v) && light[v] == 0) {
+					h.insert(v, g.weight(e)); light[v] = e;
 				}
 			}
 		}
 	}
-	return elist;
+	return [elist, traceString];
 }

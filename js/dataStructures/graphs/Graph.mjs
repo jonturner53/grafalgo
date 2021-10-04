@@ -12,6 +12,7 @@ import List from '../basic/List.mjs';
 import ListPair from '../basic/ListPair.mjs';
 import Dlists from '../basic/Dlists.mjs';
 import Scanner from '../basic/Scanner.mjs';
+import { randomInteger } from '../../Random.mjs';
 
 /** Data structure for undirected graph.
  *
@@ -215,7 +216,8 @@ export default class Graph extends Adt {
 	 *  on failure
 	 */
 	join(u, v, e=this._edges.firstOut()) {
-		assert(u > 0 && v > 0 && (e > 0 || this._edges.firstOut() == 0) &&
+		assert(u != v && u > 0 && v > 0 &&
+			   (e > 0 || this._edges.firstOut() == 0) &&
 			   !this._edges.isIn(e));
 		if (u > this.n || v > this.n || this._edges.nOut() == 0) {
 			this.expand(Math.max(this.n, Math.max(u, v)),
@@ -330,8 +332,14 @@ export default class Graph extends Adt {
 			if (s.length > 0 && ns.length > 0) s += ' ';
 			s += ns;
 		}
-		return this.index2string(u) + '[' + s + ']';
+		return this.vertex2string(u, strict) + '[' + s + ']';
 	}
+
+	/* Create string representation of vertex at start of alist.
+	 *  @param u is a vertex
+	 *  @param strict (if true) forces u to be displayed as a number
+	 */
+	vertex2string(u, strict=0) { return this.index2string(u, strict); }
 
 	/** Create a string representation for a neighbor of a given vertex.
 	 *  @param u is a vertex
@@ -409,7 +417,7 @@ export default class Graph extends Adt {
 	 */
 	nextAlist(sc) {
 		let cursor = sc.cursor;
-		let u = sc.nextIndex();
+		let u = this.nextVertex(sc);
 		if (u == 0) { sc.reset(cursor); return false; }
 		if (u > this.n) this.expand(u, this.m);
 		if (!sc.verify('[')) { sc.reset(cursor); return false; }
@@ -421,6 +429,13 @@ export default class Graph extends Adt {
 		}
 		return true;
 	}
+
+	/** Get the next vertex (from the start of an alist) from a scanner.
+	 *  @param sc is a scanner for a string representation of a flow graph
+	 *  @return the vertex that is assumed to be the next thing in the
+	 *  scanner string, or 0 if not successfule
+	 */
+	nextVertex(sc) { return sc.nextIndex(); }
 
 	/** Get the neighbor of a given vertex from a scanner and add connecting
 	 *  edge to this Graph.
@@ -503,35 +518,22 @@ export default class Graph extends Adt {
 		for (let u = 1; u <= this.n; u++) d = Math.max(d, this.degree(u));
 		return d;
 	}
-	
-	/** Get the components of a graph.
-	 *  @return a component vector, that assigns a "component number" to each
-	 *  vertex; that is, vertices in the same component have the same
-	 *  component number
-	 */
-	getComponents() {
-		let component = new Array(this.n+1).fill(0);
-		
-		let q = new List(this.n);
-		let curComp = 0;
-		let s = 1;
-		while (s <= this.n) {
-			// do a breadth-first search from s, labeling all
-			// vertices found with the current component number
-			component[s] = ++curComp; q.enq(s);
-			while (!q.empty()) {
-				let u = q.deq();
-				for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e)) {
-					let v = this.mate(u,e);
-					if (component[v] == 0) {
-						component[v] = curComp; q.enq(v);
-					}
-				}
-			}
-			// scan ahead to next int that has not yet been
-			// placed in some component
-			while (s <= this.n && component[s] != 0) s++;
+
+	randomEdge() {
+		let edges = this._edges;
+		if (edges.nIn == 0) return 0;
+		if (edges.nIn() < this._ecap / 20) {
+			let i = randomInteger(1, edges.nIn);
+			for (let e = edges.firstIn(); e != 0; e = edges.nextIn(e)) 
+				if (--i == 0) return e;
+			return 0; // should never get here
 		}
-		return component;
+		let e = randomInteger(1, this._ecap);
+		while (edges.isOut(e)) {
+			// avg number of tries should never exeed 20
+			// if used to sample from "almost full" graph, then fast
+			e = randomInteger(1, this._ecap);
+		}
+		return e;
 	}
 }

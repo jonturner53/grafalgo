@@ -116,13 +116,13 @@ export default class Scanner extends Adt {
 		this.#i = i; return value;
 	}
 
-	/** Get a floating point value from the scanned string.
-	 *  @return the floating point value represented by the next non-space
+	/** Get a numeric value (possibly floating point) from the scanned string.
+	 *  @return the numeric value represented by the next non-space
 	 *  chunk of text in the scanned string; if that chunk of text does
-	 *  not represent a floating point value, NaN is returned and the cursor
+	 *  not represent a number, NaN is returned and the cursor
 	 *  remains at its original position.
 	 */
-	nextFloat() {
+	nextNumber() {
 		let s = this.#s; let n = s.length;
 		let i0 = this.firstNonSpace();
 		let value = parseFloat(s.slice(i0, i0+30));

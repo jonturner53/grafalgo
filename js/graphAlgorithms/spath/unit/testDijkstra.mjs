@@ -1,4 +1,4 @@
-/** \file testDijjkstra.java
+/** \file testDijkstra.java
  *
  *  @author Jon Turner
  *  @date 2021
@@ -15,13 +15,12 @@ import Digraph_l from '../../../dataStructures/graphs/Digraph_l.mjs';
 try {
 	console.log("running basic tests");
 
-	let n = 6; let l1 = new List(n);
-	let g = new Digraph_l(n);
+	let g = new Digraph_l(6); let trace = 0;
 	g.fromString("{a[b:3 d:2] b[c:7 f:4] c[d:1 f:2] " +
 				 "d[e:3] e[a:5] f[c:3 e:1]}");
 
-	console.log('g=' + g);
-	let [pedge, dist] = spt_dijkstra(g, 1, 1);
+	let [pedge, dist, ts] = spt_dijkstra(g, 1, trace);
+	if (trace) console.log(ts);
 	assert(g.elist2string(pedge.slice(2)),
 				  '[(a,b,3) (b,c,7) (a,d,2) (d,e,3) (b,f,4)]', 'a1');
 	assert(spt_verify(g, 1, pedge, dist), 'ok', 'a2');
@@ -38,8 +37,8 @@ try {
 	e = g.join(3, 8); g.setLength(e, 6);
 	e = g.join(2, 9); g.setLength(e, 1);
 	e = g.join(9, 10); g.setLength(e, 1);
-	console.log('\ng=' + g);
-	[pedge, dist] = spt_dijkstra(g, 1, 1);
+	[pedge, dist, ts] = spt_dijkstra(g, 1, trace);
+	if (trace) console.log(ts);
 	assert(g.elist2string(pedge.slice(2)),
 				'[(a,b,3) (f,c,3) (a,d,2) (b,e,1) (j,f,1) (f,g,2) (c,h,6) ' +
 				'(b,i,1) (i,j,1)]', 'a6');
