@@ -7,8 +7,8 @@
  */
 
 import { assert, fatal } from './Errors.mjs';
-import List from './dataStructures/basic/List.mjs';
-import Dheap from './dataStructures/heaps/Dheap.mjs';
+import List from '../dataStructures/basic/List.mjs';
+import Dheap from '../dataStructures/heaps/Dheap.mjs';
 
 /** Create range array.
  *  @param n is a positive integer

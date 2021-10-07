@@ -8,12 +8,12 @@
 
 import { assert, fatal } from './Errors.mjs';
 import { range } from './Util.mjs';
-import List from './dataStructures/basic/List.mjs';
-import Dheap from './dataStructures/heaps/Dheap.mjs';
-import Graph from './dataStructures/graphs/Graph.mjs';
-import Digraph from './dataStructures/graphs/Digraph.mjs';
-import Flograph from './dataStructures/graphs/Flograph.mjs';
-import mflo_dinic from './graphAlgorithms/mflow/mflo_dinic.mjs';
+import List from '../dataStructures/basic/List.mjs';
+import Dheap from '../dataStructures/heaps/Dheap.mjs';
+import Graph from '../dataStructures/graphs/Graph.mjs';
+import Digraph from '../dataStructures/graphs/Digraph.mjs';
+import Flograph from '../dataStructures/graphs/Flograph.mjs';
+import mflo_dinic from '../graphAlgorithms/mflow/mflo_dinic.mjs';
 
 console.log(randomTree(10).toString(0,1));
 
