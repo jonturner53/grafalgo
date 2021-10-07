@@ -15,8 +15,6 @@ import Digraph from '../dataStructures/graphs/Digraph.mjs';
 import Flograph from '../dataStructures/graphs/Flograph.mjs';
 import mflo_dinic from '../graphAlgorithms/mflow/mflo_dinic.mjs';
 
-console.log(randomTree(10).toString(0,1));
-
 // Return a random number in [0,1] 
 export function randomFraction() {
 	return Math.random();
@@ -72,7 +70,7 @@ export function randomPareto(mu, s) {
  *  @param f is a function, typically a random number generator,
  *  called using the remaining arguments that follow f;
  *  for example to fill an array with random integers in 1..10
- *  use randomFill(randomInteger, 1, 10);
+ *  use randomFill(a, randomInteger, 1, 10);
  */ 
 export function randomFill(a, f) {
 	let args=([].slice.call(arguments)).slice(2);
@@ -85,7 +83,8 @@ export function randomFill(a, f) {
  *  in positions 1..n
  */
 export function randomPermutation(n) {
-	return scramble(range(n));
+	let a = range(n); scramble(a);
+	return a;
 }
 
 /** Scramble an array, that is, permute the entries randomly.
@@ -96,7 +95,8 @@ export function randomPermutation(n) {
 export function scramble(a) {
 	for (let i = 1; i < a.length; i++) {
 		let j = randomInteger(i, a.length-1);
-		[a[i], a[j]] = [a[j], a[i]];
+		//[a[i], a[j]] = [a[j], a[i]];
+		let k = a[i]; a[i] = a[j]; a[j] = k;
 	}
 }
 

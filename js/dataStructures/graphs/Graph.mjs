@@ -6,14 +6,13 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import Adt from '../Adt.mjs';
 import { assert } from '../../common/Errors.mjs'
-import { scramble } from '../../common/Util.mjs';
+import { randomInteger, scramble } from '../../common/Random.mjs';
+import Adt from '../Adt.mjs';
 import List from '../basic/List.mjs';
 import ListPair from '../basic/ListPair.mjs';
 import Dlists from '../basic/Dlists.mjs';
 import Scanner from '../basic/Scanner.mjs';
-import { randomInteger } from '../../Random.mjs';
 
 /** Data structure for undirected graph.
  *

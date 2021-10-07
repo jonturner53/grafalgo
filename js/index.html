@@ -21,7 +21,7 @@
 }
 
 .fixedWidthButton {
-	width: 50;
+	width: 85;
 	border: 1px solid black;
 	margin: 1px 0px 1px 0px;
 	padding: 1px 1px 1px 1px;
@@ -79,21 +79,21 @@
 	</div>
 
 	<div style="font-family: Verdana; font-size: 75%; position: absolute;
-			   top:100; left:605;">
+			   top:90; left:605;">
 		algorithms<br>
 		<button id="algoButton" class="smallButton"></button>
 		<select id="algoMenu" style="font-size: 100%; width:120">
 		</select>
 	</div>
 	<div style="font-family: Verdana; font-size: 75%; position: absolute;
-			   top:135; left:605;">
+			   top:125; left:605;">
 		<button id="testAlgoButton" class="smallButton"></button>
 		<select id="testAlgoMenu" style="font-size: 100%; width:120">
 		</select>
 	</div>
 
 	<div style="font-family: Verdana; font-size: 75%; position: absolute;
-			   top:170; left:605;">
+			   top:150; left:605;">
 		common<br>
 		<button id="commonButton" class="smallButton"></button>
 		<select id="commonMenu" style="font-size: 100%; width:120">
@@ -101,8 +101,8 @@
 	</div>
 
 	<div style="font-family: Verdana; font-size: 80%;
-				position: absolute; top: 205; left: 605;">
-		<button id="scratchButton" class="fixedWidthButton">scratch</button>
+				position: absolute; top: 200; left: 605;">
+		<button id="scratchButton" class="fixedWidthButton">scratch pad</button>
 	</div>
 
 	<div style="font-family: Verdana; font-size: 80%;
@@ -293,7 +293,7 @@ class Menu {
 	}
 
 	select() {
-		updateCurrentMenu(menu);
+		updateCurrentMenu(this);
 		let file = this.selector.value;
 		serverRequest(file)
 			.then(function(reply) {
@@ -306,7 +306,7 @@ class Menu {
 		if (this.string == '') {
 			this.select();
 		} else {
-			this.updateCurrentMenu();
+			updateCurrentMenu(this);
 			codeArea.value = this.string;
 		}
 	}
@@ -350,7 +350,7 @@ let testAlgo = new Menu(
 let common = new Menu(
 		document.getElementById("commonMenu"),
 		document.getElementById("commonButton"),
-		'./', false
+		'common/', false
 );
 
 let clearButton = document.getElementById("clearButton");

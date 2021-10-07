@@ -7,7 +7,7 @@
  */
 
 import { assert } from '../../common/Errors.mjs';
-import { scramble } from '../../common/Util.mjs';
+import { scramble } from '../../common/Random.mjs';
 import Adt from '../Adt.mjs';
 import Graph from './Graph.mjs';
 import List from '../basic/List.mjs';
