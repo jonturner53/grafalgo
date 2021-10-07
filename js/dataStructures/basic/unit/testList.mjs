@@ -8,7 +8,7 @@
 
 import List from '../List.mjs';
 import Scanner from '../Scanner.mjs';
-import { assert, AssertError } from '../../../Errors.mjs';
+import { assert, AssertError } from '../../../common/Errors.mjs';
 
 try {
 	console.log('running basic tests');

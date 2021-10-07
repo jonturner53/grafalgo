@@ -197,7 +197,7 @@ function log() {
 }
 
 let currentMenu = null;		// when null, scratch pad is selected
-updateCurrentMenu(menu) {
+function updateCurrentMenu(menu) {
 	if (currentMenu == null) {
 		scratchPad = codeArea.value;
 		scratchButton.style.backgroundColor = 'beige';

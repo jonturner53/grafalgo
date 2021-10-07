@@ -7,7 +7,7 @@
  */
 
 import Scanner from '../Scanner.mjs';
-import { assert, AssertError } from '../../../Errors.mjs';
+import { assert, AssertError } from '../../../common/Errors.mjs';
 import Dsets from '../Dsets.mjs';
 
 try {

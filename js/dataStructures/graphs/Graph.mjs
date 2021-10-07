@@ -7,8 +7,8 @@
  */
 
 import Adt from '../Adt.mjs';
-import { assert } from '../../Errors.mjs'
-import { scramble } from '../../Util.mjs';
+import { assert } from '../../common/Errors.mjs'
+import { scramble } from '../../common/Util.mjs';
 import List from '../basic/List.mjs';
 import ListPair from '../basic/ListPair.mjs';
 import Dlists from '../basic/Dlists.mjs';

@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../Errors.mjs';
-import { shuffle } from '../../Util.mjs';
+import { assert } from '../../common/Errors.mjs';
+import { shuffle } from '../../common/Util.mjs';
 import Adt from '../Adt.mjs';
 import Graph from './Graph.mjs';
 import List from '../basic/List.mjs';

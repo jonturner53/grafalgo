@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError} from '../../../Errors.mjs';
+import { assert, AssertError} from '../../../common/Errors.mjs';
 import components from '../components.mjs';
 import Dlists from '../../../dataStructures/basic/Dlists.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';

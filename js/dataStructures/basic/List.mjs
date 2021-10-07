@@ -7,7 +7,7 @@
  */
 
 import Adt from '../Adt.mjs';
-import { assert } from '../../Errors.mjs';
+import { assert } from '../../common/Errors.mjs';
 import Scanner from './Scanner.mjs';
 
 /** Data structure representing a list of unique integers.

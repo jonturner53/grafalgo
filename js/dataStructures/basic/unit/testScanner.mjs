@@ -8,7 +8,7 @@
 
 'use strict';
 
-import { assert,AssertError } from '../../../Errors.mjs';
+import { assert,AssertError } from '../../../common/Errors.mjs';
 import Scanner from '../Scanner.mjs';
 
 try {

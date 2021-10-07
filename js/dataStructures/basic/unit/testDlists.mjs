@@ -7,7 +7,7 @@
  */
 
 import Dlists from '../Dlists.mjs';
-import { assert, AssertError } from '../../../Errors.mjs';
+import { assert, AssertError } from '../../../common/Errors.mjs';
 
 try {
 	console.log('running basic tests');

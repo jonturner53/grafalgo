@@ -8,7 +8,7 @@
 
 import nca from '../Nca.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
-import { assert, AssertError } from '../../../Errors.mjs';
+import { assert, AssertError } from '../../../common/Errors.mjs';
 
 try {
 	console.log('running basic tests');

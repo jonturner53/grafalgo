@@ -7,7 +7,7 @@
  */
 
 import Adt from '../Adt.mjs';
-import { assert } from '../../Errors.mjs';
+import { assert } from '../../common/Errors.mjs';
 import Dlists from './Dlists.mjs';
 import List from './List.mjs';
 import Scanner from './Scanner.mjs';

@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../Errors.mjs';
+import { assert } from '../../common/Errors.mjs';
 import Adt from '../Adt.mjs';
 
 /** The Scanner class provides methods to parse a string incrementally.
