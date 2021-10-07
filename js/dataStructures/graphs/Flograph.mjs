@@ -259,4 +259,12 @@ export default class Flograph extends Digraph {
 		this.setFlow(e, f);
 		return e;
 	}
+
+	/** Randomize the order of the vertices and edges. */
+	scramble() {
+		let [,ep] = super.scramble();
+		shuffle(this._f, ep); shuffle(this._cap, ep);
+	}
 }
+
+

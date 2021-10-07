@@ -7,6 +7,7 @@
  */
 
 import { assert } from '../../Errors.mjs';
+import { shuffle } from '../../Util.mjs';
 import Adt from '../Adt.mjs';
 import Graph from './Graph.mjs';
 import List from '../basic/List.mjs';
@@ -164,6 +165,12 @@ export default class Graph_w extends Graph {
 		if (isNaN(w)) return 0;
 		this.setWeight(e, w);
 		return e;
+	}
+
+	/** Randomize the order of the vertices and edges. */
+	scramble() {
+		let [,ep] = super.scramble();
+		shuffle(this.#weight, ep);
 	}
 	
 	/** Construct a string in dot file format representation 

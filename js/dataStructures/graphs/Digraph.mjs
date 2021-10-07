@@ -7,6 +7,7 @@
  */
 
 import { assert } from '../../Errors.mjs';
+import { scramble } from '../../Util.mjs';
 import Adt from '../Adt.mjs';
 import Graph from './Graph.mjs';
 import List from '../basic/List.mjs';
@@ -294,6 +295,38 @@ export default class Digraph extends Graph {
 			if (this.join(u, v, e) != e) return 0;
 		}
 		return e;
+	}
+
+	/** Randomize the order of the vertices, edges and adjacency lists.
+	 *  @return pair [vp, ep] where vp is the permutation used to permute
+	 *  the vertices and ep is the permutation used to permute the edges
+	 */
+	scramble() {
+		let vp = randomPermutation(this.n);
+		let ep = randomPermutation(this._ecap);
+		this._shuffle(vp, ep);
+
+		// finally scramble individual eplists
+		for (let u = 1; u <= this.n; u++) {
+			// scramble inputs to u separately from outputs
+			if (this._firstEp[u] == 0) continue;
+			let epi = [0]; let ee = this._firstEp[u];
+			while (ee != 0 && u == this.head(Math.floor(ee/2))) {
+				epi.push(ee); ee = this.eplists.delete(ee, ee);
+			}
+			let epo = [0]; ee = this._firstEp[u];
+			while (ee != 0) {
+				epo.push(ee); ee = this.eplists.delete(ee, ee);
+			}
+			scramble(epi); scramble(epo);
+			let first = (epi.length > 1 ? epi[1] : epo[1]);
+			for (let i = 2; i < epi.length; i++)
+				this.eplists.join(first, epi[i]);
+			for (let i = (epi.length > 1 ? 1 : 2); i < epo.length; i++)
+				this.eplists.join(first, epo[i]);
+			this._firstEp[u] = first;
+		}
+		return [vp,ep]
 	}
 	
 	/** Construct a string in dot file format representation 

@@ -7,6 +7,7 @@
  */
 
 import { assert, fatal } from './Errors.mjs';
+import { range } from './Util.mjs';
 import List from './dataStructures/basic/List.mjs';
 import Dheap from './dataStructures/heaps/Dheap.mjs';
 import Graph from './dataStructures/graphs/Graph.mjs';
@@ -66,25 +67,36 @@ export function randomPareto(mu, s) {
 	return mu*(1-1/s) / Math.exp((1/s)*Math.log(randfrad()));
 }
 
-/** Create random permutation.
- *  @param n is an integer
- *  @return an array containing a random permutation on [1, n].
- *  in the entries with indices in [1, n]
- */
-export function randomPermutation(n) {
-	let p = new Array(n);
-	for (let i = 0; i < n; i++) p[i] = i;
-	scramble(p);
-	return p;
+/** Fill an array with values from a function.
+ *  @param a is an array to be filled
+ *  @param f is a function, typically a random number generator,
+ *  called using the remaining arguments that follow f;
+ *  for example to fill an array with random integers in 1..10
+ *  use randomFill(randomInteger, 1, 10);
+ */ 
+export function randomFill(a, f) {
+	let args=([].slice.call(arguments)).slice(2);
+	for (let i = 0; i < a.length; i++) a[i] = f(...args);
 }
 
-/** Scramble an array, that is permute the entries randomly.
- *  @param a is an array of values
+/** Create random permutation.
+ *  @param n is an integer
+ *  @return an array containing a random permutation on 1..n in
+ *  in positions 1..n
+ */
+export function randomPermutation(n) {
+	return scramble(range(n));
+}
+
+/** Scramble an array, that is, permute the entries randomly.
+ *  @param a is an array of n+1 values
+ *  @return a scrambled version of a in which the values in positions
+ *  1..n are randomly permuted
  */
 export function scramble(a) {
-	for (let i = 0; i < a.length; i++) {
+	for (let i = 1; i < a.length; i++) {
 		let j = randomInteger(i, a.length-1);
-		let k = a[i]; a[i] = a[j]; a[j] = k;
+		[a[i], a[j]] = [a[j], a[i]];
 	}
 }
 
@@ -391,17 +403,17 @@ function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
 	let dl = new Array(n1+1); let dr = new Array(n2+1);
 	let limitl = Math.max(10, Math.min(2*d1, n2));
 	let limitr = Math.max(10, Math.min(2*d2, n1));
-	let pairs = new Array(Math.min(limitl*n1, limitr*n2));
+	let pairs = new Array(1 + Math.min(limitl*n1, limitr*n2));
 	let oopsCount = 0; let oopsLimit = 10;
 	while (oopsCount < oopsLimit) {
-		let plen = 0
+		let nextPair = 1;
 		dl.fill(0); dr.fill(0);
 		if (n1 < 30 || n2 < 30 || m > n1*n2/3) {
 			// build list of all potential edges
 			for (let u = 1; u <= n1; u++) {
 				for (let v = n1+1; v <= n1+n2; v++) {
 					if (noSelf && v == n1+u) continue;
-					pairs[plen++] = [u, v]; dl[u]++; dr[v-n1]++;
+					pairs[nextPair++] = [u, v]; dl[u]++; dr[v-n1]++;
 				}
 			}
 		} else {
@@ -411,26 +423,26 @@ function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
 				let v = n1 + randomInteger(1, n2);
 				if (noSelf && v == n1+u) continue;
 				if (dl[u] < limitl && dr[v-n1] < limitr) {
-					pairs[plen++] = [u, v]; dl[u]++; dr[v-n1]++;
+					pairs[nextPair++] = [u, v]; dl[u]++; dr[v-n1]++;
 				}
 			}
 		}
-		pairs.length = plen;
+		pairs.length = nextPair;
 
 		// now, check for parallel edges and eliminate
 		pairs.sort((a,b) => (a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 :
 							(a[1] < b[1] ? -1 : (a[1] > b[1] ? 1 : 0)))));
 		let j = 0;
-		while (j < plen) {
+		while (j < nextPair) {
 			let [u,v] = pairs[j];
 			if (j > 0 && u == pairs[j-1][0] && v == pairs[j-1][1]) {
-				pairs[j] = pairs[--plen];
+				pairs[j] = pairs[--nextPair];
 				if (--dl[u] < d1 || --dr[v-n1] < d2) break;
 			}
 			j++;
 		}
-		pairs.length = plen;
-		if (j == plen) break;
+		pairs.length = nextPair;
+		if (j == nextPair) break;
 		oopsCount++;	// rarely exceeds 1
 	}
 	let g = new Graph(1);
@@ -440,7 +452,7 @@ function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
 	let fg = new Flograph(n1+n2+2, pairs.length + n1 + n2);
 	fg.setSource(n1+n2+1); fg.setSink(n1+n2+2);
 	scramble(pairs); // randomize order of edges in pairs
-	for (let i = 0; i < pairs.length; i++) {
+	for (let i = 1; i < pairs.length; i++) {
 		let e = fg.join(pairs[i][0], pairs[i][1]);
 		fg.setCapacity(e, 1);
 	}

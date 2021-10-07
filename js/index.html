@@ -92,14 +92,27 @@
 		</select>
 	</div>
 
+	<div style="font-family: Verdana; font-size: 75%; position: absolute;
+			   top:170; left:605;">
+		common<br>
+		<button id="commonButton" class="smallButton"></button>
+		<select id="commonMenu" style="font-size: 100%; width:120">
+		</select>
+	</div>
+
+	<div style="font-family: Verdana; font-size: 80%;
+				position: absolute; top: 205; left: 605;">
+		<button id="scratchButton" class="fixedWidthButton">scratch</button>
+	</div>
+
 	<div style="font-family: Verdana; font-size: 80%;
 				position: absolute; top: 300; left: 605;">
-		<button id="runButton" class="fixedWidthButton">run</button> <br>
+		<button id="runButton" class="fixedWidthButton">run</button>
 	</div>
 
 	<div style="font-family: Verdana; font-size: 80%;
 				position: absolute; top: 320; left: 605;">
-		<button id="clearButton" class="fixedWidthButton">clear</button> <br>
+		<button id="clearButton" class="fixedWidthButton">clear</button>
 	</div>
 </div>
 
@@ -137,6 +150,8 @@ function serverRequest(path, args=[]) {
 }
 
 import { assert, AssertError } from './Errors.mjs';
+import * as util from './Util.mjs';
+import * as rand from './Random.mjs';
 
 import Dlists from './dataStructures/basic/Dlists.mjs';
 import Dlists_r from './dataStructures/basic/Dlists_r.mjs';
@@ -181,19 +196,28 @@ function log() {
 	outputArea.value += s + '\n';
 }
 
-let clearButton = document.getElementById("clearButton");
-clearButton.addEventListener("click", () => { outputArea.value = ''; } );
+let currentMenu = null;		// when null, scratch pad is selected
+updateCurrentMenu(menu) {
+	if (currentMenu == null) {
+		scratchPad = codeArea.value;
+		scratchButton.style.backgroundColor = 'beige';
+	} else {
+		currentMenu.deactivate();
+	}
+	currentMenu = menu; currentMenu.activate();
+}
 
-/** Run code in the codeArea, after making minor fixes. */
-function runCode(s) {
-	eval(s.replace(/^[ \t]*import/gm, '// import')
-		  .replace(/console.log/gm, 'log'));
-};
-
-let runButton = document.getElementById("runButton");
-runButton.addEventListener("click", () => { runCode(codeArea.value); } );
-
-let currentMenu = null;
+let scratchPad = '// scratch pad\n';
+codeArea.value = scratchPad;
+let scratchButton = document.getElementById("scratchButton");
+scratchButton.style.backgroundColor = 'lightGreen';
+scratchButton.addEventListener("click", () => {
+	if (currentMenu == null) return;
+	currentMenu.deactivate();
+	codeArea.value = scratchPad;
+	scratchButton.style.backgroundColor = 'lightGreen';
+	currentMenu = null;
+});
 
 /** Menu class implements selector/button combo */
 class Menu {
@@ -269,10 +293,10 @@ class Menu {
 	}
 
 	select() {
+		updateCurrentMenu(menu);
 		let file = this.selector.value;
 		serverRequest(file)
 			.then(function(reply) {
-				this.updateCurrentMenu();
 				this.string = reply.replace(/[\t]/gm, '    ');
 				codeArea.value = this.string;
 			}.bind(this));
@@ -287,14 +311,16 @@ class Menu {
 		}
 	}
 
-	updateCurrentMenu() {
-		if (currentMenu != null) {
-			currentMenu.button.style.backgroundColor = "beige";
-			currentMenu.string = codeArea.value;
-		}
-		currentMenu = this;
-		currentMenu.button.style.backgroundColor = "lightGreen";
+	activate() {
+		this.button.style.backgroundColor = 'lightGreen';
+		codeArea.value = this.string;
 	}
+
+	deactivate() {
+		this.button.style.backgroundColor = 'beige';
+		this.string = codeArea.value;
+	}
+
 }
 
 let dstruct = new Menu(
@@ -321,7 +347,20 @@ let testAlgo = new Menu(
 		'graphAlgorithms/', true
 );
 
-//dstruct.select();
+let common = new Menu(
+		document.getElementById("commonMenu"),
+		document.getElementById("commonButton"),
+		'./', false
+);
+
+let clearButton = document.getElementById("clearButton");
+clearButton.addEventListener("click", () => { outputArea.value = ''; } );
+
+let runButton = document.getElementById("runButton");
+runButton.addEventListener("click", () => {
+	eval(codeArea.value.replace(/^[ \t]*import/gm, '// import')
+		  				.replace(/console.log/gm, 'log'));
+});
 
 </script>
 </body>

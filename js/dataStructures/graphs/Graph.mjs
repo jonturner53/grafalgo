@@ -8,6 +8,7 @@
 
 import Adt from '../Adt.mjs';
 import { assert } from '../../Errors.mjs'
+import { scramble } from '../../Util.mjs';
 import List from '../basic/List.mjs';
 import ListPair from '../basic/ListPair.mjs';
 import Dlists from '../basic/Dlists.mjs';
@@ -285,7 +286,7 @@ export default class Graph extends Adt {
 
 		epl.sort((e1, e2) => this.ecmp(Math.trunc(e1/2), Math.trunc(e2/2), u));
 	
-		// now rebuild links forming adjacency list for u
+		// now rebuild endpoint list at u
 		for (let j = 1; j < epl.length; j++) {
 			this._epLists.join(epl[0], epl[j]);
 		}
@@ -519,6 +520,9 @@ export default class Graph extends Adt {
 		return d;
 	}
 
+	/** Return a random edge.
+	 *  Likely to be slow if _ecap >> m.
+	 */
 	randomEdge() {
 		let edges = this._edges;
 		if (edges.nIn == 0) return 0;
@@ -535,5 +539,47 @@ export default class Graph extends Adt {
 			e = randomInteger(1, this._ecap);
 		}
 		return e;
+	}
+
+	/** Randomize the order of the vertices, edges and adjacency lists.
+	 *  @return pair [vp, ep] where vp is the permutation used to permute
+	 *  the vertices and ep is the permutation used to permute the edges
+	 */
+	scramble() {
+		let vp = randomPermutation(this.n);
+		let ep = randomPermutation(this._ecap);
+		this._shuffle(vp, ep);
+
+		// finally scramble individual eplists
+		for (let u = 1; u <= this.n; u++) {
+			if (this._firstEp[u] == 0) continue;
+			let epl = [0]; let ee = this._firstEp[u];
+			while (ee != 0) {
+				epl.push(ee); ee = this.eplists.delete(ee, ee);
+			}
+			scramble(epl);
+			for (let i = 2; i < epl.length; i++)
+				this.eplists.join(epl[1], epl[i]);
+			this._firstEp[u] = epl[1];
+		}
+	}
+
+	/** Shuffle the vertices and edges according to the given permutations.
+	 *  @param g is a graph object to be shuffled
+	 *  @param vp is a permutation on the vertices, mapping vertex u to vp[u-1]
+	 *  @param ep is a permutation on the edge numbers (including unused ones)
+	 *  mapping edge e to ep[e-1]
+	 */
+	_shuffle(vp, ep) {
+		let left = new Array(this._ecap).fill(0);
+		let right = new Array(this._ecap);
+		for (let e = this.first(); e != 0; e = this.next(e)) {
+			left[e] = this.left(e); right[e] = this.right(e);
+		}
+		this.clear();
+		for (let i = 0; i < left.length; i++) {
+			 if (left[i] != 0)
+				 this.join(vp[left[i]], vp[right[i]], ep[i]);
+		}
 	}
 }

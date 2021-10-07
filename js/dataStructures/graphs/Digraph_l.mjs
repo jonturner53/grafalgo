@@ -166,6 +166,12 @@ export default class Digraph_l extends Digraph {
 		this.setLength(e, l);
 		return e;
 	}
+
+	/** Randomize the order of the vertices and edges. */
+	scramble() {
+		let [,ep] = super.scramble();
+		shuffle(this.#length, ep);
+	}
 	
 	/** Construct a string in dot file format representation 
 	 *  of the Digraph_l object.
