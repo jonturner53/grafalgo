@@ -78,7 +78,7 @@ export default class Flograph extends Digraph {
 			this._f = new Array(this._ecap+1);
 			this._cap = new Array(this._ecap+1);
 		}
-		this.#f.fill(0); this.#cap.fill(0);
+		this._f.fill(0); this._cap.fill(0);
 	}
 	
 	/** Assign one graph to another by transferring its contents.
@@ -222,7 +222,8 @@ export default class Flograph extends Digraph {
 	nabor2string(u, e, details=0, strict=0) {
 		let s = super.nabor2string(u, e, details, strict);
 		if (s.length == 0) return s;
-		return s + ':' + this.cap(u, e) + ':' + this.f(u,e);
+		let v = this.tail(e);
+		return s + ':' + this.cap(v, e) + ':' + this.f(v, e);
 	}
 
     /** Get the next vertex (from the start of an alist) from a scanner.
@@ -286,10 +287,10 @@ export default class Flograph extends Digraph {
 	 */
 	randomCapacities(f) {
 		let args= ([].slice.call(arguments)).slice(1);
-        for (let e = this.first; e != 0; e = this.next(e))
+        for (let e = this.first(); e != 0; e = this.next(e)) {
 			let c = f(...args); this.setCapacity(e, c);
+		}
 	}
-
 }
 
 

@@ -35,7 +35,6 @@ export default class Graph_w extends Graph {
 	} 
 
 	reset(n, ecap, vcap) {
-		assert(n > 0 && vcap >= n && ecap > 0);
 		super.reset(n, ecap, vcap); this.#init_w();
 	}
 
@@ -191,8 +190,9 @@ export default class Graph_w extends Graph {
 	 */
 	randomWeights(f) {
 		let args= ([].slice.call(arguments)).slice(1);
-        for (let e = this.first; e != 0; e = this.next(e))
+        for (let e = this.first(); e != 0; e = this.next(e)) {
 			let w = f(...args); this.setWeight(e, w);
+		}
 	}
 	
 	/** Construct a string in dot file format representation 

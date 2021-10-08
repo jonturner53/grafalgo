@@ -263,13 +263,16 @@ export default class Digraph extends Graph {
 	 *  @param showEdgeNum specifies that the edge number should be included
 	 *  in the string
 	 *  @return a string representing the mate(u,e), possibly followed by
-	 *  an edge number, and definitely followed by the edge weight, but only
-	 *  if e is an out-going edge of u; otherwise return null
+	 *  an edge number, and definitely followed by the edge weight;
+	 *  if details is true, incoming edges are returned, otherwise just
+	 *  outgoing edges
 	 */
 	nabor2string(u, e, details=0, strict=0) {
-		return (u != this.tail(e) ? '' :
-				this.index2string(this.mate(u, e), strict) +
-				(details ? ':'+e : ''));
+		if (u == this.head(e) && !details) return '';
+		let s = this.index2string(this.mate(u, e), strict);
+		if (u == this.head(e)) s += '>';
+		//if (details) s += ':' + e;
+		return s;
 	}
 
 	/** Get the neighbor of a given vertex from a scanner and add connecting

@@ -137,8 +137,8 @@ export function randomDag(n, m) {
  *  @param m is the target number of edges; if the graph already
  *  has some edges, they are assumed to be unique; additional edges
  *  are added until the graph has m edges
- *  @param up is a flag; if true, add edges from collection of pairs
- *  [u,v] where u<v; if false pairs are not constrained
+ *  @param up is a flag; if true, add edges [u,v] with u<v;
+ *  if false pairs are not constrained
  */
 function add2graph(g, m, up=false) {
 	if (m <= g.m) return;
@@ -164,13 +164,16 @@ function add2graph(g, m, up=false) {
 		// build oversize, but incomplete vector of candidate edges
 		pairs = new Array(m + Math.max(m, 200));
 		for (let i = 0; i < pairs.length; i++) {
-			pairs[i]    = [ randomInteger(1, g.n-1), 0 ];
+			let u, v;
 			if (up) {
-				pairs[i][1] = randomInteger(pairs[i][0]+1, g.n)
+				u = randomInteger(1, g.n-1);
+				v = randomInteger(u+1, g.n);
 			} else {
-				let j = randomInteger(1, g.n-1);
-				pairs[i][1] = j<i ? j : j+1;
+				u = randomInteger(1, g.n);
+				v = randomInteger(1, g.n-1);
+				if (v >= u) v++;
 			}
+			pairs[i] = [u,v];
 		}
 		sortReduce(pairs);
 		removeDuplicates(pairs, g);

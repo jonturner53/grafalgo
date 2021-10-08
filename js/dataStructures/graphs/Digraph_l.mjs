@@ -34,7 +34,6 @@ export default class Digraph_l extends Digraph {
 	} 
 
 	reset(n, ecap, vcap) {
-		assert(n > 0 && vcap >= n && ecap > 0);
 		super.reset(n, ecap, vcap); this.#init_l();
 	}
 
@@ -191,8 +190,9 @@ export default class Digraph_l extends Digraph {
 	 */
 	randomLengths(f) {
 		let args= ([].slice.call(arguments)).slice(1);
-        for (let e = this.first; e != 0; e = this.next(e))
+        for (let e = this.first(); e != 0; e = this.next(e)) {
 			let l = f(...args); this.setLength(e, l);
+		}
 	}
 	
 	/** Construct a string in dot file format representation 
