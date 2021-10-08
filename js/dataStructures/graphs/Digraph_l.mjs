@@ -62,6 +62,16 @@ export default class Digraph_l extends Digraph {
 		for (let e = g.first(); e != 0; e = g.next(e))
 			this.#length[e] = g.#length[e];
 	}
+
+	/** Embed a Digraph object within this Graph_l object.
+	 *  @param g is a Graph object.
+	 */
+	embed(g) {
+		super.assign(g);
+		if (this.#length.length != this._ecap+1)
+			this.#length = new Array(this._ecap+1);
+		this.#length.fill(0);
+	}
 	
 	/** Assign one graph to another by transferring its contents.
 	 *  @param g is another graph whose contents is traferred to this one
@@ -171,6 +181,18 @@ export default class Digraph_l extends Digraph {
 	scramble() {
 		let [,ep] = super.scramble();
 		shuffle(this.#length, ep);
+	}
+
+	/** Compute random lengths for all the edges.
+	 *  @param f is a random number generator used to generate the
+	 *  random edge lengths; it is invoked using any extra arguments
+	 *  provided by caller; for example randomLengths(randomInteger, 1, 10)
+     *  will assign random integer lengths in 1..10.
+	 */
+	randomLengths(f) {
+		let args= ([].slice.call(arguments)).slice(1);
+        for (let e = this.first; e != 0; e = this.next(e))
+			let l = f(...args); this.setLength(e, l);
 	}
 	
 	/** Construct a string in dot file format representation 

@@ -54,7 +54,7 @@ export default class Graph_w extends Graph {
 	}
 
 	/** Assign one graph to another.
-	 *  @param g is another graph that is copied to this one
+	 *  @param g is a Graph_w that is copied to this one
 	 */
 	assign(g) {
 		super.assign(g);
@@ -63,9 +63,19 @@ export default class Graph_w extends Graph {
 		for (let e = g.first(); e != 0; e = g.next(e))
 			this.#weight[e] = g.#weight[e];
 	}
+
+	/** Embed a Graph object within this Graph_w object.
+	 *  @param g is a Graph object.
+	 */
+	embed(g) {
+		super.assign(g);
+		if (this.#weight.length != this._ecap+1)
+			this.#weight = new Array(this._ecap+1);
+		this.#weight.fill(0);
+	}
 	
 	/** Assign one graph to another by transferring its contents.
-	 *  @param g is another graph whose contents is traferred to this one
+	 *  @param g is another graph whose contents are traferred to this one
 	 */
 	xfer(g) {
 		super.xfer(g); this.#weight = g.#weight; g.#weight = null;
@@ -171,6 +181,18 @@ export default class Graph_w extends Graph {
 	scramble() {
 		let [,ep] = super.scramble();
 		shuffle(this.#weight, ep);
+	}
+
+	/** Compute random weights for all the edges.
+	 *  @param f is a random number generator used to generate the
+	 *  random edge weights; it is invoked using any extra arguments
+	 *  provided by caller; for example randomWeights(randomInteger, 1, 10)
+     *  will assign random integer weights in 1..10.
+	 */
+	randomWeights(f) {
+		let args= ([].slice.call(arguments)).slice(1);
+        for (let e = this.first; e != 0; e = this.next(e))
+			let w = f(...args); this.setWeight(e, w);
 	}
 	
 	/** Construct a string in dot file format representation 

@@ -52,8 +52,8 @@ export default class Flograph extends Digraph {
 			let nu = new Flograph(n, ecap, vcap);
 			nu.assign(this); this.xfer(nu);
 		}
-		this._f.fill(0, this.m+1, m+1);
-		this._cap.fill(0, this.m+1, m+1);
+		this._f.fill(0, this._ecap+1, m+1);
+		this._cap.fill(0, this._ecap+1, m+1);
 		super.expand(n, m);
 	}
 
@@ -67,6 +67,18 @@ export default class Flograph extends Digraph {
 			this.join(u, v);
 			this.setCapacity(e, g.cap(u, e)); this.setFlow(e, 0);
 		}
+	}
+
+	/** Embed a Digraph object within this Flograph object.
+	 *  @param g is a Graph object.
+	 */
+	embed(g) {
+		super.assign(g);
+		if (this._f.length != this._ecap+1) {
+			this._f = new Array(this._ecap+1);
+			this._cap = new Array(this._ecap+1);
+		}
+		this.#f.fill(0); this.#cap.fill(0);
 	}
 	
 	/** Assign one graph to another by transferring its contents.
@@ -265,6 +277,19 @@ export default class Flograph extends Digraph {
 		let [,ep] = super.scramble();
 		shuffle(this._f, ep); shuffle(this._cap, ep);
 	}
+
+	/** Compute random capacities for all the edges.
+	 *  @param f is a random number generator used to generate the
+	 *  random edge capacities; it is invoked using any extra arguments
+	 *  provided by caller; for example randomCapacities(randomInteger, 1, 10)
+     *  will assign random integer capacities in 1..10.
+	 */
+	randomCapacities(f) {
+		let args= ([].slice.call(arguments)).slice(1);
+        for (let e = this.first; e != 0; e = this.next(e))
+			let c = f(...args); this.setCapacity(e, c);
+	}
+
 }
 
 
