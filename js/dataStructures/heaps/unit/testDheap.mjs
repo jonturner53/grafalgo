@@ -29,6 +29,12 @@ try {
 	assert(h1, '{h:1 g:4 f:2 c:5}', 'b5');
 	assert(h1.deletemin(), 8, 'b6');
 	assert(h1, '{f:2 g:4 c:5}', 'b7');
+	let stats = h1.getStats();
+	assert(stats.insert, 4, 'b8');
+	assert(stats.delete, 1, 'b9');
+	assert(stats.changekey, 0, 'b10');
+	assert(stats.siftup, 0, 'b11');
+	assert(stats.siftdown, 0, 'b12');
 
 	let n2 = 27; let h2 = new Dheap(n2);
 	h2.fromString('{g:4 f:2 c:5}');

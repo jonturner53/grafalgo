@@ -51,5 +51,5 @@ export default function mst_prim(g, trace=0) {
 			}
 		}
 	}
-	return [elist, traceString];
+	return [elist, traceString, h.getStats() ];
 }

@@ -45,8 +45,7 @@ export default class Dheap extends Adt {
 		this.#key = new Array(capacity+1);
 		this.#item[0] = this.#m = 0; this.#d = d;
 
-		this.#insertCount = this.#deleteCount = this.#changekeyCount = 0
-		this.#siftupSteps = this.#siftdownSteps = 0
+		this.clearStats();
 	}
 
 	/** Reset the heap discarding old value.
@@ -71,6 +70,7 @@ export default class Dheap extends Adt {
 			x = h.#item[p];
 			this.#item[p] = x; this.#pos[x] = p; this.#key[x] = h.#key[x];
 		}
+		this.clearStats();
 	}
 
 	/** Assign a new value by transferring from another heap.
@@ -82,6 +82,7 @@ export default class Dheap extends Adt {
 		this.#d = h.#d; this.#m = h.#m;
 		this.#item = h.#item; this.#pos = h.#pos; this.#key = h.#key;
 		h.#item = h.#pos = h.#key = null;
+		this.clearStats();
 	}
 	
 	/** Expand the space available for this Dheap.
@@ -103,6 +104,12 @@ export default class Dheap extends Adt {
 	clear() {
 		for (let x = 1; x <= this.#m; x++) this.#pos[this.#item[x]] = 0;
 		this.#m = 0;
+		this.clearStats();
+	}
+
+	clearStats() {
+		this.#insertCount = this.#deleteCount = this.#changekeyCount = 0
+		this.#siftupSteps = this.#siftdownSteps = 0
 	}
 
 	get _capacity() { return this.#item.length-1; }
@@ -198,7 +205,7 @@ export default class Dheap extends Adt {
 		while (x > 1 && this.#key[i] < this.#key[this.#item[px]]) {
 			this.#item[x] = this.#item[px]; this.#pos[this.#item[x]] = x;
 			x = px; px = this.p(x);
-			this.siftupSteps++;
+			this.#siftupSteps++;
 		}
 		this.#item[x] = i; this.#pos[i] = x;
 	}
@@ -213,7 +220,7 @@ export default class Dheap extends Adt {
 		while (cx != 0 && this.#key[this.#item[cx]] < this.#key[i]) {
 			this.#item[x] = this.#item[cx]; this.#pos[this.#item[x]] = x;
 			x = cx; cx = this.#minchild(x);
-			this.siftdownSteps++;
+			this.#siftdownSteps++;
 		}
 		this.#item[x] = i; this.#pos[i] = x;
 	}
@@ -239,7 +246,7 @@ export default class Dheap extends Adt {
 	 *  @param k is a new key value for item i
 	 */
 	changekey(i, k) {
-		this.changekeyCount++;
+		this.#changekeyCount++;
 		let ki = this.#key[i]; this.#key[i] = k;
 		if (k == ki) return;
 		if (k < ki) this.#siftup(i, this.#pos[i]);
@@ -303,7 +310,7 @@ export default class Dheap extends Adt {
 		let i = sc.nextIndex();
 		while (i != 0) {
 			if (!sc.verify(':')) { this.clear(); return false; }
-			let key = sc.nextFloat();
+			let key = sc.nextNumber();
 			if (isNaN(key)) { this.clear(); return false; }
 			this.insert(i, key);
 			i = sc.nextIndex();
@@ -314,8 +321,10 @@ export default class Dheap extends Adt {
 
 	/** Return statistics object. */
 	getStats() {
-		return { 'insert' : insertCount, 'delete' : deleteCount,
-				 'changekey' : changekeyCount,
-				 'siftup' : siftupSteps, 'siftdown' : siftdownSteps };
+		return {
+			'insert' : this.#insertCount, 'delete' : this.#deleteCount,
+			'changekey' : this.#changekeyCount,
+			'siftup' : this.#siftupSteps, 'siftdown' : this.#siftdownSteps
+		};
 	}
 }

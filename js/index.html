@@ -150,8 +150,10 @@ function serverRequest(path, args=[]) {
 }
 
 import { assert, AssertError } from './common/Errors.mjs';
-import * as util from './common/Util.mjs';
-import * as rand from './common/Random.mjs';
+import { range, shuffle, scramble, randomFraction, randomInteger, randomExp,
+		 randomGeometric, randomTruncatedGeometric, randomPareto,
+
+	   } from './common/Random.mjs';
 
 import Dlists from './dataStructures/basic/Dlists.mjs';
 import Dlists_r from './dataStructures/basic/Dlists_r.mjs';
@@ -176,17 +178,20 @@ import dfs from './graphAlgorithms/misc/dfs.mjs';
 import dfs_nr from './graphAlgorithms/misc/dfs_nr.mjs';
 import findSplit from './graphAlgorithms/misc/findSplit.mjs';
 import nca from './graphAlgorithms/misc/nca.mjs';
-//import toposort from './graphAlgorithms/misc/toposort.mjs';
+import { randomGraph, randomDigraph, randomDag, randomBigraph, randomTree,
+ 		 randomConnectedGraph, randomRegularGraph
+	   } './graphAlgorithms/misc/RandomGraph.mjs';
+import toposort from './graphAlgorithms/misc/toposort.mjs';
 
 import mst_kruskal from './graphAlgorithms/mst/mst_kruskal.mjs';
 import mst_prim from './graphAlgorithms/mst/mst_prim.mjs';
+import badcase_prim from './graphAlgorithms/mst/badcase_prim.mjs';
 import mst_verify from './graphAlgorithms/mst/mst_verify.mjs';
 
 import spt_dijkstra from './graphAlgorithms/spath/spt_dijkstra.mjs';
 import spt_verify from './graphAlgorithms/spath/spt_verify.mjs';
 
 import mflo_dinic from './graphAlgorithms/mflow/mflo_dinic.mjs';
-
 
 let codeArea = document.getElementById("codeArea");
 let outputArea = document.getElementById("outputArea");
