@@ -279,7 +279,7 @@ export default class Dheap extends Adt {
 	 *  details to be shown.
 	 *  @param pretty is a flag that (when true) produces a more readable
 	 *  representation
-	 *  @param strict is a a flag that forces items to always be shown as
+	 *  @param strict is a flag that forces items to always be shown as
 	 *  numerical values, not letters.
 	 *  @param u is intended only for recursive calls to toString; it
 	 *  identifies a position in the heap structure

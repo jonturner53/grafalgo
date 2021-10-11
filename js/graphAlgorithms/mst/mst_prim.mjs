@@ -16,13 +16,13 @@ import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
  *  @param trace controls the amount of trace output produced, larger
  *  values produce more output
  *  @return a list of edges that defines an mst in g or a minimum
- *  spanning forest of the component containing s, if g is not connected;
- *  also a trace string
+ *  spanning forest, if g is not connected; also a trace string
+ *  and a statistics object
  */
 export default function mst_prim(g, trace=0) {
 	let elist = []; let traceString = '';
 	let light = new Array(g.n+1).fill(0);
-	let h = new Dheap(g.n, 2+Math.floor(g.m/g.n));
+	let h = new Dheap(g.n);
 
 	if (trace) traceString += g + '\n';
 	let mark = new Array(g.n).fill(false);
