@@ -37,7 +37,7 @@ export default class ListPair extends Adt {
 	 *  @param n specifies the range of integer values
 	 *  @param capacity specifies the maximum range to provide space for
 	 */
-	constructor(n=10, capacity=n) { super(n); this.#init(capacity); }
+	constructor(n, capacity=n) { super(n); this.#init(capacity); }
 
 	/** Allocate space and initialize.
 	 *  @param capacity is the maximum range

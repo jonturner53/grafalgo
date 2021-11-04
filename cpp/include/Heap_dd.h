@@ -15,6 +15,37 @@ namespace grafalgo {
 
 /** This class implements a dynamic heap data structure by extending the
  *  Heap_d class. Specifically, it adds a constant time addtokeys operation.
+
+Tarjan describes more elaborate version of this that uses
+key differences along path to root. Is that really necessary?
+
+can we prove simple version works?
+
+invariant: for each heap item i key(i) = delta + dkey(i).
+
+addtokeys changes both key and delta by same amount,
+so invariant is preserved by addtokeys.
+
+insert(i) sets dkey(i) to value that makes invariant true;
+no change to delta, so invariant preserved by insert.
+
+delete/deletemin does not change any other heap item, so invariant is
+preserved.
+
+changekey alters dkey(i) but not delta, so invariant is preserved
+
+All key comparisons can use either key or dkey, since all have
+the same difference with delta
+
+This all seems to support the simpler version, so why does Tarjan
+describe the more complicated version? Is it because we do need key
+differences in dynamic trees and he just wants to introduce idea?
+Or perhaps simple version works for dheaps but not leftist heaps?
+Or is there some subtlety I am missing?
+
+The issue arises with melding heaps. If two heaps have different
+delta values, then melding requires updating of dkey fields.
+So no problem with simpler approach with dheap.
  */
 template<class K>
 class Heap_dd : public Heap_d<K> {

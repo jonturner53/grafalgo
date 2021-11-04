@@ -36,7 +36,7 @@ export default class Graph extends Adt {
 	 *  @param vcap is the initial vertex capacity (defaults to n);
 	 *  this argument is intended for internal use of Graph class
 	 */
-	constructor(n=5, ecap=n, vcap=n) {
+	constructor(n=1, ecap=n, vcap=n) {
 		super(n); this.#init(vcap, ecap);
 	}
 
@@ -55,6 +55,13 @@ export default class Graph extends Adt {
 
 	get _vcap() { return this._firstEp.length-1; }
 	get _ecap() { return this._left.length-1; }
+
+	get M() {
+		let M = 0;
+		for (let e = this.first(); e != 0; e = this.next(e))
+			M = Math.max(e, M);
+		return M;
+	}
 
 	expand(n, m) {
 		if (n <= this.n && m <= this.m) return;

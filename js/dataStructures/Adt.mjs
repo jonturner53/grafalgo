@@ -26,7 +26,7 @@
 export default class Adt {
 	#n;		// index values in 0..n
 
-	constructor(n=26) { this.#n = n; }
+	constructor(n=5) { this.#n = n; }
 
 	/** Get the index range for the object.
 	 *  @return the largest index value
@@ -59,26 +59,6 @@ export default class Adt {
 	 *  of the string representations.
 	 */
 	equals(a2) { return this.toString() == a2.toString(); }
-
-	/** Compare two Adts for equality, including internal details.
-	 *  @param a2 is an Adt object to be compared to this.
-	 *  @return true if this is equal to a2, not just at the abstraction
-	 *  level, but also for internal details; for subclasses that do not
-	 *  provide their own long equality check, comparison defaults to equality
-	 *  of the long string representations.
-	longEquals(a2) {
-		return (typeof a2) == 'string' ?
-					this.toLongString() == a2 :
-					this.toLongString() == a2.toLongString();
-	}
-	 */
-
-	/** Check the data structure for internal consistency.
-	 *  @return true if the data structure is internally consistent,
-	 *  else return false; if a subclass does not supply a consistent()
-	 *  method, false is returned.
-	consistent() { return false; }
-	 */
 
 	/** Convert an index to a string.
 	 *  @param[in] x is a valid index for the data structure

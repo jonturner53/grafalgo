@@ -24,7 +24,7 @@ export default class List_d extends List {
 	 *  @param n is the range of the list
 	 *  @param capacity is the max range to allocate space for
 	 */
-	constructor(n=10, capacity=n) { super(n); this.#init_d(capacity); }
+	constructor(n, capacity=n) { super(n); this.#init_d(capacity); }
 
 	/** Allocate space for and initialize List_d object.
 	 *  More precisely, the parts that are not initialize in parent class.
@@ -128,12 +128,14 @@ export default class List_d extends List {
 	/** Remove item following a specified item.
 	 *  @param i is a list item; the next list item is removed; if i==0 the
 	 *  first item is removed
+	 *  @return the deleted item
 	 */
 	deleteNext(i) {
 		assert(i == 0 || this.contains(i));
 		if (i == this.last()) return;
-		super.deleteNext(i);
+		let j = super.deleteNext(i);
 		if (this.next(i) != 0) this.#prev[this.next(i)] = i;
+		return j;
 	}
 	
 	pop() {

@@ -109,11 +109,11 @@ export default class List extends Adt {
 	 *  @return index at position i, or 0 if no such index
 	 */
 	at(i) {
-	    assert(valid(i) && i != 0);
-	    if (i == 1) return this.first();
-		let j;
-	    for (let j = this.first(); j != 0 && i != 1; j = this.next(j)) { i--; }
-	    return j;
+	    assert(this.valid(i) && i != 0);
+	    for (let j = this.first(); j != 0; j = this.next(j)) {
+			if (--i == 0) return j;
+		}
+	    return 0;
 	}
 	
 	/** Test if list is empty. O(1)
@@ -180,6 +180,7 @@ export default class List extends Adt {
 		else	    { j = this.#next[i]; this.#next[i] = this.#next[j]; }
 		if (this.#last == j) this.#last = i;
 		this.#next[j] = -1; this.#length--;
+		return j;
 	}
 	
 	/** Push item onto front of a list. O(1)
@@ -190,7 +191,7 @@ export default class List extends Adt {
 	/** Remove the first item in the list. O(1)
 	 *  @return the item removed, or 0
 	 */
-	pop() { let f = this.first(); this.deleteNext(0); return f; }
+	pop() { return this.deleteNext(0); }
 	
 	/** Add item to the end of the list. O(1)
 	 *  @param item to be added.

@@ -20,7 +20,7 @@ export default function kruskal(g, trace=0) {
 	for (let e = g.first(); e != 0; e = g.next(e)) edges[i++] = e;
 	edges.sort((e1, e2) => g.weight(e1) - g.weight(e2));
 	if (trace) {
-		traceString += g + '\n' + g.elist2string(edges) + '\n';
+		traceString += g.toString(0,1) + g.elist2string(edges) + '\n\n';
 	}
 
 	// now examine edges in order, merging separate subtrees
@@ -32,11 +32,9 @@ export default function kruskal(g, trace=0) {
 		if (cu != cv) {
 			elist.push(e); subtrees.link(cu, cv);
 			if (trace) {
-				traceString += g.edge2string(e) + '\n' +
-						   	   g.elist2string(elist) + '\n' +
-							   subtrees + '\n\n';
-				}
+				traceString += g.edge2string(e) + ' ' + subtrees + '\n';
+			}
 		}
 	}
-	return [elist, traceString];
+	return [elist, traceString, subtrees.getStats() ];
 }

@@ -15,35 +15,35 @@ import Scanner from '../basic/Scanner.mjs';
  *  is specified when a heap object is constructed.
  */
 export default class Dheap extends Adt {
-	#d;			///< base of heap
-	#m;			///< # of items in the heap set
+	_d;			///< base of heap
+	_m;			///< # of items in the heap set
 
-	#item;		///< {#item[1],...,#item[m]} is the items in the heap
-	#pos;		///< #pos[i] gives position of i in #item
-	#key;		///< #key[i] is key of item i
+	_item;		///< {_item[1],...,_item[m]} is the items in the heap
+	_pos;		///< _pos[i] gives position of i in _item
+	_key;		///< _key[i] is key of item i
 
-	#insertCount;		// calls to insert
-	#deleteCount;		// calls to delete
-	#changekeyCount;	// calls to changekey
-	#siftupSteps;		// steps taken by siftup
-	#siftdownSteps;		// steps taken by siftdown
+	_insertCount;		// calls to insert
+	_deleteCount;		// calls to delete
+	_changekeyCount;	// calls to changekey
+	_siftupSteps;		// steps taken by siftup
+	_siftdownSteps;		// steps taken by siftdown
 
 	/** Constructor for Dheap object.
 	 *  @param n is index range for object
-	 *  @parm d is the base of the heap (defaults to 2)
+	 *  @parm d is the base of the heap (defaults to 4)
 	 *  @param capacity is maximum index range (defaults to n)
 	 */
-	constructor(n, d=2, capacity=n) { super(n); this.#init(d, capacity); }
+	constructor(n, d=4, capacity=n) { super(n); this.#init(d, capacity); }
 	
 	/** Allocate space and initialize Dheap object.
 	 *  @param d is the base of the heap.
 	 *  @param capacity is the maximum range
 	 */
 	#init(d, capacity) {
-		this.#item = new Array(capacity+1);
-		this.#pos = new Array(capacity+1).fill(0);
-		this.#key = new Array(capacity+1);
-		this.#item[0] = this.#m = 0; this.#d = d;
+		this._item = new Array(capacity+1);
+		this._pos = new Array(capacity+1).fill(0);
+		this._key = new Array(capacity+1);
+		this._item[0] = this._m = 0; this._d = d;
 
 		this.clearStats();
 	}
@@ -53,8 +53,8 @@ export default class Dheap extends Adt {
 	 *  @param d is the new base of the heap.
 	 *  @param capacity the new max range.
 	 */
-	reset(n, d=2, capacity=n) {
-		assert(capacity >= n); this._n = n; this.#init(d, capacity);
+	reset(n, d=4, capacity=n) {
+		assert(capacity >= n); this._n = n; this._init(d, capacity);
 	}
 	
 	/** Assign a new value by copying from another heap.
@@ -67,8 +67,8 @@ export default class Dheap extends Adt {
 
 		this.m = h.m;
 		for (p = 1; p <= h.m; p++) {
-			x = h.#item[p];
-			this.#item[p] = x; this.#pos[x] = p; this.#key[x] = h.#key[x];
+			x = h._item[p];
+			this._item[p] = x; this._pos[x] = p; this._key[x] = h._key[x];
 		}
 		this.clearStats();
 	}
@@ -79,9 +79,9 @@ export default class Dheap extends Adt {
 	xfer(h) {
 		if (h == this) return;
 		if (!(h instanceof Dheap)) return;
-		this.#d = h.#d; this.#m = h.#m;
-		this.#item = h.#item; this.#pos = h.#pos; this.#key = h.#key;
-		h.#item = h.#pos = h.#key = null;
+		this._d = h._d; this._m = h._m;
+		this._item = h._item; this._pos = h._pos; this._key = h._key;
+		h._item = h._pos = h._key = null;
 		this.clearStats();
 	}
 	
@@ -92,54 +92,54 @@ export default class Dheap extends Adt {
 	expand(n) {
 		if (n <= this.n) return;
 		if (n > this._capacity) {
-			let nu = new Dheap(this.n, this.#d,
+			let nu = new Dheap(this.n, this._d,
 							    Math.max(n, Math.floor(1.25 * this._capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
-		this.#pos.fill(0, this.n+1, n+1);
+		this._pos.fill(0, this.n+1, n+1);
 		this._n = n;
 	}
 
 	/** Remove all elements from heap. */
 	clear() {
-		for (let x = 1; x <= this.#m; x++) this.#pos[this.#item[x]] = 0;
-		this.#m = 0;
+		for (let x = 1; x <= this._m; x++) this._pos[this._item[x]] = 0;
+		this._m = 0;
 		this.clearStats();
 	}
 
 	clearStats() {
-		this.#insertCount = this.#deleteCount = this.#changekeyCount = 0
-		this.#siftupSteps = this.#siftdownSteps = 0
+		this._insertCount = this._deleteCount = this._changekeyCount = 0
+		this._siftupSteps = this._siftdownSteps = 0
 	}
 
-	get _capacity() { return this.#item.length-1; }
+	get _capacity() { return this._item.length-1; }
 
-	get d() { return this.#d; }
+	get d() { return this._d; }
 
-	get m() { return this.#m; }
+	get m() { return this._m; }
 
 	/** Return position of parent of a heap item.
 	 *  @param p is position of item in heap
 	 *  @param return position where parent would go if there were one
 	 */
-	p(pos) { return Math.ceil((pos-1)/this.d); }
+	_p(pos) { return Math.ceil((pos-1)/this.d); }
 
 	/** Return position of leftmost child of a heap item.
 	 *  @param pos is position of item in heap
 	 *  @param return position where left child would go if there were one
 	 */
-	left(pos) { return this.d*(pos-1)+2; }
+	_left(pos) { return this.d*(pos-1)+2; }
 
 	/** Return position of rightmost child of a heap item.
 	 *  @param pos is position of item in heap
 	 *  @param return position where right child would go if there were one
 	 */
-	right(pos) { return this.d*pos+1; }
+	_right(pos) { return this.d*pos+1; }
 	
 	/** Find an item in the heap with the smallest key.
 	 *  @return the number of an item that has the smallest key
 	 */
-	findmin() { return this.empty() ? 0 : this.#item[1]; }
+	findmin() { return this.empty() ? 0 : this._item[1]; }
 	
 	/** Delete a minimum key item from the heap and return it.
 	 *  @return an item of minimum key from the heap, after deleting it
@@ -147,7 +147,7 @@ export default class Dheap extends Adt {
 	 */
 	deletemin() {
 		if (this.empty()) return 0;
-		let i = this.#item[1]; this.delete(i);
+		let i = this._item[1]; this.delete(i);
 		return i;
 	}
 	
@@ -155,13 +155,13 @@ export default class Dheap extends Adt {
 	 *  @param i is an item in the heap
 	 *  @return the value of i's key
 	 */
-	key(i) { return this.#key[i]; }
+	key(i) { return this._key[i]; }
 	
 	/** Determine if an item is in the heap.
 	 *  @param i is an item
 	 *  @return true if i is in the heap, else false
 	 */
-	contains(i) { return this.#pos[i] != 0; }
+	contains(i) { return this._pos[i] != 0; }
 	
 	/** Determine if the heap is empty.
 	 *  @return true if heap is empty, else false
@@ -174,9 +174,9 @@ export default class Dheap extends Adt {
 	 */
 	insert(i, key) {
 		assert(i > 0);
-		this.#insertCount++;
+		this._insertCount++;
 		if (i > this._capacity) this.expand(i);
-		this.#key[i] = key; this.#m++; this.#siftup(i, this.m);
+		this._key[i] = key; this._m++; this._siftup(i, this.m);
 	}
 	
 	/** Remove an index from the heap.
@@ -184,15 +184,15 @@ export default class Dheap extends Adt {
 	 */
 	delete(i) {
 		assert(i > 0);
-		this.#deleteCount++;
-		let j = this.#item[this.#m--];
+		this._deleteCount++;
+		let j = this._item[this._m--];
 		if (i != j) {
-			if (this.#key[j] <= this.#key[i])
-				this.#siftup(j, this.#pos[i]);
+			if (this._key[j] <= this._key[i])
+				this._siftup(j, this._pos[i]);
 			else
-				this.#siftdown(j, this.#pos[i]);
+				this._siftdown(j, this._pos[i]);
 		}
-		this.#pos[i] = 0;
+		this._pos[i] = 0;
 	}
 	
 	/** Perform siftup operation to restore heap order.
@@ -200,14 +200,14 @@ export default class Dheap extends Adt {
 	 *  @param i is an item to be positioned in the heap
 	 *  @param x is a tentative position for i in the heap
 	 */
-	#siftup(i, x) {
-		let px = this.p(x);
-		while (x > 1 && this.#key[i] < this.#key[this.#item[px]]) {
-			this.#item[x] = this.#item[px]; this.#pos[this.#item[x]] = x;
-			x = px; px = this.p(x);
-			this.#siftupSteps++;
+	_siftup(i, x) {
+		let px = this._p(x);
+		while (x > 1 && this._key[i] < this._key[this._item[px]]) {
+			this._item[x] = this._item[px]; this._pos[this._item[x]] = x;
+			x = px; px = this._p(x);
+			this._siftupSteps++;
 		}
-		this.#item[x] = i; this.#pos[i] = x;
+		this._item[x] = i; this._pos[i] = x;
 	}
 	
 	/** Perform siftdown operation to restore heap order.
@@ -215,14 +215,13 @@ export default class Dheap extends Adt {
 	 *  @param i is an item to be positioned in the heap
  	 *  @param x is a tentative position for i in the heap
  	 */
-	#siftdown(i, x) {
-		let cx = this.#minchild(x);
-		while (cx != 0 && this.#key[this.#item[cx]] < this.#key[i]) {
-			this.#item[x] = this.#item[cx]; this.#pos[this.#item[x]] = x;
-			x = cx; cx = this.#minchild(x);
-			this.#siftdownSteps++;
+	_siftdown(i, x) {
+		let cx = this._minchild(x);
+		while (cx != 0 && this._key[this._item[cx]] < this._key[i]) {
+			this._item[x] = this._item[cx]; this._pos[this._item[x]] = x;
+			x = cx; cx = this._minchild(x);
 		}
-		this.#item[x] = i; this.#pos[i] = x;
+		this._item[x] = i; this._pos[i] = x;
 	}
 	
 	/** Find the position of the child with the smallest key.
@@ -231,11 +230,12 @@ export default class Dheap extends Adt {
 	 *  @return the position of the child of the item at x, that has
 	 *  the smallest key
 	 */
-	#minchild(x) {
-		let minc = this.left(x);
+	_minchild(x) {
+		let minc = this._left(x);
 		if (minc > this.m) return 0;
-		for (let y = minc + 1; y <= this.right(x) && y <= this.m; y++) {
-			if (this.#key[this.#item[y]] < this.#key[this.#item[minc]])
+		for (let y = minc + 1; y <= this._right(x) && y <= this.m; y++) {
+			this._siftdownSteps++;
+			if (this._key[this._item[y]] < this._key[this._item[minc]])
 				minc = y;
 		}
 		return minc;
@@ -246,11 +246,11 @@ export default class Dheap extends Adt {
 	 *  @param k is a new key value for item i
 	 */
 	changekey(i, k) {
-		this.#changekeyCount++;
-		let ki = this.#key[i]; this.#key[i] = k;
+		this._changekeyCount++;
+		let ki = this._key[i]; this._key[i] = k;
 		if (k == ki) return;
-		if (k < ki) this.#siftup(i, this.#pos[i]);
-		else this.#siftdown(i, this.#pos[i]);
+		if (k < ki) this._siftup(i, this._pos[i]);
+		else this._siftdown(i, this._pos[i]);
 	}
 
 	/** Determine if two heaps are equal.
@@ -266,9 +266,9 @@ export default class Dheap extends Adt {
 		if (!(h instanceof Dheap)) return false;
 		if (this.m != h.m) return false;
 		for (let i = 1; i <= this.m; i++) {
-			let x = this.#item[i];
+			let x = this._item[i];
 			if (!h.contains(x) || this.key(x) != h.key(x)) return false;
-			let y = h.#item[i];
+			let y = h._item[i];
 			if (!this.contains(y) || this.key(y) != h.key(y)) return false;
 		}
 		return true;
@@ -287,15 +287,15 @@ export default class Dheap extends Adt {
 	toString(details=0, pretty=0, strict=0, u=1) {
 		if (this.empty()) return '{}';
 		if (u == 0) return '';
-		let s = this.index2string(this.#item[u], strict) +
-				':' + this.#key[this.#item[u]];
-		if (this.left(u) <= this.m)
+		let s = this.index2string(this._item[u], strict) +
+				':' + this.key(this._item[u]);
+		if (this._left(u) <= this.m)
 			s += (details ? '(' : ' ');
-		for (let v = this.left(u); v <= this.right(u) && v <= this.m; v++) {
-			if (v != this.left(u)) s += ' ';
+		for (let v = this._left(u); v <= this._right(u) && v <= this.m; v++) {
+			if (v != this._left(u)) s += ' ';
 			s += this.toString(details, strict, pretty, v);
 		}
-		if (details && this.left(u) <= this.m) s += ')';
+		if (details && this._left(u) <= this.m) s += ')';
 		return (u == 1 ? '{' + s + '}' : s);
 	}
 
@@ -322,9 +322,9 @@ export default class Dheap extends Adt {
 	/** Return statistics object. */
 	getStats() {
 		return {
-			'insert' : this.#insertCount, 'delete' : this.#deleteCount,
-			'changekey' : this.#changekeyCount,
-			'siftup' : this.#siftupSteps, 'siftdown' : this.#siftdownSteps
+			'insert' : this._insertCount, 'delete' : this._deleteCount,
+			'changekey' : this._changekeyCount,
+			'siftup' : this._siftupSteps, 'siftdown' : this._siftdownSteps
 		};
 	}
 }

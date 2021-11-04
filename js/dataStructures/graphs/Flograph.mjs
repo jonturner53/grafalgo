@@ -133,7 +133,7 @@ export default class Flograph extends Digraph {
 
 	clearFlow() {
 		for (let e = this.first(); e != 0; e = this.next(e))
-			this.setFlow(3, 0);
+			this.setFlow(e, 0);
 	}
 
 	totalFlow() {

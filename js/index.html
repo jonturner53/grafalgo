@@ -105,13 +105,17 @@
 		<button id="scratchButton" class="fixedWidthButton">scratch pad</button>
 	</div>
 
+	<input type="text" size="15" value="" id="argString"
+               style="position: absolute; top: 300; left: 605; font-size: 100%"
+				onchange="setArgv()">
+
 	<div style="font-family: Verdana; font-size: 80%;
-				position: absolute; top: 300; left: 605;">
+				position: absolute; top: 320; left: 605;">
 		<button id="runButton" class="fixedWidthButton">run</button>
 	</div>
 
 	<div style="font-family: Verdana; font-size: 80%;
-				position: absolute; top: 320; left: 605;">
+				position: absolute; top: 340; left: 605;">
 		<button id="clearButton" class="fixedWidthButton">clear</button>
 	</div>
 </div>
@@ -185,6 +189,8 @@ import toposort from './graphAlgorithms/misc/toposort.mjs';
 
 import mst_kruskal from './graphAlgorithms/mst/mst_kruskal.mjs';
 import mst_prim from './graphAlgorithms/mst/mst_prim.mjs';
+import mst_primf from './graphAlgorithms/mst/mst_primf.mjs';
+import mst_chetar from './graphAlgorithms/mst/mst_chetar.mjs';
 import badcase_prim from './graphAlgorithms/mst/badcase_prim.mjs';
 import mst_verify from './graphAlgorithms/mst/mst_verify.mjs';
 
@@ -202,6 +208,12 @@ function log() {
 	for (let i = 0; i < arguments.length; i++) 
 		s += arguments[i] + ' ';
 	outputArea.value += s + '\n';
+}
+
+let argv = [];
+function setArgv() {
+	let s = document.getElementById("argString").value;
+	argv = s.trim().split(/ +/);
 }
 
 let currentMenu = null;		// when null, scratch pad is selected

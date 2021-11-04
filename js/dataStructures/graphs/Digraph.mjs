@@ -192,15 +192,6 @@ export default class Digraph extends Graph {
 		super.delete(e);
 	}
 
-	sortAlist(u) {
-		super.sortAlist(u);
-		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u)) {
-			if (u == this.tail(e)) {
-				this._firstEpOut[u] = 2*e; break;
-			}
-		}
-	}
-
 	/** Compare another graph to this one.
 	 *  @param g is a Digraph object or a string representing one.
 	 *  @return true if g is equal to this; that is, it has the same

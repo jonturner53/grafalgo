@@ -19,8 +19,12 @@ import Digraph from '../graphs/Digraph.mjs';
  *  supports constant-time union of two sets.
  */
 export default class Dsets extends Adt {
-	#p;			///< #p[i] is parent of i
-	#rank;	 	///< #rank[i] is rank of i
+	_p;			///< _p[i] is parent of i
+	_rank;	 	///< _rank[i] is rank of i
+
+	_linkCount;
+	_findCount;
+	_findSteps;
 	
 	constructor(n, capacity=n) {
 		super(n); this.#init(capacity);
@@ -28,9 +32,13 @@ export default class Dsets extends Adt {
 
 	#init(capacity) {
 		assert(this.n <= capacity);
-		this.#p = new Array(capacity+1); 
-		this.#rank = new Array(capacity+1);
+		this._p = new Array(capacity+1); 
+		this._rank = new Array(capacity+1);
 		this.clear();
+	
+		this._linkCount = 0;
+		this._findCount = 0;
+		this._findSteps = 0;
 	}
 	
 	/** Allocate space and initialize Dsets object.
@@ -40,7 +48,7 @@ export default class Dsets extends Adt {
 	 */
 	reset(n, capacity=n) {
 		assert(0 < this.n && n <= capacity);
-		this._n = n; this.#init();
+		this._n = n; this._init();
 	}
 
 	/** Expand the space available for this object.
@@ -65,11 +73,11 @@ export default class Dsets extends Adt {
 		if (ds.n > this._capacity) reset(ds.n);
 		else this._n = ds.n;
 		for (let i = 0; i <= this.n; i++) {
-			this.#p[i] = ds.#p[i]; this.#rank[i] = ds.#rank[i];
+			this._p[i] = ds._p[i]; this._rank[i] = ds._rank[i];
 		}
 	}
 	xfer(ds) {
-		this.#p = ds.#p; this.#rank = ds.#rank; ds.#p = ds.#rank = null;
+		this._p = ds._p; this._rank = ds._rank; ds._p = ds._rank = null;
 	}
 	
 	/** Clear all items in a given range.
@@ -77,22 +85,22 @@ export default class Dsets extends Adt {
 	 *  @param hi is the high end of the range; all items <hi are cleared
 	 */
 	clear(lo=0, hi=this.n+1) {
-		for (let i = lo; i < hi; i++) { this.#p[i] = i; this.#rank[i] = 0; }
+		for (let i = lo; i < hi; i++) { this._p[i] = i; this._rank[i] = 0; }
 	}
 
-	get _capacity() { return this.#p.length - 1; }
+	get _capacity() { return this._p.length - 1; }
 
 	/** Return parent of a set element in the tree representation of the set.
 	 *  @param i index of a set element
 	 *  @return the parent of i
 	 */
-	p(i) { return this.#p[i]; }
+	p(i) { return this._p[i]; }
 
 	/** Return rank of a set element in the tree representation of the set.
 	 *  @param i index of a set element
 	 *  @return the parent of i
 	 */
-	rank(i) { return this.#rank[i]; }
+	rank(i) { return this._rank[i]; }
 	
 	/** Find and return the canonical element of a set.
 	 *  Performs path compression as side-effect.
@@ -100,10 +108,13 @@ export default class Dsets extends Adt {
 	 *  @return the canonical element of the set containing i
 	 */
 	find(i) {
+		this._findCount++;
 		assert(this.valid(i));
 		let root;
-		for (root = i; this.p(root) != root; root = this.p(root)) {}
-		while (i != root) { let pi = this.p(i); this.#p[i] = root; i = pi; }
+		for (root = i; this.p(root) != root; root = this.p(root)) {
+			this._findSteps++;
+		}
+		while (i != root) { let pi = this.p(i); this._p[i] = root; i = pi; }
 		return root;
 	}
 	
@@ -114,14 +125,15 @@ export default class Dsets extends Adt {
 	 *  the given sets
 	 */
 	link(i, j) {
+		this._linkCount++;
 		assert(this.valid(i) && this.valid(j) &&
 			   this.p(i) == i && this.p(j) == j && i != j);
 		if (this.rank(i) < this.rank(j)) {
 			let t = i; i = j; j = t;
 		} else if (this.rank(i) == this.rank(j)) {
-			this.#rank[i]++;
+			this._rank[i]++;
 		}
-		this.#p[j] = i;
+		this._p[j] = i;
 		return i;
 	}
 	
@@ -171,7 +183,7 @@ export default class Dsets extends Adt {
 			if (this.p(r) != r || F.firstOut(r) == 0)
 				continue;
 			if (s != '' && !pretty) s += ' ';
-			let ss = this.#set2string(r, F, details, strict);
+			let ss = this._set2string(r, F, details, strict);
 			s += (details ? ss : '{' + ss + '}');
 			if (pretty) s += '\n';
 		}
@@ -182,7 +194,7 @@ export default class Dsets extends Adt {
 	 *  @param r is an item that identifies a set with more than one element
 	 *  @return a string that represents r
 	 */
-	#set2string(u, F, details=0, strict=0) {
+	_set2string(u, F, details=0, strict=0) {
 		if (u == 0) return;
 		let s = this.index2string(u, strict) +
 				(details && this.rank(u) > 0 ? ':' + this.rank(u) : '');
@@ -191,7 +203,7 @@ export default class Dsets extends Adt {
 		for (let e = F.firstOut(u); e != 0; e = F.nextOut(u, e)) { 
 			let v = F.head(e);
 			if (e != F.firstOut(u)) s += ' ';
-			s += this.#set2string(v, F, details, strict);
+			s += this._set2string(v, F, details, strict);
 		}
 		if (details) s += ')';
 		return s;
@@ -218,110 +230,9 @@ export default class Dsets extends Adt {
 		this.clear(); return false;
 	}
 
-	/** Create a string representation of a non-singleton set.
-	 *  @param r is an item that identifies a set with more than one element
-	 *  @return a string that represents r
-	#set2string(r, F, details=0, strict=0) {
-		let s = '';
-		let stk = new List(this.n);
-		let next = new Array(this.n+1).fill(0);
-	
-		stk.push(r); next[r] = F.firstOut(r);
-		s += this.index2string(r, strict)  +
-             (details ? ':' + this.rank(r) : '');
-		if (next[r] != 0) s += details ? '(' : ' ';
-		while (!stk.empty()) {
-			let u = stk.top(); let e = next[u];
-			if (e == 0) {
-				stk.pop(); let w = stk.top();
-				if (w != 0) {
-					next[w] = F.nextOut(w, next[w]);
-					if (next[w] == 0 && details) s += ')';
-				}
-			} else {
-				let v = F.head(e);
-				stk.push(v); next[v] = F.firstOut(v);
-				if (e != F.firstOut(u)) s += ' ';
-				s += this.index2string(v, strict)  +
-             		 (details ? ':' + this.rank(v) : '');
-				if (next[v] != 0) s += details ? '(' : ' ';
-			}
-		}
-		return '{' + s + '}';
+	getStats() {
+		return { 'link' : this._linkCount,
+				 'find'	: this._findCount,
+				 'findSteps' : this._findSteps };
 	}
-	 */
-	
-	/** Create a string representation of the disjoint sets.
-	 *  @param s is a reference to a string in which the partition is returned.
-	 *  @return a reference to s
-	toString(details=false, strict=false, pretty=false) {
-		let s = '';
-		let size = new Array(this.n+1);
-		let root = new Array(this.n+1);
-		for (let i = 1; i <= this.n; i++) {
-			root[i] = this.findroot(i); size[i] = 0;
-		}
-		for (let i = 1; i <= this.n; i++) size[root[i]]++;
-		// for root nodes i, size[i] is number of nodes in tree
-		let firstSet = true;
-		for (let i = 1; i <= this.n; i++) {
-			if (this.p(i) == i) { // i is a canonical element
-				if (firstSet) firstSet = false;
-				else s += ' ';
-				if (size[i] == 1) {
-					s += this.index2string(i); continue;
-				}
-				s += '(' + this.index2string(i);
-				for (let j = 1; j <= this.n; j++) {
-					if (j != i && root[j] == i)
-						s += ' ' + this.index2string(j);
-				}
-				s += ')';
-			}
-		}
-		return '{' + s + '}';
-	}
-
-	toLongString() {
-		// for each tree node, identify a firstChild node
-		let firstChild = new Array(this.n+1);
-		for (let i = 0; i <= this.n; i++) firstChild[i] = 0;
-		let firstRoot = 0;
-		for (let i = 0; i <= this.n; i++) {
-			if (this.p(i) == i && firstRoot == 0) firstRoot = i;
-			if (this.p(i) != i && firstChild[this.p(i)] == 0)
-				firstChild[this.p(i)] = i;
-		}
-		// create lists of siblings within the trees (treat roots as siblings)
-		let sibs = new Dlists(this.n);
-		for (let i = 0; i <= this.n; i++) {
-			if (this.p(i) == i && i != firstRoot)
-				sibs.join(firstRoot, i);
-			if (this.p(i) != i && i != firstChild[this.p(i)])
-				sibs.join(firstChild[this.p(i)], i);
-		}
-		// now, build string with recursive helper
-		let s = '';
-		if (firstRoot != 0) {
-			for (let r = sibs.first(firstRoot); r != 0; r = sibs.next(r)) {
-				if (r != sibs.first(firstRoot)) s += " ";
-				s += this.subtree2string(r, firstChild, sibs);
-			}
-		}
-		return '{' + s + '}';
-	}
-
-	subtree2string(u, firstChild, sibs) {
-		let s = this.index2string(u);
-		if (firstChild[u] == 0) return s;
-		if (this.p(u) == u) s += "." + this.rank(u);
-		s += "(";
-		for (let c = sibs.first(firstChild[u]); c != 0; c = sibs.next(c)) {
-			if (c != firstChild[u]) s += " ";
-			s += this.subtree2string(c, firstChild, sibs);
-		}
-		s += ")";
-		return s;
-	}
-	 */
 }
