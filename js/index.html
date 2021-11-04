@@ -105,17 +105,17 @@
 		<button id="scratchButton" class="fixedWidthButton">scratch pad</button>
 	</div>
 
-	<input type="text" size="15" value="" id="argString"
-               style="position: absolute; top: 300; left: 605; font-size: 100%"
-				onchange="setArgv()">
+	<input type="text" size="19" value="" id="argString"
+               style="position: absolute; top: 300; left: 605; font-size: 80%"
+	>
 
 	<div style="font-family: Verdana; font-size: 80%;
-				position: absolute; top: 320; left: 605;">
+				position: absolute; top: 323; left: 605;">
 		<button id="runButton" class="fixedWidthButton">run</button>
 	</div>
 
 	<div style="font-family: Verdana; font-size: 80%;
-				position: absolute; top: 340; left: 605;">
+				position: absolute; top: 347; left: 605;">
 		<button id="clearButton" class="fixedWidthButton">clear</button>
 	</div>
 </div>
@@ -208,12 +208,6 @@ function log() {
 	for (let i = 0; i < arguments.length; i++) 
 		s += arguments[i] + ' ';
 	outputArea.value += s + '\n';
-}
-
-let argv = [];
-function setArgv() {
-	let s = document.getElementById("argString").value;
-	argv = s.trim().split(/ +/);
 }
 
 let currentMenu = null;		// when null, scratch pad is selected
@@ -380,6 +374,14 @@ let runButton = document.getElementById("runButton");
 runButton.addEventListener("click", () => {
 	eval(codeArea.value.replace(/^[ \t]*import/gm, '// import')
 		  				.replace(/console.log/gm, 'log'));
+});
+
+let argv = [];
+let argString = document.getElementById("argString");
+argString.addEventListener('change', () => {
+	let s = document.getElementById("argString").value;
+	argv = argString.value.trim().split(/ +/);
+console.log('setArgv', s, argv);
 });
 
 </script>

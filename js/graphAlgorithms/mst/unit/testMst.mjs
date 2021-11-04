@@ -1,4 +1,4 @@
-/** \file testPrim.java
+/** \file testMst.java
  *
  *  @author Jon Turner
  *  @date 2021
@@ -59,7 +59,7 @@ function getArgs() {
 
 function basicTests(aname, algo, trace=false, stats=false) {
 	try {
-		console.log(`running basic tests on %s`, aname);
+		console.log('running basic tests on ' + aname);
 	
 		let g = new Graph_w(6);
 		g.fromString("{a[b:3 d:2 e:5] b[a:3 c:7 f:4] c[b:7 d:1 f:2] " +
@@ -107,7 +107,7 @@ function basicTests(aname, algo, trace=false, stats=false) {
 
 function randomTests(aname, algo, trace=false, stats=false) {
 	try {
-		console.log(`running random graph tests on %s`, aname);
+		console.log('running random graph tests on ' + aname);
 
 		let g = new Graph_w();
         g.embed(randomGraph(1000, 10000));
