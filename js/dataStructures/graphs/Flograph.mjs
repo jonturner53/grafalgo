@@ -250,6 +250,9 @@ export default class Flograph extends Digraph {
 	 *  successful, else 0.
 	 */
 	nextNabor(u, sc) {
+		let e = super.nextNabor(u, sc);
+        if (e == 0 || !sc.verify(':')) return 0;
+/*
 		let v = sc.nextIndex();
 		if (v == 0) return 0;
 		if (v > this.n) this.expand(v, this.m);
@@ -263,6 +266,7 @@ export default class Flograph extends Digraph {
 			if (this.join(u, v, e) != e) return 0;
 		}
 		if (!sc.verify(':')) return 0;
+*/
 		let cap = sc.nextNumber();
 		if (isNaN(cap)) return 0;
 		if (!sc.verify(':')) return 0;

@@ -229,7 +229,11 @@ export default class List extends Adt {
 		let n = 0;
 		for (let i of l) n = Math.max(i, n);
 		if (n > this.n) this.expand(n);
-		for (let i of l) this.enq(i);
+		let items = new Set();
+		for (let i of l) {
+            if (items.has(i)) { this.clear(); return false; }
+            items.add(i); this.enq(i);
+		}
 		return true;
 	}
 

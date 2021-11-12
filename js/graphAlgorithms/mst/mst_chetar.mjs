@@ -15,9 +15,10 @@ import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
 /** Compute min spanning tree of a graph using Cheriton/Tarjan algorithm.
  *  @param g is weighted graph
  *  @param trace controls the amount of trace output produced
- *  @return a list of edges that defines an mst in g or a minimum
- *  spanning forest, if g is not connected; also a trace string
- *  and a statistics object
+ *  @return a tuple [error, elist, traceString,  stats] where error is
+ *  an error message of '' if no errors, elist is a list of edges that
+ *  defines an mst in g or a minimum spanning forest, if g is not connected,
+ *  ts is a trace string and stats is a statistics object
  */
 export default function mst_chetar(g, trace=0) {
 	let trees = new Dsets(g.n); // one subset for each mst subtree
@@ -50,8 +51,11 @@ export default function mst_chetar(g, trace=0) {
 			q.enq(u);
 		}
 	}
-	let elist = []; let traceString = '';
-	if (trace) traceString += g.toString(0,1) + '\n';
+	let elist = []; let ts = '';
+	if (trace) {
+		ts += g.toString(0,1) + '\n' +
+			  'selected edge, queue, tree vertex sets\n';
+	}
 	while (q.length > 1) {
 		let t = q.first();	
 
@@ -61,17 +65,12 @@ export default function mst_chetar(g, trace=0) {
 		let u = g.left(e); let v = g.right(e);
 
 		let tu = trees.find(u); let tv = trees.find(v);
-		if (trace) {
-			let hu = h[tu] > eph.n ? h[tu] : g.edge2string(Math.trunc(h[tu]/2));
-			let hv = h[tu] > eph.n ? h[tu] : g.edge2string(Math.trunc(h[tu]/2));
-			traceString +=
-				g.edge2string(e) + ' ' + q + ' ' + trees + ' ' +
-				g.index2string(tu) + ' ' + g.index2string(tv) + ' ' +
-				hu + ' ' + hv + '\n';
-		}
 		q.delete(tu); q.delete(tv);
 		h[trees.link(tu, tv)] = eph.lazyMeld(h[tu], h[tv]);
 		q.enq(trees.find(u));
+		if (trace) {
+			ts += g.edge2string(e) + ' ' + q + ' ' + trees + '\n';
+		}
 	}
-	return [elist, traceString, eph.getStats()];
+	return ['', elist, ts, eph.getStats()];
 }

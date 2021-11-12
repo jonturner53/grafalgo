@@ -316,12 +316,14 @@ export default class Graph extends Adt {
 	}
 	
 	/** Create a string representation of an edge list.
-	 *  @param elist is a list of edge numbers
+	 *  @param elist is an array of edge numbers (possibly with some
+	 *  invalid values mixed in; these are ignored)
 	 *  @return the string
 	 */
 	elist2string(elist) {
 		let s = '';
 		for (let e of elist) {
+			if (!this.validEdge(e)) continue;
 			if (s.length > 0) s += ' ';
 			s += this.edge2string(e);
 		}
@@ -358,7 +360,7 @@ export default class Graph extends Adt {
 	 */
 	nabor2string(u, e, details=0, strict=0) {
 		return this.index2string(this.mate(u, e), strict) +
-				(details ? ':'+e : '');
+				(details ? '.'+e : '');
 	}
 	
 	/** Construct a string representation of the Graph object.
@@ -421,6 +423,9 @@ export default class Graph extends Adt {
 	/** Read adjacency list from an input stream, add it to the graph.
 	 *  @param in is an open input stream
 	 *  @return true on success, false on error.
+tricky
+since alists need not come in order,
+can screw up by joining only when u<v
 	 */
 	nextAlist(sc) {
 		let cursor = sc.cursor;
@@ -429,8 +434,7 @@ export default class Graph extends Adt {
 		if (u > this.n) this.expand(u, this.m);
 		if (!sc.verify('[')) { sc.reset(cursor); return false; }
 		while (!sc.verify(']')) {
-			let nn = this.nextNabor(u, sc);
-			if (nn == 0) {
+			if (this.nextNabor(u, sc) == 0) {
 				sc.reset(cursor); return false;
 			}
 		}
@@ -440,7 +444,7 @@ export default class Graph extends Adt {
 	/** Get the next vertex (from the start of an alist) from a scanner.
 	 *  @param sc is a scanner for a string representation of a flow graph
 	 *  @return the vertex that is assumed to be the next thing in the
-	 *  scanner string, or 0 if not successfule
+	 *  scanner string, or 0 if not successful.
 	 */
 	nextVertex(sc) { return sc.nextIndex(); }
 
@@ -457,17 +461,18 @@ export default class Graph extends Adt {
 		let v = sc.nextIndex();
 		if (v == 0) return 0;
 		if (v > this.n) this.expand(v, this.m);
+		if (v == u) return 0;
 		let e = 0;
 		if (!sc.verify('.')) {
-			if (u < v) e = this.join(u, v);
-			else e = this.findEdge(u,v);
+			e = this.findEdge(u, v);
+			if (e == 0) e = this.join(u, v);
 		} else {
 			e = sc.nextInt();
 			if (isNaN(e)) return 0;
 			if (e >= this.m) this.expand(this.n, e);
-			if (u < v) {
+			if (this._edges.isOut(e)) {
 				if (this.join(u, v, e) != e) return 0;
-			} else { // endpoints already joined, just verify
+			} else {
 				if ((u == this.left(e)  && v != this.right(e)) ||
 					(u == this.right(e) && v != this.left(e)))
 					return 0;

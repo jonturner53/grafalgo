@@ -261,8 +261,7 @@ export default class Digraph extends Graph {
 	nabor2string(u, e, details=0, strict=0) {
 		if (u == this.head(e) && !details) return '';
 		let s = this.index2string(this.mate(u, e), strict);
-		if (u == this.head(e)) s += '>';
-		//if (details) s += ':' + e;
+		if (details) s += (u == this.tail(e) ? '.' : '*') + e;
 		return s;
 	}
 
@@ -280,13 +279,18 @@ export default class Digraph extends Graph {
 		if (v == 0) return 0;
 		if (v > this.n) this.expand(v, this.m);
 		let e = 0;
-		if (!sc.verify('.')) {
-			e = this.join(u, v);
-		} else {
+		if (sc.verify('.')) {
 			e = sc.nextInt();
 			if (isNaN(e)) return 0;
 			if (e >= this.m) this.expand(this.n, e);
 			if (this.join(u, v, e) != e) return 0;
+		} else if (sc.verify('*')) {
+			e = sc.nextInt();
+			if (isNaN(e)) return 0;
+			if (e >= this.m) this.expand(this.n, e);
+			if (this.join(v, u, e) != e) return 0;
+		} else {
+			e = this.join(u, v);
 		}
 		return e;
 	}

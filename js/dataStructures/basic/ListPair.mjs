@@ -323,15 +323,14 @@ export default class ListPair extends Adt {
 		if (!sc.verify(':')) { this.clear(); return false; }
 		// for out-list, need to ensure all values present in input string,
 		// with no repeats; also we must re-order out-list to match input
-		let outSet = {};
+		let outSet = new Set();
 		for (let i = sc.nextIndex(); i > 0; i = sc.nextIndex()) {
 			if (i > this.n) this.expand(i);
-			if (this.isIn(i) || i in outSet) { this.clear(); return false; }
-			outSet[i] = true;
-			this.swap(i); this.swap(i);
+			if (this.isIn(i) || outSet.has(i)) { this.clear(); return false; }
+			outSet.add(i); this.swap(i); this.swap(i);
 				// double swap moves i to end of out-list
 		}
-		if (Object.keys(outSet).length != this.nOut() || !sc.verify(']')) {
+		if (outSet.size != this.nOut() || !sc.verify(']')) {
 			this.clear(); return false;
 		}
 		return true;

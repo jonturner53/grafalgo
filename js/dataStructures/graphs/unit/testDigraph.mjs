@@ -20,6 +20,7 @@ try {
 	assert(g, '{a[] b[] c[] d[] e[] f[] g[] h[]}', 'a3');
 	g.join(1, 4); g.join(1, 3); g.join(2, 4); g.join(3, 5);
 	g.join(5, 2); g.join(7, 1);
+console.log(g.toString());
 	assert(g, '{a[d c] b[d] c[e] d[] e[b] f[] g[a] h[]}', 'a4');
 	g.join(5, 1); g.join(2, 7); g.join(3, 7); g.join(8, 5);
 	assert(g, '{a[d c] b[d g] c[e g] d[] e[b a] f[] g[a] h[e]}', 'a5');

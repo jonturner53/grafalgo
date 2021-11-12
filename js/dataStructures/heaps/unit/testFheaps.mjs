@@ -27,7 +27,7 @@ try {
 	assert(fh.toString(1),
 		   '{(a:1:0) (b:2:0) (c:3:3(j:10:0 h:8:1(i:9:0) d:4:2(e:5:0 ' +
 		   'f:6:1(g:7:0))))}', 'a4');
-	fh.decreaseKey(9, 7, 3);
+	fh.changeKey(9, 3, 2);
 	assert(fh.toString(1),
 		   '{(a:1:0) (b:2:0) (i:2:0 c:3:3(j:10:0 h:8*0 d:4:2(e:5:0 ' +
 		   'f:6:1(g:7:0))))}', 'a5');
@@ -35,7 +35,7 @@ try {
 	assert(fh.toString(1),
 		   '{(a:1:0) (i:2:1(b:2:0) c:3:3(j:10:0 h:8*0 d:4:2(e:5:0 ' +
 		   'f:6:1(g:7:0))))}', 'a6');
-	fh.decreaseKey(5, 4, 9); fh.decreaseKey(6, 6, 5);
+	fh.changeKey(5, 9, 1); fh.changeKey(6, 5, 0);
 	assert(fh.toString(1),
 		   '{(a:1:0) (f:0:1(g:7:0) e:1:0 i:2:1(b:2:0) ' +
 		   'c:3:2(j:10:0 h:8*0) d:4:0)}', 'a7');

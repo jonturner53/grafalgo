@@ -106,7 +106,7 @@ export default class Digraph_l extends Digraph {
 		if (!super.equals(g)) return false;
 
 		// so we have same edges in same order, now check that lengths match
-		for (let u = 1; u <= n(); u++) {
+		for (let u = 1; u <= this.n; u++) {
 			let e = this.firstOut(u); let eg = g.firstOut(u);
 			while (e != 0) { 
 				if (this.length(e) != g.length(eg)) return false;
@@ -152,9 +152,9 @@ export default class Digraph_l extends Digraph {
 	 *  an edge number, and definitely followed by the edge length
 	 */
 	nabor2string(u, e, details=0, strict=0) {
-        return (u != this.tail(e) ? '' :
-                this.index2string(this.mate(u, e), strict) +
-                ':' + this.length(e) + (details ? ':'+e : ''));
+		let s = super.nabor2string(u, e, details, strict);
+		if (u == this.tail(e)) s += ':' + this.length(e);
+        return s;
 	}
 		
 	/** Get the neighbor of a given vertex from a scanner and add connecting

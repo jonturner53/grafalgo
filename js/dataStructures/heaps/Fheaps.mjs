@@ -30,8 +30,8 @@ export default class Fheaps extends Adt {
 
 	_insertCount;
 	_deleteCount;
-	_changeKeyCount;
-	_decreaseKeySteps;
+	_changekeyCount;
+	_decreasekeySteps;
 	_mergeSteps;
 
 	_MAXRANK = 32;
@@ -59,8 +59,8 @@ export default class Fheaps extends Adt {
 
 		this._insertCount = 0;
 		this._deleteCount = 0;
-		this._changeKeyCount = 0;
-		this._decreaseKeySteps = 0;
+		this._changekeyCount = 0;
+		this._decreasekeySteps = 0;
 		this._mergeSteps = 0;
 	}
 
@@ -149,7 +149,7 @@ export default class Fheaps extends Adt {
 	c(i) { return this._c[i]; }
 
 	/** Set the key of a singleton heap item. */
-	setKey(i, k) { assert(this.singleton(i)); this._key[i] = k; }
+	setkey(i, k) { assert(this.singleton(i)); this._key[i] = k; }
 
 	/** Determine if an item is defines a singleton heap.
 	 *  @param i is a heap item
@@ -197,7 +197,7 @@ export default class Fheaps extends Adt {
 	insert(i, h, k) {
 		this._insertCount++;
 		if (i > this.n) this.expand(i);
-		this.setKey(i, k); return this.meld(i, h);
+		this.setkey(i, k); return this.meld(i, h);
 	}
 	
 	/** Decrease the key of an item in a heap.
@@ -206,8 +206,8 @@ export default class Fheaps extends Adt {
 	 *  @param h is the heap containing i
 	 *  @return the modified heap
 	 */
-	changeKey(i, h, k) {
-		this._changeKeyCount++;
+	changekey(i, h, k) {
+		this._changekeyCount++;
 		let key = this._key; let rank = this._rank; let mark = this._mark;
 		let p = this._p; let c = this._c; let sibs = this._sibs;
 		assert(this.valid(i) && this.valid(h) && p[h] == 0);
@@ -223,7 +223,7 @@ export default class Fheaps extends Adt {
 		let pi = p[i];
 		if (key[i] >= key[pi]) return h;
 		do {
-			this._decreaseKeySteps++;
+			this._decreasekeySteps++;
 			rank[pi]--;
 			c[pi] = sibs.delete(i, c[pi]);
 			p[i] = 0; mark[i] = false; h = this.meld(h, i);
@@ -314,7 +314,7 @@ export default class Fheaps extends Adt {
 	delete(i, h) {
 		assert(this.valid(i) && this.valid(h) && this.p(h) == 0);
 		let k = this.key(i);
-		h = decreaseKey(i, (this.key(i) - this.key(h)) + 1, h);
+		h = decreasekey(i, (this.key(i) - this.key(h)) + 1, h);
 		h = deletemin(h);
 		this._key[i] = k;
 		return h;
@@ -420,9 +420,11 @@ export default class Fheaps extends Adt {
 		let sc = new Scanner(s);
 		this.clear();
 		if (!sc.verify('{')) return false;
+		let items = new Set();
 		while (sc.verify('(')) {
 			let h = sc.nextIndex();
 			for (let i = h; i != 0; i = sc.nextIndex()) {
+				if (items.has(i)) { this.clear(); return false; }
 				if (i > this.n) this.expand(i);
 				if (!sc.verify(':')) { this.clear(); return false; }
 				let key = sc.nextNumber();
@@ -438,8 +440,8 @@ export default class Fheaps extends Adt {
 	getStats() {
 		return { 'insert' : this._insertCount,
 				 'delete' : this._deleteCount,
-				 'changeKey' : this._changeKeyCount,
-				 'decrease' : this._decreaseKeySteps,
+				 'changekey' : this._changekeyCount,
+				 'decrease' : this._decreasekeySteps,
 				 'merge' : this._mergeSteps };
 	}
 }

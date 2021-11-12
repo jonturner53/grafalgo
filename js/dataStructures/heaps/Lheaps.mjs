@@ -273,11 +273,14 @@ export default class Lheaps extends Adt {
 		let sc = new Scanner(s);
 		this.clear();
 		if (!sc.verify('{')) return false;
+		let items = new Set();
 		while (sc.verify('(')) {
 			let h = sc.nextIndex();
 			for (let i = h; i != 0; i = sc.nextIndex()) {
+				if (items.has(i) || !sc.verify(':')) {
+					this.clear(); return false;
+				}
 				if (i > this.n) this.expand(i);
-				if (!sc.verify(':')) { this.clear(); return false; }
 				let key = sc.nextNumber();
 				if (isNaN(key)) { this.clear(); return false; }
 				if (i != h) h = this.insert(i, h, key);

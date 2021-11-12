@@ -22,8 +22,8 @@ try {
 	assert(g, '{a[d:7 c:0] b[d:0] c[a:0 e:8] ' + 
 			  'd[a:7 b:0] e[c:8] f[] g[] h[]}', 'a1');
 	assert(g.toString(1),
-			  '{a[d:7:1 c:0:2] b[d:0:3] c[a:0:2 e:8:4] ' + 
-			  'd[a:7:1 b:0:3] e[c:8:4] f[] g[] h[]}', 'a2');
+			  '{a[d.1:7 c.2:0] b[d.3:0] c[a.2:0 e.4:8] ' + 
+			  'd[a.1:7 b.3:0] e[c.4:8] f[] g[] h[]}', 'a2');
 
 	g.reset(4, 10, 10);
 	g.fromString('{a[d:1 b:2] b[a:2 c:3] c[b:3 d:4] d[a:1 c:4]}');

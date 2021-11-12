@@ -217,13 +217,16 @@ export default class Dsets extends Adt {
 		let sc = new Scanner(s);
 		this.clear();
 		if (!sc.verify('{')) return false;
-		let l = new Array(10);
+		let l = new Array(10); let items = new Set();
 		while (sc.nextIndexList(l, '{', '}') != null) {
 			let n = 0;
 			for (let i of l) n = Math.max(i, n);
 			if (n > this.n) this.expand(n);
+            if (items.has(l[0])) { this.clear(); return false; }
+            items.add(l[0]);
 			for (let i = 1; i < l.length; i++) {
-				this.link(l[0], l[i]);
+            	if (items.has(l[i])) { this.clear(); return false; }
+             	items.add(l[i]); this.link(l[0], l[i]);
 			}
 		}
 		if (sc.verify('}')) return true;

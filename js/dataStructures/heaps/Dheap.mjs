@@ -309,7 +309,9 @@ export default class Dheap extends Adt {
 		if (!sc.verify('{')) return false;
 		let i = sc.nextIndex();
 		while (i != 0) {
-			if (!sc.verify(':')) { this.clear(); return false; }
+			if (this.contains(i) || !sc.verify(':')) {
+				this.clear(); return false;
+			}
 			let key = sc.nextNumber();
 			if (isNaN(key)) { this.clear(); return false; }
 			this.insert(i, key);

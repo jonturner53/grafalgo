@@ -20,18 +20,20 @@ let t;			// t of g (represented as graph)
 
 /** Check the correctness of an mst.
  *  @param G is a weighted graph object
- *  @param T is an array of the edges in the mst.
- *  @return 'ok' if T is a valid mst (or a min spanning forest if g is
+ *  @param elist is a list of edges defining an mst, possibly with some
+ *  0 values that are ignored
+ *  @return '' if elist defines a valid mst (or min spanning forest if g is
  *  not connected), otherwise return an error message
  */
-export default function mst_verify(G, T) {
+export default function mst_verify(G, elist) {
 	// first initialize shared references to G and graph version of T
 	g = G;
 	t = new Graph_w(g.n, g.n-1);
-	for (let i = 0; i < T.length; i++) {
-		let e = T[i];
+	for (let i = 0; i < elist.length; i++) {
+		let e = elist[i];
+		if (e == 0) continue;
 		if (!g.validEdge(e))
-			return `mst_verify: edge ${f} is not in g`
+			return `mst_verify: edge ${e} is not in g`
 		let ee = t.join(g.left(e), g.right(e));
 		t.setWeight(ee, g.weight(e));
 	}
@@ -64,7 +66,7 @@ let mw;				// mw[u] is a max edge wt on tree path from u to a[u]
  *  @param u is a vertex.
  *  @param pu is the parent of u in t or u, if u is the root.
  *  tree edges on the path from u to a[u]
- *  @return the string 'ok' if the t is verified, else an error message.
+ *  @return the string '' if the t is verified, else an error message.
  */
 function checkWeight(u=1, pu=u) {
 	if (pu == u) {
@@ -90,7 +92,7 @@ function checkWeight(u=1, pu=u) {
 		let v = t.mate(u, e); if (v == pu) continue;
 		a[v] = u; mw[v] = t.weight(e);
 		let s = checkWeight(v, u);
-		if (s != 'ok') return s;
+		if (s != '') return s;
 	}
 
 	// now check edges joining vertices in different subtrees of u,
@@ -103,7 +105,7 @@ function checkWeight(u=1, pu=u) {
 			return `mst_verify: cheap cross-edge ${e}=${g.edge2string(e)} in g`
 		}
 	}
-	return 'ok'; // all edges joining vertices in u's subtree are more
+	return ''; // all edges joining vertices in u's subtree are more
 				 // expensive than the tree path joining them
 }
 

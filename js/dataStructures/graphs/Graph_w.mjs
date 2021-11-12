@@ -27,7 +27,7 @@ export default class Graph_w extends Graph {
 	 *  this argument is intended for internal use of Graph class
 	 */
 	constructor(n, ecap, vcap) {
-		super(n, ecap, vcap); this.#init_w();
+		super(n, ecap, vcap); this.#init_w(ecap);
 	}
 	
 	#init_w(ecap) {
@@ -153,8 +153,8 @@ export default class Graph_w extends Graph {
 	 *  an edge number, and definitely followed by the edge weight
 	 */
 	nabor2string(u, e, details=0, strict=0) {
-        return this.index2string(this.mate(u, e), strict) +
-				':' + this.weight(e) + (details ? ':'+e : '');
+		let s = super.nabor2string(u, e, details, strict);
+        return s + ':' + this.weight(e);
 	}
 		
 	/** Get the neighbor of a given vertex from a scanner and add connecting

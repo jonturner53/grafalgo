@@ -16,27 +16,29 @@ import Graph_w from '../../dataStructures/graphs/Digraph_l.mjs';
  *  @param s is a "source vertex" in g
  *  @param trace controls output of information about the internal  
  *  state of the computation; larger values produce more information
- *  @return a triple [elist, dist, ts] where elist is an array of edges in g
- *  that defines an spt rooted at s, dist[u] is the shortest path
- *  distance from vertex s to vertex u (for every u that can be reached
- *  from s and ts is a trace string).
+ *  @return a tuple [error, pedge, dist, ts, stats] where error is an empty
+ *  string on success and an error string on failure, pedge[u] is the edge from
+ *  the parent of u to u in the spt rooted at s (or 0 if u unreachable);
+ *  dist[u] is the shortest path distance from vertex s to vertex u
+ *  (or infinity if u unreachable), ts is a trace string and stats is a
+ *  statistics object.
  */
 export default function spt_dijkstra(g, s, trace=0) {
 	let pedge = new Array(g.n+1).fill(0); let ts = '';
 	let dist = new Array(g.n+1).fill(Number.POSITIVE_INFINITY);
 	let h = new Dheap(g.n, 2+Math.floor(g.m/g.n));
-	if (trace) ts += g + '\n';
+	if (trace) ts += g.toString(0,1);
 
 	dist[s] = 0; h.insert(s, 0);
+	if (trace) ts += 'initial heap: ' + h + '\n\n' +
+					 'selected vertex, edge to parent, ' + 
+					 `distance from ${g.index2string(s)}, heap contents\n`;
 	while (!h.empty()) {
-		if (trace) {
-			let u = h.findmin();
-			ts += g.index2string(u) + ' ' +
-				  (pedge[u] > 0 ? g.edge2string(pedge[u]) : '-') +
-				   ' ' + dist[u] + '\n' + h + '\n\n';
-		}
 		let u = h.deletemin();
 		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
+			if (g.length(e) < 0)
+				return [ `Error: negative edge ${g.edge2string(e)}.`,
+						pedge, dist, ts,  h.getStats()];
 			let v = g.head(e);
 			if (dist[v] > dist[u] + g.length(e)) {
 				dist[v] = dist[u] + g.length(e); pedge[v] = e;
@@ -44,6 +46,11 @@ export default function spt_dijkstra(g, s, trace=0) {
 				else h.insert(v, dist[v]);
 			}
 		}
+		if (trace) {
+			ts += g.index2string(u) + ' ' +
+				  (pedge[u] > 0 ? g.edge2string(pedge[u]) : '-') +
+				   ' ' + dist[u] + ' ' + h + '\n';
+		}
 	}
-	return [pedge, dist, ts];
+	return ['', pedge, dist, ts,  h.getStats()];
 }
