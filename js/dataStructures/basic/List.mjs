@@ -6,10 +6,9 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-let codeRoot = '../../';
-import Adt from codeRoot + 'dataStructures/Adt.mjs';
-import { assert } from codeRoot + 'common/Errors.mjs';
-import Scanner from codeRoot + 'dataStructures/basic/Scanner.mjs';
+import Adt from '../Adt.mjs';
+import { assert } from '../../common/Errors.mjs';
+import Scanner from './Scanner.mjs';
 
 /** Data structure representing a list of unique integers.
  *

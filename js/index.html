@@ -156,13 +156,13 @@ function serverRequest(path, args=[]) {
 import { assert, AssertError } from './common/Errors.mjs';
 import { range, shuffle, scramble, randomFraction, randomInteger, randomExp,
 		 randomGeometric, randomTruncatedGeometric, randomPareto,
-
+		 randomFill, randomPermutation
 	   } from './common/Random.mjs';
 
 import Dlists from './dataStructures/basic/Dlists.mjs';
 import Dlists_r from './dataStructures/basic/Dlists_r.mjs';
 import Dsets from './dataStructures/basic/Dsets.mjs';
-//import List from './dataStructures/basic/List.mjs';
+import List from './dataStructures/basic/List.mjs';
 import ListPair from './dataStructures/basic/ListPair.mjs';
 import List_d from './dataStructures/basic/List_d.mjs';
 import Scanner from './dataStructures/basic/Scanner.mjs';
@@ -236,7 +236,7 @@ scratchButton.addEventListener("click", () => {
 /** Menu class implements selector/button combo */
 class Menu {
 	constructor(selector, button, path, unit) {
-		this.string = '';
+		this.fileContents = '';
 		this.selector = selector;
 		this.button = button;
 		this.selector.addEventListener("change", () => this.select());
@@ -311,28 +311,28 @@ class Menu {
 		let file = this.selector.value;
 		serverRequest(file)
 			.then(function(reply) {
-				this.string = reply.replace(/[\t]/gm, '    ');
-				codeArea.value = this.string;
+				this.fileContents = reply.replace(/[\t]/gm, '    ');
+				codeArea.value = this.fileContents;
 			}.bind(this));
 	}
 
 	click() {
-		if (this.string == '') {
+		if (this.fileContents == '') {
 			this.select();
 		} else {
 			updateCurrentMenu(this);
-			codeArea.value = this.string;
+			codeArea.value = this.fileContents;
 		}
 	}
 
 	activate() {
 		this.button.style.backgroundColor = 'lightGreen';
-		codeArea.value = this.string;
+		codeArea.value = this.fileContents;
 	}
 
 	deactivate() {
 		this.button.style.backgroundColor = 'beige';
-		this.string = codeArea.value;
+		this.fileContents = codeArea.value;
 	}
 
 }
@@ -372,8 +372,7 @@ clearButton.addEventListener("click", () => { outputArea.value = ''; } );
 
 let runButton = document.getElementById("runButton");
 runButton.addEventListener("click", () => {
-	eval(codeArea.value.replace(/^let codeRoot = .*/gm, "let codeRoot = './'")
-	//eval(codeArea.value.replace(/^[ \t]*import/gm, '// import')
+	eval(codeArea.value.replace(/^[ \t]*import/gm, '// import')
 		  				.replace(/console.log/gm, 'log'));
 });
 

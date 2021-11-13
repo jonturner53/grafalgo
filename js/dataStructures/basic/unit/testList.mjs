@@ -6,10 +6,9 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-let codeRoot = '../../../';
-import List from codeRoot + 'dataStructures/basic/List.mjs';
-import Scanner from codeRoot + 'dataStructures/basic/Scanner.mjs';
-import { assert, AssertError } from codeRoot + 'common/Errors.mjs';
+import List from '../List.mjs';
+import Scanner from '../Scanner.mjs';
+import { assert, AssertError } from '../../../common/Errors.mjs';
 
 try {
 	console.log('running basic tests');
