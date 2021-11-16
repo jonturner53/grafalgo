@@ -22,33 +22,33 @@ import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
  */
 export default function mst_prim(g, trace=0) {
 	let elist = []; let traceString = '';
-	let pedge = new Array(g.n+1).fill(0);
-	let h = new Dheap(g.n);
+	let light = new Array(g.n+1).fill(-1);
+	let boundary = new Dheap(g.n);
 
 	if (trace) {
 		traceString += g.toString(0,1) + '\n' +
 					   'selected vertex, tree edge, heap contents\n';
 	}
-	let mark = new Array(g.n+1).fill(false);
 	for (let s = 1; s <= g.n; s++) {
-		if (mark[s]) continue;
-		h.insert(s, 0); mark[s] = true;
-		while (!h.empty()) {
-			let u = h.deletemin(); //elist.push(pedge[u]);
+		if (light[s] >= 0) continue;
+		boundary.insert(s, 0); light[s] = 0;
+		while (!boundary.empty()) {
+			let u = boundary.deletemin();
 			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 				let v = g.mate(u,e);
-				if (!mark[v]) {
-					h.insert(v, g.weight(e)); pedge[v] = e; mark[v] = true;
-				} else if (h.contains(v) && g.weight(e) < h.key(v)) {
-					h.changekey(v, g.weight(e)); pedge[v] = e;
+				if (light[v] < 0) {
+					boundary.insert(v, g.weight(e)); light[v] = e;
+				} else if (boundary.contains(v) &&
+						   g.weight(e) < boundary.key(v)) {
+					boundary.changekey(v, g.weight(e)); light[v] = e;
 				}
 			}
 			if (trace) {
 				traceString += g.index2string(u) + ' ' +
-							   (pedge[u] != 0 ? g.edge2string(pedge[u]) : '-') +
-								' ' + h + '\n';
+							   (light[u] != 0 ? g.edge2string(light[u]) : '-') +
+								' ' + boundary + '\n';
 			}
 		}
 	}
-	return ['', pedge, traceString, h.getStats()];
+	return ['', light, traceString, boundary.getStats()];
 }

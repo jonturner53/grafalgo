@@ -149,7 +149,7 @@ export default class Graph extends Adt {
 	 *  @param e is the edge number to be verified
 	 *  @return true if e is a valid edge number, else false.
 	 */
-	validEdge(e) { return e == Math.floor(e) && this._edges.isIn(e); }
+	validEdge(e) { return e >= 0 && e == Math.floor(e) && this._edges.isIn(e); }
 	
 	/** Get the first edge in the overall list of edges.
 	 *  @return the first edge in the list

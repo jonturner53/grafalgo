@@ -21,7 +21,7 @@ let t;			// t of g (represented as graph)
 /** Check the correctness of an mst.
  *  @param G is a weighted graph object
  *  @param elist is a list of edges defining an mst, possibly with some
- *  0 values that are ignored
+ *  non-positive values that are ignored
  *  @return '' if elist defines a valid mst (or min spanning forest if g is
  *  not connected), otherwise return an error message
  */
@@ -31,7 +31,7 @@ export default function mst_verify(G, elist) {
 	t = new Graph_w(g.n, g.n-1);
 	for (let i = 0; i < elist.length; i++) {
 		let e = elist[i];
-		if (e == 0) continue;
+		if (e <= 0) continue;
 		if (!g.validEdge(e))
 			return `mst_verify: edge ${e} is not in g`
 		let ee = t.join(g.left(e), g.right(e));

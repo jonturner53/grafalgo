@@ -21,36 +21,35 @@ import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
  *  ts is a trace string and stats is a statistics object
  */
 export default function mst_primf(g, trace=0) {
-	let pedge = new Array(g.n+1).fill(0); let traceString = '';
-	let fh = new Fheaps(g.n);
+	let light = new Array(g.n+1).fill(-1); let traceString = '';
+	let boundary = new Fheaps(g.n);
 	if (trace) {
 		traceString += g.toString(0,1) + '\n' +
 					   'selected vertex, tree edge, heap contents\n';
 	}
-	let mark = new Array(g.n).fill(false);
 	let inheap = new Array(g.n).fill(false);
 	for (let s = 1; s <= g.n; s++) {
-		if (mark[s]) continue;
-		mark[s] = true;
-		let root = fh.insert(s, s, 0); let heapsize = 1; pedge[s] = 0;
+		if (light[s] >= 0) continue;
+		let root = boundary.insert(s, s, 0); let heapsize = 1; light[s] = 0;
 		while (heapsize > 0) {
-			let u = fh.findmin(root); root = fh.deletemin(root);
+			let u = boundary.findmin(root); root = boundary.deletemin(root);
 			inheap[u] = false; heapsize--;
 			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 				let v = g.mate(u,e);
-				if (!mark[v]) {
-					root = fh.insert(v, (heapsize > 0 ? root : v), g.weight(e));
-					inheap[v] = true; heapsize++; pedge[v] = e; mark[v] = true;
-				} else if (inheap[v] && g.weight(e) < fh.key(v)) {
-					root = fh.changekey(v, root, g.weight(e)); pedge[v] = e;
+				if (light[v] < 0) {
+					root = boundary.insert(
+								v, (heapsize > 0 ? root : v), g.weight(e));
+					inheap[v] = true; heapsize++; light[v] = e;
+				} else if (inheap[v] && g.weight(e) < boundary.key(v)) {
+					root = boundary.changekey(v,root,g.weight(e)); light[v] = e;
 				}
 			}
 			if (trace) {
 				traceString += g.index2string(u) + ' ' +
-							   (pedge[u] != 0 ? g.edge2string(pedge[u]) : '-')
-							   + ' ' + fh.heap2string(root) + '\n';
+							   (light[u] != 0 ? g.edge2string(light[u]) : '-')
+							   + ' ' + boundary.heap2string(root) + '\n';
 			}
 		}
 	}
-	return ['', pedge, traceString, fh.getStats() ];
+	return ['', light, traceString, boundary.getStats() ];
 }
