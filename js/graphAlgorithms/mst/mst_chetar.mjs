@@ -15,10 +15,9 @@ import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
 /** Compute min spanning tree of a graph using Cheriton/Tarjan algorithm.
  *  @param g is weighted graph
  *  @param trace controls the amount of trace output produced
- *  @return a tuple [error, elist, traceString,  stats] where error is
- *  an error message of '' if no errors, elist is a list of edges that
- *  defines an mst in g or a minimum spanning forest, if g is not connected,
- *  ts is a trace string and stats is a statistics object
+ *  @return a tuple [pedge, ts,  stats] where pedge[u] is the parent 
+ *  edge of u in the mst (or forest), ts is a trace string and stats is
+ *  a statistics object
  */
 export default function mst_chetar(g, trace=0) {
 	let trees = new Dsets(g.n); // one subset for each mst subtree
@@ -51,7 +50,7 @@ export default function mst_chetar(g, trace=0) {
 			q.enq(u);
 		}
 	}
-	let elist = []; let ts = '';
+	let pedge = []; let ts = '';
 	if (trace) {
 		ts += g.toString(0,1) + '\n' +
 			  'selected edge, queue, tree vertex sets\n';
@@ -61,7 +60,7 @@ export default function mst_chetar(g, trace=0) {
 
         let ee = h[t] = eph.findmin(h[t]);
         if (ee == 0) { q.deq(); continue; }
-        let e = Math.trunc(ee/2); elist.push(e);
+        let e = Math.trunc(ee/2); pedge.push(e);
 		let u = g.left(e); let v = g.right(e);
 
 		let tu = trees.find(u); let tv = trees.find(v);
@@ -72,5 +71,5 @@ export default function mst_chetar(g, trace=0) {
 			ts += g.edge2string(e) + ' ' + q + ' ' + trees + '\n';
 		}
 	}
-	return ['', elist, ts, eph.getStats()];
+	return [pedge, ts, eph.getStats()];
 }

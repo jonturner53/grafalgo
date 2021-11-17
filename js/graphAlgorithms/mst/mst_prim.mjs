@@ -15,19 +15,20 @@ import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
  *  @param g is weighted graph
  *  @param trace controls the amount of trace output produced, larger
  *  values produce more output
- *  @return a tuple [error, elist, traceString,  stats] where error is
- *  an error message of '' if no errors, elist is a list of edges that
- *  defines an mst in g or a minimum spanning forest, if g is not connected,
- *  ts is a trace string and stats is a statistics object
+ *  @param d is an optional argument that specfies the base of the boundary
+ *  heap; the default value is 2+floor(g.m/g.n)
+ *  @return a tuple [pedge, ts,  stats] where pedge[u] is the edge
+ *  connecting $u$ to its parent in the minimum spanning forest, or 0 if $u$
+ *  is a tree root; ts is a trace string and stats is a statistics object
  */
-export default function mst_prim(g, trace=0) {
-	let elist = []; let traceString = '';
-	let light = new Array(g.n+1).fill(-1);
-	let boundary = new Dheap(g.n);
+export default function mst_prim(g, trace=0, d=2+Math.floor(g.m/g.n)) {
+	let elist = []; let ts = '';
+	let light = new Array(g.n+1).fill(-1); light[0] = 0;
+	let boundary = new Dheap(g.n, d);
 
 	if (trace) {
-		traceString += g.toString(0,1) + '\n' +
-					   'selected vertex, tree edge, heap contents\n';
+		ts += g.toString(0,1) + '\n' +
+				  'selected vertex, tree edge, heap contents\n';
 	}
 	for (let s = 1; s <= g.n; s++) {
 		if (light[s] >= 0) continue;
@@ -44,11 +45,11 @@ export default function mst_prim(g, trace=0) {
 				}
 			}
 			if (trace) {
-				traceString += g.index2string(u) + ' ' +
-							   (light[u] != 0 ? g.edge2string(light[u]) : '-') +
-								' ' + boundary + '\n';
+				ts += g.index2string(u) + ' ' +
+					   (light[u] != 0 ? g.edge2string(light[u]) : '-') +
+						' ' + boundary + '\n';
 			}
 		}
 	}
-	return ['', light, traceString, boundary.getStats()];
+	return [light, ts, boundary.getStats()];
 }

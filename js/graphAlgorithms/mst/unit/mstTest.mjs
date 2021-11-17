@@ -57,7 +57,7 @@ function basicTests(aname, algo, trace=false, stats=false) {
 		let g = new Graph_w();
 		g.fromString('{a[b:3 d:2] b[a:3 c:7] c[b:7 d:1] d[a:2 c:1] ' +
 					 'e[f:1 g:3] f[e:1 g:2 h:3] g[e:3 f:2 h:1] i[j:5] j[i:5]}');
-		let [,elist,ts,ss] = algo(g, trace);
+		let [elist,ts,ss] = algo(g, trace);
 		if (trace) console.log('small 3 component graph\n' + ts);
 		assert(mst_verify(g, elist), '', 'a1');
 		assert(g.elist2string(elist.sort()),
@@ -67,18 +67,28 @@ function basicTests(aname, algo, trace=false, stats=false) {
 		g = new Graph_w();
         g.embed(randomConnectedGraph(10, 15));
         g.randomWeights(randomInteger, 0, 99);
-        [,elist,ts,ss] = algo(g, trace);
+        [elist,ts,ss] = algo(g, trace);
 		if (trace) console.log('small random graph\n' + ts);
 		assert(mst_verify(g, elist), '', 'a3');
 
         g.embed(randomGraph(1000, 10000));
         g.randomWeights(randomFraction);
         let t0 = Date.now();
-        [,elist,ts,ss] = algo(g);
+        [elist,ts,ss] = algo(g);
         let t1 = Date.now();
 		if (stats) {
 			console.log('large random graph', g.n, g.m, '' + (t1-t0) + 'ms');
 			console.log(ss);
+		}
+		if (aname == 'prim') {
+	        t0 = Date.now();
+	        [elist,ts,ss] = algo(g, 0, 4);
+	        t1 = Date.now();
+			if (stats) {
+				console.log('large random graph (d=4)', g.n, g.m,
+							'' + (t1-t0) + 'ms');
+				console.log(ss);
+			}
 		}
 		assert(mst_verify(g, elist), '', 'a4');
 	

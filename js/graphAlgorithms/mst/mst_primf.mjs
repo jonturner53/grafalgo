@@ -15,17 +15,16 @@ import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
  *  Fibonacci heaps.
  *  @param g is weighted graph
  *  @param trace turns on trace output when true
- *  @return a tuple [error, elist, traceString,  stats] where error is
- *  an error message of '' if no errors, elist is a list of edges that
- *  defines an mst in g or a minimum spanning forest, if g is not connected,
- *  ts is a trace string and stats is a statistics object
+ *  @return a tuple [pedge, ts,  stats] where pedge[u] is the parent
+ *  edge of u in the mst (or forest), ts is a trace string and stats is
+ *  a statistics object
  */
 export default function mst_primf(g, trace=0) {
-	let light = new Array(g.n+1).fill(-1); let traceString = '';
+	let light = new Array(g.n+1).fill(-1); let ts = '';
 	let boundary = new Fheaps(g.n);
 	if (trace) {
-		traceString += g.toString(0,1) + '\n' +
-					   'selected vertex, tree edge, heap contents\n';
+		ts += g.toString(0,1) + '\n' +
+				'selected vertex, tree edge, heap contents\n';
 	}
 	let inheap = new Array(g.n).fill(false);
 	for (let s = 1; s <= g.n; s++) {
@@ -45,11 +44,11 @@ export default function mst_primf(g, trace=0) {
 				}
 			}
 			if (trace) {
-				traceString += g.index2string(u) + ' ' +
+				ts += g.index2string(u) + ' ' +
 							   (light[u] != 0 ? g.edge2string(light[u]) : '-')
 							   + ' ' + boundary.heap2string(root) + '\n';
 			}
 		}
 	}
-	return ['', light, traceString, boundary.getStats() ];
+	return [light, ts, boundary.getStats() ];
 }
