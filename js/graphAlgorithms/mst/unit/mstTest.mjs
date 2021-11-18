@@ -1,4 +1,4 @@
-/** \file testMst.java
+/** \file mstTest.java
  *
  *  @author Jon Turner
  *  @date 2021
@@ -78,7 +78,7 @@ function basicTests(aname, algo, trace=false, stats=false) {
         let t1 = Date.now();
 		if (stats) {
 			console.log('large random graph', g.n, g.m, '' + (t1-t0) + 'ms');
-			console.log(ss);
+			console.log(JSON.stringify(ss));
 		}
 		if (aname == 'prim') {
 	        t0 = Date.now();
@@ -87,7 +87,7 @@ function basicTests(aname, algo, trace=false, stats=false) {
 			if (stats) {
 				console.log('large random graph (d=4)', g.n, g.m,
 							'' + (t1-t0) + 'ms');
-				console.log(ss);
+				console.log(JSON.stringify(ss));
 			}
 		}
 		assert(mst_verify(g, elist), '', 'a4');

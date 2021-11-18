@@ -15,17 +15,18 @@ import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
  *  Fibonacci heaps.
  *  @param g is weighted graph
  *  @param trace turns on trace output when true
- *  @return a tuple [pedge, ts,  stats] where pedge[u] is the parent
- *  edge of u in the mst (or forest), ts is a trace string and stats is
+ *  @return a tuple [elist, ts,  stats] where elist is an array listing
+ *  the edges in the mst (or forest), ts is a trace string and stats is
  *  a statistics object
  */
 export default function mst_primf(g, trace=0) {
-	let light = new Array(g.n+1).fill(-1); let ts = '';
-	let boundary = new Fheaps(g.n);
+	let ts = '';
 	if (trace) {
 		ts += g.toString(0,1) + '\n' +
-				'selected vertex, tree edge, heap contents\n';
+			  'selected vertex, tree edge, heap contents\n';
 	}
+	let light = new Array(g.n+1).fill(-1);
+	let boundary = new Fheaps(g.n);
 	let inheap = new Array(g.n).fill(false);
 	for (let s = 1; s <= g.n; s++) {
 		if (light[s] >= 0) continue;
@@ -45,10 +46,15 @@ export default function mst_primf(g, trace=0) {
 			}
 			if (trace) {
 				ts += g.index2string(u) + ' ' +
-							   (light[u] != 0 ? g.edge2string(light[u]) : '-')
-							   + ' ' + boundary.heap2string(root) + '\n';
+					  (light[u] != 0 ? g.edge2string(light[u]) : '-')
+					  + ' ' + boundary.heap2string(root) + '\n';
 			}
 		}
 	}
+	// convert light into a list of edge numbers
+	let j = 0;
+	for (let i = 1; i <= g.n; i++)
+		if (light[i] > 0) light[j++] = light[i];
+	light.length = j;
 	return [light, ts, boundary.getStats() ];
 }

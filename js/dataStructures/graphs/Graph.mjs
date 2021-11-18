@@ -7,7 +7,8 @@
  */
 
 import { assert } from '../../common/Errors.mjs'
-import { randomInteger, scramble } from '../../common/Random.mjs';
+import { randomInteger, scramble, randomPermutation}
+	from '../../common/Random.mjs';
 import Adt from '../Adt.mjs';
 import List from '../basic/List.mjs';
 import ListPair from '../basic/ListPair.mjs';
@@ -566,13 +567,14 @@ can screw up by joining only when u<v
 			if (this._firstEp[u] == 0) continue;
 			let epl = [0]; let ee = this._firstEp[u];
 			while (ee != 0) {
-				epl.push(ee); ee = this.eplists.delete(ee, ee);
+				epl.push(ee); ee = this.epLists.delete(ee, ee);
 			}
 			scramble(epl);
 			for (let i = 2; i < epl.length; i++)
-				this.eplists.join(epl[1], epl[i]);
+				this.epLists.join(epl[1], epl[i]);
 			this._firstEp[u] = epl[1];
 		}
+		return [vp, ep];
 	}
 
 	/** Shuffle the vertices and edges according to the given permutations.

@@ -1,4 +1,4 @@
-/** @file mst_verify.js
+/** @file mst_verify.mjs
  *
  *  @author Jon Turner
  *  @date 2021
