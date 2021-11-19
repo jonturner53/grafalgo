@@ -376,7 +376,7 @@ export default class Fheaps extends Adt {
 	 *  @param s is a string in which the result is returned
 	 *  @return the string
 	 */
-	toString(details=0, pretty=0, strict=0) {
+	toString(details=0, pretty=0, label=0) {
 		let s = '';
 		let done = new Array(this.n+1).fill(false);
 		for (let i = 1; i < this.n; i++) {
@@ -384,7 +384,7 @@ export default class Fheaps extends Adt {
 			// i is in a heap we've not yet added to s
 			let h = this._sibs.findList(i);
 			if (s != '') s += ' ';
-			s += this.heap2string(h, details, strict);
+			s += this.heap2string(h, details, label);
 			if (pretty) s += '\n'; // one heap per line
 			// mark all tree roots in this heap as done
 			for (let r = h; r != 0; r = this._sibs.next(r))
@@ -399,15 +399,15 @@ export default class Fheaps extends Adt {
 	 *  @return a string that represents the heap, or the
 	 *  portion of the heap including h and its siblings
 	 */
-	heap2string(h, details=0, strict=0) {
+	heap2string(h, details=0, label=0) {
 		let s = '';
 		for (let i = h; i != 0; i = this._sibs.next(i)) {
 			if (i != h) s += ' ';
-			s += this.index2string(i, strict) + ':' + this.key(i);
+			s += this.index2string(i, label) + ':' + this.key(i);
 			if (details)
 				s += (this.mark(i) ? '*' : ':') + this.rank(i);
 			if (this._c[i] != 0)
-				s += this.heap2string(this._c[i], details, strict);
+				s += this.heap2string(this._c[i], details, label);
 		}
 		return (details || this.p(h) == 0 ? '(' + s + ')' : ' ' + s);
 	}

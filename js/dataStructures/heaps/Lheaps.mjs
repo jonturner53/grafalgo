@@ -219,14 +219,14 @@ export default class Lheaps extends Adt {
 	/** Construct a string representation of this object.
 	 *  @return the string
 	 */
-	toString(details=false, pretty=false, strict=false) {
+	toString(details=false, pretty=false, label) {
 		let s = "";
 		let isroot = new Array(this.n+1).fill(true);
 		for (let i = 1; i <= this.n; i++)
 			isroot[this.left(i)] = isroot[this.right(i)] = false;
 		for (let i = 1; i <= this.n; i++) {
 			if (!isroot[i]) continue;
-			let ss = this.heap2string(i, details, pretty, strict);
+			let ss = this.heap2string(i, details, pretty, label);
 			if (s.length > 0 && ss.length > 0)
 				s += pretty ? '\n' : ' ';
 			s += ss;
@@ -239,28 +239,28 @@ export default class Lheaps extends Adt {
 	 *  @param isroot is true if h is the canonical element of the heap
 	 *  @return the string
 	 */
-	heap2string(h, details=false, pretty=false, strict=false, isroot=true) {
+	heap2string(h, details=false, pretty=false, label, isroot=true) {
 		if (h == 0) return '';
 		let s = '';
 		if (this.left(h) == 0 && this.right(h) == 0) {
-			s += this.index2string(h, strict) + ":" + this.key(h);
+			s += this.index2string(h, label) + ":" + this.key(h);
 			if (details) s +=  ":" + this.rank(h);
 			return isroot ? '(' + s + ')' : s;
 		}
 		if (this.left(h) == 0) {
 			if (details) s += '- ';
 		} else {
-			 s += this.heap2string(this.left(h), details,pretty,strict,false)
+			 s += this.heap2string(this.left(h), details,pretty,label,false)
 				  + ' ';
 		}
 		if (isroot && details) s += "*";
-		s += this.index2string(h, strict) + ":" + this.key(h);
+		s += this.index2string(h, label) + ":" + this.key(h);
 		if (details) s +=  ":" + this.rank(h);
 		if (this.right(h) == 0) {
 			if (details) s += ' -';
 		} else {
 			 s += ' ' +
-				  this.heap2string(this.right(h), details,pretty,strict,false);
+				  this.heap2string(this.right(h), details,pretty,label,false);
 		}
 		return (isroot || details) ? '(' + s + ')' : s;
 	}

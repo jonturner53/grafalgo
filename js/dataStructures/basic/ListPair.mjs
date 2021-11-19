@@ -287,21 +287,21 @@ export default class ListPair extends Adt {
 	/** Create a string representation of a given string.
 	 *  @param details enables inclusion of out-string when true,
 	 *  otherwise, only the in-string is shown
-	 *  @param strict forces all items to be displayed as numbers,
+	 *  @param label is a function used to label list items
 	 *  not as letters
 	 *  @param pretty uses newline to separate in-list from out-list
 	 *  @return the string
 	 */
-	toString(details=0, pretty=0, strict=0) {
+	toString(details=0, pretty=0, label=0) {
 		let s = '';
 		for (let i = this.firstIn(); i != 0; i = this.nextIn(i)) {
-			s += this.index2string(i, strict);
+			s += this.index2string(i, label);
 			if (i != this.lastIn()) s += ' ';
 		}
 		if (!details) return'[' + s + ']';
 		s += (pretty ? '\n:' : ' : ');
 		for (let i = this.firstOut(); i != 0; i = this.nextOut(i)) {
-			s += this.index2string(i, strict);
+			s += this.index2string(i, label);
 			if (i != this.lastOut()) s += ' ';
 		}
 		return (pretty ? '[' + s + ']\n' : '[' + s + ']');

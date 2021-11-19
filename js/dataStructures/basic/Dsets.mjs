@@ -173,7 +173,7 @@ export default class Dsets extends Adt {
 		return true;
 	}
 
-	toString(details=0, pretty=0, strict=0) {
+	toString(details=0, pretty=0, label=0) {
 		// create a graph structure using parent info
 		let F = new Digraph(this.n);
 		for (let u = 1; u <= this.n; u++)
@@ -183,7 +183,7 @@ export default class Dsets extends Adt {
 			if (this.p(r) != r || F.firstOut(r) == 0)
 				continue;
 			if (s != '' && !pretty) s += ' ';
-			let ss = this._set2string(r, F, details, strict);
+			let ss = this._set2string(r, F, details, label);
 			s += (details ? ss : '{' + ss + '}');
 			if (pretty) s += '\n';
 		}
@@ -194,16 +194,16 @@ export default class Dsets extends Adt {
 	 *  @param r is an item that identifies a set with more than one element
 	 *  @return a string that represents r
 	 */
-	_set2string(u, F, details=0, strict=0) {
+	_set2string(u, F, details=0, label=0) {
 		if (u == 0) return;
-		let s = this.index2string(u, strict) +
+		let s = this.index2string(u, label) +
 				(details && this.rank(u) > 0 ? ':' + this.rank(u) : '');
 		if (F.firstOut(u) == 0) return s;
 		s += (details ? '(' : ' ');
 		for (let e = F.firstOut(u); e != 0; e = F.nextOut(u, e)) { 
 			let v = F.head(e);
 			if (e != F.firstOut(u)) s += ' ';
-			s += this._set2string(v, F, details, strict);
+			s += this._set2string(v, F, details, label);
 		}
 		if (details) s += ')';
 		return s;

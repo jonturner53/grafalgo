@@ -279,21 +279,21 @@ export default class Dheap extends Adt {
 	 *  details to be shown.
 	 *  @param pretty is a flag that (when true) produces a more readable
 	 *  representation
-	 *  @param strict is a flag that forces items to always be shown as
+	 *  @param label is a function that is used to label heap items
 	 *  numerical values, not letters.
 	 *  @param u is intended only for recursive calls to toString; it
 	 *  identifies a position in the heap structure
 	 */
-	toString(details=0, pretty=0, strict=0, u=1) {
+	toString(details=0, pretty=0, label=0, u=1) {
 		if (this.empty()) return '{}';
 		if (u == 0) return '';
-		let s = this.index2string(this._item[u], strict) +
+		let s = this.index2string(this._item[u], label) +
 				':' + this.key(this._item[u]);
 		if (this._left(u) <= this.m)
 			s += (details ? '(' : ' ');
 		for (let v = this._left(u); v <= this._right(u) && v <= this.m; v++) {
 			if (v != this._left(u)) s += ' ';
-			s += this.toString(details, strict, pretty, v);
+			s += this.toString(details, label, pretty, v);
 		}
 		if (details && this._left(u) <= this.m) s += ')';
 		return (u == 1 ? '{' + s + '}' : s);

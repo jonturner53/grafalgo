@@ -218,11 +218,11 @@ export default class Dlists extends Adt {
 	
 	/** Produce a string representation of the object.
 	 *  @param details causes singletons to be shown, when true
-	 *  @param strict forces items to be displayed as integers, not letters
+	 *  @param label is a function used to label list items
 	 *  @param pretty causes lists to be separated with newlines
 	 *  @return a string such as "[(a c), (d b g)]".
 	 */
-	toString(details=0, pretty=0, strict=0) {
+	toString(details=0, pretty=0, label=0) {
 		let s = '';
 		for (let l = 1; l <= this.n; l++) {
 			if (!this.isFirst(l) || (this.singleton(l) && !details))
@@ -231,7 +231,7 @@ export default class Dlists extends Adt {
 			s += '(';
 			for (let i = l; i != 0; i = this.next(i)) {
 				if (i != l) s += ' ';
-				s += this.index2string(i, strict);
+				s += this.index2string(i, label);
 			}
 			s += ')';
 		}

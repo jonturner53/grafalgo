@@ -30,18 +30,17 @@ export default function mst_chetar(g, trace=0) {
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		eph.setkey(2*e, g.weight(e)); eph.setkey(2*e+1, g.weight(e));
 	}
+	eph.setkey(1, 0); // unused heap item
 	// build heap of endpoints for each mst subtree
 	// initialize queue of mst subtrees
 	let h = new Array(g.n+1); let q = new List_d(g.n);
 	let hlist = new List(2*eph.n+1);
 	for (let u = 1; u <= g.n; u++) {
 		hlist.clear();
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			hlist.enq(2*e + (u == g.right(e) ? 1 : 0));
-		}
+		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e))
+			hlist.enq(u == g.left(e) ? 2*e : 2*e+1);
 		if (!hlist.empty()) {
-			h[u] = eph.heapify(hlist);
-			q.enq(u);
+			h[u] = eph.heapify(hlist); q.enq(u);
 		}
 	}
 	let ts = '';
@@ -63,7 +62,12 @@ export default function mst_chetar(g, trace=0) {
 		h[trees.link(tu, tv)] = eph.lazyMeld(h[tu], h[tv]);
 		q.enq(trees.find(u));
 		if (trace) {
-			ts += g.edge2string(e) + ' ' + q + ' ' + trees + '\n';
+			ts += g.edge2string(e) + ' ' + q + ' ' + trees;
+			if (trace > 1)
+				ts += ' ' +
+					eph.heap2string(h[trees.find(u)],0 ,1 ,
+						(x=>(x>1 ? g.edge2string(Math.floor(x/2)) : '-')));
+				ts += '\n';
 		}
 	}
 	return [elist, ts, eph.getStats()];

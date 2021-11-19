@@ -258,9 +258,9 @@ export default class Digraph extends Graph {
 	 *  if details is true, incoming edges are returned, otherwise just
 	 *  outgoing edges
 	 */
-	nabor2string(u, e, details=0, strict=0) {
+	nabor2string(u, e, details=0, label=0) {
 		if (u == this.head(e) && !details) return '';
-		let s = this.index2string(this.mate(u, e), strict);
+		let s = this.index2string(this.mate(u, e), label);
 		if (details) s += (u == this.tail(e) ? '.' : '*') + e;
 		return s;
 	}

@@ -202,10 +202,10 @@ export default class Flograph extends Digraph {
 				   + this.cap(u, e) + ',' + this.f(u,e) + ')';
 	}
 
-	vertex2string(u, strict=0) {
+	vertex2string(u, label=0) {
 		let s = '';
 		if (u == this.sink) s += '->';
-		s += this.index2string(u, strict);
+		s += this.index2string(u, label);
 		if (u == this.source) s += '->';
 		return s;
 	}
@@ -219,8 +219,8 @@ export default class Flograph extends Digraph {
 	 *  an edge number, and definitely followed by the capacity and flow,
 	 *  if e is an out-going edge of u; otherwise return empty string
 	 */
-	nabor2string(u, e, details=0, strict=0) {
-		let s = super.nabor2string(u, e, details, strict);
+	nabor2string(u, e, details=0, label=0) {
+		let s = super.nabor2string(u, e, details, label);
 		if (s.length == 0) return s;
 		let v = this.tail(e);
 		return s + ':' + this.cap(v, e) + ':' + this.f(v, e);

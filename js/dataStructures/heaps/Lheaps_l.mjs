@@ -409,11 +409,11 @@ export default class Lheaps_l extends Adt {
 	/** Construct a string representation of this object.
 	 *  @return the string
 	 */
-	toString(details=false, pretty=false, strict=false) {
+	toString(details=false, pretty=false, label) {
 		let s = "";
 		let roots = this._findRoots();
 		for (let r = roots.first(); r != 0; r = roots.next(r)) {
-			let ss = this.heap2string(r, details, pretty, strict);
+			let ss = this.heap2string(r, details, pretty, label);
 			if (s.length > 0 && ss.length > 0)
 				s += pretty ? '\n' : ' ';
 			s += ss;
@@ -426,32 +426,29 @@ export default class Lheaps_l extends Adt {
 	 *  @param isroot is true if h is the canonical element of the heap
 	 *  @return the string
 	 */
-	heap2string(h, details=false, pretty=false, strict=false, isroot=true) {
+	heap2string(h, details=false, pretty=false, label, isroot=true) {
 		if (h == 0) return '';
 		let s = '';
 		if (this.left(h) == 0 && this.right(h) == 0) {
-			s += (!this._isdummy(h) && !this.retired(h) ?
-					this.index2string(h, strict) + ":" + this.key(h) :
-					(details ? '-' : ''));
+			s += (this._isdummy(h) || this.retired(h) ? (details ? '-' : '') :
+							this.index2string(h, label) + ":" + this.key(h));
 			if (details) s +=  ":" + this.rank(h);
 			return isroot && s.length > 0 ? '(' + s + ')' : s;
 		}
-		if (this.left(h) == 0) {
-			if (details) s += '- ';
-		} else {
-			 s += this.heap2string(this.left(h), details,pretty,strict,false)
-				  + ' ';
+		let ls = this.heap2string(this.left(h), details,pretty,label,false);
+		let rs = this.heap2string(this.right(h), details,pretty,label,false);
+		let cs = (this._isdummy(h) || this.retired(h) ? (details ? '-' : '') :
+							this.index2string(h, label) + ":" + this.key(h));
+		if (details) cs +=  ":" + this.rank(h);
+		if (ls.length > 0) {
+			s += ls;
+		} if (cs.length > 0) {
+			if (ls.length > 0) s += ' ';
+			s += cs;
 		}
-		if (isroot && details) s += "*";
-		s += (!this._isdummy(h) && !this.retired(h) ?
-				this.index2string(h, strict) + ":" + this.key(h) :
-				(details ? '-' : ''));
-		if (details) s +=  ":" + this.rank(h);
-		if (this.right(h) == 0) {
-			if (details) s += ' -';
-		} else {
-			 s += ' ' +
-				  this.heap2string(this.right(h), details,pretty,strict,false);
+		if (rs.length > 0) {
+			if (ls.length > 0 || cs.length > 0) s += ' ';
+			s += rs;
 		}
 		return (isroot || details) ? '(' + s + ')' : s;
 	}

@@ -208,11 +208,11 @@ export default class List extends Adt {
 	 *
 	 *  @param s is string used to return value
 	 */
-	toString(strict=false) {
+	toString(label=false) {
 		let s = "[";
 		for (let i = this.first(); i != 0; i = this.next(i)) {
 			if (i != this.first()) s += " ";
-			s += this.index2string(i, strict);
+			s += this.index2string(i, label);
 		}
 		return s + "]";
 	}

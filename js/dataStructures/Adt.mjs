@@ -66,15 +66,9 @@ export default class Adt {
 	 *  just the string representing the number x, otherwise, it is a lower-case
 	 *  letter.
 	 */
-	index2string(x, strict=false) {
-		const alpha = '-abcdefghijklmnopqrstuvwxyz';
-		let s = "";
-		if (!strict && 0 <= this.n && this.n <= 26) {
-			s += alpha[x];
-		} else {
-			s += x;
-		}
-		return s;
+	index2string(x, label=null) {
+		if (!label)
+			label = (x => this.n <= 26 ? '-abcdefghijklmnopqrstuvwxyz'[x] : x);
+		return label(x);
 	}
-
 }

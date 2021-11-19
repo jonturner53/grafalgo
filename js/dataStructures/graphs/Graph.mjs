@@ -335,21 +335,21 @@ export default class Graph extends Adt {
 	 *  @param u is a vertex number
 	 *  @return a string representing the list
 	 */
-	alist2string(u, details=0, strict=0) {
+	alist2string(u, details=0, label=0) {
 		let s = '';
 		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u, e)) {
-			let ns = this.nabor2string(u, e, details, strict);
+			let ns = this.nabor2string(u, e, details, label);
 			if (s.length > 0 && ns.length > 0) s += ' ';
 			s += ns;
 		}
-		return this.vertex2string(u, strict) + '[' + s + ']';
+		return this.vertex2string(u, label) + '[' + s + ']';
 	}
 
 	/* Create string representation of vertex at start of alist.
 	 *  @param u is a vertex
-	 *  @param strict (if true) forces u to be displayed as a number
+	 *  @param label (if true) forces u to be displayed as a number
 	 */
-	vertex2string(u, strict=0) { return this.index2string(u, strict); }
+	vertex2string(u, label=0) { return this.index2string(u, label); }
 
 	/** Create a string representation for a neighbor of a given vertex.
 	 *  @param u is a vertex
@@ -359,8 +359,8 @@ export default class Graph extends Adt {
 	 *  @return a string that represents the neighbor of u, suitable for
 	 *  use in an adjacency list string.
 	 */
-	nabor2string(u, e, details=0, strict=0) {
-		return this.index2string(this.mate(u, e), strict) +
+	nabor2string(u, e, details=0, label=0) {
+		return this.index2string(this.mate(u, e), label) +
 				(details ? '.'+e : '');
 	}
 	
@@ -370,10 +370,10 @@ export default class Graph extends Adt {
 	 *  For larger graphs, vertices are represented by integers.
 	 *  @return a reference to the string
 	 */
-	toString(details=0, pretty=0, strict=0) {
+	toString(details=0, pretty=0, label=0) {
 		let s = '';
 		for (let u = 1; u <= this.n; u++) {
-			s += this.alist2string(u, details, strict);
+			s += this.alist2string(u, details, label);
 			s += (pretty ? '\n' : (u < this.n ? ' ' : ''));
 		}
 		return (pretty ? '{\n' : '{')  + s + (pretty ? '}\n' : '}');

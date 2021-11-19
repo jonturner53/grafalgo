@@ -151,8 +151,8 @@ export default class Digraph_l extends Digraph {
 	 *  @return a string representing the mate(u,e), possibly followed by
 	 *  an edge number, and definitely followed by the edge length
 	 */
-	nabor2string(u, e, details=0, strict=0) {
-		let s = super.nabor2string(u, e, details, strict);
+	nabor2string(u, e, details=0, label=0) {
+		let s = super.nabor2string(u, e, details, label);
 		if (u == this.tail(e)) s += ':' + this.length(e);
         return s;
 	}
