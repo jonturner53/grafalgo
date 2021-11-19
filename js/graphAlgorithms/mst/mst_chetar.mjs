@@ -46,7 +46,10 @@ export default function mst_chetar(g, trace=0) {
 	let ts = '';
 	if (trace) {
 		ts += g.toString(0,1) + '\n' +
-			  'selected edge, queue, tree vertex sets\n';
+			  'selected edge, queue, tree vertex sets';
+		if (trace > 1)
+			ts += ', heap of incident edges';
+		ts += '\n';
 	}
 	let elist = [];
 	while (q.length > 1) {
