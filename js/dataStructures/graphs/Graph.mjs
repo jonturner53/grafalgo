@@ -7,12 +7,12 @@
  */
 
 import { assert } from '../../common/Errors.mjs'
-import { randomInteger, scramble, randomPermutation}
+import { randomInteger, scramble, randomPermutation, shuffle }
 	from '../../common/Random.mjs';
-import Adt from '../Adt.mjs';
+import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import ListPair from '../basic/ListPair.mjs';
-import Dlists from '../basic/Dlists.mjs';
+import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
 /** Data structure for undirected graph.
@@ -24,12 +24,14 @@ import Scanner from '../basic/Scanner.mjs';
  *  either by iterating through all edges of the graph
  *  or all edges incident to a specific vertex.
  */
-export default class Graph extends Adt {
+export default class Graph extends Top {
 	_firstEp;	///< _firstEp[v] is first edge endpoint at v
 	_left;		///< _left[e] is left endpoint of edge e
 	_right;		///< _right[e] is right endpoint of edge e
+	#weight;	///< #weight[e] is weight of edge e, initially unused
 	_edges;		///< sets of in-use and free edges
 	_epLists;	///< lists of the edge endpoints at each vertex
+	_nabors;	///< temporary list of neighbors used by fromString
 
 	/** Construct Graph with space for a specified # of vertices and edges.
 	 *  @param n is the number of vertices in the graph
@@ -37,8 +39,11 @@ export default class Graph extends Adt {
 	 *  @param vcap is the initial vertex capacity (defaults to n);
 	 *  this argument is intended for internal use of Graph class
 	 */
-	constructor(n=1, ecap=n, vcap=n) {
-		super(n); this.#init(vcap, ecap);
+	constructor(n, ecap, vcap) {
+		super(n);
+		if (!ecap) ecap = this.n;
+		if (!vcap) vcap = this.n;
+		this.#init(vcap, ecap);
 	}
 
 	#init(vcap, ecap) {
@@ -46,7 +51,12 @@ export default class Graph extends Adt {
 		this._firstEp = new Array(vcap+1).fill(0, 0, this.n+1);
 		this._left = new Array(ecap+1); this._right = new Array(ecap+1);
 		this._edges = new ListPair(ecap);
-		this._epLists = new Dlists(2*(ecap+1));
+		this._epLists = new ListSet(2*(ecap+1));
+		if (this.#weight) this.addWeights();
+	}
+
+	addWeights() {
+		this.#weight = new Array(this._ecap+1);
 	}
 
 	reset(n, ecap=n, vcap=n) {
@@ -56,13 +66,6 @@ export default class Graph extends Adt {
 
 	get _vcap() { return this._firstEp.length-1; }
 	get _ecap() { return this._left.length-1; }
-
-	get M() {
-		let M = 0;
-		for (let e = this.first(); e != 0; e = this.next(e))
-			M = Math.max(e, M);
-		return M;
-	}
 
 	expand(n, m) {
 		if (n <= this.n && m <= this.m) return;
@@ -82,55 +85,43 @@ export default class Graph extends Adt {
 	 *  @param g is another graph that is to replace this one.
 	 */
 	assign(g) {
+		assert(g instanceof Graph);
 		if (g == this) return;
 		if (g.n > this._vcap || g.m > this._ecap) {
 			this.reset(g.n, g.m);
 		} else {
 			this.clear(); this._n = g.n;
 		}
+		if (g.#weight && !this.#weight) this.addWeights();
+		if (!g.#weight && this.#weight) this.#weight = null;
 		for (let e = g.first(); e != 0; e = g.next(e)) {
 			let ee = this.join(g.left(e), g.right(e));
+			if (g.#weight) {
+				this.#weight[ee] = g.weight(e);
+			}
 		}
-		this.sortAllEplists();
 	}
 
 	/** Assign one graph to another by transferring its contents.
 	 *  @param g is another graph that is to replace this one.
 	 */
 	xfer(g) {
+		assert(g instanceof Graph);
+		if (g == this) return;
+		this._n = g.n;
 		this._firstEp = g._firstEp;
 		this._left = g._left; this._right = g._right;
+		this.#weight = g.#weight;
 		this._edges = g._edges; this._epLists = g._epLists;
 		g._firstEp = g._left = g._right = null;
 		g._edges = null; g._epLists = null;
 	}
 
-	/** Compare another graph to this one.
-	 *  @param g is a Graph object or a string representation of a Graph
-	 *  @return true if g is equal to this; when g is a string, the string
-	 *  representation of this graph is compared to g; otherwise, the
-	 *  vertices and edges are compared; note: the adjacency lists may
-	 *  be sorted as a side-effect
-	 */
-	equals(g) {
-		if (g == this) return true;
-		if (typeof g == 'string') {
-			let s = g; let g = new Graph(this.n, this.m); g.fromString(s); 
-		}
-        if (!(g instanceof Graph)) return false;
-
-		if (g.n != this.n || g.m != this.m) return false;
-		this.sortAllEplists(); g.sortAllEplists();
-		for (let u = 1; u <= this.n; u++) {
-			let e = this.firstAt(u); let eg = g.firstAt(u);
-			while (e != 0 && eg != 0) {
-				if (this.mate(u, e) != g.mate(u, eg))
-					return false;
-				e = this.nextAt(u, e); eg = g.nextAt(u, eg);
-			}
-			if (e != eg) return false;
-		}
-		return true;
+	get M() {
+		let M = 0;
+		for (let e = this.first(); e != 0; e = this.next(e))
+			M = Math.max(e, M);
+		return M;
 	}
 
 	/** Remove all the edges from a graph.  */
@@ -236,6 +227,7 @@ export default class Graph extends Adt {
 
 		// initialize edge information
 		this._left[e] = u; this._right[e] = v;
+		if (this.#weight) this.#weight[e] = 0;
 	
 		// add edge to the endpoint lists
 		this._firstEp[u] = this._epLists.join(this._firstEp[u], 2*e);
@@ -266,6 +258,10 @@ export default class Graph extends Adt {
 					   this.validEdge(e1) && this.validEdge(e2));
 		if (this.mate(u, e1) < this.mate(u, e2)) return -1;
 		else if (this.mate(u, e1) > this.mate(u, e2)) return 1;
+		else if (!this.#weight) return 0;
+		// now use weights to break ties
+		     if (this.weight(e1) < this.weight(e2)) return -1;
+		else if (this.weight(e1) > this.weight(e2)) return 1;
 		else return 0;
 	}
 	
@@ -304,29 +300,137 @@ export default class Graph extends Adt {
 	sortAllEplists() {
 		for (let u = 1; u <= this.n; u++) this.sortEplist(u);
 	}
+
+	/** Compute a sorted list of edge numbers.
+	 *  @return a sorted array of edge numbers, where edges {u,v} are sorted
+	 *  first by the smaller endpoint, then by the larger endpoint; if weights
+	 *  are present, they are used to break ties.
+	 */
+	sortedElist() {
+		// first create vector of edge information
+		// [smaller endpoint, larger endpoint, weight, edge number]
+		let evec = new Array(this.m);
+		let i = 0;
+		for (let e = this.first(); e != 0; e = this.next(e)) {
+			if (this.left(e) < this.right(e)) {
+				evec[i] = [this.left(e), this.right(e),
+							this.#weight ? this.weight(e) : 0, e];
+			} else {
+				evec[i] = [this.right(e), this.left(e),
+							this.#weight ? this.weight(e) : 0, e];
+			}
+			i++;
+		}
+		evec.sort((t1, t2) => (t1[0] < t2[0] ? -1 : (t1[0] > t2[0] ? 1 :
+							  	(t1[1] < t2[1] ? -1 : (t1[1] > t2[1] ? 1 :
+								  (t1[2] < t2[2] ? -1 : (t1[2] > t2[2] ? 1 : 0
+				  )))))));
+		for (let i = 0; i < evec.length; i++) evec[i] = evec[i][3];
+		return evec;
+	}
+	
+	/** Find an edge joining two vertices.
+	 *  @param u is a vertex number
+	 *  @param v is a vertex number
+	 *  @param edges is an array of edges in sorted order (as returned by
+	 *  sortedElist()).
+	 *  @return the number of some edge joining u and v, or 0 if there
+	 *  is no such edge
+	 */
+	findEdge(u, v, edges) {
+		assert(this.validVertex(u) && this.validVertex(v));
+		if (!edges) {
+			for (let e = this.firstAt(u); e != 0; e = this.nextAt(u, e))
+				if (v == this.mate(u, e)) return e;
+			return 0;
+		}
+		// do binary search in edges
+		let lo = 0; let hi = edges.length-1;
+		if (u > v) [u, v] = [v, u];
+		while (lo < hi) {
+			let mid = Math.floor((lo + hi) / 2);
+			let e = edges[mid];
+			let m = this.left(e); let M = this.right(e);
+			if (m > M) [m, M] = [M, m];
+				 if (u < m || (u == m && v < M)) hi = mid-1;
+			else if (u > m || (u == m && v > M)) lo = mid+1;
+			else return e;
+		}
+		return 0;
+	}
+
+	/** Get the weight of an edge.
+	 *  @param e is an edge
+	 *  @return the weight of e
+	 */
+	weight(e) {
+		assert(this.validEdge(e));
+		return this.#weight && this.#weight[e] ? this.#weight[e] : 0;
+	}
+
+	/** Set the weight of an edge.
+	 *  @param e is an edge
+	 *  @param w is a weight to be assigned to e
+	 */
+	setWeight(e, w) {
+		assert(this.validEdge(e));
+		if (!this.#weight) this.addWeights();
+		this.#weight[e] = w;
+	}
+
+	/** Compare another graph to this one.
+	 *  @param g is a Graph object or a string representation of a Graph
+	 *  @return true if g is equal to this; when g is a string, the string
+	 *  representation of this graph is compared to g; otherwise, the
+	 *  vertices and edges are compared; note: the adjacency lists may
+	 *  be sorted as a side-effect
+	 */
+	equals(g) {
+		if (g == this) return true;
+		if (typeof g == 'string') {
+			let s = g; g = new Graph(this.n, this.m); g.fromString(s); 
+		}
+        if (!(g instanceof Graph)) return false;
+		if (g.n != this.n || g.m != this.m) return false;
+
+		// now compare the edges using sorted edge lists
+		let el1 = this.sortedElist(); let el2 = g.sortedElist();
+		for (let i = 0; i < el1.length; i++) {
+			let m1 = Math.min(this.left(el1[i]), this.right(el1[i]));
+			let M1 = Math.max(this.left(el1[i]), this.right(el1[i]));
+			let m2 = Math.min(g.left(el2[i]), g.right(el2[i]));
+			let M2 = Math.max(g.left(el2[i]), g.right(el2[i]));
+			if (m1 != m2 || M1 != M2 || this.weight(el1[i]) != g.weight(el2[i]))
+				return false;
+		}
+		return true;
+	}
 	
 	/** Create a string representation of an edge.
 	 *  @param e is an edge number
 	 *  @param u is one of the endponts of e;
+	 *  @label is an optional function used to label the vertices
 	 *  it will appear first in the string
 	 *  @return a string representing the edge
 	 */
-	edge2string(e, u=this.left(e)) {
-		let v = this.mate(u, e);
-		return "{" + this.index2string(u) + ","  + this.index2string(v) + "}";
+	edge2string(e, label) {
+		return '{' + this.index2string(this.left(e), label) + ','  +
+					 this.index2string(this.right(e), label) +
+					 (this.#weight ? ',' + this.weight(e) : '') + '}';
 	}
 	
 	/** Create a string representation of an edge list.
 	 *  @param elist is an array of edge numbers (possibly with some
+	 *  @label is an optional function used to label the vertices
 	 *  invalid values mixed in; these are ignored)
 	 *  @return the string
 	 */
-	elist2string(elist) {
+	elist2string(elist, label) {
 		let s = '';
 		for (let e of elist) {
 			if (!this.validEdge(e)) continue;
 			if (s.length > 0) s += ' ';
-			s += this.edge2string(e);
+			s += this.edge2string(e, label);
 		}
 		return '[' + s + ']';
 	}
@@ -361,7 +465,7 @@ export default class Graph extends Adt {
 	 */
 	nabor2string(u, e, details=0, label=0) {
 		return this.index2string(this.mate(u, e), label) +
-				(details ? '.'+e : '');
+				 (this.#weight ? ':' + this.weight(e) : '');
 	}
 	
 	/** Construct a string representation of the Graph object.
@@ -377,30 +481,6 @@ export default class Graph extends Adt {
 			s += (pretty ? '\n' : (u < this.n ? ' ' : ''));
 		}
 		return (pretty ? '{\n' : '{')  + s + (pretty ? '}\n' : '}');
-	}
-	
-	/** Construct a string in dot file format representation 
-	 *  of the Graph object.
-	 *  For small graphs (at most 26 vertices), vertices are
-	 *  represented in the string as lower case letters.
-	 *  For larger graphs, vertices are represented by integers.
-	 *  @param s is a string object provided by the caller which
-	 *  is modified to provide a representation of the Graph.
-	 *  @return a reference to the string
-	 */
-	toDotString() {
-		// undirected graph
-		let s = "graph G {\n";
-		let cnt = 0;
-		for (let e = this.first(); e != 0; e = this.next(e)) {
-			let u = Math.min(left(e),right(e));
-			let v = Math.max(left(e),right(e));
-			s += this.index2string(u) + " -- ";
-			s += this.index2string(v) + " ; ";
-			if (++cnt == 15) { cnt = 0; s += "\n"; }
-		}
-		s += " }\n";
-		return s;
 	}
 		
 	/** Read one edge from a scanner and add it to the graph.
@@ -424,15 +504,16 @@ export default class Graph extends Adt {
 	/** Read adjacency list from an input stream, add it to the graph.
 	 *  @param in is an open input stream
 	 *  @return true on success, false on error.
-tricky
-since alists need not come in order,
-can screw up by joining only when u<v
 	 */
 	nextAlist(sc) {
 		let cursor = sc.cursor;
 		let u = this.nextVertex(sc);
 		if (u == 0) { sc.reset(cursor); return false; }
 		if (u > this.n) this.expand(u, this.m);
+		// initialize _nabors to include edges added previously
+		this._nabors.clear();
+		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u, e))
+			this._nabors.enq(this.mate(u, e), e);
 		if (!sc.verify('[')) { sc.reset(cursor); return false; }
 		while (!sc.verify(']')) {
 			if (this.nextNabor(u, sc) == 0) {
@@ -463,22 +544,19 @@ can screw up by joining only when u<v
 		if (v == 0) return 0;
 		if (v > this.n) this.expand(v, this.m);
 		if (v == u) return 0;
-		let e = 0;
-		if (!sc.verify('.')) {
-			e = this.findEdge(u, v);
-			if (e == 0) e = this.join(u, v);
+		let e = 0; let newEdge = false;
+		if (this._nabors.contains(v)) {
+			e = this._nabors.value(v);
 		} else {
-			e = sc.nextInt();
-			if (isNaN(e)) return 0;
-			if (e >= this.m) this.expand(this.n, e);
-			if (this._edges.isOut(e)) {
-				if (this.join(u, v, e) != e) return 0;
-			} else {
-				if ((u == this.left(e)  && v != this.right(e)) ||
-					(u == this.right(e) && v != this.left(e)))
-					return 0;
-			}
+			e = this.join(u, v); newEdge = true;
 		}
+		if (sc.verify(':')) { // read weight
+			let w = sc.nextNumber();
+			if (isNaN(w)) return 0;
+			if (!newEdge && w != this.weight(e)) return 0;
+			this.setWeight(e, w);
+		}
+		if (newEdge) this._nabors.enq(v, e);
 		return e;
 	}
 
@@ -488,6 +566,8 @@ can screw up by joining only when u<v
 	 */
 	fromString(s) {
 		let sc = new Scanner(s);
+		if (!this._nabors) // create temporary list of neighbors
+			this._nabors = new List(20);
 		this.clear();
 		if (!sc.verify('{')) return false;
 		while (this.nextAlist(sc)) {
@@ -497,19 +577,6 @@ can screw up by joining only when u<v
 		}
 		this.clear(); sc.reset();
 		return false;
-	}
-	
-	/** Find an edge joining two vertices.
-	 *  @param u is a vertex number
-	 *  @param v is a vertex number
-	 *  @return the number of some edge joining u and v, or 0 if there
-	 *  is no such edge
-	 */
-	findEdge(u, v) {
-		assert(this.validVertex(u) && this.validVertex(v));
-		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e))
-			if (this.mate(u,e) == v) return e;
-		return 0;
 	}
 
 	/** Compute the degree of a vertex.
@@ -534,6 +601,8 @@ can screw up by joining only when u<v
 
 	/** Return a random edge.
 	 *  Likely to be slow if _ecap >> m.
+	 *  If sampling many edges, just copy out edges to an array
+	 *  and sample the n array
 	 */
 	randomEdge() {
 		let edges = this._edges;
@@ -574,6 +643,7 @@ can screw up by joining only when u<v
 				this.epLists.join(epl[1], epl[i]);
 			this._firstEp[u] = epl[1];
 		}
+		if (this.#weight) shuffle(this.#weight, ep);
 		return [vp, ep];
 	}
 
@@ -590,9 +660,23 @@ can screw up by joining only when u<v
 			left[e] = this.left(e); right[e] = this.right(e);
 		}
 		this.clear();
-		for (let i = 0; i < left.length; i++) {
-			 if (left[i] != 0)
-				 this.join(vp[left[i]], vp[right[i]], ep[i]);
+		for (let e = 0; e < left.length; e++) {
+			 if (left[e] != 0)
+				this.join(vp[left[e]], vp[right[e]], ep[e]);
+		}
+	}
+
+	/** Compute random weights for all the edges.
+	 *  @param f is a random number generator used to generate the
+	 *  random edge weights; it is invoked using any extra arguments
+	 *  provided by caller; for example randomWeights(randomInteger, 1, 10)
+     *  will assign random integer weights in 1..10.
+	 */
+	randomWeights(f) {
+		if (!this.#weight) this.addWeights();
+		let args= ([].slice.call(arguments)).slice(1);
+        for (let e = this.first(); e != 0; e = this.next(e)) {
+			let w = f(...args); this.setWeight(e, w);
 		}
 	}
 }

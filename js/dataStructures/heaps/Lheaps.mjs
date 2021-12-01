@@ -7,10 +7,10 @@
  */
 
 import { assert, AssertError} from '../../common/Errors.mjs';
-import Adt from '../Adt.mjs';
+import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
-import Dlists from '../basic/Dlists.mjs';
-import Dsets from '../basic/Dsets.mjs';
+import ListSet from '../basic/ListSet.mjs';
+import Sets from '../basic/Sets.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
 /** This class implements a data structure consisting of a disjoint
@@ -18,7 +18,7 @@ import Scanner from '../basic/Scanner.mjs';
  *  The heap elements are identified by indexes in 1..n where n
  *  is specified when an Lheaps object is constructed.
  */
-export default class Lheaps extends Adt {
+export default class Lheaps extends Top {
 	_key;		///< _key[i] is key of item i
 	_rank;		///< _rank[i] gives rank of item i
 	_left;		///< _left[i] is left child of i
@@ -200,9 +200,9 @@ export default class Lheaps extends Adt {
 		for (let i = 1; i <= this.n; i++) {
 			if (this.key(i) != lh.key(i)) return false;
 		}
-		// construct Dsets objects whose subsets match heaps
+		// construct Sets objects whose subsets match heaps
 		// then check these for equality
-		let ds1 = new Dsets(this.n); let ds2 = new Dsets(lh.n);
+		let ds1 = new Sets(this.n); let ds2 = new Sets(lh.n);
 		for (let i = 1; i <= this.n; i++) {
 			if (this.left(i) != 0 && ds1.find(i) != ds1.find(this.left(i)))
 				ds1.link(ds1.find(i), ds1.find(this.left(i)));

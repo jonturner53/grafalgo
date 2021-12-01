@@ -1,4 +1,4 @@
-/** \file TestDlists.mjs
+/** \file listSet.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -6,13 +6,13 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import Dlists from '../Dlists.mjs';
+import ListSet from '../ListSet.mjs';
 import { assert, AssertError } from '../../../common/Errors.mjs';
 
 try {
 	console.log('running basic tests');
 
-	let n = 8; let dl = new Dlists(n);
+	let n = 8; let dl = new ListSet(n);
 
 	assert(dl.n, n, "a1");
 	for (let i = 1; i <= n; i++)

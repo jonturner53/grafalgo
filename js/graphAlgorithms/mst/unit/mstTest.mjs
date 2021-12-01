@@ -14,7 +14,7 @@ import mst_chetar from '../mst_chetar.mjs';
 import badcase_prim from '../badcase_prim.mjs';
 import mst_verify from '../mst_verify.mjs';
 import List from '../../../dataStructures/basic/List.mjs';
-import Graph_w from '../../../dataStructures/graphs/Graph_w.mjs';
+import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomConnectedGraph } from '../../misc/RandomGraph.mjs';
 
@@ -54,24 +54,24 @@ function basicTests(aname, algo, trace=false, stats=false) {
 	try {
 		console.log('running basic tests on ' + aname);
 	
-		let g = new Graph_w();
+		let g = new Graph();
 		g.fromString('{a[b:3 d:2] b[a:3 c:7] c[b:7 d:1] d[a:2 c:1] ' +
 					 'e[f:1 g:3] f[e:1 g:2 h:3] g[e:3 f:2 h:1] i[j:5] j[i:5]}');
 		let [elist,ts,ss] = algo(g, trace ? 2 : 0);
 		if (trace) console.log('small 3 component graph\n' + ts);
 		assert(mst_verify(g, elist), '', 'a1');
 		assert(g.elist2string(elist.sort()),
-			 '[(a,b,3) (i,j,5) (a,d,2) (c,d,1) (e,f,1) (f,g,2) (g,h,1)]',
+			 '[{a,b,3} {f,g,2} {g,h,1} {i,j,5} {a,d,2} {c,d,1} {e,f,1}]',
 			 'a2');
 
-		g = new Graph_w();
-        g.embed(randomConnectedGraph(10, 15));
+		g = new Graph();
+		g = randomConnectedGraph(10, 15);
         g.randomWeights(randomInteger, 0, 99);
         [elist,ts,ss] = algo(g, trace);
 		if (trace) console.log('small random graph\n' + ts);
 		assert(mst_verify(g, elist), '', 'a3');
 
-        g.embed(randomGraph(1000, 10000));
+        g.xfer(randomGraph(1000, 10000));
         g.randomWeights(randomFraction);
         let t0 = Date.now();
         [elist,ts,ss] = algo(g);

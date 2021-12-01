@@ -7,11 +7,11 @@
  */
 
 import { assert } from '../../common/Errors.mjs';
-import Adt from '../Adt.mjs';
+import Top from '../Top.mjs';
 
 /** The Scanner class provides methods to parse a string incrementally.
  */
-export default class Scanner extends Adt {
+export default class Scanner extends Top {
 	#i;		// position in string (cursor)
 	#s;		// string being scanned
 

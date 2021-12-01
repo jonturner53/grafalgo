@@ -7,12 +7,8 @@
  */
 
 import { assert } from '../../common/Errors.mjs';
-import { scramble } from '../../common/Random.mjs';
-import Adt from '../Adt.mjs';
+import { scramble, shuffle } from '../../common/Random.mjs';
 import Graph from './Graph.mjs';
-import List from '../basic/List.mjs';
-import Dlists from '../basic/Dlists.mjs';
-import ListPair from '../basic/ListPair.mjs';
 
 /** Data structure for weighted undirected graph.
  *  Extends Graph class and places incoming edges before outgoing edges
@@ -21,6 +17,7 @@ import ListPair from '../basic/ListPair.mjs';
 export default class Digraph extends Graph {
 	_firstEpOut		// _firstEpOut[u] is endpoint of first outgoing edge
 					// in u's adjacency list
+	#length			// optional edge length array
 
 	/** Constructor for directed graph
 	 *  @param n is the number of vertices
@@ -33,7 +30,12 @@ export default class Digraph extends Graph {
 	
 	#init_d() {
 		this._firstEpOut = new Array(this._vcap+1).fill(0);
+		if (this.#length) this.addLengths();
 	} 
+
+    addLengths() {
+        this.#length = new Array(this._ecap+1);
+    }
 
 	reset(n, ecap, vcap) {
 		super.reset(n, ecap, vcap); this.#init_d();
@@ -55,17 +57,28 @@ export default class Digraph extends Graph {
 
 	/** Assign one graph to another.
 	 *  @param g is another graph that is copied to this one
-	assign(g) {
-		super.assign(g);
-	}
 	 */
+	assign(g) {
+		assert(g instanceof Digraph);
+		if (g == this) return;
+		super.assign(g);
+		if (!g.#length) return;
+		// copy lengths; relies on fact that edge lists are in same order
+		// even though edge numbers may differ
+		let ee = g.first();
+		for (let e = this.first(); e != 0; e = this.next(e)) {
+			this.setLength(e, g.length(ee)); ee = g.next(ee);
+		}
+	}
 	
 	/** Assign one graph to another by transferring its contents.
 	 *  @param g is another graph whose contents is traferred to this one
 	 */
 	xfer(g) {
+		assert(g instanceof Digraph);
 		this._firstEpOut = g._firstEpOut; g._firstEpOut = null;
-		super.xfer(g);
+		this.#length = g.#length; g.#length = null;
+		super.xfer(g)
 	}
 
 	/** Get the tail of a directed edge.
@@ -140,14 +153,24 @@ export default class Digraph extends Graph {
 	 *  @param v is another vertex
 	 *  @return an edge from u to v, or 0 if no such edge
 	 */
-	findEdge(u, v) {
+	findEdge(u, v, edges) {
 		assert(this.validVertex(u) && this.validVertex(v));
 		for (let e = this.firstOut(u); e != 0; e = this.nextOut(u, e)) {
 			if (this.head(e) == v) return e;
 		}
+		// do binary search in edges
+		let lo = 0; let hi = edges.length-1;
+		if (u > v) [u, v] = [v, u];
+		while (lo < hi) {
+			let mid = Math.floor((lo + hi) / 2);
+			let e = edges[mid];
+			let t = this.tail(e); let h = this.head(e);
+				 if (u < t || (u == t && v < h)) hi = mid-1;
+			else if (u > t || (u == t && v > h)) lo = mid+1;
+			else return e;
+		}
 		return 0;
 	}
-
 
 	/** Join two vertices.
 	 *  @param u is the tail for the new edge
@@ -169,6 +192,7 @@ export default class Digraph extends Graph {
 
 		// initialize edge information
 		this._left[e] = u; this._right[e] = v;
+		if (this.#length) this.#length = 0;
 	
 		// add edge to the endpoint lists
 		if (this.firstOut(u) == 0) this._firstEpOut[u] = 2*e;
@@ -192,6 +216,73 @@ export default class Digraph extends Graph {
 		super.delete(e);
 	}
 
+	/** Get the length of an edge.
+	 *  @param e is an edge
+	 *  @return the length of e
+	 */
+	length(e) {
+		assert(this.validEdge(e));
+		return this.#length && this.#length[e] ? this.#length[e] : 0;
+	}
+
+	/** Set the length of an edge.
+	 *  @param e is an edge
+	 *  @param l is a length to be assigned to e
+	 */
+	setLength(e, l) {
+		assert(this.validEdge(e));
+		if (!this.#length) this.addLengths();
+		this.#length[e] = l;
+	}
+	/** Compare two edges incident to the same endpoint u.
+	 *  @return -1 if u's mate in e1 is less than u's mate in e2,
+	 *  return +1 if u's mate in e1 is greater than than u's mate in e2,
+	 *  return  0 if u's mate in e1 is equal to its mate in e2.
+	 */
+	ecmp(e1, e2, u) {
+		assert(this.validVertex(u) && this.validEdge(e1) && this.validEdge(e2));
+			 if (u == this.head(e1) && u == this.tail(e2)) return -1;
+		else if (u == this.tail(e1) && u == this.head(e2)) return 1;
+			 if (this.mate(u, e1) < this.mate(u, e2)) return -1;
+		else if (this.mate(u, e1) > this.mate(u, e2)) return 1;
+		else if (!this.#length) return 0;
+		     if (this.lengths(e1) < this.lengths(e2)) return -1;
+		else if (this.lengths(e1) > this.lengths(e2)) return 1;
+		return 0;
+	}
+
+	sortEplist(u) {
+		super.sortEplist(u);
+		// now determine the firstEpOut value for re-ordered list
+		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e)) {
+				if (u == this.tail(e)) {
+				this._firstEpOut[u] = 2*e; break;
+			}
+		}
+	}
+
+	/** Compute a sorted list of edge numbers.
+	 *  @return a sorted array of edge numbers, where edges  are sorted
+	 *  first by the tail, then by the head; if lengths are present, they
+	 *  are used to break ties.
+	 */
+	sortedElist() {
+		// first create vector of edge information
+		// [tail, head, length, edge number]
+		let evec = new Array(this.m);
+		let i = 0;
+		for (let e = this.first(); e != 0; e = this.next(e)) {
+			evec[i] = [this.tail(e), this.head(e), this.length(e), e];
+			i++;
+		}
+		evec.sort((t1, t2) => (t1[0] < t2[0] ? -1 : (t1[0] > t2[0] ? 1 :
+							  	(t1[1] < t2[1] ? -1 : (t1[1] > t2[1] ? 1 :
+								  (t1[2] < t2[2] ? -1 : (t1[2] > t2[2] ? 1 : 0
+				  )))))));
+		for (let i = 0; i < evec.length; i++) evec[i] = evec[i][3];
+		return evec;
+	}
+	
 	/** Compare another graph to this one.
 	 *  @param g is a Digraph object or a string representing one.
 	 *  @return true if g is equal to this; that is, it has the same
@@ -204,48 +295,25 @@ export default class Digraph extends Graph {
 			let s = g; g = new Digraph(this.n, this.m); g.fromString(s);
 		}
 		if (!(g instanceof Digraph)) return false;
-		if (!super.equals(g)) return false;
-		// so we have same input edges in same order, now check that firstOut
-		// values  match
-		for (let u = 1; u <= this.n; u++) {
-			if (this.head(this.firstOut(u)) != g.head(g.firstOut(u)))
+		if (this.m != g.m) return false;
+		let el1 = this.sortedElist(); let el2 = g.sortedElist();
+		for (let i = 0; i < el1.length; i++) {
+			let t1 = this.tail(el1[i]); let t2 = g.tail(el2[i]);
+			let h1 = this.head(el1[i]); let h2 = g.head(el2[i]);
+			if (t1 != t2 || h1 != h2 || this.length(el1[i]) != g.length(el2[i]))
 				return false;
 		}
 		return true;
 	}
 
-	/** Compare two edges incident to the same endpoint u.
-	 *  @return -1 if u's mate in e1 is less than u's mate in e2,
-	 *  return +1 if u's mate in e1 is greater than than u's mate in e2,
-	 *  return  0 if u's mate in e1 is equal to its mate in e2.
-	 */
-	ecmp(e1, e2, u) {
-		assert(this.validVertex(u) && this.validEdge(e1) && this.validEdge(e2));
-		let status = super.ecmp(e1, e2, u);
-		if (u == this.tail(e1) && u == this.tail(e2) ||  // both out-edges
-			u == this.head(e1) && u == this.head(e2))	// both in-edges
-			return status
-		else
-			return (u == this.head(e1) ? -1 : 1);  // in-edges come first
-	}
-
-	sortEplist(u) {
-		super.sortEplist(u);
-		// now determine the firstEpOut value for re-ordered list
-		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e)) {
-				if (u == this.tail(e)) {
-				this._firstEpOut[u] = 2*e; break;
-			}
-		}
-	}
-	
 	/** Create a string representation of an edge.
 	 *  @param e is an edge number
 	 *  @return a string representing the edge
 	 */
-	edge2string(e) {
-		return "(" + this.index2string(this.tail(e)) + "," 
-				   + this.index2string(this.head(e)) + ")";
+	edge2string(e, label) {
+		return '(' + this.index2string(this.tail(e), label) + ',' 
+				   + this.index2string(this.head(e), label)
+				   + (this.#length ? ',' + this.length(e) : '') + ')';
 	}
 
 	/** Create a string representation of the neighbor of a vertex.
@@ -259,9 +327,10 @@ export default class Digraph extends Graph {
 	 *  outgoing edges
 	 */
 	nabor2string(u, e, details=0, label=0) {
-		if (u == this.head(e) && !details) return '';
+		if (u == this.head(e)) return '';
 		let s = this.index2string(this.mate(u, e), label);
-		if (details) s += (u == this.tail(e) ? '.' : '*') + e;
+		if (details) s += '.' + e;
+		if (this.#length) s += ':' + this.length(e);
 		return s;
 	}
 
@@ -276,21 +345,17 @@ export default class Digraph extends Graph {
 	 */
 	nextNabor(u, sc) {
 		let v = sc.nextIndex();
-		if (v == 0) return 0;
+		if (v == 0 || v == u) return 0;
 		if (v > this.n) this.expand(v, this.m);
-		let e = 0;
-		if (sc.verify('.')) {
-			e = sc.nextInt();
-			if (isNaN(e)) return 0;
-			if (e >= this.m) this.expand(this.n, e);
-			if (this.join(u, v, e) != e) return 0;
-		} else if (sc.verify('*')) {
-			e = sc.nextInt();
-			if (isNaN(e)) return 0;
-			if (e >= this.m) this.expand(this.n, e);
-			if (this.join(v, u, e) != e) return 0;
-		} else {
-			e = this.join(u, v);
+		if (this._nabors.contains(v)) {
+			let ee = this._nabors.value(v);
+			if (u == this.tail(ee)) return 0;  // parallel edge
+		}
+		let e = this.join(u, v);
+		if (sc.verify(':')) { // read length
+			let l = sc.nextNumber();
+			if (isNaN(l)) return 0;
+			this.setLength(e, l);
 		}
 		return e;
 	}
@@ -324,29 +389,21 @@ export default class Digraph extends Graph {
 				this.eplists.join(first, epo[i]);
 			this._firstEp[u] = first;
 		}
+		if (this.#length) shuffle(this.#length, ep);
 		return [vp,ep]
 	}
 	
-	/** Construct a string in dot file format representation 
-	 *  of the Digraph object.
-	 *  For small graphs (at most 26 vertices), vertices are
-	 *  represented in the string as lower case letters.
-	 *  For larger graphs, vertices are represented by integers.
-	 *  @param s is a string object provided by the caller which
-	 *  is modified to provide a representation of the Digraph.
-	 *  @return a reference to the string
+	/** Compute random lengths for all the edges.
+	 *  @param f is a random number generator used to generate the
+	 *  random edge lengths; it is invoked using any extra arguments
+	 *  provided by caller; for example randomLengths(randomInteger, 1, 10)
+     *  will assign random integer lengths in 1..10.
 	 */
-	toDotString() {
-		// undirected graph
-		let s = "digraph G {\n";
-		for (let e = first(); e != 0; e = next(e)) {
-			let u = this.tail(e); let v = this.head(e);
-			s += this.index2string(u) + " --> ";
-			s += this.index2string(v) + " ; ";
-			s += " [label = \" " + this.weight(e) + " \"] ; ";
-			if (s.length() > 65) s += "\n";
+	randomLengths(f) {
+		if (!this.#length) this.addLengths();
+		let args= ([].slice.call(arguments)).slice(1);
+        for (let e = this.first(); e != 0; e = this.next(e)) {
+			let l = f(...args); this.setLength(e, l);
 		}
-		s += " }\n";
-		return s;
 	}
 }

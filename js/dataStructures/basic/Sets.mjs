@@ -1,4 +1,4 @@
-/** @file Dsets.mjs
+/** @file Sets.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -6,19 +6,17 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import Adt from '../Adt.mjs';
+import Top from '../Top.mjs';
 import { assert } from '../../common/Errors.mjs';
-import Dlists from './Dlists.mjs';
-import List from './List.mjs';
 import Scanner from './Scanner.mjs';
 import Digraph from '../graphs/Digraph.mjs';
 
-/** Disjoint sets data structure maintains a collection of disjoint
+/** Sets data structure maintains a collection of disjoint
  *  sets over the integers 1..N for some positive integer N. Allows
  *  one to quickly determine if two values are in the same set and
  *  supports constant-time union of two sets.
  */
-export default class Dsets extends Adt {
+export default class Sets extends Top {
 	_p;			///< _p[i] is parent of i
 	_rank;	 	///< _rank[i] is rank of i
 
@@ -27,7 +25,9 @@ export default class Dsets extends Adt {
 	_findSteps;
 	
 	constructor(n, capacity=n) {
-		super(n); this.#init(capacity);
+		super(n);
+		if (!capacity) capacity = this.n;
+		this.#init(capacity);
 	}
 
 	#init(capacity) {
@@ -41,7 +41,7 @@ export default class Dsets extends Adt {
 		this._findSteps = 0;
 	}
 	
-	/** Allocate space and initialize Dsets object.
+	/** Allocate space and initialize Sets object.
 	 *  Any old value is discarded.
 	 *  @param n is the defined range
 	 *  @param capacity is the max number of elements that can be accommodated
@@ -58,15 +58,15 @@ export default class Dsets extends Adt {
 	expand(n) {
 		if (n <= this.n) return;
 		if (n > this._capacity) {
-			let nu = new Dsets(this.n, Math.max(n,
+			let nu = new Sets(this.n, Math.max(n,
 									   Math.floor(1.25 * this._capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
 		this.clear(this.n+1, n+1); this._n = n;
 	}
 	
-	/** Copy another Dsets object to this one.
-	 *  @param source is another Dsets object
+	/** Copy another Sets object to this one.
+	 *  @param source is another Sets object
 	 */
 	assign(ds) {
 		if (ds == this) return;
@@ -77,6 +77,8 @@ export default class Dsets extends Adt {
 		}
 	}
 	xfer(ds) {
+		if (ds == this) return;
+		this._n = ds.n;
 		this._p = ds._p; this._rank = ds._rank; ds._p = ds._rank = null;
 	}
 	
@@ -147,18 +149,18 @@ export default class Dsets extends Adt {
 		else return this.findroot(this.p(i));
 	}
 
-	/** Compare two Dsets for equality.
-	 *  @param ds is another Dsets to be compared to this, or a string
-	 *  representing a Dsets
+	/** Compare two Sets for equality.
+	 *  @param ds is another Sets to be compared to this, or a string
+	 *  representing a Sets object
 	 *  @return true if they represent the same collection of sets.
 	 */
 	equals(ds) {
 		if (this === ds) return true;
 		if (typeof ds == 'string') {
 			let s = ds;
-			ds = new Dsets(this.n);
+			ds = new Sets(this.n);
 			ds.fromString(s);
-		} else if (!(ds instanceof Dsets))
+		} else if (!(ds instanceof Sets))
 			return false;
 		if (this.n != ds.n) return false;
 		let id1 = new Array(this.n+1).fill(this.n+1);

@@ -1,4 +1,4 @@
-/** @file Adt.java
+/** @file Top.java
  *
  *  @author Jon Turner
  *  @date 2021
@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-/** The Adt class is a base class from which other data structures
+/** The Top class is the super-class from which other classes
  *  in grafalgo are derived.
  *
  *  The data structures in grafalgo are built using integer index values
@@ -23,7 +23,7 @@
  *  Index values also make it trivial to have fast membership tests
  *  for index lists and similar data structures.
  */
-export default class Adt {
+export default class Top {
 	#n;		// index values in 0..n
 
 	constructor(n=5) { this.#n = n; }
@@ -35,7 +35,7 @@ export default class Adt {
 
 	/** Set the index range for the object.
 	 *  For use of subclasses only.
-	 *  @param nn becomes the largest index value
+	 *  @param n becomes the largest index value
 	 */
 	set _n(n) { this.#n = n; }
 
@@ -52,8 +52,8 @@ export default class Adt {
  	 */
 	toString() { return ""; };
 
-	/** Compare two Adts for equality.
-	 *  @param a2 is an Adt object to be compared to this.
+	/** Compare two Top objects for equality.
+	 *  @param a2 is a Top object to be compared to this.
 	 *  @return true if this is equal to a2; for subclasses that do not
 	 *  provide their own equality check, comparison defaults to equality
 	 *  of the string representations.

@@ -7,10 +7,9 @@
  */
 
 import { assert, AssertError} from '../../common/Errors.mjs';
-import Adt from '../Adt.mjs';
+import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
-import List_d from '../basic/List_d.mjs';
-import Dsets from '../basic/Dsets.mjs';
+import Sets from '../basic/Sets.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
 /** This class implements a data structure consisting of a disjoint
@@ -21,7 +20,7 @@ import Scanner from '../basic/Scanner.mjs';
  *  User-visible index range is 1..n, but implementation includes
  *  heap nodes with indices up to 2n. These can visible as heap ids.
  */
-export default class Lheaps_l extends Adt {
+export default class Lheaps_l extends Top {
 	_key;		///< _key[i] is key of item i
 	_rank;		///< _rank[i] gives rank of item i
 	_left;		///< _left[i] is left child of i
@@ -188,7 +187,7 @@ export default class Lheaps_l extends Adt {
 	 */
 	_findRoots() {
 		// make list of heap roots
-		let roots = new List_d(2*this.n);
+		let roots = new List(2*this.n);
 		for (let i = 1; i <= 2*this.n; i++) roots.enq(i);
 		for (let i = 1; i <= 2*this.n; i++) {
 			if (this._rank[i] < 0) {
@@ -377,17 +376,17 @@ export default class Lheaps_l extends Adt {
 		return ds1.equals(ds2);
 	}
 
-	/** Create a Dsets object with a distinct set of items for each heap
+	/** Create a Sets object with a distinct set of items for each heap
 	 *  in a Lheaps_l object.
 	 *  @param lh is a leftist heap object
-	 *  @return a Dsets object that groups items as they are grouped into heaps;
+	 *  @return a Sets object that groups items as they are grouped into heaps;
 	 *  the returned object does not include dummy nodes and retired nodes are
 	 *  left in singleton sets.
 	 */
 	_heapSets(lh) {
 		let roots = lh._findRoots();
 		// for each heap in lh, do tree traversal to build set in ds
-		let ds = new Dsets(lh.n); let q = new List(2*lh.n);
+		let ds = new Sets(lh.n); let q = new List(2*lh.n);
 		for (let r = roots.first(); r != 0; r = roots.next(r)) {
 			let first = 0;
 			q.clear(); q.enq(r);

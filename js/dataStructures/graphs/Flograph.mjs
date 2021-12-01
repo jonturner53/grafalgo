@@ -7,11 +7,7 @@
  */
 
 import { assert } from '../../common/Errors.mjs';
-import Adt from '../Adt.mjs';
 import Digraph from './Digraph.mjs';
-import List from '../basic/List.mjs';
-import Dlists from '../basic/Dlists.mjs';
-import ListPair from '../basic/ListPair.mjs';
 
 /** Data structure for weighted undirected graph.
  *  Extends Graph class and places incoming edges before outgoing edges
@@ -195,10 +191,10 @@ export default class Flograph extends Digraph {
 	 *  @param e is an edge number
 	 *  @return a string representing the edge
 	 */
-	edge2string(e) {
+	edge2string(e, label) {
 		let u = this.tail(e);
-		return '(' + this.index2string(this.tail(e)) + ',' 
-				   + this.index2string(this.head(e)) + ','
+		return '(' + this.index2string(this.tail(e), label) + ',' 
+				   + this.index2string(this.head(e), label) + ','
 				   + this.cap(u, e) + ',' + this.f(u,e) + ')';
 	}
 

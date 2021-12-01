@@ -1,4 +1,4 @@
-/** @file Dlists_r.java 
+/** @file ReverseLists.mjs 
  *
  * @author Jon Turner
  * @date 2021
@@ -6,35 +6,84 @@
  * See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import Adt from '../Adt.mjs';
+import Top from '../Top.mjs';
 import { assert } from '../../common/Errors.mjs';
-import Dlists from './Dlists.mjs';
 import Scanner from './Scanner.mjs';
 
-/** The Dlists_r class maintains a collection of disjoint lists defined
+/** The ReverseLists class maintains a collection of disjoint lists defined
  *  over a set of integers 1..n. It supports constant time list-reversal,
  *  by swapping the role of the next/prev pointers.
  */
-export default class Dlists_r extends Dlists {
+export default class ReverseLists extends Top {
 	#nabor1;		// nabor1[i] is one of the neighbors of i in its list
 	#nabor2;		// nabor2[i] is the other neighbor of i in its list
 
 	constructor(n, capacity=n) {
-		super(n); this.#init(capacity);
+		super(n);
+		if (!capacity) capacity = this.n;
+		this.#init(capacity);
 	}
 
 	#init(capacity) {
 		assert(this.n <= capacity);
-		this.#nabor1 = this._next; this.#nabor2 = this._prev;
+		this.#nabor1 = new Array(capacity+1);
+		this.#nabor2 = new Array(capacity+1);
+		// initialize to singleton lists
+		for (let i = 0; i <= this.n; i++) {
+			this.#nabor1[i] = 0; this.#nabor2[i] = -i;
+		}
+		this.#nabor2[0] = 0;
+	}
+
+	reset(n, capacity=n) {
+		assert(n <= capacity);
+		this._n = n; this.#init(capacity);
+	}
+
+	/** Get the capacity. (max number of items it has space for). */
+	get _capacity() { return this.#nabor1.length - 1; }
+
+	expand(n) {
+		if (n <= this.n) return;
+		if (n > this._capacity) {
+			let nu = new ReverseLists(this.n,
+				Math.floor(Math.max(n, 1.25 * this._capacity)));
+			nu.assign(this); this.xfer(nu);
+		}
+		// make singletons from items in expanded range
+		for (let i = this.n+1; i <= n; i++) {
+			this.#nabor1[i] = 0; this.#nabor2[i] = -i;
+		}
+		this._n = n;
+	}
+
+	assign(dl) {
+		if (dl == this) return;
+		if (dl.n > this.capacity) this.reset(dl.n);
+		else { this.clear(); this._n = dl.n; }
+		for (let i = 1; i <= this.n; i++) {
+			this.#nabor1[i] = dl.#nabor1[i]; this.#nabor2[i] = dl.#nabor2[i];
+		}
 	}
 
 	xfer(dl) {
-		super.xfer(dl); this.#nabor1 = this._next; this.#nabor2 = this._prev;
+		if (dl == this) return;
+		this._n = dl.n;
+		this.#nabor1 = dl.#nabor1; this.#nabor2 = dl.#nabor2;
+		dl.#nabor1 = dl.#nabor2 = null;
 	}
 	
-	isFirst(i) {
-		return this.#nabor1[i] < 0 || this.#nabor2[i] < 0;
+	/** Clear the data structure, moving all items into singletons.
+	*/
+	clear() {
+		for (let i = 1; i <= this.n; i++) {
+			this.#nabor1[i] = 0; this.#nabor2[i] = -i;
+		}
 	}
+
+	isFirst(i) { return this.#nabor1[i] < 0 || this.#nabor2[i] < 0; }
+
+	isLast(i) { return this.#nabor1[i] == 0 || this.#nabor2[i] == 0; }
 	
 	/** Get the last item in a list.
 	 *  @param f is the first item in a list
@@ -42,19 +91,19 @@ export default class Dlists_r extends Dlists {
 	 */
 	last(f) {
 		assert(this.valid(f) && this.isFirst(f));
-		return (this.#nabor1[f] < 0 ? -this.#nabor1[f] : -this.#nabor2[f]);
+		return this.#nabor1[f] < 0 ? -this.#nabor1[f] : -this.#nabor2[f];
 	}
 
 	/** Get the next list item.
 	 *  @param i is a list item
 	 *  @param j is the list item preceding i, or 0 if i is the first item.
-	 *  @return the item that follows i in its list, or 0 if i is the last item.
+	 *  @return the pair [next(i), i] where next(i) is next list item or 0.
 	 */
 	next(i, j) {
-		assert(this.valid(i));
+		assert(this.valid(i) && i != 0 && this.valid(j));
 		let n1 = this.#nabor1[i]; let n2 = this.#nabor2[i];
-		return (this.isFirst(i) ? (n1 >= 0 ? n1 : n2) :
-								  (j == n1 ? n2 : n1));
+		return [j == 0 ? (n1 >= 0 ? n1 : n2) :
+			   			 (j == n1 ? n2 : n1), i];
 	}
 	
 	/** Get the previous list item.
@@ -65,9 +114,10 @@ export default class Dlists_r extends Dlists {
 	 */
 	prev(i, j) {
 		assert(this.valid(i));
+		if (this.isFirst(i)) return [0, i];
 		let n1 = this.#nabor1[i]; let n2 = this.#nabor2[i];
-		return (this.isFirst(i) ? 0 : (n1 == 0 ? n2 :
-				(n2 == 0 ? n1 : (j == n1 ? n2 : n1))));
+		return [j == 0 ? (n1 != 0 ? n1 : n2) :
+					     (j == n1 ? n2 : n1), i];
 	}
 
 	/** Determine if an item is in a singleton list.
@@ -79,78 +129,9 @@ export default class Dlists_r extends Dlists {
 		return this.#nabor1[i] == -i || this.#nabor2[i] == -i;
 	}
 	
-	/** Find the start of a list.
-	 *  @param i is an item on some list
-	 *  @return the first item on the list
-	 */
-	findList(i) {
-		assert(this.valid(i));
-		let n1 = this.#nabor1[i]; let n2 = this.#nabor2[i];
-		if (n1 < 0 || n2 < 0) {
-			return i;
-		} else if (n1 == 0 || n2 == 0) {
-			let pi = (n1 == 0 ? n2 : n1);
-		} else {
-			// we're somewhere in the middle of the list, assume n1 == prev(i)
-			let pi = n1; let trailer = i;
-			for (let j = pi; j != 0; [j, trailer] = [this.prev(j, trailer), j])
-				;
-			if (this.isFirst(trailer)) return trailer;
-			// assumption was wrong, so n2 = prev(i)
-			pi = n2;
-		}
-		// pi == prev(i), follow list back to first item
-		let trailer = i;
-		for (let j = pi; j != 0; [j, trailer] = [this.prev(j, trailer), j])
-			;
-		return trailer;
-	}
-				
-	/** Rotate list l to make i it's first item.
-	 *  @param f is the first item on a list.
-	 *  @param i is another item on the same list
-	 *  @return the modified list
-	 */
-	rotate(f, i) {
-		if (i == f) return i;
-
-		// find i and prev(i)
-		let trailer = 0;
-		for (let j = f; j != i; [j, trailer] = [this.next(j, trailer), j]) {
-			assert(j != 0);
-		}
-		let pi = trailer;  // j==i and pi==prev(i)
-
-		// fixup pointers at i
-			 if (this.#nabor1[i] == 0) this.#nabor1[i] = f;
-		else if (this.#nabor2[i] == 0) this.#nabor2[i] = f;
-		if (this.#nabor1[i] == pi) this.#nabor1[i] = -pi;
-		else					   this.#nabor2[i] = -pi;
-		if (this.#nabor1[pi] == i) this.#nabor1[pi] = 0;
-		else					   this.#nabor2[pi] = 0;
-
-		// fixup pointers at f
-		let n1 = this.#nabor1[f]; let n2 = this.#nabor2[f];
-		if (n1 < 0) {
-			this.#nabor1[f] = -n1;
-			if (-n1 != i) {
-				if (this.#nabor1[-n1] == 0) this.#nabor1[-n1] = f;
-				else						this.#nabor2[-n1] = f;
-			}
-		} else {
-            this.#nabor2[f] = -n2; 
-			if (-n2 != i) {
-	            if (this.#nabor1[-n2] == 0) this.#nabor1[-n2] = f;
-	            else                        this.#nabor2[-n2] = f;
-			}
-		}
-
-		return i;
-	}
-	
 	/** Remove the first item from a list.
 	 *  @param f is the first item in a list
-	 *  @return the first item of the modified list, or 0 if it`was a singleton
+	 *  @return the first item of the modified list, or 0 if it was a singleton
 	 */
 	pop(f) {
 		assert(this.valid(f) && this.isFirst(f));
@@ -159,7 +140,7 @@ export default class Dlists_r extends Dlists {
 		if (this.#nabor1[f] < 0) {
 			s = this.#nabor2[f];
 			if (f == this.#nabor1[s]) this.#nabor1[s] = this.#nabor1[f];
-			else this.nabor2[s] = this.#nabor1[f];
+			else this.#nabor2[s] = this.#nabor1[f];
 		} else { // this.#nabor2[f] < 0
 			s = this.#nabor1[f];
 			if (f == this.#nabor1[s]) this.#nabor1[s] = this.#nabor2[f];
@@ -167,25 +148,6 @@ export default class Dlists_r extends Dlists {
 		}
 		this.#nabor1[f] = 0; this.#nabor2[f] = -f;
 		return s;
-	}
-
-	delete(i, f) {
-		let n1 = this.#nabor1[i]; let n2 = this.#nabor2[i];
-		if (this.isFirst(i)) {
-			return this.pop(i);
-		} else if (i == this.last(f)) {
-			let pi = (n1 == 0 ? n2 : n1);
-			if (i == this.#nabor1[pi]) this.#nabor1[pi] = 0;
-			else					   this.#nabor2[pi] = 0;
-			if (this.#nabor1[f] < 0) this.#nabor1[f] = -pi;
-			else 					 this.#nabor2[f] = -pi;
-		} else {
-			if (i == this.#nabor1[n1]) this.#nabor1[n1] = n2;
-			else					   this.#nabor2[n1] = n2;
-			if (i == this.#nabor1[n2]) this.#nabor1[n2] = n1;
-			else					   this.#nabor2[n2] = n1;
-		}
-		this.#nabor1[i] = 0; this.#nabor2[i] = -i;
 	}
 	
 	/** Join two lists together.
@@ -222,15 +184,15 @@ export default class Dlists_r extends Dlists {
 		return l
 	}
 
-	/** Determine if two Dlists are equal.
-	 *  @param dl is a second Dlist or a string representing a Dlist
-	 *  @return true if the two Dlists contain identical lists.
+	/** Determine if two ReverseLists objects are equal.
+	 *  @param dl is a second ReverseLists object or a string representing one
+	 *  @return true if the two objects contain identical lists.
 	 */
 	equals(dl) {
 		if (this === dl) return true;
 		if (typeof dl == 'string') {
-			let s = dl; dl = new Dlists(this.n); dl.fromString(s);
-		} else if (!(dl instanceof Dlists))
+			let s = dl; dl = new ReverseLists(this.n); dl.fromString(s);
+		} else if (!(dl instanceof ReverseLists))
 			return false;
 		if (this.n != dl.n) return false;
 		for (let i = 1; i < this.n; i++) {
@@ -238,8 +200,8 @@ export default class Dlists_r extends Dlists {
 			if (!this.isFirst(i)) continue;
 			let j1 = i; let k1 = 0; let j2 = i; let k2 = 0;
 			do {
-				[j1, k1] = [this.next(j1, k1), j1];
-				[j2, k2] = [this.next(j2, k2), j2];
+				[j1, k1] = this.next(j1, k1);
+				[j2, k2] = this.next(j2, k2);
 				if (j1 != j2) return false;
 			} while (j1 != 0);
 		}
@@ -259,12 +221,39 @@ export default class Dlists_r extends Dlists {
 				continue;
 			if (s.length > 0) s += ',' + (pretty ? '\n ' : ' ');
 			s += '('; let j = 0;
-			for (let i = l; i != 0; [i,j] = [this.next(i,j),i]) {
+			for (let i = l; i != 0; [i, j] = this.next(i,j)) {
 				if (i != l) s += ' ';
 				s += this.index2string(i, label);
 			}
 			s += ')';
 		}
 		return '[' + s + (pretty ? ']\n' : ']');
+	}
+
+	/** Initialize this from a string representation.
+	 *  @param s is a string, such as produced by toString().
+	 *  @return true on success, else false
+	 */
+	fromString(s) {
+		let sc = new Scanner(s);
+		this.clear();
+		if (!sc.verify('[')) return false;
+		let l = new Array(10); let items = new Set();
+		while (sc.nextIndexList(l, '(', ')') != null) {
+			let n = 0;
+			for (let i of l) n = Math.max(i, n);
+			if (n > this.n) this.expand(n);
+			if (items.has(l[0])) { this.clear(); return false; }
+			items.add(l[0]);
+			for (let i = 1; i < l.length; i++) {
+				if (items.has(l[i])) { this.clear(); return false; }
+				items.add(l[i]);
+				this.join(l[0], l[i]);
+			}
+			if (!sc.verify(',')) break;
+
+		}
+		if (sc.verify(']')) return true;
+		this.clear(); return false;
 	}
 }

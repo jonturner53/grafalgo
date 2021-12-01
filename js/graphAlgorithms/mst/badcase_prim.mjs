@@ -6,15 +6,15 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
+import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 /** Generate a badcase graph for Prim's algorithm.
  *  @param n is the number of vertices
  *  @param m is the number of edges
- *  @return a Graph_w object that defines a badcase graph for Prim
+ *  @return a Graph object that defines a badcase graph for Prim
  */
 export default function badcase_prim(n, m=n*(n-1)/2) {
-	let g = new Graph_w(n, m);
+	let g = new Graph(n, m);
 	let skip = n*(n-1)/(2*m); let k = 0; let wt = m;
 	for (let u = 1; u <= n; u++) {
 		for (let v = n; v > u; v--) {

@@ -8,9 +8,9 @@
 
 import { assert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
-import Dlists from '../../dataStructures/basic/Dlists.mjs';
-import Dsets from '../../dataStructures/basic/Dsets.mjs';
-import Graph_w from '../../dataStructures/graphs/Graph_w.mjs';
+import ListSet from '../../dataStructures/basic/ListSet.mjs';
+import Sets from '../../dataStructures/basic/Sets.mjs';
+import Graph from '../../dataStructures/graphs/Graph.mjs';
 import components from '../misc/components.mjs';
 import nca from '../misc/nca.mjs';
 
@@ -28,7 +28,7 @@ let t;			// t of g (represented as graph)
 export default function mst_verify(G, elist) {
 	// first initialize shared references to G and graph version of T
 	g = G;
-	t = new Graph_w(g.n, g.n-1);
+	t = new Graph(g.n, g.n-1);
 	for (let i = 0; i < elist.length; i++) {
 		let e = elist[i];
 		if (e <= 0) continue;
@@ -79,7 +79,7 @@ function checkWeight(u=1, pu=u) {
 		}
 		let ncav = nca(t, u, pairs);
 		// now use ncav to initialize edgeLists and firstEdge
-		edgeLists = new Dlists(maxe); firstEdge = new Array(t.n+1).fill(0);
+		edgeLists = new ListSet(maxe); firstEdge = new Array(t.n+1).fill(0);
 		for (let p = 0; p < pairs.length; p++) {
 			let w = ncav[p]; let e = enumber[p];  // w is nca of e's endpoints
 			firstEdge[w] = edgeLists.join(firstEdge[w], e);

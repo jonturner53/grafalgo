@@ -1,4 +1,4 @@
-/** @file testDsets.mjs
+/** @file sets.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,12 +8,12 @@
 
 import Scanner from '../Scanner.mjs';
 import { assert, AssertError } from '../../../common/Errors.mjs';
-import Dsets from '../Dsets.mjs';
+import Sets from '../Sets.mjs';
 
 try {
 	console.log("running basic tests");
 
-	let n = 10; let ds = new Dsets(n);
+	let n = 10; let ds = new Sets(n);
 	assert(ds, '{}', "a1");
 	ds.link(1, 3);
 	assert(ds, "{{a c}}", "a2");

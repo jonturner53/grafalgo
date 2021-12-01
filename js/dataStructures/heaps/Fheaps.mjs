@@ -7,9 +7,9 @@
  */
 
 import { assert, AssertError} from '../../common/Errors.mjs';
-import Adt from '../Adt.mjs';
+import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
-import Dlists from '../basic/Dlists.mjs';
+import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
 /** This class implements a data structure consisting of a disjoint
@@ -17,13 +17,13 @@ import Scanner from '../basic/Scanner.mjs';
  *  The heap elements are identified by indexes in 1..n where n
  *  is specified when an Fheaps object is constructed.
  */
-export default class Fheaps extends Adt {
+export default class Fheaps extends Top {
 	_key;		///< _key[i] is key of item i
 	_rank;		///< _rank[i] gives rank of item i
 	_mark;		///< _mark[i] is true if item i is considered marked
 	_p;			///< _p[i] is the parent of item i in its heap
 	_c;			///< _c[i] is some child of item i in its heap
-	_sibs;		///< _sibs is a Dlists object containing sibling lists
+	_sibs;		///< _sibs is a ListSet object containing sibling lists
 
 	_rankVec;	///< _rankVec is an auxiliary array used during restructuring
 	_tmpq;		///< _tmpq is a List object used as a temporary queue 
@@ -52,7 +52,7 @@ export default class Fheaps extends Adt {
 		this._mark = new Array(capacity+1).fill(false);
 		this._p = new Array(capacity+1).fill(0);
 		this._c = new Array(capacity+1).fill(0);
-		this._sibs = new Dlists(this.n, capacity);
+		this._sibs = new ListSet(this.n, capacity);
 
 		this._rankVec = new Array(this._MAXRANK+1).fill(0);
 		this._tmpq = new List(this.n, capacity);

@@ -7,14 +7,14 @@
  */
 
 import { assert, AssertError} from '../../common/Errors.mjs';
-import Adt from '../Adt.mjs';
+import Top from '../Top.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
 /** This class implements a heap data structure.
  *  The heap elements are identified by indexes in 1..n where n
  *  is specified when a heap object is constructed.
  */
-export default class Dheap extends Adt {
+export default class Dheap extends Top {
 	_d;			///< base of heap
 	_m;			///< # of items in the heap set
 

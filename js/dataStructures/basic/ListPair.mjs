@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import Adt from '../Adt.mjs';
+import Top from '../Top.mjs';
 import { assert } from '../../common/Errors.mjs';
 import Scanner from './Scanner.mjs';
 
@@ -18,7 +18,7 @@ import Scanner from './Scanner.mjs';
  *  from one list to the other, using the swap method.
  *  Initially, all items are in the out list.
  */
-export default class ListPair extends Adt {
+export default class ListPair extends Top {
 	#nIn;		///< number of items in in-list
 	#nOut;		///< number of items in out-list
 
@@ -37,7 +37,11 @@ export default class ListPair extends Adt {
 	 *  @param n specifies the range of integer values
 	 *  @param capacity specifies the maximum range to provide space for
 	 */
-	constructor(n, capacity=n) { super(n); this.#init(capacity); }
+	constructor(n, capacity=n) {
+		super(n);
+		if (!capacity) capacity = this.n;
+		this.#init(capacity);
+	}
 
 	/** Allocate space and initialize.
 	 *  @param capacity is the maximum range
@@ -111,6 +115,7 @@ export default class ListPair extends Adt {
 	 */
 	xfer(l) {
 		if (l == this) return;
+		this._n = l.n;
 		this.#next = l.#next; this.#prev = l.#prev;
 		l.#next = l.#prev = null;
 		this.#firstIn = l.#firstIn; this.#lastIn = l.#lastIn;

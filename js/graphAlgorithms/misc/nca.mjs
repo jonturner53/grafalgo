@@ -8,7 +8,7 @@
 
 import { assert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
-import Dsets from '../../dataStructures/basic/Dsets.mjs';
+import Sets from '../../dataStructures/basic/Sets.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 // Nearest common ancestor computation.
@@ -43,7 +43,7 @@ export default function nca(t, root, pairs, u=root, pu=u) {
 	if (u == root) { // top-level invocation, so initialize data structures
 		g = new Graph(t.n, pairs.length);
 		noa = new Array(g.n+1);	
-		noaSets = new Dsets(t.n);
+		noaSets = new Sets(t.n);
 		mark = new Array(pairs.length);
 		ncav = new Array(pairs.length);
 
