@@ -61,7 +61,8 @@ export default class Top {
 	equals(a2) { return this.toString() == a2.toString(); }
 
 	/** Convert an index to a string.
-	 *  @param[in] x is a valid index for the data structure
+	 *  @param x is a valid index for the data structure
+	 *	@param label is an optional function used to produce string from value
 	 *  @return a string that represents the value of x; if this.n>26, this is
 	 *  just the string representing the number x, otherwise, it is a lower-case
 	 *  letter.
@@ -70,5 +71,19 @@ export default class Top {
 		if (!label)
 			label = (x => this.n <= 26 ? '-abcdefghijklmnopqrstuvwxyz'[x] : x);
 		return label(x);
+	}
+
+	/** Convert a list of index values to a string.
+	 *  @param ilist is an array of valid index values
+	 *	@param label is an optional function used to produce string from value
+	 *  @return a string that represents the list.
+	 */
+	ilist2string(ilist, label=null) {
+		let s = '';
+		for (let i of ilist) {
+			if (s.length > 0) s += ' ';
+			s += this.index2string(i, label);
+		}
+		return '[' + s + ']';
 	}
 }

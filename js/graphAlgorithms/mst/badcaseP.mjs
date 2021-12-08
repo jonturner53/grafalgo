@@ -1,4 +1,4 @@
-/** @file badcase_prim.mjs
+/** @file badcaseP.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -13,7 +13,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  *  @param m is the number of edges
  *  @return a Graph object that defines a badcase graph for Prim
  */
-export default function badcase_prim(n, m=n*(n-1)/2) {
+export default function badcaseP(n, m=n*(n-1)/2) {
 	let g = new Graph(n, m);
 	let skip = n*(n-1)/(2*m); let k = 0; let wt = m;
 	for (let u = 1; u <= n; u++) {

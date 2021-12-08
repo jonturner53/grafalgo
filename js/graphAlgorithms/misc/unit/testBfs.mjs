@@ -16,12 +16,12 @@ try {
 	let n = 6; let g = new Graph(n);
 	g.fromString("{a[b d e] b[a c f] c[b d f] d[a c e] e[a d] f[b c]}");
 
-	let treeEdges = bfs(g, 1);
-	assert(treeEdges.toString(), '1,2,4,5,3,6', 'a1');
-	treeEdges = bfs(g, 4);
-	assert(treeEdges.toString(), '4,1,3,5,2,6', 'a2');
-	treeEdges = bfs(g, 6);
-	assert(treeEdges.toString(), '6,2,3,1,4,5', 'a3');
+	let vlist = bfs(g, 1);
+	assert(g.ilist2string(vlist), '[a b d e c f]', 'a1');
+	vlist = bfs(g, 4);
+	assert(g.ilist2string(vlist), '[d a c e b f]', 'a2');
+	vlist = bfs(g, 6);
+	assert(g.ilist2string(vlist), '[f b c a d e]', 'a3');
 
 	console.log('passed tests');
 } catch (e) {

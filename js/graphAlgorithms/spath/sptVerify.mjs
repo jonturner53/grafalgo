@@ -1,4 +1,4 @@
-/** @file spt_verify.js
+/** @file sptVerify.js
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,7 +8,6 @@
 
 import { assert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
-import Digraph_l from '../../dataStructures/graphs/Digraph_l.mjs';
 
 /** Check the correctness of an spt.
  *  @param g is a digraph with edge lengths
@@ -18,22 +17,22 @@ import Digraph_l from '../../dataStructures/graphs/Digraph_l.mjs';
  *  from s to u.
  *  @return 'ok' if tree is a valid mst, otherwise return an error message
  */
-export default function spt_verify(g, s, pedge, dist) {
+export default function sptVerify(g, s, pedge, dist) {
 	if (!g.validVertex(s))
-		return `spt_verify: invalid source vertex ${s}`;
+		return `sptVerify: invalid source vertex ${s}`;
 	if (pedge.length != g.n+1)
-		return `spt_verify: pedge length (${pedge.length}) does not match g`;
+		return `sptVerify: pedge length (${pedge.length}) does not match g`;
 	if (dist.length != g.n+1)
-		return `spt_verify: dist length (${dist.length}) does not match g`;
+		return `sptVerify: dist length (${dist.length}) does not match g`;
 
 	// verify all distances in dist
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		let u = g.tail(e); let v = g.head(e);
 		if (dist[u] + g.length(e) < dist[v]) 
-			return `spt_verify: ${g.edge2string(e)} violates distance ` +
+			return `sptVerify: ${g.edge2string(e)} violates distance ` +
 				   `condition`;
 		if (e == pedge[v] && dist[u] + g.length(e) != dist[v])
-			return `spt_ verify: distances to endpoints of tree edge ` +
+			return `sptVverify: distances to endpoints of tree edge ` +
 					`${g.edge2string(e)} not consistent with edge length`; 
 	}
 
@@ -45,21 +44,21 @@ export default function spt_verify(g, s, pedge, dist) {
 			let v = u;
 			for (let e = pedge[v]; e != 0; e = pedge[v]) {
 				if (!g.validEdge(e))
-					return `spt_verify: invalid edge number ${e} in pedge`;
+					return `sptVerify: invalid edge number ${e} in pedge`;
 				if (v != g.head(e))
-					return `spt_verify: pedge[${v}] is an outgoing edge`;
+					return `sptVerify: pedge[${v}] is an outgoing edge`;
 				let w = g.tail(e);
 				if (w == u)
-					return `spt_verify: cycle involving ${g.edge2string(e)}`
+					return `sptVerify: cycle involving ${g.edge2string(e)}`
 				if (dist[w] + g.length(e) != dist[v])
-					return `spt_verify: dist[${g.index2string(v)}] does not ` +
+					return `sptVerify: dist[${g.index2string(v)}] does not ` +
 						   `match dist[${g.index2string(w)}]`;
 				if (mark[w]) break;
 				mark[w] = true;
 				v = w;
 			}
 			if (pedge[v] == 0 && v != s)
-				return `spt_verify: tree path from ${g.index2string(u)} does ` +
+				return `sptVerify: tree path from ${g.index2string(u)} does ` +
 					   `not lead to root`;
 		}
 	}
@@ -70,7 +69,7 @@ export default function spt_verify(g, s, pedge, dist) {
     while (!q.empty()) {
         let u = q.deq();
 		if (!mark[u])
-			return `spt_verify: reachable vertex ${g.index2string(u)} not ` +
+			return `sptVerify: reachable vertex ${g.index2string(u)} not ` +
 					`in tree`;
 		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
 			let v = g.head(e);

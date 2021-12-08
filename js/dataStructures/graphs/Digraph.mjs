@@ -9,6 +9,7 @@
 import { assert } from '../../common/Errors.mjs';
 import { scramble, shuffle } from '../../common/Random.mjs';
 import Graph from './Graph.mjs';
+import { randomPermutation } from '../../common/Random.mjs';
 
 /** Data structure for weighted undirected graph.
  *  Extends Graph class and places incoming edges before outgoing edges
@@ -98,7 +99,10 @@ export default class Digraph extends Graph {
 	 *  @return the first edge in the list of edges entering u, or 0 if
 	 *  no such edge
 	 */ 
-	firstIn(u) { return this.firstAt(u); }
+	firstIn(u) {
+		let e = this.firstAt(u);
+		return (u == this.tail(e) ? 0 : e);
+	}
 
 	/** Get the next edge coming into u.
 	 *  @param u is a vertex
@@ -107,8 +111,8 @@ export default class Digraph extends Graph {
 	 *  no such edge
 	 */ 
 	nextIn(u, e) {
-		let ee = this.nextAt(u, e);
-		return (u == this.tail(ee) ? 0 : ee);
+		e = this.nextAt(u, e);
+		return (u == this.tail(e) ? 0 : e);
 	}
 
 	/** Get the first edge leaving u.
@@ -133,7 +137,9 @@ export default class Digraph extends Graph {
 	inDegree(u) {
 		assert(this.validVertex(u));
 		let d = 0;
-		for (let e = this.firstIn(u); e != 0; e = this.nextIn(u,e)) d++;
+		for (let e = this.firstIn(u); e != 0; e = this.nextIn(u,e)) {
+			 d++;
+		}
 		return d;
 	}
 
@@ -192,10 +198,12 @@ export default class Digraph extends Graph {
 
 		// initialize edge information
 		this._left[e] = u; this._right[e] = v;
-		if (this.#length) this.#length = 0;
+		if (this.#length) this.#length[e] = 0;
 	
 		// add edge to the endpoint lists
-		if (this.firstOut(u) == 0) this._firstEpOut[u] = 2*e;
+		if (this._firstEpOut[u] == 0) {
+			this._firstEpOut[u] = 2*e;
+		}
 			// this._firstEpOut[u] changes only with first outgoing edge
 		this._firstEp[u] = this._epLists.join(this._firstEp[u], 2*e);
 		this._firstEp[v] = this._epLists.join(2*e+1, this._firstEp[v]);
@@ -210,9 +218,9 @@ export default class Digraph extends Graph {
 	 */
 	delete(e) {
 		assert(this.validEdge(e));
-		let u = this._left[e]; let v = this._right[e];
-		this._firstEpOut[u] = 2 * (e == this.firstOut(u) ? this.nextOut(u, e) :
-														   this.firstOut(u));
+		let u = this.left(e);
+		if (e == this.firstOut(u))
+			this._firstEpOut[u] = 2 * this.nextOut(u,e);
 		super.delete(e);
 	}
 
@@ -262,18 +270,25 @@ export default class Digraph extends Graph {
 	}
 
 	/** Compute a sorted list of edge numbers.
+	 *  @param evec is an optional array of edge numbers; if present,
+	 *  its edges are sorted; if omitted, all edges in graph are sorted
 	 *  @return a sorted array of edge numbers, where edges  are sorted
 	 *  first by the tail, then by the head; if lengths are present, they
 	 *  are used to break ties.
 	 */
-	sortedElist() {
-		// first create vector of edge information
-		// [tail, head, length, edge number]
-		let evec = new Array(this.m);
-		let i = 0;
-		for (let e = this.first(); e != 0; e = this.next(e)) {
-			evec[i] = [this.tail(e), this.head(e), this.length(e), e];
-			i++;
+    sortedElist(evec=null) {
+        // first create vector of edge information
+        // [smaller endpoint, larger endpoint, weight, edge number]
+        if (evec) {
+            for (let i = 0; i < evec.length; i++) {
+                let e = evec[i];
+				evec[i] = [this.tail(e), this.head(e), this.length(e), e];
+            }
+		} else {
+			let i = 0; evec = new Array(this.m);
+			for (let e = this.first(); e != 0; e = this.next(e)) {
+				evec[i++] = [this.tail(e), this.head(e), this.length(e), e];
+			}
 		}
 		evec.sort((t1, t2) => (t1[0] < t2[0] ? -1 : (t1[0] > t2[0] ? 1 :
 							  	(t1[1] < t2[1] ? -1 : (t1[1] > t2[1] ? 1 :
@@ -330,7 +345,9 @@ export default class Digraph extends Graph {
 		if (u == this.head(e)) return '';
 		let s = this.index2string(this.mate(u, e), label);
 		if (details) s += '.' + e;
-		if (this.#length) s += ':' + this.length(e);
+		if (this.#length) {
+			s += ':' + this.length(e);
+		}
 		return s;
 	}
 
@@ -369,25 +386,28 @@ export default class Digraph extends Graph {
 		let ep = randomPermutation(this._ecap);
 		this._shuffle(vp, ep);
 
-		// finally scramble individual eplists
+		// finally scramble individual epLists
 		for (let u = 1; u <= this.n; u++) {
-			// scramble inputs to u separately from outputs
 			if (this._firstEp[u] == 0) continue;
+			// make lists epi, epo containing endpoints at u
+			// and clear the endpoint list at u
 			let epi = [0]; let ee = this._firstEp[u];
 			while (ee != 0 && u == this.head(Math.floor(ee/2))) {
-				epi.push(ee); ee = this.eplists.delete(ee, ee);
+				epi.push(ee); ee = this._epLists.delete(ee, ee);
 			}
-			let epo = [0]; ee = this._firstEp[u];
+			let epo = [0];
 			while (ee != 0) {
-				epo.push(ee); ee = this.eplists.delete(ee, ee);
+				epo.push(ee); ee = this._epLists.delete(ee, ee);
 			}
+			// scramble epi and epo and re-insert endpoints in new order
 			scramble(epi); scramble(epo);
 			let first = (epi.length > 1 ? epi[1] : epo[1]);
 			for (let i = 2; i < epi.length; i++)
-				this.eplists.join(first, epi[i]);
+				this._epLists.join(first, epi[i]);
 			for (let i = (epi.length > 1 ? 1 : 2); i < epo.length; i++)
-				this.eplists.join(first, epo[i]);
+				this._epLists.join(first, epo[i]);
 			this._firstEp[u] = first;
+			this._firstEpOut[u] = epo.length > 1 ? epo[1] : 0;
 		}
 		if (this.#length) shuffle(this.#length, ep);
 		return [vp,ep]

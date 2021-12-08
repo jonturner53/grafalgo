@@ -1,4 +1,4 @@
-/** @file mst_verify.mjs
+/** @file mstVerify.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -25,7 +25,7 @@ let t;			// t of g (represented as graph)
  *  @return '' if elist defines a valid mst (or min spanning forest if g is
  *  not connected), otherwise return an error message
  */
-export default function mst_verify(G, elist) {
+export default function mstVerify(G, elist) {
 	// first initialize shared references to G and graph version of T
 	g = G;
 	t = new Graph(g.n, g.n-1);
@@ -33,7 +33,7 @@ export default function mst_verify(G, elist) {
 		let e = elist[i];
 		if (e <= 0) continue;
 		if (!g.validEdge(e))
-			return `mst_verify: edge ${e} is not in g`
+			return `mstVerify: edge ${e} is not in g`
 		let ee = t.join(g.left(e), g.right(e));
 		t.setWeight(ee, g.weight(e));
 	}
@@ -41,13 +41,13 @@ export default function mst_verify(G, elist) {
 	let [tcc, tcomp] = components(t);
 	let [gcc, gcomp] = components(g);
 	if (tcc != gcc || !tcomp.equals(gcomp))
-		return 'mst_verify: tree components do not match graph';
-	if (t.m > g.n-gcc) return 'mst_verify: cycle in edge list';
+		return 'mstVerify: tree components do not match graph';
+	if (t.m > g.n-gcc) return 'mstVerify: cycle in edge list';
 
 	// add extra vertex to t to link components, then check weights
 	t.expand(t.n+1, t.m+tcc);
 	for (let u = 1; u < t.n; u++) {
-		if (tcomp.isFirst(u)) t.join(t.n, u);
+		if (tcomp.isfirst(u)) t.join(t.n, u);
 	}
 	return checkWeight(t.n);
 }
@@ -102,7 +102,7 @@ function checkWeight(u=1, pu=u) {
 			 			  max_wt(g.right(e), u, a, mw) );
 		// m is the max weight on the tree path joining endpoints of e
 		if (m > g.weight(e)) {
-			return `mst_verify: cheap cross-edge ${e}=${g.edge2string(e)} in g`
+			return `mstVerify: cheap cross-edge ${e}=${g.edge2string(e)} in g`
 		}
 	}
 	return ''; // all edges joining vertices in u's subtree are more

@@ -8,7 +8,6 @@
 
 import List from '../../dataStructures/basic/List.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
-import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 /** Identify the connected components of an undirected graph.
  *  @param g is a graph object

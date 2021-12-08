@@ -1,4 +1,4 @@
-/** @file mst_chetar.mjs
+/** @file mstCT.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,7 +8,7 @@
 
 import List from '../../dataStructures/basic/List.mjs';
 import Sets from '../../dataStructures/basic/Sets.mjs';
-import Lheaps_l from '../../dataStructures/heaps/Lheaps_l.mjs';
+import LeftistHeaps from '../../dataStructures/heaps/LeftistHeaps.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 /** Compute min spanning tree of a graph using Cheriton/Tarjan algorithm.
@@ -18,12 +18,12 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  *  edges in the mst (or forest), traceString is a trace string and stats is
  *  a statistics object
  */
-export default function mst_chetar(g, trace=0) {
+export default function mstCT(g, trace=0) {
 	let trees = new Sets(g.n); // one subset for each mst subtree
 
 	// initialize collection of edge endpoint heaps
 	// each heap contains edge endpoints touching one mst subtree
-	let epHeap = new Lheaps_l(2*g.M+1, 2*g.M+1, ee =>
+	let epHeap = new LeftistHeaps(2*g.M+1, 2*g.M+1, true, ee =>
 		ee > 1 && trees.find(g.left(Math.trunc(ee/2))) ==
 				  trees.find(g.right(Math.trunc(ee/2))));
 	for (let e = g.first(); e != 0; e = g.next(e)) {

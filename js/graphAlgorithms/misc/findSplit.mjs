@@ -8,7 +8,6 @@
 
 import List from '../../dataStructures/basic/List.mjs'
 import ListPair from '../../dataStructures/basic/ListPair.mjs'
-import Graph from '../../dataStructures/graphs/Graph.mjs'
 
 /** Divide the vertices of a bipartite graph into two independent sets.
  *  @param g is a bipartite graph

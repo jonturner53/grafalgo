@@ -7,35 +7,39 @@
  */
 
 import { assert, AssertError} from '../../../common/Errors.mjs';
-import mst_prim from '../mst_prim.mjs';
-import mst_primf from '../mst_primf.mjs';
-import mst_kruskal from '../mst_kruskal.mjs';
-import mst_chetar from '../mst_chetar.mjs';
-import badcase_prim from '../badcase_prim.mjs';
-import mst_verify from '../mst_verify.mjs';
+import mstP from '../mstP.mjs';
+import mstPf from '../mstPf.mjs';
+import mstK from '../mstK.mjs';
+import mstCT from '../mstCT.mjs';
+import badcaseP from '../badcaseP.mjs';
+import mstVerify from '../mstVerify.mjs';
 import List from '../../../dataStructures/basic/List.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomConnectedGraph } from '../../misc/RandomGraph.mjs';
 
 let algorithms = {
-	'prim' : mst_prim,
-	'primf' : mst_primf,
-	'kruskal' : mst_kruskal,
-	'chetar' : mst_chetar
+	'P' : mstP,
+	'Pf' : mstPf,
+	'K' : mstK,
+	'CT' : mstCT
 }
 
 function main() {
 	let args = getArgs();
 	let trace = (args.indexOf('trace') >= 0);
 	let stats = (args.indexOf('stats') >= 0);
-	if (args.indexOf('all') >= 0)
-		args = Object.keys(algorithms).slice(0);
-	for (let aname of args) {
-		if (!algorithms.hasOwnProperty(aname)) continue;
-		let algo = algorithms[aname];
-		basicTests(aname, algo, trace, stats);
+	let anames = [];
+	let all = (args.indexOf('all') >= 0);
+	for (let key of Object.keys(algorithms)) {
+		for (let arg of args) {
+			if (all || arg.toLowerCase() == key.toLowerCase()) {
+				anames.push(key); break;
+			}
+		}
 	}
+	for (let an of anames)
+		basicTests(an, algorithms[an], trace, stats);
 } 
 
 function getArgs() {
@@ -59,9 +63,9 @@ function basicTests(aname, algo, trace=false, stats=false) {
 					 'e[f:1 g:3] f[e:1 g:2 h:3] g[e:3 f:2 h:1] i[j:5] j[i:5]}');
 		let [elist,ts,ss] = algo(g, trace ? 2 : 0);
 		if (trace) console.log('small 3 component graph\n' + ts);
-		assert(mst_verify(g, elist), '', 'a1');
-		assert(g.elist2string(elist.sort()),
-			 '[{a,b,3} {f,g,2} {g,h,1} {i,j,5} {a,d,2} {c,d,1} {e,f,1}]',
+		assert(mstVerify(g, elist), '', 'a1');
+		assert(g.elist2string(g.sortedElist(elist)),
+			 '[{a,b,3} {a,d,2} {c,d,1} {e,f,1} {f,g,2} {g,h,1} {i,j,5}]',
 			 'a2');
 
 		g = new Graph();
@@ -69,7 +73,7 @@ function basicTests(aname, algo, trace=false, stats=false) {
         g.randomWeights(randomInteger, 0, 99);
         [elist,ts,ss] = algo(g, trace);
 		if (trace) console.log('small random graph\n' + ts);
-		assert(mst_verify(g, elist), '', 'a3');
+		assert(mstVerify(g, elist), '', 'a3');
 
         g.xfer(randomGraph(1000, 10000));
         g.randomWeights(randomFraction);
@@ -90,7 +94,7 @@ function basicTests(aname, algo, trace=false, stats=false) {
 				console.log(JSON.stringify(ss));
 			}
 		}
-		assert(mst_verify(g, elist), '', 'a4');
+		assert(mstVerify(g, elist), '', 'a4');
 	
 		console.log('passed tests');
 	} catch(e) {

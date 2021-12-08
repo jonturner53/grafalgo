@@ -1,4 +1,4 @@
-/** @file spt_dijkstra.mjs
+/** @file sptD.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -7,9 +7,7 @@
  */
 
 import List from '../../dataStructures/basic/List.mjs';
-import Dsets from '../../dataStructures/basic/Dsets.mjs';
-import Dheap from '../../dataStructures/heaps/Dheap.mjs';
-import Graph_w from '../../dataStructures/graphs/Digraph_l.mjs';
+import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 
 /** Compute shortest path tree of a graph using Dijkstra's algorithm.
  *  @param g is a digraph with edge lengths
@@ -23,10 +21,10 @@ import Graph_w from '../../dataStructures/graphs/Digraph_l.mjs';
  *  (or infinity if u unreachable), ts is a trace string and stats is a
  *  statistics object.
  */
-export default function spt_dijkstra(g, s, trace=0) {
+export default function sptD(g, s, trace=0) {
 	let pedge = new Array(g.n+1).fill(0); let ts = '';
 	let dist = new Array(g.n+1).fill(Number.POSITIVE_INFINITY);
-	let h = new Dheap(g.n, 2+Math.floor(g.m/g.n));
+	let h = new ArrayHeap(g.n, 2+Math.floor(g.m/g.n));
 	if (trace) ts += g.toString(0,1);
 
 	dist[s] = 0; h.insert(s, 0);

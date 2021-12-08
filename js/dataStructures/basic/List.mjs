@@ -64,7 +64,7 @@ export default class List extends Top {
 		this.#value = new Array(this.#next.length).fill(null, 0, this.n+1);
 	}
 
-	/** Reset the range and max range of the list; discard value. O(capacity)
+	/** Reset the range and max range of the list; discard value. 
 	 *  @param n is the range of the index set
 	 *  @param capacity the max range for which space is to be allocated
 	 */
@@ -85,7 +85,7 @@ export default class List extends Top {
 		this._n = n;
 	}
 
-	/** Assign new value to list from another. O(size)
+	/** Assign new value to list from another. 
 	 *  @paran l is a list whose value is to be assigned to this
 	 */
 	assign(l) {
@@ -172,7 +172,7 @@ export default class List extends Top {
 	 */
 	empty() { return this.length == 0; }
 	
-	/** Test if an item is in the list. O(1)
+	/** Test if an item is in the list. 
 	 *  @param i is an item
 	 *  @return true if i is in the list, else false
 	 */
@@ -197,7 +197,7 @@ export default class List extends Top {
 		this.#value[i] = value;
 	}
 
-	/** Insert an item into the list, relative to another. O(1)
+	/** Insert an item into the list, relative to another. 
 	 *  @param i is item to insert
 	 *  @param j is item after which i is to be inserted;
 	 *  @param value is optional value for inserted item
@@ -222,7 +222,7 @@ export default class List extends Top {
 		return;
 	}
 	
-	/** Remove the item following a specified item. O(1)
+	/** Remove the item following a specified item. 
 	 *  @param i is item whose successor is to be deleted;
 	 *  if zero, the first item is deleted
 	 *  @return the deleted item
@@ -255,13 +255,13 @@ export default class List extends Top {
 		}
 	}
 	
-	/** Push item onto front of a list. O(1)
+	/** Push item onto front of a list. 
 	 *  @param item to be added.
 	 *  @param value is an optional value associated with i
 	 */
 	push(i, value) { this.insert(i, 0, value); }
 	
-	/** Remove the first item in the list. O(1)
+	/** Remove the first item in the list. 
 	 *  @return the item removed, or 0
 	 */
 	pop() { return this.deleteNext(0); }
@@ -271,19 +271,19 @@ export default class List extends Top {
      */
     popLast() { this.delete(this.last()); }
 	
-	/** Add item to the end of the list. O(1)
+	/** Add item to the end of the list. 
 	 *  @param item to be added.
 	 *  @param value is an optional value associated with i
 	 *  @return true if the list was modified, else false
 	 */
 	enq(i, value) { this.insert(i, this.last(), value); }
 	
-	/** Remove the first item in the list. O(1)
+	/** Remove the first item in the list. 
 	 *  @return the item removed, or 0
 	 */
 	deq() { return this.pop(); }
 
-	/** Compare two lists for equality. O(length)
+	/** Compare two lists for equality.
 	 *
 	 *  @param l is the list to be compared to this one
 	 *  @return true if they are the same list or have the
@@ -305,6 +305,24 @@ export default class List extends Top {
 			j = l.next(j);
 		}
 		return j == 0;
+	}
+
+	/** Compare two lists for set equality.
+	 *  @param l is the list to be compared to this one
+	 *  @return true if they contain the same items, but not
+	 *  necessarily in the same order.
+	 */
+	matches(l) {
+		if (this === l) return true;
+		if (typeof l == 'string') {
+			let s = l; l = new List(this.n); l.fromString(s);
+		} else if (!(l instanceof List)) {
+			return false;
+		}
+		if (this.length != l.length) return false;
+		for (let i = this.first(); i != 0; i = this.next(i))
+			if (!l.contains(i)) return false;
+		return true;
 	}
 
 	/** Create a string representation of a given string.

@@ -126,8 +126,8 @@ export default class Graph extends Top {
 
 	/** Remove all the edges from a graph.  */
 	clear() {
-		this._epLists.clear(); this._edges.clear();
-		for (let u = 1; u <= this.n; u++) this._firstEp[u] = 0;
+		let e = this.first();
+		while (e != 0) { this.delete(e); e = this.first(); }
 	}
 
 	/** Get the number of edges.
@@ -302,24 +302,39 @@ export default class Graph extends Top {
 	}
 
 	/** Compute a sorted list of edge numbers.
+	 *  @param evec is an optional array of edge numbers; if present,
+	 *  the edges in the list are sorted; if omitted, all edges in the
+	 *  graph are sorted
 	 *  @return a sorted array of edge numbers, where edges {u,v} are sorted
 	 *  first by the smaller endpoint, then by the larger endpoint; if weights
 	 *  are present, they are used to break ties.
 	 */
-	sortedElist() {
+	sortedElist(evec=null) {
 		// first create vector of edge information
 		// [smaller endpoint, larger endpoint, weight, edge number]
-		let evec = new Array(this.m);
-		let i = 0;
-		for (let e = this.first(); e != 0; e = this.next(e)) {
-			if (this.left(e) < this.right(e)) {
-				evec[i] = [this.left(e), this.right(e),
-							this.#weight ? this.weight(e) : 0, e];
-			} else {
-				evec[i] = [this.right(e), this.left(e),
-							this.#weight ? this.weight(e) : 0, e];
+		if (evec) {
+			for (let i = 0; i < evec.length; i++) {
+				let e = evec[i];
+				if (this.left(e) < this.right(e)) {
+					evec[i] = [this.left(e), this.right(e),
+								this.#weight ? this.weight(e) : 0, e];
+				} else {
+					evec[i] = [this.right(e), this.left(e),
+								this.#weight ? this.weight(e) : 0, e];
+				}
 			}
-			i++;
+		} else {
+			let i = 0; let evec = new Array(this.m);
+			for (let e = this.first(); e != 0; e = this.next(e)) {
+				if (this.left(e) < this.right(e)) {
+					evec[i] = [this.left(e), this.right(e),
+								this.#weight ? this.weight(e) : 0, e];
+				} else {
+					evec[i] = [this.right(e), this.left(e),
+								this.#weight ? this.weight(e) : 0, e];
+				}
+				i++;
+			}
 		}
 		evec.sort((t1, t2) => (t1[0] < t2[0] ? -1 : (t1[0] > t2[0] ? 1 :
 							  	(t1[1] < t2[1] ? -1 : (t1[1] > t2[1] ? 1 :
@@ -434,6 +449,21 @@ export default class Graph extends Top {
 		}
 		return '[' + s + ']';
 	}
+	
+	/** Create a string representation of a vertex list.
+	 *  @param vlist is an array of edge numbers (possibly with some
+	 *  @label is an optional function used to label the vertices
+	 *  invalid values mixed in; these are ignored)
+	 *  @return the string
+	 */
+	vlist2string(vlist, label) {
+		let s = '';
+		for (let u of vlist) {
+			if (s.length > 0) s += ' ';
+			s += this.index2string(e, label);
+		}
+		return '[' + s + ']';
+	}
 
 	/** Create a string representation of an adjacency list.
 	 *  @param u is a vertex number
@@ -446,14 +476,8 @@ export default class Graph extends Top {
 			if (s.length > 0 && ns.length > 0) s += ' ';
 			s += ns;
 		}
-		return this.vertex2string(u, label) + '[' + s + ']';
+		return this.index2string(u, label) + '[' + s + ']';
 	}
-
-	/* Create string representation of vertex at start of alist.
-	 *  @param u is a vertex
-	 *  @param label (if true) forces u to be displayed as a number
-	 */
-	vertex2string(u, label=0) { return this.index2string(u, label); }
 
 	/** Create a string representation for a neighbor of a given vertex.
 	 *  @param u is a vertex
@@ -657,11 +681,11 @@ export default class Graph extends Top {
 		let left = new Array(this._ecap).fill(0);
 		let right = new Array(this._ecap);
 		for (let e = this.first(); e != 0; e = this.next(e)) {
-			left[e] = this.left(e); right[e] = this.right(e);
+			left[ep[e]] = this.left(e); right[ep[e]] = this.right(e);
 		}
 		this.clear();
 		for (let e = 0; e < left.length; e++) {
-			 if (left[e] != 0)
+			if (left[e] != 0)
 				this.join(vp[left[e]], vp[right[e]], ep[e]);
 		}
 	}

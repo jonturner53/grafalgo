@@ -9,7 +9,7 @@
 import { assert, fatal } from '../../common/Errors.mjs';
 import { randomInteger, scramble } from '../../common/Random.mjs';
 import List from '../../dataStructures/basic/List.mjs';
-import Dheap from '../../dataStructures/heaps/Dheap.mjs';
+import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
@@ -217,7 +217,7 @@ export function randomTree(n) {
 	// vertices appearing in nonleaf will be non-leaf vertices in the tree
 	// number of times a vertex appears in nonleaf is 1 less than its degree
 	// d[u] is the degree of u in the tree.
-	let degOne = new Dheap(n, 2);      // vertices with one more edge to add
+	let degOne = new ArrayHeap(n, 2);      // vertices with one more edge to add
 	for (let u = 1; u <= n; u++) {
 		if (d[u] == 1) degOne.insert(u, u);
 	}

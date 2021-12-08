@@ -18,11 +18,11 @@ try {
 				 'g[c] h[d j] i[d] j[h] k[f] l[f]}');
 
 	let ncav = nca(t, 1, [[4, 6], [5, 12], [9, 10]]);
-	assert(ncav.toString(), [1, 2, 4].toString(), 'a1');
+	assert(t.ilist2string(ncav), '[a b d]', 'a1');
 	ncav = nca(t, 10, [[4, 6], [5, 12], [9, 10]]);
-	assert(ncav.toString(), [4, 2, 10].toString(), 'a2');
+	assert(t.ilist2string(ncav), '[d b j]', 'a2');
 	ncav = nca(t, 2, [[4, 6], [5, 12], [9, 10]]);
-	assert(ncav.toString(), [2, 2, 4].toString(), 'a3');
+	assert(t.ilist2string(ncav), '[b b d]', 'a3');
 	
 	console.log('passed tests');
 } catch(e) {

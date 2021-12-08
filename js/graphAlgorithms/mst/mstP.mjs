@@ -1,4 +1,4 @@
-/** @file mst_prim.mjs
+/** @file mstP.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -7,7 +7,7 @@
  */
 
 import List from '../../dataStructures/basic/List.mjs';
-import Dheap from '../../dataStructures/heaps/Dheap.mjs';
+import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 /** Compute min spanning tree of a graph using Prim's algorithm.
@@ -20,7 +20,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  *  array listing the edges in the mst (or forest), traceString is a trace string
  *  and stats is a statistics object
  */
-export default function mst_prim(g, trace=0, d=2+Math.floor(g.m/g.n)) {
+export default function mstP(g, trace=0, d=2+Math.floor(g.m/g.n)) {
 	let traceString = '';
 	if (trace) {
 		traceString += g.toString(0,1) + '\n' +
@@ -28,7 +28,7 @@ export default function mst_prim(g, trace=0, d=2+Math.floor(g.m/g.n)) {
 	}
 
 	let light = new Array(g.n+1).fill(-1);
-	let border = new Dheap(g.n, d);
+	let border = new ArrayHeap(g.n, d);
 	for (let s = 1; s <= g.n; s++) {
 		if (light[s] >= 0) continue;
 		border.insert(s, 0); light[s] = 0;

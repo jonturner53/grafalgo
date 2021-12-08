@@ -1,4 +1,4 @@
-/** @file mst_kruskal.mjs
+/** @file mstK.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -16,7 +16,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  *  array listing the edges in the mst (or forest), traceString is a trace
  *  string and stats is a statistics object
  */
-export default function mst_kruskal(g, trace=0) {
+export default function mstK(g, trace=0) {
 	// first make a sorted list of the edges in g
 	let i = 0; let edges = new Array(g.m);
 	for (let e = g.first(); e != 0; e = g.next(e)) edges[i++] = e;

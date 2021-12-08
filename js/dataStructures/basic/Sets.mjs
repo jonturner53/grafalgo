@@ -8,6 +8,7 @@
 
 import Top from '../Top.mjs';
 import { assert } from '../../common/Errors.mjs';
+import ListSet from './ListSet.mjs';
 import Scanner from './Scanner.mjs';
 import Digraph from '../graphs/Digraph.mjs';
 
@@ -17,12 +18,12 @@ import Digraph from '../graphs/Digraph.mjs';
  *  supports constant-time union of two sets.
  */
 export default class Sets extends Top {
-	_p;			///< _p[i] is parent of i
-	_rank;	 	///< _rank[i] is rank of i
+	#p;			///< #p[i] is parent of i
+	#rank;	 	///< #rank[i] is rank of i
 
-	_linkCount;
-	_findCount;
-	_findSteps;
+	#linkCount;
+	#findCount;
+	#findSteps;
 	
 	constructor(n, capacity=n) {
 		super(n);
@@ -32,13 +33,13 @@ export default class Sets extends Top {
 
 	#init(capacity) {
 		assert(this.n <= capacity);
-		this._p = new Array(capacity+1); 
-		this._rank = new Array(capacity+1);
+		this.#p = new Array(capacity+1); 
+		this.#rank = new Array(capacity+1);
 		this.clear();
 	
-		this._linkCount = 0;
-		this._findCount = 0;
-		this._findSteps = 0;
+		this.#linkCount = 0;
+		this.#findCount = 0;
+		this.#findSteps = 0;
 	}
 	
 	/** Allocate space and initialize Sets object.
@@ -48,7 +49,7 @@ export default class Sets extends Top {
 	 */
 	reset(n, capacity=n) {
 		assert(0 < this.n && n <= capacity);
-		this._n = n; this._init();
+		this._n = n; this.#init(capacity);
 	}
 
 	/** Expand the space available for this object.
@@ -57,29 +58,38 @@ export default class Sets extends Top {
 	 */
 	expand(n) {
 		if (n <= this.n) return;
-		if (n > this._capacity) {
+		if (n > this.capacity) {
 			let nu = new Sets(this.n, Math.max(n,
-									   Math.floor(1.25 * this._capacity)));
+									   Math.floor(1.25 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
 		this.clear(this.n+1, n+1); this._n = n;
 	}
 	
-	/** Copy another Sets object to this one.
-	 *  @param source is another Sets object
+	/** Copy another object to this one.
+	 *  @param source is another Sets object or a ListSet object.
 	 */
 	assign(ds) {
 		if (ds == this) return;
-		if (ds.n > this._capacity) reset(ds.n);
-		else this._n = ds.n;
-		for (let i = 0; i <= this.n; i++) {
-			this._p[i] = ds._p[i]; this._rank[i] = ds._rank[i];
+		if (ds.n > this.capacity) this.reset(ds.n);
+		else { this.clear(); this._n = ds.n; }
+		if (ds instanceof Sets) {
+			for (let i = 0; i <= this.n; i++) {
+				this.#p[i] = ds.#p[i]; this.#rank[i] = ds.#rank[i];
+			}
+		} else if (ds instanceof ListSet) {
+			for (let i = 0; i <= this.n; i++) {
+				if (!ds.isfirst(i)) continue;
+				for (let j = ds.next(i); j != 0; j = ds.next(j))
+					this.link(this.find(i), j);
+			}
 		}
 	}
+
 	xfer(ds) {
 		if (ds == this) return;
 		this._n = ds.n;
-		this._p = ds._p; this._rank = ds._rank; ds._p = ds._rank = null;
+		this.#p = ds.#p; this.#rank = ds.#rank; ds.#p = ds.#rank = null;
 	}
 	
 	/** Clear all items in a given range.
@@ -87,22 +97,22 @@ export default class Sets extends Top {
 	 *  @param hi is the high end of the range; all items <hi are cleared
 	 */
 	clear(lo=0, hi=this.n+1) {
-		for (let i = lo; i < hi; i++) { this._p[i] = i; this._rank[i] = 0; }
+		for (let i = lo; i < hi; i++) { this.#p[i] = i; this.#rank[i] = 0; }
 	}
 
-	get _capacity() { return this._p.length - 1; }
+	get capacity() { return this.#p.length - 1; }
 
 	/** Return parent of a set element in the tree representation of the set.
 	 *  @param i index of a set element
 	 *  @return the parent of i
 	 */
-	p(i) { return this._p[i]; }
+	p(i) { return this.#p[i]; }
 
 	/** Return rank of a set element in the tree representation of the set.
 	 *  @param i index of a set element
 	 *  @return the parent of i
 	 */
-	rank(i) { return this._rank[i]; }
+	rank(i) { return this.#rank[i]; }
 	
 	/** Find and return the canonical element of a set.
 	 *  Performs path compression as side-effect.
@@ -110,13 +120,13 @@ export default class Sets extends Top {
 	 *  @return the canonical element of the set containing i
 	 */
 	find(i) {
-		this._findCount++;
+		this.#findCount++;
 		assert(this.valid(i));
 		let root;
 		for (root = i; this.p(root) != root; root = this.p(root)) {
-			this._findSteps++;
+			this.#findSteps++;
 		}
-		while (i != root) { let pi = this.p(i); this._p[i] = root; i = pi; }
+		while (i != root) { let pi = this.p(i); this.#p[i] = root; i = pi; }
 		return root;
 	}
 	
@@ -127,15 +137,15 @@ export default class Sets extends Top {
 	 *  the given sets
 	 */
 	link(i, j) {
-		this._linkCount++;
+		this.#linkCount++;
 		assert(this.valid(i) && this.valid(j) &&
 			   this.p(i) == i && this.p(j) == j && i != j);
 		if (this.rank(i) < this.rank(j)) {
 			let t = i; i = j; j = t;
 		} else if (this.rank(i) == this.rank(j)) {
-			this._rank[i]++;
+			this.#rank[i]++;
 		}
-		this._p[j] = i;
+		this.#p[j] = i;
 		return i;
 	}
 	
@@ -185,7 +195,7 @@ export default class Sets extends Top {
 			if (this.p(r) != r || F.firstOut(r) == 0)
 				continue;
 			if (s != '' && !pretty) s += ' ';
-			let ss = this._set2string(r, F, details, label);
+			let ss = this.set2string(r, F, details, label);
 			s += (details ? ss : '{' + ss + '}');
 			if (pretty) s += '\n';
 		}
@@ -196,7 +206,7 @@ export default class Sets extends Top {
 	 *  @param r is an item that identifies a set with more than one element
 	 *  @return a string that represents r
 	 */
-	_set2string(u, F, details=0, label=0) {
+	set2string(u, F, details=0, label=0) {
 		if (u == 0) return;
 		let s = this.index2string(u, label) +
 				(details && this.rank(u) > 0 ? ':' + this.rank(u) : '');
@@ -205,7 +215,7 @@ export default class Sets extends Top {
 		for (let e = F.firstOut(u); e != 0; e = F.nextOut(u, e)) { 
 			let v = F.head(e);
 			if (e != F.firstOut(u)) s += ' ';
-			s += this._set2string(v, F, details, label);
+			s += this.set2string(v, F, details, label);
 		}
 		if (details) s += ')';
 		return s;
@@ -236,8 +246,8 @@ export default class Sets extends Top {
 	}
 
 	getStats() {
-		return { 'link' : this._linkCount,
-				 'find'	: this._findCount,
+		return { 'link' : this.#linkCount,
+				 'find'	: this.#findCount,
 				 'findSteps' : this._findSteps };
 	}
 }

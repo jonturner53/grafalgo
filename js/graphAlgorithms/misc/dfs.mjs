@@ -7,9 +7,7 @@
  */
 
 import { assert } from '../../common/Errors.mjs';
-import Adt from '../../dataStructures/Adt.mjs';
 import List from '../../dataStructures/basic/List.mjs';
-import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 /** Compute list of vertices in depth-first order (specifically pre-order).
  *  @param g is a graph object

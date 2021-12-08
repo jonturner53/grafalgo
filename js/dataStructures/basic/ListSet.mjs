@@ -1,4 +1,4 @@
-/** @file ListSet.java 
+/** @file ListSet.mjs 
  *
  * @author Jon Turner
  * @date 2021
@@ -81,14 +81,14 @@ export default class ListSet extends Top {
 		}
 	}
 
-	isFirst(i) { assert(this.valid(i)); return this.#next[this.#prev[i]] == 0; }
+	isfirst(i) { assert(this.valid(i)); return this.#next[this.#prev[i]] == 0; }
 	
 	/** Get the last item in a list.
 	 *  @param f is the first item on a list.
 	 *  @return the last item in the list
 	 */
 	last(f) {
-		assert(this.isFirst(f));
+		assert(this.isfirst(f));
 		return this.#prev[f];
 	}
 
@@ -105,7 +105,7 @@ export default class ListSet extends Top {
 	 *  @return the item that precedes i in its list
 	 */
 	prev(i) {
-		return (this.isFirst(i) ? 0 : this.#prev[i]);
+		return (this.isfirst(i) ? 0 : this.#prev[i]);
 	}
 
 	/** Determine if an item is in a singleton list.
@@ -147,7 +147,7 @@ export default class ListSet extends Top {
 	 *  @return the first item of the modified list, or 0 if f was a singleton
 	 */
 	delete(i, f) {
-		assert(this.valid(i) && this.valid(f) && this.isFirst(f));
+		assert(this.valid(i) && this.valid(f) && this.isfirst(f));
 		if (this.singleton(f)) return 0;
 		let l = this.last(f); let nf = this.next(f);
 		let pi = this.prev(i); let ni = this.next(i);
@@ -172,7 +172,7 @@ export default class ListSet extends Top {
 		assert(this.valid(f1) && this.valid(f2));
 		if (f2 == 0 || f1 == f2) return f1;
 		if (f1 == 0) return f2;
-		assert(this.isFirst(f1) && this.isFirst(f2));
+		assert(this.isfirst(f1) && this.isfirst(f2));
 		let l1 = this.last(f1); let l2 = this.last(f2);
 		this.#next[l1] = f2;
 		this.#prev[f2] = l1;
@@ -184,7 +184,7 @@ export default class ListSet extends Top {
 	sort() {
 		let vec = [];
 		for (let i = 1; i <= this.n; i++) {
-			if (this.singleton(i) || !this.isFirst(i)) continue;
+			if (this.singleton(i) || !this.isfirst(i)) continue;
 			let j = i; vec.length = 0;
 			while (!this.singleton(j)) {
 				vec.push(j); j = this.delete(j, j);
@@ -209,8 +209,8 @@ export default class ListSet extends Top {
 			return false;
 		if (this.n != ls.n) return false;
 		for (let i = 1; i < this.n; i++) {
-			if (this.isFirst(i) != ls.isFirst(i)) return false;
-			if (!this.isFirst(i)) continue;
+			if (this.isfirst(i) != ls.isfirst(i)) return false;
+			if (!this.isfirst(i)) continue;
 			let j1 = i; let j2 = i;
 			do {
 				j1 = this.next(j1); j2 = ls.next(j2);
@@ -229,7 +229,7 @@ export default class ListSet extends Top {
 	toString(details=0, pretty=0, label=0) {
 		let s = '';
 		for (let l = 1; l <= this.n; l++) {
-			if (!this.isFirst(l) || (this.singleton(l) && !details))
+			if (!this.isfirst(l) || (this.singleton(l) && !details))
 				continue;
 			if (s.length > 0) s += ',' + (pretty ? '\n ' : ' ');
 			s += '(';

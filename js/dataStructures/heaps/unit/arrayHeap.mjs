@@ -1,4 +1,4 @@
-/** \file TestDheap.java
+/** \file arrayHeap.java
  *
  *  @author Jon Turner
  *  @date 2021
@@ -7,14 +7,14 @@
  */
 
 import { assert, AssertError } from '../../../common/Errors.mjs';
-import Adt from '../../Adt.mjs';
+import Top from '../../Top.mjs';
 import Scanner from '../../basic/Scanner.mjs';
-import Dheap from '../Dheap.mjs';
+import ArrayHeap from '../ArrayHeap.mjs';
 
 try {
 	console.log('running basic tests');
 
-	let n1 = 10; let h1 = new Dheap(n1);
+	let n1 = 10; let h1 = new ArrayHeap(n1);
 	
 	assert(h1.n, 10, 'a1');
 	assert(h1.empty(), 'a2');
@@ -36,7 +36,7 @@ try {
 	assert(stats.siftup, 2, 'b11');
 	assert(stats.siftdown, 1, 'b12');
 
-	let n2 = 27; let h2 = new Dheap(n2);
+	let n2 = 27; let h2 = new ArrayHeap(n2);
 	h2.fromString('{g:4 f:2 c:5}');
 	assert(h2, h1, 'e2');
 	assert(h2, '{6:2 7:4 3:5}', 'e3');
@@ -45,7 +45,7 @@ try {
 	h1.changekey(3, 1);
 	assert(h1, '{c:1 g:4 f:2}', 'e6');
 
-	let h3 = new Dheap(25, 2);
+	let h3 = new ArrayHeap(25, 2);
 	h3.fromString('{g:1 f:2 c:5 a:5 d:2 h:7 j:8 k:6 m:4}');
 	assert(h3.toString(1),'{g:1(f:2(m:4(k:6 a:5) d:2) c:5(h:7 j:8))}','f1');
 
