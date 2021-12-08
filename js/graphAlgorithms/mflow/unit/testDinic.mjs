@@ -8,7 +8,7 @@
 
 import { assert, AssertError } from '../../../common/Errors.mjs';
 import Flograph from '../../../dataStructures/graphs/Flograph.mjs';
-import mflo_dinic from '../mflo_dinic.mjs';
+import mfloD from '../mfloD.mjs';
 
 try {
 	console.log('running basic tests');
@@ -16,7 +16,7 @@ try {
 	let g = new Flograph(6, 20);
 	g.fromString('{a->[b:4:0 c:3:0] b[c:3:0 d:2:0] c[e:4:0] d[f:4:0] ' +
 				 'e[d:2:0 f:3:0] ->f[]}');
-	let f = mflo_dinic(g);
+	let f = mfloD(g);
 	let s = '{a->[b:4:3 c:3:3] b[c:3:1 d:2:2] c[e:4:4] ' +
             'd[f:4:3] e[d:2:1 f:3:3] ->f[]}'
 	assert(g.equals(s, true), `a2 ${g} ${s}`);

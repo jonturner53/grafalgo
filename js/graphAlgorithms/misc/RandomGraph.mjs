@@ -13,7 +13,7 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import mflo_dinic from '../mflow/mflo_dinic.mjs';
+import mfloD from '../mflow/mfloD.mjs';
 
 /** Generate an undirected random graph. 
  *  @param n is the number of vertices in the random graph
@@ -383,7 +383,7 @@ function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
 		let e = fg.join(u, fg.sink);
 		fg.setCapacity(e, (u <= n1+k ? d2+1 : d2));
 	}
-	let f = mflo_dinic(fg);
+	let f = mfloD(fg);
 	g.reset(n1+n2, d1*n1);
 	for (let e = fg.first(); e != 0; e = fg.next(e)) {
 		let u = fg.tail(e); let v = fg.head(e);

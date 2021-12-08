@@ -1,4 +1,4 @@
-/** @file mflo_dinic.mjs
+/** @file mfloD.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -18,7 +18,7 @@ let nextEdge;	// nextEdge[u] is the next edge to be processed at u
  *  @param fg is Flograph, possibly with some initial flow already present.
  *  @return the total flow added to fg
  */
-export default function mflo_dinic(fg) {
+export default function mfloD(fg) {
 	g = fg;
 	nextEdge = new Array(g.n+1);
 	level = new Array(g.n+1);
