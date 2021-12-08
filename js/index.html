@@ -159,27 +159,24 @@ import { range, shuffle, scramble, randomFraction, randomInteger, randomExp,
 		 randomFill, randomPermutation
 	   } from './common/Random.mjs';
 
-import Dlists from './dataStructures/basic/Dlists.mjs';
-import Dlists_r from './dataStructures/basic/Dlists_r.mjs';
-import Dsets from './dataStructures/basic/Dsets.mjs';
+import ListSet from './dataStructures/basic/ListSet.mjs';
+import ReversibleLists from './dataStructures/basic/ReversibleLists.mjs';
+import Sets from './dataStructures/basic/Sets.mjs';
 import List from './dataStructures/basic/List.mjs';
 import ListPair from './dataStructures/basic/ListPair.mjs';
-import List_d from './dataStructures/basic/List_d.mjs';
 import Scanner from './dataStructures/basic/Scanner.mjs';
 
 import Digraph from './dataStructures/graphs/Digraph.mjs';
-import Digraph_l from './dataStructures/graphs/Digraph_l.mjs';
 import Flograph from './dataStructures/graphs/Flograph.mjs';
 import Graph from './dataStructures/graphs/Graph.mjs';
-import Graph_w from './dataStructures/graphs/Graph_w.mjs';
 
-import Dheap from './dataStructures/heaps/Dheap.mjs';
-import Fheaps from './dataStructures/heaps/Fheaps.mjs';
+import ArrayHeap from './dataStructures/heaps/ArrayHeap.mjs';
+import FibHeaps from './dataStructures/heaps/FibHeaps.mjs';
+import LeftistHeaps from './dataStructures/heaps/LeftistHeaps.mjs';
 
 import bfs from './graphAlgorithms/misc/bfs.mjs';
 import components from './graphAlgorithms/misc/components.mjs';
 import dfs from './graphAlgorithms/misc/dfs.mjs';
-import dfs_nr from './graphAlgorithms/misc/dfs_nr.mjs';
 import findSplit from './graphAlgorithms/misc/findSplit.mjs';
 import nca from './graphAlgorithms/misc/nca.mjs';
 import { randomGraph, randomDigraph, randomDag, randomBigraph, randomTree,
@@ -187,15 +184,15 @@ import { randomGraph, randomDigraph, randomDag, randomBigraph, randomTree,
 	   } from './graphAlgorithms/misc/RandomGraph.mjs';
 import toposort from './graphAlgorithms/misc/toposort.mjs';
 
-import mst_kruskal from './graphAlgorithms/mst/mst_kruskal.mjs';
-import mst_prim from './graphAlgorithms/mst/mst_prim.mjs';
-import mst_primf from './graphAlgorithms/mst/mst_primf.mjs';
-import mst_chetar from './graphAlgorithms/mst/mst_chetar.mjs';
-import badcase_prim from './graphAlgorithms/mst/badcase_prim.mjs';
-import mst_verify from './graphAlgorithms/mst/mst_verify.mjs';
+import mst_kruskal from './graphAlgorithms/mst/mstK.mjs';
+import mst_prim from './graphAlgorithms/mst/mstP.mjs';
+import mst_primf from './graphAlgorithms/mst/mstPf.mjs';
+import mst_chetar from './graphAlgorithms/mst/mstC.mjs';
+import badcase_prim from './graphAlgorithms/mst/badcaseP.mjs';
+import mst_verify from './graphAlgorithms/mst/mstVerify.mjs';
 
-import spt_dijkstra from './graphAlgorithms/spath/spt_dijkstra.mjs';
-import spt_verify from './graphAlgorithms/spath/spt_verify.mjs';
+import sptD from './graphAlgorithms/spath/sptD.mjs';
+import sptVerify from './graphAlgorithms/spath/sptVerify.mjs';
 
 import mflo_dinic from './graphAlgorithms/mflow/mflo_dinic.mjs';
 
