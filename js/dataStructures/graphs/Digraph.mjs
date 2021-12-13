@@ -18,7 +18,6 @@ import { randomPermutation } from '../../common/Random.mjs';
 export default class Digraph extends Graph {
 	_firstEpOut		// _firstEpOut[u] is endpoint of first outgoing edge
 					// in u's adjacency list
-	#length			// optional edge length array
 
 	/** Constructor for directed graph
 	 *  @param n is the number of vertices
@@ -30,13 +29,10 @@ export default class Digraph extends Graph {
 	}
 	
 	#init_d() {
-		this._firstEpOut = new Array(this._vcap+1).fill(0);
-		if (this.#length) this.addLengths();
+		this._firstEpOut = new Array(this.vertexCapacity+1).fill(0);
 	} 
 
-    addLengths() {
-        this.#length = new Array(this._ecap+1);
-    }
+    addLengths() { super.addWeights(); }
 
 	reset(n, ecap, vcap) {
 		super.reset(n, ecap, vcap); this.#init_d();
@@ -44,32 +40,16 @@ export default class Digraph extends Graph {
 
 	expand(n, m) {
 		if (n <= this.n && m <= this.m) return;
-		if (n > this._vcap || m > this._ecap) {
-			let vcap = (n <= this._vcap ? this._vcap :
-							Math.max(n, Math.trunc(1.25*this._vcap)));
-			let ecap = (m <= this._ecap ? this._ecap :
-							Math.max(m, Math.trunc(1.25*this._ecap)));
+		if (n > this.vertexCapacity || m > this.edgeCapacity) {
+			let vcap = (n <= this.vertexCapacity ? this.vertexCapacity :
+							Math.max(n, Math.trunc(1.25*this.vertexCapacity)));
+			let ecap = (m <= this.edgeCapacity ? this.edgeCapacity :
+							Math.max(m, Math.trunc(1.25*this.edgeCapacity)));
 			let nu = new Digraph(n, ecap, vcap);
 			nu.assign(this); this.xfer(nu);
 		}
 		this._firstEpOut.fill(0, this.n+1, n+1);
 		super.expand(n, m);
-	}
-
-	/** Assign one graph to another.
-	 *  @param g is another graph that is copied to this one
-	 */
-	assign(g) {
-		assert(g instanceof Digraph);
-		if (g == this) return;
-		super.assign(g);
-		if (!g.#length) return;
-		// copy lengths; relies on fact that edge lists are in same order
-		// even though edge numbers may differ
-		let ee = g.first();
-		for (let e = this.first(); e != 0; e = this.next(e)) {
-			this.setLength(e, g.length(ee)); ee = g.next(ee);
-		}
 	}
 	
 	/** Assign one graph to another by transferring its contents.
@@ -78,7 +58,6 @@ export default class Digraph extends Graph {
 	xfer(g) {
 		assert(g instanceof Digraph);
 		this._firstEpOut = g._firstEpOut; g._firstEpOut = null;
-		this.#length = g.#length; g.#length = null;
 		super.xfer(g)
 	}
 
@@ -198,12 +177,9 @@ export default class Digraph extends Graph {
 
 		// initialize edge information
 		this._left[e] = u; this._right[e] = v;
-		if (this.#length) this.#length[e] = 0;
 	
 		// add edge to the endpoint lists
-		if (this._firstEpOut[u] == 0) {
-			this._firstEpOut[u] = 2*e;
-		}
+		if (this._firstEpOut[u] == 0) this._firstEpOut[u] = 2*e;
 			// this._firstEpOut[u] changes only with first outgoing edge
 		this._firstEp[u] = this._epLists.join(this._firstEp[u], 2*e);
 		this._firstEp[v] = this._epLists.join(2*e+1, this._firstEp[v]);
@@ -228,20 +204,14 @@ export default class Digraph extends Graph {
 	 *  @param e is an edge
 	 *  @return the length of e
 	 */
-	length(e) {
-		assert(this.validEdge(e));
-		return this.#length && this.#length[e] ? this.#length[e] : 0;
-	}
+	length(e) { return super.weight(e); }
 
 	/** Set the length of an edge.
 	 *  @param e is an edge
 	 *  @param l is a length to be assigned to e
 	 */
-	setLength(e, l) {
-		assert(this.validEdge(e));
-		if (!this.#length) this.addLengths();
-		this.#length[e] = l;
-	}
+	setLength(e, l) { super.setWeight(e, l); }
+
 	/** Compare two edges incident to the same endpoint u.
 	 *  @return -1 if u's mate in e1 is less than u's mate in e2,
 	 *  return +1 if u's mate in e1 is greater than than u's mate in e2,
@@ -253,9 +223,9 @@ export default class Digraph extends Graph {
 		else if (u == this.tail(e1) && u == this.head(e2)) return 1;
 			 if (this.mate(u, e1) < this.mate(u, e2)) return -1;
 		else if (this.mate(u, e1) > this.mate(u, e2)) return 1;
-		else if (!this.#length) return 0;
-		     if (this.lengths(e1) < this.lengths(e2)) return -1;
-		else if (this.lengths(e1) > this.lengths(e2)) return 1;
+		else if (!this._weighted) return 0;
+		     if (this.length(e1) < this.length(e2)) return -1;
+		else if (this.length(e1) > this.length(e2)) return 1;
 		return 0;
 	}
 
@@ -328,7 +298,7 @@ export default class Digraph extends Graph {
 	edge2string(e, label) {
 		return '(' + this.index2string(this.tail(e), label) + ',' 
 				   + this.index2string(this.head(e), label)
-				   + (this.#length ? ',' + this.length(e) : '') + ')';
+				   + (this._weighted ? ',' + this.length(e) : '') + ')';
 	}
 
 	/** Create a string representation of the neighbor of a vertex.
@@ -345,7 +315,7 @@ export default class Digraph extends Graph {
 		if (u == this.head(e)) return '';
 		let s = this.index2string(this.mate(u, e), label);
 		if (details) s += '.' + e;
-		if (this.#length) {
+		if (this._weighted) {
 			s += ':' + this.length(e);
 		}
 		return s;
@@ -378,39 +348,18 @@ export default class Digraph extends Graph {
 	}
 
 	/** Randomize the order of the vertices, edges and adjacency lists.
-	 *  @return pair [vp, ep] where vp is the permutation used to permute
-	 *  the vertices and ep is the permutation used to permute the edges
+	 *  @return the permutation used for the edges
 	 */
 	scramble() {
-		let vp = randomPermutation(this.n);
-		let ep = randomPermutation(this._ecap);
-		this._shuffle(vp, ep);
-
-		// finally scramble individual epLists
+		let ep = super.scramble();
 		for (let u = 1; u <= this.n; u++) {
-			if (this._firstEp[u] == 0) continue;
-			// make lists epi, epo containing endpoints at u
-			// and clear the endpoint list at u
-			let epi = [0]; let ee = this._firstEp[u];
-			while (ee != 0 && u == this.head(Math.floor(ee/2))) {
-				epi.push(ee); ee = this._epLists.delete(ee, ee);
+			for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e)) {
+				if (u == this.tail(e)) {
+					this._firstEpOut[u] = e; break;
+				}
 			}
-			let epo = [0];
-			while (ee != 0) {
-				epo.push(ee); ee = this._epLists.delete(ee, ee);
-			}
-			// scramble epi and epo and re-insert endpoints in new order
-			scramble(epi); scramble(epo);
-			let first = (epi.length > 1 ? epi[1] : epo[1]);
-			for (let i = 2; i < epi.length; i++)
-				this._epLists.join(first, epi[i]);
-			for (let i = (epi.length > 1 ? 1 : 2); i < epo.length; i++)
-				this._epLists.join(first, epo[i]);
-			this._firstEp[u] = first;
-			this._firstEpOut[u] = epo.length > 1 ? epo[1] : 0;
 		}
-		if (this.#length) shuffle(this.#length, ep);
-		return [vp,ep]
+		return ep;
 	}
 	
 	/** Compute random lengths for all the edges.
@@ -419,11 +368,5 @@ export default class Digraph extends Graph {
 	 *  provided by caller; for example randomLengths(randomInteger, 1, 10)
      *  will assign random integer lengths in 1..10.
 	 */
-	randomLengths(f) {
-		if (!this.#length) this.addLengths();
-		let args= ([].slice.call(arguments)).slice(1);
-        for (let e = this.first(); e != 0; e = this.next(e)) {
-			let l = f(...args); this.setLength(e, l);
-		}
-	}
+	randomLengths(f) { super.randomWeights(...arguments); }
 }

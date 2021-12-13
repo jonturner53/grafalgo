@@ -23,9 +23,9 @@ export default function mstCT(g, trace=0) {
 
 	// initialize collection of edge endpoint heaps
 	// each heap contains edge endpoints touching one mst subtree
-	let epHeap = new LeftistHeaps(2*g.M+1, 2*g.M+1, true, ee =>
-		ee > 1 && trees.find(g.left(Math.trunc(ee/2))) ==
-				  trees.find(g.right(Math.trunc(ee/2))));
+	let epHeap = new LeftistHeaps(2*g.edgeCapacity+1, 2*g.edgeCapacity+1, true,
+		ee => ee > 1 && trees.find(g.left(Math.trunc(ee/2))) ==
+				  		trees.find(g.right(Math.trunc(ee/2))));
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		epHeap.setkey(2*e, g.weight(e)); epHeap.setkey(2*e+1, g.weight(e));
 	}

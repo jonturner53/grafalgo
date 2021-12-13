@@ -19,7 +19,6 @@ export default class Flograph extends Digraph {
 	#cap;			// #cap[e] is capacity of edge e
 	#source;		// source vertex
 	#sink;			// sink vertex
-	#cost;			// optional cost vector
 
 	/** Constructor for directed graph
 	 *  @param n is the number of vertices
@@ -31,15 +30,12 @@ export default class Flograph extends Digraph {
 	}
 	
 	#init_d() {
-		this.#f = new Array(this._ecap+1);
-		this.#cap = new Array(this._ecap+1);
+		this.#f = new Array(this.edgeCapacity+1);
+		this.#cap = new Array(this.edgeCapacity+1);
 		this.#source = 1; this.#sink = this.n;
-		if (this.#cost) this.addCosts();
 	} 
 
-	addCosts() {
-		this.#cost = new Array(this._ecap+1);
-	}
+	addCosts() { super.addWeights(); }
 
 	reset(n, ecap, vcap) {
 		super.reset(n, ecap, vcap); this.#init_d();
@@ -47,11 +43,11 @@ export default class Flograph extends Digraph {
 
 	expand(n, m) {
 		if (n <= this.n && m <= this.m) return;
-		if (n > this._vcap || m > this._ecap) {
-			let vcap = (n <= this._vcap ? this._vcap :
-							Math.max(n, Math.trunc(1.25*this._vcap)));
-			let ecap = (m <= this._ecap ? this._ecap :
-							Math.max(m, Math.trunc(1.25*this._ecap)));
+		if (n > this.vertexCapacity || m > this.edgeCapacity) {
+			let vcap = (n <= this.vertexCapacity ? this.vertexCapacity :
+							Math.max(n, Math.trunc(1.25*this.vertexCapacity)));
+			let ecap = (m <= this.edgeCapacity ? this.edgeCapacity :
+							Math.max(m, Math.trunc(1.25*this.edgeCapacity)));
 			let nu = new Flograph(n, ecap, vcap);
 			nu.assign(this); this.xfer(nu);
 		}
@@ -105,8 +101,8 @@ export default class Flograph extends Digraph {
 	 *  @return the cost of the flow on e, going from u to mate(u)
 	 */
 	cost(e, u) {
-		if (!this.#cost || !this.#cost[e]) return 0;
-		return (u == this.tail(e) ? this.#cost[e] : -this.#cost[e]);
+		let c = super.weight(e);
+		return (u == this.tail(e) ? c : -c);
 	}
 
 	/** Get the residual capacity of an edge.
@@ -135,10 +131,7 @@ export default class Flograph extends Digraph {
 	 *  @param e is an edge 
 	 *  @param cost is the new edge cost for e
 	 */
-	setCost(e, cost) { 
-		if (!this.#cost) this.addCosts();
-		this.#cost[e] = cost;
-	}
+	setCost(e, cost) { super.setWeight(e, cost); }
 
 	clearFlow() {
 		for (let e = this.first(); e != 0; e = this.next(e))
@@ -172,7 +165,6 @@ export default class Flograph extends Digraph {
 		let ee = super.join(u, v, e);
 		this.setCapacity(ee, 0);
 		this.setFlow(ee, 0);
-		if (this.#cost) this.setCost(ee, 0);
 		return ee;
 	}
 
@@ -210,13 +202,15 @@ export default class Flograph extends Digraph {
 	 */
 	ecmp(e1, e2, u) {
 		assert(this.validVertex(u) && this.validEdge(e1) && this.validEdge(e2));
-		let status = super.ecmp(e1, e2, u);
-		if (status != 0) return status;
-		// will not reach here so long as graph is simple
-		let v1 = this.tail(e1); let v2 = this.tail(e2);
-		return (this.cap(e1, v1,) != this.cap(e2, v2) ?
-					this.cap(e1, v1) - this.cap(e2, v2) :
-					this.cost(e1, v1) - this.cost(e2, v2));
+			 if (u == this.head(e1) && u == this.tail(e2)) return -1;
+		else if (u == this.tail(e1) && u == this.head(e2)) return 1;
+		else {
+			let v1 = this.mate(e1); let v2 = this.mate(e2);
+			let cap1 = this.#cap[e1]; let cap2 = this.#cap[e2];
+			return (v1 != v2 ? v1 - v2 :
+					(cap1 != cap2 ? cap1 - cap2 :
+					 this.cost(e1, v1) - this.cost(e2, v2)));
+		}
 	}
 
 	/** Create a string representation of an edge.
@@ -304,9 +298,8 @@ export default class Flograph extends Digraph {
 
 	/** Randomize the order of the vertices and edges. */
 	scramble() {
-		let [,ep] = super.scramble();
+		let ep = super.scramble();
 		shuffle(this.#f, ep); shuffle(this.#cap, ep);
-        if (this.#cost) shuffle(this.#cost, ep);
 	}
 
 	/** Compute random capacities for all the edges.
@@ -316,9 +309,9 @@ export default class Flograph extends Digraph {
      *  will assign random integer capacities in 1..10.
 	 */
 	randomCapacities(f) {
-		let args= ([].slice.call(arguments)).slice(1);
+		let fargs = [...arguments].slice(1);
         for (let e = this.first(); e != 0; e = this.next(e)) {
-			let c = f(...args); this.setCapacity(e, c);
+			let c = f(...fargs); this.setCapacity(e, c);
 		}
 	}
 
@@ -328,10 +321,5 @@ export default class Flograph extends Digraph {
 	 *  provided by caller; for example randomCosts(randomInteger, 1, 10)
      *  will assign random integer costs in 1..10.
 	 */
-	randomCosts(f) {
-		let args= ([].slice.call(arguments)).slice(1);
-        for (let e = this.first(); e != 0; e = this.next(e)) {
-			let c = f(...args); this.setCosts(e, c);
-		}
-	}
+	randomCosts(f) { super.randomLengths(...arguments); }
 }

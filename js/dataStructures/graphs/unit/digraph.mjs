@@ -8,6 +8,7 @@
 
 import { assert, AssertError } from '../../../common/Errors.mjs';
 import Digraph from '../Digraph.mjs';
+import {randomInteger} from '../../../common/Random.mjs';
 
 try {
 	console.log('running basic tests');
@@ -52,7 +53,6 @@ try {
 	assert(g, '{a[b:0 d:5] b[c:0] c[d:0] d[a:0 b:0] e[a:0 b:0 d:0]}', 'c2');
 	g.fromString('{a[d:1 b:2] b[c:3] c[d:4] d[b:5 a:6] e[d:7 b:8 a:9]}');
 	assert(g, '{a[b:2 d:1] b[c:3] c[d:4] d[b:5 a:6] e[d:7 b:8 a:9]}', 'c3');
-
 
 	console.log('passed tests');
 } catch(e) {

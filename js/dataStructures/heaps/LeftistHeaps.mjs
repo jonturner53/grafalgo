@@ -14,16 +14,7 @@ import Sets from '../basic/Sets.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
 /** This class implements a data structure consisting of a disjoint
- *  set of lazy Fibonacci heaps. It does not extend the LeftistHeaps class,
- *  because this version requires twice the space and it is impossible
- *  to extend original without creating implementation-dependencies.
- *
- *  User-visible index range is 1..n, but implementation includes
- *  heap nodes with indices up to 2n. These can visible as heap ids.
-
-How to make this a single class.
-- add makeItLazy method with optional retire function
-- maintain lazy flag
+ *  set of leftist heaps.
  */
 export default class LeftistHeaps extends Top {
 	#key;		///< #key[i] is key of item i

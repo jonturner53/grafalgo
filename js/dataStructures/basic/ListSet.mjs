@@ -42,13 +42,13 @@ export default class ListSet extends Top {
 	}
 
 	/** Get the capacity of the list (max number of items it has space for). */
-	get #capacity() { return this.#next.length - 1; }
+	get capacity() { return this.#next.length - 1; }
 
 	expand(n) {
 		if (n <= this.n) return;
-		if (n > this.#capacity) {
+		if (n > this.capacity) {
 			let nu = new ListSet(this.n,
-				Math.floor(Math.max(n, 1.25 * this.#capacity)));
+				Math.floor(Math.max(n, 1.25 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
 		// make singletons from items in expanded range

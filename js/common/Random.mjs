@@ -23,12 +23,10 @@ export function range(n) {
  *  @param a is an array of values n+1 values
  *  @param perm is an array with the same length as a that defines a
  *  permutation on 1..n in positions 1..n
- *  @return a vector b, where b[perm[i]] = a[i] for all i.
  */
 export function shuffle(a, perm) {
-	let b = new Array(a.length); b[0] = 0;
-	for (let i = 1; i < a.length; i++) b[perm[i]] = a[i];
-	return b;
+	let b = a.slice(0);
+	for (let i = 1; i < a.length; i++) a[perm[i]] = b[i];
 }
 
 // Return a random number in [0,1] 

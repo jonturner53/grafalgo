@@ -53,14 +53,14 @@ export default class List extends Top {
 		}
 	}
 
-	#addPrev() {
+	addPrev() {
 		this.#prev = new Array(this.#next.length).fill(0, 1, this.n+1);
 		this.#prev[this.first()] = 0;
 		for (let i = this.first(); i != 0; i = this.next(i))
 			if (this.next(i) != 0) this.#prev[this.next(i)] = i;
 	}
 
-	#addValue() {
+	addValues() {
 		this.#value = new Array(this.#next.length).fill(null, 0, this.n+1);
 	}
 
@@ -74,9 +74,9 @@ export default class List extends Top {
 
 	expand(n) {
 		if (n <= this.n) return;
-		if (n > this._capacity) {
+		if (n > this.capacity) {
 			let nu = new List(this.n, 
-						 	  Math.max(n, Math.floor(1.25 * this._capacity)));
+						 	  Math.max(n, Math.floor(1.25 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
 		this.#next.fill(-1, this.n+1, n+1);
@@ -90,10 +90,10 @@ export default class List extends Top {
 	 */
 	assign(l) {
 		if (l == this) return;
-		if (l.n > this._capacity) this.reset(l.n);
+		if (l.n > this.capacity) this.reset(l.n);
 		else { this.clear(); this._n = l.n; }
-		if (l.#prev && !this.#prev) this.#addPrev();
-		if (l.#value && !this.#value) this.#addValue();
+		if (l.#prev && !this.#prev) this.addPrev();
+		if (l.#value && !this.#value) this.addValues();
 		for (let i = l.first(); i != 0; i = l.next(i)) {
 			if (this.#value) this.enq(i, l.value(i));
 			else this.enq(i);
@@ -120,7 +120,7 @@ export default class List extends Top {
 	get length() { return this.#length; }
 
 	/** Get the capacity of the list (max number of items it has space for). */
-	get _capacity() { return this.#next.length - 1; }
+	get capacity() { return this.#next.length - 1; }
 	
 	/** Get the next item in a list.
 	 *  @param i is an item on the list
@@ -133,7 +133,7 @@ export default class List extends Top {
 	 *  @return the item that follows i, or 0 if there is no next item
 	 */
 	prev(i) {
-		if (!this.#prev) this.#addPrev();
+		if (!this.#prev) this.addPrev();
 		return this.#prev[i];
 	}
 	
@@ -159,7 +159,7 @@ export default class List extends Top {
 				if (--i == 0) return j;
 			}
 		} else if (i < 0) {
-			if (!this.#prev) this.#addPrev();
+			if (!this.#prev) this.addPrev();
         	for (let j = this.last(); j != 0; j = this.prev(j)) {
 				if (++i == 0) return j;
 			}
@@ -184,7 +184,8 @@ export default class List extends Top {
 	 *  has been assigned to it
 	 */
 	value(i) {
-		return this.#value && this.valid(i) ? this.#value[i] : null;
+		return this.#value && this.valid(i) && this.#value[i] ?
+					this.#value[i] : null;
 	}
 
 	/** Set the value of an item.
@@ -193,7 +194,7 @@ export default class List extends Top {
 	 */
 	setValue(i, value) {
 		assert(this.valid(i) && i != 0);
-		if (!this.#value) this.#addValue();
+		if (!this.#value) this.addValues();
 		this.#value[i] = value;
 	}
 
@@ -250,7 +251,7 @@ export default class List extends Top {
 		if (i == this.first()) {
 			return this.deleteNext(0);
 		} else {
-			if (!this.#prev) this.#addPrev();
+			if (!this.#prev) this.addPrev();
 			return this.deleteNext(this.prev(i));
 		}
 	}
