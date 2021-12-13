@@ -248,7 +248,7 @@ export default class Graph extends Top {
 	 *  Return a negative value if u's mate in e1 is less than u's mate in e2.
 	 *  Return +pos if u's mate in e1 is greater than than u's mate in e2.
 	 *  Return  0 if u's mate in e1 is equal to its mate in e2.
-	 *;
+	 */
 	ecmp(e1, e2, u) {
 		assert(this.validVertex(u) &&
 					   this.validEdge(e1) && this.validEdge(e2));

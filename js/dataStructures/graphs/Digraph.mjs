@@ -46,14 +46,23 @@ export default class Digraph extends Graph {
 			let ecap = (m <= this.edgeCapacity ? this.edgeCapacity :
 							Math.max(m, Math.trunc(1.25*this.edgeCapacity)));
 			let nu = new Digraph(n, ecap, vcap);
-			nu.assign(this); this.xfer(nu);
+			nu.assign(this);
+			this.xfer(nu);
 		}
 		this._firstEpOut.fill(0, this.n+1, n+1);
 		super.expand(n, m);
 	}
+
+	/** Assign one graph to another by copying its contents.
+	 *  @param g is another graph whose contents is copied to this one
+	 */
+	assign(g) {
+		assert(g instanceof Digraph);
+		super.assign(g);
+	}
 	
 	/** Assign one graph to another by transferring its contents.
-	 *  @param g is another graph whose contents is traferred to this one
+	 *  @param g is another graph whose contents is transferred to this one
 	 */
 	xfer(g) {
 		assert(g instanceof Digraph);
@@ -221,11 +230,10 @@ export default class Digraph extends Graph {
 		assert(this.validVertex(u) && this.validEdge(e1) && this.validEdge(e2));
 			 if (u == this.head(e1) && u == this.tail(e2)) return -1;
 		else if (u == this.tail(e1) && u == this.head(e2)) return 1;
-			 if (this.mate(u, e1) < this.mate(u, e2)) return -1;
-		else if (this.mate(u, e1) > this.mate(u, e2)) return 1;
-		else if (!this._weighted) return 0;
-		     if (this.length(e1) < this.length(e2)) return -1;
-		else if (this.length(e1) > this.length(e2)) return 1;
+		else {
+			let v1 = this.mate(u, e1); let v2 = this.mate(u, e2);
+			return (v1 != v2 ? v1 - v2 : this.length(e1) - this.length(e2));
+		}
 		return 0;
 	}
 

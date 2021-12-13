@@ -58,22 +58,30 @@ export default class Flograph extends Digraph {
 	 *  @param g is another Flograph that is copied to this one
 	 */
 	assign(g) {
-		this.reset(g.n, g.m);
-		for (let e = g.first(); e !=0; e = g.next(e)) {
+        assert(g instanceof Flograph);
+        if (g == this) return;
+        if (g.n > this.vertexCapacity || g.m > this.edgeCapacity) {
+            this.reset(g.n, g.m);
+        } else {
+            this.clear(); this._n = g.n;
+        }
+		for (let e = g.first(); e != 0; e = g.next(e)) {
 			let u = g.tail(e); let v = g.head(e);
 			let ee = this.join(u, v);
 			this.setCapacity(ee, g.cap(e)); this.setFlow(ee, 0);
-			if (g.#cost) this.setCost(ee, g.cost(e));
+			if (g_weighted) this.setCost(ee, g.cost(e));
 		}
+		this.setSource(g.source); this.setSink(g.sink);
 	}
 
 	/** Assign one graph to another by transferring its contents.
 	 *  @param g is another graph whose contents is traferred to this one
 	 */
 	xfer(g) {
-		this.#f = g.#f; this.#cap = g.#cap; this.#cost = g.#cost;
-		g.#f = null; g.#cap = null; g.#cost = null;
+        assert(g instanceof Flograph);
 		super.xfer(g);
+		this.#f = g.#f; this.#cap = g.#cap;
+		g.#f = g.#cap = null;
 	}
 
 	setSource(s) { this.#source = s; }
@@ -205,7 +213,7 @@ export default class Flograph extends Digraph {
 			 if (u == this.head(e1) && u == this.tail(e2)) return -1;
 		else if (u == this.tail(e1) && u == this.head(e2)) return 1;
 		else {
-			let v1 = this.mate(e1); let v2 = this.mate(e2);
+			let v1 = this.mate(u, e1); let v2 = this.mate(u, e2);
 			let cap1 = this.#cap[e1]; let cap2 = this.#cap[e2];
 			return (v1 != v2 ? v1 - v2 :
 					(cap1 != cap2 ? cap1 - cap2 :
@@ -221,7 +229,7 @@ export default class Flograph extends Digraph {
 		let u = this.tail(e);
 		return '(' + this.index2string(this.tail(e), label) + ',' 
 				   + this.index2string(this.head(e), label) + ','
-				   + (this.#cost ? this.cost(e, u) + ',' : '') 
+				   + (this._weighted ? this.cost(e, u) + ',' : '') 
 				   + this.cap(e, u) + ',' + this.f(e, u) + ')';
 	}
 
@@ -246,7 +254,7 @@ export default class Flograph extends Digraph {
 		let s = super.nabor2string(u, e, details, label);
 		if (s.length == 0) return s;
 		let v = this.tail(e);
-		return s + (this.#cost ? this.cost(e, v) + ':' : '') + ':' +
+		return s + (this._weighted ? this.cost(e, v) + ':' : '') + ':' +
 					this.cap(e, v) + ':' + this.f(e, v);
 	}
 
