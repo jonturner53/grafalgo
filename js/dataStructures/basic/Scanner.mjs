@@ -41,6 +41,7 @@ export default class Scanner extends Top {
 	/** Find position of first non-space character.
 	 *  @param i0 is an optional starting position (relative to the current
 	 *  cursor position) from which to scan
+	 *  @return the (absolute) position of the first non-space character
 	 */
 	firstNonSpace(i0=0) {
 		i0 += this.#i
@@ -124,12 +125,12 @@ export default class Scanner extends Top {
 	 */
 	nextNumber() {
 		let s = this.#s; let n = s.length;
-		let i0 = this.firstNonSpace();
-		let value = parseFloat(s.slice(i0, i0+30));
+		let i = this.firstNonSpace();
+		let value = parseFloat(s.slice(i, i+30));
 		if (isNaN(value)) return NaN;
-		if (s[i0] == '-' || s[i0] == '+')
-			i0 = this.firstNonSpace(i0+1);
-		let i = i0;
+		if (s[i] == '-' || s[i] == '+') {
+			i = this.firstNonSpace((i+1) - this.#i);
+		}
 		for ( ; i < n; i++) {
 			if (!this.isdigit(s[i])) break;
 		}

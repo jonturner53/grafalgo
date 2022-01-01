@@ -360,12 +360,24 @@ export default class Digraph extends Graph {
 	 */
 	scramble() {
 		let ep = super.scramble();
+		// separate inputs/outputs in epLists
 		for (let u = 1; u <= this.n; u++) {
-			for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e)) {
-				if (u == this.tail(e)) {
-					this._firstEpOut[u] = e; break;
+			this._firstEpOut[u] = 0;
+			let ep = this._firstEp[u];
+			if (ep == 0) continue;
+			let epl = ep;
+			while (ep != 0 && ep != this._firstEpOut[u]) {
+				// if ep is an output, move it to end of eplist
+				let epNext = this._epLists.next(ep);
+				if (ep%2 == 0) {
+					epl = this._epLists.delete(ep, epl);
+					epl = this._epLists.join(epl, ep);
+					if (this._firstEpOut[u] == 0)
+						this._firstEpOut[u] = ep;
 				}
+				ep = epNext;
 			}
+			this._firstEp[u] = epl;
 		}
 		return ep;
 	}
