@@ -1,4 +1,4 @@
-/** @file sptBF.mjs
+/** @file sptBM.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,7 +8,7 @@
 
 import List from '../../dataStructures/basic/List.mjs';
 
-/** Compute shortest path tree of a graph using Bellman-Ford algorithm.
+/** Compute shortest path tree of a graph using Bellman-Moore algorithm.
  *  @param g is a digraph with edge lengths, some possibly negative
  *  @param s is a "source vertex" in g; if 0, distances are computed
  *  from a dummy source vertex with a zero-length edge to every real vertex
@@ -21,7 +21,7 @@ import List from '../../dataStructures/basic/List.mjs';
  *  (or infinity if u unreachable), ts is a trace string and stats is a
  *  statistics object.
  */
-export default function sptBF(g, s, trace=0) {
+export default function sptBM(g, s, trace=0) {
 	let pedge = new Array(g.n+1).fill(0); let ts = ''; let err = '';
 	let dist = new Array(g.n+1).fill(Number.POSITIVE_INFINITY);
 

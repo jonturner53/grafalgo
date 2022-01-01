@@ -86,4 +86,17 @@ export default class Top {
 		}
 		return '[' + s + ']';
 	}
+
+	/** Convert a list of numeric values to a string.
+	 *  @param nlist is an array of valid index values
+	 *  @return a string that represents the list.
+	 */
+	nlist2string(nlist) {
+		let s = '';
+		for (let i of nlist) {
+			if (s.length > 0) s += ' ';
+			s += i;
+		}
+		return '[' + s + ']';
+	}
 }

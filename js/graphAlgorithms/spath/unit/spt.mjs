@@ -10,7 +10,7 @@ import { assert, AssertError} from '../../../common/Errors.mjs';
 import sptDag from '../sptDag.mjs';
 import sptD from '../sptD.mjs';
 import sptDf from '../sptDf.mjs';
-import sptBF from '../sptBF.mjs';
+import sptBM from '../sptBM.mjs';
 import sptVerify from '../sptVerify.mjs';
 import List from '../../../dataStructures/basic/List.mjs';
 import Digraph from '../../../dataStructures/graphs/Digraph.mjs';
@@ -21,7 +21,7 @@ let algorithms = {
 	'dag' : sptDag,
 	'D' : sptD,
 	'Df' : sptDf,
-	'BF' : sptBF
+	'BM' : sptBM
 }
 
 function main() {
@@ -92,7 +92,7 @@ function basicTests(aname, algo, trace=false, stats=false) {
         } else {
 			g = randomDigraph(10, 35);
 	        g.randomLengths(randomInteger, 1, 99);
-			if (aname == 'BF') { // add a few negative edges
+			if (aname == 'BM') { // add a few negative edges
 				for (let i = 0; i < 5; i++) {
 					let e = g.randomEdge();
 					g.setLength(e, randomInteger(-5, -1));

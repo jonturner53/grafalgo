@@ -427,16 +427,18 @@ export default class Graph extends Top {
 	
 	/** Create a string representation of an edge list.
 	 *  @param elist is an array of edge numbers (possibly with some
-	 *  @label is an optional function used to label the vertices
+	 *  @param label is an optional function used to label the vertices
 	 *  invalid values mixed in; these are ignored)
+	 *  @param showAll is
 	 *  @return the string
 	 */
-	elist2string(elist, label) {
+	elist2string(elist, label=null, showAll=false) {
 		let s = '';
 		for (let e of elist) {
-			if (!this.validEdge(e)) continue;
+			let valid = this.validEdge(e);
+			if (!valid && !showAll) continue;
 			if (s.length > 0) s += ' ';
-			s += this.edge2string(e, label);
+			s += (valid ? this.edge2string(e, label) : '-');
 		}
 		return '[' + s + ']';
 	}
