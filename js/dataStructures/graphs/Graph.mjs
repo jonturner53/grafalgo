@@ -469,8 +469,10 @@ export default class Graph extends Top {
 			if (s.length > 0 && ns.length > 0) s += ' ';
 			s += ns;
 		}
-		return this.index2string(u, label) + '[' + s + ']';
+		return this.vertex2string(u, label) + '[' + s + ']';
 	}
+
+	vertex2string(u, label=0) { return this.index2string(u, label); }
 
 	/** Create a string representation for a neighbor of a given vertex.
 	 *  @param u is a vertex

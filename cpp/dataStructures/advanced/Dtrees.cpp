@@ -148,9 +148,10 @@ void Dtrees::link(tree t, index i) {
  */
 void Dtrees::cut(index i) {
 	assert(valid(i));
+	index v = succ(ps->findpath(i));
 	PathSet::PathPair pp = ps->split(i);
-	if (pp.p2 != 0) succ(pp.p2) = succ(i); 
 	if (pp.p1 != 0) succ(pp.p1) = i;
+	if (pp.p2 != 0) succ(pp.p2) = v;
 	succ(i) = 0;
 	return;
 }

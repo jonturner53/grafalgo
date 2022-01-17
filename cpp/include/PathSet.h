@@ -38,7 +38,7 @@ public: 	PathSet(int,int*);
 	/** pair of values returned by split method */
 	struct PathPair {
 		path p1, p2;
-		PathPair(path pp1, path pp2) : p1(pp2), p2(pp2) {}
+		PathPair(path pp1, path pp2) : p1(pp1), p2(pp2) {}
 	}; 
 
 	// common methods

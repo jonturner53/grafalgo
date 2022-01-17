@@ -69,7 +69,7 @@ export default class Flograph extends Digraph {
 			let u = g.tail(e); let v = g.head(e);
 			let ee = this.join(u, v);
 			this.setCapacity(ee, g.cap(e)); this.setFlow(ee, 0);
-			if (g_weighted) this.setCost(ee, g.cost(e));
+			if (g.weighted) this.setCost(ee, g.cost(e));
 		}
 		this.setSource(g.source); this.setSink(g.sink);
 	}
@@ -101,7 +101,7 @@ export default class Flograph extends Digraph {
 	 *  @param e is an edge that is incident to u
 	 *  @return the capacity of e, going from u to mate(u)
 	 */
-	cap(e, u) { return (u == this.tail(e) ? this.#cap[e] : 0); }
+	cap(e, u=this.tail(e)) { return (u == this.tail(e) ? this.#cap[e] : 0); }
 
 	/** Get the cost of the current flow on an edge.
 	 *  @param u is a vertex in the flograph
@@ -310,16 +310,30 @@ export default class Flograph extends Digraph {
 		shuffle(this.#f, ep); shuffle(this.#cap, ep);
 	}
 
-	/** Compute random capacities for all the edges.
+	/** Compute random capacities for edges.
+	 *  @param sourceSink is a flag which if true generates capacities
+	 *  for source/sink edges only; if false, capacities are generated
+	 *  for other edges
 	 *  @param f is a random number generator used to generate the
 	 *  random edge capacities; it is invoked using any extra arguments
 	 *  provided by caller; for example randomCapacities(randomInteger, 1, 10)
      *  will assign random integer capacities in 1..10.
 	 */
-	randomCapacities(f) {
-		let fargs = [...arguments].slice(1);
-        for (let e = this.first(); e != 0; e = this.next(e)) {
-			let c = f(...fargs); this.setCapacity(e, c);
+	randomCapacities(sourceSink, f) {
+		let fargs = [...arguments].slice(2);
+		let s = this.source; let t = this.sink;
+		if (sourceSink) {
+			for (let e = this.firstOut(s); e != 0; e = this.nextOut(s,e)) {
+				let c = f(...fargs); this.setCapacity(e, c);
+			}
+			for (let e = this.firstIn(t); e != 0; e = this.nextIn(t,e)) {
+				let c = f(...fargs); this.setCapacity(e, c);
+			}
+		} else {
+	        for (let e = this.first(); e != 0; e = this.next(e)) {
+				if (this.tail(e) == s || this.head(e) == t) continue;
+				let c = f(...fargs); this.setCapacity(e, c);
+			}
 		}
 	}
 

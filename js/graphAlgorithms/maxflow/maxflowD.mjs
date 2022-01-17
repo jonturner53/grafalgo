@@ -1,4 +1,4 @@
-/** @file mfloD.mjs
+/** @file maxflowD.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,45 +8,43 @@
 
 import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
+import { augment } from './common.mjs';
 
 let g;			// shared reference to flow graph
 let level;		// level[u] is distance from source to u in residual graph
 let pedge;		// pedge[u] is edge to u from its parent in shortest path tree
 let nextEdge;	// nextEdge[u] is the next edge to be processed at u
+let findpathCount; // number of calls to findpath
+let findpathSteps; // total steps in findpath
+let phaseCount;	   // number of phases
 
 /** Compute a maximum flow in a graph using Dinic's algorithm.
  *  @param fg is Flograph, possibly with some initial flow already present.
  *  @return the total flow added to fg
  */
-export default function mfloD(fg) {
+export default function maxflowD(fg, trace=false) {
 	g = fg;
 	nextEdge = new Array(g.n+1);
 	level = new Array(g.n+1);
 	pedge = new Array(g.n+1).fill(0);
 
-	let f = 0;
-	while (newPhase()) {
-		while (findPath(g.source)) f += augment();
-	}
-	return f;
-}
+	let ts = '';
+	if (trace)
+		ts += g.toString(0,1) + 'residual capacity, path\n';
 
-/** Add flow to source/sink path defined by pedge array */
-function augment() {
-	let f = Number.POSITIVE_INFINITY;
-	let v = g.sink; let e = pedge[v];
-	while (v != g.source) {
-		let u = g.mate(v, e);
-		f = Math.min(f, g.res(u, e));
-		v = u; e = pedge[v];
+	let tf = 0;
+	findpathCount = findpathSteps = phaseCount = 0;
+	while (newphase()) {
+		phaseCount++;
+		while (findpath(g.source)) {
+			findpathCount++;
+			let [f,s] = augment(g, pedge, trace);
+			tf += f; if (trace) ts += s + '\n';
+		}
 	}
-	v = g.sink; e = pedge[v];
-	while (v != g.source) {
-		let u = g.mate(v, e);
-		g.addFlow(u, e, f);
-		v = u; e = pedge[v];
-	}
-	return f;
+	return [tf, ts, {'findpathCount': findpathCount,
+					 'findpathSteps': findpathSteps,
+					 'phaseCount': phaseCount} ];
 }
 
 /** Prepare for next phase of Dinic's algorithm.
@@ -54,7 +52,7 @@ function augment() {
  *  @return true if there is still residual capacity from source to sink,
  *  else false
  */
-function newPhase() {
+function newphase() {
 	for (let u = 1; u <= g.n; u++) {
 		level[u] = g.n; nextEdge[u] = g.firstAt(u);
 	}
@@ -64,7 +62,7 @@ function newPhase() {
 		let u = q.deq();
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u, e)) {
 			let v = g.mate(u, e);
-			if (g.res(u, e) > 0 && level[v] == g.n) {
+			if (g.res(e, u) > 0 && level[v] == g.n) {
 				level[v] = level[u] + 1;
 				if (v == g.sink) return true;
 				q.enq(v);
@@ -78,11 +76,12 @@ function newPhase() {
  *  @param u is a vertex
  *  @return true if there is an augmenting path from u to the sink
  */
-function findPath(u) {
+function findpath(u) {
 	for (let e = nextEdge[u]; e != 0; e = g.nextAt(u, e)) {
+		findpathSteps++;
 		let v = g.mate(u, e);
-		if (g.res(u, e) == 0 || level[v] != level[u] + 1) continue;
-		if (v == g.sink || findPath(v)) {
+		if (g.res(e, u) == 0 || level[v] != level[u] + 1) continue;
+		if (v == g.sink || findpath(v)) {
 			pedge[v] = e; nextEdge[u] = e; return true;
 		}
 	}

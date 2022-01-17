@@ -13,25 +13,101 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import mfloD from '../mflow/mfloD.mjs';
+import maxflowD from '../maxflow/maxflowD.mjs';
+
+/*
+How to generalize edge generation?
+Suppose we pass a function that generates a random edge that is
+acceptable by a user-defined standard.
+
+Then main routine can use this to generate random pairs and
+eliminate parallel edges.
+
+If the graph is dense, user supplied function could be list of all pairs.
+Maybe just generate list of pairs in all cases.
+
+Another issue is that we ignore existing edges when generating new ones.
+Maybe we should be using a set with constant time membership test
+from the start. Probably need dedicated HashSet to do this right.
+
+1. create a pair set from existing edges
+2. create a set of candidate pairs that excludes the current edges
+3. sample from candidate pairs and add to graph
+1 and 3 are generic, 2 must be specialized.
+general form
+- if lots of edges needed, generate all possible
+- otherwise, generate random set with some surplus
+
+can we make 2 mostly generic too? say using a random edge generator?
+- generate random non-duplicates, so long as not too many are being
+  discarded; if we get enough that way, we're done
+- else fill gaps, using sampling routine that gives next edge
+  following a given one
+
+Two methods
+- one to return random pair
+- one to return next pair, given current one
+- and maybe a predicate that tells if # of target edges is too high to sample
+
+
+So main driver becomes
+- if dense graph
+	- get all pairs
+- else sample pairs, sort list and remove duplicates
+- remove pairs found in g
+- sample pairs list add to g
+
+for undirected graphs
+- next edge is {a,b} => {a,b+1} or {a+1,a+2}
+- sample is randomly select two endpoints
+
+
+					
+	
+*/
 
 /** Generate an undirected random graph. 
  *  @param n is the number of vertices in the random graph
  *  @param m is the number of edges in the graph
- */  
 export function randomGraph(n, m) {
 	let g = new Graph(n, m);
 	add2graph(g, m, true);
+	return g;
+}
+ */  
+export function randomGraph(n, m) {
+	let g = new Graph(n, m);
+	let mm = n*(n-1)/2;
+	m = Math.min(m, mm);
+	add2graph(g, m, m > mm/2,
+					([u,v]) => (n < 2 || u == n-1 && v == n ? null :
+						    	(u == 0 ? [1,2] :
+								 (v < n ? [u,v+1] : [u+1,u+2]))),
+					() => { let u = randomInteger(1,n-1);
+							return [u, randomInteger(u+1, n)]; }); 
 	return g;
 }
 
 /** Generate a random directed graph. 
  *  @param n is the number of vertices in the random graph
  *  @param m is the number of edges in the graph
- */  
 export function randomDigraph(n, m) {
 	let g = new Digraph(n, m);
 	add2graph(g, m, false);
+	return g;
+}
+ */  
+export function randomDigraph(n, m) {
+	let g = new Digraph(n, m);
+	let mm = n*(n-1);
+	m = Math.min(m, mm);
+	add2graph(g, m, m > mm/2,
+					([u,v]) => (n < 2 || u == n && v == n-1 ? null :
+						    	(u == 0 ? [1,2] :
+								 (v < n ? [u,(v == u-1 ? u : v) + 1] : [u+1,1]))),
+					() => { let u = randomInteger(1,n);
+						    let v = randomInteger(1,n-1);
+							return [u, (v < u ? v : v+1)]; }); 
 	return g;
 }
 
@@ -40,10 +116,67 @@ export function randomDigraph(n, m) {
  *  @param m is the number of edges in the graph
  *  @return the random graph; note, returned graph has vertices in
  *  topologically sorted order.
- */  
 export function randomDag(n, m) {
 	let g = new Digraph(n, m);
 	add2graph(g, m, true);
+	return g;
+}
+ */  
+export function randomDag(n, m) {
+	let g = new Digraph(n, m);
+	let mm = n*(n-1)/2;
+	m = Math.min(m, mm);
+	add2graph(g, m, m > mm/2,
+					([u,v]) => (n < 2 || u == n-1 && v == n ? null :
+						    	(u == 0 ? [1,2] :
+								 (v < n ? [u,v+1] : [u+1,u+2]))),
+					() => { let u = randomInteger(1,n-1);
+							return [u, randomInteger(u+1, n)]; }); 
+	return g;
+}
+
+/** Generate a random flograph.
+ *  @param p is number of levels
+ *  @param q is size of levels
+ *  @param k is how max # of levels edges can go back
+ *  @return a flograph with 2+p*q vertices and m edges, where the
+ *  non-source/sink are divided into p groups of q vertices and edges
+ *  from level i, may go to vertices in levels i-k up to i+1.
+ */
+export function randomFlograph(p, q, k, m) {
+	assert(p>1 && q>1);
+	let n = 2 + p*q;
+	let mm = 2*q + (p-1 + k*(p-k) + (k*(k-1)/2))*q*q + p*q*(q-1);
+	m = Math.min(m, mm);
+	let g = new Flograph(n, m);
+	// setup source/sink edges
+	g.setSource(1); g.setSink(n);
+	for (let i = 1; i <= q; i++) {
+		let e;
+		e = g.join(g.source, g.source+i); g.setCapacity(e, Infinity);
+		e = g.join(g.sink-i, g.sink); 	  g.setCapacity(e, Infinity);
+	}
+	// add more edges
+	add2graph(g, m, m > mm/2,
+					([u,v]) => {
+						let i = Math.floor((u-2)/q);
+						let j = Math.floor((v-2)/q);
+						let r = Math.floor((u-2)%q);
+						let s = Math.floor((v-2)%q);
+						if (u == 0) return [2,3];
+						if (v != u-1 && (s<q-1 || j<=i && j<p-1))
+							return [u,v+1];
+						if (v == u-1)
+							return (u == n-1 ? null : [u,u+1]);
+						return (r < q-1 ? [u+1,2+Math.max(0,(i-k)*q)] :
+										  [u+1,2+Math.max(0,((i+1)-k)*q)]);
+					},
+					() => { let u = randomInteger(2,n-1);
+							let i = Math.floor((u-2)/q);
+							let r = Math.floor((u-2)%q);
+							let v = randomInteger(2+Math.max(0, (i-k)*q),
+												  2+Math.min(n-1, (i+1)*q-1));
+							return [u, v < u ? v : v+1]});
 	return g;
 }
 
@@ -54,7 +187,6 @@ export function randomDag(n, m) {
  *  are added until the graph has m edges
  *  @param up is a flag; if true, add edges [u,v] with u<v;
  *  if false pairs are not constrained
- */
 function add2graph(g, m, up=false) {
 	if (m <= g.m) return;
 	assert(m <= (up ? g.n*(g.n-1)/2 : g.n*g.n-1),
@@ -91,10 +223,31 @@ function add2graph(g, m, up=false) {
 			pairs[i] = [u,v];
 		}
 		sortReduce(pairs);
-		removeDuplicates(pairs, g);
-		if (pairs.length < m - g.m)
-			fatal("Rgraph: program error, too few candidate edges");
 	}
+	removeDuplicates(pairs, g);
+	if (pairs.length < m - g.m)
+		fatal("Rgraph: program error, too few candidate edges");
+	samplePairs(pairs, g, m);
+	g.sortAllEplists();
+}
+ */
+function add2graph(g, m, dense, nextpair, randpair) {
+	if (m <= g.m) return;
+
+	// generate vector of candidate edges to select new edges from
+	let pairs = [];
+	if (dense) {
+		let p = nextpair([0,0]);
+		while (p) { pairs.push(p); p = nextpair(p); }
+	} else {
+		pairs = new Array(m + Math.max(200, m));
+		for (let i = 0; i < pairs.length; i++)
+			pairs[i] = randpair();
+		sortReduce(pairs);
+	}
+	removeDuplicates(pairs, g);
+	if (pairs.length < m - g.m)
+		fatal("Rgraph: program error, too few candidate edges");
 	samplePairs(pairs, g, m);
 	g.sortAllEplists();
 }
@@ -241,7 +394,12 @@ export function randomTree(n) {
  */
 export function randomConnectedGraph(n, m) {
 	let g = randomTree(n);
-	add2graph(g, m, true);
+	add2graph(g, m, m > n*n/4,
+					([a,b]) => (n < 2 || a == n-1 && b == n ? null :
+						    	(a == 0 ? [1,2] :
+								 (b < n ? [a,b+1] : [a+1,a+2]))),
+					() => { let a = randomInteger(1,n-1);
+							return [a, randomInteger(a+1, n)]; }); 
 	return g;
 }
 
@@ -383,7 +541,7 @@ function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
 		let e = fg.join(u, fg.sink);
 		fg.setCapacity(e, (u <= n1+k ? d2+1 : d2));
 	}
-	let f = mfloD(fg);
+	let f = maxflowD(fg);
 	g.reset(n1+n2, d1*n1);
 	for (let e = fg.first(); e != 0; e = fg.next(e)) {
 		let u = fg.tail(e); let v = fg.head(e);

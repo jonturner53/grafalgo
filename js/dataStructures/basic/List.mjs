@@ -109,7 +109,7 @@ export default class List extends Top {
 		this.#first = l.first(); this.#last = l.last();
 		this.#length = l.length;
 		this.#next = l.#next; l.#next = null;
-		this.#prev = l.#prev; l.#next = null;
+		this.#prev = l.#prev; l.#prev = null;
 		this.#value = l.#value; l.#value = null;
 	}
 	
@@ -336,6 +336,7 @@ export default class List extends Top {
 		for (let i = this.first(); i != 0; i = this.next(i)) {
 			if (i != this.first()) s += " ";
 			s += this.index2string(i, label);
+			if (this.#value) s += ':' + this.value(i);
 		}
 		return s + "]";
 	}

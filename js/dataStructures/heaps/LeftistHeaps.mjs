@@ -424,7 +424,7 @@ export default class LeftistHeaps extends Top {
 	 */
 	#heapLists(lh) {
 		let roots = lh.#findRoots();
-		// for each heap in lh, do tree traversal to build set in ds
+		// for each heap in lh, do tree traversal to build set in ls
 		let ls = new ListSet(lh.n);
 		let q = new List(this.#lazy ? 2*lh.n : lh.n);
 		for (let r = roots.first(); r != 0; r = roots.next(r)) {
