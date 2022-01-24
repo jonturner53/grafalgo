@@ -420,7 +420,8 @@ export default class Graph extends Top {
 	 *  @return a string representing the edge
 	 */
 	edge2string(e, label) {
-		return '{' + this.index2string(this.left(e), label) + ','  +
+		return e == 0 ? '-' :
+					'{' + this.index2string(this.left(e), label) + ','  +
 					 this.index2string(this.right(e), label) +
 					 (this._weighted ? ',' + this.weight(e) : '') + '}';
 	}

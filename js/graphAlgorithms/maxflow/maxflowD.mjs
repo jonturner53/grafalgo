@@ -8,7 +8,7 @@
 
 import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import { augment } from './common.mjs';
+import augment from './augment.mjs';
 
 let g;			// shared reference to flow graph
 let level;		// level[u] is distance from source to u in residual graph
@@ -30,7 +30,7 @@ export default function maxflowD(fg, trace=false) {
 
 	let ts = '';
 	if (trace)
-		ts += g.toString(0,1) + 'residual capacity, path\n';
+		ts += 'augmenting paths with residual capacities\n';
 
 	let tf = 0;
 	findpathCount = findpathSteps = phaseCount = 0;

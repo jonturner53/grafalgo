@@ -14,13 +14,13 @@ try {
 
 	let ps = new PathSet();
 
-	ps.fromString('{[a:5 f:2 c:4] [b:1] [d:2 g:3 e:4]}');
-	assert(ps, '{[a:5 f:2 c:4] [b:1] [d:2 g:3 e:4]}', 'a1');
-	assert(ps.toString(1),  '{[b.1:0] [(a.3:0 f:0:0) c:2:2] ' +
+	ps.fromString('{[a:5 f:2 c:4] [b:1]->g [d:2 g:3 e:4]}');
+	assert(ps, '{[b:1]->g [a:5 f:2 c:4] [d:2 g:3 e:4]}', 'a1');
+	assert(ps.toString(1),  '{[b.1:0]->g [(a.3:0 f:0:0) c:2:2] ' +
 							'[(d.0:0 g:0:1) e:2:2]}', 'a2');
 	let [r,c] = ps.findpathcost(3);
 	assert(r, 6, 'a3'); assert(c, 2, 'a4');
-	assert(ps.toString(1),  '{[b.1:0] [(d.0:0 g:0:1) e:2:2] ' +
+	assert(ps.toString(1),  '{[b.1:0]->g [(d.0:0 g:0:1) e:2:2] ' +
 							'[a.3:0 f:2:0 c.2:0]}', 'a5');
 	ps.join(5, 2, 6);
 	assert(ps, '{[d:2 g:3 e:4 b:1 a:5 f:2 c:4]}', 'a6');

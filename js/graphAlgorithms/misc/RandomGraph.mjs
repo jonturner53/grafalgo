@@ -153,8 +153,8 @@ export function randomFlograph(p, q, k, m) {
 	g.setSource(1); g.setSink(n);
 	for (let i = 1; i <= q; i++) {
 		let e;
-		e = g.join(g.source, g.source+i); g.setCapacity(e, Infinity);
-		e = g.join(g.sink-i, g.sink); 	  g.setCapacity(e, Infinity);
+		e = g.join(g.source, g.source+i);
+		e = g.join(g.sink-i, g.sink); 
 	}
 	// add more edges
 	add2graph(g, m, m > mm/2,

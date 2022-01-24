@@ -8,7 +8,7 @@
 
 import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import { augment } from './common.mjs';
+import augment from './augment.mjs';
 
 /** Verify a maximum flow.
  *  @param g is Flograph, with a maximum flow.

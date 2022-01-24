@@ -304,9 +304,10 @@ export default class Digraph extends Graph {
 	 *  @return a string representing the edge
 	 */
 	edge2string(e, label) {
-		return '(' + this.index2string(this.tail(e), label) + ',' 
-				   + this.index2string(this.head(e), label)
-				   + (this._weighted ? ',' + this.length(e) : '') + ')';
+		return e == 0 ? '-' :
+					'(' + this.index2string(this.tail(e), label) + ',' 
+					+ this.index2string(this.head(e), label)
+					+ (this._weighted ? ',' + this.length(e) : '') + ')';
 	}
 
 	/** Create a string representation of the neighbor of a vertex.

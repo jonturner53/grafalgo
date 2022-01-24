@@ -10,6 +10,7 @@ import Top from '../Top.mjs';
 import { assert } from '../../common/Errors.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
+import Digraph from '../graphs/Digraph.mjs';
 import PathSet from './PathSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
@@ -20,7 +21,9 @@ import Scanner from '../basic/Scanner.mjs';
  */
 export default class DynamicTrees extends Top {
 	#paths;		///< PathSet object implementing tree paths`
-	#succ;		///< #succ[p] is successor of the path p
+
+	#exposeCount;
+	#spliceCount;
 	
 	/** Constructor for DynamicTrees object.
 	 *  @param n is the range for the list
@@ -35,7 +38,8 @@ export default class DynamicTrees extends Top {
 	#init(capacity) {
 		assert(capacity >= this.n);
 		this.#paths = new PathSet(this.n, capacity);
-		this.#succ = new Array(capacity+1).fill(0, 0, this.n+1);
+		//this.#succ = new Array(capacity+1).fill(0, 0, this.n+1);
+		this.clearStats();
 	}
 
 	/** Reset the range and max range of the list; discard value. 
@@ -53,41 +57,47 @@ export default class DynamicTrees extends Top {
 						 	  Math.max(n, Math.floor(1.25 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
-		this.#succ.fill(0, this.n+1, n+1);
+		//this.#succ.fill(0, this.n+1, n+1);
 		this.#paths.expand(n);
 		this._n = n;
 	}
 
 	/** Assign new value to DynamicTrees from another. 
-	 *  @paran ps is a DynamicTrees whose value is to be assigned to this
+	 *  @paran dt is a DynamicTrees whose value is to be assigned to this
 	 */
-	assign(ps) {
-		if (ps == this) return;
-		if (ps.n > this.capacity) this.reset(ps.n);
-		else { this.clear(); this._n = ps.n; }
-		this.#paths.assign(ps.#paths);
-		for (let i = 1; i <= this.n; i++) {
-			this.#succ[i] = ps.#succ[i];
+	assign(dt) {
+		if (dt == this) return;
+		if (dt.n > this.capacity) this.reset(dt.n);
+		else { this.clear(); this._n = dt.n; }
+		this.#paths.assign(dt.#paths);
+		for (let u = 1; u <= this.n; u++) {
+			this.setSucc(u, dt.succ(u));
 		}
 	}
 
 	/** Assign a new value to this, by transferring contents of another list.
-	 *  @param ps is a DynamicTrees whose contents are to be transferred to this
+	 *  @param dt is a DynamicTrees whose contents are to be transferred to this
 	 */
-	xfer(ps) {
-		if (ps == this) return;
-		this._n = ps.n;
-		this.#succ = ps.#succ; ps.#succ = null;
-		this.#paths = ps.#paths; ps.#paths = null;
+	xfer(dt) {
+		if (dt == this) return;
+		this._n = dt.n;
+		//this.#succ = dt.#succ; dt.#succ = null;
+		this.#paths = dt.#paths; dt.#paths = null;
+		this.clearStats();
 	}
 	
 	/** Return to initial state */
-	clear() { this.reset(this.n, this.capacity); }
+	clear() {
+		//this.#succ.fill(0, 0, this.n+1);
+		this.#paths.clear(); this.clearStats();
+	}
 
 	/** Get the capacity of the list (max number of items it has space for). */
-	get capacity() { return this.#succ.length - 1; }
+	get capacity() { return this.#paths.capacity; }
 
-	succ(p) { return this.#succ[p]; }
+	succ(p) { return this.#paths.succ(p); }
+
+	setSucc(p, s) { this.#paths.setSucc(p, s); }
 
 	/** Expose a path in a tree.
 	 *  @param u is a node in a tree
@@ -96,10 +106,13 @@ export default class DynamicTrees extends Top {
 	 *  a single path.
 	 */
 	expose(u) {
+		this.#exposeCount++;
 		assert(this.valid(u));
 		let [p,s] = [0,u];
-		while (s != 0) [p,s] = this.#splice([p,s]);
-		this.#succ[p] = 0;
+		while (s != 0) {
+			[p,s] = this.#splice([p,s]);
+		}
+		this.setSucc(p, 0);
 		return p;
 	}
 	
@@ -112,9 +125,10 @@ export default class DynamicTrees extends Top {
 	 *  extending p further up the tree.
 	 */ 
 	#splice([p,s]) {
-		let next_s = this.succ[this.#paths.findpath(s)];
+		this.#spliceCount++;
+		let next_s = this.succ(this.#paths.findpath(s));
 		let [p1,p2] = this.#paths.split(s);
-		if (p1 != 0) this.#succ[p1] = s;
+		if (p1 != 0) this.setSucc(p1, s);
 		return [this.#paths.join(p,s,p2), next_s];
 	}
 	
@@ -124,8 +138,9 @@ export default class DynamicTrees extends Top {
 	 */
 	findroot(u) {
 		assert(this.valid(u));
-		let x = this.#paths.findtail(this.expose(u));
-		this.#succ[x] = 0; // works because x is now both tail and path id
+		let p = this.expose(u);
+		let x = this.#paths.findtail(p);
+		this.setSucc(x, 0); // works because x is now both tail and path id
 		return x;
 	}
 	
@@ -136,8 +151,8 @@ export default class DynamicTrees extends Top {
 	 */
 	findcost(u) {
 		let [v,c] = this.#paths.findpathcost(this.expose(u));
-		this.#succ[v] = 0; // works because v is also now path id
-		return cp;
+		this.setSucc(v, 0); // works because v is also now path id
+		return [v,c];
 	}
 	
 	/** Add to the cost of every node on the path from a node to its tree root.
@@ -158,7 +173,7 @@ export default class DynamicTrees extends Top {
 	 */
 	link(t, u) {
 		assert(this.valid(t) && this.valid(u));
-		this.#succ[this.#paths.findpath(t)] = u;
+		this.setSucc(this.#paths.findpath(t), u);
 	}
 	
 	/** Divide a tree into two subtrees.
@@ -169,56 +184,50 @@ export default class DynamicTrees extends Top {
 		assert(this.valid(u));
 		let v = this.succ(this.#paths.findpath(u));
 		let [p,q] = this.#paths.split(u);
-		if (p != 0) this.#succ[p] = u;
-		if (q != 0) this.#succ[q] = v;
-		this.#succ[u] = 0;
+		if (p != 0) this.setSucc(p, u);
+		if (q != 0) this.setSucc(q, v);
+		this.setSucc(u, 0);
 	}
-	
-	/** Create a string representing a path.
-	 *  @param q is a path in some tree
-	 *  @return the string
-	 */
-	string Dtrees::path2string(path q) const {
-		string s = ps->path2string(q);
-		s += " succ(" + Adt::index2string(q);
-		s += ")=" + Adt::index2string(succ(q)) + "\n";
-		return s;
-	}
-	
-	/** Create a string representing all the trees in this Dtrees object.
-	 *  @return the string
-	 */
-	string Dtrees::toString() const {
-		string s;
-		for (index i = 1; i <= n(); i++) {
-			index j = ps->findtreeroot(i);
-			if (i == j) s += path2string(i);
-		}
-		return s;
-	}
-
-
 	
 	/** Compare two DynamicTrees for equality.
 	 *
-	 *  @param ps is the DynamicTrees to be compared to this one
+	 *  @param dt is the DynamicTrees to be compared to this one
 	 *  @return true if they are the same list or have the
 	 *  same contents (in the same order);
 	 *  they need not have the same storage capacity to be equal
 	 */
-	equals(ps) {
-		if (this == ps) return true;
-		if (typeof ps == 'string') {
-			let s = ps; ps = new DynamicTrees(this.n); ps.fromString(s);
-		} else if (!(ps instanceof DynamicTrees)) {
+	equals(dt) {
+		if (this == dt) return true;
+		if (typeof dt == 'string') {
+			let s = dt; dt = new DynamicTrees(this.n); dt.fromString(s);
+		} else if (!(dt instanceof DynamicTrees)) {
 			return false;
 		}
-		if (this.n != ps.n) return false;
-		let [paths1, cost1] = getPaths(this);
-		let [paths2, cost2] = getPaths(ps);
+		if (this.n != dt.n) return false;
+		let [f1, cost1] = this.getForest();
+		let [f2, cost2] = dt.getForest();
 		for (let u = 1; u <= this.n; u++)
 			if (cost1[u] != cost2[u]) return false;
-		return paths1.equals(paths2);
+		return f1.equals(f2);
+	}
+
+	/** Get an alternate representation of the data structure
+	 *  @return a pair [f,cost] where f is directed graph defining
+	 *  a forest of directed trees and cost is an array of vertex costs.
+	 */
+	getForest() {
+		let f = new Digraph(this.n);
+		let [paths, cost] = this.#paths.getPaths();
+		for (let u = 1; u <= this.n; u++) {
+			if (!paths.isfirst(u)) continue;
+			for (let v = paths.next(u); v != 0; v = paths.next(v))
+				f.join(v, paths.prev(v));
+			let p = this.succ(this.#paths.findpath(u, true));
+			if (p != 0) {
+				f.join(p, paths.last(u));
+			}
+		}
+		return [f, cost];
 	}
 
 	/** Create a string representation of a given list.
@@ -227,48 +236,93 @@ export default class DynamicTrees extends Top {
 	 *  @return the string representation of the list
 	 */
 	toString(details, pretty, label) {
-		let s = '{' + (pretty ? '\n' : '');
-		let first = true;
-		for (let i = 1; i <= this.n; i++) {
-			if (this.p(i) == 0) {
-				if (first) first = false;
+		let s = '{'; if (pretty) s += '\n';
+		if (!details) {
+			let [f, cost] = this.getForest();
+			let firstTree = true;
+			for (let u = 1; u <= f.n; u++) {
+				if (f.firstIn(u) != 0) continue;
+				if (firstTree) firstTree = false;
 				else if (!pretty) s += ' ';
-				else first = false;
-				s += this.path2string(i, this.dmin(i), details, label);
+				s += this.subtree2string(u, f, cost, label);
 				if (pretty) s += '\n';
 			}
+			return s + '}';
 		}
-		s += '}' + (pretty ? '\n' : '');
+				
+		// make list of paths and list of paths containing tree roots
+		// also array mapping every path to its root path
+		let paths = new List(this.n);
+		let rootPaths = new List(this.n);
+		let rpMap = new Array(this.n+1);
+		for (let u = 1; u <= this.n; u++) {
+			let p = this.#paths.findpath(u, true);
+			if (!paths.contains(p)) {
+				let rp = this.getRootPath(p); rpMap[p] = rp;
+				paths.enq(p); if (!rootPaths.contains(rp)) rootPaths.enq(rp);
+			}
+		}
+
+		// group paths that belong to the same tree
+		let treePaths = new ListSet(this.n);
+		for (let p = paths.first(); p != 0; p = paths.next(p)) {
+			if (p != rpMap[p]) treePaths.join(rpMap[p], p);
+		}
+
+		// now print paths for each tree
+		for (let rp = rootPaths.first(); rp != 0; rp = rootPaths.next(rp)) {
+			s += (pretty ? '{\n' : ' {');
+			s += this.treepath2string(rp, label);
+			if (pretty) s += '\n';
+			for (let p = treePaths.next(rp); p != 0; p = treePaths.next(p)) {
+				if (!pretty) s += ' ';
+				s += this.treepath2string(p, label);
+				if (pretty) s += '\n';
+			}
+			s += (pretty ? '}\n' : '}');
+		}
+		s += (pretty ? '}\n' : ' }');
 		return s;
 	}
 
-	/** Create a string representation of a path.
-	 *  @param q is the root of some subtree
-	 *  @param mc is the mincost of q's parent
-	 *  @param details is a flag, which if true produces a more detailed
-	 *  view of the data structure
-	 *  @param is a function used to produce a label from a node index
-	 *  @return the string
-	 */
-	path2string(q, mc, details, label) {
-		if (q == 0) return '';
-		let s = (this.p(q) == 0 ? '[' : '');
-		mc += this.dmin(q);
-		let leaf = (this.left(q) == 0 && this.right(q) == 0);
-		let showParens = details && this.p(q) != 0 && !leaf;
-		if (showParens) s += '(';
-		if (this.left(q) != 0)
-			s += this.path2string(this.left(q), mc, details, label) + ' ';
-		s += this.index2string(q, label) + (details && leaf ? '.' : ':');
-		s += (details ? this.dmin(q) + ':' + this.dcost(q) :
-						mc + this.dcost(q));
-		if (this.right(q) != 0)
-			s += ' ' + this.path2string(this.right(q), mc, details, label);
-		if (showParens) s += ')';
-		s += (this.p(q) == 0 ? ']' : '');
-		return s;
+	treepath2string(u, label) {
+		let p = this.#paths.findpath(u, false);
+		return this.#paths.path2string(p, 0, 0, label);
 	}
-	
+
+	/** Produce string representation of a subtree.
+	 *  @param u is a vertex in a tree
+	 *  @param f is a digraph representing a forest of trees
+	 *  @cost is an array of vertex costs
+	 *  @label is a function used to compute a label
+	 *  @return a string representing the tree with each vertex
+	 *  labeled with its cost
+	 */
+	subtree2string(u, f, cost, label) {
+		if (u == 0) return '';
+		let s = f.index2string(u, label) + ':' + cost[u];
+		if (f.firstOut(u) == 0) return s;
+		s += '(';
+		for (let e = f.firstOut(u); e != 0; e = f.nextOut(u, e)) {
+			let v = f.head(e);
+			if (e != f.firstOut(u)) s += ' ';
+			s += this.subtree2string(v, f, cost, label);
+		}
+		return s + ')';
+	}
+
+	/** Get the path containing the root of the tree containing a given vertex.
+	 *  @param u is a node in the tree
+	 *  @return the path containing the root of the tree containing u
+	 */
+	getRootPath(u) {
+		let p = this.#paths.findpath(u,true); let v = this.succ(p);
+		while (v != 0) {
+			p = this.#paths.findpath(v,true); v = this.succ(p);
+		}
+		return p;
+	}
+
 	/** Initialize this from a string representation.
 	 *  @param s is a string, such as produced by toString().
 	 *  @return true on success, else false
@@ -277,69 +331,48 @@ export default class DynamicTrees extends Top {
 		let sc = new Scanner(s);
 		this.clear();
 		if (!sc.verify('{')) return false;
-		let items = new Set(); let path = new List();
-		while (sc.verify('[')) {
-			let u = sc.nextIndex(); let p = u;
-			path.clear(); let mc = Infinity;
-			for (let v = u; v != 0; v = sc.nextIndex()) {
-				if (items.has(v)) { this.clear(); return false; }
-				if (v > this.n) this.expand(v);
-				if (!sc.verify(':')) { this.clear(); return false; }
-				let cost = sc.nextNumber();
-				if (isNaN(cost)) { this.clear(); return false; }
-				mc = Math.min(mc, cost);
-				path.enq(v, [mc,cost]);
-				if (v != u) p = this.join(p,v,0);
-			}
-			// second pass to compute differential costs
-			for (let v = path.first(); v != 0; v = path.next(v)) {
-				let val = path.value(v);
-				this.#dcost[v] = val[1] - val[0];
-				if (this.p(v) == 0) {
-					this.#dmin[v] = val[0];
-				} else {
-					let pmc = path.value(this.p(v))[0];
-					this.#dmin[v] = val[0] - pmc;
-				}
-			}
-			if (!sc.verify(']')) { this.clear(); return false; }
+		let items = new Set();
+		let root = this.nextSubtree(sc, items);
+		while (root > 0) {
+			this.setSucc(root, 0);
+			root = this.nextSubtree(sc, items);
 		}
-		if (!sc.verify('}')) { this.clear(); return false; }
+		if (root == -1 || !sc.verify('}')) {
+			this.clear(); return false;
+		}
 		return true;
 	}
-}
 
-/** Extract an alternate representation of a DynamicTrees.
- *  @param ps is a DynamicTrees object
- *  @return a pair [paths, cost] where paths is a ListSet object that
- *  represents the paths in ps as lists and cost is an array, where
- *  cost[u] is the cost of the node u.
- */
-function getPaths(ps) {
-	let paths = new ListSet(ps.n);
-	let cost = new Array(ps.n+1);
-	for (let u = 1; u <= ps.n; u++) {
-		if (ps.p(u) == 0)
-			getPathsHelper(ps, u, 0, paths, cost);
+	/** Get the next subtree from a scanner.
+	 *  @param sc is a Scanner
+	 *  @param items is a Set representing vertices seen so far
+	 *  @return the root of the subtree on success, 0 if no subtree
+	 *  and -1 if a parse error occurred.
+	 */
+	nextSubtree(sc, items) {
+		let u = sc.nextIndex();
+		if (u == 0) return 0;
+		if (items.has(u) || !sc.verify(':')) return -1;
+		let c = sc.nextNumber();
+		if (isNaN(c)) return -1;
+		if (u > this.n) this.expand(u);
+		this.#paths.addpathcost(u, c);
+		if (!sc.verify('(')) return u;
+		do {
+			let v = this.nextSubtree(sc, items);
+			if (v <= 0) return -1;
+			this.setSucc(v, u);
+		} while (!sc.verify(')'));
+		return u;
 	}
-	return [paths, cost];
-}
-	
-/** Recursive helper function for getPaths.
- *  Constructs path for a subtree and computes subtree costs
- *  @param ps is a DynamicTrees object
- *  @param u is a node in a tree representing a path
- *  @param mc is the mincost of the parent of u in the tree (or 0)
- *  @param paths is a ListSet object in which paths are returned
- *  @param cost is an array in which cost info is returned
- *  @return the first node of the path segment represented by the
- *  subtree with root u
- */
-function getPathsHelper(ps, u, mc, paths, cost) {
-	if (u == 0) return 0;
-	mc += ps.dmin(u);
-	cost[u] = mc + ps.dcost(u);
-	let a = getPathsHelper(ps, ps.left(u), mc, paths, cost);
-	let b = getPathsHelper(ps, ps.right(u), mc, paths, cost);
-	return paths.join(paths.join(a,u),b);
+
+	clearStats() { this.#exposeCount = this.#spliceCount = 0; }
+
+	getStats() {
+		let pathStats = this.#paths.getStats();
+		return { 'exposeCount' : this.#exposeCount,
+				 'spliceCount' : this.#spliceCount,
+				 'splayCount'  : pathStats.splayCount,
+				 'splaySteps'  : pathStats.splaySteps};
+	}
 }

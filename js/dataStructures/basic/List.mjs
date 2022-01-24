@@ -230,7 +230,7 @@ export default class List extends Top {
 	 */
 	deleteNext(i) {
 		assert(i == 0 || this.contains(i));
-		if (i == this.last()) return;
+		if (i == this.last()) return 0;
 		let j;
 		if (i == 0) { j = this.#first;   this.#first = this.#next[j]; }
 		else	    { j = this.#next[i]; this.#next[i] = this.#next[j]; }

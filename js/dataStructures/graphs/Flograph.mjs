@@ -58,13 +58,13 @@ export default class Flograph extends Digraph {
 	 *  @param g is another Flograph that is copied to this one
 	 */
 	assign(g) {
-        assert(g instanceof Flograph);
-        if (g == this) return;
-        if (g.n > this.vertexCapacity || g.m > this.edgeCapacity) {
-            this.reset(g.n, g.m);
-        } else {
-            this.clear(); this._n = g.n;
-        }
+		assert(g instanceof Flograph);
+		if (g == this) return;
+		if (g.n > this.vertexCapacity || g.m > this.edgeCapacity) {
+			this.reset(g.n, g.m);
+		} else {
+			this.clear(); this._n = g.n;
+		}
 		for (let e = g.first(); e != 0; e = g.next(e)) {
 			let u = g.tail(e); let v = g.head(e);
 			let ee = this.join(u, v);
@@ -78,7 +78,7 @@ export default class Flograph extends Digraph {
 	 *  @param g is another graph whose contents is traferred to this one
 	 */
 	xfer(g) {
-        assert(g instanceof Flograph);
+		assert(g instanceof Flograph);
 		super.xfer(g);
 		this.#f = g.#f; this.#cap = g.#cap;
 		g.#f = g.#cap = null;
@@ -226,6 +226,7 @@ export default class Flograph extends Digraph {
 	 *  @return a string representing the edge
 	 */
 	edge2string(e, label) {
+		if (e == 0) return '-';
 		let u = this.tail(e);
 		return '(' + this.index2string(this.tail(e), label) + ',' 
 				   + this.index2string(this.head(e), label) + ','
@@ -258,12 +259,12 @@ export default class Flograph extends Digraph {
 					this.cap(e, v) + ':' + this.f(e, v);
 	}
 
-    /** Get the next vertex (from the start of an alist) from a scanner.
-     *  @param sc is a scanner for a string representation of a flow graph
-     *  @return the vertex that is assumed to be the next thing in the 
-     *  scanner string, or 0 if not successfule
-     */
-    nextVertex(sc) {
+	/** Get the next vertex (from the start of an alist) from a scanner.
+	 *  @param sc is a scanner for a string representation of a flow graph
+	 *  @return the vertex that is assumed to be the next thing in the 
+	 *  scanner string, or 0 if not successfule
+	 */
+	nextVertex(sc) {
 		let gotSink = sc.verify('->');
 		let u = sc.nextIndex();
 		if (u == 0) return 0;
@@ -311,29 +312,22 @@ export default class Flograph extends Digraph {
 	}
 
 	/** Compute random capacities for edges.
-	 *  @param sourceSink is a flag which if true generates capacities
-	 *  for source/sink edges only; if false, capacities are generated
-	 *  for other edges
+	 *  @param sourceSink is a number which specifies a scaling factor
+	 *  to be applied to the capacities of the source/sink edges.
 	 *  @param f is a random number generator used to generate the
 	 *  random edge capacities; it is invoked using any extra arguments
 	 *  provided by caller; for example randomCapacities(randomInteger, 1, 10)
-     *  will assign random integer capacities in 1..10.
+	 *  will assign random integer capacities in 1..10.
 	 */
 	randomCapacities(sourceSink, f) {
 		let fargs = [...arguments].slice(2);
 		let s = this.source; let t = this.sink;
-		if (sourceSink) {
-			for (let e = this.firstOut(s); e != 0; e = this.nextOut(s,e)) {
-				let c = f(...fargs); this.setCapacity(e, c);
-			}
-			for (let e = this.firstIn(t); e != 0; e = this.nextIn(t,e)) {
-				let c = f(...fargs); this.setCapacity(e, c);
-			}
-		} else {
-	        for (let e = this.first(); e != 0; e = this.next(e)) {
-				if (this.tail(e) == s || this.head(e) == t) continue;
-				let c = f(...fargs); this.setCapacity(e, c);
-			}
+		for (let e = this.first(); e != 0; e = this.next(e)) {
+			let c = f(...fargs);
+			if (this.tail(e) != s && this.head(e) != t)
+				this.setCapacity(e, c);
+			else
+				this.setCapacity(e, sourceSink  * c);
 		}
 	}
 
@@ -341,7 +335,7 @@ export default class Flograph extends Digraph {
 	 *  @param f is a random number generator used to generate the
 	 *  random edge costs; it is invoked using any extra arguments
 	 *  provided by caller; for example randomCosts(randomInteger, 1, 10)
-     *  will assign random integer costs in 1..10.
+	 *  will assign random integer costs in 1..10.
 	 */
 	randomCosts(f) { super.randomLengths(...arguments); }
 }
