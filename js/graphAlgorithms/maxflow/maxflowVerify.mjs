@@ -20,7 +20,8 @@ export default function maxflowVerify(g) {
 		if (u == g.source || u == g.sink) continue;
 		let s = 0;
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u, e)) {
-			let v = g.mate(u,e);
+			if (g.f(e) < g.floor(e) || g.f(e) > g.cap(e))
+				return(`Error: capacity violation at ${g.edge2string(e)}`);
 			s += g.f(e, u);
 		}
 		if (s != 0)

@@ -60,10 +60,6 @@ So main driver becomes
 for undirected graphs
 - next edge is {a,b} => {a,b+1} or {a+1,a+2}
 - sample is randomly select two endpoints
-
-
-					
-	
 */
 
 /** Generate an undirected random graph. 
@@ -104,7 +100,7 @@ export function randomDigraph(n, m) {
 	add2graph(g, m, m > mm/2,
 					([u,v]) => (n < 2 || u == n && v == n-1 ? null :
 						    	(u == 0 ? [1,2] :
-								 (v < n ? [u,(v == u-1 ? u : v) + 1] : [u+1,1]))),
+								 (v < n ? [u,(v==u-1 ? u : v) + 1] : [u+1,1]))),
 					() => { let u = randomInteger(1,n);
 						    let v = randomInteger(1,n-1);
 							return [u, (v < u ? v : v+1)]; }); 
@@ -446,6 +442,8 @@ export function randomRegularGraph(n, d) {
 		if (g.m < m) {
 			// remove some random edges from full vertices
 			// and try again
+//may be more efficient to generate a vector of random edges
+//all at once and then sample from the vector
 			let gap = m - g.m; let limit = 5;
 			while (g.m > .75*m && g.m > m - (gap+100)) {
 				let e = g.randomEdge();

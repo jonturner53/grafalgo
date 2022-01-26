@@ -28,7 +28,6 @@ export default function maxflowFFmc(fg, trace=false) {
 	let ts = '';
 	if (trace)
 		ts += 'augmenting paths with residual capacities\n';
-	let tf = 0;
 	findpathCount = findpathSteps = 0;
 
 	// initialize scale factor to largest power of 2
@@ -40,10 +39,11 @@ export default function maxflowFFmc(fg, trace=false) {
 
 	while (findpath(g.source)) {
 		findpathCount++;
-		let [f,s] = augment(g, pedge, trace);
-		tf += f; if (trace) ts += s + '\n';
+		let [,s] = augment(g, pedge, trace);
+		if (trace) ts += s + '\n';
 	}
-	return [tf, ts, {'findpathCount': findpathCount,
+	return [g.totalFlow(), ts,
+					{'findpathCount': findpathCount,
 					 'findpathSteps': findpathSteps}];
 }
 

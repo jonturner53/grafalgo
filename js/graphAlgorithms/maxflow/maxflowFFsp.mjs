@@ -23,14 +23,14 @@ export default function maxflowFFsp(fg, trace=false) {
 	g = fg; pedge = new Array(g.n+1);
 	let ts = '';
 	if (trace) ts += 'augmenting paths with residual capacities\n';
-	let tf = 0;
 	findpathCount = findpathSteps = 0;
 	while (findpath(g.source)) {
 		findpathCount++;
-		let [f,s] = augment(g, pedge, trace);
-		tf += f; if (trace) ts += s + '\n';
+		let [,s] = augment(g, pedge, trace);
+		if (trace) ts += s + '\n';
 	}
-	return [tf, ts, {'findpathCount': findpathCount,
+	return [g.totalFlow(), ts,
+					{'findpathCount': findpathCount,
 					 'findpathSteps': findpathSteps}];
 }
 

@@ -32,17 +32,17 @@ export default function maxflowD(fg, trace=false) {
 	if (trace)
 		ts += 'augmenting paths with residual capacities\n';
 
-	let tf = 0;
 	findpathCount = findpathSteps = phaseCount = 0;
 	while (newphase()) {
 		phaseCount++;
 		while (findpath(g.source)) {
 			findpathCount++;
-			let [f,s] = augment(g, pedge, trace);
-			tf += f; if (trace) ts += s + '\n';
+			let [,s] = augment(g, pedge, trace);
+			if (trace) ts += s + '\n';
 		}
 	}
-	return [tf, ts, {'findpathCount': findpathCount,
+	return [g.totalFlow(), ts,
+					{'findpathCount': findpathCount,
 					 'findpathSteps': findpathSteps,
 					 'phaseCount': phaseCount} ];
 }

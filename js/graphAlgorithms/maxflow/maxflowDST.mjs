@@ -43,20 +43,20 @@ export default function maxflowDST(fg, trace=false) {
 	let ts = '';
 	if (trace) ts += 'augmenting paths with residual capacities\n';
 
-	let tf = 0;
 	findpathCount = findpathSteps = phaseCount = 0;
 	while (newphase()) {
 		phaseCount++;
 		while (findpath(g.source)) {
 			findpathCount++;
-			let [f,s] = augment(trace);
-			tf += f; if (trace) ts += s + '\n';
+			let [,s] = augment(trace);
+			if (trace) ts += s + '\n';
 		}
 		endphase();
 	}
 	let treeStats = trees.getStats();
 	findpathSteps += treeStats.spliceCount + treeStats.splaySteps;
-	return [tf, ts, {'findpathCount': findpathCount,
+	return [g.totalFlow(), ts,
+					{'findpathCount': findpathCount,
 					 'findpathSteps': findpathSteps,
 					 'phaseCount': phaseCount} ];
 }
@@ -93,9 +93,10 @@ function endphase() {
 	for (let u = 1; u <= g.n; u++) {
 		let e = upEdge[u];
 		if (e != 0) {
-			trees.cut(u); let [,c] = trees.findcost(u);
-			g.addFlow(e, u, (g.cap(e,u) - c) - g.f(e,u));
-			trees.addcost(u, huge - c);
+			trees.cut(u); let [,residual] = trees.findcost(u);
+			//g.addFlow(e, u, (g.cap(e,u) - residual) - g.f(e,u));
+			g.setFlow(e, u == g.tail(e) ? g.cap(e,u) - residual : residual);
+			trees.addcost(u, huge - residual);
 			upEdge[u] = 0;
 		}
 	}
@@ -109,7 +110,7 @@ function findpath(u) {
 	while (nextEdge[g.source] != 0) {
 		let u = trees.findroot(g.source); let e = nextEdge[u];
 		while (true) { // look for forward path
-			findpathSteps++; // should really use dtrees stats for this
+			findpathSteps++; 
 			if (u == g.sink) return true;
 			if (e == 0) { nextEdge[u] = 0; break; }
 			let v = g.mate(u,e);
@@ -129,9 +130,10 @@ function findpath(u) {
 			let v = g.mate(u,e);
 			if (e != upEdge[v]) continue;
 			trees.cut(v); upEdge[v] = 0;
-			let [,c] = trees.findcost(v);
-			g.addFlow(e, v, (g.cap(e,v) - c) - g.f(e,v));
-			trees.addcost(v, huge - c);
+			let [,residual] = trees.findcost(v);
+			//g.addFlow(e, v, (g.cap(e,v) - c) - g.f(e,v));
+			g.setFlow(e, (v == g.tail(e) ? g.cap(e) - residual : residual));
+			trees.addcost(v, huge - residual);
 		}
 	}
 	return false;
@@ -158,7 +160,8 @@ function augment(trace) {
 	let f; [u,f] = trees.findcost(g.source);
 	while (f == 0) {
 		let e = upEdge[u];
-		g.addFlow(e, u, g.cap(e,u) - g.f(e,u));
+		g.setFlow(e, u == g.tail(e) ? g.cap(e) : 0);
+
 		trees.cut(u); upEdge[u] = 0; trees.addcost(u, huge);
 		[u,f] = trees.findcost(g.source);
 	}

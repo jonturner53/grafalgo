@@ -66,7 +66,7 @@ export default function maxflowGK(fg, trace, batch, getUbal, putUbal) {
 		if (batch) {
 			balance(u); u = getUnbal();
 			if (u != 0) continue;
-			relabelAll(); relabelSteps += 4*g.m;
+			relabelAll();
 			if (trace) ts = ts.slice(0,-1) + ' ***\n';
 		} else if (!batch && !balance(u)) {
 			relabelSteps++;
@@ -93,6 +93,7 @@ export function relabelAll() {
 	while (!q.empty()) {
 		let u = q.deq();
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+			relabelSteps++;
 			let v = g.mate(u,e);
 			if (g.res(e,v) > 0 && d[v] > d[u] + 1) {
 				q.enq(v); d[v] = d[u] + 1;
@@ -107,6 +108,7 @@ export function relabelAll() {
 	while (!q.empty()) {
 		let u = q.deq();
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+			relabelSteps++;
 			let v = g.mate(u,e);
 			if (g.res(e,v) > 0 && d[v] > d[u] + 1) {
 				q.enq(v); d[v] = d[u] + 1;
@@ -115,6 +117,7 @@ export function relabelAll() {
 	}
 
     for (let u = 1; u <= g.n; u++) {
+		relabelSteps++;
 		nextedge[u] = g.firstAt(u);
 		if (excess[u] > 0 && u != g.source && u != g.sink)
 			putUnbal(u, d[u]);

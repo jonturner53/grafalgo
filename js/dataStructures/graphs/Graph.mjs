@@ -1,7 +1,7 @@
-/** @file Graph.java
+/** @file Graph.mjs
  *
  *  @author Jon Turner
- *  @date 2011
+ *  @date 2021
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
@@ -52,10 +52,10 @@ export default class Graph extends Top {
 		this._left = new Array(ecap+1); this._right = new Array(ecap+1);
 		this._edges = new ListPair(ecap);
 		this._epLists = new ListSet(2*(ecap+1));
-		if (this._weighted) this.addWeights();
+		if (this.weighted) this.addWeights();
 	}
 
-	get _weighted() { return (this._weight ? true : false); }
+	get weighted() { return (this._weight ? true : false); }
 
 	addWeights() {
 		this._weight = new Array(this.edgeCapacity+1);
@@ -94,11 +94,11 @@ export default class Graph extends Top {
 		} else {
 			this.clear(); this._n = g.n;
 		}
-		if (g._weighted && !this._weighted) this.addWeights();
-		if (!g._weighted && this._weighted) this._weight = null;
+		if (g.weighted && !this.weighted) this.addWeights();
+		if (!g.weighted && this.weighted) this._weight = null;
 		for (let e = g.first(); e != 0; e = g.next(e)) {
 			let ee = this.join(g.left(e), g.right(e));
-			if (g._weighted) {
+			if (g.weighted) {
 				this._weight[ee] = g.weight(e);
 			}
 		}
@@ -115,7 +115,7 @@ export default class Graph extends Top {
 		this._left = g._left; this._right = g._right;
 		this._weight = g._weight;
 		this._edges = g._edges; this._epLists = g._epLists;
-		g._firstEp = g._left = g._right = null;
+		g._firstEp = g._left = g._right = g._weight = null;
 		g._edges = null; g._epLists = null;
 	}
 
@@ -129,6 +129,12 @@ export default class Graph extends Top {
 	 *  @return the number of edges in the graph.
 	 */
 	get m() { return this._edges.nIn(); }
+
+	/** Get the largest edge number that is currently in use. */
+	get M() {
+		for (e = edgeCapacity; e > 0; e--)
+			if (this._edges.isIn(e)) return e;
+	}
 	
 	validVertex(u) { return u == Math.floor(u) && 1 <= u && u <= this.n; }
 
@@ -222,7 +228,7 @@ export default class Graph extends Top {
 
 		// initialize edge information
 		this._left[e] = u; this._right[e] = v;
-		if (this._weighted) this._weight[e] = 0;
+		if (this.weighted) this._weight[e] = 0;
 	
 		// add edge to the endpoint lists
 		this._firstEp[u] = this._epLists.join(this._firstEp[u], 2*e);
@@ -308,10 +314,10 @@ export default class Graph extends Top {
 				let e = evec[i];
 				if (this.left(e) < this.right(e)) {
 					evec[i] = [this.left(e), this.right(e),
-								this._weighted ? this.weight(e) : 0, e];
+								this.weighted ? this.weight(e) : 0, e];
 				} else {
 					evec[i] = [this.right(e), this.left(e),
-								this._weighted ? this.weight(e) : 0, e];
+								this.weighted ? this.weight(e) : 0, e];
 				}
 			}
 		} else {
@@ -319,10 +325,10 @@ export default class Graph extends Top {
 			for (let e = this.first(); e != 0; e = this.next(e)) {
 				if (this.left(e) < this.right(e)) {
 					evec[i] = [this.left(e), this.right(e),
-								this._weighted ? this.weight(e) : 0, e];
+								this.weighted ? this.weight(e) : 0, e];
 				} else {
 					evec[i] = [this.right(e), this.left(e),
-								this._weighted ? this.weight(e) : 0, e];
+								this.weighted ? this.weight(e) : 0, e];
 				}
 				i++;
 			}
@@ -371,7 +377,7 @@ export default class Graph extends Top {
 	 */
 	weight(e) {
 		assert(this.validEdge(e));
-		return this._weighted && this._weight[e] ? this._weight[e] : 0;
+		return this.weighted && this._weight[e] ? this._weight[e] : 0;
 	}
 
 	/** Set the weight of an edge.
@@ -380,7 +386,7 @@ export default class Graph extends Top {
 	 */
 	setWeight(e, w) {
 		assert(this.validEdge(e));
-		if (!this._weighted) this.addWeights();
+		if (!this.weighted) this.addWeights();
 		this._weight[e] = w;
 	}
 
@@ -423,7 +429,7 @@ export default class Graph extends Top {
 		return e == 0 ? '-' :
 					'{' + this.index2string(this.left(e), label) + ','  +
 					 this.index2string(this.right(e), label) +
-					 (this._weighted ? ',' + this.weight(e) : '') + '}';
+					 (this.weighted ? ',' + this.weight(e) : '') + '}';
 	}
 	
 	/** Create a string representation of an edge list.
@@ -478,14 +484,12 @@ export default class Graph extends Top {
 	/** Create a string representation for a neighbor of a given vertex.
 	 *  @param u is a vertex
 	 *  @param e is an edge incident to u
-	 *  @showEdgeNum specifies that the edge number should be included
-	 *  in the string
 	 *  @return a string that represents the neighbor of u, suitable for
 	 *  use in an adjacency list string.
 	 */
 	nabor2string(u, e, details=0, label=0) {
 		return this.index2string(this.mate(u, e), label) +
-				 (this._weighted ? ':' + this.weight(e) : '');
+				 (this.weighted ? ':' + this.weight(e) : '');
 	}
 	
 	/** Construct a string representation of the Graph object.
@@ -693,7 +697,7 @@ export default class Graph extends Top {
      *  will assign random integer weights in 1..10.
 	 */
 	randomWeights(f) {
-		if (!this._weighted) this.addWeights();
+		if (!this.weighted) this.addWeights();
 		let fargs = [... arguments].slice(1);
         for (let e = this.first(); e != 0; e = this.next(e)) {
 			let w = f(...fargs); this.setWeight(e, w);

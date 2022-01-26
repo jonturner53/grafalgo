@@ -307,7 +307,7 @@ export default class Digraph extends Graph {
 		return e == 0 ? '-' :
 					'(' + this.index2string(this.tail(e), label) + ',' 
 					+ this.index2string(this.head(e), label)
-					+ (this._weighted ? ',' + this.length(e) : '') + ')';
+					+ (this.weighted ? ',' + this.length(e) : '') + ')';
 	}
 
 	/** Create a string representation of the neighbor of a vertex.
@@ -324,7 +324,7 @@ export default class Digraph extends Graph {
 		if (u == this.head(e)) return '';
 		let s = this.index2string(this.mate(u, e), label);
 		if (details) s += '.' + e;
-		if (this._weighted) {
+		if (this.weighted) {
 			s += ':' + this.length(e);
 		}
 		return s;
