@@ -20,6 +20,7 @@ let findpathSteps; // number of steps in all calls to findpath
  *  @return the total flow added to fg
  */
 export default function maxflowFFsp(fg, trace=false) {
+console.log('maxflowffsp1');
 	g = fg; pedge = new Array(g.n+1);
 	let ts = '';
 	if (trace) ts += 'augmenting paths with residual capacities\n';
