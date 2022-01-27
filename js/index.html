@@ -174,7 +174,7 @@ import ArrayHeap from './dataStructures/heaps/ArrayHeap.mjs';
 import FibHeaps from './dataStructures/heaps/FibHeaps.mjs';
 import LeftistHeaps from './dataStructures/heaps/LeftistHeaps.mjs';
 
-import PathSets from './dataStructures/misc/PathSets.mjs';
+import PathSets from './dataStructures/misc/PathSet.mjs';
 import DynamicTrees from './dataStructures/misc/DynamicTrees.mjs';
 
 import bfs from './graphAlgorithms/misc/bfs.mjs';
@@ -202,17 +202,17 @@ import sptVerify from './graphAlgorithms/spath/sptVerify.mjs';
 import allpairsF from './graphAlgorithms/spath/allpairsF.mjs';
 import allpairsEK from './graphAlgorithms/spath/allpairsEK.mjs';
 
-import augment from './graphAlgorithms/mflow/augment.mjs';
-import maxflowD from './graphAlgorithms/mflow/maxflowD.mjs';
-import maxflowDST from './graphAlgorithms/mflow/maxflowDST.mjs';
-import maxflowFFsp from './graphAlgorithms/mflow/maxflowFFsp.mjs';
-import maxflowFFmc from './graphAlgorithms/mflow/maxflowFFmc.mjs';
-import maxflowFFcs from './graphAlgorithms/mflow/maxflowFFcs.mjs';
-import maxflowGTf from './graphAlgorithms/mflow/maxflowGTf.mjs';
-import maxflowGThl from './graphAlgorithms/mflow/maxflowGThl.mjs';
-import maxflowGT from './graphAlgorithms/mflow/maxflowGT.mjs';
-import maxflowVerify from './graphAlgorithms/mflow/maxflowVerify.mjs';
-import maxflowHardcase from './graphAlgorithms/mflow/maxflowHardcase.mjs';
+import augment from './graphAlgorithms/maxflow/augment.mjs';
+import maxflowD from './graphAlgorithms/maxflow/maxflowD.mjs';
+import maxflowDST from './graphAlgorithms/maxflow/maxflowDST.mjs';
+import maxflowFFsp from './graphAlgorithms/maxflow/maxflowFFsp.mjs';
+import maxflowFFmc from './graphAlgorithms/maxflow/maxflowFFmc.mjs';
+import maxflowFFcs from './graphAlgorithms/maxflow/maxflowFFcs.mjs';
+import maxflowGTf from './graphAlgorithms/maxflow/maxflowGTf.mjs';
+import maxflowGThl from './graphAlgorithms/maxflow/maxflowGThl.mjs';
+import maxflowGT from './graphAlgorithms/maxflow/maxflowGT.mjs';
+import maxflowVerify from './graphAlgorithms/maxflow/maxflowVerify.mjs';
+import maxflowHardcase from './graphAlgorithms/maxflow/maxflowHardcase.mjs';
 
 let codeArea = document.getElementById("codeArea");
 let outputArea = document.getElementById("outputArea");
@@ -273,16 +273,20 @@ class Menu {
 			reply.sort((a,b) => (a[0]<b[0] ? -1 : (a[0]>b[0] ? 1 : 0)));
 			let s = ''
 			for (let vec of reply) {
-				let dir = vec[0].match(/\/[^\/]+\/$/);
-				if (dir != null && unit == vec[0].endsWith('/unit/'))
-					s += `<optgroup label="${dir[0].slice(1,-1)}"></optgroup>`;
+				let dir = vec[0].match(/[^\/]+\//g);
+				if (dir == null) continue;
+				let last = dir.length-1;
+				let isunit = (dir[last] == 'unit/');
+				if (unit != isunit) continue;
+				let label = (isunit ? dir[last-1] : '') + dir[last];
+				let files = '';
 				for (let i = 1; i < vec.length; i++) {
 					let f = vec[i];
-					if (!f.endsWith('.mjs')) continue;
-					if (unit == vec[0].endsWith('/unit/'))
-						s += `<option value="${vec[0]+vec[i]}">` +
-							 `${vec[i]}</option>`;
+					if (f.endsWith('.mjs'))
+						files += `<option value="${vec[0]+f}">${f}</option>`;
 				}
+				if (files.length > 0)
+					s += `<optgroup label="${label}"></optgroup>${files}`
 			}
 			this.selector.innerHTML = s;
 		});
