@@ -1,4 +1,4 @@
-/** @file hardcase.mjs
+/** @file maxflowHardcase.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -30,7 +30,7 @@ import { assert } from '../../common/Errors.mjs';
  *  The generated graphs have 16*k1 + 2*k2 + 6 vertices and
  *  20*k1 + k2^2 + 4*k2 edges and a max flow of 2*k1*k2^2.
  */
-export default function hardcase(k1, k2) {
+export default function maxflowHardcase(k1, k2) {
 	// determine first vertex in each group
 	let c1 = 2;		// start of short chain from source
 	let c2 = c1 + 4*k1;	// start of long chain from source

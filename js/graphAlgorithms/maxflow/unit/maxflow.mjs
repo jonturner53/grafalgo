@@ -94,10 +94,12 @@ function maketests(floor) {
 				'h[f:3 i:4 j:2] i[g:1-5 j:6] ->j[]}');
 	}
 
-	cases.push({'name': 'medium hard case', 'g': hardcase(10,10),
+	cases.push({'name': 'hardcase(10,10)', 'g': maxflowHardcase(10,10),
 				'value': 2000});
-	cases.push({'name': 'large hard case', 'g': hardcase(20,20),
-				'value': 16000});
+	cases.push({'name': 'hardcase(20,10)', 'g': maxflowHardcase(20,10),
+				'value': 4000});
+	cases.push({'name': 'hardcase(10,20)', 'g': maxflowHardcase(10,20),
+				'value': 8000});
 
 	cases.push({'name': 'small random', 'g': randomFlograph(4,3,1,60),
 				'value': 0});
