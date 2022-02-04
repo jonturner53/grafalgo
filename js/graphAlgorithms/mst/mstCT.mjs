@@ -31,7 +31,7 @@ export default function mstCT(g, trace=0) {
 	}
 	epHeap.setkey(1, 0); // unused heap item
 
-	let h = new Array(g.n+1);  // h[u] is heap for tree whose id is u
+	let h = new Int32Array(g.n+1);  // h[u] is heap for tree whose id is u
 	let q = new List(g.n);   // queue of trees
 	let hlist = new List(2*epHeap.n+1);
 	for (let u = 1; u <= g.n; u++) {

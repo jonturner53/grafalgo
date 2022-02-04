@@ -42,16 +42,15 @@ export default function nca(t, root, pairs, u=root, pu=u) {
 
 	if (u == root) { // top-level invocation, so initialize data structures
 		g = new Graph(t.n, pairs.length);
-		noa = new Array(g.n+1);	
+		noa = new Int32Array(g.n+1);	
 		noaSets = new Sets(t.n);
-		mark = new Array(pairs.length);
+		mark = new Int8Array(pairs.length).fill(false);
 		ncav = new Array(pairs.length);
 
 		for (let w = 1; w <= t.n; w++) {
 			noa[w] = w;  // changes once w is closed
 		}
 		for (let p = 0; p < pairs.length; p++) {
-			ncav[p] = 0; mark[p] = false;
 			g.join(pairs[p][0], pairs[p][1], p+1);
 		}
 	}

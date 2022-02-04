@@ -37,7 +37,7 @@ export default function sptVerify(g, s, pedge, dist) {
 	}
 
 	// verify that pedge defines a tree rooted at s and that distances match
-	let mark = new Array(g.n).fill(false); mark[s] = true;
+	let mark = new Int8Array(g.n+1).fill(false); mark[s] = true;
 	for (let u = 1; u <= g.n; u++) {
 		if (!mark[u] && pedge[u] != 0) {
 			mark[u] = true;
@@ -64,7 +64,7 @@ export default function sptVerify(g, s, pedge, dist) {
 	}
 
 	// make sure everything reachable in g is reachable in t
-	let mark2 = new Array(g.n+1).fill(false);
+	let mark2 = new Int8Array(g.n+1).fill(false);
     let q = new List(g.n); q.enq(s); mark2[s] = true;
     while (!q.empty()) {
         let u = q.deq();

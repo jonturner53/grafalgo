@@ -15,61 +15,10 @@ import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
 
-/*
-How to generalize edge generation?
-Suppose we pass a function that generates a random edge that is
-acceptable by a user-defined standard.
-
-Then main routine can use this to generate random pairs and
-eliminate parallel edges.
-
-If the graph is dense, user supplied function could be list of all pairs.
-Maybe just generate list of pairs in all cases.
-
-Another issue is that we ignore existing edges when generating new ones.
-Maybe we should be using a set with constant time membership test
-from the start. Probably need dedicated HashSet to do this right.
-
-1. create a pair set from existing edges
-2. create a set of candidate pairs that excludes the current edges
-3. sample from candidate pairs and add to graph
-1 and 3 are generic, 2 must be specialized.
-general form
-- if lots of edges needed, generate all possible
-- otherwise, generate random set with some surplus
-
-can we make 2 mostly generic too? say using a random edge generator?
-- generate random non-duplicates, so long as not too many are being
-  discarded; if we get enough that way, we're done
-- else fill gaps, using sampling routine that gives next edge
-  following a given one
-
-Two methods
-- one to return random pair
-- one to return next pair, given current one
-- and maybe a predicate that tells if # of target edges is too high to sample
-
-
-So main driver becomes
-- if dense graph
-	- get all pairs
-- else sample pairs, sort list and remove duplicates
-- remove pairs found in g
-- sample pairs list add to g
-
-for undirected graphs
-- next edge is {a,b} => {a,b+1} or {a+1,a+2}
-- sample is randomly select two endpoints
-*/
-
 /** Generate an undirected random graph. 
  *  @param n is the number of vertices in the random graph
  *  @param m is the number of edges in the graph
-export function randomGraph(n, m) {
-	let g = new Graph(n, m);
-	add2graph(g, m, true);
-	return g;
-}
+ *  @return the generated graph
  */  
 export function randomGraph(n, m) {
 	let g = new Graph(n, m);
@@ -87,11 +36,7 @@ export function randomGraph(n, m) {
 /** Generate a random directed graph. 
  *  @param n is the number of vertices in the random graph
  *  @param m is the number of edges in the graph
-export function randomDigraph(n, m) {
-	let g = new Digraph(n, m);
-	add2graph(g, m, false);
-	return g;
-}
+ *  @return the generated graph
  */  
 export function randomDigraph(n, m) {
 	let g = new Digraph(n, m);
@@ -112,11 +57,6 @@ export function randomDigraph(n, m) {
  *  @param m is the number of edges in the graph
  *  @return the random graph; note, returned graph has vertices in
  *  topologically sorted order.
-export function randomDag(n, m) {
-	let g = new Digraph(n, m);
-	add2graph(g, m, true);
-	return g;
-}
  */  
 export function randomDag(n, m) {
 	let g = new Digraph(n, m);
@@ -177,55 +117,21 @@ export function randomFlograph(p, q, k, m) {
 }
 
 /** Add random edges to yield a random simple graph.
+ *  Designed to be useful for a variety of different types of graphs.
+ *  For dense graphs, samples from among all possible edges, for
+ *  sparse graphs, first generates a sample of random edge candidates,
+ *  eliminates duplicates, then selects required number of edges
  *  @param g is a graph
  *  @param m is the target number of edges; if the graph already
  *  has some edges, they are assumed to be unique; additional edges
  *  are added until the graph has m edges
+ *  @param nextpair is a function that returns the next pair of vertices
+ *  that define an edge, following the pair given as its argument
+ *  @param randpair is a function that returns a random pair of vertices
+ *  @param dense is a flag which indicates that the graph should be
+ *  considered dense
  *  @param up is a flag; if true, add edges [u,v] with u<v;
  *  if false pairs are not constrained
-function add2graph(g, m, up=false) {
-	if (m <= g.m) return;
-	assert(m <= (up ? g.n*(g.n-1)/2 : g.n*g.n-1),
-		   'RandomGraph.addEdges: too many edges')
-
-	// generate vector of candidate edges to select new edges from
-	let pairs = [];
-	if (m/g.n > g.n/4) { // dense graphs
-		// build complete vector of candidate edges
-		pairs = new Array(up ? g.n*(g.n-1)/2 : g.n*(g.n-1));
-		let i = 0;
-		for (let u = 1; u <= g.n; u++) {
-			if (up) {
-				for (let v = u+1; v <= g.n; v++)
-					pairs[i++] = [u, v];
-			} else {
-				for (let v = 1; v <= g.n; v++)
-					if (v != u) pairs[i++] = [u, v];
-			}
-		}
-	} else { // sparse graphs
-		// build oversize, but incomplete vector of candidate edges
-		pairs = new Array(m + Math.max(m, 200));
-		for (let i = 0; i < pairs.length; i++) {
-			let u, v;
-			if (up) {
-				u = randomInteger(1, g.n-1);
-				v = randomInteger(u+1, g.n);
-			} else {
-				u = randomInteger(1, g.n);
-				v = randomInteger(1, g.n-1);
-				if (v >= u) v++;
-			}
-			pairs[i] = [u,v];
-		}
-		sortReduce(pairs);
-	}
-	removeDuplicates(pairs, g);
-	if (pairs.length < m - g.m)
-		fatal("Rgraph: program error, too few candidate edges");
-	samplePairs(pairs, g, m);
-	g.sortAllEplists();
-}
  */
 function add2graph(g, m, dense, nextpair, randpair) {
 	if (m <= g.m) return;
@@ -236,9 +142,8 @@ function add2graph(g, m, dense, nextpair, randpair) {
 		let p = nextpair([0,0]);
 		while (p) { pairs.push(p); p = nextpair(p); }
 	} else {
-		pairs = new Array(m + Math.max(200, m));
-		for (let i = 0; i < pairs.length; i++)
-			pairs[i] = randpair();
+		for (let i = 0; i < m + Math.max(200, m); i++)
+			pairs.push(randpair());
 		sortReduce(pairs);
 	}
 	removeDuplicates(pairs, g);
@@ -325,7 +230,7 @@ function add2bipartite(g, n1, n2, m) {
 	let pairs;
 	if (m/n1 > n2/4) { // dense graphs
 		// build complete vector of candidate edges
-		pairs = new Array(n1*n2);
+		pairs = new Int32Array(n1*n2);
 		let i = 0;
 		for (let u = 1; u <= n1; u++) {
 			for (let v = n1+1; v <= n1+n2; v++) {
@@ -334,7 +239,7 @@ function add2bipartite(g, n1, n2, m) {
 		}
 	} else { // sparse graphs
 		// build oversize, but incomplete vector of candidate edges
-		pairs = new Array(m + Math.max(m, 200));
+		pairs = new Int32Array(m + Math.max(m, 200));
 		for (let i = 0; i < pairs.length; i++) {
 			pairs[i]    = [ randomInteger(1,n1), 0 ];
 			pairs[i][1] = randomInteger(n1+1,n1+n2);
@@ -357,8 +262,8 @@ function add2bipartite(g, n1, n2, m) {
  */
 export function randomTree(n) {
 	// build a random sequence of n-2 vertex numbers
-	let nonleaf = new Array(n-1);
-	let d = new Array(n+1).fill(1);  // note: intialized to 1, not 0
+	let nonleaf = new Int32Array(n-1);
+	let d = new Int32Array(n+1).fill(1);  // note: intialized to 1, not 0
 	for (let i = 1; i <= n-2; i++) {
 		nonleaf[i] = randomInteger(1,n);
 		d[nonleaf[i]]++;
@@ -413,8 +318,8 @@ export function randomRegularGraph(n, d) {
 	if ((n & 1) && (d & 1)) n++;
 
 	let m = n*d/2; let g = new Graph(n, m);
-	let deg = new Array(n+1).fill(0); // deg[u] = degree of vertex u
-	let nabor = new Array(n+1).fill(false);	
+	let deg = new Int32Array(n+1).fill(0); // deg[u] = degree of vertex u
+	let nabor = new Int32Array(n+1).fill(false);	
 		// nabor[v] is true if v is neighbor of "current vertex"
 
 	let totalGap = 0;
@@ -474,7 +379,7 @@ function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
 	if ((n1 & 1) && (d1 & 1)) n1++;
 	let d2 = Math.ceil(n1*d1/n2);
 	let m = d1*n1;	// # of edges
-	let dl = new Array(n1+1); let dr = new Array(n2+1);
+	let dl = new Int32Array(n1+1); let dr = new Int32Array(n2+1);
 	let limitl = Math.max(10, Math.min(2*d1, n2));
 	let limitr = Math.max(10, Math.min(2*d2, n1));
 	let pairs = new Array(1 + Math.min(limitl*n1, limitr*n2));

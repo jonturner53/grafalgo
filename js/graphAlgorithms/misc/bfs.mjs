@@ -15,7 +15,7 @@ import List from '../../dataStructures/basic/List.mjs';
  *  @return an array listing the vertices in breadth-first order, from s.
  */
 export default function bfs(g, s) {
-	let mark = new Array(g.n+1).fill(false);
+	let mark = new Int8Array(g.n+1).fill(false);
 
 	let vlist = []; let q = new List(g.n);
 	q.enq(s); mark[s] = true;

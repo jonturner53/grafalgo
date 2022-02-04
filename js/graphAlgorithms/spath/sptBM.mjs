@@ -22,7 +22,7 @@ import List from '../../dataStructures/basic/List.mjs';
  *  statistics object.
  */
 export default function sptBM(g, s, trace=0) {
-	let pedge = new Array(g.n+1).fill(0); let ts = ''; let err = '';
+	let pedge = new Int32Array(g.n+1); let ts = ''; let err = '';
 	let dist = new Array(g.n+1).fill(Number.POSITIVE_INFINITY);
 
 	let q = new List(g.n);

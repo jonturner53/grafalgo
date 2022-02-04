@@ -79,13 +79,13 @@ function checkWeight(u=1, pu=u) {
 		}
 		let ncav = nca(t, u, pairs);
 		// now use ncav to initialize edgeLists and firstEdge
-		edgeLists = new ListSet(maxe); firstEdge = new Array(t.n+1).fill(0);
+		edgeLists = new ListSet(maxe); firstEdge = new Int32Array(t.n+1);
 		for (let p = 0; p < pairs.length; p++) {
 			let w = ncav[p]; let e = enumber[p];  // w is nca of e's endpoints
 			firstEdge[w] = edgeLists.join(firstEdge[w], e);
 		}
-		a = new Array(g.n+1);
-		mw = new Array(g.n+1);
+		a = new Int32Array(g.n+1);
+		mw = new Int32Array(g.n+1);
 	}
 	// tree traversal
 	for (let e = t.firstAt(u); e != 0; e = t.nextAt(u, e)) {

@@ -21,7 +21,7 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
  *  statistics object.
  */
 export default function sptD(g, s, trace=0) {
-	let pedge = new Array(g.n+1).fill(0); let ts = '';
+	let pedge = new Int32Array(g.n+1); let ts = '';
 	let dist = new Array(g.n+1).fill(Number.POSITIVE_INFINITY);
 	let h = new ArrayHeap(g.n, 2+Math.floor(g.m/g.n));
 	if (trace) ts += g.toString(0,1);

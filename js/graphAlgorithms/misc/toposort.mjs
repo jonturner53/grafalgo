@@ -17,7 +17,7 @@ export default function toposort(g) {
 	let vlist = []; // list of vertices in topological order
 	let q = new List(g.n);
 		// list of vertices whose in-edges have all been touched
-	let icount = new Array(g.n+1).fill(0);
+	let icount = new Int32Array(g.n+1);
 		// icount[u] = inDegree(u) - (# of times in-edge of u has been touched)
 
 	// Initialize icount[u] and put nodes with icount[u]=0 on q

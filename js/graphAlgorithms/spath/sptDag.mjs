@@ -26,9 +26,9 @@ export default function sptDag(g, s, trace=0) {
 	if (topo.length != g.n) 
 		return ['Error: graph is not acyclic', null, null, null, null];
 
-	let pedge = new Array(g.n+1).fill(0);
+	let pedge = new Int32Array(g.n+1);
 	let dist = new Array(g.n+1).fill(Number.POSITIVE_INFINITY);
-	let reached = new Array(g.n+1).fill(false);
+	let reached = new Int8Array(g.n+1).fill(false);
 		// reached[u]==true means u is no longer unlabeled
 
 	let ts = '';

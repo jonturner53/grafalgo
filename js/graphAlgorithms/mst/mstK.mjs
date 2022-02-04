@@ -18,8 +18,8 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  */
 export default function mstK(g, trace=0) {
 	// first make a sorted list of the edges in g
-	let i = 0; let edges = new Array(g.m);
-	for (let e = g.first(); e != 0; e = g.next(e)) edges[i++] = e;
+	let edges = [];
+	for (let e = g.first(); e != 0; e = g.next(e)) edges.push(e);
 	edges.sort((e1, e2) => g.weight(e1) - g.weight(e2));
 	let traceString = '';
 	if (trace) {

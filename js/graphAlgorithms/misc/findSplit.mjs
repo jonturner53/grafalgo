@@ -17,7 +17,7 @@ import ListPair from '../../dataStructures/basic/ListPair.mjs'
  */
 export default function findSplit(g) {
 	let split = new ListPair(g.n);
-	let unreached = new Array(g.n+1).fill(true);
+	let unreached = new Int8Array(g.n+1).fill(true);
 	let q = new List(g.n);
 
 	let u = 1;

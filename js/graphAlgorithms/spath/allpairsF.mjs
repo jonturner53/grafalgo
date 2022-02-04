@@ -21,12 +21,13 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
  *  statistics object.
  */
 export default function allpairsF(g, trace=false) {
-	let dist = new Array(g.n+1); let pedge = new Array(g.n+1);
+	let dist = []; dist.push(null);
+	let pedge = []; pedge.push(null);
     
     // initialize dist and p
     for (let u = 1; u <= g.n; u++) {
-		dist[u] = new Array(g.n+1).fill(Infinity); dist[u][u] = 0;
-		pedge[u] = new Array(g.n+1).fill(0);
+		dist.push(new Int32Array(g.n+1).fill(Infinity)); dist[u][u] = 0;
+		pedge.push(new Int32Array(g.n+1));
     }   
 
     for (let e = g.first(); e != 0; e = g.next(e)) {

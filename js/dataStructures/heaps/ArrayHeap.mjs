@@ -203,6 +203,7 @@ export default class ArrayHeap extends Top {
 	 *  @param x is a tentative position for i in the heap
 	 */
 	#siftup(i, x) {
+		this.#siftupSteps++;
 		let px = this.p(x);
 		while (x > 1 && this.#key[i] < this.#key[this.#item[px]]) {
 			this.#item[x] = this.#item[px]; this.#pos[this.#item[x]] = x;
@@ -233,6 +234,7 @@ export default class ArrayHeap extends Top {
 	 *  the smallest key
 	 */
 	#minchild(x) {
+		this.#siftdownSteps++;
 		let minc = this.left(x);
 		if (minc > this.m) return 0;
 		for (let y = minc + 1; y <= this.right(x) && y <= this.m; y++) {

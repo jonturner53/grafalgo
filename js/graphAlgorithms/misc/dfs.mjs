@@ -21,7 +21,7 @@ import List from '../../dataStructures/basic/List.mjs';
 export default function dfs(g, u, vlist=null, mark=null) {
 	if (vlist == null) {
 		vlist = [];
-		mark = new Array(g.n+1).fill(false);
+		mark = new Int8Array(g.n+1).fill(false);
 	}
 	vlist.push(u); mark[u] = true;
 	for (let e = g.firstAt(u); e != 0; e = g.nextAt(u, e)) {

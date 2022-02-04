@@ -27,14 +27,16 @@ export default function mstP(g, trace=0, d=2+Math.floor(g.m/g.n)) {
 			  'selected vertex, tree edge, heap contents\n';
 	}
 
-	let light = new Array(g.n+1).fill(-1);
+	let light = new Int32Array(g.n+1).fill(-1);
 	let border = new ArrayHeap(g.n, d);
+	let loopCount = 0;
 	for (let s = 1; s <= g.n; s++) {
 		if (light[s] >= 0) continue;
 		border.insert(s, 0); light[s] = 0;
 		while (!border.empty()) {
 			let u = border.deletemin();
 			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+				loopCount++;
 				let v = g.mate(u,e);
 				if (light[v] < 0) {
 					border.insert(v, g.weight(e)); light[v] = e;
@@ -54,5 +56,8 @@ export default function mstP(g, trace=0, d=2+Math.floor(g.m/g.n)) {
 	for (let i = 1; i <= g.n; i++)
 		if (light[i] > 0) light[j++] = light[i];
 	light.length = j;
-	return [light, traceString, border.getStats()];
+	let bstats = border.getStats();
+	return [light, traceString, {'loopCount': loopCount,
+								 'siftup': bstats.siftup,
+								 'siftdown': bstats.siftdown} ];
 }

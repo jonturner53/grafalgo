@@ -25,9 +25,9 @@ export default function mstPf(g, trace=0) {
 		traceString += g.toString(0,1) + '\n' +
 			  'selected vertex, tree edge, heap contents\n';
 	}
-	let light = new Array(g.n+1).fill(-1);
+	let light = new Int32Array(g.n+1).fill(-1);
 	let border = new FibHeaps(g.n);
-	let inheap = new Array(g.n).fill(false);
+	let inheap = new Int8Array(g.n).fill(false);
 	for (let s = 1; s <= g.n; s++) {
 		if (light[s] >= 0) continue;
 		let h = border.insert(s, s, 0); let heapsize = 1; light[s] = 0;

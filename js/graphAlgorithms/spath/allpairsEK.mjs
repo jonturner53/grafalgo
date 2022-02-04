@@ -25,7 +25,8 @@ import sptD from './sptD.mjs';
  *  a statistics object.
  */
 export default function allpairsEK(g, trace) {
-	let dist = new Array(g.n+1); let pedge = new Array(g.n+1);
+	let dist = []; dist.push(null);
+	let pedge = []; pedge.push(null);
     
     // compute distances in augmented graph
 	let [err,pe,d,,statsBM] = sptBM(g, 0);
@@ -43,9 +44,10 @@ export default function allpairsEK(g, trace) {
 			  'current source, tree edges, distances\n';
 
     // compute shortest paths & put inverse-transformed distances in dist.
-	stats.stepsD = 0; let statsD;
+	stats.stepsD = 0;
     for (let u = 1; u <= g.n; u++) {
-        [,pedge[u],dist[u],,statsD] = sptD(g, u);
+        let [,pu,du,,statsD] = sptD(g, u);
+		pedge.push(pu); dist.push(du);
 		stats.stepsD += statsD.siftup + statsD.siftdown;
         for (let v = 1; v <= g.n; v++) dist[u][v] -= (d[u]-d[v]);
 		if (stats) {
