@@ -25,9 +25,10 @@ export default function mstPf(g, trace=0) {
 		traceString += g.toString(0,1) + '\n' +
 			  'selected vertex, tree edge, heap contents\n';
 	}
-	let light = new Int32Array(g.n+1).fill(-1);
+	let light = new Array(g.n+1).fill(-1);
 	let border = new FibHeaps(g.n);
 	let inheap = new Int8Array(g.n).fill(false);
+	let loopCount = 0;
 	for (let s = 1; s <= g.n; s++) {
 		if (light[s] >= 0) continue;
 		let h = border.insert(s, s, 0); let heapsize = 1; light[s] = 0;
@@ -35,6 +36,7 @@ export default function mstPf(g, trace=0) {
 			let u; [u, h] = border.deletemin(h);
 			inheap[u] = false; heapsize--;
 			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+				loopCount++;
 				let v = g.mate(u,e);
 				if (light[v] < 0) {
 					h = border.insert(v, (heapsize > 0 ? h : v), g.weight(e));
@@ -55,5 +57,8 @@ export default function mstPf(g, trace=0) {
 	for (let i = 1; i <= g.n; i++)
 		if (light[i] > 0) light[j++] = light[i];
 	light.length = j;
-	return [light, traceString, border.getStats() ];
+	let bstats = border.getStats();
+	return [light, traceString, {'loopCount': loopCount,
+								 'decrease': bstats.decrease,
+								 'merge': bstats.merge} ];
 }
