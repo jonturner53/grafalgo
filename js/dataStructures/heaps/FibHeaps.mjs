@@ -47,14 +47,14 @@ export default class FibHeaps extends Top {
 	 *  @param nMax is the maximum range
 	 */
 	#init(capacity) {
-		this.#key = new Array(capacity+1).fill(0);
-		this.#rank = new Array(capacity+1).fill(0);
-		this.#mark = new Array(capacity+1).fill(false);
-		this.#p = new Array(capacity+1).fill(0);
-		this.#c = new Array(capacity+1).fill(0);
+		this.#key = new Float32Array(capacity+1);
+		this.#rank = new Int32Array(capacity+1);
+		this.#mark = new Int8Array(capacity+1);
+		this.#p = new Int32Array(capacity+1);
+		this.#c = new Int32Array(capacity+1);
 		this.#sibs = new ListSet(this.n, capacity);
 
-		this.#rankVec = new Array(this.#MAXRANK+1).fill(0);
+		this.#rankVec = new Int32Array(this.#MAXRANK+1);
 		this.#tmpq = new List(this.n, capacity);
 
 		this.#insertCount = 0;
@@ -113,14 +113,9 @@ export default class FibHeaps extends Top {
 		if (n <= this.n) return;
 		if (n > this.capacity) {
 			let nu = new FibHeaps(this.n,
-								Math.max(n, Math.floor(1.25 * this.capacity)));
+								Math.max(n, ~~(1.5 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
-		this.#key.fill(0, this.n+1, n+1);
-		this.#rank.fill(0, this.n+1, n+1);
-		this.#mark.fill(false, this.n+1, n+1);
-		this.#p.fill(0, this.n+1, n+1);
-		this.#c.fill(0, this.n+1, n+1);
 		this._n = n;
 	}
 
@@ -414,26 +409,28 @@ export default class FibHeaps extends Top {
 
 	/** Initialize this FibHeaps object from a string.
 	 *  @param s is a string representing a heap.
-	 *  @return true on if success, else false
+	 *  @return true on success, else false
 	 */
 	fromString(s) {
 		let sc = new Scanner(s);
-		this.clear();
 		if (!sc.verify('{')) return false;
-		let items = new Set();
-		while (sc.verify('(')) {
-			let h = sc.nextIndex();
-			for (let i = h; i != 0; i = sc.nextIndex()) {
-				if (items.has(i)) { this.clear(); return false; }
-				if (i > this.n) this.expand(i);
-				if (!sc.verify(':')) { this.clear(); return false; }
-				let key = sc.nextNumber();
-				if (isNaN(key)) { this.clear(); return false; }
-				h = this.insert(i, h, key);
+		let n = 0; let heaps = []; let items = new Set();
+		for (let l= sc.nextPairList('(',')'); l; l= sc.nextPairList('(',')')) {
+			for (let [i,k] of l) {
+				n = Math.max(n,i);
+				if (items.has(i)) return null;
+				items.add(i);
 			}
-			if (!sc.verify(')')) { this.clear(); return false; }
+			heaps.push(l);
 		}
-		if (!sc.verify('}')) { this.clear(); return false; }
+		if (!sc.verify('}')) return false;
+		if (n != this.n) this.reset(n);
+		else this.clear();
+		for (let l of heaps) {
+			let h = l[0][0];
+			for (let [i,k] of l)
+				h = this.insert(i, h, k);
+		}
 		return true;
 	}
 

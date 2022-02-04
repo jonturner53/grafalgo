@@ -55,13 +55,12 @@ function getArgs() {
 
 function basicTests(aname, algo, trace=false, stats=false) {
 	try {
-		console.log('\nrunning basic tests on ' + aname);
+		console.log('running basic tests on ' + aname);
 	
 		let g = new Digraph();
 		if (aname == 'dag') {
 			g.fromString('{a[b:3 d:-1 j:4] b[c:-7 f:4 i:1] c[d:1 f:-2 g:3] ' +
-						 'd[e:-3] e[g:1] f[i:2] ' +
-						 'g[h:-2 j:1] h[i:-1] i[j:-4] ' +
+						 'd[e:-3] e[g:1] f[i:2] g[h:-2 j:1] h[i:-1] i[j:-4] ' +
 						 'j[]}');
 		} else {
 			g.fromString('{a[b:3 d:2 j:4] b[c:7 f:4 i:1] c[d:1 f:2 g:3] ' +

@@ -18,7 +18,7 @@ try {
 	assert(g, '{a[] b[] c[] d[] e[] f[] g[] h[]}', 'a3');
 	g.join(1, 4);
 	g.join(1, 3); g.join(2, 4); g.join(3, 5);
-	assert(g, '{a[d c] b[d] c[a e] d[a b] e[c] f[] g[] h[]}', 'a4');
+	assert(g, '{a[d c] b[d] c[a e] d[b a] e[c] f[] g[] h[]}', 'a4');
 	g.join(5, 1); g.join(2, 7); g.join(3, 7);
 	assert(g, '{a[d c e] b[d g] c[a e g] d[a b] e[c a] f[] g[b c] h[]}', 'a5');
 	let elist = [];
@@ -26,24 +26,24 @@ try {
 	elist.push(g.join(7, 8));
 	elist.push(g.join(9, 4)); 
 	assert(g.elist2string(elist), '[{e,i} {g,h} {i,d}]', 'a6');
-	assert(g, '{a[c d e] b[d g] c[a e g] d[a b i] ' +
-			  'e[a c i] f[] g[b c h] h[g] i[e d]}', 'a7');
+	assert(g, '{a[d c e] b[d g] c[a e g] d[a b i] ' +
+			  'e[c a i] f[] g[b c h] h[g] i[e d]}', 'a7');
 	g.delete(g.findEdge(1, 3)); g.delete(g.findEdge(4, 2));
 	assert(g, '{a[d e] b[g] c[e g] d[a i] ' +
-			  'e[a c i] f[] g[b c h] h[g] i[e d]}', 'a8');
+			  'e[c a i] f[] g[b c h] h[g] i[e d]}', 'a8');
 	assert(g.degree(1)==2, 'a8');
 	assert(g.degree(2)==1, 'a80');
 	assert(g.degree(6)==0, 'a81');
 	assert(g.degree(7)==3, 'a82');
 	assert(g.maxDegree()==3, 'a83');
 	g.setWeight(g.findEdge(1, 4), 4);
-	assert(g, '{a[d:4 e:0] b[g:0] c[e:0 g:0] d[a:4 i:0] e[a:0 c:0 i:0] ' +
+	assert(g, '{a[d:4 e:0] b[g:0] c[e:0 g:0] d[a:4 i:0] e[c:0 a:0 i:0] ' +
 			  'f[] g[b:0 c:0 h:0] h[g:0] i[e:0 d:0]}', 'a9');
 
 	let g2 = new Graph(); g2.assign(g);
 	assert(g, g2, 'b1');
-	assert(g2, '{a[d:4 e:0] b[g:0] c[e:0 g:0] d[a:4 i:0] e[a:0 c:0 i:0] ' +
-			   'f[] g[b:0 c:0 h:0] h[g:0] i[d:0 e:0]}', 'b2');
+	assert(g2, '{a[d:4 e:0] b[g:0] c[e:0 g:0] d[a:4 i:0] e[c:0 a:0 i:0] ' +
+			   'f[] g[b:0 c:0 h:0] h[g:0] i[e:0 d:0]}', 'b2');
 	g2.clear();
 	assert(g2, '{a[] b[] c[] d[] e[] f[] g[] h[] i[]}', g2.m, 0, 'b3'); 
 

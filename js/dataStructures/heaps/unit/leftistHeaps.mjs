@@ -17,7 +17,7 @@ try {
 	let lh = new LeftistHeaps(n);
 	let hlist1 = new List(n); let hlist2 = new List(20);
 	for (let i = 1; i <= n; i ++) {
-		lh.setKey(i, i);
+		lh.setkey(i, i);
 		if (i < n/2) hlist1.enq(i);
 		else hlist2.enq(i);
 	}
@@ -35,7 +35,7 @@ try {
 	assert(lh, '{(b:2 a:1 d:4 c:3 h:8 g:7 j:10 i:9 f:6) (e:5)}', 'a6');
 
 	lh.clear();
-	for (let i = 1; i <= n; i ++) lh.setKey(i, i);
+	for (let i = 1; i <= n; i ++) lh.setkey(i, i);
 	let r = lh.lazyMeld(1, 2); r = lh.lazyMeld(r, 3); r = lh.lazyMeld(r, 4);
 	r = lh.lazyMeld(r, 5); r = lh.lazyMeld(r, 6);
 	assert(lh.toString(1), '{(g:7:1) (h:8:1) (i:9:1) (j:10:1) ' + 

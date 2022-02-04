@@ -33,8 +33,8 @@ export default class Sets extends Top {
 
 	#init(capacity) {
 		assert(this.n <= capacity);
-		this.#p = new Array(capacity+1); 
-		this.#rank = new Array(capacity+1);
+		this.#p = new Int32Array(capacity+1); 
+		this.#rank = new Int32Array(capacity+1);
 		this.clear();
 	
 		this.#linkCount = 0;
@@ -59,8 +59,7 @@ export default class Sets extends Top {
 	expand(n) {
 		if (n <= this.n) return;
 		if (n > this.capacity) {
-			let nu = new Sets(this.n, Math.max(n,
-									   Math.floor(1.25 * this.capacity)));
+			let nu = new Sets(this.n, Math.max(n, ~~(1.5 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
 		this.clear(this.n+1, n+1); this._n = n;
@@ -167,15 +166,14 @@ export default class Sets extends Top {
 	equals(ds) {
 		if (this === ds) return true;
 		if (typeof ds == 'string') {
-			let s = ds;
-			ds = new Sets(this.n);
-			ds.fromString(s);
+			let s = ds; ds = new Sets(this.n); ds.fromString(s);
 		} else if (!(ds instanceof Sets))
 			return false;
 		if (this.n != ds.n) return false;
-		let id1 = new Array(this.n+1).fill(this.n+1);
-		let id2 = new Array(this.n+1).fill(this.n+1);
-		for (let i = 1; i < this.n; i++) {
+		// use smallest item in set as its 'id', store in set's root location
+		let id1 = new Int32Array(this.n+1).fill(this.n+1);
+		let id2 = new Int32Array(this.n+1).fill(this.n+1);
+		for (let i = 1; i <= this.n; i++) {
 			let r1 = this.findroot(i); id1[r1] = Math.min(i, id1[r1]);
 			let r2 =   ds.findroot(i); id2[r2] = Math.min(i, id2[r2]);
 		}
@@ -227,22 +225,29 @@ export default class Sets extends Top {
 	 */
 	fromString(s) {
 		let sc = new Scanner(s);
-		this.clear();
+
 		if (!sc.verify('{')) return false;
-		let l = new Array(10); let items = new Set();
-		while (sc.nextIndexList(l, '{', '}') != null) {
-			let n = 0;
-			for (let i of l) n = Math.max(i, n);
-			if (n > this.n) this.expand(n);
-            if (items.has(l[0])) { this.clear(); return false; }
-            items.add(l[0]);
-			for (let i = 1; i < l.length; i++) {
-            	if (items.has(l[i])) { this.clear(); return false; }
-             	items.add(l[i]); this.link(l[0], l[i]);
+		let lists = []; let n = 0; let items = new Set();
+		let l = sc.nextIndexList('{', '}');
+		while (l != null) {
+			for (let i of l) {
+				n = Math.max(i, n);
+				if (items.has(i)) return false;
+				items.add(i);
+			}
+			lists.push(l);
+			l = sc.nextIndexList('{', '}');
+		}
+		if (!sc.verify('}')) return false;
+
+		if (n > this.n) this.reset(n);
+		else this.clear();
+		for (l of lists) {
+			for (let i of l) {
+				if (i != l[0]) this.link(l[0], i);
 			}
 		}
-		if (sc.verify('}')) return true;
-		this.clear(); return false;
+		return true;
 	}
 
 	getStats() {

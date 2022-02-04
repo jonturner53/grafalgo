@@ -26,8 +26,8 @@ export default class ReverseLists extends Top {
 
 	#init(capacity) {
 		assert(this.n <= capacity);
-		this.#nabor1 = new Array(capacity+1);
-		this.#nabor2 = new Array(capacity+1);
+		this.#nabor1 = new Int32Array(capacity+1);
+		this.#nabor2 = new Int32Array(capacity+1);
 		// initialize to singleton lists
 		for (let i = 0; i <= this.n; i++) {
 			this.#nabor1[i] = 0; this.#nabor2[i] = -i;
@@ -47,7 +47,7 @@ export default class ReverseLists extends Top {
 		if (n <= this.n) return;
 		if (n > this._capacity) {
 			let nu = new ReverseLists(this.n,
-				Math.floor(Math.max(n, 1.25 * this._capacity)));
+				Math.max(n, ~~(1.5*this._capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
 		// make singletons from items in expanded range
@@ -236,24 +236,29 @@ export default class ReverseLists extends Top {
 	 */
 	fromString(s) {
 		let sc = new Scanner(s);
-		this.clear();
 		if (!sc.verify('[')) return false;
-		let l = new Array(10); let items = new Set();
-		while (sc.nextIndexList(l, '(', ')') != null) {
-			let n = 0;
-			for (let i of l) n = Math.max(i, n);
-			if (n > this.n) this.expand(n);
-			if (items.has(l[0])) { this.clear(); return false; }
-			items.add(l[0]);
-			for (let i = 1; i < l.length; i++) {
-				if (items.has(l[i])) { this.clear(); return false; }
-				items.add(l[i]);
-				this.join(l[0], l[i]);
-			}
-			if (!sc.verify(',')) break;
 
+		let lists = []; let n = 0; let items = new Set();
+		let l = sc.nextIndexList('(', ')');
+		while (l != null) {
+			for (let i of l) {
+				n = Math.max(i, n);
+				if (items.has(i)) return false;
+				items.add(i);
+			}
+			lists.push(l);
+			if (!sc.verify(',')) break;
+			l = sc.nextIndexList('(', ')');
 		}
-		if (sc.verify(']')) return true;
-		this.clear(); return false;
+		if (!sc.verify(']')) return false;
+
+		if (n > this.n) this.reset(n);
+		else this.clear();
+		for (l of lists) {
+			for (let i of l) {
+				if (i != l[0]) this.join(l[0], i);
+			}
+		}
+		return true;
 	}
 }

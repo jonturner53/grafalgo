@@ -41,9 +41,9 @@ export default class ArrayHeap extends Top {
 	 *  @param capacity is the maximum range
 	 */
 	#init(d, capacity) {
-		this.#item = new Array(capacity+1);
-		this.#pos = new Array(capacity+1).fill(0);
-		this.#key = new Array(capacity+1);
+		this.#item = new Int32Array(capacity+1);
+		this.#pos = new Int32Array(capacity+1);
+		this.#key = new Float32Array(capacity+1);
 		this.#item[0] = this.#m = 0; this.#d = d;
 		this.#offset = 0;
 		this.clearStats();
@@ -94,10 +94,9 @@ export default class ArrayHeap extends Top {
 		if (n <= this.n) return;
 		if (n > this.capacity) {
 			let nu = new ArrayHeap(this.n, this.#d,
-							    Math.max(n, Math.floor(1.25 * this.capacity)));
+							    Math.max(n, ~~(1.25 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
-		this.#pos.fill(0, this.n+1, n+1);
 		this._n = n;
 	}
 
@@ -309,20 +308,17 @@ export default class ArrayHeap extends Top {
 	 */
 	fromString(s) {
 		let sc = new Scanner(s);
-		this.clear();
-		if (!sc.verify('{')) return false;
-		let i = sc.nextIndex();
-		while (i != 0) {
-			if (this.contains(i) || !sc.verify(':')) {
-				this.clear(); return false;
-			}
-			let key = sc.nextNumber();
-			if (isNaN(key)) { this.clear(); return false; }
-			this.insert(i, key);
-			i = sc.nextIndex();
+		let l = sc.nextPairList('{','}');
+		if (l == null) return null;
+		let n = 0; let items = new Set();
+		for (let [i,k] of l) {
+			n = Math.max(n,i);
+			if (items.has(i)) return null;
+			items.add(i);
 		}
-		if (!sc.verify('}')) { this.clear(); return false; }
-		this.#offset = 0;
+		if (n <= this.n) this.reset(n);
+		else this.clear();
+		for (let [i,k] of l) this.insert(i, k);
 		return true;
 	}
 

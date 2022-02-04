@@ -283,7 +283,7 @@ export default class LeftistHeaps extends Top {
 		this.#meldSteps++;
 		// relies on null node having rank==0
 		if (h1 == 0) return h2;
-		if (h2 == 0) return h1;
+		if (h2 == 0 || h1 == h2) return h1;
 		if (this.key(h1) > this.key(h2)) {
 			let h = h1; h1 = h2; h2 = h;
 		}
@@ -494,24 +494,25 @@ export default class LeftistHeaps extends Top {
 	 */
 	fromString(s) {
 		let sc = new Scanner(s);
-		this.clear();
 		if (!sc.verify('{')) return false;
-		let items = new Set();
-		while (sc.verify('(')) {
-			let h = sc.nextIndex();
-			for (let i = h; i != 0; i = sc.nextIndex()) {
-				if (items.has(i) || !sc.verify(':')) {
-					this.clear(); return false;
-				}
-				if (i > this.n) this.expand(i);
-				let key = sc.nextNumber();
-				if (isNaN(key)) { this.clear(); return false; }
-				if (i != h) h = this.insert(i, h, key);
-				else this.setkey(h, key);
+		let n = 0; let heaps = []; let items = new Set();
+		for (let l= sc.nextPairList('(',')'); l; l= sc.nextPairList('(',')')) {
+			for (let [i,k] of l) {
+				n = Math.max(n,i);
+				if (items.has(i)) return null;
+				items.add(i);
 			}
-			if (!sc.verify(')')) { this.clear(); return false; }
+			heaps.push(l);
 		}
-		if (!sc.verify('}')) { this.clear(); return false; }
+		if (!sc.verify('}')) return false;
+		if (n != this.n) this.reset(n);
+		else this.clear();
+		for (let l of heaps) {
+			let h = l[0][0];
+			for (let [i,k] of l) {
+				h = this.insert(i, h, k);
+			}
+		}
 		return true;
 	}
 

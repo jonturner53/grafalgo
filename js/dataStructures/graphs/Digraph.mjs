@@ -29,7 +29,7 @@ export default class Digraph extends Graph {
 	}
 	
 	#init_d() {
-		this._firstEpOut = new Array(this.vertexCapacity+1).fill(0);
+		this._firstEpOut = new Int32Array(this.vertexCapacity+1);
 	} 
 
     addLengths() { super.addWeights(); }
@@ -42,14 +42,12 @@ export default class Digraph extends Graph {
 		if (n <= this.n && m <= this.m) return;
 		if (n > this.vertexCapacity || m > this.edgeCapacity) {
 			let vcap = (n <= this.vertexCapacity ? this.vertexCapacity :
-							Math.max(n, Math.trunc(1.25*this.vertexCapacity)));
+							Math.max(n, ~~(1.5*this.vertexCapacity)));
 			let ecap = (m <= this.edgeCapacity ? this.edgeCapacity :
-							Math.max(m, Math.trunc(1.25*this.edgeCapacity)));
+							Math.max(m, ~~(1.5*this.edgeCapacity)));
 			let nu = new Digraph(n, ecap, vcap);
-			nu.assign(this);
-			this.xfer(nu);
+			nu.assign(this); this.xfer(nu);
 		}
-		this._firstEpOut.fill(0, this.n+1, n+1);
 		super.expand(n, m);
 	}
 
@@ -149,8 +147,10 @@ export default class Digraph extends Graph {
 	 */
 	findEdge(u, v, edges) {
 		assert(this.validVertex(u) && this.validVertex(v));
-		for (let e = this.firstOut(u); e != 0; e = this.nextOut(u, e)) {
-			if (this.head(e) == v) return e;
+		if (!edges) {
+			for (let e = this.firstAt(u); e != 0; e = this.nextAt(u, e))
+				if (v == this.mate(u, e)) return e;
+			return 0;
 		}
 		// do binary search in edges
 		let lo = 0; let hi = edges.length-1;
@@ -330,30 +330,19 @@ export default class Digraph extends Graph {
 		return s;
 	}
 
-	/** Get the neighbor of a given vertex from a scanner and add connecting
-	 *  edge to this Graph.
-	 *  @param u is a vertex in the graph.
-	 *  @param sc is a scanner that has been initialized with a string
-	 *  representing a Graph and the next index to be scanned represnets
-	 *  a neighbor of u, possibly followed by an explicit edge number.
-	 *  @return the edge number for the new edge, if the operation was
-	 *  successful, else 0.
+	/** Return 1 if edge with specified endpoints should be counted
+	 *  (class-specific).
 	 */
-	nextNabor(u, sc) {
-		let v = sc.nextIndex();
-		if (v == 0 || v == u) return 0;
-		if (v > this.n) this.expand(v, this.m);
-		if (this._nabors.contains(v)) {
-			let ee = this._nabors.value(v);
-			if (u == this.tail(ee)) return 0;  // parallel edge
-		}
+	countit(u, v) { return 1; }
+
+	/** Add edge to graph (class-specific).
+	 *  @param u is one endpoint of a new edge
+	 *  @param v is second endpoint
+	 *  @param w (if not null) is a weight to be assigned to the new edge
+	 */
+	addEdge(u, [v, w]) {
 		let e = this.join(u, v);
-		if (sc.verify(':')) { // read length
-			let l = sc.nextNumber();
-			if (isNaN(l)) return 0;
-			this.setLength(e, l);
-		}
-		return e;
+		if (w != null) this.setWeight(e, w);
 	}
 
 	/** Randomize the order of the vertices, edges and adjacency lists.

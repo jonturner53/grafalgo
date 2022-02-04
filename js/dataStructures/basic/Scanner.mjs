@@ -22,10 +22,14 @@ export default class Scanner extends Top {
 
 	/** Reset the Scanner object.
 	 *  With no arguments, simply sets the cursor to zero.
-	 *  @param i specifies an initial position for the cursor
-	 *  @paran s specifies a new string to be scanned
+	 *  @param i specifies an initial position for the cursor;
+	 *  if negative, add value to cursor
+	 *  @param s specifies a new string to be scanned
 	 */
-	reset(i=0, s=this.#s) { this.#i = i; this.#s = s; }
+	reset(i=0, s=this.#s) {
+		this.#i = (i >= 0 ? i : Math.max(0, this.#i+i));
+		this.#s = s;
+	}
 
 	/** Get the position of the cursor in the string.  */
 	get cursor() { return this.#i; }
@@ -197,18 +201,38 @@ export default class Scanner extends Top {
 	}
 
 	/** Get the next index list from the scanned string.
-	 *  @param l is an array used to return an index list
 	 *  @param ld is the left delimiter for the index list (for example '[')
 	 *  @param rd is the right delimiter for the index list (for example '[')
-	 *  @return l on success, null on failure
+	 *  @return list on success, null on failure
 	 */
-	nextIndexList(l, ld, rd) {
-		l.length = 0;
+	nextIndexList(ld, rd) {
+		let l = [];
 		let i0 = this.#i;
 		if (!this.verify(ld)) return null;
 		let x = this.nextIndex();
 		while (x != 0) {
 			l.push(x); x = this.nextIndex();
+		}
+		if (!this.verify(rd)) {
+			this.#i = i0; l.length = 0; return null;
+		}
+		return l;
+	}
+
+	/** Get the next list of pairs from the scanned string.
+	 *  Pairs are of the form 'i:k' where i is an index and k is a Number.
+	 *  @param ld is the left delimiter for the index list (for example '[')
+	 *  @param rd is the right delimiter for the index list (for example '[')
+	 *  @return array of pairs on success, null on failure
+	 */
+	nextPairList(ld, rd) {
+		let l = []; let i0 = this.#i;
+		if (!this.verify(ld)) return null;
+		for (let i = this.nextIndex(); i; i = this.nextIndex()) {
+			if (!this.verify(':')) { this.#i = i0; return null; }
+			let k = this.nextNumber();
+			if (isNaN(k)) { this.#i = i0; return null; }
+			l.push([i,k]);
 		}
 		if (!this.verify(rd)) {
 			this.#i = i0; l.length = 0; return null;

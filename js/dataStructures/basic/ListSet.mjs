@@ -27,8 +27,8 @@ export default class ListSet extends Top {
 
 	#init(capacity) {
 		assert(this.n <= capacity);
-		this.#next = new Array(capacity+1);
-		this.#prev = new Array(capacity+1);
+		this.#next = new Int32Array(capacity+1);
+		this.#prev = new Int32Array(capacity+1);
 		// initialize to singleton lists
 		for (let i = 0; i <= this.n; i++) {
 			this.#next[i] = 0; this.#prev[i] = i;
@@ -47,8 +47,7 @@ export default class ListSet extends Top {
 	expand(n) {
 		if (n <= this.n) return;
 		if (n > this.capacity) {
-			let nu = new ListSet(this.n,
-				Math.floor(Math.max(n, 1.25 * this.capacity)));
+			let nu = new ListSet(this.n, Math.max(n, ~~(1.5 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
 		// make singletons from items in expanded range
@@ -224,14 +223,14 @@ export default class ListSet extends Top {
 	 *  @param details causes singletons to be shown, when true
 	 *  @param label is a function used to label list items
 	 *  @param pretty causes lists to be separated with newlines
-	 *  @return a string such as "[(a c), (d b g)]".
+	 *  @return a string such as "[(a c) (d b g)]".
 	 */
 	toString(details=0, pretty=0, label=0) {
 		let s = '';
 		for (let l = 1; l <= this.n; l++) {
 			if (!this.isfirst(l) || (this.singleton(l) && !details))
 				continue;
-			if (s.length > 0) s += ',' + (pretty ? '\n ' : ' ');
+			if (s.length > 0) s += (pretty ? '\n ' : ' ');
 			s += '(';
 			for (let i = l; i != 0; i = this.next(i)) {
 				if (i != l) s += ' ';
@@ -248,24 +247,28 @@ export default class ListSet extends Top {
 	 */
 	fromString(s) {
 		let sc = new Scanner(s);
-		this.clear();
 		if (!sc.verify('[')) return false;
-		let l = new Array(10); let items = new Set();
-		while (sc.nextIndexList(l, '(', ')') != null) {
-			let n = 0;
-			for (let i of l) n = Math.max(i, n);
-			if (n > this.n) this.expand(n);
-			if (items.has(l[0])) { this.clear(); return false; }
-			items.add(l[0]);
-			for (let i = 1; i < l.length; i++) {
-				if (items.has(l[i])) { this.clear(); return false; }
-				items.add(l[i]);
-				this.join(l[0], l[i]);
-			}
-			if (!sc.verify(',')) break;
 
+		let lists = []; let n = 0; let items = new Set();
+		let l = sc.nextIndexList('(', ')');
+		while (l != null) {
+			for (let i of l) {
+				n = Math.max(i, n);
+				if (items.has(i)) return false;
+				items.add(i);
+			}
+			lists.push(l);
+			l = sc.nextIndexList('(', ')');
 		}
-		if (sc.verify(']')) return true;
-		this.clear(); return false;
+		if (!sc.verify(']')) return false;
+
+		if (n > this.n) this.reset(n);
+		else this.clear();
+		for (l of lists) {
+			for (let i of l) {
+				if (i != l[0]) this.join(l[0], i);
+			}
+		}
+		return true;
 	}
 }

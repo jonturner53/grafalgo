@@ -22,11 +22,10 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
  */
 export default function allpairsF(g, trace=false) {
 	let dist = new Array(g.n+1); let pedge = new Array(g.n+1);
-	const inf = Number.POSITIVE_INFINITY;
     
     // initialize dist and p
     for (let u = 1; u <= g.n; u++) {
-		dist[u] = new Array(g.n+1).fill(inf); dist[u][u] = 0;
+		dist[u] = new Array(g.n+1).fill(Infinity); dist[u][u] = 0;
 		pedge[u] = new Array(g.n+1).fill(0);
     }   
 
@@ -37,13 +36,13 @@ export default function allpairsF(g, trace=false) {
 
 	let ts = '';
 	if (trace)
-		ts += g.toString(0,1) + 'current midpoint plus updates\n'; 
+		ts += g.toString(0,1) + 'current midpoint plus pedge updates\n'; 
     
     // compute distances
 	let updates = 0;
     for (let s = 1; s <= g.n; s++) {
         if (dist[s][s] < 0)
-			return ['Error: negative cycle in graph', pedge, dist];
+			return ['Error: negative cycle', pedge, dist];
 		if (trace)
 			ts += g.index2string(s) + ': ';
         for (let v = 1; v <= g.n; v++) {

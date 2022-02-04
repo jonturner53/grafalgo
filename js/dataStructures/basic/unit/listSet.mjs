@@ -20,14 +20,14 @@ try {
 	assert(dl, "[]", "a3");
 
 	dl.join(1, 3); dl.join(5, 6); dl.join(2, 7);
-	assert(dl, "[(a c), (b g), (e f)]", "b1");
+	assert(dl, "[(a c) (b g) (e f)]", "b1");
 	let v = dl.join(1, 5);
-	assert(dl, "[(a c e f), (b g)]", v, 1, "b2");
+	assert(dl, "[(a c e f) (b g)]", v, 1, "b2");
 	assert(dl.last(1), 6, "b4");
 	assert(dl.next(1), 3, "b5");
 	assert(dl.prev(5), 3, "b6");
 	dl.delete(5, 1); 
-	assert(dl, "[(a c f), (b g)]", "b7");
+	assert(dl, "[(a c f) (b g)]", "b7");
 	dl.delete(1, 1); dl.delete(7, 2);
 	assert(dl, "[(c f)]", "b8");
 	assert(!dl.singleton(6), "b9");
@@ -35,13 +35,13 @@ try {
 	dl.clear(); 
 	assert(dl, "[]", "b11");
 
-	dl.fromString("[(d i h k), (e a  c), (g b l ), (j f)]");
-	assert(dl, "[(d i h k), (e a c), (g b l), (j f)]", "c1");
+	dl.fromString("[(d i h k) (e a  c) (g b l ) (j f)]");
+	assert(dl, "[(d i h k) (e a c) (g b l) (j f)]", "c1");
 	assert(dl.n, 12, "c2");
 	dl.rotate(4, 8); dl.rotate(7, 12); 
-	assert(dl, "[(e a c), (h k d i), (j f), (l g b)]", "c3");
+	assert(dl, "[(e a c) (h k d i) (j f) (l g b)]", "c3");
 	dl.sort();
-	assert(dl, "[(a c e), (d h i k), (f j), (b g l)]", "c4");
+	assert(dl, "[(a c e) (d h i k) (f j) (b g l)]", "c4");
 
 	console.log('passed tests');
 } catch(e) {

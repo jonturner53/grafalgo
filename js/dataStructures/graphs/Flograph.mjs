@@ -42,7 +42,7 @@ export default class Flograph extends Digraph {
 	addCosts() { super.addWeights(); }
 	
 	addFloors() {
-		this.#floor = new Array(this.edgeCapacity+1);
+		this.#floor = new Int32Array(this.edgeCapacity+1);
 	}
 
 	reset(n, ecap, vcap) {
@@ -53,9 +53,9 @@ export default class Flograph extends Digraph {
 		if (n <= this.n && m <= this.m) return;
 		if (n > this.vertexCapacity || m > this.edgeCapacity) {
 			let vcap = (n <= this.vertexCapacity ? this.vertexCapacity :
-							Math.max(n, Math.trunc(1.25*this.vertexCapacity)));
+							Math.max(n, ~~(1.5*this.vertexCapacity)));
 			let ecap = (m <= this.edgeCapacity ? this.edgeCapacity :
-							Math.max(m, Math.trunc(1.25*this.edgeCapacity)));
+							Math.max(m, ~~(1.5*this.edgeCapacity)));
 			let nu = new Flograph(n, ecap, vcap);
 			nu.assign(this); this.xfer(nu);
 		}
@@ -264,7 +264,7 @@ export default class Flograph extends Digraph {
 		if (e == 0) return '-';
 		return '(' + this.index2string(this.tail(e), label) + ',' 
 				   + this.index2string(this.head(e), label) + ','
-				   + (this.cost(e>0) ? this.cost(e) + ',' : '') 
+				   + (this.cost(e)>0 ? this.cost(e) + ',' : '') 
 				   + (this.floor(e)>0 ? this.floor(e) + '-' : '')
 				   + this.cap(e) + (this.f(e)>0 ? '/' + this.f(e) : '') + ')';
 	}
@@ -295,53 +295,75 @@ export default class Flograph extends Digraph {
 	}
 
 	/** Get the next vertex (from the start of an alist) from a scanner.
+	 *  May set source or sink, as a side effect.
 	 *  @param sc is a scanner for a string representation of a flow graph
 	 *  @return the vertex that is assumed to be the next thing in the 
-	 *  scanner string, or 0 if not successfule
+	 *  scanner string, or 0 if not successful
 	 */
 	nextVertex(sc) {
 		let gotSink = sc.verify('->');
 		let u = sc.nextIndex();
 		if (u == 0) return 0;
-		if (gotSink) this.setSink(u);
-		else if (sc.verify('->')) this.setSource(u);
+		if (gotSink) this._scannedSink = u;
+		else if (sc.verify('->')) this._scannedSource = u;
 		return u;
 	}
 
-	/** Get the neighbor of a given vertex from a scanner and add connecting
-	 *  edge to this Graph.
-	 *  @param u is a vertex in the graph.
-	 *  @param sc is a scanner that has been initialized with a string
-	 *  representing a Graph and the next index to be scanned represnets
-	 *  a neighbor of u, possibly followed by an explicit edge number.
-	 *  @return the edge number for the new edge, if the operation was
-	 *  successful, else 0.
+	/** Get the next neighbor of a vertex from a scanner (class-specific).
+	 *  @param sc is a Scanner
+	 *  @return a tuple [v, cost, floor, cap, flow] where v is a vertex,
+	 *  cost is an optional cost-per-unit flow parameter, floor is an
+	 *  optional minimum flow requirement, cap is the edge capacity and
+	 *  flow is an optional flow value; nulls are returned for cost and
+	 *  floor if they are not present
 	 */
-	nextNabor(u, sc) {
-		let v = sc.nextIndex();
-		if (v == 0 || v == u) return 0;
-		if (v > this.n) this.expand(v, this.m);
-		if (this._nabors.contains(v)) {
-			let ee = this._nabors.value(v);
-			if (u == this.tail(ee)) return 0;  // parallel edge
-		}
-		let e = this.join(u, v);
-		if (!sc.verify(':')) return 0;
-		let x = sc.nextNumber(); if (isNaN(x)) return 0;
+	nextNabor(sc) {
+		let v = this.nextVertex(sc);
+		if (v == 0 || !sc.verify(':')) return null;
+		let tuple = [v, null, null, 0, 0];
+		let x = sc.nextNumber(); if (isNaN(x)) return null;
 		if (sc.verify(',')) {
-			this.setCost(e,x);
-			x = sc.nextNumber(); if (isNaN(x)) return 0;
+			tuple[1] = x;
+			x = sc.nextNumber(); if (isNaN(x)) return null;
 		}
 		if (sc.verify('-')) {
-			this.setFloor(e,x);
-			x = sc.nextNumber(); if (isNaN(x)) return 0;
+			tuple[2] = x;
+			x = sc.nextNumber(); if (isNaN(x)) return null;
 		}
-		this.setCapacity(e,x);
+		tuple[3] = x;
 		if (sc.verify('/')) {
-			x = sc.nextNumber(); if (isNaN(x)) return 0;
-			this.setFlow(e,x);
+			x = sc.nextNumber(); if (isNaN(x)) return null;
+			tuple[4] = x;
 		}
-		return e;
+		return tuple;
+	}
+
+	/** Add edge to graph (class-specific).
+	 *  @param u is one endpoint of a new edge
+	 *  @param v is second endpoint
+	 *  @param cost is an optional edge cost or null
+	 *  @param floor is an optional edge floor or null
+	 *  @param cap is edge capacity
+	 *  @param flow is edge flow
+	 */
+	addEdge(u, [v, cost, floor, cap, flow]) {
+		let e = this.join(u, v);
+		if (cost) this.setCost(e, cost);
+		if (floor) this.setFloor(e, floor);
+		this.setCapacity(e, cap);
+		this.setFlow(e, flow);
+	}
+
+	/** Perform a final check on a scanned graph (class specific).
+	 *  @return true if check passes, else false.
+	 */
+	finalCheck() {
+		if (!this._scannedSource || !this._scannedSink) return true;
+		this.setSource(this._scannedSource);
+		this.setSink(this._scannedSink);
+		delete this._scannedSource;
+		delete this._scannedSink;
+		return false;
 	}
 
 	/** Randomize the order of the vertices and edges. */

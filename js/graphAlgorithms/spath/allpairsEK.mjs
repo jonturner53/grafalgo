@@ -36,19 +36,18 @@ export default function allpairsEK(g, trace) {
 	if (trace) ts += g.toString(0,1);
     // transform edge lengths
     for (let e = g.first(); e != 0; e = g.next(e)) {
-        let u = g.tail(e); let v = g.head(e);
-        g.setLength(e, g.length(e) + (d[u]-d[v]));
+        g.setLength(e, g.length(e) + (d[g.tail(e)] - d[g.head(e)]));
     }
 	if (trace)
-		ts += g.toString(0,1) + 'current source, tree edges, distances\n';
+		ts += 'graph with non-negative edge lengths\n' + g.toString(0,1) +
+			  'current source, tree edges, distances\n';
 
     // compute shortest paths & put inverse-transformed distances in dist.
 	stats.stepsD = 0; let statsD;
     for (let u = 1; u <= g.n; u++) {
         [,pedge[u],dist[u],,statsD] = sptD(g, u);
 		stats.stepsD += statsD.siftup + statsD.siftdown;
-        for (let v = 1; v <= g.n; v++)
-            dist[u][v] -= (d[u]-d[v]);
+        for (let v = 1; v <= g.n; v++) dist[u][v] -= (d[u]-d[v]);
 		if (stats) {
 			ts += g.index2string(u) + '\n' +
 				  g.elist2string(pedge[u], null, true) + '\n' +
@@ -58,8 +57,7 @@ export default function allpairsEK(g, trace) {
 
     // Restore original edge lengths.
     for (let e = g.first(); e != 0; e = g.next(e)) {
-        let u = g.tail(e); let v = g.head(e);
-        g.setLength(e, g.length(e) - (d[u]-d[v]));
+        g.setLength(e, g.length(e) - (d[g.tail(e)] - d[g.head(e)]));
     }
 
 	return ['', pedge, dist, ts, stats];

@@ -41,11 +41,11 @@ export default class PathSet extends Top {
 
 	#init(capacity) {
 		assert(capacity >= this.n);
-		this.#left = new Array(capacity+1).fill(0, 0, this.n+1);
-		this.#right = new Array(capacity+1).fill(0, 0, this.n+1);
-		this.#p = new Array(capacity+1).fill(0, 0, this.n+1);
-		this.#dcost = new Array(capacity+1).fill(0, 0, this.n+1);
-		this.#dmin = new Array(capacity+1).fill(0, 0, this.n+1);
+		this.#left = new Int32Array(capacity+1);
+		this.#right = new Int32Array(capacity+1);
+		this.#p = new Int32Array(capacity+1);
+		this.#dcost = new Int32Array(capacity+1);
+		this.#dmin = new Int32Array(capacity+1);
 		this.clearStats();
 	}
 
@@ -60,16 +60,9 @@ export default class PathSet extends Top {
 	expand(n) {
 		if (n <= this.n) return;
 		if (n > this.capacity) {
-			let nu = new PathSet(this.n, 
-						 	  Math.max(n, Math.floor(1.25 * this.capacity)));
-			nu.assign(this);
-			this.xfer(nu);
+			let nu = new PathSet(this.n, Math.max(n, ~~(1.5 * this.capacity)));
+			nu.assign(this); this.xfer(nu);
 		}
-		this.#left.fill(0, this.n+1, n+1);
-		this.#right.fill(0, this.n+1, n+1);
-		this.#p.fill(0, this.n+1, n+1);
-		this.#dcost.fill(0, this.n+1, n+1);
-		this.#dmin.fill(0, this.n+1, n+1);
 		this._n = n;
 	}
 
@@ -368,7 +361,7 @@ export default class PathSet extends Top {
 	 */
 	getPaths() {
 		let paths = new ListSet(this.n);
-		let cost = new Array(this.n+1);
+		let cost = new Array(this.n+1).fill(0);
 		for (let u = 1; u <= this.n; u++) {
 			if (this.p(u) <= 0)
 				this.getPathsHelper(u, 0, paths, cost);
@@ -450,12 +443,31 @@ export default class PathSet extends Top {
 	 */
 	fromString(s) {
 		let sc = new Scanner(s);
-		this.clear();
 		if (!sc.verify('{')) return false;
-		let items = new Set();
-		let p = this.nextPath(sc, items);
-		while (p > 0) p = this.nextPath(sc, items);
-		if (p == -1 || !sc.verify('}')) { this.clear(); return false; }
+		let n = 0; let items = new Set(); let paths = [];
+		for (let p= sc.nextPairList('[',']'); p; p= sc.nextPairList('[',']')) {
+			for (let [u,c] of p) {
+				if (items.has(u)) return false;
+				items.add(u); n = Math.max(n, u);
+				let succ = 0;
+				if (sc.verify('->')) {
+					succ = sc.nextIndex();
+					if (succ == 0) return false;
+				}
+				paths.push([p, succ]);
+			}
+		}
+		if (!sc.verify('}')) return false;
+		if (n != this.n) this.reset(n);
+		else this.clear();
+		for (let [p, succ] of paths) {
+			let q = p[0][0]; // first vertex in p
+			for (let [u, c] of p) {
+				this.#dmin[u] = c; this.#dcost[u] = 0;
+				if (u != q) q = this.join(q, u, 0);
+			}
+			this.setSucc(q, succ);
+		}
 		return true;
 	}
 

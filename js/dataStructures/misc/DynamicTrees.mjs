@@ -38,7 +38,6 @@ export default class DynamicTrees extends Top {
 	#init(capacity) {
 		assert(capacity >= this.n);
 		this.#paths = new PathSet(this.n, capacity);
-		//this.#succ = new Array(capacity+1).fill(0, 0, this.n+1);
 		this.clearStats();
 	}
 
@@ -54,12 +53,10 @@ export default class DynamicTrees extends Top {
 		if (n <= this.n) return;
 		if (n > this.capacity) {
 			let nu = new DynamicTrees(this.n, 
-						 	  Math.max(n, Math.floor(1.25 * this.capacity)));
+						 	  Math.max(n, ~~(1.5 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
-		//this.#succ.fill(0, this.n+1, n+1);
 		this.#paths.expand(n);
-		this._n = n;
 	}
 
 	/** Assign new value to DynamicTrees from another. 
@@ -329,41 +326,48 @@ export default class DynamicTrees extends Top {
 	 */
 	fromString(s) {
 		let sc = new Scanner(s);
-		this.clear();
 		if (!sc.verify('{')) return false;
-		let items = new Set();
-		let root = this.nextSubtree(sc, items);
-		while (root > 0) {
-			this.setSucc(root, 0);
-			root = this.nextSubtree(sc, items);
+		let n = 0; let props = []; let vertices = new Set();
+		let k = this.nextSubtree(sc, 0, props, vertices);
+		while (k > 0) {
+			n = Math.max(n, k);
+			k = this.nextSubtree(sc, 0, props, vertices);
 		}
-		if (root == -1 || !sc.verify('}')) {
-			this.clear(); return false;
+		if (k == -1 || !sc.verify('}')) return false;
+		if (n != this.n) this.reset(n);
+		else this.clear();
+		for (let [u,c,p] of props) {
+			this.addcost(u,c); this.setSucc(u,p);
 		}
 		return true;
 	}
 
 	/** Get the next subtree from a scanner.
 	 *  @param sc is a Scanner
-	 *  @param items is a Set representing vertices seen so far
-	 *  @return the root of the subtree on success, 0 if no subtree
-	 *  and -1 if a parse error occurred.
+	 *  @param parent is the parent of the subtree root or 0 for tree roots
+	 *  @param props is an array of triples [u,c,p] where c is cost of u
+	 *  and p is parent of u.
+	 *  @param vertices is a Set representing vertices seen so far
+	 *  @return n on success, where n is the largest vertex number in the
+	 *  subtree; return 0 if no subtree to be scanned and -1 on error.
 	 */
-	nextSubtree(sc, items) {
-		let u = sc.nextIndex();
-		if (u == 0) return 0;
-		if (items.has(u) || !sc.verify(':')) return -1;
+	nextSubtree(sc, parent, props, vertices) {
+		let u = sc.nextIndex(); if (u == 0) return 0;
+		if (vertices.has(u) || !sc.verify(':')) return -1;
+		vertices.add(u);
 		let c = sc.nextNumber();
 		if (isNaN(c)) return -1;
-		if (u > this.n) this.expand(u);
-		this.#paths.addpathcost(u, c);
-		if (!sc.verify('(')) return u;
-		do {
-			let v = this.nextSubtree(sc, items);
-			if (v <= 0) return -1;
-			this.setSucc(v, u);
-		} while (!sc.verify(')'));
-		return u;
+		props.push([u,c,parent]);
+		let n = u;	// largest vertex number seen in subtree
+		if (!sc.verify('(')) return n;
+		let k = this.nextSubtree(sc, u, props, vertices);
+		if (k <= 0) return -1;
+		while (k > 0) {
+			n = Math.max(n, k);
+			k = this.nextSubtree(sc, u, props, vertices);
+		}
+		if (k < 0 || !sc.verify(')')) return -1;
+		return n;
 	}
 
 	clearStats() { this.#exposeCount = this.#spliceCount = 0; }

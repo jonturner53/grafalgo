@@ -43,25 +43,24 @@ export default class List extends Top {
 
 	#init(capacity) {
 		assert(capacity >= this.n);
-		this.#next = new Array(capacity+1).fill(-1, 1, this.n+1);
+		this.#next = new Int32Array(capacity+1).fill(-1);
 		this.#next[0] = this.#first = this.#last = this.#length = 0;
-		if (this.#prev) {
-			this.#prev = new Array(capacity+1).fill(0, 0, this.n+1);
-		}
+		if (this.#prev) this.#prev = new Int32Array(capacity+1);
 		if (this.#value) {
-			this.#value = new Array(capacity+1).fill(null, 0, this.n+1);
+			this.#value = new Array(capacity+1).fill(null);
+				// allow values to have any type
 		}
 	}
 
 	addPrev() {
-		this.#prev = new Array(this.#next.length).fill(0, 1, this.n+1);
+		this.#prev = new Int32Array(this.capacity+1);
 		this.#prev[this.first()] = 0;
 		for (let i = this.first(); i != 0; i = this.next(i))
 			if (this.next(i) != 0) this.#prev[this.next(i)] = i;
 	}
 
 	addValues() {
-		this.#value = new Array(this.#next.length).fill(null, 0, this.n+1);
+		this.#value = new Array(this.#next.length).fill(null);
 	}
 
 	/** Reset the range and max range of the list; discard value. 
@@ -75,13 +74,9 @@ export default class List extends Top {
 	expand(n) {
 		if (n <= this.n) return;
 		if (n > this.capacity) {
-			let nu = new List(this.n, 
-						 	  Math.max(n, Math.floor(1.25 * this.capacity)));
+			let nu = new List(this.n, Math.max(n, ~~(1.5 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
-		this.#next.fill(-1, this.n+1, n+1);
-		if (this.#prev)  this.#prev.fill(0, this.n+1, n+1);
-		if (this.#value) this.#value.fill(null, this.n+1, n+1);
 		this._n = n;
 	}
 
@@ -347,17 +342,17 @@ export default class List extends Top {
 	 */
 	fromString(s) {
 		let sc = new Scanner(s);
-		this.clear();
-		let l = new Array(10);
-		if (sc.nextIndexList(l, '[', ']') == null) return false;
-		let n = 0;
-		for (let i of l) n = Math.max(i, n);
-		if (n > this.n) this.expand(n);
-		let items = new Set();
+		let l = sc.nextIndexList('[', ']');
+		if (l == null) return false;
+		let n = 0; let items = new Set();
 		for (let i of l) {
-            if (items.has(i)) { this.clear(); return false; }
-            items.add(i); this.enq(i);
+			n = Math.max(i, n);
+            if (items.has(i)) return false;
+            items.add(i);
 		}
+		if (n > this.n) this.reset(n);
+		else this.clear();
+		for (let i of l) this.enq(i);
 		return true;
 	}
 }

@@ -48,8 +48,8 @@ export default class ListPair extends Top {
 	 */
 	#init(capacity) {
 		assert(this.n <= capacity);
-		this.#next = new Array(capacity+1);
-		this.#prev = new Array(capacity+1);
+		this.#next = new Int32Array(capacity+1);
+		this.#prev = new Int32Array(capacity+1);
 		this.#firstIn = this.#lastIn = 0;
 		this.#firstOut = 1; this.#lastOut = this.n;
 		for (let i = 1; i <= this.n; i++) {
@@ -60,7 +60,7 @@ export default class ListPair extends Top {
 		this.#nIn = 0; this.#nOut = this.n;
 	}
 	
-	/** Reset the list to support a larger range and max range.
+	/** Reset the list to support a different range and capacity.
 	 *  Amount of space allocated is determined by value of this.n.
 	 *  @param n specifies the range of integer values
 	 *  @param capacity specifies the maximum range to provide space for
@@ -77,8 +77,7 @@ export default class ListPair extends Top {
 		assert(n > 0);
 		if (n <= this.n) return;
 		if (n > this.capacity) {
-			let nu = new ListPair(this.n,
-								Math.max(n, Math.floor(1.25 * this.capacity)));
+			let nu = new ListPair(this.n, Math.max(n, ~~(1.5 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
 		for (let i = this.n+1; i <= n; i++) {
@@ -303,7 +302,6 @@ export default class ListPair extends Top {
 			s += this.index2string(i, label);
 			if (i != this.lastIn()) s += ' ';
 		}
-		if (!details) return'[' + s + ']';
 		s += (pretty ? '\n:' : ' : ');
 		for (let i = this.firstOut(); i != 0; i = this.nextOut(i)) {
 			s += this.index2string(i, label);
@@ -318,26 +316,33 @@ export default class ListPair extends Top {
 	 */
 	fromString(s) {
 		let sc = new Scanner(s);
-		this.clear();
-		if (!sc.verify('[')) return false;
-		for (let i = sc.nextIndex(); i > 0; i = sc.nextIndex()) {
-			if (i > this.n) this.expand(i);
-			if (this.isIn(i)) { this.clear(); return false; }
-			this.swap(i);
-		}
-		if (!sc.verify(':')) { this.clear(); return false; }
-		// for out-list, need to ensure all values present in input string,
-		// with no repeats; also we must re-order out-list to match input
-		let outSet = new Set();
-		for (let i = sc.nextIndex(); i > 0; i = sc.nextIndex()) {
-			if (i > this.n) this.expand(i);
-			if (this.isIn(i) || outSet.has(i)) { this.clear(); return false; }
-			outSet.add(i); this.swap(i); this.swap(i);
-				// double swap moves i to end of out-list
-		}
-		if (outSet.size != this.nOut() || !sc.verify(']')) {
-			this.clear(); return false;
-		}
+
+		// first read values into two lists
+        let li = sc.nextIndexList('[', ':');
+        if (li == null) return false;
+		sc.reset(-1);
+        let lo = sc.nextIndexList(':', ']');
+        if (lo == null) return false;
+		let n = Math.max(Math.max(...li), Math.max(...lo));
+
+		// verify that lists are valid
+		if (li.length + lo.length != n) return false;
+        let items = new Set();
+        for (let i of li) {
+            if (items.has(i)) return false;
+            items.add(i);
+        }
+        for (let i of lo) {
+            if (items.has(i)) return false;
+            items.add(i);
+        }
+		
+		// initialize this
+		if (n != this.n) this.reset(n);
+		else this.clear();
+        for (let i of li) this.swap(i);
+        for (let i of lo) { this.swap(i); this.swap(i); }
+			// double swap produces correct order for out-list
 		return true;
 	}
 }
