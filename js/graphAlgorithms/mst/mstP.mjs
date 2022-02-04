@@ -27,7 +27,7 @@ export default function mstP(g, trace=0, d=2+Math.floor(g.m/g.n)) {
 			  'selected vertex, tree edge, heap contents\n';
 	}
 
-	let light = new Int32Array(g.n+1).fill(-1);
+	let light = new Array(g.n+1).fill(-1);
 	let border = new ArrayHeap(g.n, d);
 	let loopCount = 0;
 	for (let s = 1; s <= g.n; s++) {
