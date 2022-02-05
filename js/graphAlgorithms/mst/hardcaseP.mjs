@@ -1,4 +1,4 @@
-/** @file badcaseP.mjs
+/** @file hardcaseP.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,12 +8,12 @@
 
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 
-/** Generate a badcase graph for Prim's algorithm.
+/** Generate a hardcase graph for Prim's algorithm.
  *  @param n is the number of vertices
  *  @param m is the number of edges
- *  @return a Graph object that defines a badcase graph for Prim
+ *  @return a Graph object that defines a hardcase graph for Prim
  */
-export default function badcaseP(n, m=n*(n-1)/2) {
+export default function hardcaseP(n, m=n*(n-1)/2) {
 	let g = new Graph(n, m);
 	let skip = n*(n-1)/(2*m); let k = 0; let wt = m;
 	for (let u = 1; u <= n; u++) {
