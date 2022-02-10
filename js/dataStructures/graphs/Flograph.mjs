@@ -10,9 +10,9 @@ import { assert } from '../../common/Errors.mjs';
 import Digraph from './Digraph.mjs';
 import { shuffle } from '../../common/Random.mjs';
 
-/** Data structure for weighted undirected graph.
- *  Extends Graph class and places incoming edges before outgoing edges
- *  in adjuacency lists.
+/** Data structure for Flograph, used by max flow algorithms.
+ *  Extends Digraph class and adds edge capacities, flows and
+ *  optionally, minimum flow requirements and costs.
  */
 export default class Flograph extends Digraph {
 	#f;				// #f[e] is flow on edge e
@@ -27,26 +27,30 @@ export default class Flograph extends Digraph {
 	 *  @param vcap is the max number of vertices to provide space for
 	 */
 	constructor(n, ecap, vcap) {
-		super(n, ecap, vcap); this.#init_d();
+		super(n, ecap, vcap); this.#init();
 	}
 	
-	#init_d() {
-		this.#f = new Array(this.edgeCapacity+1);
-		this.#cap = new Array(this.edgeCapacity+1);
+	/** Initialize the Flograph. */
+	#init() {
+		this.#f = new Int32Array(this.edgeCapacity+1);
+		this.#cap = new Int32Array(this.edgeCapacity+1);
 		this.#source = 1; this.#sink = this.n;
 		if (this.floored) this.addFloors();
 	} 
 
-	get floored() { return (this.#floor ? true : false); }
-
+	/** Add edge costs to the graph (cost per unit flow). */
 	addCosts() { super.addWeights(); }
 	
+	/** Enable minimum flow requirements. */
 	addFloors() {
 		this.#floor = new Int32Array(this.edgeCapacity+1);
 	}
 
+	/** Return true if minimum flow requirements are enabled. */
+	get floored() { return (this.#floor ? true : false); }
+
 	reset(n, ecap, vcap) {
-		super.reset(n, ecap, vcap); this.#init_d();
+		super.reset(n, ecap, vcap); this.#init();
 	}
 
 	expand(n, m) {
@@ -96,9 +100,20 @@ export default class Flograph extends Digraph {
 		g.#f = g.#cap = null;
 	}
 
+	/** Set the source vertex.
+	 *  @param s is the new source vertex.
+	 */
 	setSource(s) { this.#source = s; }
+
+	/** Set the sink vertex.
+	 *  @param t is the new sink vertex.
+	 */
 	setSink(t) { this.#sink = t; }
+
+	/* Return the source vertex. */
 	get source() { return this.#source; }
+
+	/* Return the sink vertex. */
 	get sink() { return this.#sink; }
 
 	/** Get the capacity of an edge.
@@ -168,16 +183,22 @@ export default class Flograph extends Digraph {
 	 */
 	setCost(e, cost) { super.setWeight(e, cost); }
 
+	/** Set the minimum flow requirement for an edge.
+	 *  @param e is an edge
+	 *  @param floor is the new min flow reqirement for e.
+	 */
 	setFloor(e, floor) {
 		if (!this.floored) this.addFloors();
 		this.#floor[e] = floor;
 	}
 
+	/** Set the flow of every edge to zero. */
 	clearFlow() {
 		for (let e = this.first(); e != 0; e = this.next(e))
 			this.setFlow(e, 0);
 	}
 
+	/** Return the current flow magnitude (total flow leaving source). */
 	totalFlow() {
 		let flow = 0; let src = this.source;
 		for (let e = this.firstOut(src); e != 0; e = this.nextOut(src, e)) {
@@ -186,6 +207,7 @@ export default class Flograph extends Digraph {
 		return flow;
 	}
 
+	/** Return the current flow cost (sum of flow*cost for all edges). */
 	totalCost() {
 		let cost = 0;
 		for (let e = this.first(); e != 0; e = this.next(e)) {
@@ -205,6 +227,14 @@ export default class Flograph extends Digraph {
 		else 				   this.#f[e] -= f;
 	}
 
+	/** Join two vertices with an edge.
+	 *  @param u is a vertex
+	 *  @param v is an edge
+	 *  @param e is a currently unused edge number to be used for the
+	 *  new edge (u,v); if omitted, the first available edge number is used
+	 *  the edge capacity and flow are both initialized to zero,
+	 *  as is the min flow requirement, if enabled
+	 */
 	join(u, v, e) {
 		let ee = super.join(u, v, e);
 		this.setCapacity(ee, 0); this.setFlow(ee, 0);
@@ -321,18 +351,18 @@ export default class Flograph extends Digraph {
 		let v = this.nextVertex(sc);
 		if (v == 0 || !sc.verify(':')) return null;
 		let tuple = [v, null, null, 0, 0];
-		let x = sc.nextNumber(); if (isNaN(x)) return null;
+		let x = sc.nextNumber(); if (Number.isNaN(x)) return null;
 		if (sc.verify(',')) {
 			tuple[1] = x;
-			x = sc.nextNumber(); if (isNaN(x)) return null;
+			x = sc.nextNumber(); if (Number.isNaN(x)) return null;
 		}
 		if (sc.verify('-')) {
 			tuple[2] = x;
-			x = sc.nextNumber(); if (isNaN(x)) return null;
+			x = sc.nextNumber(); if (Number.isNaN(x)) return null;
 		}
 		tuple[3] = x;
 		if (sc.verify('/')) {
-			x = sc.nextNumber(); if (isNaN(x)) return null;
+			x = sc.nextNumber(); if (Number.isNaN(x)) return null;
 			tuple[4] = x;
 		}
 		return tuple;

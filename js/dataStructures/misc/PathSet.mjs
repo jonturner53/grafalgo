@@ -487,7 +487,7 @@ export default class PathSet extends Top {
 			if (v > this.n) this.expand(v);
 			if (!sc.verify(':')) return -1;
 			let cost = sc.nextNumber();
-			if (isNaN(cost)) return -1;
+			if (NumbmerisNaN(cost)) return -1;
 			mc = Math.min(mc, cost);
 			path.enq(v, [mc,cost]);
 			if (v != u) p = this.join(p,v,0);

@@ -22,32 +22,32 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
  */
 export default function sptD(g, s, trace=0) {
 	let pedge = new Int32Array(g.n+1); let ts = '';
-	let dist = new Array(g.n+1).fill(Number.POSITIVE_INFINITY);
-	let h = new ArrayHeap(g.n, 2+Math.floor(g.m/g.n));
+	let dist = new Array(g.n+1).fill(Infinity);
+	let border = new ArrayHeap(g.n, 2+Math.floor(g.m/g.n));
 	if (trace) ts += g.toString(0,1);
 
-	dist[s] = 0; h.insert(s, 0);
-	if (trace) ts += 'initial heap: ' + h + '\n\n' +
+	dist[s] = 0; border.insert(s, 0);
+	if (trace) ts += 'initial heap: ' + border + '\n\n' +
 					 'selected vertex, edge to parent, ' + 
 					 `distance from ${g.index2string(s)}, heap contents\n`;
-	while (!h.empty()) {
-		let u = h.deletemin();
+	while (!border.empty()) {
+		let u = border.deletemin();
 		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
 			if (g.length(e) < 0)
 				return [ `Error: negative edge ${g.edge2string(e)}.`,
-						pedge, dist, ts,  h.getStats()];
+						pedge, dist, ts,  border.getStats()];
 			let v = g.head(e);
 			if (dist[v] > dist[u] + g.length(e)) {
 				dist[v] = dist[u] + g.length(e); pedge[v] = e;
-				if (h.contains(v)) h.changekey(v, dist[v]);
-				else h.insert(v, dist[v]);
+				if (border.contains(v)) border.changekey(v, dist[v]);
+				else border.insert(v, dist[v]);
 			}
 		}
 		if (trace) {
 			ts += g.index2string(u) + ' ' +
 				  (pedge[u] > 0 ? g.edge2string(pedge[u]) : '-') +
-				   ' ' + dist[u] + ' ' + h + '\n';
+				   ' ' + dist[u] + ' ' + border + '\n';
 		}
 	}
-	return ['', pedge, dist, ts,  h.getStats()];
+	return ['', pedge, dist, ts,  border.getStats()];
 }

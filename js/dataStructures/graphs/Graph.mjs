@@ -590,7 +590,7 @@ export default class Graph extends Top {
 		if (v == 0) return null;
 		if (!sc.verify(':')) return [v,null];
 		let w = sc.nextNumber();
-		if (isNaN(w)) return null;
+		if (Number.isNaN(w)) return null;
 		return [v,w];
 	}
 

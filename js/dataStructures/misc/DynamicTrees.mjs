@@ -356,7 +356,7 @@ export default class DynamicTrees extends Top {
 		if (vertices.has(u) || !sc.verify(':')) return -1;
 		vertices.add(u);
 		let c = sc.nextNumber();
-		if (isNaN(c)) return -1;
+		if (NumbmerisNaN(c)) return -1;
 		props.push([u,c,parent]);
 		let n = u;	// largest vertex number seen in subtree
 		if (!sc.verify('(')) return n;

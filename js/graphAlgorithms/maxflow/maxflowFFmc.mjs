@@ -41,29 +41,32 @@ export default function maxflowFFmc(fg, trace=false) {
  *  @return true if there is an augmenting path from u to the sink
  */
 function findpath(s) {
-	let nabors = new ArrayHeap(g.n, 2+g.m/g.n);
-	let bcap = new Array(g.n+1).fill(0);
+	let border = new ArrayHeap(g.n, 2+g.m/g.n);
+	let cap = new Array(g.n+1).fill(0);
 
+	let heapStats = border.getStats();
 	pedge.fill(0);
-	bcap[s] = Infinity;
-	nabors.insert(s, -bcap[s]); // so deletemin gives max cap
-	while (!nabors.empty()) {
-		let u = nabors.deletemin();
+	cap[s] = Infinity;
+	border.insert(s, -cap[s]); // so deletemin gives max cap
+	while (!border.empty()) {
+		let u = border.deletemin();
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			findpathSteps++;
 			let v = g.mate(u,e);
-	    	if (Math.min(bcap[u], g.res(e,u)) > bcap[v]) {
-				bcap[v] = Math.min(bcap[u], g.res(e,u));
+	    	if (Math.min(cap[u], g.res(e,u)) > cap[v]) {
+				cap[v] = Math.min(cap[u], g.res(e,u));
 				pedge[v] = e;
-				if (v == g.sink) return true;
-				if (nabors.contains(v))
-		    		nabors.changekey(v,-bcap[v]);
+				if (v == g.sink) {
+					findpathSteps += heapStats.siftup + heapStats.siftdown;
+					return true;
+				}
+				if (border.contains(v))
+		    		border.changekey(v,-cap[v]);
 				else
-				    nabors.insert(v,-bcap[v]);
+				    border.insert(v,-cap[v]);
 			}
 		}
 	}
-	let heapStats = nabors.getStats();
 	findpathSteps += heapStats.siftup + heapStats.siftdown;
     return false;
 }

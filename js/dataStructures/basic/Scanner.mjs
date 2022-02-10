@@ -111,7 +111,7 @@ export default class Scanner extends Top {
 	nextInt() {
 		let i0 = this.firstNonSpace();
 		let value = parseInt(this.#s.slice(i0, i0+20));
-		if (isNaN(value)) return NaN;
+		if (Number.isNaN(value)) return NaN;
 		if (this.#s[i0] == '-' || this.#s[i0] == '+') 
 			i0 = this.firstNonSpace(i0+1);
 		let i = i0;
@@ -131,7 +131,7 @@ export default class Scanner extends Top {
 		let s = this.#s; let n = s.length;
 		let i = this.firstNonSpace();
 		let value = parseFloat(s.slice(i, i+30));
-		if (isNaN(value)) return NaN;
+		if (Number.isNaN(value)) return NaN;
 		if (s[i] == '-' || s[i] == '+') {
 			i = this.firstNonSpace((i+1) - this.#i);
 		}
@@ -196,7 +196,7 @@ export default class Scanner extends Top {
 			return this.#s.charCodeAt(i0) - ('a'.charCodeAt(0) - 1);
 		}
 		let value = this.nextInt();
-		if (isNaN(value)) return 0;
+		if (Number.isNaN(value)) return 0;
 		return value;
 	}
 
@@ -231,7 +231,7 @@ export default class Scanner extends Top {
 		for (let i = this.nextIndex(); i; i = this.nextIndex()) {
 			if (!this.verify(':')) { this.#i = i0; return null; }
 			let k = this.nextNumber();
-			if (isNaN(k)) { this.#i = i0; return null; }
+			if (Number.isNaN(k)) { this.#i = i0; return null; }
 			l.push([i,k]);
 		}
 		if (!this.verify(rd)) {
