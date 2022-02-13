@@ -46,12 +46,11 @@ export default function maxflowDST(fg, trace=false) {
 	findpathCount = findpathSteps = phaseCount = 0;
 	while (newphase()) {
 		phaseCount++;
-		while (findpath(g.source)) {
+		while (findpath()) {
 			findpathCount++;
 			let [,s] = augment(trace);
 			if (trace) ts += s + '\n';
 		}
-		endphase();
 	}
 	let treeStats = trees.getStats();
 	findpathSteps += treeStats.spliceCount + treeStats.splaySteps;
@@ -61,82 +60,61 @@ export default function maxflowDST(fg, trace=false) {
 					 'phaseCount': phaseCount} ];
 }
 
-/** Prepare for next phase of Dinic's algorithm.
- *  @return true if there is still residual capacity from source to sink,
- *  else false
- */
-function newphase() {
-	for (let u = 1; u <= g.n; u++) {
-		level[u] = g.n; nextEdge[u] = g.firstAt(u);
-	}
-	let q = new List(g.n);
-	q.enq(g.source); level[g.source] = 0;
-	while (!q.empty()) {
-		let u = q.deq();
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u, e)) {
-			let v = g.mate(u, e);
-			if (g.res(e, u) > 0 && level[v] == g.n) {
-				level[v] = level[u] + 1;
-				if (v == g.sink) return true;
-				q.enq(v);
-			}
-		}
-	}
-	return false;
-}
-
-/** Cleanup at the end of a phase of Dinic's algorithm.
- *  This involves transferring flow from remaining tree edges back
- *  into flow graph and removing treee edges.
- */
-function endphase() {
-	for (let u = 1; u <= g.n; u++) {
-		let e = upEdge[u];
-		if (e != 0) {
-			trees.cut(u); let [,residual] = trees.findcost(u);
-			//g.addFlow(e, u, (g.cap(e,u) - residual) - g.f(e,u));
-			g.setFlow(e, u == g.tail(e) ? g.cap(e,u) - residual : residual);
-			trees.addcost(u, huge - residual);
-			upEdge[u] = 0;
-		}
-	}
-}
-
 /** Find an augmenting path from specified vertex to sink in residual graph.
- *  @param u is a vertex
- *  @return true if there is an augmenting path from u to the sink
+ *  @return true if there is an augmenting path from source to the sink
  */
-function findpath(u) {
+
+function findpath() {
 	while (nextEdge[g.source] != 0) {
 		let u = trees.findroot(g.source); let e = nextEdge[u];
-		while (true) { // look for forward path
+		// look for unsaturated path from u to sink
+		while (true) {
 			findpathSteps++; 
 			if (u == g.sink) return true;
 			if (e == 0) { nextEdge[u] = 0; break; }
 			let v = g.mate(u,e);
 			if (g.res(e,u) > 0 && level[v]==level[u] + 1 && nextEdge[v] != 0) {
-				let [,c] = trees.findcost(u);
-				trees.addcost(u, g.res(e,u) - c);
-				trees.link(u,v); upEdge[u] = e;
-				nextEdge[u] = e;
+				extend(u, e);
 				u = trees.findroot(g.source); e = nextEdge[u];
 			} else {
-				e = g.nextAt(u,e);
+				e = nextEdge[u] = g.nextAt(u,e);
 			}
 		}
-		// prune dead-end
+		// no path found, prune dead-end
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			findpathSteps++;
 			let v = g.mate(u,e);
-			if (e != upEdge[v]) continue;
-			trees.cut(v); upEdge[v] = 0;
-			let [,residual] = trees.findcost(v);
-			//g.addFlow(e, v, (g.cap(e,v) - c) - g.f(e,v));
-			g.setFlow(e, (v == g.tail(e) ? g.cap(e) - residual : residual));
-			trees.addcost(v, huge - residual);
+			if (e == upEdge[v])  {
+				prune(v); nextEdge[v] = g.nextAt(v, e);
+			}
 		}
 	}
 	return false;
+}
+
+/** Extend a dynamic tree.
+ *  @param u is a root of some tree in the dynamic trees data structure
+ *  @param e is an edge incident to u with positive residual capacity from u,
+ *  through which tree is extended by linking it to the other endpoint of e,
+ *  while setting cost(u) to the residual capacity of e.
+ */
+function extend(u, e) {
+	let [,c] = trees.findcost(u);
+	trees.addcost(u, g.res(e,u) - c);
+	trees.link(u, g.mate(u,e));
+	upEdge[u] = e;
+}
+
+/** Prune a subtree in dynamic trees data structure.
+ *  @param u is a vertex to be cut from its parent; residual flow in cost(u)
+ *  is transferred to flow graph, and cost(u) becomes huge
+ */
+function prune(u) {
+	let e = upEdge[u];
+	trees.cut(u); upEdge[u] = 0;
+	let [,residual] = trees.findcost(u);
+	g.setFlow(e, (u == g.tail(e) ? g.cap(e) - residual : residual));
+	trees.addcost(u, huge - residual);
 }
 
 /** Add flow to the source-sink path defined by the path in the
@@ -159,11 +137,32 @@ function augment(trace) {
 	// and saturate corresponding flow graph edges
 	let f; [u,f] = trees.findcost(g.source);
 	while (f == 0) {
-		let e = upEdge[u];
-		g.setFlow(e, u == g.tail(e) ? g.cap(e) : 0);
-
-		trees.cut(u); upEdge[u] = 0; trees.addcost(u, huge);
-		[u,f] = trees.findcost(g.source);
+		prune(u); [u,f] = trees.findcost(g.source);
 	}
 	return [flow, ts];
+}
+
+/** Prepare for next phase of Dinic's algorithm.
+ *  @return true if there is still residual capacity from source to sink,
+ *  else false
+ */
+function newphase() {
+	for (let u = 1; u <= g.n; u++) {
+		level[u] = g.n; nextEdge[u] = g.firstAt(u);
+		if (upEdge[u] != 0) prune(u);  // cleanup from last phase
+	}
+	let q = new List(g.n);
+	q.enq(g.source); level[g.source] = 0;
+	while (!q.empty()) {
+		let u = q.deq();
+		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u, e)) {
+			let v = g.mate(u, e);
+			if (g.res(e, u) > 0 && level[v] == g.n) {
+				level[v] = level[u] + 1;
+				if (v == g.sink) return true;
+				q.enq(v);
+			}
+		}
+	}
+	return false;
 }
