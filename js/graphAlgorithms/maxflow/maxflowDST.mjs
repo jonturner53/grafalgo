@@ -75,7 +75,7 @@ function findpath() {
 			let v = g.mate(u,e);
 			if (g.res(e,u) > 0 && level[v]==level[u] + 1 && nextEdge[v] != 0) {
 				extend(u, e);
-				u = trees.findroot(g.source); e = nextEdge[u];
+				u = trees.findroot(u); e = nextEdge[u];
 			} else {
 				e = nextEdge[u] = g.nextAt(u,e);
 			}
