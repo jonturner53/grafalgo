@@ -137,7 +137,8 @@ function augment(trace) {
 	// and saturate corresponding flow graph edges
 	let f; [u,f] = trees.findcost(g.source);
 	while (f == 0) {
-		prune(u); [u,f] = trees.findcost(g.source);
+		let e = upEdge[u]; prune(u); nextEdge[u] = g.nextAt(u, e);
+		[u,f] = trees.findcost(g.source);
 	}
 	return [flow, ts];
 }
