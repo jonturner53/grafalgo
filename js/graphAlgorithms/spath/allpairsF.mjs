@@ -26,7 +26,7 @@ export default function allpairsF(g, trace=false) {
     
     // initialize dist and p
     for (let u = 1; u <= g.n; u++) {
-		dist.push(new Int32Array(g.n+1).fill(Infinity)); dist[u][u] = 0;
+		dist.push(new Array(g.n+1).fill(Infinity)); dist[u][u] = 0;
 		pedge.push(new Int32Array(g.n+1));
     }   
 
@@ -52,7 +52,7 @@ export default function allpairsF(g, trace=false) {
                     dist[v][w] = dist[v][s] + dist[s][w]; 
                     pedge[v][w] = pedge[s][w];  
 					if (trace)
-						ts += g.index2string(v) +
+						ts += g.index2string(v) + ':' + dist[v][w] + 
 							  g.edge2string(pedge[v][w]) + ' ';
 					updates++;
                 }   

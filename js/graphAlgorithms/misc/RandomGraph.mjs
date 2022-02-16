@@ -17,14 +17,15 @@ import maxflowD from '../maxflow/maxflowD.mjs';
 
 /** Generate an undirected random graph. 
  *  @param n is the number of vertices in the random graph
- *  @param m is the number of edges in the graph
+ *  @param d is the average vertex degree
  *  @return the generated graph
  */  
-export function randomGraph(n, m) {
+export function randomGraph(n, d) {
+	if (d > n-1) d = n-1;
+	let m = ~~(d*n/2);
 	let g = new Graph(n, m);
 	let mm = n*(n-1)/2;
-	m = Math.min(m, mm);
-	add2graph(g, m, m > mm/2,
+	add2graph(g, m, m > mm/3,
 					([u,v]) => (n < 2 || u == n-1 && v == n ? null :
 						    	(u == 0 ? [1,2] :
 								 (v < n ? [u,v+1] : [u+1,u+2]))),
@@ -35,14 +36,15 @@ export function randomGraph(n, m) {
 
 /** Generate a random directed graph. 
  *  @param n is the number of vertices in the random graph
- *  @param m is the number of edges in the graph
+ *  @param d is the average out-degree
  *  @return the generated graph
  */  
-export function randomDigraph(n, m) {
+export function randomDigraph(n, d) {
+	if (d > n-1) d = n-1;
+	let m = ~~(d*n);
 	let g = new Digraph(n, m);
 	let mm = n*(n-1);
-	m = Math.min(m, mm);
-	add2graph(g, m, m > mm/2,
+	add2graph(g, m, m > mm/3,
 					([u,v]) => (n < 2 || u == n && v == n-1 ? null :
 						    	(u == 0 ? [1,2] :
 								 (v < n ? [u,(v==u-1 ? u : v) + 1] : [u+1,1]))),
@@ -54,15 +56,16 @@ export function randomDigraph(n, m) {
 
 /** Generate a random directed acyclic graph. 
  *  @param n is the number of vertices in the random graph
- *  @param m is the number of edges in the graph
+ *  @param d is the average out-degree
  *  @return the random graph; note, returned graph has vertices in
  *  topologically sorted order.
  */  
-export function randomDag(n, m) {
+export function randomDag(n, d) {
+	if (d > (n-1)/2) d = (n-1)/2;
+	let m = ~~(d*n);
 	let g = new Digraph(n, m);
 	let mm = n*(n-1)/2;
-	m = Math.min(m, mm);
-	add2graph(g, m, m > mm/2,
+	add2graph(g, m, m > mm/3,
 					([u,v]) => (n < 2 || u == n-1 && v == n ? null :
 						    	(u == 0 ? [1,2] :
 								 (v < n ? [u,v+1] : [u+1,u+2]))),
@@ -71,14 +74,35 @@ export function randomDag(n, m) {
 	return g;
 }
 
+/** Generate a random bipartite graph.
+ *  @param n1 specifies the number of vertices in the "left part"
+ *  @param n2 specifies the number of vertices in the "right part"
+ *  @param d1 is the average vertex degree in the left part
+ */
+export function randomBigraph(n1, n2, d1) {
+	n1 = Math.max(1,n1); n2 = Math.max(1,n2); d1 = Math.min(d1, n2);
+	let m = ~~(d1*n1);
+	let g = new Graph(n1+n2, m);
+	let mm = n1*n2;
+	add2graph(g, m, m > mm/3,
+					([u,v]) => (u == 0 ? [1, n1+1] :
+							   (v < n1+n2 ? [u, v+1] :
+								(u < n1 ? [u+1, n1+1] : null))),
+					() => [randomInteger(1,n1), randomInteger(n1+1,n1+n2)]);
+	return g;
+}
+
 /** Generate a random flograph.
  *  @param p is number of levels
  *  @param q is size of levels
  *  @param k is how max # of levels edges can go back
- *  @return a flograph with 2+p*q vertices and m edges, where the
- *  non-source/sink are divided into p groups of q vertices and edges
+ *  @param d is the average out-degree of all non source/sink vertices
+ *  @param mc is the number of edges from one level to the next
+ *  @param ms is the number of edges from the source and the number to the sink
+ *  @return a flograph with 2+p*q vertices and ms + d*(n-2) edges, where the
+ *  non-source/sink vertices are divided into p groups of q vertices and edges
  *  from level i, may go to vertices in levels i-k up to i+1.
- */
+
 export function randomFlograph(p, q, k, m) {
 	assert(p>1 && q>1);
 	let n = 2 + p*q;
@@ -115,6 +139,58 @@ export function randomFlograph(p, q, k, m) {
 							return [u, v < u ? v : v+1]});
 	return g;
 }
+*/
+
+export function randomFlograph(p, q, k, d, mc, ms) {
+	assert(p>1 && q>1 && 1<d && d*q <= q*(q-1)+mc);
+	let n = 2 + p*q; let m = ms + d*(n-2);
+	let g = new Flograph(n, m);
+	g.setSource(1); g.setSink(g.n);
+
+	// add source edges
+	let nextm = ms;
+	add2graph(g, nextm, ms > q/3,
+		([u,v]) => u == 0 ? [1,2] : (v < q+1 ? [u,v+1] : null),
+		() => [1, randomInteger(2, q+1)]);
+
+	// add sink edges
+	nextm += ms;
+	add2graph(g, nextm, ms > q/3,
+		([u,v]) => u == 0 ? [n-q,n] : (u < n-1 ? [u+1,v] : null),
+		() => [randomInteger(n-q, n-1), n]);
+
+	// add forward inter-group edges
+	for (let i = 0; i < p-1; i++) {
+		nextm += mc;
+		add2graph(g, nextm, (mc > q*q/3), 
+			([u,v]) => u == 0 ? [2+i*q, 2+(i+1)*q] :
+								 (v < 1+(i+2)*q ? [u,v+1] :
+								  (u < 1+(i+1)*q ? [u+1,2+(i+1)*q] : null)),
+			() => [ randomInteger(2+i*q,     1+(i+1)*q),
+				    randomInteger(2+(i+1)*q, 1+(i+2)*q) ]);
+	}
+
+	// add the remaining edges
+	for (let i = 0; i < p; i++) {
+		let kk = Math.min(k, i)
+		nextm += (i < p-1 ? d*q-mc : d*q-ms);
+		add2graph(g, nextm, d*q > (i*q*q + q*(q-1)/2)/3,
+				([u,v]) => {
+					if (u == 0)
+						return [2+i*q, kk > 0 ? 2+(i-kk)*q : 3+i*q];
+					if (v != u-1) 
+						return v < 1+(i+1)*q ? [u, v+1] :
+											   [u+1, 2+(i-kk)*q];
+					else 
+						return u < 1+(i+1)*q ? [u, u+1] : null;
+				},
+				() => { let u = randomInteger(2+i*q, 1+(i+1)*q);
+						let v = randomInteger(2+(i-kk)*q, (i+1)*q);
+						return [u, v < u ? v : v+1]
+				});
+	}
+	return g;
+}
 
 /** Add random edges to yield a random simple graph.
  *  Designed to be useful for a variety of different types of graphs.
@@ -142,7 +218,7 @@ function add2graph(g, m, dense, nextpair, randpair) {
 		let p = nextpair([0,0]);
 		while (p) { pairs.push(p); p = nextpair(p); }
 	} else {
-		for (let i = 0; i < m + Math.max(200, m); i++)
+		for (let i = 0; i < (m-g.m) + Math.max(200, (m-g.m)); i++)
 			pairs.push(randpair());
 		sortReduce(pairs);
 	}
@@ -206,53 +282,6 @@ function samplePairs(pairs, g, m) {
 	}
 }
 
-/** Generate a random bipartite graph.
- *  @param n1 specifies the number of vertices in the "left part"
- *  @param n2 specifies the number of vertices in the "right part"
- *  @param m is the desired number of edges in the random graph;
- *  cannot exceed n1*n2
- */
-export function randomBigraph(n1, n2, m) {
-	n1 = Math.max(1,n1); n2 = Math.max(1,n2); m = Math.min(n1*n2, m);
-	let g = new Graph(n1+n2, m);
-	add2bipartite(g, n1, n2, m);
-	return g;
-}
-
-/** Add edges to form a random bipartite graph.
- *  @param n1 specifies the number of vertices in the "left part"
- *  @param n2 specifies the number of vertices in the "right part"
- *  @param m is the desired number of edges in the graph
- */
-function add2bipartite(g, n1, n2, m) {
-	if (m <= g.m) return;
-	assert(m <= n1*n2);
-	let pairs;
-	if (m/n1 > n2/4) { // dense graphs
-		// build complete vector of candidate edges
-		pairs = new Int32Array(n1*n2);
-		let i = 0;
-		for (let u = 1; u <= n1; u++) {
-			for (let v = n1+1; v <= n1+n2; v++) {
-				pairs[i++] = [u,v];
-			}
-		}
-	} else { // sparse graphs
-		// build oversize, but incomplete vector of candidate edges
-		pairs = new Int32Array(m + Math.max(m, 200));
-		for (let i = 0; i < pairs.length; i++) {
-			pairs[i]    = [ randomInteger(1,n1), 0 ];
-			pairs[i][1] = randomInteger(n1+1,n1+n2);
-		}
-		sortReduce(pairs);
-		if (pairs.length < m - g.m)
-			fatal("Rgraph: program error, too few candidate edges");
-	}
-	removeDuplicates(pairs, g);
-	samplePairs(pairs, g, m);
-	g.sortAllEplists();
-}
-
 /** Generate a random undirected tree. 
  *  Generates random trees with equal probability assigned to each
  *  labeled tree; method based on Cayley's formula for tree enumeration.
@@ -291,9 +320,10 @@ export function randomTree(n) {
 /** Create a random simple, connected graph.
  *  @param g is an undirected graph object
  *  @param n is the number of vertices on the graph
- *  @param m is the number of edges
+ *  @param d is the average vertex degree
  */
-export function randomConnectedGraph(n, m) {
+export function randomConnectedGraph(n, d) {
+	let m = ~~(d*n);
 	let g = randomTree(n);
 	add2graph(g, m, m > n*n/4,
 					([a,b]) => (n < 2 || a == n-1 && b == n ? null :

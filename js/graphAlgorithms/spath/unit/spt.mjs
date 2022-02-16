@@ -86,10 +86,10 @@ function basicTests(aname, algo, trace=false, stats=false) {
 		assert(sptVerify(g, 1, pedge, dist), '', 'a3');
 
 		if (aname == 'dag') {
-        	g = randomDag(15, 50); g.scramble();
+        	g = randomDag(15, 3); g.scramble();
 	        g.randomLengths(randomInteger, -99, 99);
         } else {
-			g = randomDigraph(10, 35);
+			g = randomDigraph(10, 3.5);
 	        g.randomLengths(randomInteger, 1, 99);
 			if (aname == 'BM') { // add a few negative edges
 				for (let i = 0; i < 5; i++) {
@@ -104,7 +104,7 @@ function basicTests(aname, algo, trace=false, stats=false) {
 		assert(sptVerify(g, 1, pedge, dist), '', 'a4');
 
 		if (aname != 'dag') {
-	        g = randomDigraph(1000, 10000);
+	        g = randomDigraph(1000, 10);
 	        g.randomLengths(randomFraction);
 	        let t0 = Date.now();
 	        [error, pedge,dist,ts,ss] = algo(g, 1);

@@ -81,12 +81,12 @@ function getArgs() {
 function maketests(floor) {
 	let cases = [];
 
-	cases.push({ 'name': 'small graph', 'g': new Flograph(), 'value': 5});
+	cases.push({ 'name': 'small graph', 'g': new Flograph(), 'value': 8});
 	if (!floor) {
 		cases[cases.length-1].g.fromString(
-				'{a->[b:3 d:2] b[c:3 d:7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
+				'{a->[b:5 d:6] b[c:3 d:7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
 				'e[f:1 g:3 h:4] f[e:1 g:2 h:3] g[e:3 f:2 h:1] ' +
-				'h[f:3 i:4 j:2] i[g:5 j:6] ->j[]}');
+				'h[f:3 i:4 j:5] i[g:5 j:6] ->j[]}');
 	} else {
 		cases[cases.length-1].g.fromString(
 				'{a->[b:3 d:2] b[c:3 d:2-7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
@@ -101,17 +101,17 @@ function maketests(floor) {
 	cases.push({'name': 'hardcase(10,20)', 'g': maxflowHardcase(10,20),
 				'value': 8000});
 
-	cases.push({'name': 'small random', 'g': randomFlograph(4,3,1,60),
+	cases.push({'name': 'small random', 'g': randomFlograph(3, 4, 2, 4, 6, 2),
 				'value': 0});
 	if (floor) {
-		cases[cases.length-1].g.randomCapacities(5, randomInteger, 1, 9);
+		cases[cases.length-1].g.randomCapacities(10, randomInteger, 1, 9);
 		cases[cases.length-1].g.randomFloors(randomInteger, 0, 2);
 	} else {
-		cases[cases.length-1].g.randomCapacities(5, randomInteger, 1, 9);
+		cases[cases.length-1].g.randomCapacities(10, randomInteger, 1, 9);
 	}
 
-	cases.push({'name': 'medium random', 'g': randomFlograph(10, 20, 2, 7440),
-				'value': 0});
+	cases.push({'name': 'medium random',
+				'g': randomFlograph(3, 20, 2, 10, 50, 10), 'value': 0});
 	if (floor) {
 		cases[cases.length-1].g.randomCapacities(5, randomInteger, 1, 99);
 		cases[cases.length-1].g.randomFloors(randomInteger, 0, 30);
@@ -119,8 +119,8 @@ function maketests(floor) {
 		cases[cases.length-1].g.randomCapacities(10, randomInteger, 1, 99);
 	}
 
-	cases.push({'name': 'large  random', 'g': randomFlograph(40, 20, 2, 29680),
-				'value': 0});
+	cases.push({'name': 'large  random',
+				'g': randomFlograph(3, 50, 2, 20, 100, 20), 'value': 0});
 	if (floor) {
 		cases[cases.length-1].g.randomCapacities(5, randomInteger, 1, 99);
 		cases[cases.length-1].g.randomFloors(randomInteger, 0, 30);
@@ -151,7 +151,8 @@ function runtests(testcases, algorithms, trace, stats, floor, batch) {
 				console.log(`${algo.name}\n${traceString}\n${g.toString(0,1)}`);
 			if (stats) {
 				let ss = JSON.stringify(statsObj);
-				console.log(`${algo.name}, flow ${f}, ${t1-t0}ms, ${ss}`);
+				console.log(`${algo.name}, flow ${f}, ` +
+							`cut size ${g.reachable().length}, ${t1-t0}ms, ${ss}`);
 			}
 			let tag = `${algo.name}(${tcase.name})`
 			if (floor && f < 0) {

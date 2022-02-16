@@ -11,7 +11,7 @@ import mstP from '../mstP.mjs';
 import mstPf from '../mstPf.mjs';
 import mstK from '../mstK.mjs';
 import mstCT from '../mstCT.mjs';
-import badcaseP from '../badcaseP.mjs';
+import hardcaseP from '../hardcaseP.mjs';
 import mstVerify from '../mstVerify.mjs';
 import List from '../../../dataStructures/basic/List.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
@@ -69,13 +69,13 @@ function basicTests(aname, algo, trace=false, stats=false) {
 			 'a2');
 
 		g = new Graph();
-		g = randomConnectedGraph(10, 15);
+		g = randomConnectedGraph(10, 3);
         g.randomWeights(randomInteger, 0, 99);
         [elist,ts,ss] = algo(g, trace);
 		if (trace) console.log('small random graph\n' + ts);
 		assert(mstVerify(g, elist), '', 'a3');
 
-        g.xfer(randomGraph(1000, 10000));
+        g.xfer(randomGraph(1000, 20));
         g.randomWeights(randomFraction);
         let t0 = Date.now();
         [elist,ts,ss] = algo(g);

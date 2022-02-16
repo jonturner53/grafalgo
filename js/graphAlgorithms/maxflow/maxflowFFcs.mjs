@@ -24,7 +24,7 @@ let findpathSteps; // total steps in findpath
  *  @return the total flow added to fg
  */
 export default function maxflowFFmc(fg, trace=false) {
-	g = fg; pedge = new Array(g.n+1);
+	g = fg; pedge = new Int32Array(g.n+1);
 	let ts = '';
 	if (trace)
 		ts += 'augmenting paths with residual capacities\n';

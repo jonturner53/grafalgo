@@ -7,6 +7,7 @@
  */
 
 import { assert } from '../../common/Errors.mjs';
+import List from '../basic/List.mjs';
 import Digraph from './Digraph.mjs';
 import { shuffle } from '../../common/Random.mjs';
 
@@ -205,6 +206,25 @@ export default class Flograph extends Digraph {
 			flow += this.f(e);
 		}
 		return flow;
+	}
+
+	/** Return the set of vertices reachable from the source
+	 *  with respect to the current flow.
+	 */
+	reachable() {
+		let q = new List(this.n); let reached = new List(this.n);
+		q.enq(1); reached.enq(1);
+		while (!q.empty()) {
+		    let u = q.deq();
+		    for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e)) {
+		        let v = this.mate(u,e);
+		        if (!reached.contains(v) && !q.contains(v) &&
+					this.res(e,u) > 0) {
+		            q.enq(v); reached.enq(v);
+		        }
+		    }
+		}
+		return reached;
 	}
 
 	/** Return the current flow cost (sum of flow*cost for all edges). */

@@ -65,7 +65,7 @@ function basicTests(aname, algo, trace=false, stats=false) {
 			assert(sptVerify(g, s, pedge[s], dist[s]), '', 'b'+s);
 		}
 
-		g = randomDigraph(6, 12);
+		g = randomDigraph(6, 2);
 		g.randomLengths(randomInteger, 1, 99);
 		for (let i = 0; i < 2; i++) {
 			let e = g.randomEdge();
@@ -80,7 +80,7 @@ function basicTests(aname, algo, trace=false, stats=false) {
 			if (trace) console.log('small random graph\n' + ts);
 		}
 
-		g = randomDigraph(300, 3000);
+		g = randomDigraph(300, 10);
 		g.randomLengths(randomInteger, -3, 99);
 		let statistics;
 		let t0 = Date.now();
