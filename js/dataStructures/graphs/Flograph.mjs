@@ -22,6 +22,9 @@ export default class Flograph extends Digraph {
 	#sink;			// sink vertex
 	#floor;			// floor[e] is min flow requirement (optional)
 
+	_ssCapScale;	// scaling factor used by randomCapacities() method
+					// is set by RandomGraph.randomFlograph() method
+
 	/** Constructor for directed graph
 	 *  @param n is the number of vertices
 	 *  @param ecap is the max number of edges to provide space for
@@ -36,6 +39,7 @@ export default class Flograph extends Digraph {
 		this.#f = new Int32Array(this.edgeCapacity+1);
 		this.#cap = new Int32Array(this.edgeCapacity+1);
 		this.#source = 1; this.#sink = this.n;
+		this._ssCapScale = 1;
 		if (this.floored) this.addFloors();
 	} 
 
@@ -430,12 +434,12 @@ export default class Flograph extends Digraph {
 	 *  provided by caller; for example randomCapacities(randomInteger, 1, 10)
 	 *  will assign random integer capacities in 1..10.
 	*/
-	randomCapacities(scale, f) {
-		let fargs = [...arguments].slice(2);
+	randomCapacities(f) {
+		let fargs = [...arguments].slice(1);
 		let s = this.source; let t = this.sink;
 		for (let e = this.first(); e != 0; e = this.next(e)) {
 			let c = f(...fargs);
-			if (this.tail(e) == s || this.head(e) == t) c *= scale;
+			if (this.tail(e) == s || this.head(e) == t) c *= this._ssCapScale;
 			this.setCapacity(e, Math.max(c, this.floor(e)));
 		}
 	}

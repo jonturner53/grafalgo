@@ -101,31 +101,32 @@ function maketests(floor) {
 	cases.push({'name': 'hardcase(10,20)', 'g': maxflowHardcase(10,20),
 				'value': 8000});
 
-	cases.push({'name': 'small random', 'g': randomFlograph(3, 4, 2, 4, 6, 2),
+	//cases.push({'name': 'small random', 'g': randomFlograph(3, 4, 2, 4, 6, 2),
+	cases.push({'name': 'small random', 'g': randomFlograph(14, 3, 2, 2, 2), 
 				'value': 0});
 	if (floor) {
-		cases[cases.length-1].g.randomCapacities(10, randomInteger, 1, 9);
+		cases[cases.length-1].g.randomCapacities(randomInteger, 1, 9);
 		cases[cases.length-1].g.randomFloors(randomInteger, 0, 2);
 	} else {
-		cases[cases.length-1].g.randomCapacities(10, randomInteger, 1, 9);
+		cases[cases.length-1].g.randomCapacities(randomInteger, 1, 9);
 	}
 
 	cases.push({'name': 'medium random',
-				'g': randomFlograph(3, 20, 2, 10, 50, 10), 'value': 0});
+				'g': randomFlograph(62, 10, 10, 2, 2), 'value': 0});
 	if (floor) {
-		cases[cases.length-1].g.randomCapacities(5, randomInteger, 1, 99);
+		cases[cases.length-1].g.randomCapacities(randomInteger, 1, 99);
 		cases[cases.length-1].g.randomFloors(randomInteger, 0, 30);
 	} else {
-		cases[cases.length-1].g.randomCapacities(10, randomInteger, 1, 99);
+		cases[cases.length-1].g.randomCapacities(randomInteger, 1, 99);
 	}
 
 	cases.push({'name': 'large  random',
-				'g': randomFlograph(3, 50, 2, 20, 100, 20), 'value': 0});
+				'g': randomFlograph(152, 20, 20, 2, 2), 'value': 0});
 	if (floor) {
-		cases[cases.length-1].g.randomCapacities(5, randomInteger, 1, 99);
+		cases[cases.length-1].g.randomCapacities(randomInteger, 1, 99);
 		cases[cases.length-1].g.randomFloors(randomInteger, 0, 30);
 	} else {
-		cases[cases.length-1].g.randomCapacities(10, randomInteger, 1, 99);
+		cases[cases.length-1].g.randomCapacities(randomInteger, 1, 99);
 	}
 
 	return cases;

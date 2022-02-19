@@ -92,70 +92,37 @@ export function randomBigraph(n1, n2, d1) {
 	return g;
 }
 
-/** Generate a random flograph.
- *  @param p is number of levels
- *  @param q is size of levels
- *  @param k is how max # of levels edges can go back
- *  @param d is the average out-degree of all non source/sink vertices
- *  @param mc is the number of edges from one level to the next
- *  @param ms is the number of edges from the source and the number to the sink
- *  @return a flograph with 2+p*q vertices and ms + d*(n-2) edges, where the
- *  non-source/sink vertices are divided into p groups of q vertices and edges
- *  from level i, may go to vertices in levels i-k up to i+1.
-
-export function randomFlograph(p, q, k, m) {
-	assert(p>1 && q>1);
-	let n = 2 + p*q;
-	let mm = 2*q + (p-1 + k*(p-k) + (k*(k-1)/2))*q*q + p*q*(q-1);
-	m = Math.min(m, mm);
-	let g = new Flograph(n, m);
-	// setup source/sink edges
-	g.setSource(1); g.setSink(n);
-	for (let i = 1; i <= q; i++) {
-		let e;
-		e = g.join(g.source, g.source+i);
-		e = g.join(g.sink-i, g.sink); 
-	}
-	// add more edges
-	add2graph(g, m, m > mm/2,
-					([u,v]) => {
-						let i = Math.floor((u-2)/q);
-						let j = Math.floor((v-2)/q);
-						let r = Math.floor((u-2)%q);
-						let s = Math.floor((v-2)%q);
-						if (u == 0) return [2,3];
-						if (v != u-1 && (s<q-1 || j<=i && j<p-1))
-							return [u,v+1];
-						if (v == u-1)
-							return (u == n-1 ? null : [u,u+1]);
-						return (r < q-1 ? [u+1,2+Math.max(0,(i-k)*q)] :
-										  [u+1,2+Math.max(0,((i+1)-k)*q)]);
-					},
-					() => { let u = randomInteger(2,n-1);
-							let i = Math.floor((u-2)/q);
-							let r = Math.floor((u-2)%q);
-							let v = randomInteger(2+Math.max(0, (i-k)*q),
-												  2+Math.min(n-1, (i+1)*q-1));
-							return [u, v < u ? v : v+1]});
-	return g;
-}
-*/
-
-export function randomFlograph(p, q, k, d, mc, ms) {
+/** Generate a random flograph with one or more "small cuts".
+ *  @param n is requested number of vertices
+ *  @param d is average out-degree of non-source/sink vertices
+ *  @param ssd is out-degree of source and in-degree of sink
+ *  @param ncuts is number of small cuts to be placed in graph;
+ *  number of edges per cut is constrained to make it highly likely that
+ *  the minimum cut occurs at or close to one of these small cuts;
+ *  the cuts divide the graph into vertex groups of equal size
+ *  @return the computed graph.
+ */
+export function randomFlograph(n, d, ssd=d, ncuts=1, lookback=1) {
+	let p = ncuts+1;  // number of vertex groups
+	let q = ~~((n-2)/p); // size of vertex groups (may reduce vertex count) 
+	let k = lookback;
+	let mc = ~~(.25 * d*ssd/(1+Math.min(k, ssd/q)));
 	assert(p>1 && q>1 && 1<d && d*q <= q*(q-1)+mc);
-	let n = 2 + p*q; let m = ms + d*(n-2);
+
+	n = 2 + p*q; let m = ~~(ssd + d*(n-2));
 	let g = new Flograph(n, m);
 	g.setSource(1); g.setSink(g.n);
+	g._ssCapScale = 4 * (mc/ssd);
 
 	// add source edges
-	let nextm = ms;
-	add2graph(g, nextm, ms > q/3,
+	let nextm = ssd;
+	add2graph(g, nextm, ssd > q/3,
 		([u,v]) => u == 0 ? [1,2] : (v < q+1 ? [u,v+1] : null),
 		() => [1, randomInteger(2, q+1)]);
 
 	// add sink edges
-	nextm += ms;
-	add2graph(g, nextm, ms > q/3,
+	nextm += ssd;
+	add2graph(g, nextm, ssd > q/3,
 		([u,v]) => u == 0 ? [n-q,n] : (u < n-1 ? [u+1,v] : null),
 		() => [randomInteger(n-q, n-1), n]);
 
@@ -173,7 +140,7 @@ export function randomFlograph(p, q, k, d, mc, ms) {
 	// add the remaining edges
 	for (let i = 0; i < p; i++) {
 		let kk = Math.min(k, i)
-		nextm += (i < p-1 ? d*q-mc : d*q-ms);
+		nextm += (i < p-1 ? d*q-mc : d*q-ssd);
 		add2graph(g, nextm, d*q > (i*q*q + q*(q-1)/2)/3,
 				([u,v]) => {
 					if (u == 0)

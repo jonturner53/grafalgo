@@ -36,6 +36,7 @@ export default function maxflowFFmc(fg, trace=false) {
 	for (let e = g.first(); e != 0; e = g.next(e)) 
 		maxCap = Math.max(maxCap, g.cap(e, g.tail(e)));
 	for (scale = 1; scale <= maxCap/2; scale *= 2) {}   
+//console.log(`maxCap=${maxCap} scale=${scale}`);
 
 	while (findpath(g.source)) {
 		findpathCount++;
@@ -54,7 +55,7 @@ export default function maxflowFFmc(fg, trace=false) {
 function findpath(s) {
 	let q = new List(g.n);
 
-	while (scale > 0) {
+	while (scale >= 1) {
 		pedge.fill(0);
 		q.enq(g.source);
 		while (!q.empty()) {
