@@ -231,6 +231,27 @@ export default class Flograph extends Digraph {
 		return reached;
 	}
 
+	/** Return flow statistics. 
+	 *  @return an object containing several statistics about the current
+	 *  flow (assumed to be a max flow); these include the value of the
+	 *  flow, the number of vertices reachable from the source (not counting
+	 *  source), the number of edges crossing the cut and the capacity of
+	 *  the edges crossing the cut.
+	 */
+	flowStats() {
+		let f = this.totalFlow();
+		let reachable = this.reachable();
+		let cutsize = 0; let cutcap = 0;
+		for (let u = reachable.first(); u != 0; u = reachable.next(u)) {
+			for (let e = this.firstOut(u); e != 0; e = this.nextOut(u, e)) {
+				if (reachable.contains(this.head(e))) continue;
+				cutsize++; cutcap += this.cap(e);
+			}
+		}
+		return { 'totalFlow': f, 'numReachable': reachable.length-1,
+				 'cutSize': cutsize, 'cutCapacity': cutcap };
+	}
+
 	/** Return the current flow cost (sum of flow*cost for all edges). */
 	totalCost() {
 		let cost = 0;
