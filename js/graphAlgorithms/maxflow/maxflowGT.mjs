@@ -28,16 +28,16 @@ let balanceSteps;	// number of steps in balance operations
 /** Compute maximum flow push-relabel algorithm of Goldman & Tarjan.
  *  @param fg is Flograph, possibly with some initial flow already present.
  *  @param trace is a flag that enables execution tracing
- *  @param batch is a flag that enables batch-relabeling instead of
- *  incremental relabeling
+ *  @param relabThresh is number of steps in incremental relabeling
+ *  operations per phase
  *  @param getUbal is function that returns next unbalanced vertex
  *  @param putUbal is function that adds vertex to unbalanced set
  */
-export default function maxflowGK(fg, trace, batch, getUbal, putUbal) {
+export default function maxflowGK(fg, trace, relabThresh, getUbal, putUbal) {
 	g = fg;
-	excess = new Array(g.n+1); excess[0] = 0;
-	nextedge = new Array(g.n+1); nextedge[0] = 0;
-	d = new Array(g.n+1); d[0] = 0;
+	excess = new Int32Array(g.n+1); 
+	nextedge = new Int32Array(g.n+1);
+	d = new Int32Array(g.n+1);
 	getUnbal = getUbal; putUnbal = putUbal;
 
 	relabelSteps = 0;
@@ -52,6 +52,8 @@ export default function maxflowGK(fg, trace, batch, getUbal, putUbal) {
 		if (v != g.sink) excess[v] += f;
 	}
 	relabelAll();
+	nextedge[g.source] = nextedge[g.sink] = -1; // dummy non-zero value
+	let trigger = relabelSteps; let allowRelab = (relabThresh > 0);
 
 	let ts = '';
 	if (trace)
@@ -63,16 +65,17 @@ export default function maxflowGK(fg, trace, batch, getUbal, putUbal) {
 			ts += `${g.index2string(u)} ${d[u]} ${excess[u]} ` +
 				  `${g.edge2string(nextedge[u])}\n`;
 		}
-		if (batch) {
+		if (!allowRelab) {
 			balance(u); u = getUnbal();
 			if (u != 0) continue;
 			relabelAll();
+			trigger = relabelSteps; allowRelab = (relabThresh > 0);
 			if (trace) ts = ts.slice(0,-1) + ' ***\n';
-		} else if (!batch && !balance(u)) {
-			relabelSteps++;
+		} else if (allowRelab && !balance(u)) {
 			d[u] = 1 + minlabel(u);
 			nextedge[u] = g.firstAt(u);
 			putUnbal(u, d[u]);
+			if (relabelSteps > trigger + relabThresh) allowRelab = false;
 			if (trace) ts = ts.slice(0,-1) + ' ***\n';
 		}
 		u = getUnbal();
@@ -118,9 +121,9 @@ export function relabelAll() {
 
     for (let u = 1; u <= g.n; u++) {
 		relabelSteps++;
+		if (u == g.source || u == g.sink) continue;
 		nextedge[u] = g.firstAt(u);
-		if (excess[u] > 0 && u != g.source && u != g.sink)
-			putUnbal(u, d[u]);
+		if (excess[u] > 0) putUnbal(u, d[u]);
 	}
 }
 
@@ -133,6 +136,7 @@ export function relabelAll() {
 export function minlabel(u) {
 	let small = 2*g.n;
 	for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+		relabelSteps++;
 		if (g.res(e,u) > 0)
 			small = Math.min(small, d[g.mate(u,e)]);
 	}

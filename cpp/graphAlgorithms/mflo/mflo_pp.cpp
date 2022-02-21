@@ -24,11 +24,11 @@ mflo_pp::mflo_pp(Graph_f& g1) : g(&g1) {
 		nextedge[u] = g->firstAt(u); excess[u] = 0;
 	}
 	vertex s = g->src();
-        for (edge e = g->firstOut(s); e != 0; e = g->nextAt(s,e)) {
+    for (edge e = g->firstOut(s); e != 0; e = g->nextAt(s,e)) {
 		flow ff = g->res(s,e); g->addFlow(s,e,ff);
-                vertex v = g->head(e);
-                if (v != g->snk()) excess[v] += ff;
-        }
+    	vertex v = g->head(e);
+    	if (v != g->snk()) excess[v] += ff;
+    }
 	d = new int[g->n()+1];
 
 	// constructor of derived class initializes additional data
@@ -42,7 +42,7 @@ mflo_pp::~mflo_pp() { delete [] d; delete [] excess; delete [] nextedge; }
 void mflo_pp::maxFlowIncr() {
 	initdist();
 	vertex s = g->src();
-        for (edge e = g->firstOut(s); e != 0; e = g->nextAt(s,e)) {
+    for (edge e = g->firstOut(s); e != 0; e = g->nextAt(s,e)) {
 		vertex v = g->head(e);
 		if (excess[v] > 0) addUnbal(v);
 	}
@@ -62,24 +62,24 @@ void mflo_pp::maxFlowIncr() {
 void mflo_pp::maxFlowBatch() {
 	initdist();
 	vertex s = g->src();
-        for (edge e = g->firstOut(s); e != 0; e = g->nextAt(s,e)) {
+    for (edge e = g->firstOut(s); e != 0; e = g->nextAt(s,e)) {
 		vertex v = g->head(e);
 		if (excess[v] > 0) addUnbal(v);
 	}
 	vertex u = removeUnbal();
-     	while (u != 0) {
-     		do {
+    while (u != 0) {
+     	do {
 			balance(u);
 			u = removeUnbal();
 		} while (u != 0);
-                initdist();
-                for (u = 1; u <= g->n(); u++) {
+        initdist();
+        for (u = 1; u <= g->n(); u++) {
 			if (u == g->src() || u == g->snk()) continue;
-                        nextedge[u] = g->firstAt(u);
-                        if (excess[u] > 0) addUnbal(u);
-                }
-		u = removeUnbal();
+            nextedge[u] = g->firstAt(u);
+            if (excess[u] > 0) addUnbal(u);
         }
+		u = removeUnbal();
+    }
 	return;
 }
 /** Compute exact distance labels and return in distance vector.

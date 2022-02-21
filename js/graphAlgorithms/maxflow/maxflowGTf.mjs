@@ -15,9 +15,9 @@ import maxflowGT from './maxflowGT.mjs';
  *  @param fg is Flograph, possibly with some initial flow already present.
  *  @return the total flow added to fg
  */
-export default function maxflowGTf(fg, trace=false, batch=true) {
+export default function maxflowGTf(fg, trace=false, relabThresh=fg.m) {
 	unbal = new List(fg.n);
-	return maxflowGT(fg, trace, batch, getUnbal, putUnbal);
+	return maxflowGT(fg, trace, relabThresh, getUnbal, putUnbal);
 }
 
 let unbal;

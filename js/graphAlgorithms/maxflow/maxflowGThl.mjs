@@ -15,11 +15,11 @@ import maxflowGT from './maxflowGT.mjs';
  *  @param fg is Flograph, possibly with some initial flow already present.
  *  @return the total flow added to fg
  */
-export default function maxflowGTf(fg, trace=false, batch=true) {
+export default function maxflowGTf(fg, trace=false, relabThresh=g.m) {
 	unbal = new ListSet(fg.n);
 	ubvec = new Array(2*fg.n+1).fill(0);
 	top = 0;
-	return maxflowGT(fg, trace, batch, getUnbal, putUnbal);
+	return maxflowGT(fg, trace, relabThresh, getUnbal, putUnbal);
 }
 
 let unbal;		// ListSet where each list contains vertices with same distance label
