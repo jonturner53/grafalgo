@@ -25,6 +25,8 @@ let relabelSteps;	// number of steps spent on relabeling
 let balanceCount;	// number of balance operations
 let balanceSteps;	// number of steps in balance operations
 
+let traceString;
+
 /** Compute maximum flow push-relabel algorithm of Goldman & Tarjan.
  *  @param fg is Flograph, possibly with some initial flow already present.
  *  @param trace is a flag that enables execution tracing
@@ -57,36 +59,36 @@ export default function maxflowGK(fg, getUbal, putUbal, trace=false,
 	let trigger = relabelSteps + relabThresh;
 	let batch = (relabThresh == 0);
 
-	let ts = '';
+	traceString = '';
 	if (trace)
-		ts += 'unbalanced vertex, distance label, excess, nextedge\n';
+		traceString +=  'unbalanced vertex, distance label, ' +
+						'excess, push edges\n';
 
 	let u = getUnbal();
 	while (u != 0) {
 		if (trace) {
-			ts += `${g.index2string(u)} ${d[u]} ${excess[u]} ` +
-				  `${g.edge2string(nextedge[u])}\n`;
+			traceString += `${g.index2string(u)} ${d[u]} ${excess[u]}`;
 		}
 		if (batch) {
-			balance(u); u = getUnbal();
+			balance(u, trace); u = getUnbal();
 			if (u == 0) {
 				relabelAll(); u = getUnbal();
 				trigger = relabelSteps + relabThresh;
 				batch = (relabThresh == 0);
-				if (trace) ts = ts.slice(0,-1) + ' ***\n';
-			}
+				if (trace) traceString += ' **\n';
+			} else if (trace) traceString += '\n';
 		} else if (!batch) {
-			if (!balance(u)) {
+			if (!balance(u, trace)) {
 				d[u] = 1 + minlabel(u);
 				nextedge[u] = g.firstAt(u);
 				putUnbal(u, d[u]);
-			}
+				if (trace) traceString += ' *\n';
+			} else if (trace) traceString += '\n';
 			u = getUnbal();
 			if (relabelSteps > trigger) batch = true;
-			if (trace) ts = ts.slice(0,-1) + ' ***\n';
 		}
 	}
-	return [g.totalFlow(), ts, {'relabelSteps': relabelSteps,
+	return [g.totalFlow(), traceString, {'relabelSteps': relabelSteps,
 								'balanceCount': balanceCount,
 								'balanceSteps': balanceSteps} ];
 }
@@ -110,7 +112,7 @@ export function minlabel(u) {
  *  @param u is a vertex
  *  @return true if u was successfully balanced
  */
-export function balance(u) {
+export function balance(u, trace) {
 	balanceCount++;
 	if (excess[u] <= 0) return true;
 	for (let e = nextedge[u]; e != 0; e = nextedge[u]) {
@@ -120,6 +122,7 @@ export function balance(u) {
 			let x = Math.min(excess[u],g.res(e,u));
 			g.addFlow(e,u,x); excess[u] -= x; excess[v] += x;
 			if (v != g.source && v != g.sink) putUnbal(v, d[v]);
+			if (trace) traceString += ' ' + g.edge2string(e);
 			if (excess[u] == 0) return true;
 		}
 		nextedge[u] = g.nextAt(u,e);
