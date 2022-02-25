@@ -16,12 +16,8 @@ import maxflowGT from './maxflowGT.mjs';
  *  @return the total flow added to fg
  */
 export default function maxflowGTf(fg, trace=false, relabThresh=fg.m) {
-	unbal = new List(fg.n);
-	return maxflowGT(fg, trace, relabThresh, getUnbal, putUnbal);
+	let unbal = new List(fg.n);
+	function putUnbal(u) { if (!unbal.contains(u)) unbal.enq(u); }
+	function getUnbal(u) { return unbal.deq(); }
+	return maxflowGT(fg, getUnbal, putUnbal, trace, relabThresh);
 }
-
-let unbal;
-
-function putUnbal(u) { if (!unbal.contains(u)) unbal.enq(u); }
-
-function getUnbal(u) { return unbal.deq(); }
