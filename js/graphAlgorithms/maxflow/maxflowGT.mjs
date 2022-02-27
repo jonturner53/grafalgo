@@ -122,7 +122,7 @@ export function balance(u, trace) {
 			let x = Math.min(excess[u],g.res(e,u));
 			g.addFlow(e,u,x); excess[u] -= x; excess[v] += x;
 			if (v != g.source && v != g.sink) putUnbal(v, d[v]);
-			if (trace) traceString += ' ' + g.edge2string(e) + excess[u];
+			if (trace) traceString += ' ' + g.edge2string(e);
 			if (excess[u] == 0) return true;
 		}
 		nextedge[u] = g.nextAt(u,e);
