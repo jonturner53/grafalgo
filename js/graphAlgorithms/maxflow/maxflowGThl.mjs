@@ -12,12 +12,12 @@ import maxflowGT from './maxflowGT.mjs';
 
 /** Compute a maximum flow in a graph using the fifo version of
  *  Goldman & Tarjan's push-relabel algorithm.
- *  @param fg is Flograph, possibly with some initial flow already present.
- *  @return the total flow added to fg
+ *  @param g is Flograph, possibly with some initial flow already present.
+ *  @return the total flow added to g
  */
-export default function maxflowGTf(fg, trace=false, relabThresh=g.m) {
-	let unbal = new ListSet(fg.n);
-	let ubvec = new Int32Array(2*fg.n+1);
+export default function maxflowGTf(g, trace=false, relabThresh=g.m) {
+	let unbal = new ListSet(g.n);
+	let ubvec = new Int32Array(2*g.n+1);
 	let top = 0;
 	function putUnbal(u, du) {
 		if (ubvec[du] == u || !unbal.singleton(u)) return;
@@ -29,5 +29,5 @@ export default function maxflowGTf(fg, trace=false, relabThresh=g.m) {
 		while (top > 0 && ubvec[top] == 0) top--;
 		return u;
 	}
-	return maxflowGT(fg, getUnbal, putUnbal, trace, relabThresh);
+	return maxflowGT(g, getUnbal, putUnbal, trace, relabThresh);
 }

@@ -35,7 +35,7 @@ let traceString;
  *  @param relabThresh is number of steps in incremental relabeling
  *  operations before switching to batch mode
  */
-export default function maxflowGK(fg, getUbal, putUbal, trace=false,
+export default function maxflowGT(fg, getUbal, putUbal, trace=false,
 								  relabThresh=fg.m) {
 	g = fg;
 	excess = new Int32Array(g.n+1); 
@@ -77,15 +77,15 @@ export default function maxflowGK(fg, getUbal, putUbal, trace=false,
 				batch = (relabThresh == 0);
 				if (trace) traceString += ' **\n';
 			} else if (trace) traceString += '\n';
-		} else if (!batch) {
+		} else {
 			if (!balance(u, trace)) {
 				d[u] = 1 + minlabel(u);
 				nextedge[u] = g.firstAt(u);
 				putUnbal(u, d[u]);
+				if (relabelSteps > trigger) batch = true;
 				if (trace) traceString += ' *\n';
 			} else if (trace) traceString += '\n';
 			u = getUnbal();
-			if (relabelSteps > trigger) batch = true;
 		}
 	}
 	return [g.totalFlow(), traceString, {'relabelSteps': relabelSteps,
@@ -122,7 +122,7 @@ export function balance(u, trace) {
 			let x = Math.min(excess[u],g.res(e,u));
 			g.addFlow(e,u,x); excess[u] -= x; excess[v] += x;
 			if (v != g.source && v != g.sink) putUnbal(v, d[v]);
-			if (trace) traceString += ' ' + g.edge2string(e);
+			if (trace) traceString += ' ' + g.edge2string(e) + excess[u];
 			if (excess[u] == 0) return true;
 		}
 		nextedge[u] = g.nextAt(u,e);

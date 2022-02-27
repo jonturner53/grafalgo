@@ -37,7 +37,6 @@ function main() {
 	let trace = (args.indexOf('trace') >= 0);
 	let stats = (args.indexOf('stats') >= 0);
 	let floor = (args.indexOf('floor') >= 0);
-	let batch = (args.indexOf('nobatch') < 0);
 	let all = (args.indexOf('all') >= 0);
 
 	// build array of algorithms to run
@@ -54,7 +53,7 @@ function main() {
 	let testcases = maketests(floor);
 
 	try {
-		runtests(testcases, algorithms, trace, stats, floor, batch);
+		runtests(testcases, algorithms, trace, stats, floor);
 	} catch(e) {
 		if (e instanceof AssertError)
 			if (e.message.length > 0)
@@ -132,7 +131,7 @@ function maketests(floor) {
 	return cases;
 }
 
-function runtests(testcases, algorithms, trace, stats, floor, batch) {
+function runtests(testcases, algorithms, trace, stats, floor) {
 	console.log('running tests');
 	for (let tcase of testcases) {
 		let g = tcase.g;
@@ -146,14 +145,14 @@ function runtests(testcases, algorithms, trace, stats, floor, batch) {
         	let t0 = Date.now();
 			let [f, traceString, statsObj] = (floor ?
 					minmaxflow(g, algo.code, trace && small) :
-					algo.code(g, trace && small, batch));
+					algo.code(g, trace && small));
         	let t1 = Date.now();
 			if (trace && small)
 				console.log(`${algo.name}\n${traceString}\n${g.toString(0,1)}`);
 			if (stats) {
 				let ss = JSON.stringify(statsObj);
-				console.log(`${algo.name}, flow ${f}, ` +
-							`cut size ${g.reachable().length}, ${t1-t0}ms, ${ss}`);
+				console.log(`${algo.name}, flow ${f}, cut size` +
+							`${g.reachable().length}, ${t1-t0}ms, ${ss}`);
 			}
 			let tag = `${algo.name}(${tcase.name})`
 			if (floor && f < 0) {
