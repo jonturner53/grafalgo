@@ -21,6 +21,7 @@ let d;			// d[u] is distance label at u
 let getUnbal;	// reference to function that gets next unbalanced vertex
 let putUnbal;	// reference to function that adds a vertex to unbalanced set
 
+let relabelCount;	// number of relabel operations
 let relabelSteps;	// number of steps spent on relabeling
 let balanceCount;	// number of balance operations
 let balanceSteps;	// number of steps in balance operations
@@ -43,9 +44,8 @@ export default function maxflowGT(fg, getUbal, putUbal, trace=false,
 	d = new Int32Array(g.n+1);
 	getUnbal = getUbal; putUnbal = putUbal;
 
-	relabelSteps = 0;
-	balanceCount = 0;
-	balanceSteps = 0;
+	relabelCount = 0; relabelSteps = 0;
+	balanceCount = 0; balanceSteps = 0;
 
 	excess.fill(0); let s = g.source;
 	for (let e = g.firstOut(s); e != 0; e = g.nextAt(s,e)) {
@@ -79,6 +79,7 @@ export default function maxflowGT(fg, getUbal, putUbal, trace=false,
 			} else if (trace) traceString += '\n';
 		} else {
 			if (!balance(u, trace)) {
+				relabelCount++;
 				d[u] = 1 + minlabel(u);
 				nextedge[u] = g.firstAt(u);
 				putUnbal(u, d[u]);
@@ -88,7 +89,9 @@ export default function maxflowGT(fg, getUbal, putUbal, trace=false,
 			u = getUnbal();
 		}
 	}
-	return [g.totalFlow(), traceString, {'relabelSteps': relabelSteps,
+	return [g.totalFlow(), traceString, {
+								'relabelCount': relabelCount,
+								'relabelSteps': relabelSteps,
 								'balanceCount': balanceCount,
 								'balanceSteps': balanceSteps} ];
 }
@@ -135,6 +138,7 @@ export function balance(u, trace) {
 	and add vertices with excess flow to unbalanced set.
 */
 export function relabelAll() {
+	relabelCount++;
 	let q = new List(g.n); d.fill(2*g.n,1);
 
 	// compute distance labels for vertices that have path to sink
