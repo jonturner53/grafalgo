@@ -36,7 +36,6 @@ function main() {
 	let args = getArgs();
 	let trace = (args.indexOf('trace') >= 0);
 	let stats = (args.indexOf('stats') >= 0);
-	let floor = (args.indexOf('floor') >= 0);
 	let all = (args.indexOf('all') >= 0);
 
 	// build array of algorithms to run
@@ -50,10 +49,10 @@ function main() {
 		}
 	}
 
-	let testcases = maketests(floor);
+	let testcases = maketests();
 
 	try {
-		runtests(testcases, algorithms, trace, stats, floor);
+		runtests(testcases, algorithms, trace, stats);
 	} catch(e) {
 		if (e instanceof AssertError)
 			if (e.message.length > 0)
@@ -77,21 +76,14 @@ function getArgs() {
 	return args;
 }
 
-function maketests(floor) {
+function maketests() {
 	let cases = [];
 
 	cases.push({ 'name': 'small graph', 'g': new Flograph(), 'value': 8});
-	if (!floor) {
-		cases[cases.length-1].g.fromString(
-				'{a->[b:5 d:6] b[c:3 d:7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
-				'e[f:1 g:3 h:4] f[e:1 g:2 h:3] g[e:3 f:2 h:1] ' +
-				'h[f:3 i:4 j:5] i[g:5 j:6] ->j[]}');
-	} else {
-		cases[cases.length-1].g.fromString(
-				'{a->[b:3 d:2] b[c:3 d:2-7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
-				'e[f:1 g:3 h:4] f[e:1 g:2 h:3] g[e:3 f:2 h:1] ' +
-				'h[f:3 i:4 j:2] i[g:1-5 j:6] ->j[]}');
-	}
+	cases[cases.length-1].g.fromString(
+			'{a->[b:5 d:6] b[c:3 d:7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
+			'e[f:1 g:3 h:4] f[e:1 g:2 h:3] g[e:3 f:2 h:1] ' +
+			'h[f:3 i:4 j:5] i[g:5 j:6] ->j[]}');
 
 	cases.push({'name': 'hardcase(10,10)', 'g': maxflowHardcase(10,10),
 				'value': 2000});
@@ -100,38 +92,22 @@ function maketests(floor) {
 	cases.push({'name': 'hardcase(10,20)', 'g': maxflowHardcase(10,20),
 				'value': 8000});
 
-	//cases.push({'name': 'small random', 'g': randomFlograph(3, 4, 2, 4, 6, 2),
 	cases.push({'name': 'small random', 'g': randomFlograph(14, 3, 2, 2, 2), 
 				'value': 0});
-	if (floor) {
-		cases[cases.length-1].g.randomCapacities(randomInteger, 1, 9);
-		cases[cases.length-1].g.randomFloors(randomInteger, 0, 2);
-	} else {
-		cases[cases.length-1].g.randomCapacities(randomInteger, 1, 9);
-	}
+	cases[cases.length-1].g.randomCapacities(randomInteger, 1, 9);
 
 	cases.push({'name': 'medium random',
 				'g': randomFlograph(62, 10, 10, 2, 2), 'value': 0});
-	if (floor) {
-		cases[cases.length-1].g.randomCapacities(randomInteger, 1, 99);
-		cases[cases.length-1].g.randomFloors(randomInteger, 0, 30);
-	} else {
-		cases[cases.length-1].g.randomCapacities(randomInteger, 1, 99);
-	}
+	cases[cases.length-1].g.randomCapacities(randomInteger, 1, 99);
 
 	cases.push({'name': 'large  random',
 				'g': randomFlograph(152, 20, 20, 2, 2), 'value': 0});
-	if (floor) {
-		cases[cases.length-1].g.randomCapacities(randomInteger, 1, 99);
-		cases[cases.length-1].g.randomFloors(randomInteger, 0, 30);
-	} else {
-		cases[cases.length-1].g.randomCapacities(randomInteger, 1, 99);
-	}
+	cases[cases.length-1].g.randomCapacities(randomInteger, 1, 99);
 
 	return cases;
 }
 
-function runtests(testcases, algorithms, trace, stats, floor) {
+function runtests(testcases, algorithms, trace, stats) {
 	console.log('running tests');
 	for (let tcase of testcases) {
 		let g = tcase.g;
@@ -143,9 +119,7 @@ function runtests(testcases, algorithms, trace, stats, floor) {
 		for (let algo of algorithms) {
 			g.clearFlow();
         	let t0 = Date.now();
-			let [f, traceString, statsObj] = (floor ?
-					minmaxflow(g, algo.code, trace && small) :
-					algo.code(g, trace && small));
+			let [f, traceString, statsObj] = algo.code(g, trace && small);
         	let t1 = Date.now();
 			if (trace && small)
 				console.log(`${algo.name}\n${traceString}\n${g.toString(0,1)}`);
@@ -155,10 +129,6 @@ function runtests(testcases, algorithms, trace, stats, floor) {
 							`${g.reachable().length}, ${t1-t0}ms, ${ss}`);
 			}
 			let tag = `${algo.name}(${tcase.name})`
-			if (floor && f < 0) {
-				console.log(`${tcase.name}, ${algo.name}: no feasible flow`);
-				continue;
-			}
 			if (tcase.value != 0) assert(f, tcase.value, tag+'.value');
 			assert(maxflowVerify(g), '', tag+'.verify');
 		}
