@@ -7,8 +7,7 @@
  */
 
 import { assert, AssertError} from '../../../common/Errors.mjs';
-import maxflowHardcase from '../maxflowHardcase.mjs';
-import maxflowGTf from '../maxflowGTf.mjs';
+import maxflowD from '../maxflowD.mjs';
 import flowfloor from '../flowfloor.mjs';
 import maxflowVerify from '../maxflowVerify.mjs';
 import List from '../../../dataStructures/basic/List.mjs';
@@ -84,13 +83,14 @@ function runtests(testcases, trace) {
 			console.log(`${g.toString(0,1)}`);
 		g.clearFlow();
 		let [f, ts] = flowfloor(g, trace && small);
-		if (trace && small)
-			console.log(`${ts}\n${g.toString(0,1)}`);
 		if (f < 0) {
 			console.log(`${tcase.name} : no feasible flow`);
+			if (trace && small) console.log(`${ts}`);
 			continue;
 		}
-		[f, ts] = maxflowGTf(g, trace && small);
+		if (trace && small)
+			console.log(`hi!! ${ts}\n${g.toString(0,1)}`);
+		[f, ts] = maxflowD(g, trace && small);
 		if (trace && small)
 			console.log(`${ts}\n${g.toString(0,1)}`);
 		if (tcase.value != 0) assert(f, tcase.value, `${tcase.name} value`);

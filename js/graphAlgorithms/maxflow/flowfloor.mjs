@@ -8,7 +8,7 @@
 
 import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import maxflowGTf from './maxflowGTf.mjs';
+import maxflowD from './maxflowD.mjs';
 import { assert } from '../../common/Errors.mjs';
 
 /** Compute maximum flow in graph with positive minimum flow requirements.
@@ -45,10 +45,13 @@ export default function flowfloor(g, trace=false) {
     let e = g1.join(g.sink, g.source); g1.setCapacity(e, totalCap);
 
 	// Now, find max flow in g1 and check that floor values are all satisfied
-	let [f, ts, stats] = maxflowGTf(g1, trace);
+	let [f, ts, stats] = maxflowD(g1, trace);
+	if (f != totalFloor) {
+		ts += g1.toString(0,1); return [-1, ts, stats];
+	}
 
 	// Now transfer computed flows back into g and maximize flow
     for (let e = g.first(); e != 0; e = g.next(e))
         g.setFlow(e, g1.f(e) + g.floor(e));
-	return [f == totalFloor ? f : -1, ts, stats];
+	return [g.totalFlow(), ts, stats];
 }
