@@ -1,4 +1,4 @@
-/** @file maxflowGTf.mjs
+/** @file maxflowPPf.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,14 +8,14 @@
 
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import maxflowGT from './maxflowGT.mjs';
+import maxflowPP from './maxflowPP.mjs';
 
 /** Compute a maximum flow in a graph using the fifo version of
  *  Goldman & Tarjan's push-relabel algorithm.
  *  @param g is Flograph, possibly with some initial flow already present.
  *  @return the total flow added to g
  */
-export default function maxflowGTf(g, trace=false, relabThresh=g.m) {
+export default function maxflowPPf(g, trace=false, relabThresh=g.m) {
 	let unbal = new ListSet(g.n);
 	let ubvec = new Int32Array(2*g.n+1);
 	let top = 0;
@@ -29,5 +29,5 @@ export default function maxflowGTf(g, trace=false, relabThresh=g.m) {
 		while (top > 0 && ubvec[top] == 0) top--;
 		return u;
 	}
-	return maxflowGT(g, getUnbal, putUnbal, trace, relabThresh);
+	return maxflowPP(g, getUnbal, putUnbal, trace, relabThresh);
 }

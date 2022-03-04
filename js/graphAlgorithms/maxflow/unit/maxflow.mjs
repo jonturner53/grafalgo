@@ -13,8 +13,8 @@ import maxflowD from '../maxflowD.mjs';
 import maxflowDST from '../maxflowDST.mjs';
 import maxflowFFmc from '../maxflowFFmc.mjs';
 import maxflowFFcs from '../maxflowFFcs.mjs';
-import maxflowGTf from '../maxflowGTf.mjs';
-import maxflowGThl from '../maxflowGThl.mjs';
+import maxflowPPf from '../maxflowPPf.mjs';
+import maxflowPPhl from '../maxflowPPhl.mjs';
 import minmaxflow from '../minmaxflow.mjs';
 import maxflowVerify from '../maxflowVerify.mjs';
 import List from '../../../dataStructures/basic/List.mjs';
@@ -28,8 +28,8 @@ let algomap = {
 	'DST' : maxflowDST,
 	'FFmc' : maxflowFFmc,
 	'FFcs' : maxflowFFcs,
-	'GTf' : maxflowGTf,
-	'GThl' : maxflowGThl
+	'PPf' : maxflowPPf,
+	'PPhl' : maxflowPPhl
 }
 
 function main() {

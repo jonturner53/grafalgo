@@ -89,7 +89,7 @@ function runtests(testcases, trace) {
 			continue;
 		}
 		if (trace && small)
-			console.log(`hi!! ${ts}\n${g.toString(0,1)}`);
+			console.log(`${ts}\n${g.toString(0,1)}`);
 		[f, ts] = maxflowD(g, trace && small);
 		if (trace && small)
 			console.log(`${ts}\n${g.toString(0,1)}`);

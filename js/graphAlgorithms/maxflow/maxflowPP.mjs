@@ -1,4 +1,4 @@
-/** @file maxflowGT.mjs
+/** @file maxflowPP.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -10,7 +10,7 @@ import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import { assert } from '../../common/Errors.mjs';
 
-/** Common code shared by various instances of the push-relabel
+/** Common code shared by various instances of the preflow-push
  *  algorithm of Goldman and Tarjan.
  */
 
@@ -36,7 +36,7 @@ let traceString;
  *  @param relabThresh is number of steps in incremental relabeling
  *  operations before switching to batch mode
  */
-export default function maxflowGT(fg, getUbal, putUbal, trace=false,
+export default function maxflowPP(fg, getUbal, putUbal, trace=false,
 								  relabThresh=fg.m) {
 	g = fg;
 	excess = new Int32Array(g.n+1); 
