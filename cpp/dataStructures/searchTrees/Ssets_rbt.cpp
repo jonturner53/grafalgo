@@ -130,21 +130,21 @@ void Ssets_rbt::remove(index i, bst& root) {
 	// after deletion and rebalancing
 
 	// remove i from the tree
-        index j;
-        if (left(i) != 0 && right(i) != 0) {
-                for (j = left(i); right(j) != 0; j = right(j)) {}
-                swap(i,j);
-        }
-        // now, i has at most one child
-        j = (left(i) != 0 ? left(i) : right(i));
-        // j is now the index of the only child that could be non-null
+	index j;
+	if (left(i) != 0 && right(i) != 0) {
+		for (j = left(i); right(j) != 0; j = right(j)) {}
+		swap(i,j);
+	}
+	// now, i has at most one child
+	j = (left(i) != 0 ? left(i) : right(i));
+	// j is now the index of the only child that could be non-null
 	index pj = p(i);
 	if (pj != 0) {
 		if (i == left(pj)) left(pj) = j;
 		else 		   right(pj) = j;
 	}
 	if (j != 0) p(j) = pj;
-        p(i) = left(i) = right(i) = 0; rank(i) = 1;
+	p(i) = left(i) = right(i) = 0; rank(i) = 1;
 
 	rebalance2(j,pj);
 	// top is 0 or is within 2 steps of the root
@@ -174,7 +174,7 @@ void Ssets_rbt::rebalance2(index x, index px) {
 				rank(px) = r+1; x = px; px = p(x);
 			} else {
 				if (rank(nefu) == r+1) rotate(sx);
-				else 		      rotate2(nece);
+				else 			  rotate2(nece);
 				rank(px) = r+1; rank(p(px)) = r+2;
 				break;
 			}

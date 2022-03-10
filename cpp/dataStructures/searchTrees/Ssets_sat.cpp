@@ -40,7 +40,7 @@ void Ssets_sat::splaystep(index x) {
 	if (y == 0) return;
 	index z = p(y);
 	if (z != 0) {
-	        if (x == left(left(z)) || x == right(right(z)))
+			if (x == left(left(z)) || x == right(right(z)))
 			rotate(y);
 		else // x is "inner grandchild"
 			rotate(x);
@@ -79,7 +79,7 @@ index Ssets_sat::access(keytyp k, bst& t) {
 	assert (t == 0 || valid(t));
 	index x = t;
 	while (true) {
-		     if (k < kee(x) && left(x) != 0) x = left(x);
+			 if (k < kee(x) && left(x) != 0) x = left(x);
 		else if (k > kee(x) && right(x) != 0) x = right(x);
 		else break;
 	}
@@ -97,15 +97,15 @@ bool Ssets_sat::insert(index i, bst& t) {
 	if (t == 0) { t = i; return true; }
 	assert(valid(t) && p(t) == 0);
 	index x = t;
-        while (true) {
-                     if (kee(i) < kee(x) &&  left(x) != 0) x = left(x);
-                else if (kee(i) > kee(x) && right(x) != 0) x = right(x);
-                else break;
-        }
-             if (kee(i) < kee(x))  left(x) = i;
-        else if (kee(i) > kee(x)) right(x) = i;
-        else { splay(x); return false; }
-        p(i) = x;
+	while (true) {
+			 if (kee(i) < kee(x) &&  left(x) != 0) x = left(x);
+		else if (kee(i) > kee(x) && right(x) != 0) x = right(x);
+		else break;
+	}
+		 if (kee(i) < kee(x))  left(x) = i;
+	else if (kee(i) > kee(x)) right(x) = i;
+	else { splay(x); return false; }
+	p(i) = x;
 	splay(i); t = i;
 	return true;
 }
@@ -118,22 +118,22 @@ bool Ssets_sat::insert(index i, bst& t) {
  */
 void Ssets_sat::remove(index i, bst& t) {
 	assert(valid(i) && valid(t) && p(t) == 0);
-        index j;
-        if (left(i) != 0 && right(i) != 0) {
-                for (j = left(i); right(j) != 0; j = right(j)) {}
-                swap(i,j);
-        }
-        // now, i has at most one child
-        j = (left(i) != 0 ? left(i) : right(i));
-        // j is now the index of the only child that could be non-null
-        if (j != 0) p(j) = p(i);
-        if (p(i) != 0) {
-                     if (i ==  left(p(i)))  left(p(i)) = j;
-                else if (i == right(p(i))) right(p(i)) = j;
+	index j;
+	if (left(i) != 0 && right(i) != 0) {
+		for (j = left(i); right(j) != 0; j = right(j)) {}
+			swap(i,j);
+	}
+	// now, i has at most one child
+	j = (left(i) != 0 ? left(i) : right(i));
+	// j is now the index of the only child that could be non-null
+	if (j != 0) p(j) = p(i);
+	if (p(i) != 0) {
+			 if (i ==  left(p(i)))  left(p(i)) = j;
+		else if (i == right(p(i))) right(p(i)) = j;
 		t = splay(p(i));
-        } else t = j;
-        p(i) = left(i) = right(i) = 0;
-        return;
+	} else t = j;
+	p(i) = left(i) = right(i) = 0;
+	return;
 }
 
 /** Divide a bst at an item
