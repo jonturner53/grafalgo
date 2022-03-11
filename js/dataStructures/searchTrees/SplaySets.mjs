@@ -96,26 +96,8 @@ export default class SplaySets extends SortedSets {
 	 *  @param u is an item in a set
 	 */
 	delete(u) {
-		assert(this.valid(u));
-		if (u == 0 || this.singleton(u)) return;
-		if (this.left(u) != 0 && this.right(u) != 0) {
-			let pu; // find prev(u) and count steps
-			for (pu = this.left(pu); this.right(pu) != 0; pu = this.right(pu)) {
-				this._deleteSteps++;
-			}
-			swap(u, pu);
-		}
-		// now, u has at most one child
-		let c = (this.left(u) != 0 ? this.left(u) : this.right(u));
-		// c is now the only child that could be non-null
-		let pc = this.p(u);
-		if (c != 0) this.p(c, pc);
-		if (pc != 0) {
-				 if (u ==  this.left(pc))  this.left(pc, c);
-			else if (u == this.right(pc)) this.right(pc, c);
-		}
+		let [c,pc] = super.delete(u);
 		this.splay(pc);
-		this.p(u,0); this.left(u,0); this.right(u,0);
 	}
 
 	split(u) {

@@ -61,190 +61,189 @@ export default class SortedSets extends Top {
 
 		for (u = 1; u <= b.n; u++) {
 			this.left(u, b.left(u)); this.right(u, b.right(u));
-				this.p(u, b.p(u)); this.key(u, b.key(u));
-			}
-			this.clearStats();
+			this.p(u, b.p(u)); this.key(u, b.key(u));
 		}
-
-		/** Assign a new value by transferring from another SortedSets.
-		 *  @param b is another SortedSets
-		 */
-		xfer(b) {
-			if (b == this) return;
-			if (!(b instanceof SortedSets)) return;
-			this.#left = b.#left; this.#right = b.#right;
-			this.#p = b.#p; this.#key = b.#key;
-			b.#left = b.#right = b.#p = b.#key = null;
-			this.clearStats();
-		}
-		
-		/** Expand the space available for this SortedSets.
-		 *  Rebuilds old value in new space.
-		 *  @param size is the size of the resized object.
-		 */
-		expand(n) {
-			if (n <= this.n) return;
-			if (n > this.capacity) {
-				let nu = new SortedSets(this.n,
-										Math.max(n, ~~(1.5 * this.capacity)));
-				nu.assign(this); this.xfer(nu);
-			}
-			this._n = n;
-		}
-
-		/** Convert all nodes to singleton trees. */
-		clear() {
-			for (let u = 1; u <= this.n; u++) {
-				this.left(u,0); this.right(u,0); this.p(u,0);
-			}
-			this.clearStats();
-		}
-
-		clearStats() {
-			this._insertSteps = this._deleteSteps = this._splitSteps = 0;
-			this._accessSteps = this._findSteps = 0;
-		}
-
-		/** Get the capacity of the object. */
-		get capacity() { return this.#left.length-1; }
-
-		/* Get or set the left child of a node.
-		 * @param u is a node
-		 * @param v is an optional new left child for u
-		 * @return the left child of u
-		 */
-		left(u, v=-1) {
-			if (v >= 0) this.#left[u] = v;
-			return this.#left[u];
-		}
-
-		/* Get or set the right child of a node. */
-		right(u, v=-1) {
-			if (v >= 0) this.#right[u] = v;
-			return this.#right[u];
-		}
-
-		/* Get or set the parent of a node. */
-		p(u, v=-1) {
-			if (v >= 0) this.#p[u] = v;
-			return this.#p[u];
-		}
-
-		/* Get the key of a node. */
-		key(u) { return this.#key[u]; }
-
-		/* Set the key of a node. */
-		setkey(u, k) { this.#key[u] = k; }
-
-		/* Get the sibling of a node. */
-		sibling(u) {
-			let p = this.p(u);
-			return (u == this.left(p) ? this.right(p) : this.left(p));
-		}
-
-		/** Get grandparent of a node. */
-		gp(x) { return this.p(this.p(x)); }
-
-		/** Get uncle of a node */
-		uncle(x) { return this.sibling(this.p(x)); }
-
-		/** Get nephew of a node (far child of sibling) */
-		nephew(x) {
-			let sib = this.sibling(x);
-			return x == this.left(this.p(x)) ? this.right(sib) : this.left(sib);
-		}
-
-		/** Get neice of a node (near child of sibling) */
-		neice(x) {
-			let sib = this.sibling(x);
-			return x == this.left(this.p(x)) ? this.left(sib) : this.right(sib);
-		}
-
-		/** Determine if node is an inner grandchild. */
-		inner(x) {
-			let gp = this.gp(x);
-			return x != 0 && (x == this.left(this.right(gp)) ||
-							  x == this.right(this.left(gp))); 
-		}
-
-		/** Determine if node is an outer grandchild. */
-		outer(x) {
-			let gp = this.gp(x);
-			return x != 0 && (x == this.left(this.left(gp)) ||
-							  x == this.right(this.right(gp))); 
-		}
-
-		/** Determine if node is a singleton. */
-		singleton(u) {
-			return this.p(u) == 0 && this.left(u) == 0 && this.right(u) == 0;
-		}
-
-		// Methods for iteration. Note, iterating through a set of
-		// of k items takes time proportional to k, although individual
-		// steps may take more than constant time.
-
-		/** Get the item with smallest key. */
-		first(u) {
-			while (this.left(u)) u = this.left(u);
-			return u;
-		}
-
-		/** Get the item with the largest key. */
-		last(u) {
-			while (this.right(u)) u = this.right(u);
-			return u;
-		}
-
-		/** Get the item with the next larger key. */
-		next(u) {
-			if (this.right(u) != 0) {
-				for (u = this.right(u); this.left(u) != 0; u = this.left(u)) {}
-			} else {
-				let c = u; u = this.p(u);
-				while (u != 0 && this.right(u) == c) { c = u; u = this.p(u); }
-			}
-			return u;
-		}
-
-		/** Get the item with the next smaller key. */
-		prev(u) {
-			if (this.left(u) != 0) {
-				for (u = this.left(u); this.right(u) != 0; u = this.right(u)) {}
-			} else {
-				let c = u; u = this.p(u);
-				while (u != 0 && this.left(u) == c) { c = u; u = this.p(u); }
-			}
-			return u;
-		}
-
-		/** Perform a rotation in a search tree.
-		 *  @param x is a node in some search tree; this method
-		 *  moves x up into its parent's position
-		 */
-		rotate(x) {
-			let px = this.p(x); let gpx = this.p(px);
-			if (px == 0) return;
-			let cx = 0;
-			if (x == this.left(px)) {
-				cx = this.right(x); this.left(px, cx); this.right(x, px);
-			} else {
-				cx = this.left(x); this.right(px, cx); this.left(x, px);
-			}
-			this.p(px, x); if (cx != 0) this.p(cx, px);
-				 if (px == this.left(gpx)) this.left(gpx, x);
-			else if (px == this.right(gpx)) this.right(gpx, x);
-			this.p(x, gpx);
-		}
-		
-		/** Perform a double-rotation on a search tree.
-		 *  @param x is a node in the search tree; the operation moves x into
-		 *  its grandparent's position.
-		 */
-		rotate2(x) {
-			if (this.outer(x))      { this.rotate(this.p(x)); this.rotate(x); }
-	    else if (this.inner(x)) { this.rotate(x); this.rotate(x); }
+		this.clearStats();
 	}
 
+	/** Assign a new value by transferring from another SortedSets.
+	 *  @param b is another SortedSets
+	 */
+	xfer(b) {
+		if (b == this) return;
+		if (!(b instanceof SortedSets)) return;
+		this.#left = b.#left; this.#right = b.#right;
+		this.#p = b.#p; this.#key = b.#key;
+		b.#left = b.#right = b.#p = b.#key = null;
+		this.clearStats();
+	}
+	
+	/** Expand the space available for this SortedSets.
+	 *  Rebuilds old value in new space.
+	 *  @param size is the size of the resized object.
+	 */
+	expand(n) {
+		if (n <= this.n) return;
+		if (n > this.capacity) {
+			let nu = new SortedSets(this.n,
+									Math.max(n, ~~(1.5 * this.capacity)));
+			nu.assign(this); this.xfer(nu);
+		}
+		this._n = n;
+	}
+
+	/** Convert all nodes to singleton trees. */
+	clear() {
+		for (let u = 1; u <= this.n; u++) {
+			this.left(u,0); this.right(u,0); this.p(u,0);
+		}
+		this.clearStats();
+	}
+
+	clearStats() {
+		this._insertSteps = this._deleteSteps = this._splitSteps = 0;
+		this._accessSteps = this._findSteps = 0;
+	}
+
+	/** Get the capacity of the object. */
+	get capacity() { return this.#left.length-1; }
+
+	/* Get or set the left child of a node.
+	 * @param u is a node
+	 * @param v is an optional new left child for u
+	 * @return the left child of u
+	 */
+	left(u, v=-1) {
+		if (v >= 0) this.#left[u] = v;
+		return this.#left[u];
+	}
+
+	/* Get or set the right child of a node. */
+	right(u, v=-1) {
+		if (v >= 0) this.#right[u] = v;
+		return this.#right[u];
+	}
+
+	/* Get or set the parent of a node. */
+	p(u, v=-1) {
+		if (v >= 0) this.#p[u] = v;
+		return this.#p[u];
+	}
+
+	/* Get the key of a node. */
+	key(u) { return this.#key[u]; }
+
+	/* Set the key of a node. */
+	setkey(u, k) { this.#key[u] = k; }
+
+	/* Get the sibling of a node. */
+	sibling(u) {
+		let p = this.p(u);
+		return (u == this.left(p) ? this.right(p) : this.left(p));
+	}
+
+	/** Get grandparent of a node. */
+	gp(x) { return this.p(this.p(x)); }
+
+	/** Get uncle of a node */
+	uncle(x) { return this.sibling(this.p(x)); }
+
+	/** Get nephew of a node (far child of sibling) */
+	nephew(x) {
+		let sib = this.sibling(x);
+		return x == this.left(this.p(x)) ? this.right(sib) : this.left(sib);
+	}
+
+	/** Get neice of a node (near child of sibling) */
+	neice(x) {
+		let sib = this.sibling(x);
+		return x == this.left(this.p(x)) ? this.left(sib) : this.right(sib);
+	}
+
+	/** Determine if node is an inner grandchild. */
+	inner(x) {
+		let gp = this.gp(x);
+		return x != 0 && (x == this.left(this.right(gp)) ||
+						  x == this.right(this.left(gp))); 
+	}
+
+	/** Determine if node is an outer grandchild. */
+	outer(x) {
+		let gp = this.gp(x);
+		return x != 0 && (x == this.left(this.left(gp)) ||
+						  x == this.right(this.right(gp))); 
+	}
+
+	/** Determine if node is a singleton. */
+	singleton(u) {
+		return this.p(u) == 0 && this.left(u) == 0 && this.right(u) == 0;
+	}
+
+	// Methods for iteration. Note, iterating through a set of
+	// of k items takes time proportional to k, although individual
+	// steps may take more than constant time.
+
+	/** Get the item with smallest key. */
+	first(u) {
+		while (this.left(u)) u = this.left(u);
+		return u;
+	}
+
+	/** Get the item with the largest key. */
+	last(u) {
+		while (this.right(u)) u = this.right(u);
+		return u;
+	}
+
+	/** Get the item with the next larger key. */
+	next(u) {
+		if (this.right(u) != 0) {
+			for (u = this.right(u); this.left(u) != 0; u = this.left(u)) {}
+		} else {
+			let c = u; u = this.p(u);
+			while (u != 0 && this.right(u) == c) { c = u; u = this.p(u); }
+		}
+		return u;
+	}
+
+	/** Get the item with the next smaller key. */
+	prev(u) {
+		if (this.left(u) != 0) {
+			for (u = this.left(u); this.right(u) != 0; u = this.right(u)) {}
+		} else {
+			let c = u; u = this.p(u);
+			while (u != 0 && this.left(u) == c) { c = u; u = this.p(u); }
+		}
+		return u;
+	}
+
+	/** Perform a rotation in a search tree.
+	 *  @param x is a node in some search tree; this method
+	 *  moves x up into its parent's position
+	 */
+	rotate(x) {
+		let px = this.p(x); let gpx = this.p(px);
+		if (px == 0) return;
+		let cx = 0;
+		if (x == this.left(px)) {
+			cx = this.right(x); this.left(px, cx); this.right(x, px);
+		} else {
+			cx = this.left(x); this.right(px, cx); this.left(x, px);
+		}
+		this.p(px, x); if (cx != 0) this.p(cx, px);
+			 if (px == this.left(gpx)) this.left(gpx, x);
+		else if (px == this.right(gpx)) this.right(gpx, x);
+		this.p(x, gpx);
+	}
+	
+	/** Perform a double-rotation on a search tree.
+	 *  @param x is a node in the search tree; the operation moves x into
+	 *  its grandparent's position.
+	 */
+	rotate2(x) {
+			if (this.outer(x))  { this.rotate(this.p(x)); this.rotate(x); }
+	    else if (this.inner(x)) { this.rotate(x); this.rotate(x); }
+	}
 
 	/** Find the id of the set containing u. */
 	find(u) {
@@ -274,7 +273,10 @@ export default class SortedSets extends Top {
 	 *  @param t is the id for a set (the root of the bst)
 	 *  @return the id of the set following insertion
 	 */
-	insert(u, t) {
+	insert(u, t) { return this._insert(u,t); }
+
+	/** Version that can be accessed by indirect descendants. */
+	_insert(u, t) {
 		assert(this.valid(u) && this.singleton(u) && (t == 0 || this.valid(t)));
 		if (t == 0 || t == u) return u;
 		let v = t; let pv = 0;
@@ -323,8 +325,13 @@ export default class SortedSets extends Top {
 
 	/** Delete an item from a set.
 	 *  @param u is an item in a set
+	 *  @return the a pair [c,pc] where c is the node that takes the place
+	 *  of u in the best and pc is its parent; useful for balanced variants
 	 */
-	delete(u) {
+	delete(u) { return this._delete(u); }
+
+	/** Version that can be accessed by indirect descendants. */
+	_delete(u) {
 		assert(this.valid(u));
 		if (this.left(u) != 0 && this.right(u) != 0) {
 			let pu; // find prev(u) and count steps
@@ -343,6 +350,7 @@ export default class SortedSets extends Top {
 			else if (u == this.right(pu)) this.right(pu, c);
 		}
 		this.p(u,0); this.left(u,0); this.right(u,0);
+		return [c,pu];
 	}
 
 	/** Join two trees a node.
@@ -483,7 +491,7 @@ export default class SortedSets extends Top {
 		for (let l of sets) {
 			let s = l[0][0];
 			for (let [i,k] of l) {
-				this.setkey(i, k); s = this.insert(i, s, k);
+				this.setkey(i, k); s = this.insert(i, s);
 			}
 		}
 		return true;

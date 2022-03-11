@@ -204,7 +204,6 @@ export default class Scanner extends Top {
 	 *  @param ld is the left delimiter for the index list (for example '[')
 	 *  @param rd is the right delimiter for the index list (for example '[')
 	 *  @return list on success, null on failure
-	 */
 	nextIndexList(ld, rd) {
 		let l = [];
 		let i0 = this.#i;
@@ -218,27 +217,38 @@ export default class Scanner extends Top {
 		}
 		return l;
 	}
+	 */
 
-	/** Get the next list of pairs from the scanned string.
-	 *  Pairs are of the form 'i:k' where i is an index and k is a Number.
+	/** Get the next list of index values from the scanned string.
+	 *  The list items may include one or more properties, separated by ':'s.
 	 *  @param ld is the left delimiter for the index list (for example '[')
 	 *  @param rd is the right delimiter for the index list (for example '[')
-	 *  @return array of pairs on success, null on failure
+	 *  @pcount is the number of properties to expect
+	 *  @return list of index values if pcount==0, and list of tuples of
+	 *  the form [i,p1,p2 ..] where i is an index and p1, p2 etc are
+	 *  property values
 	 */
-	nextPairList(ld, rd) {
+	nextIndexList(ld, rd, pcount=0) {
 		let l = []; let i0 = this.#i;
 		if (!this.verify(ld)) return null;
 		for (let i = this.nextIndex(); i; i = this.nextIndex()) {
-			if (!this.verify(':')) { this.#i = i0; return null; }
-			let k = this.nextNumber();
-			if (Number.isNaN(k)) { this.#i = i0; return null; }
-			l.push([i,k]);
+			if (pcount == 0) { l.push(i); continue; }
+			let tup = [i];
+			for (let j = 1; j <= pcount; j++) {
+				if (!this.verify(':')) { this.#i = i0; return null; }
+				let k = this.nextNumber();
+				if (Number.isNaN(k)) { this.#i = i0; return null; }
+				tup.push(k);
+			}
+			l.push(tup);
 		}
 		if (!this.verify(rd)) {
 			this.#i = i0; l.length = 0; return null;
 		}
 		return l;
 	}
+
+	nextPairList(ld, rd) { return this.nextIndexList(ld, rd, 1); }
 
 	/** Return the next line in the input.
 	 *  Read up to the next newline character and return the string up to
