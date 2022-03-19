@@ -14,19 +14,19 @@ try {
 	console.log('running basic tests');
 
 	let ss = new DualkeySets();
-	ss.fromString('{(b:2:20 a:1:23 d:4:28 c:3:27) ' +
-				  '(h:8:25 g:7:30 j:10:31 i:7:27 f:6:37) (e:5:29)}');
-	assert(ss, '{(b:2:20 a:1:23 d:4:28 c:3:27) (e:5:29) ' +
-			   '(h:8:25 g:7:30 j:10:31 i:7:27 f:6:37)}', 'a1');
+	ss.fromString('{(b:2:21 a:1:23 d:4:20 c:3:27) ' +
+				  '(h:8:20 g:7:30 j:10:31 i:7:27 f:6:37) (e:5:29)}');
+	assert(ss, '{(b:2:21 a:1:23 d:4:20 c:3:27) (e:5:29) ' +
+			   '(h:8:20 g:7:30 j:10:31 i:7:27 f:6:37)}', 'a1');
 	ss.delete(7);
-	assert(ss, '{(b:2:20 a:1:23 d:4:28 c:3:27) (e:5:29) (g:7:30)' +
-			   '(h:8:25 j:10:31 i:7:27 f:6:37)}', 'a2');
+	assert(ss, '{(b:2:21 a:1:23 d:4:20 c:3:27) (e:5:29) (g:7:30)' +
+			   '(h:8:20 j:10:31 i:7:27 f:6:37)}', 'a2');
 	ss.join(ss.find(1), 5, ss.find(10));
-	assert(ss, '{(b:2:20 a:1:23 d:4:28 c:3:27 e:5:29 ' +
-			   'h:8:25 j:10:31 i:7:27 f:6:37) (g:7:30)}', 'a3');
+	assert(ss, '{(b:2:21 a:1:23 d:4:20 c:3:27 e:5:29 ' +
+			   'h:8:20 j:10:31 i:7:27 f:6:37) (g:7:30)}', 'a3');
 	ss.split(9);
-	assert(ss, '{(b:2:20 a:1:23 d:4:28 c:3:27 e:5:29 f:6:37) ' +
-			   '(g:7:30) (h:8:25 j:10:31) (i:7:27)}', 'a4');
+	assert(ss, '{(b:2:21 a:1:23 d:4:20 c:3:27 e:5:29 f:6:37) ' +
+			   '(g:7:30) (h:8:20 j:10:31) (i:7:27)}', 'a4');
 	let r = ss.find(1); let l = new List();
 	for (let u = ss.first(r); u != 0; u = ss.next(u)) l.enq(u);
 	assert(l, '[a b c d e f]', 'a5');
@@ -36,8 +36,8 @@ try {
 	assert(ss.access(2, r), 2, 'a7');
 	assert(ss.access(5, r), 5, 'a8');
 	assert(ss.access(4, r), 4, 'a9');
-	assert(ss.access2(0,6, ss.find(1)), 2, 'a10');
-	assert(ss.access2(3,10, ss.find(1)), 3, 'a11');
+	assert(ss.findmin(3, ss.find(1)), 2, 'a10');
+	assert(ss.findmin(5, ss.find(1)), 4, 'a11');
 
 	console.log('passed tests');
 } catch(e) {

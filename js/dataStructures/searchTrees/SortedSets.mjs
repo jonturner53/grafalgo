@@ -145,8 +145,8 @@ export default class SortedSets extends Top {
 	/** Get grandparent of a node. */
 	gp(x) { return this.p(this.p(x)); }
 
-	/** Get uncle of a node */
-	uncle(x) { return this.sibling(this.p(x)); }
+	/** Get aunt of a node (parent's sibling) */
+	aunt(x) { return this.sibling(this.p(x)); }
 
 	/** Get nephew of a node (far child of sibling) */
 	nephew(x) {
@@ -221,7 +221,7 @@ export default class SortedSets extends Top {
 	 *  @param x is a node in some search tree; this method
 	 *  moves x up into its parent's position
 	 */
-	rotate(x) {
+	_rotate(x) {
 		let px = this.p(x); let gpx = this.p(px);
 		if (px == 0) return;
 		let cx = 0;
@@ -240,9 +240,9 @@ export default class SortedSets extends Top {
 	 *  @param x is a node in the search tree; the operation moves x into
 	 *  its grandparent's position.
 	 */
-	rotate2(x) {
-			if (this.outer(x))  { this.rotate(this.p(x)); this.rotate(x); }
-	    else if (this.inner(x)) { this.rotate(x); this.rotate(x); }
+	_rotate2(x) {
+			if (this.outer(x))  { this._rotate(this.p(x)); this._rotate(x); }
+	    else if (this.inner(x)) { this._rotate(x); this._rotate(x); }
 	}
 
 	/** Find the id of the set containing u. */
@@ -294,7 +294,7 @@ export default class SortedSets extends Top {
 	/** Swap the positions of two nodes in same tree.
 	 *  Helper function used by delete.
 	 */
-	swap(u, v) {
+	_swap(u, v) {
 		// save pointer fields for items u and v
 		let lu = this.left(u); let ru = this.right(u); let pu = this.p(u);
 		let lv = this.left(v); let rv = this.right(v); let pv = this.p(v);
@@ -338,7 +338,7 @@ export default class SortedSets extends Top {
 			for (pu = this.left(u); this.right(pu) != 0; pu = this.right(pu)) {
 				this._deleteSteps++;
 			}
-			swap(u, pu);
+			_swap(u, pu);
 		}
 		// now, u has at most one child
 		let c = (this.left(u) != 0 ? this.left(u) : this.right(u));
@@ -444,13 +444,29 @@ export default class SortedSets extends Top {
 	 *  @param u is a node in one of the trees of the heap
 	 *  @param isroot is true if h is the canonical element of the heap
 	 *  @return the string
+consider a prettier version
+
+        d:7
+      /    \
+   c:3      e:8
+  /   \        \
+a:2    b:5      f:10
+
+Compute width of subtree at each node.
+For leaf, it's W (say 5) and for a node with child widths
+w1, w2, its w1+W+w2. Or, preformat each node and save actual
+width. Given subtree widths, a breadth-first
+traversal can compute positions of each node and placement of
+edges from parents. So can add spaces needed for each line.
+not too bad, but not sure it's worth the trouble
 	 */
 	tree2string(u, details=false, pretty=false, label, isroot=true) {
 		if (u == 0) return '';
 		let s = '';
 		if (this.left(u) == 0 && this.right(u) == 0) {
+			if (details && isroot) s += '*';
 			s += this.index2string(u, label) + ":" + this.key(u);
-			return (details || isroot && s.length > 0) ? '(' + s + ')' : s;
+			return (details || isroot) ? '(' + s + ')' : s;
 		}
 		let ls = this.tree2string(this.left(u), details,pretty,label,false);
 		let rs = this.tree2string(this.right(u), details,pretty,label,false);

@@ -115,12 +115,12 @@ export default class BalancedSets extends SortedSets {
 	rebalance1(x) {
 		let rx = this.rank(x);
 		while (this.gp(x) != 0 && this.rank(this.gp(x)) == rx &&
-								  this.rank(this.uncle(x)) == rx) {
+								  this.rank(this.aunt(x)) == rx) {
 			x = this.gp(x); rx = this.rank(x,rx+1); this._rebal1steps++;
 		}
 		if (rx != this.rank(this.gp(x))) return;
-		if (this.outer(x)) this.rotate(this.p(x));
-		else this.rotate2(x);
+		if (this.outer(x)) this._rotate(this.p(x));
+		else this._rotate2(x);
 	}
 
 	/** Delete an item from a set.
@@ -131,8 +131,8 @@ export default class BalancedSets extends SortedSets {
 		if (c != 0) this.rebalance2(c, pc);
 	}
 
-	swap(u, v) {
-		super.swap(u, v);
+	_swap(u, v) {
+		super._swap(u, v);
 		let r = this.rank(u); this.rank(u, this.rank(v)); this.rank(v, r);
 	}
 
@@ -154,18 +154,21 @@ export default class BalancedSets extends SortedSets {
 				sx = this.right(px); nefu = this.right(sx); nece= this.left(sx);
 			}
 			if (this.rank(sx) == r+2) {
-				this.rotate(sx);
+				this._rotate(sx);
+				// rank(sibling(x) is now r+1, so on next iteration,
+				// next case applies;
+				// also, rank(p(x)) == rank(gp(x)) == r+2
 			} else { // rank(sx) == r+1
 				if (this.rank(nefu) == r && this.rank(nece) == r) {
-					this.rank(px, r+1); x = px; px = this.p(x);
+					// if rank(px) == rank(gp(x)) == r+2, this is last step
+					this.rank(px,r+1); x = px; px = this.p(x); r = this.rank(x);
 				} else {
-					if (this.rank(nefu) == r+1) this.rotate(sx);
-					else			  			this.rotate2(nece);
+					if (this.rank(nefu) == r+1) this._rotate(sx);
+					else			  			this._rotate2(nece);
 					this.rank(px, r+1); this.rank(this.p(px), r+2);
-					break;
+					return;
 				}
 			}
-			r = this.rank(x);
 		}
 	}
 

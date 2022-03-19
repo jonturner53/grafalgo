@@ -68,7 +68,7 @@ export default class DynamicTrees extends Top {
 		else { this.clear(); this._n = dt.n; }
 		this.#paths.assign(dt.#paths);
 		for (let u = 1; u <= this.n; u++) {
-			this.setSucc(u, dt.succ(u));
+			this.succ(u, dt.succ(u));
 		}
 	}
 
@@ -92,9 +92,14 @@ export default class DynamicTrees extends Top {
 	/** Get the capacity of the list (max number of items it has space for). */
 	get capacity() { return this.#paths.capacity; }
 
-	succ(p) { return this.#paths.succ(p); }
-
-	setSucc(p, s) { this.#paths.setSucc(p, s); }
+	/** Get/set the successor of a path.
+	 *  @param q is a path id
+	 *  @return the successor vertex of q (or 0 if none)
+	 */
+	succ(q, u=-1) {
+		if (u != -1) this.#paths.p(q, -u);
+		return -this.#paths.p(q);
+	}
 
 	/** Expose a path in a tree.
 	 *  @param u is a node in a tree
@@ -109,7 +114,7 @@ export default class DynamicTrees extends Top {
 		while (s != 0) {
 			[p,s] = this.#splice([p,s]);
 		}
-		this.setSucc(p, 0);
+		this.succ(p, 0);
 		return p;
 	}
 	
@@ -125,7 +130,7 @@ export default class DynamicTrees extends Top {
 		this.#spliceCount++;
 		let next_s = this.succ(this.#paths.findpath(s));
 		let [p1,p2] = this.#paths.split(s);
-		if (p1 != 0) this.setSucc(p1, s);
+		if (p1 != 0) this.succ(p1, s);
 		return [this.#paths.join(p,s,p2), next_s];
 	}
 	
@@ -137,7 +142,7 @@ export default class DynamicTrees extends Top {
 		assert(this.valid(u));
 		let p = this.expose(u);
 		let x = this.#paths.findtail(p);
-		this.setSucc(x, 0); // works because x is now both tail and path id
+		this.succ(x, 0); // works because x is now both tail and path id
 		return x;
 	}
 	
@@ -148,7 +153,7 @@ export default class DynamicTrees extends Top {
 	 */
 	findcost(u) {
 		let [v,c] = this.#paths.findpathcost(this.expose(u));
-		this.setSucc(v, 0); // works because v is also now path id
+		this.succ(v, 0); // works because v is also now path id
 		return [v,c];
 	}
 	
@@ -170,7 +175,7 @@ export default class DynamicTrees extends Top {
 	 */
 	link(t, u) {
 		assert(this.valid(t) && this.valid(u));
-		this.setSucc(this.#paths.findpath(t), u);
+		this.succ(this.#paths.findpath(t), u);
 	}
 	
 	/** Divide a tree into two subtrees.
@@ -181,9 +186,9 @@ export default class DynamicTrees extends Top {
 		assert(this.valid(u));
 		let v = this.succ(this.#paths.findpath(u));
 		let [p,q] = this.#paths.split(u);
-		if (p != 0) this.setSucc(p, u);
-		if (q != 0) this.setSucc(q, v);
-		this.setSucc(u, 0);
+		if (p != 0) this.succ(p, u);
+		if (q != 0) this.succ(q, v);
+		this.succ(u, 0);
 	}
 	
 	/** Compare two DynamicTrees for equality.
@@ -283,8 +288,11 @@ export default class DynamicTrees extends Top {
 	}
 
 	treepath2string(u, label) {
-		let p = this.#paths.findpath(u, false);
-		return this.#paths.path2string(p, 0, 0, label);
+		let q = this.#paths.findpath(u, false);
+		let s = this.#paths.path2string(q, 0, 0, label);
+		if (this.#paths.p(q) < 0)
+			s += '->' + this.index2string(-this.#paths.p(q));
+		return s;
 	}
 
 	/** Produce string representation of a subtree.
@@ -337,7 +345,7 @@ export default class DynamicTrees extends Top {
 		if (n != this.n) this.reset(n);
 		else this.clear();
 		for (let [u,c,p] of props) {
-			this.addcost(u,c); this.setSucc(u,p);
+			this.addcost(u,c); this.succ(u,p);
 		}
 		return true;
 	}
@@ -356,7 +364,7 @@ export default class DynamicTrees extends Top {
 		if (vertices.has(u) || !sc.verify(':')) return -1;
 		vertices.add(u);
 		let c = sc.nextNumber();
-		if (NumbmerisNaN(c)) return -1;
+		if (isNaN(c)) return -1;
 		props.push([u,c,parent]);
 		let n = u;	// largest vertex number seen in subtree
 		if (!sc.verify('(')) return n;

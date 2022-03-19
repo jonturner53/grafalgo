@@ -61,10 +61,10 @@ export default class SplaySets extends SortedSets {
 		if (y == 0) return;
 		let z = this.p(y);
 		if (z != 0) {
-			if (this.outer(x))  this.rotate(y);
-			else 				this.rotate(x);
+			if (this.outer(x))  this._rotate(y);
+			else 				this._rotate(x);
 		}
-		this.rotate(x);
+		this._rotate(x);
 	}
 
 	/** Find the id of the set containing u. */

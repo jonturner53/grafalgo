@@ -19,8 +19,8 @@ export default class DualkeySets extends BalancedSets {
 	#key2;		 ///< #key2[u] is second key value
 	#min2;		 ///< #min2[u] is the smallest key2 value in the subtree at u
 
-	_access2steps;	///< number of steps in access2 method
-	_fix2steps;		///< number of steps in fix2 method
+	_findminSteps;	///< number of steps in findmin method
+	_fixupSteps;		///< number of steps in fixup method
 	
 	/** Constructor for DualkeySets object.
 	 *  @param n is index range for object
@@ -84,7 +84,7 @@ export default class DualkeySets extends BalancedSets {
 	}
 
 	clearStats() {
-		super.clearStats(); this._access2steps = this._fix2steps = 0;
+		super.clearStats(); this._findminSteps = this._fixupSteps = 0;
 	}
 
 	/** Get key2 value. */
@@ -92,7 +92,7 @@ export default class DualkeySets extends BalancedSets {
 
 	/* Set key2 value */
 	setkey2(u, k) {
-		this.#key2[u] = k; this.fix2(u);
+		this.#key2[u] = k; this.fixup(u);
 	}
 
 	/* Get/set min2 value */
@@ -101,47 +101,38 @@ export default class DualkeySets extends BalancedSets {
 		return this.#min2[u];
 	}
 
-	/** Find node with smallest key2 value within key1 range.
-	 *  @param lo is a key1 value
-	 *  @param hi>lo is another key1 value
+	/** Find node with smallest key2 value among those with bounded primary key.
+	 *  @param limit is a primary key value
 	 *  @param t is the id of a set to search
-	 *  @return item with smallest key2 value that has a key1 value
-	 *  between lo and hi (inclusive).
+	 *  @return item with smallest key2 value that has a key1 value <=limit.
 	 */
-	access2(lo, hi, t) {
-		let u = t;
-		while (true) {
-			this._access2steps++;
-			let ku = this.key(u);
-			if (hi < ku) {
-				// check left subtree
-				if (this.left(u) == 0) return 0;
-				u = this.left(u);
-			} else if (lo > ku) {
-				// check right subtree
-				if (this.right(u) == 0) return 0;
-				u = this.right(u);
-			} else { // lo <= ku <= hi
-				let k2u = this.key2(u);
-				if (this.left(u) == 0 && this.right(u) == 0)
-					return u;
-				if (this.right(u) == 0) {
-					if (k2u <= this.min2(this.left(u))) return u;
-					u = this.left(u);
-				} else if (this.left(u) == 0) {
-					if (k2u <= this.min2(this.right(u))) return u;
-					u = this.right(u);
-				} else {
-					let m2l = this.min2(this.left(u));
-					let m2r = this.min2(this.right(u));
-					if (k2u <= m2l && k2u <= m2r) return u;
-					if (m2l <= m2r) u = this.left(u);
-					else u = this.right(u);
-				}
+	findmin(limit, t) {
+		// first, find eligible subtrees on boundary and identify best one
+		let u = t; let best = 0; let bestMin = 0;
+		while (u != 0) {
+			if (this.key(u) > limit) {
+				u = this.left(u); continue;
 			}
+			// so, u defines an eligible subtree
+			let l = this.left(u);
+			if (best == 0 || bestMin > this.key2(u) ||
+				(l != 0 && bestMin > this.min2(l))) {
+				best = u; bestMin = Math.min(this.key2(u), this.min2(l));
+			}
+			u = this.right(u); // right subtree may contain eligible subtrees
 		}
+		if (best == 0) return 0;
+		if (this.key2(best) == bestMin) return best;
+		// target is in left subtree of best
+		u = this.left(best);
+		while (this.key2(u) != bestMin) {
+			let l = this.left(u); let r = this.right(u);
+				 if (l != 0 && this.min2(l) == bestMin) u = l;
+			else if (r != 0 && this.min2(r) == bestMin) u = r;
+		}
+		return u;
 	}
-
+		
 	/** Perform a rotation in a search tree.
 	 *  @param x is a node in some search tree; this method
 	 *  moves x up into its parent's position
@@ -163,7 +154,7 @@ export default class DualkeySets extends BalancedSets {
 	 */
 	insert(u, t) {
 		t = this._insert(u, t);
-		this.fix2(u);
+		this.fixup(u);
 		this.rebalance1(u);
 		return this.find(t);
 	}
@@ -172,9 +163,9 @@ export default class DualkeySets extends BalancedSets {
 	 *  @param u is a node defining a path to the root;
 	 *  min2 values are updated along this path
 	 */
-	fix2(u) {;
+	fixup(u) {;
 		while (u != 0) {
-			this._fix2steps++;
+			this._fixupSteps++;
 			let m2 = this.key2(u);
 			if (this.left(u) != 0)
 				m2 = Math.min(m2, this.min2(this.left(u)));
@@ -190,7 +181,7 @@ export default class DualkeySets extends BalancedSets {
 	 */
 	delete(u) {
 		let [c,pc] = this._delete(u);
-		this.fix2(pc);
+		this.fixup(pc);
 		if (c != 0) this.rebalance2(c, pc);
 	}
 
@@ -209,7 +200,7 @@ export default class DualkeySets extends BalancedSets {
 	 *  @return root of new tree formed by joining t1, u and t2.
 	 */
 	join(t1, u, t2) {
-		super.join(t1, u, t2); this.fix2(u);
+		super.join(t1, u, t2); this.fixup(u);
 	}
 
 	/** Determine if two DualkeySets objects are equal.
@@ -303,8 +294,8 @@ export default class DualkeySets extends BalancedSets {
 	/** Return statistics object. */
 	getStats() {
 		let stats = super.getStats();
-		stats.access2steps = this._access2steps;
-		stats.fix2steps = this._fix2steps;
+		stats.findminSteps = this._findminSteps;
+		stats.fixupSteps = this._fixupSteps;
 		return stats;
 	}
 }

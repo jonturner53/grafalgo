@@ -111,44 +111,55 @@ export default class PathSet extends Top {
 	 *  @param u is a node in a path.
 	 *  @return the left child of u in the tree representing the path
 	 */
-	left(u) { return this.#left[u]; }
+	left(u, l=-1) {
+		if (l != -1) this.#left[u] = l;
+		return this.#left[u];
+	}
 	
 	/** Get the right child of a node.
 	 *  @param u is a node in a path.
 	 *  @return the right child of u in the tree representing the path
 	 */
-	right(u) { return this.#right[u]; }
+	right(u, r=-1) {
+		if (r != -1) this.#right[u] = r;
+		return this.#right[u];
+	}
 	
 	/** Get the parent of a node.
 	 *  @param u is a node in a path.
 	 *  @return the parent of u in the tree representing the path
 	 */
-	p(u) { return this.#p[u]; }
+	p(u, p=-1) {
+		if (p != -1) this.#p[u] = p;
+		return this.#p[u];
+	}
 
-	/** Get the successor of a path.
+	/** Get/set the successor of a path.
 	 *  @param p is a path id
 	 *  @return the successor vertex of p (or 0 if none)
+	succ(p, u=-1) {
+		if (u != -1) this.#p[p] = -u;
+		return -this.p(p); }
+	}
 	 */
-	succ(p) { return -this.p(p); }
 
-	/** Set the successor of a path.
-	 *  @param p is a path id
-	 *  @param u is a vertex in some other path that on return,
-	 *  is the successor of p
-	 */
-	setSucc(p, u) { this.#p[p] = -u; }
-	
-	/** Get the deltaCost of a node.
+	/** Get/set the deltaCost of a node.
 	 *  @param u is a node in a path.
 	 *  @return the deltaCost of u in the tree representing the path
 	 */
-	dcost(u) { return this.#dcost[u]; }
+	dcost(u, c=-1) {
+		if (c != -1) this.#dcost[u] = c;
+		return this.#dcost[u];
+	}
 	
 	/** Get the deltaMin of a node.
 	 *  @param u is a node in a path.
 	 *  @return the deltaMin of u in the tree representing the path
 	 */
-	dmin(u) { return this.#dmin[u]; }
+	dmin(u, c=-1) {
+		if (c != -1) this.#dmin[u] = c;
+		return this.#dmin[u];
+	}
 	
 	/** Get the mincost of a subtree.
 	 *  @param u is a node in a path.
@@ -208,29 +219,31 @@ export default class PathSet extends Top {
 		}
 	
 		// do the rotation
-			 if (z > 0 && y == this.left(z))  this.#left[z] = x;
-		else if (z > 0 && y == this.right(z)) this.#right[z] = x;
-		this.#p[x] = z; this.#p[y] = x;
+			 if (z > 0 && y == this.left(z))  this.left(z, x);
+		else if (z > 0 && y == this.right(z)) this.right(z, x);
+		this.#p[x] = z; this.p(y, x);
 		if (x == this.left(y)) {
-			this.#right[x] = y; this.#left[y] = b;
+			this.right(x, y); this.left(y,b);
 		} else {
-			this.#left[x] = y; this.#right[y] = b;
+			this.left(x,y); this.right(y,b);
 		}
-		if (b > 0) this.#p[b] = y;
+		if (b > 0) this.p(b,y);
 	
 		// update dmin, dcost values
-		this.#dmin[a] += this.dmin(x); this.#dmin[b] += this.dmin(x);
+		this.dmin(a, this.dmin(a)+this.dmin(x));
+		this.dmin(b, this.dmin(b) + this.dmin(x));
 	
-		this.#dcost[x] = this.dcost(x) + this.dmin(x);
+		this.dcost(x, this.dcost(x) + this.dmin(x));
 		let dmx = this.dmin(x);
-		this.#dmin[x] = this.dmin(y);
+		this.dmin(x, this.dmin(y));
 
-		this.#dmin[y] = this.dcost(y);
-		if (b > 0) this.#dmin[y] = Math.min(this.dmin(y),this.dmin(b)+dmx);
-		if (c > 0) this.#dmin[y] = Math.min(this.dmin(y),this.dmin(c));
+		this.dmin(y, this.dcost(y));
+		if (b > 0) this.dmin(y, Math.min(this.dmin(y),this.dmin(b)+dmx));
+		if (c > 0) this.dmin(y, Math.min(this.dmin(y),this.dmin(c)));
 		this.#dcost[y] = this.dcost(y) - this.dmin(y);
 
-		this.#dmin[b] -= this.dmin(y); this.#dmin[c] -= this.dmin(y);
+		this.dmin(b, this.dmin(b) - this.dmin(y));
+		this.dmin(c, this.dmin(c) - this.dmin(y));
 	}
 	
 	/** Return the canonical element of some path.
@@ -263,7 +276,7 @@ export default class PathSet extends Top {
 	 *  @param x is the amount to be added to the costs of the nodes in
 	 *  the path
 	 */
-	addpathcost(q, x) { this.#dmin[q] += x; }
+	addpathcost(q, x) { this.dmin(q, this.dmin(q) + x); }
 	
 	/** Find the the last node on a path that has minimum cost.
 	 *  @param q is a path id
@@ -293,23 +306,24 @@ export default class PathSet extends Top {
 	 */
 	join(r, u, q) {
 		let dmin_u = this.dmin(u); let sq = this.p(q); // successor of path
-		this.#left[u] = r; this.#right[u] = q;
+		this.left(u, r); this.right(u, q);
 		if (r == 0 && q == 0) {
 			; // do nothing
 		} else if (r == 0) {
-			this.#dmin[u] = Math.min(this.dmin(u), this.dmin(q));
-			this.#dmin[q] -= this.dmin(u);
-			this.#p[q] = u;
+			this.dmin(u, Math.min(this.dmin(u), this.dmin(q)));
+			this.dmin(q, this.dmin(q) - this.dmin(u));
+			this.p(q, u);
 		} else if (q == 0) {
-			this.#dmin[u] = Math.min(this.dmin(u), this.dmin(r));
-			this.#dmin[r] -= this.dmin(u);
-			this.#p[r] = u;
+			this.dmin(u, Math.min(this.dmin(u), this.dmin(r)));
+			this.dmin(r, this.dmin(r) - this.dmin(u));
+			this.p(r, u);
 		} else {
-			this.#dmin[u] = Math.min(this.dmin(r), this.dmin(u), this.dmin(q));
-			this.#dmin[r] -= this.dmin(u); this.#dmin[q] -= this.dmin(u);
-			this.#p[r] = this.#p[q] = u;
+			this.dmin(u, Math.min(this.dmin(r), this.dmin(u), this.dmin(q)));
+			this.dmin(r, this.dmin(r) - this.dmin(u));
+			this.dmin(q, this.dmin(q) - this.dmin(u));
+			this.p(r, u); this.p(q, u);
 		}
-		this.#dcost[u] = dmin_u - this.dmin(u); this.#p[u] = sq;
+		this.dcost(u, dmin_u - this.dmin(u)); this.p(u, sq);
 		return u;
 	}
 	
@@ -431,9 +445,7 @@ export default class PathSet extends Top {
 		if (this.right(q) != 0)
 			s += ' ' + this.path2string(this.right(q), mc, details, label);
 		if (showParens) s += ')';
-		let pq = this.p(q);
-		if (pq <= 0) s += ']';
-		if (pq < 0) s += '->' + this.index2string(-pq);
+		if (this.p(q) <= 0) s += ']';
 		return s;
 	}
 	
@@ -466,52 +478,9 @@ export default class PathSet extends Top {
 				this.#dmin[u] = c; this.#dcost[u] = 0;
 				if (u != q) q = this.join(q, u, 0);
 			}
-			this.setSucc(q, succ);
+			//this.setSucc(q, succ);
 		}
 		return true;
-	}
-
-	/** Get the next path from scanner.
-	  * @param sc is a Scanner
-	  * @param items is a Set of items already seen
-	  * @return the path id on success, 0 if no new path in input stream,
-	  * if parse of path failed
-	  */
-	nextPath(sc, items) {
-		let path = new List();
-		if (!sc.verify('[')) return 0
-		let u = sc.nextIndex(); let p = u;
-		let mc = Infinity;
-		for (let v = u; v != 0; v = sc.nextIndex()) {
-			if (items.has(v)) return -1;
-			if (v > this.n) this.expand(v);
-			if (!sc.verify(':')) return -1;
-			let cost = sc.nextNumber();
-			if (NumbmerisNaN(cost)) return -1;
-			mc = Math.min(mc, cost);
-			path.enq(v, [mc,cost]);
-			if (v != u) p = this.join(p,v,0);
-		}
-		// second pass to compute differential costs
-		for (let v = path.first(); v != 0; v = path.next(v)) {
-			let val = path.value(v);
-			this.#dcost[v] = val[1] - val[0];
-			if (this.p(v) <= 0) {
-				this.#dmin[v] = val[0];
-			} else {
-				let pmc = path.value(this.p(v))[0];
-				this.#dmin[v] = val[0] - pmc;
-			}
-		}
-		if (!sc.verify(']')) return -1;
-		if (sc.verify('->')) {
-			let v = sc.nextIndex();
-			if (v == 0) return -1;
-			this.setSucc(p, v);
-		} else {
-			this.setSucc(p, 0);
-		}
-		return p;
 	}
 
 	clearStats() { this.#splayCount = this.#splaySteps = 0; }
@@ -523,4 +492,3 @@ export default class PathSet extends Top {
         };
     }
 }
-

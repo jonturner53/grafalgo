@@ -11,6 +11,7 @@ import { assert, AssertError } from '../../../common/Errors.mjs';
 
 try {
 	console.log('running basic tests');
+console.log('hi');
 
 	let dt = new DynamicTrees();
 
