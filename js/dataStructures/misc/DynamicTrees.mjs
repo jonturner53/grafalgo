@@ -293,9 +293,8 @@ export default class DynamicTrees extends Top {
 		let s = (pretty ? '      ' : '') +
 				this.#paths.path2string(q, 0, 0, label);
 		if (this.#paths.p(q) < 0)
-			s += '->' + this.index2string(-this.#paths.p(q)) +
-				 (pretty ? '\n' : '');
-		return s;
+			s += '->' + this.index2string(-this.#paths.p(q));
+		return s + (pretty ? '\n' : '');
 	}
 
 	/** Produce string representation of a subtree.
