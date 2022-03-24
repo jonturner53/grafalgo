@@ -291,10 +291,10 @@ export default class DynamicTrees extends Top {
 	treepath2string(u, pretty, label) {
 		let q = this.#paths.findpath(u, false);
 		let s = (pretty ? '      ' : '') +
-				this.#paths.path2string(q, 0, 0, label) +
-				(pretty ? '\n' : '');
+				this.#paths.path2string(q, 0, 0, label);
 		if (this.#paths.p(q) < 0)
-			s += '->' + this.index2string(-this.#paths.p(q));
+			s += '->' + this.index2string(-this.#paths.p(q)) +
+				 (pretty ? '\n' : '');
 		return s;
 	}
 
