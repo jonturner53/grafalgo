@@ -276,13 +276,11 @@ export default class DynamicTrees extends Top {
 
 		// now print paths for each tree
 		for (let rp = rootPaths.first(); rp != 0; rp = rootPaths.next(rp)) {
-			s += (pretty ? '   {\n' : ' {');
-			s += this.treepath2string(rp, label);
-			if (pretty) s += '\n';
+			s += (pretty ? '   {\n' : ' {') +
+				 this.treepath2string(rp, pretty, label);
 			for (let p = treePaths.next(rp); p != 0; p = treePaths.next(p)) {
-				s += (pretty ? '      ' : ' ') +
-					 this.treepath2string(p, label) +
-					 (pretty ? '\n' : '');
+				s += (pretty ? '' : ' ') +
+					 this.treepath2string(p, pretty, label);
 			}
 			s += (pretty ? '   }\n' : '}');
 		}
@@ -290,9 +288,11 @@ export default class DynamicTrees extends Top {
 		return s;
 	}
 
-	treepath2string(u, label) {
+	treepath2string(u, pretty, label) {
 		let q = this.#paths.findpath(u, false);
-		let s = this.#paths.path2string(q, 0, 0, label);
+		let s = (pretty ? '      ' : '') +
+				this.#paths.path2string(q, 0, 0, label) +
+				(pretty ? '\n' : '');
 		if (this.#paths.p(q) < 0)
 			s += '->' + this.index2string(-this.#paths.p(q));
 		return s;
