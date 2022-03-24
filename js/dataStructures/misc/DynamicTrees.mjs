@@ -94,9 +94,12 @@ export default class DynamicTrees extends Top {
 
 	/** Get/set the successor of a path.
 	 *  @param q is a path id
+	 *  @param u is an optional argument; if present, successor is set to u
 	 *  @return the successor vertex of q (or 0 if none)
 	 */
 	succ(q, u=-1) {
+		// rather than provide separate successor array, share the parent
+		// array in the PathSet
 		if (u != -1) this.#paths.p(q, -u);
 		return -this.#paths.p(q);
 	}

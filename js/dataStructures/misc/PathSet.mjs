@@ -194,7 +194,7 @@ export default class PathSet extends Top {
 	splaystep(x) {
 		this.#splaySteps++;
 		let y = this.p(x);
-		if (y <= 0) return;
+		if (y <= 0) return;		// root parent may be <0; used by DynamicTrees
 		let z = this.p(y);
 		if (z <= 0) { this.rotate(x); return; }
 		if (x == this.left(this.left(z)) || x == this.right(this.right(z)))
