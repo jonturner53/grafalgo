@@ -27,9 +27,10 @@ try {
 	assert(dt, '{c:4(f:2(a:5 b:1)) e:7(g:6(d:5 i:3(h:2)))}', 'a5');
 	assert(dt.toString(1),'{ {[a:5 f:2 c:4] [b:1]->f} ' +
 							'{[d:5 g:6 e:7] [h:2]->i [i:3]->g} }', 'a6');
-	dt.cut(9); dt.link(9,6);
+	dt.cut(9);
+	dt.link(9,6);
 	assert(dt, '{c:4(f:2(a:5 b:1 i:3(h:2))) e:7(g:6(d:5))}', 'a7');
-	assert(dt.toString(1),'{ {[a:5 f:2 c:4] [b:1]->f [h:2]->i [i:3]->f} ' +
+	assert(dt.toString(1),'{ {[i:3 f:2 c:4] [a:5]->f [b:1]->f [h:2]->i} ' +
 							'{[d:5 g:6 e:7]} }', 'a8');
 	let u = dt.findroot(4);  let [v,c] = dt.findcost(8);
 	assert(u, 5, 'a11'); assert(v, 6, 'a12'); assert(c, 2, 'a13');

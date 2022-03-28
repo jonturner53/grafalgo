@@ -178,7 +178,7 @@ export default class DynamicTrees extends Top {
 	 */
 	link(t, u) {
 		assert(this.valid(t) && this.valid(u));
-		this.succ(this.#paths.findpath(t), u);
+		this.succ(this.#paths.join(0, this.expose(t), this.expose(u)));
 	}
 	
 	/** Divide a tree into two subtrees.
