@@ -16,6 +16,8 @@ export default class Tester {
 	stats;			// true if command line includes 'stats' argument
 	
 	/** Constructor for Tester object.
+	 *  @param args is the command line arguments of the caller in node;
+	 *  in the web app, args is the contents of the arguments testbox
 	 *  @param prefix is the initial part of the name of the functions to
 	 *  be tested; for example when testing maxflow functions, use 'maxflow'.
 	 *  @param algomap maps the part of a function name that follows the prefix
@@ -24,19 +26,9 @@ export default class Tester {
 	 *  @param verify is a function that can be used to check the results
 	 *  from a function being tested
 	 */
-	constructor(argv, prefix, algomap, verify=null) {
-		this.testcases = []; this.algorithms = [];
-		this.verify = verify;
+	constructor(args, prefix, algomap, verify=null) {
+		this.testcases = []; this.algorithms = []; this.verify = verify;
 
-		let args = [];
-		if (typeof window === 'undefined') {
-			// running in node.js
-			args = process.argv.slice(2);
-		} else {
-			// running in browser
-			args = argv.slice(0);
-		}
-	
 		this.trace = (args.indexOf('trace') >= 0);
 		this.stats = (args.indexOf('stats') >= 0);
 		let all = (args.indexOf('all') >= 0);

@@ -29,7 +29,8 @@ let algomap = {
 }
 
 
-let tester = new Tester('allpairs', algomap, verify);
+let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
+let tester = new Tester(args, 'allpairs', algomap, verify);
 
 let g = new Digraph();
 g.fromString('{a[b:3 d:-2 f:4] b[c:7 e:4 f:1] c[d:1 f:2] ' +

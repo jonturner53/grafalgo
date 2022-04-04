@@ -23,7 +23,8 @@ let algomap = {
 	'K' : mstK,
 	'CT' : mstCT
 }
-let tester = new Tester('spt', algomap, mstVerify);
+let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
+let tester = new Tester(args,'spt', algomap, mstVerify);
 
 let g = new Graph(); g.fromString(
 		'{a[b:3 d:2] b[a:3 c:7] c[b:7 d:1] d[a:2 c:1] ' +

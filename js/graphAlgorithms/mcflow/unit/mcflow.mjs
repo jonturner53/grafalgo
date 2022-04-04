@@ -42,7 +42,8 @@ function verify(g) {
 	return mcflowVerify(g);
 }
 
-let tester = new Tester('mcflow', algomap, verify);
+let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
+let tester = new Tester(args, 'mcflow', algomap, verify);
 
 let g = new Flograph(); g.fromString(
 	'{a->[b:1,5 d:-1,6] b[c:3,3 d:1,7 g:2,3] c[d:2,1 e:1,5] ' +

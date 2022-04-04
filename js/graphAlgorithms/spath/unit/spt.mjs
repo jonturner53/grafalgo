@@ -25,7 +25,8 @@ let algomap = {
 	'BM' : sptBM
 }
 
-let tester = new Tester('spt', algomap, sptVerify);
+let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
+let tester = new Tester(args, 'spt', algomap, sptVerify);
 
 let g = new Digraph(); g.fromString(
 		'{a[b:3 d:2 j:4] b[c:7 f:4 i:1] c[d:1 f:2 g:3] ' +

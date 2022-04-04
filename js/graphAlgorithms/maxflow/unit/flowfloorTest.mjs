@@ -34,7 +34,8 @@ let algomap = {
 	'flowfloor' : (g, trace) => run(g, trace)
 }
 
-let tester = new Tester('', algomap, maxflowVerify);
+let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
+let tester = new Tester(args, '', algomap, maxflowVerify);
 
 let g = new Flograph(); g.fromString(
 	'{a->[b:3 d:2] b[c:3 d:2-7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
