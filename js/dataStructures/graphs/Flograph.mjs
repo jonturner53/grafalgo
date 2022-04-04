@@ -364,9 +364,9 @@ export default class Flograph extends Digraph {
 	nabor2string(u, e, details=0, label=0) {
 		let s = super.nabor2string(u, e, details, label);
 		if (s.length == 0) return s;
-		return s + ':' + (this.cost(e)>0 ? this.cost(e) + ',' : '') +
-						 (this.floor(e)>0 ? this.floor(e) + '-' : '') +
-						 this.cap(e) + (this.f(e)>0 ? '/' + this.f(e) : '');
+		return s + ',' +
+				   (this.floor(e)>0 ? this.floor(e) + '-' : '') +
+				   this.cap(e) + (this.f(e)>0 ? '/' + this.f(e) : '');
 	}
 
 	/** Get the next vertex (from the start of an alist) from a scanner.

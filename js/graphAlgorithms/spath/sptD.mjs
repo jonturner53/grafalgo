@@ -6,6 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { assert } from '../../common/Errors.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 
 /** Compute shortest path tree of a graph using Dijkstra's algorithm.
@@ -33,9 +34,7 @@ export default function sptD(g, s, trace=0) {
 	while (!border.empty()) {
 		let u = border.deletemin();
 		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
-			if (g.length(e) < 0)
-				return [ `Error: negative edge ${g.edge2string(e)}.`,
-						pedge, dist, ts,  border.getStats()];
+			assert(g.length(e)>=0, `Error: negative edge ${g.edge2string(e)}`);
 			let v = g.head(e);
 			if (dist[v] > dist[u] + g.length(e)) {
 				dist[v] = dist[u] + g.length(e); pedge[v] = e;
@@ -49,5 +48,5 @@ export default function sptD(g, s, trace=0) {
 				   ' ' + dist[u] + ' ' + border + '\n';
 		}
 	}
-	return ['', pedge, dist, ts,  border.getStats()];
+	return [pedge, dist, ts,  border.getStats()];
 }

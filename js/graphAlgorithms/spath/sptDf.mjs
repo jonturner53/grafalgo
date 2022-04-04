@@ -6,6 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { assert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import FibHeaps from '../../dataStructures/heaps/FibHeaps.mjs';
 
@@ -38,9 +39,7 @@ export default function sptDf(g, s, trace=0) {
 		let u; [u, root] = h.deletemin(root);
 		inheap[u] = false; heapsize--;
 		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
-			if (g.length(e) < 0)
-				return [ `Error: negative edge ${g.edge2string(e)}.`,
-						pedge, dist, ts,  h.getStats()];
+			assert(g.length(e)>=0, `Error: negative edge ${g.edge2string(e)}`);
 			let v = g.head(e);
 			if (dist[v] > dist[u] + g.length(e)) {
 				dist[v] = dist[u] + g.length(e); pedge[v] = e;
@@ -58,5 +57,5 @@ export default function sptDf(g, s, trace=0) {
 				   ' ' + dist[u] + ' ' + h.heap2string(root) + '\n';
 		}
 	}
-	return ['', pedge, dist, ts, h.getStats()];
+	return [pedge, dist, ts, h.getStats()];
 }

@@ -7,6 +7,7 @@
  */
 
 import { assert, AssertError} from '../../../common/Errors.mjs';
+import Tester from '../../../common/Tester.mjs';
 import maxflowHardcase from '../maxflowHardcase.mjs';
 import maxflowFFsp from '../maxflowFFsp.mjs';
 import maxflowD from '../maxflowD.mjs';
@@ -15,125 +16,43 @@ import maxflowFFmc from '../maxflowFFmc.mjs';
 import maxflowFFcs from '../maxflowFFcs.mjs';
 import maxflowPPf from '../maxflowPPf.mjs';
 import maxflowPPhl from '../maxflowPPhl.mjs';
-import minmaxflow from '../minmaxflow.mjs';
 import maxflowVerify from '../maxflowVerify.mjs';
 import List from '../../../dataStructures/basic/List.mjs';
 import Flograph from '../../../dataStructures/graphs/Flograph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomFlograph } from '../../misc/RandomGraph.mjs';
 
+function run(g, trace, f) { g.clearFlow(); return f(g,trace); }
+
 let algomap = {
-	'FFsp' : maxflowFFsp,
-	'D' : maxflowD,
-	'DST' : maxflowDST,
-	'FFmc' : maxflowFFmc,
-	'FFcs' : maxflowFFcs,
-	'PPf' : maxflowPPf,
-	'PPhl' : maxflowPPhl
+	'FFsp' : (g, trace) => run(g, trace, maxflowFFsp),
+	'D' : (g, trace) => run(g, trace, maxflowD),
+	'DST' : (g, trace) => run(g, trace, maxflowDST),
+	'FFmc' : (g, trace) => run(g, trace, maxflowFFmc),
+	'FFcs' : (g, trace) => run(g, trace, maxflowFFcs),
+	'PPf' : (g, trace) => run(g, trace, maxflowPPf),
+	'PPhl' : (g, trace) => run(g, trace, maxflowPPhl),
 }
 
-function main() {
-	let args = getArgs();
-	let trace = (args.indexOf('trace') >= 0);
-	let stats = (args.indexOf('stats') >= 0);
-	let all = (args.indexOf('all') >= 0);
+let tester = new Tester('maxflow', algomap, maxflowVerify);
 
-	// build array of algorithms to run
-	let algorithms = [];
-	for (let key of Object.keys(algomap)) {
-		for (let arg of args) {
-			if (all || arg.toLowerCase() == key.toLowerCase()) {
-				algorithms.push({'name': 'maxflow'+key, 'code': algomap[key]});
-				break;
-			}
-		}
-	}
-
-	let testcases = maketests();
-
-	try {
-		runtests(testcases, algorithms, trace, stats);
-	} catch(e) {
-		if (e instanceof AssertError)
-			if (e.message.length > 0)
-				console.log(e.name + ': ' + e.message);
-			else
-				console.error(e.stack);
-		else
-			throw(e);
-	}
-} 
-
-function getArgs() {
-	let args = [];
-	if (typeof window === 'undefined') {
-		// running in node.js
-		args = process.argv.slice(2);
-	} else {
-		// running in browser
-		args = argv.slice(0);
-	}
-	return args;
-}
-
-function maketests() {
-	let cases = [];
-
-	cases.push({ 'name': 'small graph', 'g': new Flograph(), 'value': 8});
-	cases[cases.length-1].g.fromString(
+let g = new Flograph(); g.fromString(
 			'{a->[b:5 d:6] b[c:3 d:7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
 			'e[f:1 g:3 h:4] f[e:1 g:2 h:3] g[e:3 f:2 h:1] ' +
 			'h[f:3 i:4 j:5] i[g:5 j:6] ->j[]}');
+tester.addTest('small graph', g);
 
-	cases.push({'name': 'hardcase(10,10)', 'g': maxflowHardcase(10,10),
-				'value': 2000});
-	cases.push({'name': 'hardcase(20,10)', 'g': maxflowHardcase(20,10),
-				'value': 4000});
-	cases.push({'name': 'hardcase(10,20)', 'g': maxflowHardcase(10,20),
-				'value': 8000});
+tester.addTest('hardcase(10,10)', maxflowHardcase(10, 10));
+tester.addTest('hardcase(20,10)', maxflowHardcase(20, 10));
+tester.addTest('hardcase(10,20)', maxflowHardcase(10, 20));
 
-	cases.push({'name': 'small random', 'g': randomFlograph(14, 3, 2, 2, 2), 
-				'value': 0});
-	cases[cases.length-1].g.randomCapacities(randomInteger, 1, 9);
+g = randomFlograph(14, 5, 3, 1, 1); g.randomCapacities(randomInteger, 5, 15);
+tester.addTest('small random', g);
 
-	cases.push({'name': 'medium random',
-				'g': randomFlograph(62, 10, 10, 2, 2), 'value': 0});
-	cases[cases.length-1].g.randomCapacities(randomInteger, 1, 99);
+g = randomFlograph(62, 10, 10, 2, 2); g.randomCapacities(randomInteger, 1, 99);
+tester.addTest('medium random', g);
 
-	cases.push({'name': 'large  random',
-				'g': randomFlograph(152, 20, 20, 2, 2), 'value': 0});
-	cases[cases.length-1].g.randomCapacities(randomInteger, 1, 99);
+g = randomFlograph(152, 20, 20, 2, 2); g.randomCapacities(randomInteger, 1, 99);
+tester.addTest('large random', g);
 
-	return cases;
-}
-
-function runtests(testcases, algorithms, trace, stats) {
-	console.log('running tests');
-	for (let tcase of testcases) {
-		let g = tcase.g;
-		let small = tcase.name.startsWith('small');
-		if (trace || stats)
-			console.log(`${tcase.name} ${g.n} ${g.m}`);
-		if (trace && small)
-			console.log(`${g.toString(0,1)}`);
-		for (let algo of algorithms) {
-			g.clearFlow();
-        	let t0 = Date.now();
-			let [f, traceString, statsObj] = algo.code(g, trace && small);
-        	let t1 = Date.now();
-			if (trace && small)
-				console.log(`${algo.name}\n${traceString}\n${g.toString(0,1)}`);
-			if (stats) {
-				let ss = JSON.stringify(statsObj);
-				console.log(`${algo.name}, flow ${f}, cut size` +
-							`${g.reachable().length}, ${t1-t0}ms, ${ss}`);
-			}
-			let tag = `${algo.name}(${tcase.name})`
-			if (tcase.value != 0) assert(f, tcase.value, tag+'.value');
-			assert(maxflowVerify(g), '', tag+'.verify');
-		}
-	}
-	console.log('tests completed');
-}
-
-main();
+tester.run();

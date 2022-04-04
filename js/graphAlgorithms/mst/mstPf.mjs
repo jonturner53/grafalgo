@@ -27,7 +27,7 @@ export default function mstPf(g, trace=0) {
 	}
 	let light = new Array(g.n+1).fill(-1);
 	let border = new FibHeaps(g.n);
-	let inheap = new Int8Array(g.n).fill(false);
+	let inheap = new Int8Array(g.n+1).fill(false);
 	let loopCount = 0;
 	for (let s = 1; s <= g.n; s++) {
 		if (light[s] >= 0) continue;

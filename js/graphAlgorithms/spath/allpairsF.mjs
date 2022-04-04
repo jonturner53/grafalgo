@@ -6,6 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { assert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 
@@ -42,8 +43,7 @@ export default function allpairsF(g, trace=false) {
     // compute distances
 	let updates = 0;
     for (let s = 1; s <= g.n; s++) {
-        if (dist[s][s] < 0)
-			return ['Error: negative cycle', pedge, dist];
+        assert(dist[s][s] >= 0, 'Error: negative cycle');
 		if (trace)
 			ts += g.index2string(s) + ': ';
         for (let v = 1; v <= g.n; v++) {
@@ -60,5 +60,5 @@ export default function allpairsF(g, trace=false) {
         }   
 		if (trace) ts += '\n';
 	}
-	return ['', pedge, dist, ts, { 'steps': g.n*g.n*g.n, 'updates': updates }];
+	return [pedge, dist, ts, { 'steps': g.n*g.n*g.n, 'updates': updates }];
 }

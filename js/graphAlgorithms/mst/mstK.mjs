@@ -41,5 +41,5 @@ export default function mstK(g, trace=0) {
 			}
 		}
 	}
-	return [treeEdges, traceString, subtrees.getStats() ];
+	return [treeEdges, traceString, subtrees.getStats()];
 }

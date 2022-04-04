@@ -27,7 +27,7 @@ export default function maxflowVerify(g) {
 		if (s != 0)
 			return(`Error: unbalanced flow at vertex ${g.index2string(u)}`);
 	}
-	let reached = new Array(g.n+1).fill(false);
+	let reached = new Int8Array(g.n+1);
 	let q = new List(g.n);
 	q.enq(g.source); reached[g.source] = true;
 	while (!q.empty()) {

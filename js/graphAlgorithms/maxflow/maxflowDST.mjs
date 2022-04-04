@@ -29,10 +29,10 @@ let phaseCount;	   // number of phases
  */
 export default function maxflowDST(fg, trace=false) {
 	g = fg;
-	nextEdge = new Array(g.n+1).fill(0);
-	level = new Array(g.n+1).fill(0);
+	nextEdge = new Int32Array(g.n+1);
+	level = new Int32Array(g.n+1);
 	trees = new DynamicTrees(g.n);
-	upEdge = new Array(g.n+1).fill(0);
+	upEdge = new Int32Array(g.n+1);
 
 	huge = 1;
 	for (let e = g.first(); e != 0; e = g.next(e))
@@ -52,12 +52,12 @@ export default function maxflowDST(fg, trace=false) {
 			if (trace) ts += s + '\n';
 		}
 	}
+	if (trace) ts += g.toString(0,1);
 	let treeStats = trees.getStats();
 	findpathSteps += treeStats.spliceCount + treeStats.splaySteps;
-	return [g.totalFlow(), ts,
-					{'findpathCount': findpathCount,
-					 'findpathSteps': findpathSteps,
-					 'phaseCount': phaseCount} ];
+	return [ts, {'findpathCount': findpathCount,
+				 'findpathSteps': findpathSteps,
+				 'phaseCount': phaseCount} ];
 }
 
 /** Find an augmenting path from specified vertex to sink in residual graph.

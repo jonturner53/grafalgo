@@ -21,7 +21,7 @@ let findpathSteps; // total steps in findpath
  *  @return the total flow added to fg
  */
 export default function maxflowFFmc(fg, trace=false) {
-	g = fg; pedge = new Array(g.n+1);
+	g = fg; pedge = new Int32Array(g.n+1);
 	let ts = '';
 	if (trace)
 		ts += 'augmenting paths with residual capacities\n';
@@ -31,9 +31,9 @@ export default function maxflowFFmc(fg, trace=false) {
 		let [,s] = augment(g, pedge, trace);
 		if (trace) ts += s + '\n';
 	}
-	return [g.totalFlow(), ts,
-					{'findpathCount': findpathCount,
-					 'findpathSteps': findpathSteps}];
+	if (trace) ts += g.toString(0,1);
+	return [ts, {'findpathCount': findpathCount,
+				 'findpathSteps': findpathSteps}];
 }
 
 /** Find a max capacity augmenting path from a specified vertex to the sink.
@@ -42,11 +42,11 @@ export default function maxflowFFmc(fg, trace=false) {
  */
 function findpath(s) {
 	let border = new ArrayHeap(g.n, 2+g.m/g.n);
-	let cap = new Array(g.n+1).fill(0);
+	let cap = new Int32Array(g.n+1);
 
 	let heapStats = border.getStats();
 	pedge.fill(0);
-	cap[s] = Infinity;
+	cap[s] = 0x7fffffff; // largest 32 bit value
 	border.insert(s, -cap[s]); // so deletemin gives max cap
 	while (!border.empty()) {
 		let u = border.deletemin();

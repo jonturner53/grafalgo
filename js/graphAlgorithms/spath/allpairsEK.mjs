@@ -29,9 +29,8 @@ export default function allpairsEK(g, trace) {
 	let pedge = []; pedge.push(null);
     
     // compute distances in augmented graph
-	let [err,pe,d,,statsBM] = sptBM(g, 0);
+	let [pe,d,,statsBM] = sptBM(g, 0);
 	let stats = { 'stepsBM' : statsBM.stepCount };
-	if (err.length > 0) return [err, null, null];
 
 	let ts = '';
 	if (trace) ts += g.toString(0,1);
@@ -46,7 +45,7 @@ export default function allpairsEK(g, trace) {
     // compute shortest paths & put inverse-transformed distances in dist.
 	stats.stepsD = 0;
     for (let u = 1; u <= g.n; u++) {
-        let [,pu,du,,statsD] = sptD(g, u);
+        let [pu,du,,statsD] = sptD(g, u);
 		pedge.push(pu); dist.push(du);
 		stats.stepsD += statsD.siftup + statsD.siftdown;
         for (let v = 1; v <= g.n; v++) dist[u][v] -= (d[u]-d[v]);
@@ -62,5 +61,5 @@ export default function allpairsEK(g, trace) {
         g.setLength(e, g.length(e) - (d[g.tail(e)] - d[g.head(e)]));
     }
 
-	return ['', pedge, dist, ts, stats];
+	return [pedge, dist, ts, stats];
 }

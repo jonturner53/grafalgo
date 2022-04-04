@@ -6,6 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { assert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import toposort from '../misc/toposort.mjs';
 
@@ -23,8 +24,7 @@ import toposort from '../misc/toposort.mjs';
  */
 export default function sptDag(g, s, trace=0) {
 	let topo = toposort(g); // sorted list of vertices
-	if (topo.length != g.n) 
-		return ['Error: graph is not acyclic', null, null, null, null];
+	assert(topo, 'Error: graph is not acyclic');
 
 	let pedge = new Int32Array(g.n+1);
 	let dist = new Array(g.n+1).fill(Number.POSITIVE_INFINITY);
@@ -55,5 +55,5 @@ export default function sptDag(g, s, trace=0) {
 		}
 	}
 
-	return ['', pedge, dist, ts, null ];
+	return [pedge, dist, ts, null ];
 }

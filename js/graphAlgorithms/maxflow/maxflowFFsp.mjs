@@ -29,9 +29,9 @@ export default function maxflowFFsp(fg, trace=false) {
 		let [,s] = augment(g, pedge, trace);
 		if (trace) ts += s + '\n';
 	}
-	return [g.totalFlow(), ts,
-					{'findpathCount': findpathCount,
-					 'findpathSteps': findpathSteps}];
+	if (trace) ts += g.toString(0,1);
+	return [ts, {'findpathCount': findpathCount,
+				 'findpathSteps': findpathSteps}];
 }
 
 /** Find a shortest augmenting path from a specified vertex to the sink.

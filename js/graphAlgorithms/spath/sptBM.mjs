@@ -6,6 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { assert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 
 /** Compute shortest path tree of a graph using Bellman-Moore algorithm.
@@ -23,7 +24,7 @@ import List from '../../dataStructures/basic/List.mjs';
  */
 export default function sptBM(g, s, trace=0) {
 	let pedge = new Int32Array(g.n+1); let ts = ''; let err = '';
-	let dist = new Array(g.n+1).fill(Number.POSITIVE_INFINITY);
+	let dist = new Array(g.n+1).fill(Infinity);
 
 	let q = new List(g.n);
 	if (s != 0) {
@@ -51,13 +52,11 @@ export default function sptBM(g, s, trace=0) {
 		if (u == last && !q.empty()) { pass++; last = q.last(); }
 		if (trace) {
 			ts += g.index2string(u) + ' ' +
-				  (dist[u] != Number.POSITVE_INFINITY ? dist[u] : '-') + ' ' +
+				  (dist[u] != Infinity ? dist[u] : '-') + ' ' +
 				  (pedge[u] != 0 ? g.edge2string(pedge[u]) : '-') + ' ' +
 				  q + ' ' + pass + '\n';
 		}
-		if (pass == g.n) 
-			return ['Error: negative cycle', pedge, dist, ts,
-				    { 'passCount': pass, 'stepCount': steps }]
+		assert(pass < g.n, 'Error: negative cycle');
 	}
-	return ['', pedge, dist, ts, { 'passCount': pass, 'stepCount': steps }];
+	return [pedge, dist, ts, { 'passCount': pass, 'stepCount': steps }];
 }

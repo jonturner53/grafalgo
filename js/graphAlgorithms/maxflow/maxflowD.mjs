@@ -24,9 +24,9 @@ let phaseCount;	   // number of phases
  */
 export default function maxflowD(fg, trace=false) {
 	g = fg;
-	nextEdge = new Array(g.n+1);
-	level = new Array(g.n+1);
-	pedge = new Array(g.n+1).fill(0);
+	nextEdge = new Int32Array(g.n+1);
+	level = new Int32Array(g.n+1);
+	pedge = new Int32Array(g.n+1);
 
 	let ts = '';
 	if (trace)
@@ -41,10 +41,10 @@ export default function maxflowD(fg, trace=false) {
 			if (trace) ts += s + '\n';
 		}
 	}
-	return [g.totalFlow(), ts,
-					{'findpathCount': findpathCount,
-					 'findpathSteps': findpathSteps,
-					 'phaseCount': phaseCount} ];
+	if (trace) ts += g.toString(0,1);
+	return [ts, {'findpathCount': findpathCount,
+				 'findpathSteps': findpathSteps,
+				 'phaseCount': phaseCount} ];
 }
 
 /** Prepare for next phase of Dinic's algorithm.

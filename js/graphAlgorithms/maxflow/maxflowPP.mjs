@@ -89,11 +89,11 @@ export default function maxflowPP(fg, getUbal, putUbal, trace=false,
 			u = getUnbal();
 		}
 	}
-	return [g.totalFlow(), traceString, {
-								'relabelCount': relabelCount,
-								'relabelSteps': relabelSteps,
-								'balanceCount': balanceCount,
-								'balanceSteps': balanceSteps} ];
+	if (trace) traceString += g.toString(0,1);
+	return [traceString, {  'relabelCount': relabelCount,
+							'relabelSteps': relabelSteps,
+							'balanceCount': balanceCount,
+							'balanceSteps': balanceSteps} ];
 }
 /** Find smallest label on an adjacent vertex through an edge with
  *  positive residual capacity.

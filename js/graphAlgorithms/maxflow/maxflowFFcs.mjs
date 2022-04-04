@@ -36,16 +36,15 @@ export default function maxflowFFmc(fg, trace=false) {
 	for (let e = g.first(); e != 0; e = g.next(e)) 
 		maxCap = Math.max(maxCap, g.cap(e, g.tail(e)));
 	for (scale = 1; scale <= maxCap/2; scale *= 2) {}   
-//console.log(`maxCap=${maxCap} scale=${scale}`);
 
 	while (findpath(g.source)) {
 		findpathCount++;
 		let [,s] = augment(g, pedge, trace);
 		if (trace) ts += s + '\n';
 	}
-	return [g.totalFlow(), ts,
-					{'findpathCount': findpathCount,
-					 'findpathSteps': findpathSteps}];
+	if (trace) ts += g.toString(0,1);
+	return [ts, {'findpathCount': findpathCount,
+				 'findpathSteps': findpathSteps}];
 }
 
 /** Find a max capacity augmenting path from a specified vertex to the sink.

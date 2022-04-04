@@ -230,7 +230,7 @@ export default class PathSet extends Top {
 		if (b > 0) this.p(b,y);
 	
 		// update dmin, dcost values
-		this.dmin(a, this.dmin(a)+this.dmin(x));
+		this.dmin(a, this.dmin(a) + this.dmin(x));
 		this.dmin(b, this.dmin(b) + this.dmin(x));
 	
 		this.dcost(x, this.dcost(x) + this.dmin(x));

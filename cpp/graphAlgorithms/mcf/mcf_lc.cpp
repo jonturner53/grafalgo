@@ -42,28 +42,28 @@ mcf_lc::mcf_lc(Graph_wf& wfg1, bool mostNeg) : wfg(&wfg1) {
  *  paths.
  */
 void mcf_lc::initLabels() {
-        int pass;
+	int pass;
 	vertex u, v,last; edge e;
-        List q(wfg->n());
+	List q(wfg->n());
 
-        for (u = 1; u <= wfg->n(); u++) {
+	for (u = 1; u <= wfg->n(); u++) {
 		pEdge[u] = 0; lab[u] = 0; q.addLast(u);
 	}
-        pass = 0; last = q.last();
-        while (!q.empty()) {
+	pass = 0; last = q.last();
+	while (!q.empty()) {
 		u = q.first(); q.removeFirst();
-                for (e = wfg->firstAt(u); e != 0; e = wfg->nextAt(u,e)) {
+		for (e = wfg->firstAt(u); e != 0; e = wfg->nextAt(u,e)) {
 			if (wfg->res(u,e) == 0) continue;
-                        v = wfg->mate(u,e);
-                        if (lab[v] > lab[u] + wfg->cost(u,e)) {
-                                lab[v] = lab[u] + wfg->cost(u,e); pEdge[v] = e;
-                                if (!q.member(v)) q.addLast(v);
-                        }
-                }
-                if (u == last && !q.empty()) { pass++; last = q.last(); }
-                if (pass == wfg->n())
+			v = wfg->mate(u,e);
+			if (lab[v] > lab[u] + wfg->cost(u,e)) {
+				lab[v] = lab[u] + wfg->cost(u,e); pEdge[v] = e;
+				if (!q.member(v)) q.addLast(v);
+			}
+		}
+		if (u == last && !q.empty()) { pass++; last = q.last(); }
+		if (pass == wfg->n())
 			Util::fatal("initLabels: negative cost cycle");
-        }
+	}
 }
 
 /** Find a least cost augmenting path.
@@ -99,29 +99,29 @@ bool mcf_lc::findpath() {
  *  @param pc is an output parameter used to return the cost of the path
  */
 void mcf_lc::pathRcapCost(flow& rcap, floCost& pc) {
-        vertex u, v; edge e;
+	vertex u, v; edge e;
 
 	rcap = INT_MAX; pc = 0;
-        u = wfg->snk(); e = pEdge[u];
-        while (u != wfg->src()) {
-                v = wfg->mate(u,e);
-                rcap = min(rcap,wfg->res(v,e)); pc += wfg->cost(v,e);
-                u = v; e = pEdge[u];
-        }
+	u = wfg->snk(); e = pEdge[u];
+	while (u != wfg->src()) {
+		v = wfg->mate(u,e);
+		rcap = min(rcap,wfg->res(v,e)); pc += wfg->cost(v,e);
+		u = v; e = pEdge[u];
+	}
 }
 
 /** Add flow to the path defined by pEdge.
  *  @param f is the amount of flow to add to the path
  */
 void mcf_lc::augment(flow& f) {
-        vertex u, v; edge e;
+	vertex u, v; edge e;
 
-        u = wfg->snk(); e = pEdge[u];
-        while (u != wfg->src()) {
-                v = wfg->mate(u,e);
-                wfg->addFlow(v,e,f);
-                u = v; e = pEdge[u];
-        }
+	u = wfg->snk(); e = pEdge[u];
+	while (u != wfg->src()) {
+		v = wfg->mate(u,e);
+		wfg->addFlow(v,e,f);
+		u = v; e = pEdge[u];
+	}
 }
 
 } // ends namespace

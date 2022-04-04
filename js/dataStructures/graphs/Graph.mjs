@@ -428,7 +428,7 @@ export default class Graph extends Top {
 	}
 	
 	/** Create a string representation of an edge list.
-	 *  @param elist is an array of edge numbers (possibly with some
+	 *  @param elist is an array of edge numbers (possibly with some zeros)
 	 *  @param label is an optional function used to label the vertices
 	 *  invalid values mixed in; these are ignored)
 	 *  @param showAll is
