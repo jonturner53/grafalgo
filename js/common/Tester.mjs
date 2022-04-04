@@ -24,7 +24,7 @@ export default class Tester {
 	 *  @param verify is a function that can be used to check the results
 	 *  from a function being tested
 	 */
-	constructor(prefix, algomap, verify=null) {
+	constructor(argv, prefix, algomap, verify=null) {
 		this.testcases = []; this.algorithms = [];
 		this.verify = verify;
 
@@ -58,12 +58,25 @@ export default class Tester {
 		this.testcases.push({'name': name, 'args': [... arguments].slice(1)});
 	}
 
+	log() {
+		if (typeof window === 'undefined') {
+			// running in node.js
+			console.log(...arguments);
+		} else {
+			// running in browser
+			let s = '';
+			for (let i = 0; i < arguments.length; i++)
+				s += arguments[i] + ' ';
+			outputArea.value += s + '\n';
+		}
+	}
+
 	run() {
-		console.log('running tests');
+		this.log('running tests');
 		for (let tcase of this.testcases) {
 			let small = tcase.name.startsWith('small');
 			for (let algo of this.algorithms) {
-	        	let t0; let t1; let results;
+				let t0; let t1; let results;
 				try {
 					t0 = Date.now();
 					results = algo.code(...tcase.args, this.trace && small);
@@ -71,11 +84,11 @@ export default class Tester {
 				} catch(e) {
 					if (e instanceof AssertError) {
 						if (e.message.length >= 0) {
-							console.log(
+							this.log(
 								`${algo.name}(${tcase.name}) ${e.message}`);
 							continue;
 						} else {
-							console.error(e.stack); throw(e);
+							this.error(e.stack); throw(e);
 						}
 					} else {
 						throw(e);
@@ -83,11 +96,11 @@ export default class Tester {
 				}
 				let traceString = results[results.length-2];
 				if (this.trace && small)
-					console.log(`${algo.name}(${tcase.name})\n${traceString}`);
+					this.log(`${algo.name}(${tcase.name})\n${traceString}`);
 
 				let statsString = JSON.stringify(results[results.length-1]);
 				if (this.stats)
-					console.log(`${algo.name}(${tcase.name}), ` +
+					this.log(`${algo.name}(${tcase.name}), ` +
 								`${t1-t0}ms, ${statsString}`);
 
 				let tag = `${algo.name}(${tcase.name})`
@@ -96,6 +109,6 @@ export default class Tester {
 						   tag+'.verify');
 			}
 		}
-		console.log('tests completed');
+		this.log('tests completed');
 	}
 }

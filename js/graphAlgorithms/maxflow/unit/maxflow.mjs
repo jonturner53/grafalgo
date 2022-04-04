@@ -34,7 +34,7 @@ let algomap = {
 	'PPhl' : (g, trace) => run(g, trace, maxflowPPhl),
 }
 
-let tester = new Tester('maxflow', algomap, maxflowVerify);
+let tester = new Tester(argv, 'maxflow', algomap, maxflowVerify);
 
 let g = new Flograph(); g.fromString(
 			'{a->[b:5 d:6] b[c:3 d:7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
