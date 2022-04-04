@@ -154,6 +154,7 @@ function serverRequest(path, args=[]) {
 }
 
 import { assert, AssertError } from './common/Errors.mjs';
+import Tester from './common/Tester.mjs';
 import { range, shuffle, scramble, randomFraction, randomInteger, randomExp,
 		 randomGeometric, randomTruncatedGeometric, randomPareto,
 		 randomFill, randomPermutation
@@ -219,6 +220,11 @@ import maxflowPP from './graphAlgorithms/maxflow/maxflowPP.mjs';
 import flowfloor from './graphAlgorithms/maxflow/flowfloor.mjs';
 import maxflowVerify from './graphAlgorithms/maxflow/maxflowVerify.mjs';
 import maxflowHardcase from './graphAlgorithms/maxflow/maxflowHardcase.mjs';
+
+import mcflowCR from './graphAlgorithms/mcflow/mcflowCR.mjs';
+import mcflowLCP from './graphAlgorithms/mcflow/mcflowLCP.mjs';
+import mcflowS from './graphAlgorithms/mcflow/mcflowS.mjs';
+import mcflowVerify from './graphAlgorithms/mcflow/mcflowVerify.mjs';
 
 let codeArea = document.getElementById("codeArea");
 let outputArea = document.getElementById("outputArea");
