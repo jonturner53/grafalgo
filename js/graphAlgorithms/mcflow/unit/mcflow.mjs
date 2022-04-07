@@ -9,7 +9,7 @@
 import { assert, AssertError} from '../../../common/Errors.mjs';
 import Tester from '../../../common/Tester.mjs';
 import maxflowD from '../../maxflow/maxflowD.mjs';
-import mcflowCR from '../mcflowCR.mjs';
+import mcflowK from '../mcflowK.mjs';
 import mcflowLCP from '../mcflowLCP.mjs';
 import mcflowS from '../mcflowS.mjs';
 import maxflowVerify from '../../maxflow/maxflowVerify.mjs';
@@ -19,19 +19,19 @@ import Flograph from '../../../dataStructures/graphs/Flograph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomFlograph } from '../../misc/RandomGraph.mjs';
 
-function runCR(g, trace) {
+function runK(g, trace) {
 	let ts = '';
 	g.clearFlow();
 	maxflowD(g);
 	if (trace) ts += g.toString(0,1);
-	let [s,stats] = mcflowCR(g, trace);
+	let [s,stats] = mcflowK(g, trace);
 	return [ts+s, stats];
 }
 
 function run(g, trace, f) { g.clearFlow(); return f(g,trace); }
 
 let algomap = {
-	'CR' : (g,trace) => runCR(g,trace),
+	'K' : (g,trace) => runK(g,trace),
 	'LCP' : (g,trace) => run(g,trace,mcflowLCP),
 	'S' : (g,trace) => run(g,trace,mcflowS)
 }
