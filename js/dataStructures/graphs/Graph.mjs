@@ -136,13 +136,13 @@ export default class Graph extends Top {
 			if (this._edges.isIn(e)) return e;
 	}
 	
-	validVertex(u) { return u == Math.floor(u) && 1 <= u && u <= this.n; }
+	validVertex(u) { return u == ~~u && 1 <= u && u <= this.n; }
 
 	/** Determine if an edge number corresponds to a valid edge.
 	 *  @param e is the edge number to be verified
 	 *  @return true if e is a valid edge number, else false.
 	 */
-	validEdge(e) { return e >= 0 && e == Math.floor(e) && this._edges.isIn(e); }
+	validEdge(e) { return e >= 0 && e == ~~e && this._edges.isIn(e); }
 	
 	/** Get the first edge in the overall list of edges.
 	 *  @return the first edge in the list

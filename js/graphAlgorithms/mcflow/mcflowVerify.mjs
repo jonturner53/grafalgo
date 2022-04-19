@@ -20,8 +20,12 @@ export default function mcflowVerify(g) {
 	let rg = new Digraph();
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		let u = g.tail(e); let v = g.head(e);
-		if (g.res(e,u) > 0) rg.join(u,v);
-		if (g.res(e,v) > 0) rg.join(v,u);
+		if (g.res(e,u) > 0) {
+			let ee = rg.join(u,v); rg.setLength(ee, g.cost(e,u));
+		}
+		if (g.res(e,v) > 0) {
+			let ee = rg.join(v,u); rg.setLength(ee, g.cost(e,v));
+		}
 	}
 	try {
 		sptBM(rg, 0);

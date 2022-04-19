@@ -45,11 +45,15 @@ export default class Flograph extends Digraph {
 
 	/** Add edge costs to the graph (cost per unit flow). */
 	addCosts() { super.addWeights(); }
+
+	hasCosts() { return this.weighted; }
 	
 	/** Enable minimum flow requirements. */
 	addFloors() {
 		this.#floor = new Int32Array(this.edgeCapacity+1);
 	}
+
+	hasFloors() { return (this.#floor ? true : false); }
 
 	/** Return true if minimum flow requirements are enabled. */
 	get floored() { return (this.#floor ? true : false); }
@@ -339,7 +343,7 @@ export default class Flograph extends Digraph {
 		if (e == 0) return '-';
 		return '(' + this.index2string(this.tail(e), label) + ',' 
 				   + this.index2string(this.head(e), label) + ','
-				   + (this.cost(e)>0 ? this.cost(e) + ',' : '') 
+				   + (this.hasCosts() ? this.cost(e) + ',' : '') 
 				   + (this.floor(e)>0 ? this.floor(e) + '-' : '')
 				   + this.cap(e) + (this.f(e)>0 ? '/' + this.f(e) : '') + ')';
 	}

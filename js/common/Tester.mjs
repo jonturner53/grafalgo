@@ -68,6 +68,7 @@ export default class Tester {
 		for (let tcase of this.testcases) {
 			let small = tcase.name.startsWith('small');
 			for (let algo of this.algorithms) {
+				let tag = `${algo.name}(${tcase.name})`
 				let t0; let t1; let results;
 				try {
 					t0 = Date.now();
@@ -75,30 +76,31 @@ export default class Tester {
 					t1 = Date.now();
 				} catch(e) {
 					if (e instanceof AssertError) {
-						if (e.message.length >= 0) {
+						if (e.message.length > 0) {
 							this.log(
-								`${algo.name}(${tcase.name}) ${e.message}`);
+								`${tag} ${e.message}`);
 							continue;
 						} else {
-							this.error(e.stack); throw(e);
+							console.log(e.stack); throw(e);
 						}
 					} else {
+						console.log(e.stack);
 						throw(e);
 					}
 				}
 				let traceString = results[results.length-2];
 				if (this.trace && small)
-					this.log(`${algo.name}(${tcase.name})\n${traceString}`);
+					this.log(`${tag}\n${traceString}`);
 
 				let statsString = JSON.stringify(results[results.length-1]);
 				if (this.stats)
 					this.log(`${algo.name}(${tcase.name}), ` +
 								`${t1-t0}ms, ${statsString}`);
 
-				let tag = `${algo.name}(${tcase.name})`
-				if (this.verify)
-					assert(this.verify(...tcase.args, ...results), '',
-						   tag+'.verify');
+				if (this.verify) {
+					let s = this.verify(...tcase.args, ...results);
+					if (s.length > 0) this.log(`${tag}.verify ${s}`);
+				}
 			}
 		}
 		this.log('tests completed');

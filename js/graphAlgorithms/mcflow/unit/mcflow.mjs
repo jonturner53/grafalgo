@@ -10,6 +10,7 @@ import { assert, AssertError} from '../../../common/Errors.mjs';
 import Tester from '../../../common/Tester.mjs';
 import maxflowD from '../../maxflow/maxflowD.mjs';
 import mcflowK from '../mcflowK.mjs';
+import mcflowKGT from '../mcflowKGT.mjs';
 import mcflowLCP from '../mcflowLCP.mjs';
 import mcflowS from '../mcflowS.mjs';
 import maxflowVerify from '../../maxflow/maxflowVerify.mjs';
@@ -28,10 +29,20 @@ function runK(g, trace) {
 	return [ts+s, stats];
 }
 
+function runKGT(g, trace) {
+	let ts = '';
+	g.clearFlow();
+	maxflowD(g);
+	if (trace) ts += g.toString(0,1);
+	let [s,stats] = mcflowKGT(g, trace);
+	return [ts+s, stats];
+}
+
 function run(g, trace, f) { g.clearFlow(); return f(g,trace); }
 
 let algomap = {
 	'K' : (g,trace) => runK(g,trace),
+	'KGT' : (g,trace) => runKGT(g,trace),
 	'LCP' : (g,trace) => run(g,trace,mcflowLCP),
 	'S' : (g,trace) => run(g,trace,mcflowS)
 }
@@ -52,19 +63,19 @@ let g = new Flograph(); g.fromString(
 	'h[f:1,3 i:2,4 j:2,5] i[h:2,4 g:1,5 j:1,6] ->j[]}');
 tester.addTest('small graph', g);
 
-g = randomFlograph(14, 4, 3, 1, 1);
+g = randomFlograph(14, 4, 3);
 g.randomCapacities(randomInteger, 1, 9);
 g.randomCosts(randomInteger, -1, 7);
-tester.addTest('small random', g);
+tester.addTest(`small random (${g.n},${g.m})`, g);
 
-g = randomFlograph(62, 10, 10, 2, 2);
+g = randomFlograph(32, 10);
 g.randomCapacities(randomInteger, 1, 99);
 g.randomCosts(randomInteger, -1, 40);
-tester.addTest('medium random', g);
+tester.addTest(`medium random (${g.n},${g.m})`, g);
 
-g = randomFlograph(152, 20, 20, 2, 2);
+g = randomFlograph(62, 15);
 g.randomCapacities(randomInteger, 1, 999);
 g.randomCosts(randomInteger, -1, 70);
-tester.addTest('large random', g);
+tester.addTest(`large random (${g.n},${g.m})`, g);
 
 tester.run();

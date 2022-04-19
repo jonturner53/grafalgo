@@ -14,7 +14,7 @@ let pedge;	  // pedge[] is parent edge of u
 let cycleIds; // array used to label cycles with an integer identifier
 
 let cycleCount;		  // number of negative cycles found
-let findCyclesSteps;  // steps involved in searching for cycles
+let findCycleSteps;  // steps involved in searching for cycles
 let findCyclePasses;  // number of passes in findCycle
 
 /** Find minimum cost flow in a weighted flow graph using
@@ -28,7 +28,7 @@ export default function mcflowK(fg, trace=false) {
 	pedge = new Int32Array(g.n+1);
 	cycleIds = new Int8Array(g.n+1);
 
-	cycleCount = findCyclesSteps = findCyclePasses = 0;
+	cycleCount = findCycleSteps = findCyclePasses = 0;
 
 	let ts = '';
 	if (trace) {
@@ -36,17 +36,17 @@ export default function mcflowK(fg, trace=false) {
 			  'cycleCapacity cycle totalCost\n';
 	}
 
-	let u = findCycles();
+	let u = findCycle();
 	while (u != 0) {
 		cycleCount++;
 		let s = augment(u, trace);
 		if (trace) ts += s;
-		u = findCycles();
+		u = findCycle();
 	}
 	if (trace) ts += g.toString(0,1);
 	return [ ts, { 'cycleCount': cycleCount,
 				   'findCyclePasses': findCyclePasses,
-				   'findCyclesSteps': findCyclesSteps} ];
+				   'findCycleSteps': findCycleSteps} ];
 }
 
 /** Add flow to a negative-cost cycle.
@@ -83,7 +83,7 @@ function augment(z, trace=false) {
  *  cycle are found by traversing the pedge pointers, starting
  *  at pedge[returnedVertex].
  */
-function findCycles() {
+function findCycle() {
 	let c = new Float32Array(g.n+1);
 	let q = new List(g.n);
 
@@ -95,7 +95,7 @@ function findCycles() {
 	while (!q.empty()) {
 		let u = q.deq();
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			findCyclesSteps++;
+			findCycleSteps++;
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
 			if (c[v] > c[u] + g.cost(e,u)) {
