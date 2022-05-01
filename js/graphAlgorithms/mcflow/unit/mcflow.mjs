@@ -38,12 +38,21 @@ function runKGT(g, trace) {
 	return [ts+s, stats];
 }
 
+function runLCP(g, trace) {
+	let ts = '';
+	g.clearFlow();
+	mcflowK(g);  // eliminate negative cycles
+	if (trace) ts += g.toString(0,1);
+	let [s,stats] = mcflowLCP(g, trace);
+	return [ts+s, stats];
+}
+
 function run(g, trace, f) { g.clearFlow(); return f(g,trace); }
 
 let algomap = {
 	'K' : (g,trace) => runK(g,trace),
 	'KGT' : (g,trace) => runKGT(g,trace),
-	'LCP' : (g,trace) => run(g,trace,mcflowLCP),
+	'LCP' : (g,trace) => runLCP(g,trace),
 	'S' : (g,trace) => run(g,trace,mcflowS)
 }
 
@@ -65,17 +74,17 @@ tester.addTest('small graph', g);
 
 g = randomFlograph(14, 4, 3);
 g.randomCapacities(randomInteger, 1, 9);
-g.randomCosts(randomInteger, -1, 7);
+g.randomCosts(randomInteger, -9, 9);
 tester.addTest(`small random (${g.n},${g.m})`, g);
 
 g = randomFlograph(32, 10);
 g.randomCapacities(randomInteger, 1, 99);
-g.randomCosts(randomInteger, -1, 40);
+g.randomCosts(randomInteger, -99, 99);
 tester.addTest(`medium random (${g.n},${g.m})`, g);
 
 g = randomFlograph(62, 15);
 g.randomCapacities(randomInteger, 1, 999);
-g.randomCosts(randomInteger, -1, 70);
+g.randomCosts(randomInteger, -999, 999);
 tester.addTest(`large random (${g.n},${g.m})`, g);
 
 tester.run();

@@ -12,9 +12,13 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
 
-let g;        // shared reference to flow graph
-let pedge;    // pedge[u] is parent edge of u
+let g;          // shared reference to flow graph
 let lambda;     // lambda[u] is vertex label used to make costs non-negative
+
+let c;          // c[u] is shortest path to u as computed by findpath
+let pedge;      // pedge[u] is parent edge of u in spt computed by findpath
+let border;		// heap used by findpath
+let q;          // list used in initLabels
 
 let pathCount;      // number of augmenting paths
 let setupSteps;     // number of steps to compute distance labels
@@ -36,21 +40,23 @@ let findpathSteps;  // number of steps in findpath method
 export default function mcflowLCP(fg, trace=false, mostNeg=false) {
 	g = fg;
 	lambda = new Float32Array(g.n+1);
+	c = new Float32Array(g.n+1);
 	pedge = new Int32Array(g.n+1);
+	border = new ArrayHeap(g.n, 4);
+	q = new List(g.n);
+
 	pathCount = setupSteps = findpathSteps = 0;
 
 	let ts = '';
 	if (trace) {
 		ts += 'path, residual capacity, path cost, total cost\n';
 	}
-	initLabels();
-	let totalFlow = 0; let totalCost = 0;
+	initLabels(); let totalCost = 0;
 	while (findpath()) {
 		pathCount++;
 		let [resCap, cost] = pathProperties();
 		if (mostNeg && cost >= 0) break;
 		let s = augment(resCap, trace);
-		totalFlow += resCap;
 		totalCost += resCap * cost;
 		if (trace) 
 			ts += `[${s}] ${resCap} ${cost} ${totalCost}\n`;
@@ -69,7 +75,7 @@ export default function mcflowLCP(fg, trace=false, mostNeg=false) {
  *  over edges with positive residual capacity.
  */
 function initLabels() {
-	pedge.fill(0); lambda.fill(0); let q = new List(g.n);
+	pedge.fill(0); lambda.fill(0); q.clear();
 	for (let u = 1; u <= g.n; u++) q.enq(u);
 	let pass = 0; let last = q.last();
 	while (!q.empty()) {
@@ -92,11 +98,10 @@ function initLabels() {
  *  @param return true if a path was found, else false.
  */
 function findpath() {
-	let c = new Float32Array(g.n+1); let border = new ArrayHeap(g.n, 4);
-	pedge.fill(0); c.fill(Infinity);
-	c[g.source] = 0; border.insert(g.source,0); let cmax = 0;
+	c.fill(Infinity); pedge.fill(0); border.clear();
+	c[g.source] = 0; border.insert(g.source,0);
 	while (!border.empty()) {
-		let u = border.deletemin(); cmax = Math.max(cmax, c[u]);
+		let u = border.deletemin();
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			findpathSteps++;
 			if (g.res(e,u) == 0) continue;
@@ -110,8 +115,7 @@ function findpath() {
 		}
 	}
 	// update lambda for next round
-	for (let u = 1; u <= g.n; u++)
-		lambda[u] += Math.min(cmax, c[u]);
+	for (let u = 1; u <= g.n; u++) lambda[u] += c[u];
 	return (pedge[g.sink] != 0);
 }
 
@@ -134,13 +138,12 @@ function pathProperties() {
  *  @param f is the amount of flow to add to the path
  */
 function augment(f, trace=false) {
-	let u = g.sink; let e = pedge[u]; let ts = '';
+	let u = g.sink; let e = pedge[u]; let ts = g.index2string(u);
 	while (u != g.source) {
 		let v = g.mate(u,e);
-		if (trace) ts = g.index2string(u) + ' ' + ts;
+		if (trace) ts = g.index2string(v) + ' ' + ts;
 		g.addFlow(e,v,f);
 		u = v; e = pedge[u];
 	}
-	if (trace) ts = g.index2string(u) + ' ' + ts;
 	return ts;
 }

@@ -39,13 +39,10 @@ export default function mcflowS(fg, trace=false) {
 
 	phaseCount = pathCount = findpathSteps = 0;
 
-	for (let u = 1; u <= g.n; u++) 
-		lambda[u] = excess[u] = pedge[u] = 0;
-
 	// Initialize scaling factor
 	let maxcap = 0;
 	for (let e = g.first(); e != 0; e = g.next(e)) {
-		maxcap = Math.max(maxcap, g.cap(e,g.tail(e)));
+		maxcap = Math.max(maxcap, g.cap(e,));
 		g.setFlow(e, 0);
 	}
 	for (Delta = 1; 2*Delta <= maxcap; Delta <<= 1) {}
@@ -59,7 +56,9 @@ export default function mcflowS(fg, trace=false) {
 
 	let ts = '';
 
-	initLabels();
+	//initLabels();
+	// not needed, and eliminating it allows us to handle
+	// graphs with negative cycles
 	while (Delta >= 1) {
 		newPhase(); phaseCount++;
 		if (trace)
@@ -150,7 +149,7 @@ function findpath() {
 	for (let s = sources.first(); s != 0; s = sources.next(s)) {
 		c[s] = 0; border.insert(s,0);
 	}
-	let cmax = 0; let t = 0;
+	let cmax = -Infinity; let t = 0;
 	while (!border.empty()) {
 		let u = border.deletemin(); cmax = Math.max(cmax,c[u]);
 		if (t == 0 && sinks.contains(u)) t = u;
@@ -179,17 +178,17 @@ function findpath() {
  *  by the pedge array
  */
 function augment(t, trace=false) {
-	let s = t; let f = Delta; let ts = '';
+	let s = t; let ts = '';
 	for (let e = pedge[s]; e != 0; e = pedge[s]) {
 		if (trace) {
 			if (ts.length > 0) ts = ' ' + ts;
 			ts = g.index2string(s) + ts;
 		}
-		let u = g.mate(s,e); g.addFlow(e,u,f); s = u;
+		let u = g.mate(s,e); g.addFlow(e,u,Delta); s = u;
 	}
 	if (trace)
-		ts = `[${g.index2string(s)} ${ts}] ${f}`;
-	excess[s] -= f; excess[t] += f;
+		ts = `[${g.index2string(s)} ${ts}] ${Delta}`;
+	excess[s] -= Delta; excess[t] += Delta;
 	if (excess[s] < Delta) sources.delete(s);
 	if (excess[t] > -Delta) sinks.delete(t);
 	return ts;

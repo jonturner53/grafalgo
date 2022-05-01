@@ -15,15 +15,11 @@ let g;		  // shared reference to flow graph
 
 // private data used by findCycle
 let C;		  // C[i][u]=cost of min cost path (mcp) of length i to u in g
-let pedge;	  // pedge[i][u]=edge to parent of u in mcp of length i to u
+let P;	  // P[i][u]=edge to parent of u in mcp of length i to u
 
-let cg;       // cycle graph used by findCycle to pass cycle info to augment
-let cgpe;     // cgpe[u] is parent edge of u in cg - used by augment
-let cgq;      // List used by augment for queue in breadth-first searches of cg
-
-let cycleCount;		  // number of negative cycles found
-let findCycleSteps;  // steps involved in searching for cycles
-let findCycleCandidates;  // number of passes in findCycle
+let cycleCount;		    // number of negative cycles found
+let findCycleSteps;     // steps involved in searching for cycles
+let cycleCandidates;  // number of cycle candidates
 
 let trace;
 let traceString;
@@ -37,41 +33,40 @@ let traceString;
  */
 export default function mcflowKGT(fg, traceflag=false) {
 	g = fg;
-	C = new Array(); pedge = new Array();
+	C = new Array(); P = new Array();
 	for (let i = 0; i <= g.n; i++) {
 		C.push(new Float32Array(g.n+1));
-		pedge.push(new Int32Array(g.n+1));
+		P.push(new Int32Array(g.n+1));
 	}
-	cg = new Digraph(g.n, g.edgeCapacity);
-	cgpe = new Int32Array(g.n+1);
-	cgq = new List(g.n);
 
 	trace = traceflag; traceString = '';
 
-	cycleCount = findCycleSteps = findCycleCandidates = 0;
+	cycleCount = findCycleSteps = cycleCandidates = 0;
 
 	if (trace) {
 		traceString += 'initial cost: ' + g.totalCost() + '\n' +
 			  'cycleCapacity cycle totalCost\n';
 	}
-	let u = findCycle();
+	let [u,i] = findCycle();
 	while (u != 0) {
 		cycleCount++;
-		augment(u);
-		u = findCycle();
+		augment(u,i);
+		[u,i] = findCycle();
 	}
 	if (trace) traceString += g.toString(0,1);
 	return [ traceString, { 'cycleCount': cycleCount,
-				   'findCycleCandidates': findCycleCandidates,
+				   'cycleCandidates': cycleCandidates,
 				   'findCycleSteps': findCycleSteps} ];
 }
 
 /** Find a negative cost cycle in the residual graph.
- *  @return a vertex on the selected cycle or 0 if there is no
- *  cycle is present in the residual graph; on return, the cycle
- *  is defined by the pedge values
+ *  @return a pair [u,i] where u is a vertex on a min mean cost cycle and
+ *  i is the length of the cycle, or [0,0] if the cost of the cycle is 
+ *  not negative; if a cycle is present, the P values define a partial
+ *  shortest path tree from u with depth i.
  */
 function findCycle() {
+	// First, compute shortest path lengths of length i <= g.n
 	for (let i = 0; i <= g.n; i++) {
 		for (let u = 1; u <= g.n; u++) {
 			findCycleSteps++;
@@ -79,11 +74,11 @@ function findCycle() {
 			if (i == 0) {
 				C[i][u] = 0;
 			} else {
-				C[i][u] = Infinity; pedge[i][u] = 0;
+				C[i][u] = Infinity; 
 				for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 					let v = g.mate(u,e);
 					if (g.res(e,v) > 0 && C[i-1][v] + g.cost(e,v) < C[i][u]) {
-						C[i][u] = C[i-1][v] + g.cost(e,v); pedge[i][u] = e;
+						C[i][u] = C[i-1][v] + g.cost(e,v); 
 					}
 				}
 			}
@@ -100,77 +95,72 @@ function findCycle() {
 			findCycleSteps++;
 			let mc = (C[n][u] - C[i][u]) / (n - i);
 			if (mc > meanCost[u][1]) {
-				meanCost[u] = [i,mc];
+				meanCost[u] = [n-i,mc];
 			}
 		}
 		if (meanCost[u][1] < meanCost[umin][1]) umin = u;
 	}
-	if (meanCost[umin][1] >= 0) return 0;
+	let mmc = meanCost[umin][1];
+	if (mmc >= 0) return [0,0];
 
+	// Now, get list of all vertices that match min cost
+	let eps = 1e-6;
 	let candidates = new List(g.n+1);
 	for (let u = 1; u <= n; u++) {
-		if (meanCost[u][1] == meanCost[umin][1])
+		findCycleSteps++;
+		let cu = meanCost[u][1];
+		if (Math.abs((cu-mmc)/(cu+mmc)) < eps)
 			candidates.enq(u);
 	}
-	findCycleCandidates += candidates.length;
 
-	for (let u = candidates.first(); u != 0; u = candidates.next(u)) {
-		let i = n; let v = u;
-		for (let e = pedge[n][v]; e != 0 && i >= 0; e = pedge[--i][v]) {
-			let w = g.mate(v,e);
-			if (w == u) {
-				// build cycle graph (cg) using same edge numbers as in g
-				// and return
-				cg.clear(); i = n; v = u;
-				for (let e = pedge[n][v]; ; e = pedge[--i][v]) {
-					w = g.mate(v,e);
-					if (!cg.validEdge(e)) cg.join(w,v,e)
-					if (w == u) return u;
-					v = w;
+	// Now compute shortest path lengths from each of the candidates
+	// to find one with a min mean length cycle
+	for (let s = candidates.first(); s != 0; s = candidates.next(s)) {
+		cycleCandidates++;
+		C[0].fill(Infinity); P[0].fill(0); C[0][s] = 0;
+		for (let i = 1; i <= g.n; i++) {
+			C[i].fill(Infinity); P[i].fill(0);
+			for (let u = 1; u <= g.n; u++) {
+				for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+					findCycleSteps++;
+					let v = g.mate(u,e);
+					if (g.res(e,v) > 0 && C[i-1][v] + g.cost(e,v) < C[i][u]) {
+						C[i][u] = C[i-1][v] + g.cost(e,v); P[i][u] = e;
+					}
 				}
 			}
-			v = w;
+			let cs = C[i][s]/i;
+			if (Math.abs((cs-mmc)/(cs+mmc)) < eps) return [s,i];
 		}
 	}
-	return 0; // should never reach here
+	return [0,0]; // should never reach here
 }
 
 /** Add flow to a negative-cost cycle.
  *  Adds as much flow as possible to the cycle, reducing the cost
  *  without changing the flow value.
- *  @param z is a vertex on a cycle defined by the pedge array
+ *  @param z is a vertex on a min mean cost cycle
+ *  @param i is number of edges in min mean cost cycle
  */
-function augment(z) {
-	cgpe.fill(0);
-	let e = cg.firstOut(z); let u = cg.mate(z,e); cgpe[u] = e;
-	assert(cg.nextOut(z,e) == 0, 'mcflowKGT.augment: unexpected edge in cg');
-	cgq.clear(); cgq.enq(u); 
-	while (!cgq.empty()) {
-		u = cgq.deq(); if (u == z) break;
-		for (e = cg.firstOut(u); e != 0; e = cg.nextOut(u,e)) {
-			let v = cg.head(e);
-			if (cgpe[v] == 0) {
-				cgpe[v] = e; cgq.enq(v);
-			}
-		}
-	}
-	// now find residual capacity of shortest path back to z
-	u = z; e = cgpe[u]; let f = Infinity;
+function augment(z,i) {
+	// C[i][z] is min mean cycle cost and P values give parent edges
+	let u = z; let j = i; let f = Infinity;
 	do {
-		let v = cg.tail(e);
+		let e = P[j--][u];
+		let v = g.mate(u,e);
 		f = Math.min(f,g.res(e,v));
-		u = v; e = cgpe[u];
+		u = v;
 	} while (u != z);
 
 	// now add flow to the path to saturate cycle
 	let ts = ''; if (trace) ts += g.index2string(z);
-	u = z; e = cgpe[u];
+	u = z; j = i;
 	do {
-		let v = cg.tail(e);
+		let e = P[j--][u];
+		let v = g.mate(u,e);
 		g.addFlow(e,v,f);
 		if (trace) ts = `${g.index2string(v)}:${g.cost(e,v)} ${ts}`;
-		u = v; e = cgpe[u];
+		u = v;
 	} while (u != z);
-
 	if (trace) traceString += `${f} [${ts}] ${g.totalCost()}\n`;
 }
