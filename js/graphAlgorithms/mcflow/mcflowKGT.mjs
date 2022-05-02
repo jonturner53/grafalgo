@@ -59,9 +59,8 @@ export default function mcflowKGT(fg, traceflag=false) {
 
 /** Find a negative cost cycle in the residual graph.
  *  @return a pair [u,i] where u is a vertex on a min mean cost cycle and
- *  i is the length of the cycle, or [0,0] if the cost of the cycle is 
- *  not negative; if a cycle is present, the P values define a partial
- *  shortest path tree from u with depth i.
+ *  i is a value for which the path starting at P[i][u] and continuing up
+ *  the tree defined by the parent points contains a min mean cost cycle.
  */
 function findCycle() {
 	let n = g.n;
@@ -104,13 +103,8 @@ function findCycle() {
 	while (i > 0) {
 		findCycleSteps++;
 		let e = P[i][u]; let v = g.mate(u,e);
-		if (mark[v]) {
-let cv = (C[mark[v]][v] - C[i-1][v]) / (mark[v]-(i-1));
-assert(Math.abs((cv-mmc)/(cv+mmc)) < 1e-6, 'oops');
-			return [v, mark[v]];
-		}
-		mark[v] = i-1;
-		u = v; i--;
+		if (mark[v]) return [v, mark[v]];
+		mark[v] = i-1; u = v; i--;
 	}
 	assert(false, 'findpath: program error');
 }
