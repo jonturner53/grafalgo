@@ -21,7 +21,7 @@ let border;		// heap used by findpath
 let q;          // list used in initLabels
 
 let pathCount;      // number of augmenting paths
-let setupSteps;     // number of steps to compute distance labels
+let initSteps;     // number of steps to compute distance labels
 let findpathSteps;  // number of steps in findpath method
 
 /** Find minimum cost, flow in weighted flow graph using the least-cost
@@ -45,7 +45,7 @@ export default function mcflowLCP(fg, trace=false, mostNeg=false) {
 	border = new ArrayHeap(g.n, 4);
 	q = new List(g.n);
 
-	pathCount = setupSteps = findpathSteps = 0;
+	pathCount = initSteps = findpathSteps = 0;
 
 	let ts = '';
 	if (trace) {
@@ -62,8 +62,9 @@ export default function mcflowLCP(fg, trace=false, mostNeg=false) {
 			ts += `[${s}] ${resCap} ${cost} ${totalCost}\n`;
 	}
 	if (trace) ts += g.toString(0,1);
-	return [ts, { 'pathCount': pathCount,
-			  	  'setupSteps' : setupSteps,'pathCount': pathCount,
+	return [ts, {
+				  'pathCount': pathCount,
+				  'initSteps' : initSteps,
 			  	  'findpathSteps' : findpathSteps } ];
 }
 
@@ -81,7 +82,7 @@ function initLabels() {
 	while (!q.empty()) {
 		let u = q.deq();
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			setupSteps ++;
+			initSteps++;
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
 			if (lambda[v] > lambda[u] + g.cost(e,u)) {
