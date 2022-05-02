@@ -16,6 +16,7 @@ let g;          // shared reference to flow graph
 // private data used by findCycle
 let C;      // C[i][u]=cost of min cost path (mcp) of length i to u in g
 let P;      // P[i][u]=edge to parent of u in mcp of length i to u
+let mark;	// used to identify cycle
 
 let cycleCount;       // number of negative cycles found
 let findCycleSteps;   // steps involved in searching for cycles
@@ -37,6 +38,7 @@ export default function mcflowKGT(fg, traceflag=false) {
 		C.push(new Float32Array(g.n+1));
 		P.push(new Int32Array(g.n+1));
 	}
+	mark = new Int32Array(g.n+1);
 
 	trace = traceflag; traceString = '';
 
@@ -98,12 +100,14 @@ function findCycle() {
 	if (mmc >= 0) return [0,0];
 
 	// Now follow parent pointers from umin, while checking for cycle
-	let mark = new Int8Array(n+1);
+	mark.fill(0);
 	let u = umin; let i = n; mark[u] = i;
 	while (i > 0) {
 		findCycleSteps++;
 		let e = P[i][u]; let v = g.mate(u,e);
-		if (mark[v]) return [v, mark[v]];
+		if (mark[v]) {
+			return [v, mark[v]];
+		}
 		mark[v] = i-1; u = v; i--;
 	}
 	assert(false, 'findpath: program error');
