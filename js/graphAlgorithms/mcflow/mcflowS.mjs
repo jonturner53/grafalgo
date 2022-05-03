@@ -20,6 +20,9 @@ let excess;   // excess[u] is excess flow entering u
 let sources;  // list of sources (nodes with positive excess)
 let sinks;    // list of sinks (nodes with negative excess)
 
+let trace;
+let traceString;
+
 let phaseCount;     // number of scaling phases
 let pathCount;      // number of augmenting paths
 let findpathSteps;  // number of steps in findpath method
@@ -28,8 +31,9 @@ let findpathSteps;  // number of steps in findpath method
  *  capacity scaling algorithm.
  *  Requires that the original graph has no negative cost cycles.
  */
-export default function mcflowS(fg, trace=false) {
+export default function mcflowS(fg, traceFlag=false) {
 	g = fg;
+	trace = traceFlag; traceString = '';
 
 	pedge = new Int32Array(g.n+1);
 	lambda = new Float32Array(g.n+1);
@@ -54,53 +58,19 @@ export default function mcflowS(fg, trace=false) {
 	excess[g.sink] = -g.totalFlow();
 	g.clearFlow();
 
-	let ts = '';
-
-	//initLabels();
-	// not needed, and eliminating it allows us to handle
-	// graphs with negative cycles
 	while (Delta >= 1) {
 		newPhase(); phaseCount++;
-		if (trace)
-			ts += `Delta=${Delta}, sources ${''+sources}, ` +
-				  `sinks${''+sinks} flow ${g.totalFlow()}, ` +
-				  `cost ${g.totalCost()}\n`; 
 		let t = findpath();
 		while (t != 0) {
 			pathCount++;
-			let s = augment(t, trace);
-			if (trace) ts += `path ${s}\n`;
+			augment(t);
 			t = findpath();
 		}
 		Delta /= 2;
 	}
-	if (trace) ts += g.toString(0,1);
-	return [ts, { 'phaseCount': phaseCount, 'pathCount': pathCount,
-			 	  'findpathSteps': findpathSteps } ];
-}
-
-/** Compute values for labels that give non-negative transformed costs.
- *  The labels are the least cost path distances from an imaginary
- *  vertex with a length 0 edge to every vertex in the graph.
- *  Uses the breadth-first scanning algorithm to compute shortest
- *  paths.
- */
-function initLabels() {
-	let q = new List(g.n);
-	for (let u = 1; u <= g.n; u++) q.enq(u);
-	let pass = 0; let last = g.n;
-	while (!q.empty()) {
-		let u = q.deq();
-		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u,e)) {
-			let v = g.mate(u,e);
-			if (lambda[v] > lambda[u] + g.cost(e,u)) {
-				lambda[v] = lambda[u] + g.cost(e,u);
-				if (!q.contains(v)) q.enq(v);
-			}
-		}
-		if (u == last && !q.empty()) { pass++; last = q.last(); }
-		assert(pass<g.n, 'mcflowS: negative cost cycle');
-	}
+	if (trace) traceString += g.toString(0,1);
+	return [traceString, {  'phaseCount': phaseCount, 'pathCount': pathCount,
+			 	  			'findpathSteps': findpathSteps } ];
 }
 
 /** Do start of phase processing.  */
@@ -108,16 +78,22 @@ function newPhase() {
 	// If any edge violates labeling condition, add Delta units of
 	// flow to it. This eliminates it from the residual graph for
 	// the current scaling factor.
+	let s = ''; let flow = 0; let cost = 0;
+	if (trace) {
+		flow = g.totalFlow(); cost = g.totalCost();
+	}
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		let u = g.tail(e); let v = g.head(e);
 		if (g.res(e,u) >= Delta) {
 			if (g.cost(e,u) + (lambda[u] - lambda[v]) < 0) {
+				if (trace) s += ` ${g.edge2string(e)}:${g.index2string(u)}`
 				g.addFlow(e,u,Delta);
 				excess[u] -= Delta; excess[v] += Delta;
 			}
 		}
 		if (g.res(e,v) >= Delta) {
 			if (g.cost(e,v) + (lambda[v] - lambda[u]) < 0) {
+				if (trace) s += ` ${g.edge2string(e)}:${g.index2string(v)}`
 				g.addFlow(e,v,Delta);
 				excess[v] -= Delta; excess[u] += Delta;
 			}
@@ -132,6 +108,11 @@ function newPhase() {
 		} else if (excess[u] <= -Delta) {
 			sinks.enq(u);
 		}
+	}
+	if (trace) {
+		traceString +=	`Delta=${Delta} flow ${flow}, cost ${cost}\n` +
+						`adding to:${s}\n` +
+					    `sources ${''+sources}, sinks${''+sinks}\n`; 
 	}
 	return;
 }
@@ -177,7 +158,7 @@ function findpath() {
  *  @param t is the sink vertex for the path; the path is defined
  *  by the pedge array
  */
-function augment(t, trace=false) {
+function augment(t) {
 	let s = t; let ts = '';
 	for (let e = pedge[s]; e != 0; e = pedge[s]) {
 		if (trace) {
@@ -187,9 +168,8 @@ function augment(t, trace=false) {
 		let u = g.mate(s,e); g.addFlow(e,u,Delta); s = u;
 	}
 	if (trace)
-		ts = `[${g.index2string(s)} ${ts}] ${Delta}`;
+		traceString += `[${g.index2string(s)} ${ts}]\n`;
 	excess[s] -= Delta; excess[t] += Delta;
 	if (excess[s] < Delta) sources.delete(s);
 	if (excess[t] > -Delta) sinks.delete(t);
-	return ts;
 }

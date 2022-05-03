@@ -14,9 +14,10 @@ import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 let g;          // shared reference to flow graph
 
 // private data used by findCycle
-let C;      // C[i][u]=cost of min cost path (mcp) of length i to u in g
-let P;      // P[i][u]=edge to parent of u in mcp of length i to u
-let mark;	// used to identify cycle
+let C;        // C[i][u]=cost of min cost path (mcp) of length i to u in g
+let P;        // P[i][u]=edge to parent of u in mcp of length i to u
+let meanCost; // used to determine min mean cycle cost
+let mark;     // used to identify cycle
 
 let cycleCount;       // number of negative cycles found
 let findCycleSteps;   // steps involved in searching for cycles
@@ -38,6 +39,7 @@ export default function mcflowKGT(fg, traceflag=false) {
 		C.push(new Float32Array(g.n+1));
 		P.push(new Int32Array(g.n+1));
 	}
+	meanCost = new Array(g.n+1);
 	mark = new Int32Array(g.n+1);
 
 	trace = traceflag; traceString = '';
@@ -83,7 +85,6 @@ function findCycle() {
 	}
 
 	// Now apply Karp's equation to find cost of least mean cost cycle
-	let meanCost = new Array(n+1);
 	let umin = 1;
 	for (let u = 1; u <= n; u++) {
 		meanCost[u] = [0, (C[n][u] - C[0][u]) / n];
