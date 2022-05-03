@@ -67,6 +67,7 @@ export default function mcflowS(fg, traceFlag=false) {
 			t = findpath();
 		}
 		Delta /= 2;
+		if (trace) traceString += '\n';
 	}
 	if (trace) traceString += g.toString(0,1);
 	return [traceString, {  'phaseCount': phaseCount, 'pathCount': pathCount,
