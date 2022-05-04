@@ -1,4 +1,4 @@
-/** @file mcflowLCP.cpp
+/** @file mcflowJEK.cpp
  * 
  *  @author Jon Turner
  *  @date 2022
@@ -25,7 +25,7 @@ let initSteps;     // number of steps to compute distance labels
 let findpathSteps;  // number of steps in findpath method
 
 /** Find minimum cost, flow in weighted flow graph using the least-cost
- *  augmenting path algorithm.
+ *  augmenting path algorithm of Jewell as refined by Edmonds and Karp.
  *  @param fg is a flow graph; if it has an initial non-zero flow, it is
  *  assumed to be a min-cost flow among all flows with the same value;
  *  the final flow is returned in its edges' flow field; 
@@ -37,7 +37,7 @@ let findpathSteps;  // number of steps in findpath method
  *  value, cost is the flow cost, ts is a trace string and stats is a
  *  statistics object.
  */
-export default function mcflowLCP(fg, trace=false, mostNeg=false) {
+export default function mcflowJEK(fg, trace=false, mostNeg=false) {
 	g = fg;
 	lambda = new Float32Array(g.n+1);
 	c = new Float32Array(g.n+1);
@@ -91,7 +91,7 @@ function initLabels() {
 			}
 		}
 		if (u == last && !q.empty()) { pass++; last = q.last(); }
-		assert(pass<g.n, 'mcflowLCP: negative cost cycle');
+		assert(pass<g.n, 'mcflowJEK: negative cost cycle');
 	}
 }
 
@@ -109,7 +109,7 @@ function findpath() {
 			let v = g.mate(u,e);
 			if (c[v] > c[u] + g.cost(e,u) + (lambda[u] - lambda[v])) {
 				pedge[v] = e;
-				c[v] = c[u] + g.cost(e,u) + (lambda[u]-lambda[v]);
+				c[v] = c[u] + g.cost(e,u) + (lambda[u] - lambda[v]);
 				if (!border.contains(v)) border.insert(v,c[v]);
 				else border.changekey(v,c[v]);
 			}

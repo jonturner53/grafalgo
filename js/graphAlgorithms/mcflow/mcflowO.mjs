@@ -1,4 +1,4 @@
-/** @file mcflowS.cpp
+/** @file mcflowO.cpp
  * 
  *  @author Jon Turner
  *  @date 2011
@@ -27,11 +27,11 @@ let phaseCount;     // number of scaling phases
 let pathCount;      // number of augmenting paths
 let findpathSteps;  // number of steps in findpath method
 
-/** Find minimum cost maximum flow in a weighted flow graph using the
+/** Find minimum cost maximum flow in a weighted flow graph using Orlin's
  *  capacity scaling algorithm.
  *  Requires that the original graph has no negative cost cycles.
  */
-export default function mcflowS(fg, traceFlag=false) {
+export default function mcflowO(fg, traceFlag=false) {
 	g = fg;
 	trace = traceFlag; traceString = '';
 
@@ -160,16 +160,18 @@ function findpath() {
  *  by the pedge array
  */
 function augment(t) {
-	let s = t; let ts = '';
+	let s = t; let ts = ''; let cost = 0;
 	for (let e = pedge[s]; e != 0; e = pedge[s]) {
+		let u = g.mate(s,e); g.addFlow(e,u,Delta);
 		if (trace) {
 			if (ts.length > 0) ts = ' ' + ts;
 			ts = g.index2string(s) + ts;
+			cost += g.cost(e,u) * Delta;
 		}
-		let u = g.mate(s,e); g.addFlow(e,u,Delta); s = u;
+		s = u;
 	}
 	if (trace)
-		traceString += `[${g.index2string(s)} ${ts}]\n`;
+		traceString += `[${g.index2string(s)} ${ts}] ${cost}\n`;
 	excess[s] -= Delta; excess[t] += Delta;
 	if (excess[s] < Delta) sources.delete(s);
 	if (excess[t] > -Delta) sinks.delete(t);
