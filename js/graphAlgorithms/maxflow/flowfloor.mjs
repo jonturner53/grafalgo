@@ -12,11 +12,14 @@ import maxflowD from './maxflowD.mjs';
 import { assert } from '../../common/Errors.mjs';
 
 /** Compute a feasible flow in a graph with specified flow floors.
-	@param fg is Flograph with floors.
-	@param trace is a flag that enables execution tracing
-    @return a pair [f, ts] where f is the value of the returned flow,
-    if there is a feasible flow, and ts is a trace string; if there
-	is no feasible flow, [-1, ts] is returned
+ *  @param fg is Flograph with floors.
+ *  @param trace is a flag that enables execution tracing
+    @return a triple [success, ts, stats] where success is a flag,
+ *  indicating whether or not the computed flow satisfies all the
+ *  floor specifications, ts is a trace string and stats is a
+ *  statistics object; if there is no feasible flow for the set of
+ *  floors, the returned flow approximates the specification as
+ *  closely as possible
  */
 export default function flowfloor(g, trace=false) {
 	// First determine total capacity, number
@@ -46,13 +49,10 @@ export default function flowfloor(g, trace=false) {
     let e = g1.join(g.sink, g.source); g1.setCapacity(e, totalCap);
 
 	// Now, find max flow in g1 and check that floor values are all satisfied
-	let [f, ts] = maxflowD(g1, trace);
-	if (f != totalFloor) {
-		ts += g1.toString(0,1); return [-1, ts];
-	}
+	let [ts,stats] = maxflowD(g1, trace);
 
-	// Now transfer computed flows back into g
+	// Now transfer computed flow back into g
     for (let e = g.first(); e != 0; e = g.next(e))
         g.setFlow(e, g1.f(e) + g.floor(e));
-	return [g.totalFlow(), ts];
+	return [g1.totalFlow() == totalFloor, ts, stats];
 }

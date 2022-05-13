@@ -1,4 +1,4 @@
-/** \file maxflow.mjs
+/** \file flowfloorTest.mjs
  *
  *  @author Jon Turner
  *  @date 2022
@@ -22,12 +22,12 @@ function run(g, trace) {
 	g.clearFlow();
 	let ts = '';
 	if (trace) ts += g.toString(0,1)
-	let [f1, ts1, stats1] = flowfloor(g, trace);
+	let [success, ts1, stats1] = flowfloor(g, trace);
 	if (trace) ts += ts1 + g.toString(0,1);
-	assert(f1 >= 0, 'no feasible flow');
-	let [f2, ts2] = maxflowD(g, trace);
+	if (!success) ts += 'unable to satisfy flow floors\n';
+	let [ts2] = maxflowD(g, trace);
 	if (trace) ts += ts2 + g.toString(0,1);
-	return [f2, ts, stats1];
+	return [ts, stats1];
 }
 
 let algomap = {

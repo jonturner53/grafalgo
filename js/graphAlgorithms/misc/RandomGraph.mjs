@@ -14,6 +14,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
+import bimatchET from '../match/bimatchET.mjs';
 
 /** Generate an undirected random graph. 
  *  @param n is the number of vertices in the random graph
@@ -79,7 +80,7 @@ export function randomDag(n, d) {
  *  @param n2 specifies the number of vertices in the "right part"
  *  @param d1 is the average vertex degree in the left part
  */
-export function randomBigraph(n1, n2, d1) {
+export function randomBigraph(n1, d1, n2=n1) {
 	n1 = Math.max(1,n1); n2 = Math.max(1,n2); d1 = Math.min(d1, n2);
 	let m = ~~(d1*n1);
 	let g = new Graph(n1+n2, m);
@@ -365,13 +366,31 @@ export function randomRegularGraph(n, d) {
 /** Create a random simple, regular bipartite graph.
  *  @param g is an undirected graph object
  *  @param n1 is the # of vertices in the "left" partition of the bigraph
+ *  @param d1 is the degree of the vertices in the "left" partition
  *  @param n2 is the # of vertices in the "right" partition
  *  @param noSelf excludes edges of the form (i, n2+i), when true
  *  if d2=n1*d1/n2 is an integer, then the right-hand vertices all
  *  have degree d2, otherwise they have degree floor(d2) or floor(d2)+1
- *  @param d1 is the degree of the vertices in the "left" partition
+
+
+alternate approach
+1. create random bigraph with at least d edges per vertex
+   - say by making d extra large and just counting on randomness
+	 randomBigraph(n1,n2,2*(d1+Math.floor(Math.ln(n1+n2)));
+   - or by doing exactly d on the left, then augmenting vertices
+   - on the left with a deficit - may get repeats this way
+2. find perfect d-match in graph
  */
-function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
+
+
+export function randomRegularBigraph(n, d) {
+	let g = randomBigraph(n,d+2*Math.ceil(Math.log(n)));
+	let [match] = bimatchET(g,0,d,d);
+	return match;
+}
+
+/*
+export function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
 	assert(n1 > 0 && d1 > 0 && n2 >= d1);
 	if ((n1 & 1) && (d1 & 1)) n1++;
 	let d2 = Math.ceil(n1*d1/n2);
@@ -408,7 +427,7 @@ function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
 		// now, check for parallel edges and eliminate
 		pairs.sort((a,b) => (a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 :
 							(a[1] < b[1] ? -1 : (a[1] > b[1] ? 1 : 0)))));
-		let j = 0;
+		let j = 1;
 		while (j < nextPair) {
 			let [u,v] = pairs[j];
 			if (j > 0 && u == pairs[j-1][0] && v == pairs[j-1][1]) {
@@ -450,3 +469,4 @@ function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
 	}
 	return g;
 }
+*/

@@ -33,7 +33,7 @@ export default class List extends Top {
 	
 	/** Constructor for List object.
 	 *  @param n is the range for the list
-	 *  @param capacity is the max range to allocate space for
+	 *  @param capacity is the max storage capacity
 	 */
 	constructor(n, capacity=n) {
 		super(n);
@@ -63,9 +63,9 @@ export default class List extends Top {
 		this.#value = new Array(this.#next.length).fill(null);
 	}
 
-	/** Reset the range and max range of the list; discard value. 
+	/** Reset the range and max capacity of the list; discard value. 
 	 *  @param n is the range of the index set
-	 *  @param capacity the max range for which space is to be allocated
+	 *  @param capacity is the max range for which space is to be allocated
 	 */
 	reset(n, capacity=n) {
 		assert(capacity >= n); this._n = n; this.#init(capacity);
@@ -203,14 +203,14 @@ export default class List extends Top {
 		if (i > this.n) this.expand(i);
 		assert(this.valid(i) && i != 0 && !this.contains(i) &&
 					   (j == 0 || this.contains(j)));
-		if (value) this.setValue(i, value);
+		if (value != null) this.setValue(i, value);
 		if (j == 0) {
 			if (this.empty()) this.#last = i;
 			this.#next[i] = this.#first; this.#first = i; this.#length++;
-			return;
+		} else {
+			this.#next[i] = this.#next[j]; this.#next[j] = i; this.#length++;
+			if (this.#last == j) this.#last = i;
 		}
-		this.#next[i] = this.#next[j]; this.#next[j] = i; this.#length++;
-		if (this.#last == j) this.#last = i;
 		if (this.#prev) {
 			this.#prev[i] = j;
 			if (i != this.last()) this.#prev[this.next(i)] = i;
@@ -231,8 +231,13 @@ export default class List extends Top {
 		else	    { j = this.#next[i]; this.#next[i] = this.#next[j]; }
 		if (this.#last == j) this.#last = i;
 		this.#next[j] = -1; this.#length--;
-		if (this.#prev && this.next(i) != 0)
-			this.#prev[this.next(i)] = i;
+		if (this.#prev) {
+			if (i == 0)
+				this.#prev[this.first()] = 0;
+			else if (this.next(i) != 0)
+				this.#prev[this.next(i)] = i;
+			this.#prev[j] = 0;
+		}
 		if (this.#value) this.#value[j] = null;
 		return j;
 	}
@@ -246,7 +251,7 @@ export default class List extends Top {
 		if (i == this.first()) {
 			return this.deleteNext(0);
 		} else {
-			if (!this.#prev) this.addPrev();
+			//if (!this.#prev) this.addPrev();
 			return this.deleteNext(this.prev(i));
 		}
 	}
@@ -284,7 +289,7 @@ export default class List extends Top {
 	 *  @param l is the list to be compared to this one
 	 *  @return true if they are the same list or have the
 	 *  same contents (in the same order);
-	 *  they need not have the same storage capacity to be equal
+	 *  they need not have the same capacity to be equal
 	 */
 	equals(l) {
 		if (this === l) return true;

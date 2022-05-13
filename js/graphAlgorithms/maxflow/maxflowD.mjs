@@ -20,7 +20,8 @@ let phaseCount;	   // number of phases
 
 /** Compute a maximum flow in a graph using Dinic's algorithm.
  *  @param fg is Flograph, possibly with some initial flow already present.
- *  @return the total flow added to fg
+ *  @return pair [ts, stats] where ts is a trace string and stats is a
+ *  statistics object
  */
 export default function maxflowD(fg, trace=false) {
 	g = fg;

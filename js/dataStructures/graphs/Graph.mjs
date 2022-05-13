@@ -59,7 +59,8 @@ export default class Graph extends Top {
 	get weighted() { return (this._weight ? true : false); }
 
 	addWeights() {
-		this._weight = new Float32Array(this.edgeCapacity+1);
+		if (!this.weighted)
+			this._weight = new Float32Array(this.edgeCapacity+1);
 	}
 
 	reset(n, ecap=n, vcap=n) {
@@ -69,6 +70,7 @@ export default class Graph extends Top {
 
 	get vertexCapacity() { return this._firstEp.length-1; }
 	get edgeCapacity() { return this._left.length-1; }
+	get edgeRange() { return this.edgeCapacity; }
 
 	expand(n, m) {
 		if (n <= this.n && m <= this.m) return;
