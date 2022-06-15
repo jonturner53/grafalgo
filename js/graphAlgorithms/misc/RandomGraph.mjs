@@ -385,8 +385,10 @@ alternate approach
 
 export function randomRegularBigraph(n, d) {
 	let g = randomBigraph(n,d+2*Math.ceil(Math.log(n)));
-	let [match] = bimatchET(g,0,d,d);
-	return match;
+	let dmin = new Int32Array(2*n+1).fill(d);
+	let [match] = bimatchET(g,0,null,dmin,dmin);
+	g.reset(n,d*n); g.assign(match);
+	return g;
 }
 
 /*

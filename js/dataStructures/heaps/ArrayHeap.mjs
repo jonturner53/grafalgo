@@ -28,6 +28,7 @@ export default class ArrayHeap extends Top {
 	#changekeyCount;	// calls to changekey
 	#siftupSteps;		// steps taken by siftup
 	#siftdownSteps;		// steps taken by siftdown
+	#steps;				// total steps
 
 	/** Constructor for ArrayHeap object.
 	 *  @param n is index range for object
@@ -47,6 +48,7 @@ export default class ArrayHeap extends Top {
 		this.#item[0] = this.#m = 0; this.#d = d;
 		this.#offset = 0;
 		this.clearStats();
+		this.#steps = capacity;
 	}
 
 	/** Reset the heap discarding old value.
@@ -70,6 +72,7 @@ export default class ArrayHeap extends Top {
 		for (p = 1; p <= h.m; p++) {
 			x = h.#item[p];
 			this.#item[p] = x; this.#pos[x] = p; this.#key[x] = h.#key[x];
+			this.#steps++;
 		}
 		this.clearStats();
 	}
@@ -84,6 +87,7 @@ export default class ArrayHeap extends Top {
 		this.#item = h.#item; this.#pos = h.#pos; this.#key = h.#key;
 		h.#item = h.#pos = h.#key = null;
 		this.clearStats();
+		this.#steps++;
 	}
 	
 	/** Expand the space available for this ArrayHeap.
@@ -97,7 +101,7 @@ export default class ArrayHeap extends Top {
 							    Math.max(n, ~~(1.25 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
-		this._n = n;
+		this._n = n; this.#steps++;
 	}
 
 	/** Remove all elements from heap. */
@@ -105,11 +109,12 @@ export default class ArrayHeap extends Top {
 		for (let x = 1; x <= this.#m; x++) this.#pos[this.#item[x]] = 0;
 		this.#m = 0; this.#offset = 0;
 		this.clearStats();
+		this.#steps = this.#m;
 	}
 
 	clearStats() {
 		this.#insertCount = this.#deleteCount = this.#changekeyCount = 0
-		this.#siftupSteps = this.#siftdownSteps = 0
+		this.#siftupSteps = this.#siftdownSteps = this.#steps = 0;
 	}
 
 	get capacity() { return this.#item.length-1; }
@@ -326,10 +331,12 @@ export default class ArrayHeap extends Top {
 
 	/** Return statistics object. */
 	getStats() {
+		this.#steps += this.#siftupSteps + this.#siftdownSteps
 		return {
 			'insert' : this.#insertCount, 'delete' : this.#deleteCount,
 			'changekey' : this.#changekeyCount,
-			'siftup' : this.#siftupSteps, 'siftdown' : this.#siftdownSteps
+			'siftup' : this.#siftupSteps, 'siftdown' : this.#siftdownSteps,
+			'steps' : this.#steps
 		};
 	}
 }

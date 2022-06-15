@@ -19,13 +19,13 @@ import Scanner from './Scanner.mjs';
  *  Initially, all items are in the out list.
  */
 export default class ListPair extends Top {
-	#nIn;		///< number of items in in-list
-	#nOut;		///< number of items in out-list
+	#n1;		///< number of items in in-list
+	#n2;		///< number of items in out-list
 
-	#firstIn;	///< first item in the in-list
-	#lastIn;	///< last item in the in-list
-	#firstOut;	///< first item in the out-list
-	#lastOut	///< last item in the out-list
+	#first1;	///< first item in the in-list
+	#last1;	    ///< last item in the in-list
+	#first2;	///< first item in the out-list
+	#last2	    ///< last item in the out-list
 	#next;		///< #next[i] defines next item after i
 				///< in items use positive #next values
 				///< out items use negative #next values
@@ -50,14 +50,14 @@ export default class ListPair extends Top {
 		assert(this.n <= capacity);
 		this.#next = new Int32Array(capacity+1);
 		this.#prev = new Int32Array(capacity+1);
-		this.#firstIn = this.#lastIn = 0;
-		this.#firstOut = 1; this.#lastOut = this.n;
+		this.#first1 = this.#last1 = 0;
+		this.#first2 = 1; this.#last2 = this.n;
 		for (let i = 1; i <= this.n; i++) {
 			this.#next[i] = -(i+1); this.#prev[i] = -(i-1);
 		}
 		this.#next[this.n] = this.#prev[1] = 0;
 		this.#next[0] = this.#prev[0] = 0;
-		this.#nIn = 0; this.#nOut = this.n;
+		this.#n1 = 0; this.#n2 = this.n;
 	}
 	
 	/** Reset the list to support a different range and capacity.
@@ -83,14 +83,14 @@ export default class ListPair extends Top {
 		for (let i = this.n+1; i <= n; i++) {
 			this.#next[i] = -(i+1); this.#prev[i] = -(i-1);
 		}
-		if (this.#firstOut == 0) {
-			this.#firstOut = this.n+1; this.#prev[this.#firstOut] = 0;
+		if (this.#first2 == 0) {
+			this.#first2 = this.n+1; this.#prev[this.#first2] = 0;
 		} else {
-			this.#next[this.#lastOut] = -(this.n+1);
-			this.#prev[this.n+1] = -this.#lastOut;
+			this.#next[this.#last2] = -(this.n+1);
+			this.#prev[this.n+1] = -this.#last2;
 		}
-		this.#lastOut = n; this.#next[this.#lastOut] = 0;
-		this.#nOut = n - this.#nIn;
+		this.#last2 = n; this.#next[this.#last2] = 0;
+		this.#n2 = n - this.#n1;
 		this._n = n;
 	}
 	
@@ -101,10 +101,10 @@ export default class ListPair extends Top {
 		if (l == this) return;
 		if (l.n > this.capacity) reset(l.n);
 		else { this.clear(); this._n = l.n; }
-		for (let i = l.firstIn(); i != 0; i = l.nextIn(i)) {
-			if (this.isOut(i)) this.swap(i);
+		for (let i = l.first1(); i != 0; i = l.next1(i)) {
+			if (this.in2(i)) this.swap(i);
 		}
-		for (let i = l.firstOut(); i != 0; i = l.nextOut(i)) {
+		for (let i = l.first2(); i != 0; i = l.next2(i)) {
 			this.swap(i); this.swap(i); // to match order in l
 		}
 	}
@@ -117,9 +117,9 @@ export default class ListPair extends Top {
 		this._n = l.n;
 		this.#next = l.#next; this.#prev = l.#prev;
 		l.#next = l.#prev = null;
-		this.#firstIn = l.#firstIn; this.#lastIn = l.#lastIn;
-		this.#firstOut = l.#firstOut; this.#lastOut = l.#lastOut;
-		this.#nIn = l.#nIn; this.#nOut = l.#nOut;
+		this.#first1 = l.#first1; this.#last1 = l.#last1;
+		this.#first2 = l.#first2; this.#last2 = l.#last2;
+		this.#n1 = l.#n1; this.#n2 = l.#n2;
 	}
 
 	get capacity() { return this.#next.length - 1; }
@@ -128,76 +128,76 @@ export default class ListPair extends Top {
 	 *  @param i is a valid list item
 	 *  @param return true if i is a member of the "in-list", else false.
 	 */
-	isIn(i) {
+	in1(i) {
 		assert(this.valid(i));
-		return this.#next[i] > 0 || i == this.#lastIn;
+		return this.#next[i] > 0 || i == this.#last1;
 	}
 	
 	/** Determine if an int belongs to the "out-list".
 	 *  @param i is a valid list item
 	 *  @param return true if i is a member of the "out-list", else false.
 	 */
-	isOut(i) {
+	in2(i) {
 		assert(this.valid(i));
-		return this.#next[i] < 0 || i == this.#lastOut;
+		return this.#next[i] < 0 || i == this.#last2;
 	}
 	
-	/** Get the number of elements in the "in-list".  */
-	nIn() { return this.#nIn; }
+	/** Get the number of elements in list 1.  */
+	n1() { return this.#n1; }
 	
-	/** Get the number of elements in the "in-list".  */
-	nOut() { return this.#nOut; }
+	/** Get the number of elements in list 2  */
+	n2() { return this.#n2; }
 	
-	/** Get the first item in the in-list.
+	/** Get the first item in list 1.
 	 *  @return the first value on the in-list or 0 if the list is empty.
 	 */
-	firstIn() { return this.#firstIn; }
+	first1() { return this.#first1; }
 	
-	/** Get the first item in the out-list.
+	/** Get the first item in list 2.
 	 *  @return the first value on the out-list or 0 if the list is empty.
 	 */
-	firstOut() { return this.#firstOut; }
+	first2() { return this.#first2; }
 	
-	/** Get the last item in the in-list.
+	/** Get the last item in list 1.
 	 *  @return the last value on the in-list or 0 if the list is empty.
 	 */
-	lastIn() { return this.#lastIn; }
+	last1() { return this.#last1; }
 	
-	/** Get the first item in the out-list.
+	/** Get the first item in list 2.
 	 *  @return the last value on the out-list or 0 if the list is empty.
 	 */
-	lastOut() { return this.#lastOut; }
+	last2() { return this.#last2; }
 	
-	/** Get the next item in the inlist.
+	/** Get the next item in list 1.
 	 *  @param i is the "current" value
 	 *  @return the next int on the in-list or 0 if no more values
 	 */
-	nextIn(i) {
-		assert(this.isIn(i)); return this.#next[i];
+	next1(i) {
+		assert(this.in1(i)); return this.#next[i];
 	}
 	
-	/** Get the next value in the outlist.
+	/** Get the next value in the list2.
 	 *  @param i is the "current" value
 	 *  @return the next value on the out-list or 0 if no more values
 	 */
-	nextOut(i) {
-		assert(this.isOut(i)); return -this.#next[i];
+	next2(i) {
+		assert(this.in2(i)); return -this.#next[i];
 	}
 	
-	/** Get the previous value in the inlist.
+	/** Get the previous value in list 1.
 	 *  @param i is the "current" value
 	 *  @return the previous value on the in-list or 0 if no more values
 	 */
-	prevIn(i) {
-		assert(this.isIn(i)); return this.#prev[i];
+	prev1(i) {
+		assert(this.in1(i)); return this.#prev[i];
 	}
 	
-	/** Get the previous value in the outlist.
+	/** Get the previous value in list 2.
 	 *  @param i is the "current" value
 	 *  @return the previous value on the out-list or 0 if no more values
 	 */
-	prevOut(i) {
-		assert(this.isOut(i)); return -this.#prev[i];
+	prev2(i) {
+		assert(this.in2(i)); return -this.#prev[i];
 	}
 	
 	/** Compare two list pairs for equality.
@@ -210,22 +210,22 @@ export default class ListPair extends Top {
 			let s = lp; lp = new ListPair(this.n); lp.fromString(s);
 		}
 		if (!(lp instanceof ListPair)) return false;
-		if (this.nIn != lp.nIn || this.nOut != lp.nOut) return false;
-		let i = this.firstIn(); let j = lp.firstIn();
+		if (this.n1 != lp.n1 || this.n2 != lp.n2) return false;
+		let i = this.first1(); let j = lp.first1();
 		while (i != 0) {
 			if (i != j) return false;
-			i = this.nextIn(i); j = lp.nextIn(j);
+			i = this.next1(i); j = lp.next1(j);
 		}
-		i = this.firstOut(); j = lp.firstOut();
+		i = this.first2(); j = lp.first2();
 		while (i != 0) {
 			if (i != j) return false;
-			i = this.nextOut(i); j = lp.nextOut(j);
+			i = this.next2(i); j = lp.next2(j);
 		}
 		return true;
 	}
 	
 	/** Remove all elements from inSet. */
-	clear() { while (this.firstIn() != 0) this.swap(this.firstIn()); }
+	clear() { while (this.first1() != 0) this.swap(this.first1()); }
 	
 	/** Move an item from one list to the other.
 	 *  Inserts swapped item at end of the other list
@@ -234,56 +234,56 @@ export default class ListPair extends Top {
 	 *  into the other list, following item j, or at the start if j=0.
 	 */
 	swap(i, j=-1) {
-		if (j < 0) j = this.isIn(i) ? this.lastOut() : this.lastIn();
+		if (j < 0) j = this.in1(i) ? this.last2() : this.last1();
 
 		assert(this.valid(i) && i != 0 && this.valid(j));
-		assert((this.isIn(i)  && (j == 0 || this.isOut(j))) ||
-			   (this.isOut(i) && (j == 0 || this.isIn(j))));
+		assert((this.in1(i)  && (j == 0 || this.in2(j))) ||
+			   (this.in2(i) && (j == 0 || this.in1(j))));
 
-		if (this.isIn(i)) {
+		if (this.in1(i)) {
 			// first remove i from in-list
-			if (i == this.lastIn()) this.#lastIn = this.#prev[i];
+			if (i == this.last1()) this.#last1 = this.#prev[i];
 			else this.#prev[this.#next[i]] = this.#prev[i];
-			if (i == this.firstIn()) this.#firstIn = this.#next[i];
+			if (i == this.first1()) this.#first1 = this.#next[i];
 			else this.#next[this.#prev[i]] = this.#next[i];
 	
 			// now add i to out-list
-			if (this.#nOut == 0) {
+			if (this.#n2 == 0) {
 				this.#next[i] = this.#prev[i] = 0;
-				this.#firstOut = this.#lastOut = i;
+				this.#first2 = this.#last2 = i;
 			} else if (j == 0) {
-				this.#next[i] = -this.#firstOut; this.#prev[i] = 0;
-				this.#prev[this.#firstOut] = -i; this.#firstOut = i;
-			} else if (j == this.#lastOut) {
+				this.#next[i] = -this.#first2; this.#prev[i] = 0;
+				this.#prev[this.#first2] = -i; this.#first2 = i;
+			} else if (j == this.#last2) {
 				this.#next[j] = -i; this.#prev[i] = -j;
-				this.#next[i] = 0; this.#lastOut = i;
+				this.#next[i] = 0; this.#last2 = i;
 			} else {
 				this.#next[i] = this.#next[j]; this.#prev[i] = -j; 
 				this.#prev[-this.#next[j]] = -i; this.#next[j] = -i;
 			}
-			this.#nIn--; this.#nOut++;
+			this.#n1--; this.#n2++;
 		} else {
 			// first remove i from out-list
-			if (i == this.lastOut()) this.#lastOut = -this.#prev[i];
+			if (i == this.last2()) this.#last2 = -this.#prev[i];
 			else this.#prev[-this.#next[i]] = this.#prev[i];
-			if (i == this.firstOut()) this.#firstOut = -this.#next[i];
+			if (i == this.first2()) this.#first2 = -this.#next[i];
 			else this.#next[-this.#prev[i]] = this.#next[i];
 	
 			// now add i to in-list
-			if (this.#nIn == 0) {
+			if (this.#n1 == 0) {
 				this.#next[i] = this.#prev[i] = 0;
-				this.#firstIn = this.#lastIn = i;
+				this.#first1 = this.#last1 = i;
 			} else if (j == 0) {
-				this.#next[i] = this.#firstIn; this.#prev[i] = 0;
-				this.#prev[this.#firstIn] = i; this.#firstIn = i;
-			} else if (j == this.#lastIn) {
+				this.#next[i] = this.#first1; this.#prev[i] = 0;
+				this.#prev[this.#first1] = i; this.#first1 = i;
+			} else if (j == this.#last1) {
 				this.#next[j] = i; this.#prev[i] = j;
-				this.#next[i] = 0; this.#lastIn = i;
+				this.#next[i] = 0; this.#last1 = i;
 			} else {
 				this.#next[i] = this.#next[j]; this.#prev[i] = j; 
 				this.#prev[this.#next[j]] = i; this.#next[j] = i;
 			}
-			this.#nIn++; this.#nOut--;
+			this.#n1++; this.#n2--;
 		}
 		return;
 	}
@@ -298,14 +298,14 @@ export default class ListPair extends Top {
 	 */
 	toString(details=0, pretty=0, label=0) {
 		let s = '';
-		for (let i = this.firstIn(); i != 0; i = this.nextIn(i)) {
+		for (let i = this.first1(); i != 0; i = this.next1(i)) {
 			s += this.index2string(i, label);
-			if (i != this.lastIn()) s += ' ';
+			if (i != this.last1()) s += ' ';
 		}
 		s += (pretty ? '\n:' : ' : ');
-		for (let i = this.firstOut(); i != 0; i = this.nextOut(i)) {
+		for (let i = this.first2(); i != 0; i = this.next2(i)) {
 			s += this.index2string(i, label);
-			if (i != this.lastOut()) s += ' ';
+			if (i != this.last2()) s += ' ';
 		}
 		return (pretty ? '[' + s + ']\n' : '[' + s + ']');
 	}

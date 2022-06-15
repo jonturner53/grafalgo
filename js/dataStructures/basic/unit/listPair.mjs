@@ -14,12 +14,12 @@ try {
 	let n = 8; let lp = new ListPair(n);
 
 	assert(lp.n, n, "a1");
-	assert(lp.firstIn(), 0, "a2");
-	assert(lp.lastIn(), 0, "a3");
-	assert(lp.firstOut(), 1, "a4");
-	assert(lp.lastOut(), n, "a5");
-	assert(lp.nIn(), 0, "a6");
-	assert(lp.nOut(), n, "a7");
+	assert(lp.first1(), 0, "a2");
+	assert(lp.last1(), 0, "a3");
+	assert(lp.first2(), 1, "a4");
+	assert(lp.last2(), n, "a5");
+	assert(lp.n1(), 0, "a6");
+	assert(lp.n2(), n, "a7");
 	assert(lp, "[ : a b c d e f g h]", "a8");
 
 	lp.swap(4); lp.swap(2);

@@ -81,10 +81,9 @@ export default class Tester {
 								`${tag} ${e.message}`);
 							continue;
 						} else {
-							console.log(e.stack); throw(e);
+							throw(e);
 						}
 					} else {
-						console.log(e.stack);
 						throw(e);
 					}
 				}

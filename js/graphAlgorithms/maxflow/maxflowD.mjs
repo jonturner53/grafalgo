@@ -14,9 +14,10 @@ let g;			// shared reference to flow graph
 let level;		// level[u] is distance from source to u in residual graph
 let pedge;		// pedge[u] is edge to u from its parent in shortest path tree
 let nextEdge;	// nextEdge[u] is the next edge to be processed at u
-let findpathCount; // number of calls to findpath
-let findpathSteps; // total steps in findpath
-let phaseCount;	   // number of phases
+
+let phases;	    // number of phases
+let paths;      // number of calls to findpath
+let steps;      // total steps in findpath
 
 /** Compute a maximum flow in a graph using Dinic's algorithm.
  *  @param fg is Flograph, possibly with some initial flow already present.
@@ -33,19 +34,18 @@ export default function maxflowD(fg, trace=false) {
 	if (trace)
 		ts += 'augmenting paths with residual capacities\n';
 
-	findpathCount = findpathSteps = phaseCount = 0;
+	phases = paths = steps = 0;
 	while (newphase()) {
-		phaseCount++;
+		phases++;
 		while (findpath(g.source)) {
-			findpathCount++;
-			let [,s] = augment(g, pedge, trace);
+			paths++;
+			let [,s,augsteps] = augment(g, pedge, trace);
 			if (trace) ts += s + '\n';
+			steps += augsteps;
 		}
 	}
 	if (trace) ts += g.toString(0,1);
-	return [ts, {'findpathCount': findpathCount,
-				 'findpathSteps': findpathSteps,
-				 'phaseCount': phaseCount} ];
+	return [ts, {'phases': phases, 'paths': paths, 'steps': steps} ];
 }
 
 /** Prepare for next phase of Dinic's algorithm.
@@ -55,13 +55,14 @@ export default function maxflowD(fg, trace=false) {
  */
 function newphase() {
 	for (let u = 1; u <= g.n; u++) {
-		level[u] = g.n; nextEdge[u] = g.firstAt(u);
+		level[u] = g.n; nextEdge[u] = g.firstAt(u); steps++;
 	}
 	let q = new List(g.n);
 	q.enq(g.source); level[g.source] = 0;
 	while (!q.empty()) {
 		let u = q.deq();
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u, e)) {
+			steps++;
 			let v = g.mate(u, e);
 			if (g.res(e, u) > 0 && level[v] == g.n) {
 				level[v] = level[u] + 1;
@@ -79,7 +80,7 @@ function newphase() {
  */
 function findpath(u) {
 	for (let e = nextEdge[u]; e != 0; e = g.nextAt(u, e)) {
-		findpathSteps++;
+		steps++;
 		let v = g.mate(u, e);
 		if (g.res(e, u) == 0 || level[v] != level[u] + 1) continue;
 		if (v == g.sink || findpath(v)) {

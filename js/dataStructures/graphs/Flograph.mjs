@@ -89,8 +89,9 @@ export default class Flograph extends Digraph {
 		if (g.floored && !this.floored) this.addFloors();
 		if (!g.floored && this.floored) this.#floor = null;
 		for (let e = g.first(); e != 0; e = g.next(e)) {
-			let u = g.tail(e); let v = g.head(e);
-			let ee = this.join(u, v);
+			let ee = (this.edgeCapacity >= g.edgeCapacity ?
+                            this.join(g.left(e), g.right(e), e) :
+                            this.join(g.left(e), g.right(e)));
 			this.setCapacity(ee, g.cap(e)); this.setFlow(ee, 0);
 			if (g.weighted) this.setCost(ee, g.cost(e));
 			if (g.floored) this.setFloor(ee, g.floor(e));
@@ -182,7 +183,7 @@ export default class Flograph extends Digraph {
 	 *  @param cap is the new edge capacity for e
 	 */
 	setCapacity(e, cap) {
-		assert(cap >= this.floor(e), 'setCapacity: edge capacity violation');
+		assert(cap >= this.floor(e), 'setCapacity: edge capacity violation' + ` ${this.edge2string(e)} ${cap}`);
 		this.#cap[e] = cap;
 	}
 

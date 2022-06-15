@@ -14,13 +14,14 @@ import Flograph from '../../dataStructures/graphs/Flograph.mjs';
  *  @param pedge is an array of parent edge pointers; that is,
  *  pedge[u] is the edge to u from its parent in a shortest path tree.
  *  @param trace is a flag which controls generation of trace information
- *  @return pair [f,ts] where f is the amount of flow added to the path
- *  and ts is a trace string
+ *  @return pair [f,ts,steps] where f is the amount of flow added to the path,
+ *  ts is a trace string and steps is the number of steps executed
  */
 export default function augment(g, pedge, trace=false) {
 	let f = Infinity; let ts = g.index2string(g.sink);
-	let v = g.sink; let e = pedge[v];
+	let v = g.sink; let e = pedge[v]; let steps = 0;
 	while (v != g.source) {
+		steps++;
 		let u = g.mate(v, e);
 		if (trace)
 			ts = `${g.index2string(u)}:${g.res(e, u)} ${ts}`;
@@ -29,9 +30,10 @@ export default function augment(g, pedge, trace=false) {
 	}
 	v = g.sink; e = pedge[v];
 	while (v != g.source) {
+		steps++;
 		let u = g.mate(v, e);
 		g.addFlow(e, u, f);
 		v = u; e = pedge[v];
 	}
-	return [f,ts];
+	return [f,ts,steps];
 }

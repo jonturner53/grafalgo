@@ -174,13 +174,13 @@ export default class Digraph extends Graph {
 	 *  @return the edge number for the new edge or 0
 	 *  on failure
 	 */
-	join(u, v, e=this._edges.firstOut()) {
-		assert(u > 0 && v > 0 && (e > 0 || this._edges.firstOut() == 0) &&
-			   !this._edges.isIn(e));
-		if (u > this.n || v > this.n || this._edges.nOut() == 0) {
+	join(u, v, e=this._edges.first2()) {
+		assert(u > 0 && v > 0 && (e > 0 || this._edges.first2() == 0) &&
+			   !this._edges.in1(e));
+		if (u > this.n || v > this.n || this._edges.n2() == 0) {
 			this.expand(Math.max(this.n, Math.max(u, v)),
 						Math.max(e, this._edges.n+1));
-			if (e == 0) e = this._edges.firstOut();
+			if (e == 0) e = this._edges.first2();
 		}
 		this._edges.swap(e);
 

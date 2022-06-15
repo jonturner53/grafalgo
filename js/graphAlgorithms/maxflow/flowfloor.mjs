@@ -22,10 +22,12 @@ import { assert } from '../../common/Errors.mjs';
  *  closely as possible
  */
 export default function flowfloor(g, trace=false) {
+	let steps = 0;
 	// First determine total capacity, number
 	// of edges with non-zero floors and the sum of min flows
 	let floorCount = 0; let totalCap = 0; let totalFloor = 0;
 	for (let e = g.first(); e != 0; e = g.next(e)) {
+		steps++;
 		totalCap += g.cap(g.tail(e),e);
 		totalFloor += g.floor(e);
 		if (g.floor(e) > 0) floorCount++;
@@ -33,14 +35,17 @@ export default function flowfloor(g, trace=false) {
     // Next copy edges to new flow graph being careful to maintain same
     // edge numbers. Adjust capacities of edges with non-zero min flows.
 	// Also, add new source/sink edges.
-    let g1 = new Flograph(g.n+2, g.m+2*floorCount+1);
+    let g1 = new Flograph(g.n+2, g.edgeRange+2*floorCount+1);
+	steps += g1.n + g1.edgeRange;
     g1.setSource(g.n+1); g1.setSink(g.n+2);
     for (let e = g.first(); e != 0; e = g.next(e)) {
+		steps++;
         g1.join(g.tail(e), g.head(e), e);
         g1.setCapacity(e,g.cap(e) - g.floor(e));
 	}
 	// Now, add new source/sink edges.
     for (let e = g.first(); e != 0; e = g.next(e)) {
+		steps++;
 		if (g.floor(e) == 0) continue;
 		g1.setCapacity(g1.join(g1.source, g1.head(e)), g.floor(e));
 		g1.setCapacity(g1.join(g1.tail(e), g1.sink), g.floor(e));
@@ -49,10 +54,12 @@ export default function flowfloor(g, trace=false) {
     let e = g1.join(g.sink, g.source); g1.setCapacity(e, totalCap);
 
 	// Now, find max flow in g1 and check that floor values are all satisfied
-	let [ts,stats] = maxflowD(g1, trace);
+	let [ts,stats] = maxflowD(g1, trace); steps += stats.steps;
 
 	// Now transfer computed flow back into g
-    for (let e = g.first(); e != 0; e = g.next(e))
-        g.setFlow(e, g1.f(e) + g.floor(e));
-	return [g1.totalFlow() == totalFloor, ts, stats];
+    for (let e = g.first(); e != 0; e = g.next(e)) {
+		g.setFlow(e, g1.f(e) + g.floor(e)); steps++;
+	}
+	return [g1.totalFlow() == totalFloor, ts,
+			{'flowSteps': stats.steps, 'steps': steps}];
 }

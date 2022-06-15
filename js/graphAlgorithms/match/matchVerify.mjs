@@ -19,29 +19,20 @@ let medge;     // matching edge at a vertex
 
 /** Verify a maximum matching.
  *  @param mg is an undirected graph
- *  @param match is a list of edges in g that forms a maximum matching
+ *  @param medge is a an array of matching edges incident to vertices
  *  @return a string which is empty if match is a maximum matching,
  *  else it describes an error
  */
-export default function matchVerify(mg, match) {
+export default function matchVerify(mg, medge) {
 	g = mg;
 	blossoms = new Sets(g.n);
 	origin = new Int32Array(g.n+1);
 	state = new Int8Array(g.n+1);
 	pedge = new Int32Array(g.n+1);
-	medge = new Int32Array(g.n+1);
 	mark = new Int8Array(g.n+1);
 
 	// state values
 	const unreached = 0; const even = 1; const odd = -1;
-
-	for (let e = match.first(); e != 0; e = match.next(e)) {
-		let u = g.left(e); let v = g.right(e);
-		if (medge[u] != 0 || medge[v] != 0)
-			return `bimatchVerify: ` +
-					`${g.edge2string(e)} conflicts with another edge`;
-		medge[u] = medge[v] = e;
-	}
 
 	let q = new List(g.edgeRange); // list of edges to be processed in main loop
 	for (let u = 1; u <= g.n; u++) {

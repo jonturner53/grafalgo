@@ -221,7 +221,7 @@ export default class List extends Top {
 	/** Remove the item following a specified item. 
 	 *  @param i is item whose successor is to be deleted;
 	 *  if zero, the first item is deleted
-	 *  @return the deleted item
+	 *  @return the item that follows the deleted item
 	 */
 	deleteNext(i) {
 		assert(i == 0 || this.contains(i));
@@ -239,21 +239,19 @@ export default class List extends Top {
 			this.#prev[j] = 0;
 		}
 		if (this.#value) this.#value[j] = null;
-		return j;
+		return (i == 0 ? this.first() : this.next(i));
+		//return j;
 	}
 
 	/** Remove a specified item.
 	 *  @param i is an item to be removed
+	 *  @return item that follows i
 	 */
 	delete(i) {
 		assert(this.valid(i));
 		if (!this.contains(i)) return;
-		if (i == this.first()) {
-			return this.deleteNext(0);
-		} else {
-			//if (!this.#prev) this.addPrev();
-			return this.deleteNext(this.prev(i));
-		}
+		return (i == this.first() ? this.deleteNext(0) :
+									this.deleteNext(this.prev(i)));
 	}
 	
 	/** Push item onto front of a list. 
@@ -265,7 +263,7 @@ export default class List extends Top {
 	/** Remove the first item in the list. 
 	 *  @return the item removed, or 0
 	 */
-	pop() { return this.deleteNext(0); }
+	pop() { let i = this.first(); this.deleteNext(0); return i; }
 
     /** Remove the last item on the list.
      *  @return true if the list was modified, else false

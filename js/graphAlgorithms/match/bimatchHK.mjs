@@ -7,98 +7,89 @@
  */
 
 import { assert } from '../../common/Errors.mjs';
+import match2string from './match2string.mjs';
 import List from '../../dataStructures/basic/List.mjs';
-import Graph from '../../dataStructures/graphs/Graph.mjs';
-import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import findSplit from '../misc/findSplit.mjs';
 
-let g;           // shared copy of graph
-let medge;       // medge[u] is edge incident to u in matching or 0
-let pedge;       // pedge[u] is parent edge of u in forest
-let roots;       // roots contains roots of trees in forest
-let level;       // level[u] is distance to u from a root
-let nextedge;    // nextedge[u] is next edge at u to be processed
+let g;            // shared copy of graph
+let medge;        // medge[u] is edge incident to u in matching or 0
+let pedge = null; // pedge[u] is parent edge of u in forest
+let roots;        // roots contains roots of trees in forest
+let level;        // level[u] is distance to u from a root
+let nextedge;     // nextedge[u] is next edge at u to be processed
 
 let trace;
 let traceString;
 
 let phases;      // number of phases completed
 let paths;       // number of paths found
-let pathSteps;   // number of steps spent finding paths
+let steps;       // total number of steps
 
 /** Compute a maximum matching in a bipartite graph using the
  *  Hopcroft-Karp algorithm.
  *  @param g is an undirected bipartite graph
  *  @param trace causes a trace string to be returned when true
- *  @return a triple [match, ts, stats] where match is a Graph containing
- *  just the matching edges, ts is a possibly empty trace string
- *  and stats is a statistics object; both from Dinic's algorithm
+ *  @return a triple [match, ts, stats] where match is an array
+ *  matching a vertex u to its matched edge medge[u] or 0 if u
+ *  is unmatched; ts is a possibly empty trace string
+ *  and stats is a statistics object
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function bimatchHK(bg, traceFlag=false) {
+export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 	g = bg; trace = traceFlag; traceString = '';
 	medge = new Int32Array(g.n+1);
-	pedge = new Int32Array(g.n+1);
+	if (pedge == null || pedge.length < g.n+1) {
+		pedge = new Int32Array(g.n+1);
+		level = new Int32Array(g.n+1);
+		nextedge = new Int32Array(g.n+1);
+		roots = new List(g.n); roots.addPrev();
+	} else {
+		pedge.fill(0); roots.clear();
+	}
 
 	// divide vertices into two independent sets
-	let split = findSplit(g);
-	assert(split != null, "bimatchHK: graph not bipartite");
+	if (!subsets) subsets = findSplit(g);
+	assert(subsets != null, "bimatchHK: graph not bipartite");
 
 	// add edges to medge, yielding maximal (not maximum) matching
-	let matching = new Graph(g.n, g.edgeRange);
-	if (trace) traceString += g.toString(0,1) + 'initial matching: [';
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		let u = g.left(e); let v = g.right(e);
 		if (medge[u] == 0 && medge[v] == 0) {
 			medge[u] = medge[v] = e;
-			matching.join(g.left(e), g.right(e), e);
-            if (trace) traceString += g.edge2string(e) + ' ';
 		}
+		steps++;
 	}
-	if (trace) {
-		traceString = traceString.slice(0,-1) + ']\n';
-	}
-	phases = paths = pathSteps = 0;
+	if (trace)
+		traceString += `initial matching: ${match2string(g,medge)}\n` +
+					   `augmenting paths\n`;
+	phases = paths = steps = 0;
 
 	// add unmatched vertices from in-set to roots
-	pedge = new Int32Array(g.n+1);
-	roots = new List(g.n); roots.addPrev();
-	for (let u = split.firstIn(); u != 0; u = split.nextIn(u))
+	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
 		if (medge[u] == 0) roots.enq(u);
+		steps++;
+	}
 
-	level = new Int32Array(g.n+1);
-	nextedge = new Int32Array(g.n+1);
 	while (newPhase()) {
 		phases++;
 		let r = roots.first();
 		while (r != 0) {
 			paths++;
+			pedge.fill(0);
 			let u = findpath(r);
 			if (u == 0) {
 				r = roots.next(r);
 			} else {
-				augment(u);
-				let nr = roots.next(r);
-				roots.delete(r);
-				r = nr;
+				augment(u); r = roots.delete(r);
 			}
 		}
 	}
 
-	if (trace) traceString += '  final matching: [';
-	matching.clear();
-	for (let u = split.firstIn(); u != 0; u = split.nextIn(u)) {
-		let e = medge[u];
-		if (e != 0 && u == g.left(e)) {
-			matching.join(u, g.right(e), e);
-            if (trace) traceString += g.edge2string(e) + ' ';
-		}
-	}
-	if (trace) {
-		traceString = traceString.slice(0,-1) + ']\n';
-	}
-    return [matching, traceString,
-			{'phases': phases, 'paths': paths, 'pathSteps': pathSteps}];
+	if (trace)
+		traceString += `  final matching: ${match2string(g,medge)}\n`;
+		
+    return [medge, traceString,
+			{'phases': phases, 'paths': paths, 'steps': steps}];
 }
 
 /** Prepare for new phase. 
@@ -106,11 +97,11 @@ export default function bimatchHK(bg, traceFlag=false) {
  */
 function newPhase() {
 	for (let u = 1; u <= g.n; u++) {
-		level[u] = g.n; nextedge[u] = g.firstAt(u);
+		level[u] = g.n; nextedge[u] = g.firstAt(u); steps++;
 	}
 	let q = new List(g.n);
 	for (let u = roots.first(); u != 0; u = roots.next(u)) {
-		level[u] = 0; q.enq(u);
+		level[u] = 0; q.enq(u); steps++;
 	}
 	let stopLevel = g.n; // used to terminate early
 	// label each vertex with its distance from the nearest root
@@ -118,6 +109,7 @@ function newPhase() {
 	while (!q.empty()) {
 		let u = q.deq(); // u in in-set
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+			steps++;
 			if (e == medge[u]) continue;
 			let v = g.mate(u,e); // v in out-set
 			if (level[v] != g.n) continue;
@@ -143,17 +135,16 @@ function newPhase() {
  */
 function findpath(u) {
 	for (let e = nextedge[u]; e != 0; e = g.nextAt(u,e)) {
-		pathSteps++;
+		steps++;
 		let v = g.mate(u,e);
 		if (level[v] != level[u] + 1) continue;
-		let ee = medge[v];
-		if (ee == 0) { nextedge[u] = e; pedge[v] = e; return v; }
+		pedge[v] = e; let ee = medge[v];
+		if (ee == 0) { nextedge[u] = e; return v; }
 		let w = g.mate(v,ee);
 		if (level[w] != level[v] + 1) continue;
+		pedge[w] = ee;
 		let t = findpath(w);
-		if (t != 0) {
-			pedge[v] = e; pedge[w] = ee; nextedge[u] = e; return t;
-		}
+		if (t != 0) { nextedge[u] = e; return t; }
 	}
 	nextedge[u] = 0; return 0;
 }
@@ -166,7 +157,9 @@ function augment(u) {
 	let ts = '';
 	if (trace) ts += g.index2string(u);
 	while (true) {
+		steps++;
 		let e = pedge[u];
+		if (e == 0) break;
 		let v = g.mate(u,e);
 		if (trace) ts = `${g.edge2string(e)} ${ts}`;
 		medge[u] = medge[v] = e;

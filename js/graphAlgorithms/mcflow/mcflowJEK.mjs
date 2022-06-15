@@ -20,9 +20,8 @@ let pedge;      // pedge[u] is parent edge of u in spt computed by findpath
 let border;		// heap used by findpath
 let q;          // list used in initLabels
 
-let pathCount;      // number of augmenting paths
-let initSteps;     // number of steps to compute distance labels
-let findpathSteps;  // number of steps in findpath method
+let paths;      // number of augmenting paths
+let steps;      // total number of steps
 
 /** Find minimum cost, flow in weighted flow graph using the least-cost
  *  augmenting path algorithm of Jewell as refined by Edmonds and Karp.
@@ -45,7 +44,7 @@ export default function mcflowJEK(fg, trace=false, mostNeg=false) {
 	border = new ArrayHeap(g.n, 4);
 	q = new List(g.n);
 
-	pathCount = initSteps = findpathSteps = 0;
+	paths = steps = 0;
 
 	let ts = '';
 	if (trace) {
@@ -53,7 +52,7 @@ export default function mcflowJEK(fg, trace=false, mostNeg=false) {
 	}
 	initLabels(); let totalCost = 0;
 	while (findpath()) {
-		pathCount++;
+		paths++; steps++;
 		let [resCap, cost] = pathProperties();
 		if (mostNeg && cost >= 0) break;
 		let s = augment(resCap, trace);
@@ -61,13 +60,9 @@ export default function mcflowJEK(fg, trace=false, mostNeg=false) {
 		if (trace) 
 			ts += `[${s}] ${resCap} ${cost} ${totalCost}\n`;
 	}
-	if (trace) ts += g.toString(0,1);
-	return [ts, {
-				  'pathCount': pathCount,
-				  'initSteps' : initSteps,
-			  	  'findpathSteps' : findpathSteps } ];
+	if (trace) ts += 'graph with mincost flow\n' + g.toString(0,1);
+	return [ts, { 'paths': paths, 'steps' : steps } ];
 }
-
 
 /** Compute values for labels that give non-negative transformed costs.
  *  The labels are the least cost path distances from an imaginary
@@ -82,7 +77,7 @@ function initLabels() {
 	while (!q.empty()) {
 		let u = q.deq();
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			initSteps++;
+			steps++;
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
 			if (lambda[v] > lambda[u] + g.cost(e,u)) {
@@ -104,7 +99,7 @@ function findpath() {
 	while (!border.empty()) {
 		let u = border.deletemin();
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			findpathSteps++;
+			steps++;
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
 			if (c[v] > c[u] + g.cost(e,u) + (lambda[u] - lambda[v])) {
@@ -116,7 +111,7 @@ function findpath() {
 		}
 	}
 	// update lambda for next round
-	for (let u = 1; u <= g.n; u++) lambda[u] += c[u];
+	for (let u = 1; u <= g.n; u++) { lambda[u] += c[u]; steps++; }
 	return (pedge[g.sink] != 0);
 }
 
@@ -130,7 +125,7 @@ function pathProperties() {
 	while (u != g.source) {
 		let v = g.mate(u,e);
 		resCap = Math.min(resCap, g.res(e,v)); cost += g.cost(e,v);
-		u = v; e = pedge[u];
+		u = v; e = pedge[u]; steps++;
 	}
 	return [resCap, cost]
 }
@@ -144,7 +139,7 @@ function augment(f, trace=false) {
 		let v = g.mate(u,e);
 		if (trace) ts = g.index2string(v) + ' ' + ts;
 		g.addFlow(e,v,f);
-		u = v; e = pedge[u];
+		u = v; e = pedge[u]; steps++;
 	}
 	return ts;
 }

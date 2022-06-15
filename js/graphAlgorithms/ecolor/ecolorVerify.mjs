@@ -21,7 +21,7 @@ export default function ecolorVerify(g) {
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			let c = g.weight(e); cmax = Math.max(c,cmax);
 			if (c < 1 || c != ~~c) {
-				return `invalid color ${c}$ assigned to ${g.edge2string(e)}`;
+				return `invalid color ${c} assigned to ${g.edge2string(e)}`;
 			}	
 			if (colors.contains(c)) {
 				return `two edges at ${g.index2string(u)} share color ${c}`;

@@ -99,7 +99,9 @@ export default class Graph extends Top {
 		if (g.weighted && !this.weighted) this.addWeights();
 		if (!g.weighted && this.weighted) this._weight = null;
 		for (let e = g.first(); e != 0; e = g.next(e)) {
-			let ee = this.join(g.left(e), g.right(e));
+			let ee = (this.edgeCapacity >= g.edgeCapacity ?
+					  		this.join(g.left(e), g.right(e), e) :
+							this.join(g.left(e), g.right(e)));
 			if (g.weighted) {
 				this._weight[ee] = g.weight(e);
 			}
@@ -130,12 +132,12 @@ export default class Graph extends Top {
 	/** Get the number of edges.
 	 *  @return the number of edges in the graph.
 	 */
-	get m() { return this._edges.nIn(); }
+	get m() { return this._edges.n1(); }
 
 	/** Get the largest edge number that is currently in use. */
 	get M() {
 		for (e = edgeCapacity; e > 0; e--)
-			if (this._edges.isIn(e)) return e;
+			if (this._edges.in1(e)) return e;
 	}
 	
 	validVertex(u) { return u == ~~u && 1 <= u && u <= this.n; }
@@ -144,19 +146,19 @@ export default class Graph extends Top {
 	 *  @param e is the edge number to be verified
 	 *  @return true if e is a valid edge number, else false.
 	 */
-	validEdge(e) { return e >= 0 && e == ~~e && this._edges.isIn(e); }
+	validEdge(e) { return e == ~~e && this._edges.in1(e); }
 	
 	/** Get the first edge in the overall list of edges.
 	 *  @return the first edge in the list
 	 */
-	first() { return this._edges.firstIn(); }
+	first() { return this._edges.first1(); }
 	
 	/** Get the next edge in the overall list of edges.
 	 *  @param e is the edge whose successor is requested
 	 *  @return the next edge in the list, or 0 if e is not in the list
 	 *  or it has no successor
 	 */
-	next(e) { return this._edges.nextIn(e); }
+	next(e) { return this._edges.next1(e); }
 	
 	/** Get the first edge incident to a vertex.
 	 *  @param v is the vertex of interest
@@ -217,14 +219,14 @@ export default class Graph extends Top {
 	 *  @return the edge number for the new edge or 0
 	 *  on failure
 	 */
-	join(u, v, e=this._edges.firstOut()) {
+	join(u, v, e=this._edges.first2()) {
 		assert(u != v && u > 0 && v > 0 &&
-			   (e > 0 || this._edges.firstOut() == 0) &&
-			   !this._edges.isIn(e));
-		if (u > this.n || v > this.n || this._edges.nOut() == 0) {
+			   (e > 0 || this._edges.first2() == 0) &&
+			   !this._edges.in1(e));
+		if (u > this.n || v > this.n || this._edges.n2() == 0) {
 			this.expand(Math.max(this.n, Math.max(u, v)),
 						Math.max(e, this._edges.n+1));
-			if (e == 0) e = this._edges.firstOut();
+			if (e == 0) e = this._edges.first2();
 		}
 		this._edges.swap(e);
 
@@ -418,31 +420,37 @@ export default class Graph extends Top {
 	/** Create a string representation of an edge.
 	 *  @param e is an edge number
 	 *  @param u is one of the endponts of e;
-	 *  @label is an optional function used to label the vertices
-	 *  it will appear first in the string
+	 *  @param label is an optional function used to label the vertices
+	 *  @param terse causes edges that can be represented as letters to be
+	 *  shown as letter pairs with no space or other decoration
 	 *  @return a string representing the edge
 	 */
-	edge2string(e, label) {
+	edge2string(e, label=null, terse=false) {
 		return e == 0 ? '-' :
-					'{' + this.index2string(this.left(e), label) + ','  +
-					 this.index2string(this.right(e), label) +
-					 (this.weighted ? ',' + this.weight(e) : '') + '}';
+				((terse && this.n <= 26) ?
+					(this.index2string(this.left(e), label) + 
+					 this.index2string(this.right(e), label)) : 
+					('{' + this.index2string(this.left(e), label) + ','  +
+					  this.index2string(this.right(e), label) +
+					  (this.weighted ? ',' + this.weight(e) : '') + '}'));
 	}
 	
 	/** Create a string representation of an edge list.
 	 *  @param elist is an array of edge numbers (possibly with some zeros)
 	 *  @param label is an optional function used to label the vertices
 	 *  invalid values mixed in; these are ignored)
-	 *  @param showAll is
+	 *  @param showAll is a flag that causes invalid edges in elist to
+	 *  be displayed as dashes.
+	 *  @param terse specifies terse edge strings
 	 *  @return the string
 	 */
-	elist2string(elist, label=null, showAll=false) {
+	elist2string(elist, label=null, showAll=false, terse=false) {
 		let s = '';
 		for (let e of elist) {
 			let valid = this.validEdge(e);
 			if (!valid && !showAll) continue;
 			if (s.length > 0) s += ' ';
-			s += (valid ? this.edge2string(e, label) : '-');
+			s += (valid ? this.edge2string(e, label, terse) : '-');
 		}
 		return '[' + s + ']';
 	}
@@ -645,14 +653,14 @@ export default class Graph extends Top {
 	randomEdge() {
 		let edges = this._edges;
 		if (edges.nIn == 0) return 0;
-		if (edges.nIn() < this.edgeCapacity / 20) {
+		if (edges.n1() < this.edgeCapacity / 20) {
 			let i = randomInteger(1, edges.nIn);
-			for (let e = edges.firstIn(); e != 0; e = edges.nextIn(e)) 
+			for (let e = edges.first1(); e != 0; e = edges.next1(e)) 
 				if (--i == 0) return e;
 			return 0; // should never get here
 		}
 		let e = randomInteger(1, this.edgeCapacity);
-		while (edges.isOut(e)) {
+		while (edges.in2(e)) {
 			// avg number of tries should never exeed 20
 			// if used to sample from "almost full" graph, then fast
 			e = randomInteger(1, this.edgeCapacity);

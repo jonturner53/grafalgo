@@ -8,15 +8,15 @@
 
 import { assert, AssertError} from '../../../common/Errors.mjs';
 import Tester from '../../../common/Tester.mjs';
-import bimatchET from '../bimatchET.mjs';
+import bimatchF from '../bimatchF.mjs';
 import bimatchHK from '../bimatchHK.mjs';
 import matchVerify from '../matchVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomBigraph } from '../../misc/RandomGraph.mjs';
 
 let algomap = {
-	'ET' : bimatchET,
-	'HK' : bimatchHK
+	'F' : bimatchF,
+	'HK' : bimatchHK,
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
@@ -26,7 +26,7 @@ let g = new Graph();
 g.fromString('{a[f g j] b[g h i] c[f i j] d[f h j] e[h i j]}');
 tester.addTest('small graph', g);
 
-g = randomBigraph(7, 3); tester.addTest('small random', g);
+g = randomBigraph(8, 3); tester.addTest('small random', g);
 g = randomBigraph(1000, 50); tester.addTest('medium random', g);
 g = randomBigraph(1000, 500); tester.addTest('large random', g);
 

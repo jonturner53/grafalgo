@@ -29,8 +29,8 @@ try {
 	l.delete(1);
 	assert(l, '[b e j c d g i]', 'b5');
 	assert(l.prev(4), 3, 'b6');
-	assert(l.delete(l.first()), 2, 'b7');
-	assert(l.delete(l.last()), 9, 'b8');
+	assert(l.delete(l.first()), 5, 'b7');
+	assert(l.delete(l.last()), 0, 'b8');
 	l.push(1); l.enq(6); l.insert(2, 10);
 	assert(l, '[a e j b c d g f]', 'b9');
 	l.enq(13);
