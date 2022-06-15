@@ -14,7 +14,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
-import bimatchET from '../match/bimatchET.mjs';
+import bimatchF from '../match/bimatchF.mjs';
 
 /** Generate an undirected random graph. 
  *  @param n is the number of vertices in the random graph
@@ -386,7 +386,7 @@ alternate approach
 export function randomRegularBigraph(n, d) {
 	let g = randomBigraph(n,d+2*Math.ceil(Math.log(n)));
 	let dmin = new Int32Array(2*n+1).fill(d);
-	let [match] = bimatchET(g,0,null,dmin,dmin);
+	let [match] = bimatchF(g,0,null,dmin,dmin);
 	g.reset(n,d*n); g.assign(match);
 	return g;
 }
