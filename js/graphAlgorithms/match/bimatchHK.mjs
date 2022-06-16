@@ -46,7 +46,7 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 	} else {
 		pedge.fill(0); roots.clear();
 	}
-	phases = paths = steps = 0;
+	phases = paths = 0; steps = g.n;
 
 	// divide vertices into two independent sets
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
@@ -63,7 +63,6 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 	if (trace)
 		traceString += `initial matching: ${match2string(g,medge)}\n` +
 					   `augmenting paths\n`;
-	phases = paths = steps = 0;
 
 	// add unmatched vertices from in-set to roots
 	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
