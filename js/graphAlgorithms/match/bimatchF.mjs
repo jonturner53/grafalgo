@@ -35,7 +35,7 @@ export default function bimatchF(g, trace=false, subsets=null,
 								  dmin=null, dmax=null) {
 	// divide vertices into two independent sets
 	let steps = 0;
-	if (!subsets) subsets = { findSplit(g); steps += g.m; }
+	if (!subsets) { subsets = findSplit(g); steps += g.m; }
 	assert(subsets != null, "bimatchF: graph not bipartite");
 
 	// create flow graph, taking care to maintain edge numbers
