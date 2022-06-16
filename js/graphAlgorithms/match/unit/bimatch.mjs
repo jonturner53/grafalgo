@@ -27,7 +27,7 @@ g.fromString('{a[f g j] b[g h i] c[f i j] d[f h j] e[h i j]}');
 tester.addTest('small graph', g);
 
 g = randomBigraph(8, 3); tester.addTest('small random', g);
-g = randomBigraph(1000, 50); tester.addTest('medium random', g);
-g = randomBigraph(1000, 500); tester.addTest('large random', g);
+g = randomBigraph(1000, 10); tester.addTest('medium random', g);
+g = randomBigraph(10000, 10); tester.addTest('large random', g);
 
 tester.run();

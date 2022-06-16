@@ -34,10 +34,10 @@ import flowfloor from '../maxflow/flowfloor.mjs';
 export default function bimatchF(g, trace=false, subsets=null,
 								  dmin=null, dmax=null) {
 	// divide vertices into two independent sets
-	if (!subsets) subsets = findSplit(g);
+	let steps = 0;
+	if (!subsets) subsets = { findSplit(g); steps += g.m; }
 	assert(subsets != null, "bimatchF: graph not bipartite");
 
-	let steps = 0;
 	// create flow graph, taking care to maintain edge numbers
 	let fg = new Flograph(g.n+2, g.n+g.edgeRange);
 	if (dmin) fg.addFloors();

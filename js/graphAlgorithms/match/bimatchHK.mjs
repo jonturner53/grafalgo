@@ -46,9 +46,10 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 	} else {
 		pedge.fill(0); roots.clear();
 	}
+	phases = paths = steps = 0;
 
 	// divide vertices into two independent sets
-	if (!subsets) subsets = findSplit(g);
+	if (!subsets) { subsets = findSplit(g); steps += g.m; }
 	assert(subsets != null, "bimatchHK: graph not bipartite");
 
 	// add edges to medge, yielding maximal (not maximum) matching
