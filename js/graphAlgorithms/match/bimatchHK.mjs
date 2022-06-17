@@ -38,7 +38,7 @@ let steps;       // total number of steps
 export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 	g = bg; trace = traceFlag; traceString = '';
 	medge = new Int32Array(g.n+1);
-	if (pedge == null || pedge.length < g.n+1) {
+	if (pedge == null || pedge.length != g.n+1) {
 		pedge = new Int32Array(g.n+1);
 		level = new Int32Array(g.n+1);
 		nextedge = new Int32Array(g.n+1);
@@ -64,7 +64,7 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 		traceString += `initial matching: ${match2string(g,medge)}\n` +
 					   `augmenting paths\n`;
 
-	// add unmatched vertices from in-set to roots
+	// add unmatched vertices from first subset to roots
 	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
 		if (medge[u] == 0) roots.enq(u);
 		steps++;
@@ -107,11 +107,11 @@ function newPhase() {
 	// label each vertex with its distance from the nearest root
 	// in matching forest
 	while (!q.empty()) {
-		let u = q.deq(); // u in in-set
+		let u = q.deq(); // u in first subset
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			steps++;
 			if (e == medge[u]) continue;
-			let v = g.mate(u,e); // v in out-set
+			let v = g.mate(u,e); // v in second subset
 			if (level[v] != g.n) continue;
 			// first time we've seen v
 			level[v] = level[u] + 1; 
@@ -127,8 +127,8 @@ function newPhase() {
 }
 
 /** Find an augmenting path from specified vertex.
- *  @param u is a vertex in the in-set
- *  @return an unmatched vertex in the out-set, or 0 if there is no
+ *  @param u is a vertex in the first subset
+ *  @return an unmatched vertex in the second subset, or 0 if there is no
  *  admissible path to such a vertex in the current phase;
  *  on successful return, the pedge array defines
  *  the augmenting path from the returned vertex back to u
@@ -168,5 +168,5 @@ function augment(u) {
 		if (trace) ts = `${g.edge2string(ee)} ${ts}`;
 		u = g.mate(v,ee);
 	}
-	traceString += `[${ts}]\n`;
+	if (trace) traceString += `[${ts}]\n`;
 }

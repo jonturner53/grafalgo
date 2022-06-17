@@ -30,4 +30,12 @@ g = randomBigraph(8, 3); tester.addTest('small random', g);
 g = randomBigraph(1000, 10); tester.addTest('medium random', g);
 g = randomBigraph(10000, 10); tester.addTest('large random', g);
 
+g = randomBigraph(1000, 1); tester.addTest('large 1K random', g);
+g = randomBigraph(2000, 1); tester.addTest('large 2K random', g);
+g = randomBigraph(4000, 1); tester.addTest('large 4K random', g);
+g = randomBigraph(8000, 1); tester.addTest('large 8K random', g);
+g = randomBigraph(16000, 1); tester.addTest('large 16K random', g);
+g = randomBigraph(32000, 1); tester.addTest('large 32K random', g);
+g = randomBigraph(64000, 1); tester.addTest('large 64K random', g);
+
 tester.run();
