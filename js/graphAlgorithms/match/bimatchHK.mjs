@@ -75,6 +75,7 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 		phases++;
 		let r = free.first();
 		while (r != 0) {
+			link[r] = 0;
 			let u = findpath(r);
 			if (u == 0) {
 				r = free.next(r);
