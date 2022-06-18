@@ -16,7 +16,7 @@ let g;          // shared reference to flow graph
 let lambda;     // lambda[u] is vertex label used to make costs non-negative
 
 let c;          // c[u] is shortest path to u as computed by findpath
-let pedge;      // pedge[u] is parent edge of u in spt computed by findpath
+let link;       // link[u] is parent edge of u in spt computed by findpath
 let border;		// heap used by findpath
 let q;          // list used in initLabels
 
@@ -40,7 +40,7 @@ export default function mcflowJEK(fg, trace=false, mostNeg=false) {
 	g = fg;
 	lambda = new Float32Array(g.n+1);
 	c = new Float32Array(g.n+1);
-	pedge = new Int32Array(g.n+1);
+	link = new Int32Array(g.n+1);
 	border = new ArrayHeap(g.n, 4);
 	q = new List(g.n);
 
@@ -71,7 +71,7 @@ export default function mcflowJEK(fg, trace=false, mostNeg=false) {
  *  over edges with positive residual capacity.
  */
 function initLabels() {
-	pedge.fill(0); lambda.fill(0); q.clear();
+	link.fill(0); lambda.fill(0); q.clear();
 	for (let u = 1; u <= g.n; u++) q.enq(u);
 	let pass = 0; let last = q.last();
 	while (!q.empty()) {
@@ -81,7 +81,7 @@ function initLabels() {
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
 			if (lambda[v] > lambda[u] + g.cost(e,u)) {
-				lambda[v] = lambda[u] + g.cost(e,u); pedge[v] = e;
+				lambda[v] = lambda[u] + g.cost(e,u); link[v] = e;
 				if (!q.contains(v)) q.enq(v);
 			}
 		}
@@ -94,7 +94,7 @@ function initLabels() {
  *  @param return true if a path was found, else false.
  */
 function findpath() {
-	c.fill(Infinity); pedge.fill(0); border.clear();
+	c.fill(Infinity); link.fill(0); border.clear();
 	c[g.source] = 0; border.insert(g.source,0);
 	while (!border.empty()) {
 		let u = border.deletemin();
@@ -103,7 +103,7 @@ function findpath() {
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
 			if (c[v] > c[u] + g.cost(e,u) + (lambda[u] - lambda[v])) {
-				pedge[v] = e;
+				link[v] = e;
 				c[v] = c[u] + g.cost(e,u) + (lambda[u] - lambda[v]);
 				if (!border.contains(v)) border.insert(v,c[v]);
 				else border.changekey(v,c[v]);
@@ -112,34 +112,34 @@ function findpath() {
 	}
 	// update lambda for next round
 	for (let u = 1; u <= g.n; u++) { lambda[u] += c[u]; steps++; }
-	return (pedge[g.sink] != 0);
+	return (link[g.sink] != 0);
 }
 
-/** Compute properties of augmenting path defined by pedge.
+/** Compute properties of augmenting path defined by link.
  *  @return pair [resCap, cost] where resCap is residual capacity of the path
  *  and cost is its total cost.
  */
 function pathProperties() {
 	let resCap = 0x7fffffff; let cost = 0;
-	let u = g.sink; let e = pedge[u];
+	let u = g.sink; let e = link[u];
 	while (u != g.source) {
 		let v = g.mate(u,e);
 		resCap = Math.min(resCap, g.res(e,v)); cost += g.cost(e,v);
-		u = v; e = pedge[u]; steps++;
+		u = v; e = link[u]; steps++;
 	}
 	return [resCap, cost]
 }
 
-/** Add flow to the path defined by pedge.
+/** Add flow to the path defined by link.
  *  @param f is the amount of flow to add to the path
  */
 function augment(f, trace=false) {
-	let u = g.sink; let e = pedge[u]; let ts = g.index2string(u);
+	let u = g.sink; let e = link[u]; let ts = g.index2string(u);
 	while (u != g.source) {
 		let v = g.mate(u,e);
 		if (trace) ts = g.index2string(v) + ' ' + ts;
 		g.addFlow(e,v,f);
-		u = v; e = pedge[u]; steps++;
+		u = v; e = link[u]; steps++;
 	}
 	return ts;
 }

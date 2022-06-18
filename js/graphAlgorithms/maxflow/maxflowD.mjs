@@ -12,7 +12,7 @@ import augment from './augment.mjs';
 
 let g;			// shared reference to flow graph
 let level;		// level[u] is distance from source to u in residual graph
-let pedge;		// pedge[u] is edge to u from its parent in shortest path tree
+let link;		// link[u] is edge to u from its parent in augmenting path
 let nextEdge;	// nextEdge[u] is the next edge to be processed at u
 
 let phases;	    // number of phases
@@ -28,7 +28,7 @@ export default function maxflowD(fg, trace=false) {
 	g = fg;
 	nextEdge = new Int32Array(g.n+1);
 	level = new Int32Array(g.n+1);
-	pedge = new Int32Array(g.n+1);
+	link = new Int32Array(g.n+1);
 
 	let ts = '';
 	if (trace)
@@ -39,7 +39,7 @@ export default function maxflowD(fg, trace=false) {
 		phases++;
 		while (findpath(g.source)) {
 			paths++;
-			let [,s,augsteps] = augment(g, pedge, trace);
+			let [,s,augsteps] = augment(g, link, trace);
 			if (trace) ts += s + '\n';
 			steps += augsteps;
 		}
@@ -84,7 +84,7 @@ function findpath(u) {
 		let v = g.mate(u, e);
 		if (g.res(e, u) == 0 || level[v] != level[u] + 1) continue;
 		if (v == g.sink || findpath(v)) {
-			pedge[v] = e; nextEdge[u] = e; return true;
+			link[v] = e; nextEdge[u] = e; return true;
 		}
 	}
 	nextEdge[u] = 0; return false;

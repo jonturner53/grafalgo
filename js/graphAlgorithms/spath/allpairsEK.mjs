@@ -17,8 +17,8 @@ import sptD from './sptD.mjs';
  *  @param g is a digraph with edge lengths
  *  @param trace controls output of information about the internal  
  *  state of the computation; larger values produce more information
- *  @return a tuple [error, pedge, dist, ts, stats] where error is an empty
- *  string on success and an error string on failure, pedge[s][u] is the edge
+ *  @return a tuple [error, link, dist, ts, stats] where error is an empty
+ *  string on success and an error string on failure, link[s][u] is the edge
  *  from the parent of u to u in the spt rooted at s (or 0 if u unreachable);
  *  dist[s][u] is the shortest path distance from vertex s to vertex u
  *  (or infinity if u unreachable), ts is a trace string and stats is
@@ -26,7 +26,7 @@ import sptD from './sptD.mjs';
  */
 export default function allpairsEK(g, trace) {
 	let dist = []; dist.push(null);
-	let pedge = []; pedge.push(null);
+	let link = []; link.push(null);
     
     // compute distances in augmented graph
 	let [pe,d,,statsBM] = sptBM(g, 0);
@@ -46,12 +46,12 @@ export default function allpairsEK(g, trace) {
 	stats.stepsD = 0;
     for (let u = 1; u <= g.n; u++) {
         let [pu,du,,statsD] = sptD(g, u);
-		pedge.push(pu); dist.push(du);
+		link.push(pu); dist.push(du);
 		stats.stepsD += statsD.siftup + statsD.siftdown;
         for (let v = 1; v <= g.n; v++) dist[u][v] -= (d[u]-d[v]);
 		if (stats) {
 			ts += g.index2string(u) + '\n' +
-				  g.elist2string(pedge[u], null, true) + '\n' +
+				  g.elist2string(link[u], null, true) + '\n' +
 				  g.nlist2string(dist[u]) + '\n';
 		}
     }
@@ -61,5 +61,5 @@ export default function allpairsEK(g, trace) {
         g.setLength(e, g.length(e) - (d[g.tail(e)] - d[g.head(e)]));
     }
 
-	return [pedge, dist, ts, stats];
+	return [link, dist, ts, stats];
 }

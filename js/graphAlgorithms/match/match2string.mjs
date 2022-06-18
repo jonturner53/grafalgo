@@ -6,10 +6,14 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-export default function match2string(g, medge) {
+/** Return a string representation of a matching.
+  * @param g is a graph
+  * @param match maps each vertex u to its matching edge match[u]
+  */
+export default function match2string(g, match) {
 	let s = '['; let first = true;
 	for (let e = g.first(); e != 0; e = g.next(e)) {
-		if (medge[g.left(e)] == e) {
+		if (match[g.left(e)] == e) {
 			if (first) first = false;
 			else s += ' ';
 			s += g.edge2string(e);

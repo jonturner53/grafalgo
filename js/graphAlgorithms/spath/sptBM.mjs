@@ -15,15 +15,15 @@ import List from '../../dataStructures/basic/List.mjs';
  *  from a dummy source vertex with a zero-length edge to every real vertex
  *  @param trace controls output of information about the internal  
  *  state of the computation; larger values produce more information
- *  @return a tuple [error, pedge, dist, ts, stats] where error is an empty
- *  string on success and an error string on failure, pedge[u] is the edge from
+ *  @return a tuple [error, link, dist, ts, stats] where error is an empty
+ *  string on success and an error string on failure, link[u] is the edge from
  *  the parent of u to u in the spt rooted at s (or 0 if u unreachable);
  *  dist[u] is the shortest path distance from vertex s to vertex u
  *  (or infinity if u unreachable), ts is a trace string and stats is a
  *  statistics object.
  */
 export default function sptBM(g, s, trace=0) {
-	let pedge = new Int32Array(g.n+1); let ts = ''; let err = '';
+	let link = new Int32Array(g.n+1); let ts = ''; let err = '';
 	let dist = new Array(g.n+1).fill(Infinity);
 
 	let q = new List(g.n);
@@ -45,7 +45,7 @@ export default function sptBM(g, s, trace=0) {
 		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u,e)) {
 			let v = g.head(e); steps++;
 			if (dist[u] + g.length(e) < dist[v]) {
-				dist[v] = dist[u] + g.length(e); pedge[v] = e;
+				dist[v] = dist[u] + g.length(e); link[v] = e;
 				if (!q.contains(v)) q.enq(v);
 			}
 		}
@@ -53,10 +53,10 @@ export default function sptBM(g, s, trace=0) {
 		if (trace) {
 			ts += g.index2string(u) + ' ' +
 				  (dist[u] != Infinity ? dist[u] : '-') + ' ' +
-				  (pedge[u] != 0 ? g.edge2string(pedge[u]) : '-') + ' ' +
+				  (link[u] != 0 ? g.edge2string(link[u]) : '-') + ' ' +
 				  q + ' ' + pass + '\n';
 		}
 		assert(pass < g.n, 'Error: negative cycle');
 	}
-	return [pedge, dist, ts, { 'passCount': pass, 'stepCount': steps }];
+	return [link, dist, ts, { 'passCount': pass, 'stepCount': steps }];
 }

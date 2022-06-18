@@ -12,7 +12,7 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import augment from './augment.mjs';
 
 let g;			// shared reference to flow graph
-let pedge;		// pedge[u] is edge to u from its parent in shortest path tree
+let link;		// link[u] is edge to u from its parent in shortest path tree
 let scale;		// scaling parameter
 
 let findpathCount; // number of calls to findpath
@@ -24,7 +24,7 @@ let findpathSteps; // total steps in findpath
  *  @return the total flow added to fg
  */
 export default function maxflowFFmc(fg, trace=false) {
-	g = fg; pedge = new Int32Array(g.n+1);
+	g = fg; link = new Int32Array(g.n+1);
 	let ts = '';
 	if (trace)
 		ts += 'augmenting paths with residual capacities\n';
@@ -39,7 +39,7 @@ export default function maxflowFFmc(fg, trace=false) {
 
 	while (findpath(g.source)) {
 		findpathCount++;
-		let [,s] = augment(g, pedge, trace);
+		let [,s] = augment(g, link, trace);
 		if (trace) ts += s + '\n';
 	}
 	if (trace) ts += g.toString(0,1);
@@ -47,7 +47,7 @@ export default function maxflowFFmc(fg, trace=false) {
 				 'findpathSteps': findpathSteps}];
 }
 
-/** Find a max capacity augmenting path from a specified vertex to the sink.
+/** Find a high capacity augmenting path from a specified vertex to the sink.
  *  @param s is a vertex in g
  *  @return true if there is an augmenting path from u to the sink
  */
@@ -55,15 +55,15 @@ function findpath(s) {
 	let q = new List(g.n);
 
 	while (scale >= 1) {
-		pedge.fill(0);
+		link.fill(0);
 		q.enq(g.source);
 		while (!q.empty()) {
 			let u = q.deq();
 			for (let e = g.firstAt(u); e != 0; e=g.nextAt(u,e)) {
 				findpathSteps++;
 				let v = g.mate(u,e);
-				if (g.res(e,u) >= scale && pedge[v] == 0 && v != g.source) {
-					pedge[v] = e; 
+				if (g.res(e,u) >= scale && link[v] == 0 && v != g.source) {
+					link[v] = e; 
 					if (v == g.sink) return true;
 					q.enq(v);
 				}

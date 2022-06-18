@@ -12,7 +12,7 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import augment from './augment.mjs';
 
 let g;			// shared reference to flow graph
-let pedge;		// pedge[u] is edge to u from its parent in shortest path tree
+let link;		// link[u] is edge to u from its parent in shortest path tree
 let findpathCount; // number of calls to findpath
 let findpathSteps; // total steps in findpath
 
@@ -21,14 +21,14 @@ let findpathSteps; // total steps in findpath
  *  @return the total flow added to fg
  */
 export default function maxflowFFmc(fg, trace=false) {
-	g = fg; pedge = new Int32Array(g.n+1);
+	g = fg; link = new Int32Array(g.n+1);
 	let ts = '';
 	if (trace)
 		ts += 'augmenting paths with residual capacities\n';
 	findpathCount = findpathSteps = 0;
 	while (findpath(g.source)) {
 		findpathCount++;
-		let [,s] = augment(g, pedge, trace);
+		let [,s] = augment(g, link, trace);
 		if (trace) ts += s + '\n';
 	}
 	if (trace) ts += g.toString(0,1);
@@ -45,7 +45,7 @@ function findpath(s) {
 	let cap = new Int32Array(g.n+1);
 
 	let heapStats = border.getStats();
-	pedge.fill(0);
+	link.fill(0);
 	cap[s] = 0x7fffffff; // largest 32 bit value
 	border.insert(s, -cap[s]); // so deletemin gives max cap
 	while (!border.empty()) {
@@ -55,7 +55,7 @@ function findpath(s) {
 			let v = g.mate(u,e);
 	    	if (Math.min(cap[u], g.res(e,u)) > cap[v]) {
 				cap[v] = Math.min(cap[u], g.res(e,u));
-				pedge[v] = e;
+				link[v] = e;
 				if (v == g.sink) {
 					findpathSteps += heapStats.siftup + heapStats.siftdown;
 					return true;

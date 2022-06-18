@@ -18,11 +18,10 @@ import mcflowJEK from '../mcflow/mcflowJEK.mjs';
  *  path algorithm of Jewell, Edmonds and Karp.
  *  @param g is an undirected weighted bipartite graph
  *  @param trace causes a trace string to be returned when true
- *  @return a triple [medge, ts, stats] is an array mapping vertices
+ *  @return a triple [match, ts, stats] is an array mapping vertices
  *  to their incident matching edge, or 0, ts is a possibly empty trace string
  *  and stats is a statistics object; both from Dinic's algorithm
  *  @exceptions throws an exception if graph is not bipartite
-come back later and add dmin, dmax
  */
 export default function bimatchD(g, trace=false, subsets=null,
 								 dmin=null, dmax=null) {
@@ -58,11 +57,11 @@ export default function bimatchD(g, trace=false, subsets=null,
 	steps += stats.steps;
 
 	// construct matching from flow
-	let medge = new Int32Array(g.n+1);
+	let match = new Int32Array(g.n+1);
 	for (let e = g.first(); e != 0; e = g.next(e)) {
-		if (fg.f(e) != 0) medge[g.left(e)] = medge[g.right(e)] = e;
+		if (fg.f(e) != 0) match[g.left(e)] = match[g.right(e)] = e;
 		steps++;
 	}
-	return [medge, `${ts}matching: ${match2string(g,medge)}\n`,
+	return [match, `${ts}matching: ${match2string(g,match)}\n`,
 			{'steps' : steps}];
 }

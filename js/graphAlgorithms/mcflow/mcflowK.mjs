@@ -11,7 +11,7 @@ import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 
 let g;		  // shared reference to flow graph
 let C;        // C[u] is cost of path to u from source in findCycle
-let pedge;	  // pedge[] is parent edge of u
+let link;	  // link[] is parent edge of u
 let q;        // queue used in findCycle
 let cycleIds; // array used to label cycles with an integer identifier
 
@@ -29,7 +29,7 @@ export default function mcflowK(fg, trace=false) {
 	g = fg;
 
 	C = new Float32Array(g.n+1);
-	pedge = new Int32Array(g.n+1);
+	link = new Int32Array(g.n+1);
 	q = new List(g.n);
 	cycleIds = new Int8Array(g.n+1);
 
@@ -57,11 +57,11 @@ export default function mcflowK(fg, trace=false) {
 /** Find a negative cost cycle in the residual graph.
  *  @return some vertex on the cycle, or 0 if no negative
  *  cycle is present in the residual graph; the edges in the
- *  cycle are found by traversing the pedge pointers, starting
- *  at pedge[returnedVertex].
+ *  cycle are found by traversing the link pointers, starting
+ *  at link[returnedVertex].
  */
 function findCycle() {
-	C.fill(0); pedge.fill(0); q.clear();
+	C.fill(0); link.fill(0); q.clear();
 	for (let u = 1; u <= g.n; u++) q.enq(u);
 
 	let last = q.last(); // each pass completes when last removed from q
@@ -72,7 +72,7 @@ function findCycle() {
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
 			if (C[v] > C[u] + g.cost(e,u)) {
-				pedge[v] = e;
+				link[v] = e;
 				C[v] = C[u] +  g.cost(e,u);
 				if (!q.contains(v)) q.enq(v);
 			}
@@ -88,7 +88,7 @@ function findCycle() {
 	return 0;
 }
 
-/** Check for a cycle in the pedge pointers.
+/** Check for a cycle in the link pointers.
  *  @return a vertex on a cycle or 0, if none found
  */
 function cycleCheck() {
@@ -100,7 +100,7 @@ function cycleCheck() {
 		let v = u; let e;
 		while (cycleIds[v] == 0) {
 			cycleIds[v] = id;
-			e = pedge[v];
+			e = link[v];
 			if (e == 0) break;
 			v = g.mate(v,e);
 		}
@@ -116,26 +116,26 @@ function cycleCheck() {
 /** Add flow to a negative-cost cycle.
  *  Adds as much flow as possible to the cycle, reducing the cost
  *  without changing the flow value.
- *  @param z is a vertex on a cycle defined by the pedge array
+ *  @param z is a vertex on a cycle defined by the link array
  */
 function augment(z, trace=false) {
 	// determine residual capacity of cycle
-	let u = z; let e = pedge[u]; let f = Infinity;
+	let u = z; let e = link[u]; let f = Infinity;
 	do {
 		let v = g.mate(u,e);
 		f = Math.min(f,g.res(e,v));
-		u = v; e = pedge[u];
+		u = v; e = link[u];
 	} while (u != z);
 
 	// add flow to saturate cycle
 	let ts = '';
 	if (trace) ts += g.index2string(z);
-	u = z; e = pedge[u];
+	u = z; e = link[u];
 	do {
 		let v = g.mate(u,e);
 		g.addFlow(e,v,f);
 		if (trace) ts = `${g.index2string(v)}:${g.cost(e,v)} ${ts}`;
-		u = v; e = pedge[u];
+		u = v; e = link[u];
 	} while (u != z);
 	if (trace) ts = `${f} [${ts}] ${g.totalCost()}\n`;
 	return ts;

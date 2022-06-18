@@ -13,22 +13,22 @@ let g;         // shared reference to graph
 let blossoms;  // set per blossom
 let origin;    // original vertex for each blossom
 let state;     // state used in path search
-let pedge;     // edge to parent in tree
+let link;     // edge to parent in tree
 let mark;      // mark bits used by nca
-let medge;     // matching edge at a vertex
+let match;     // matching edge at a vertex
 
 /** Verify a maximum matching.
  *  @param mg is an undirected graph
- *  @param medge is a an array of matching edges incident to vertices
+ *  @param match is a an array of matching edges incident to vertices
  *  @return a string which is empty if match is a maximum matching,
  *  else it describes an error
  */
-export default function matchVerify(mg, medge) {
+export default function matchVerify(mg, match) {
 	g = mg;
 	blossoms = new Sets(g.n);
 	origin = new Int32Array(g.n+1);
 	state = new Int8Array(g.n+1);
-	pedge = new Int32Array(g.n+1);
+	link = new Int32Array(g.n+1);
 	mark = new Int8Array(g.n+1);
 
 	// state values
@@ -37,7 +37,7 @@ export default function matchVerify(mg, medge) {
 	let q = new List(g.edgeRange); // list of edges to be processed in main loop
 	for (let u = 1; u <= g.n; u++) {
 		origin[u] = u;
-		if (medge[u] == 0) {
+		if (match[u] == 0) {
 			state[u] = even;
 			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 				if (!q.contains(e)) q.enq(e);
@@ -54,11 +54,11 @@ export default function matchVerify(mg, medge) {
 		if (state[vp] == unreached) {
 			// v is not contained in a blossom and is matched
 			// so extend tree and add newly eligible edges to q
-			let w = g.mate(v,medge[v]);
-			state[v] = odd;  pedge[v] = e;
-			state[w] = even; pedge[w] = medge[v];
+			let w = g.mate(v,match[v]);
+			state[v] = odd;  link[v] = e;
+			state[w] = even; link[w] = match[v];
 			for (let ee = g.firstAt(w); ee != 0; ee = g.nextAt(w,ee)) {
-				if ((ee != medge[w]) && !q.contains(ee))
+				if ((ee != match[w]) && !q.contains(ee))
 					q.enq(ee);
 			}
 			continue;
@@ -72,23 +72,23 @@ export default function matchVerify(mg, medge) {
 		let x = up;
 		while (x != a) {
 			origin[blossoms.link(blossoms.find(x), blossoms.find(a))] = a;
-			x = g.mate(x,pedge[x]); // x now odd
+			x = g.mate(x,link[x]); // x now odd
 			origin[blossoms.link(x,blossoms.find(a))] = a;
 			for (let ee = g.firstAt(x); ee != 0; ee = g.nextAt(x,ee)) {
 				if (!q.contains(ee)) q.enq(ee);
 			}
-			x = base(g.mate(x,pedge[x]));
+			x = base(g.mate(x,link[x]));
 		}
 		x = vp;
 		while (x != a) {
 			origin[blossoms.link(blossoms.find(x),
 					      blossoms.find(a))] = a;
-			x = g.mate(x,pedge[x]); // x now odd
+			x = g.mate(x,link[x]); // x now odd
 			origin[blossoms.link(x,blossoms.find(a))] = a;
 			for (let ee = g.firstAt(x); ee != 0; ee = g.nextAt(x,ee)) {
 				if (!q.contains(ee)) q.enq(ee);
 			}
-			x = base(g.mate(x,pedge[x]));
+			x = base(g.mate(x,link[x]));
 		}
 	}
 	return '';
@@ -114,28 +114,28 @@ function nca(u, v) {
 		if (x == y) { result = x; break; }
 		if (mark[x]) { result = x; break; }
 		if (mark[y]) { result = y; break; }
-		if (pedge[x] == 0 && pedge[y] == 0) { result = 0; break; }
-		if (pedge[x] != 0) {
+		if (link[x] == 0 && link[y] == 0) { result = 0; break; }
+		if (link[x] != 0) {
 			mark[x] = true;
-			x = g.mate(x,pedge[x]);
- 			x = base(g.mate(x,pedge[x]));
+			x = g.mate(x,link[x]);
+ 			x = base(g.mate(x,link[x]));
 		}
-		if (pedge[y] != 0) {
+		if (link[y] != 0) {
 			mark[y] = true;
-			y = g.mate(y,pedge[y]);
-			y = base(g.mate(y,pedge[y]));
+			y = g.mate(y,link[y]);
+			y = base(g.mate(y,link[y]));
 		}
 	}
 	// second pass to clear mark bits
 	x = u;
 	while (mark[x]) {
 		mark[x] = false;
-		x = g.mate(x,pedge[x]); x = base(g.mate(x,pedge[x]));
+		x = g.mate(x,link[x]); x = base(g.mate(x,link[x]));
 	}
 	y = v;
 	while (mark[y]) {
 		mark[y] = false;
-		y = g.mate(y,pedge[y]); y = base(g.mate(y,pedge[y]));
+		y = g.mate(y,link[y]); y = base(g.mate(y,link[y]));
 	}
 	return result;
 }

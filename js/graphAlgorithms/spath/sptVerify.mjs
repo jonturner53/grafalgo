@@ -12,16 +12,16 @@ import List from '../../dataStructures/basic/List.mjs';
 /** Check the correctness of an spt.
  *  @param g is a digraph with edge lengths
  *  @param s is a source vertex in g
- *  @param pedge is an array for which pedge[u] is the edge into u in an spt
+ *  @param link is an array for which link[u] is the edge into u in an spt
  *  @param dist is an array, where dist[u] is the shortest path distance
  *  from s to u.
  *  @return 'ok' if tree is a valid mst, otherwise return an error message
  */
-export default function sptVerify(g, s, pedge, dist) {
+export default function sptVerify(g, s, link, dist) {
 	if (!g.validVertex(s))
 		return `sptVerify: invalid source vertex ${s}`;
-	if (pedge.length != g.n+1)
-		return `sptVerify: pedge length (${pedge.length}) does not match g`;
+	if (link.length != g.n+1)
+		return `sptVerify: link length (${link.length}) does not match g`;
 	if (dist.length != g.n+1)
 		return `sptVerify: dist length (${dist.length}) does not match g`;
 
@@ -31,22 +31,22 @@ export default function sptVerify(g, s, pedge, dist) {
 		if (dist[u] + g.length(e) < dist[v]) 
 			return `sptVerify: ${g.edge2string(e)} violates distance ` +
 				   `condition`;
-		if (e == pedge[v] && dist[u] + g.length(e) != dist[v])
+		if (e == link[v] && dist[u] + g.length(e) != dist[v])
 			return `sptVverify: distances to endpoints of tree edge ` +
 					`${g.edge2string(e)} not consistent with edge length`; 
 	}
 
-	// verify that pedge defines a tree rooted at s and that distances match
+	// verify that link defines a tree rooted at s and that distances match
 	let mark = new Int8Array(g.n+1).fill(false); mark[s] = true;
 	for (let u = 1; u <= g.n; u++) {
-		if (!mark[u] && pedge[u] != 0) {
+		if (!mark[u] && link[u] != 0) {
 			mark[u] = true;
 			let v = u;
-			for (let e = pedge[v]; e != 0; e = pedge[v]) {
+			for (let e = link[v]; e != 0; e = link[v]) {
 				if (!g.validEdge(e))
-					return `sptVerify: invalid edge number ${e} in pedge`;
+					return `sptVerify: invalid edge number ${e} in link`;
 				if (v != g.head(e))
-					return `sptVerify: pedge[${v}] is an outgoing edge`;
+					return `sptVerify: link[${v}] is an outgoing edge`;
 				let w = g.tail(e);
 				if (w == u)
 					return `sptVerify: cycle involving ${g.edge2string(e)}`
@@ -57,7 +57,7 @@ export default function sptVerify(g, s, pedge, dist) {
 				mark[w] = true;
 				v = w;
 			}
-			if (pedge[v] == 0 && v != s)
+			if (link[v] == 0 && v != s)
 				return `sptVerify: tree path from ${g.index2string(u)} does ` +
 					   `not lead to root`;
 		}

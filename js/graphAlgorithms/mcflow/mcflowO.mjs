@@ -14,7 +14,7 @@ import maxflowD from '../maxflow/maxflowD.mjs';
 
 let g;	      // shared reference to flow graph
 let Delta;    // scaling parameter
-let pedge;    // pedge[u] is parent edge of u
+let link;    // link[u] is parent edge of u
 let lambda;   // lambda[u] is vertex label used to make costs non-negative
 let excess;   // excess[u] is excess flow entering u
 let sources;  // list of sources (nodes with positive excess)
@@ -35,7 +35,7 @@ export default function mcflowO(fg, traceFlag=false) {
 	g = fg;
 	trace = traceFlag; traceString = '';
 
-	pedge = new Int32Array(g.n+1);
+	link = new Int32Array(g.n+1);
 	lambda = new Float32Array(g.n+1);
 	excess = new Int32Array(g.n+1);
 	sources = new List(g.n); sources.addPrev(); // doubly linked
@@ -119,13 +119,13 @@ function newPhase() {
 }
 
 /** Find a least cost augmenting path from some source and update the labels.
- *  @return the "sink" vertex for the computed path; on return, the pedge
+ *  @return the "sink" vertex for the computed path; on return, the link
  *  vector defines the path from the sink back to some source
  */
 function findpath() {
 	let c = new Float32Array(g.n+1);
 	let border = new ArrayHeap(g.n,2);
-	pedge.fill(0); c.fill(Infinity);
+	link.fill(0); c.fill(Infinity);
 
 	// search from all sources in parallel
 	for (let s = sources.first(); s != 0; s = sources.next(s)) {
@@ -141,7 +141,7 @@ function findpath() {
 			if (g.res(e,u) < Delta) continue;
 			let v = g.mate(u,e);
 			if (c[v] > c[u] + g.cost(e,u) + (lambda[u]-lambda[v])) {
-				pedge[v] = e;
+				link[v] = e;
 				c[v] = c[u] + g.cost(e,u) + (lambda[u]-lambda[v]);
 				if (!border.contains(v)) border.insert(v,c[v]);
 				else border.changekey(v,c[v]);
@@ -157,11 +157,11 @@ function findpath() {
 
 /** Augment the flow along a path
  *  @param t is the sink vertex for the path; the path is defined
- *  by the pedge array
+ *  by the link array
  */
 function augment(t) {
 	let s = t; let ts = ''; let cost = 0;
-	for (let e = pedge[s]; e != 0; e = pedge[s]) {
+	for (let e = link[s]; e != 0; e = link[s]) {
 		let u = g.mate(s,e); g.addFlow(e,u,Delta);
 		if (trace) {
 			if (ts.length > 0) ts = ' ' + ts;

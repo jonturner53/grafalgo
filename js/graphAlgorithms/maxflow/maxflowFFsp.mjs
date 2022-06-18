@@ -11,7 +11,7 @@ import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import augment from './augment.mjs';
 
 let g;			// shared reference to flow graph
-let pedge;		// pedge[u] is edge to u from its parent in shortest path tree
+let link;		// link[u] is edge to u from its parent in shortest path tree
 let findpathCount; // number of calls to findpath
 let findpathSteps; // number of steps in all calls to findpath
 
@@ -20,13 +20,13 @@ let findpathSteps; // number of steps in all calls to findpath
  *  @return the total flow added to fg
  */
 export default function maxflowFFsp(fg, trace=false) {
-	g = fg; pedge = new Int32Array(g.n+1);
+	g = fg; link = new Int32Array(g.n+1);
 	let ts = '';
 	if (trace) ts += 'augmenting paths with residual capacities\n';
 	findpathCount = findpathSteps = 0;
 	while (findpath(g.source)) {
 		findpathCount++;
-		let [,s] = augment(g, pedge, trace);
+		let [,s] = augment(g, link, trace);
 		if (trace) ts += s + '\n';
 	}
 	if (trace) ts += g.toString(0,1);
@@ -39,7 +39,7 @@ export default function maxflowFFsp(fg, trace=false) {
  *  @return true if there is an augmenting path from u to the sink
  */
 function findpath(s) {
-	pedge.fill(0);
+	link.fill(0);
     let q = new List(g.n);
     q.enq(s);
     while (!q.empty()) {
@@ -47,8 +47,8 @@ function findpath(s) {
         for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			findpathSteps++;
             let v = g.mate(u,e);
-            if (g.res(e, u) > 0 && pedge[v] == 0 && v != g.source) {
-                pedge[v] = e;
+            if (g.res(e, u) > 0 && link[v] == 0 && v != g.source) {
+                link[v] = e;
                 if (v == g.sink) return true;
                 q.enq(v);
             }

@@ -13,9 +13,9 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import findSplit from '../misc/findSplit.mjs';
 
 let g;            // shared copy of graph
-let medge;        // medge[u] is edge incident to u in matching or 0
+let match;        // match[u] is edge incident to u in matching or 0
 let lab;          // lab[u] is vertex label at u
-let pedge = null; // pedge[u] is parent edge of u in shortest path forest
+let link = null;  // link[u] is parent edge of u in shortest path forest
 let roots;        // list containing roots of trees in forest
 let leaves;       // heap containing leaves in forest
 let cost;         // cost[u]=cost of shortest path to u in forest
@@ -30,16 +30,16 @@ let steps;       // total number of steps
  *  Hungarian algorithm.
  *  @param g is an undirected bipartite graph
  *  @param trace causes a trace string to be returned when true
- *  @return a triple [medge, ts, stats] where medge is an array
- *  mapping a vertex u to its matched edge medge[u];
+ *  @return a triple [match, ts, stats] where match is an array
+ *  mapping a vertex u to its matched edge match[u];
  *  ts is a possibly empty trace string and stats is a statistics object
  *  @exceptions throws an exception if graph is not bipartite
  */
 export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 	g = bg; trace = traceFlag; traceString = '';
-	if (pedge == null || pedge.length < g.n+1) {
-		pedge = new Int32Array(g.n+1);
-		medge = new Int32Array(g.n+1);
+	if (link == null || link.length < g.n+1) {
+		link = new Int32Array(g.n+1);
+		match = new Int32Array(g.n+1);
 		lab = new Int32Array(g.n+1);
 		roots = new List(g.n); roots.addPrev();
 		leaves = new ArrayHeap(g.n,4);
@@ -59,7 +59,7 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 
 	// add unmatched vertices from in-set to roots
 	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
-		if (medge[u] == 0) roots.enq(u);
+		if (match[u] == 0) roots.enq(u);
 		steps++;
 	}
 
@@ -72,9 +72,9 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 		augment(u); u = findpath(); paths++;
 	}
 	if (trace) {
-		traceString += 'matching: ' + match2string(g,medge) + '\n';
+		traceString += 'matching: ' + match2string(g,match) + '\n';
 	}
-	return [medge, traceString, { 'steps': steps }];
+	return [match, traceString, { 'steps': steps }];
 }
 
 /** Compute values for labels that give non-negative transformed costs.
@@ -102,7 +102,7 @@ function initLabels(subsets) {
  *  @returns the sink vertex of the path found, or 0 if no such path
  */
 function findpath() {
-	pedge.fill(0); cost.fill(Infinity); leaves.clear();
+	link.fill(0); cost.fill(Infinity); leaves.clear();
 	for (let u = roots.first(); u != 0; u = roots.next(u)) {
 		cost[u] = 0; leaves.insert(u,0); steps++;
 	}
@@ -114,12 +114,12 @@ function findpath() {
 		maxcost = Math.max(maxcost, cost[u]);
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			steps++;
-			if (e == medge[u]) continue;
+			if (e == match[u]) continue;
 			let v = g.mate(u,e);
 			if (cost[v] > (cost[u]-g.weight(e)) + (lab[u]-lab[v])) {
-				pedge[v] = e;
+				link[v] = e;
 				cost[v] = (cost[u]-g.weight(e)) + (lab[u]-lab[v]);
-				let ee = medge[v];
+				let ee = match[v];
 				if (ee == 0) {
 					if (cost[v] + lab[v] < bestPathCost) {
 						bestSink = v; bestPathCost = cost[v] + lab[v];
@@ -127,7 +127,7 @@ function findpath() {
 					continue;
 				}
 				let x = g.mate(v,ee);
-				pedge[x] = ee;
+				link[x] = ee;
 				cost[x] = cost[v]+g.weight(ee) + (lab[v]-lab[x]);
 				if (!leaves.contains(x)) leaves.insert(x,cost[x]);
 				else leaves.changekey(x,cost[x]);
@@ -143,16 +143,16 @@ function findpath() {
 	}
 
 	// determine true weight of path
-	let u = bestSink; let e = pedge[u]; let pathCost = 0;
+	let u = bestSink; let e = link[u]; let pathCost = 0;
 	let ts; if (trace) ts = g.index2string(u);
 	while (e != 0) {
 		pathCost += g.weight(e);
 		if (trace) ts = `${g.edge2string(e)} ${ts}`
-		u = g.mate(u,e); e = pedge[u];
+		u = g.mate(u,e); e = link[u];
 		if (e == 0) break;
 		if (trace) ts = `${g.edge2string(e)} ${ts}`
 		pathCost -= g.weight(e);
-		u = g.mate(u,e); e = pedge[u];
+		u = g.mate(u,e); e = link[u];
 		steps++;
 	}
 	if (trace)
@@ -163,15 +163,15 @@ function findpath() {
 
 /** Flip the edges along an augmenting path
  *  @param[in] u is an endpoint of an augmenting path; the edges in
- *  the path can be found using the pedge pointers
+ *  the path can be found using the link pointers
  */
 function augment(u) {
-	let e = pedge[u];
+	let e = link[u];
 	while (e != 0) {
 		steps++;
-		medge[u] = e; u = g.mate(u,e); medge[u] = e; e = pedge[u];
+		match[u] = e; u = g.mate(u,e); match[u] = e; e = link[u];
 		if (e == 0) break;
-		u = g.mate(u,e); e = pedge[u];
+		u = g.mate(u,e); e = link[u];
 	}
 	roots.delete(u);
 }
