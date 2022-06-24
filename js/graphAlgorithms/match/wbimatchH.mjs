@@ -56,7 +56,7 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 	assert(subsets != null, "wbimatchH: graph not bipartite");
 
 	if (trace) {
-		traceString += 'augmenting path, path weight\n';
+		traceString += 'g.toString(0,1)augmenting path, path weight\n';
 	}
 
 	// add unmatched vertices from first subset to free
@@ -157,10 +157,10 @@ function findpath() {
 		u = g.mate(u,e); e = link[u];
 		steps++;
 	}
+	if (pathCost <= 0) return 0;
 	if (trace)
 		traceString += `${g.index2string(u)} ${ts} ${pathCost}\n`
-	
-	return (pathCost > 0 ? bestSink : 0);
+	return bestSink;
 }
 
 /** Flip the edges along an augmenting path
