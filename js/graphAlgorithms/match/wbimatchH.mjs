@@ -56,7 +56,7 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 	assert(subsets != null, "wbimatchH: graph not bipartite");
 
 	if (trace) {
-		traceString += 'g.toString(0,1)augmenting path, path weight\n';
+		traceString += `${g.toString(0,1)}augmenting path, path weight\n`;
 	}
 
 	// add unmatched vertices from first subset to free
