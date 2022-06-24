@@ -7,7 +7,7 @@
  */
 
 import { assert } from '../../common/Errors.mjs';
-import match2string from './match2string.mjs';
+import { match2string } from './match.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import findSplit from '../misc/findSplit.mjs';
@@ -15,8 +15,8 @@ import findSplit from '../misc/findSplit.mjs';
 let g;            // shared copy of graph
 let match;        // match[u] is edge incident to u in matching or 0
 let lab;          // lab[u] is vertex label at u
-let link = null;  // link[u] is parent edge of u in shortest path forest
-let roots;        // list containing roots of trees in forest
+let link = null;  // link[u] is edge to parent of u in shortest path forest
+let free;         // list containing free vertices in first subset
 let leaves;       // heap containing leaves in forest
 let cost;         // cost[u]=cost of shortest path to u in forest
 
@@ -36,30 +36,32 @@ let steps;       // total number of steps
  *  @exceptions throws an exception if graph is not bipartite
  */
 export default function wbimatchH(bg, traceFlag=false, subsets=null) {
-	g = bg; trace = traceFlag; traceString = '';
+	g = bg;
+	trace = traceFlag; traceString = '';
+	paths = steps = 0;
 	if (link == null || link.length < g.n+1) {
 		link = new Int32Array(g.n+1);
 		match = new Int32Array(g.n+1);
 		lab = new Int32Array(g.n+1);
-		roots = new List(g.n); roots.addPrev();
+		free = new List(g.n); free.addPrev();
 		leaves = new ArrayHeap(g.n,4);
 		cost = new Float32Array(g.n+1);
 	} else {
-		roots.clear(); S.clear();
+		free.clear(); S.clear();
 	}
+	steps += g.n;
 
 	// divide vertices into two independent sets
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
 	assert(subsets != null, "wbimatchH: graph not bipartite");
 
-	paths = steps = 0;
 	if (trace) {
 		traceString += g.toString(0,1) + 'augmenting path, path cost\n';
 	}
 
-	// add unmatched vertices from in-set to roots
+	// add unmatched vertices from first subset to free
 	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
-		if (match[u] == 0) roots.enq(u);
+		if (g.firstAt(u)) free.enq(u);
 		steps++;
 	}
 
@@ -83,6 +85,7 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
  *  Edges are treated as directed from set1 to set2.
  */
 function initLabels(subsets) {
+
 	lab.fill(0);
 	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
@@ -103,7 +106,7 @@ function initLabels(subsets) {
  */
 function findpath() {
 	link.fill(0); cost.fill(Infinity); leaves.clear();
-	for (let u = roots.first(); u != 0; u = roots.next(u)) {
+	for (let u = free.first(); u != 0; u = free.next(u)) {
 		cost[u] = 0; leaves.insert(u,0); steps++;
 	}
 
@@ -173,5 +176,5 @@ function augment(u) {
 		if (e == 0) break;
 		u = g.mate(u,e); e = link[u];
 	}
-	roots.delete(u);
+	free.delete(u);
 }

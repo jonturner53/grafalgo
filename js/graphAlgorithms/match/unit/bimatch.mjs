@@ -16,7 +16,7 @@ import { randomBigraph } from '../../misc/RandomGraph.mjs';
 
 let algomap = {
 	'F' : bimatchF,
-	'HK' : bimatchHK,
+	'HK' : bimatchHK
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
@@ -27,8 +27,8 @@ g.fromString('{a[f g j] b[g h i] c[f i j] d[f h j] e[h i j]}');
 tester.addTest('small graph', g);
 
 g = randomBigraph(8, 3); tester.addTest('small random', g);
-g = randomBigraph(10, 2); tester.addTest('small2 random', g);
-g = randomBigraph(1000, 2); tester.addTest('medium random', g);
-g = randomBigraph(10000, 5); tester.addTest('large random', g);
+g = randomBigraph(1000, 3); tester.addTest('medium random', g);
+g = randomBigraph(5000, 3); tester.addTest('large random', g);
+g = randomBigraph(5000, 200); tester.addTest('large, dense random', g);
 
 tester.run();

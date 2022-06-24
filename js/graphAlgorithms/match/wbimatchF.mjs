@@ -7,7 +7,7 @@
  */
 
 import { assert } from '../../common/Errors.mjs';
-import match2string from './match2string.mjs';
+import match2string from './match.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import findSplit from '../misc/findSplit.mjs';

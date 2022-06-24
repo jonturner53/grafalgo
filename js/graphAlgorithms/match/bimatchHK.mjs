@@ -7,7 +7,7 @@
  */
 
 import { assert } from '../../common/Errors.mjs';
-import match2string from './match2string.mjs';
+import { match2string } from './match.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import findSplit from '../misc/findSplit.mjs';
 
@@ -55,13 +55,15 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 	assert(subsets != null, "bimatchHK: graph not bipartite");
 
 	// add edges to match, yielding maximal (not maximum) matching
-	for (let e = g.first(); e != 0; e = g.next(e)) {
-		let u = g.left(e); let v = g.right(e);
-		if (match[u] == 0 && match[v] == 0) {
-			match[u] = match[v] = e;
+	for (let u = 1; u <= g.n; u++) {
+		if (match[u]) continue;
+		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+			steps++;
+			let v = g.mate(u,e);
+			if (!match[v]) { match[u] = match[v] = e; break; }
 		}
-		steps++;
 	}
+
 	if (trace)
 		traceString += `initial matching: ${match2string(g,match)}\n` +
 					   `augmenting paths\n`;
@@ -86,7 +88,7 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 	}
 
 	if (trace)
-		traceString += `  final matching: ${match2string(g,match)}\n`;
+		traceString += `final matching: ${match2string(g,match)}\n`;
 		
     return [match, traceString,
 			{'phases': phases, 'paths': paths, 'steps': steps}];

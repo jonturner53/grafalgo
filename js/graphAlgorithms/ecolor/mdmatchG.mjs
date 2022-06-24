@@ -9,7 +9,7 @@
 import { assert } from '../../common/Errors.mjs';
 import findSplit from '../misc/findSplit.mjs';
 import bimatchHK from '../match/bimatchHK.mjs';
-import match2string from '../match/match2string.mjs';
+import { match2string } from '../match/match.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 let g;			    // shared reference to input graph
