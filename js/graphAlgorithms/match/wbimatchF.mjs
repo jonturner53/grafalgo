@@ -23,8 +23,8 @@ import mcflowJEK from '../mcflow/mcflowJEK.mjs';
  *  and stats is a statistics object; both from Dinic's algorithm
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function bimatchD(g, trace=false, subsets=null,
-								 dmin=null, dmax=null) {
+export default function wbimatchF(g, trace=false, subsets=null,
+								  dmin=null, dmax=null) {
 	// divide vertices into two independent sets
 	if (!subsets) subsets = findSplit(g);
 	assert(subsets != null, "bimatchD: graph not bipartite");

@@ -47,7 +47,7 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 		leaves = new ArrayHeap(g.n,4);
 		cost = new Float32Array(g.n+1);
 	} else {
-		free.clear(); S.clear();
+		free.clear(); leaves.clear();
 	}
 	steps += g.n;
 
