@@ -27,13 +27,15 @@ let tester = new Tester(args, 'bimatch', algomap, null);
 let g = new Graph();
 g.fromString('{a[f:3 g:2 j:1] b[h:2 g:3 i:6] c[f:1 i:6 j:-1] d[g:1 h:2 f:1] ' +
 			 'e[h:2 i:5 j:3]}');
-tester.addTest('small graph', g);
+//tester.addTest('small graph', g);
 
-g = randomBigraph(7, 3); g.randomWeights(randomInteger, 1, 9);
+g = randomBigraph(5, 3); g.randomWeights(randomInteger, 1, 9);
 tester.addTest('small random', g);
+g = randomBigraph(5, 3); g.randomWeights(randomInteger, 1, 9);
+tester.addTest('small random 2', g);
 g = randomBigraph(100, 5); g.randomWeights(randomInteger, 1, 99);
-tester.addTest('medium random', g);
+//tester.addTest('medium random', g);
 g = randomBigraph(400, 20); g.randomWeights(randomInteger, 1, 99);
-tester.addTest('large random', g);
+//tester.addTest('large random', g);
 
 tester.run();

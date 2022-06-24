@@ -47,7 +47,7 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 		leaves = new ArrayHeap(g.n,4);
 		cost = new Float32Array(g.n+1);
 	} else {
-		free.clear(); leaves.clear();
+		match.fill(0); free.clear(); leaves.clear();
 	}
 	steps += g.n;
 
@@ -56,7 +56,7 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 	assert(subsets != null, "wbimatchH: graph not bipartite");
 
 	if (trace) {
-		traceString += g.toString(0,1) + 'augmenting path, path cost\n';
+		traceString += 'augmenting path, path weight\n';
 	}
 
 	// add unmatched vertices from first subset to free
@@ -85,7 +85,6 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
  *  Edges are treated as directed from set1 to set2.
  */
 function initLabels(subsets) {
-
 	lab.fill(0);
 	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
