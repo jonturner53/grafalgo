@@ -76,7 +76,7 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 	if (trace) {
 		traceString += 'matching: ' + match2string(g,match) + '\n';
 	}
-	return [match, traceString, { 'steps': steps }];
+	return [match, traceString, { 'paths': paths, 'steps': steps }];
 }
 
 /** Compute values for labels that give non-negative transformed costs.
