@@ -25,7 +25,7 @@ import mcflowJEK from '../mcflow/mcflowJEK.mjs';
  */
 export default function wbimatchF(g, trace=false, subsets=null,
 								  dmin=null, dmax=null) {
-	let steps = 0;
+	let paths = 0; let steps = 0;
 	// divide vertices into two independent sets
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
 	assert(subsets != null, "bimatchD: graph not bipartite");
@@ -54,7 +54,7 @@ export default function wbimatchF(g, trace=false, subsets=null,
         steps += stats.steps;
     }
 	let [ts, stats] = mcflowJEK(fg, trace, 1); // solve least-cost flow problem
-	steps += stats.steps;
+	paths += stats.paths; steps += stats.steps;
 
 	// construct matching from flow
 	let match = new Int32Array(g.n+1);
@@ -63,5 +63,5 @@ export default function wbimatchF(g, trace=false, subsets=null,
 		steps++;
 	}
 	return [match, `${ts}matching: ${match2string(g,match)}\n`,
-			{'steps' : steps}];
+			{'paths': paths, 'steps' : steps}];
 }

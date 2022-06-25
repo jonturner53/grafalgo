@@ -22,7 +22,7 @@ import { assert } from '../../common/Errors.mjs';
  *  closely as possible
  */
 export default function flowfloor(g, trace=false) {
-	let steps = 0;
+	let paths = 0; let steps = 0;
 	// First determine total capacity, number
 	// of edges with non-zero floors and the sum of min flows
 	let floorCount = 0; let totalCap = 0; let totalFloor = 0;
@@ -54,12 +54,13 @@ export default function flowfloor(g, trace=false) {
     let e = g1.join(g.sink, g.source); g1.setCapacity(e, totalCap);
 
 	// Now, find max flow in g1 and check that floor values are all satisfied
-	let [ts,stats] = maxflowD(g1, trace); steps += stats.steps;
+	let [ts,stats] = maxflowD(g1, trace);
+	paths += stats.paths; steps += stats.steps;
 
 	// Now transfer computed flow back into g
     for (let e = g.first(); e != 0; e = g.next(e)) {
 		g.setFlow(e, g1.f(e) + g.floor(e)); steps++;
 	}
 	return [g1.totalFlow() == totalFloor, ts,
-			{'flowSteps': stats.steps, 'steps': steps}];
+			{'paths': stats.paths, 'steps': steps}];
 }
