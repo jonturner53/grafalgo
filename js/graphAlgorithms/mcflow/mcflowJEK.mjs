@@ -37,14 +37,14 @@ let steps;      // total number of steps
  *  statistics object.
  */
 export default function mcflowJEK(fg, trace=false, mostNeg=false) {
+	paths = steps = 0;
 	g = fg;
 	lambda = new Float32Array(g.n+1);
 	c = new Float32Array(g.n+1);
 	link = new Int32Array(g.n+1);
 	border = new ArrayHeap(g.n, 4);
 	q = new List(g.n);
-
-	paths = steps = 0;
+	steps += g.n;
 
 	let ts = '';
 	if (trace) {
@@ -110,6 +110,7 @@ function findpath() {
 			}
 		}
 	}
+	steps += border.getStats().steps;
 	// update lambda for next round
 	for (let u = 1; u <= g.n; u++) { lambda[u] += c[u]; steps++; }
 	return (link[g.sink] != 0);

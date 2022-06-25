@@ -33,9 +33,11 @@ g = randomBigraph(5, 3); g.randomWeights(randomInteger, 1, 9);
 tester.addTest('small random', g);
 g = randomBigraph(5, 3); g.randomWeights(randomInteger, 1, 9);
 tester.addTest('small random 2', g);
-g = randomBigraph(100, 5); g.randomWeights(randomInteger, 1, 99);
-//tester.addTest('medium random', g);
-g = randomBigraph(400, 20); g.randomWeights(randomInteger, 1, 99);
-//tester.addTest('large random', g);
+g = randomBigraph(100, 3); g.randomWeights(randomInteger, 1, 99);
+tester.addTest('medium random', g);
+g = randomBigraph(500, 3); g.randomWeights(randomInteger, 1, 999);
+tester.addTest('large random', g);
+g = randomBigraph(500, 100); g.randomWeights(randomInteger, 1, 999);
+tester.addTest('large random and dense', g);
 
 tester.run();

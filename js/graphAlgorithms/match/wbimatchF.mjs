@@ -25,11 +25,11 @@ import mcflowJEK from '../mcflow/mcflowJEK.mjs';
  */
 export default function wbimatchF(g, trace=false, subsets=null,
 								  dmin=null, dmax=null) {
+	let steps = 0;
 	// divide vertices into two independent sets
-	if (!subsets) subsets = findSplit(g);
+	if (!subsets) { subsets = findSplit(g); steps += g.m; }
 	assert(subsets != null, "bimatchD: graph not bipartite");
 
-	let steps = 0;
 	// create flow graph, taking care to maintain edge numbers
 	let fg = new Flograph(g.n+2, g.n+g.m);
 	fg.setSource(g.n+1); fg.setSink(g.n+2);
