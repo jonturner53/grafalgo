@@ -53,7 +53,8 @@ export default class Graph extends Top {
 		this._right = new Int32Array(ecap+1);
 		this._edges = new ListPair(ecap);
 		this._epLists = new ListSet(2*(ecap+1));
-		if (this.weighted) this.addWeights();
+		if (this.weighted)
+			this._weight = new Float32Array(this.edgeCapacity+1);
 	}
 
 	get weighted() { return (this._weight ? true : false); }
@@ -344,10 +345,10 @@ export default class Graph extends Top {
 	/** Find an edge joining two vertices.
 	 *  @param u is a vertex number
 	 *  @param v is a vertex number
-	 *  @param edges is an array of edges in sorted order (as returned by
-	 *  sortedElist()).
+	 *  @param edges is an optional array of edges in sorted order
+	 *  (as returned by sortedElist()).
 	 *  @return the number of some edge joining u and v, or 0 if there
-	 *  is no such edge
+	 *  is no such edge; if edges is present, restrict search to edges
 	 */
 	findEdge(u, v, edges) {
 		assert(this.validVertex(u) && this.validVertex(v));
@@ -392,9 +393,7 @@ export default class Graph extends Top {
 
 	/** Compare another graph to this one.
 	 *  @param g is a Graph object or a string representation of a Graph
-	 *  @return true if g is equal to this; when g is a string, the string
-	 *  representation of this graph is compared to g; otherwise, the
-	 *  vertices and edges are compared
+	 *  @return true if g is equal to this
 	 */
 	equals(g) {
 		if (g == this) return true;
@@ -434,6 +433,7 @@ export default class Graph extends Top {
 					  this.index2string(this.right(e), label) +
 					  (this.weighted ? ',' + this.weight(e) : '') + '}'));
 	}
+	e2s(e,label,terse) { return this.edge2string(e,label,terse); }
 	
 	/** Create a string representation of an edge list.
 	 *  @param elist is an array of edge numbers (possibly with some zeros)
@@ -604,21 +604,23 @@ export default class Graph extends Top {
 		return [v,w];
 	}
 
-	/** Return 1 if edge with specified endpoints should be counted
-	 *  (class-specific).
-	 */
-	countit(u, v) { return u <= v ? 1 : 0; }
-
 	/** Add edge to graph (class-specific).
+	 *  Used by fromString.
 	 *  @param u is one endpoint of a new edge
-	 *  @param v is second endpoint
-	 *  @param w (if not null) is a weight to be assigned to the new edge
+	 *  @param the second argument is a tuple [v,w] where
+	 *  v is a second endpoint and w is a an optional weight to be
+	 *  assigned to the new edge
 	 */
-	addEdge(u, [v, w]) {
+	addEdge(u, [v,w]) {
 		if (u > v) return;
 		let e = this.join(u, v);
 		if (w != null) this.setWeight(e, w);
 	}
+
+	/** Return 1 if edge with specified endpoints should be counted
+	 *  (class-specific).
+	 */
+	countit(u, v) { return u <= v ? 1 : 0; }
 
 	/** Perform final check on scanned graph (class-specific).
 	 *  @return true if check passes.

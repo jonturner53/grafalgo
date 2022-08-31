@@ -16,12 +16,8 @@ import SortedSets from './SortedSets.mjs';
  *  It partitions the index set into multiple search trees.
  */
 export default class BalancedSets extends SortedSets {
-	#rank;		 ///< #rank[u] is rank of u; used for balancing
+	#rank;		 // #rank[u] is rank of u; used for balancing
 	
-	_joinSteps;		///< number of steps in join operation
-	_rebal1steps;   ///< number of steps in rebalance1 operation
-	_rebal2steps;   ///< number of steps in rebalance2 operation
-
 	/** Constructor for BalancedSets object.
 	 *  @param n is index range for object
 	 *  @param capacity is maximum index range (defaults to n)
@@ -83,8 +79,7 @@ export default class BalancedSets extends SortedSets {
 
 	/** Convert all nodes to singleton trees. */
 	clear() {
-		super.clear();
-		for (let u = 1; u <= this.n; u++) this.#rank[u] = 0;
+		super.clear(); this.#rank.fill(1); this.#rank[0] = 0;
 	}
 
 	clearStats() {
@@ -92,17 +87,24 @@ export default class BalancedSets extends SortedSets {
 		this._joinSteps = this._rebal1steps = this._rebal2steps = 0;
 	}
 
-	rank(u, r) {
-		if (r) this.#rank[u] = r;
+	/** Get/set rank.
+ 	 *  @param u is a tree node
+	 *  @param r is an optional argument; if present and !=0, it becomes
+	 *  the new rank of u
+	 *  @return the rank of u
+	 */
+	rank(u, r=-1) {
+		if (r!=-1) this.#rank[u] = r;
 		return this.#rank[u];
 	}
 
 	/** Insert an item into a set.
-	 *  @param u is an item to be inserted
+	 *  @param u is a singleton item to be inserted into a set
 	 *  @param t is the id for a set (the root of the bst)
 	 *  @return the id of the set following insertion
 	 */
 	insert(u, t) {
+		this.rank(u,1);
 		t = super.insert(u, t);
 		this.rebalance1(u);
 		return this.find(t);
@@ -116,7 +118,7 @@ export default class BalancedSets extends SortedSets {
 		let rx = this.rank(x);
 		while (this.gp(x) != 0 && this.rank(this.gp(x)) == rx &&
 								  this.rank(this.aunt(x)) == rx) {
-			x = this.gp(x); rx = this.rank(x,rx+1); this._rebal1steps++;
+			x = this.gp(x); rx = this.rank(x,rx+1); this.steps++;
 		}
 		if (rx != this.rank(this.gp(x))) return;
 		if (this.outer(x)) this._rotate(this.p(x));
@@ -144,7 +146,7 @@ export default class BalancedSets extends SortedSets {
 	rebalance2(x, px) {
 		let r = this.rank(x);
 		while (this.rank(px) == r+2) {
-			this._rebal2steps++;
+			this.steps++;
 			let sx, nefu, nece;
 			if (x != 0) {
 				sx = this.sibling(x); nefu= this.nephew(x); nece= this.niece(x);
@@ -187,7 +189,7 @@ export default class BalancedSets extends SortedSets {
 		} else if (r1 > r2) {
 			let v = t1; let pv = 0;		// track parent in case t2==0
 			while (this.rank(v) > r2) {
-				pv = v; v = this.right(v); this._joinSteps++;
+				pv = v; v = this.right(v); this.steps++;
 			}
 			// now, rank(v) == rank(t2)
 			super.join(v, u, t2);
@@ -198,7 +200,7 @@ export default class BalancedSets extends SortedSets {
 		} else { // (r1 < r2)
 			let v = t2; let pv = 0;		// track parent in case t1==0
 			while (this.rank(v) > r1) {
-				pv = v; v = this.left(v); this._joinSteps++;
+				pv = v; v = this.left(v); this.steps++;
 			}
 			super.join(t1, u, v);
 			this.left(pv, u); this.p(u, pv); this.rank(u, r1+1)
@@ -207,13 +209,27 @@ export default class BalancedSets extends SortedSets {
 			return this.find(t2);
 		}
 	}
-	
+
+	append(u,v) {
+		if (this.rank(u) > this.rank(v)) {
+			let z = this.last(u);
+			let [t1,t2] = this.split(z);
+			let x = this.join(t1,z,v);
+			return x;
+		} else {
+			let a = this.first(v);
+			let [t1,t2] = this.split(a);
+			let x = this.join(u,a,t2);
+			return x;
+		}
+	}
+
 	/** Recursive helper for constructing a string representation of a tree.
 	 *  @param u is a node in one of the trees of the heap
 	 *  @param isroot is true if h is the canonical element of the heap
 	 *  @return the string
 	 */
-	tree2string(u, details=false, pretty=false, label, isroot=true) {
+	tree2string(u, details=0, pretty=0, label, isroot=1) {
 		if (u == 0) return '';
 		let s = '';
 		if (this.left(u) == 0 && this.right(u) == 0) {
@@ -221,11 +237,11 @@ export default class BalancedSets extends SortedSets {
 				 (details ? ':' + this.rank(u) : ''); 
 			return (details || isroot && s.length > 0) ? '(' + s + ')' : s;
 		}
-		let ls = this.tree2string(this.left(u), details,pretty,label,false);
-		let rs = this.tree2string(this.right(u), details,pretty,label,false);
+		let ls = this.tree2string(this.left(u), details,pretty,label,0);
+		let rs = this.tree2string(this.right(u), details,pretty,label,0);
 		let cs = this.index2string(u, label) + ":" + this.key(u) +
 				 (details ? ':' + this.rank(u) : '');
-		if (details && isroot) cs = '*' + cs;
+		if (isroot) cs = '*' + cs;
 		if (ls.length > 0) {
 			s += ls;
 		} if (cs.length > 0) {
@@ -237,14 +253,5 @@ export default class BalancedSets extends SortedSets {
 			s += rs;
 		}
 		return (isroot || details) ? '(' + s + ')' : s;
-	}
-
-	/** Return statistics object. */
-	getStats() {
-		let stats = super.getStats();
-		stats.joinSteps = this._joinSteps;
-		stats.rebalance1steps = this._rebal1steps;
-		stats.rebalance2steps = this._rebal2steps;
-		return stats;
 	}
 }

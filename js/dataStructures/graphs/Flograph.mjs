@@ -40,7 +40,8 @@ export default class Flograph extends Digraph {
 		this.#cap = new Int32Array(this.edgeCapacity+1);
 		this.#source = 1; this.#sink = this.n;
 		this._ssCapScale = 1;
-		if (this.floored) this.addFloors();
+		if (this.floored)
+			this.#floor = new Int32Array(this.edgeCapacity+1);
 	} 
 
 	/** Add edge costs to the graph (cost per unit flow). */
@@ -50,7 +51,8 @@ export default class Flograph extends Digraph {
 	
 	/** Enable minimum flow requirements. */
 	addFloors() {
-		this.#floor = new Int32Array(this.edgeCapacity+1);
+		if (!this.floored)
+			this.#floor = new Int32Array(this.edgeCapacity+1);
 	}
 
 	hasFloors() { return (this.#floor ? true : false); }

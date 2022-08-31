@@ -33,8 +33,8 @@ try {
 	assert(stats.insert, 4, 'b8');
 	assert(stats.delete, 1, 'b9');
 	assert(stats.changekey, 0, 'b10');
-	assert(stats.siftup, 2, 'b11');
-	assert(stats.siftdown, 1, 'b12');
+	assert(stats.siftup, 6, 'b11');
+	assert(stats.siftdown, 3, 'b12');
 
 	let n2 = 27; let h2 = new ArrayHeap(n2);
 	h2.fromString('{g:4 f:2 c:5}');
@@ -48,6 +48,12 @@ try {
 	let h3 = new ArrayHeap(25, 2);
 	h3.fromString('{g:1 f:2 c:5 a:5 d:2 h:7 j:8 k:6 m:4}');
 	assert(h3.toString(1),'{g:1(f:2(m:4(k:6 a:5) d:2) c:5(h:7 j:8))}','f1');
+
+	h3.delete(1); assert(h3, '{g:1 f:2 c:5 d:2 h:7 j:8 k:6 m:4}', 'f2');
+	h3.delete(10); assert(h3, '{g:1 f:2 c:5 d:2 h:7 k:6 m:4}', 'f3');
+	h3.delete(7); assert(h3, '{f:2 c:5 d:2 h:7 k:6 m:4}', 'f4');
+	h3.delete(11); assert(h3, '{f:2 c:5 d:2 h:7 m:4}', 'f5');
+	h3.delete(13); assert(h3, '{f:2 c:5 d:2 h:7}', 'f6');
 
 	console.log('passed tests');
 } catch(e) {

@@ -1,4 +1,4 @@
-/** @file SortedSets.mjs
+/** @file BinaryForest.mjs
  *
  *  @author Jon Turner
  *  @date 2022
@@ -11,31 +11,29 @@ import Top from '../Top.mjs';
 import Sets from '../basic/Sets.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
-/** This class implements a generic binary search tree class.
- *  It partitions the index set into multiple search trees.
+/** This class implements a generic binary tree class.
+ *  It partitions the index set into multiple trees.
  */
-export default class SortedSets extends Top {
-	#left;		 ///< #left[u] is left child of u
-	#right;		///< #right[u] is right child of u
-	#p;			///< #p[u] is parent of u
-	#key;		  ///< #key[u] is key of u
+export default class BinaryForest extends Top {
+	#left;		// #left[u] is left child of u
+	#right;		// #right[u] is right child of u
+	#p;			// #p[u] is parent of u
 
 	steps;				// total steps
 
-	/** Constructor for SortedSets object.
+	/** Constructor for BinaryForest object.
 	 *  @param n is index range for object
 	 *  @param capacity is maximum index range (defaults to n)
 	 */
 	constructor(n, capacity=n) { super(n); this.#init(capacity); }
 	
-	/** Allocate space and initialize SortedSets object.
+	/** Allocate space and initialize BinaryForest object.
 	 *  @param capacity is the maximum range
 	 */
 	#init(capacity) {
 		this.#left = new Int32Array(capacity+1);
 		this.#right = new Int32Array(capacity+1);
 		this.#p = new Int32Array(capacity+1);
-		this.#key = new Float32Array(capacity+1);
 		this.clearStats();
 	}
 
@@ -47,8 +45,8 @@ export default class SortedSets extends Top {
 		assert(capacity >= n); this._n = n; this.#init(capacity);
 	}
 	
-	/** Assign a new value by copying from another SortedSets.
-	 *  @param b is another SortedSets
+	/** Assign a new value by copying from another BinaryForest.
+	 *  @param b is another BinaryForest
 	 */
 	assign(b) {
 		if (b == this) return;
@@ -57,32 +55,31 @@ export default class SortedSets extends Top {
 
 		for (u = 1; u <= b.n; u++) {
 			this.left(u, b.left(u)); this.right(u, b.right(u));
-			this.p(u, b.p(u)); this.key(u, b.key(u));
+			this.p(u, b.p(u));
 		}
 		this.clearStats();
 	}
 
-	/** Assign a new value by transferring from another SortedSets.
-	 *  @param b is another SortedSets
+	/** Assign a new value by transferring from another BinaryForest.
+	 *  @param b is another BinaryForest
 	 */
 	xfer(b) {
 		if (b == this) return;
-		if (!(b instanceof SortedSets)) return;
-		this.#left = b.#left; this.#right = b.#right;
-		this.#p = b.#p; this.#key = b.#key;
-		b.#left = b.#right = b.#p = b.#key = null;
+		if (!(b instanceof BinaryForest)) return;
+		this.#left = b.#left; this.#right = b.#right; this.#p = b.#p;
+		b.#left = b.#right = b.#p = null;
 		this.clearStats();
 	}
 	
-	/** Expand the space available for this SortedSets.
+	/** Expand the space available for this BinaryForest.
 	 *  Rebuilds old value in new space.
 	 *  @param size is the size of the resized object.
 	 */
 	expand(n) {
 		if (n <= this.n) return;
 		if (n > this.capacity) {
-			let nu = new SortedSets(this.n,
-									Math.max(n, ~~(1.5 * this.capacity)));
+			let nu = new BinaryForest(this.n,
+							  Math.max(n, ~~(1.5 * this.capacity)));
 			nu.assign(this); this.xfer(nu);
 		}
 		this._n = n;
@@ -124,12 +121,6 @@ export default class SortedSets extends Top {
 		if (v >= 0) this.#p[u] = v;
 		return this.#p[u];
 	}
-
-	/* Get the key of a node. */
-	key(u) { return this.#key[u]; }
-
-	/* Set the key of a node. */
-	setkey(u, k) { this.#key[u] = k; }
 
 	/* Get the sibling of a node. */
 	sibling(u) {
@@ -174,57 +165,58 @@ export default class SortedSets extends Top {
 		return this.p(u) == 0 && this.left(u) == 0 && this.right(u) == 0;
 	}
 
-	// Methods for iteration. Note, iterating through a set of
+	// Methods for iteration. Iterates through items in "infix" order,
+	// (that is, left-to-right). Note, iterating through a subtree of
 	// of k items takes time proportional to k, although individual
 	// steps may take more than constant time.
 
-	/** Get the item with smallest key. */
+	/** Get the item with leftmost item in a subtree. */
 	first(u) {
 		while (this.left(u)) { u = this.left(u); this.steps++; }
 		return u;
 	}
 
-	/** Get the item with the largest key. */
+	/** Get the item with the rightmost item in a subtree. */
 	last(u) {
 		while (this.right(u)) { u = this.right(u); this.steps++; }
 		return u;
 	}
 
-	/** Get the item with the next larger key. */
-	next(u) {
+	/** Get the item with the next larger key within a subtree. */
+	next(u,root=0) {
 		if (this.right(u) != 0) {
-			for (u = this.right(u); this.left(u) != 0; u = this.left(u)) {
+			for (u = this.right(u); this.left(u); u = this.left(u)) {
 				this.steps++;
 			}
-		} else {
-			let c = u; u = this.p(u);
-			while (u != 0 && this.right(u) == c) {
-				c = u; u = this.p(u); this.steps++;
-			}
+			return u;
 		}
-		return u;
+		let c = u; u = this.p(u);
+		while (u != this.p(root) && c == this.right(u)) {
+			c = u; u = this.p(u); this.steps++;
+		}
+		return u != this.p(root) ? u : 0;
 	}
 
 	/** Get the item with the next smaller key. */
-	prev(u) {
+	prev(u,root=-) {
 		if (this.left(u) != 0) {
-			for (u = this.left(u); this.right(u) != 0; u = this.right(u)) {
+			for (u = this.left(u); this.right(u); u = this.right(u)) {
 				this.steps++;
 			}
-		} else {
-			let c = u; u = this.p(u);
-			while (u != 0 && this.left(u) == c) {
-				c = u; u = this.p(u); this.steps++;
-			}
+			return u;
 		}
-		return u;
+		let c = u; u = this.p(u);
+		while (u != this.p(root) && c == this.left(u)) {
+			c = u; u = this.p(u); this.steps++;
+		}
+		return u != this.p(root) ? u : 0;
 	}
 
-	/** Perform a rotation in a search tree.
-	 *  @param x is a node in some search tree; this method
+	/** Perform a rotation in a tree.
+	 *  @param x is a node in some tree; this method
 	 *  moves x up into its parent's position
 	 */
-	_rotate(x) {
+	rotate(x) {
 		this.steps++;
 		let px = this.p(x); let gpx = this.p(px);
 		if (px == 0) return;
@@ -240,16 +232,16 @@ export default class SortedSets extends Top {
 		this.p(x, gpx);
 	}
 	
-	/** Perform a double-rotation on a search tree.
-	 *  @param x is a node in the search tree; the operation moves x into
+	/** Perform a double-rotation on a tree.
+	 *  @param x is a node in the tree; the operation moves x into
 	 *  its grandparent's position.
 	 */
-	_rotate2(x) {
+	rotate2(x) {
 			if (this.outer(x))  { this._rotate(this.p(x)); this._rotate(x); }
 	    else if (this.inner(x)) { this._rotate(x); this._rotate(x); }
 	}
 
-	/** Find the id of the set containing u. */
+	/** Find the root of the tree containing u. */
 	find(u) {
 		while (this.p(u) != 0) {
 			u = this.p(u); this.steps++;
@@ -257,48 +249,28 @@ export default class SortedSets extends Top {
 		return u;
 	}
 
-	/** Find an item with a specified key
-	 *  @param k is key to be found
-	 *  @param t is id (root) of bst
-	 *  @return node u where key(u)==k or 0 if there is no such node
-	 */
-	access(k, t) {
-		let u = t;
-		while (u != 0 && this.key(u) != k) {
-			this.steps++;
-			if (k < this.key(u)) u = this.left(u);
-			else				 u = this.right(u);
-		}
+	/** Remove a subtree. */
+	cut(u) {
+		let pu = this.p(u);
+		if (pu && u == this.left(pu))  this.left(pu,0);
+		if (pu && u == this.right(pu)) this.right(pu,0);
+		this.p(u,0);
 		return u;
-	}
 
-	/** Insert an item into a set.
-	 *  @param u is an item to be inserted
-	 *  @param t is the id for a set (the root of the bst)
-	 *  @return the id of the set following insertion
-	 */
-	insert(u, t) { return this._insert(u,t); }
-
-	/** Version that can be accessed by indirect descendants. */
-	_insert(u, t) {
-		assert(this.valid(u) && this.singleton(u) && (t == 0 || this.valid(t)));
-		if (t == 0 || t == u) return u;
-		let v = t; let pv = 0;
-		while (v != 0) {
-			this.steps++;
-			pv = v; this.steps++;
-			if (this.key(u) <= this.key(v)) v = this.left(v);
-			else							v = this.right(v);
+	/** Link one tree to another. */
+	link(u,v,side=-1) {
+		assert(!this.p(u));
+		this.p(u,v);
+		if (side < 0) {
+			assert(!this.left(v));
+			this.left(v,u);
+		} else {
+			assert(!this.right(v));
+			this.right(v,u);
 		}
-		if (this.key(u) <= this.key(pv)) this.left(pv, u);
-		else							 this.right(pv, u);
-		this.p(u, pv);
-		return t;
 	}
 
-	/** Swap the positions of two nodes in same tree.
-	 *  Helper function used by delete.
-	 */
+	/** Swap the positions of two nodes in same tree. */
 	_swap(u, v) {
 		this.steps++;
 		// save pointer fields for items u and v
@@ -329,41 +301,10 @@ export default class SortedSets extends Top {
 		else if (v == ru) { this.right(v, u); this.p(u, v); }
 	}
 
-	/** Delete an item from a set.
-	 *  @param u is an item in a set
-	 *  @return the a pair [c,pc] where c is the node that takes the place
-	 *  of u in the best and pc is its parent; useful for balanced variants
-	 */
-	delete(u) { return this._delete(u); }
-
-	/** Version that can be accessed by indirect descendants. */
-	_delete(u) {
-		assert(this.valid(u));
-		if (this.left(u) != 0 && this.right(u) != 0) {
-			let pu; // find prev(u) and count steps
-			for (pu = this.left(u); this.right(pu) != 0; pu = this.right(pu)) {
-				this.steps++;
-			}
-			_swap(u, pu);
-		}
-		// now, u has at most one child
-		let c = (this.left(u) != 0 ? this.left(u) : this.right(u));
-		// c is now the only child that could be non-null
-		let pu = this.p(u);
-		if (c != 0) this.p(c, pu);
-		if (pu != 0) {
-				 if (u ==  this.left(pu))  this.left(pu, c);
-			else if (u == this.right(pu)) this.right(pu, c);
-		}
-		this.p(u,0); this.left(u,0); this.right(u,0);
-		return [c,pu];
-	}
-
-	/** Join two trees a node.
-	 *  @param t1 is a search tree
-	 *  @param t2 is a second search tree
-	 *  @param u is a node with key >= all keys in t1
-	 *  and <= all keys in t2
+	/** Join two trees at a node.
+	 *  @param t1 is a tree
+	 *  @param t2 is a second tree
+	 *  @param u is a singleton tree
 	 *  @return root of new tree formed by joining t1, u and t2.
 	 */
 	join(t1, u, t2) {
@@ -378,8 +319,8 @@ export default class SortedSets extends Top {
 
 	/** Split a tree on a node.
 	 *  @param u is a node in a tree
-	 *  @return a pair [t1,t2] where t1 has keys <= key(u) and t2 has
-	 *  keys >= key(u)
+	 *  @return a pair [t1,t2] where t1 has the nodes that were to the
+	 *  the left of u and t2 has the nodes that were to the right of u
 	 */
 	split(u) {
 		assert(this.valid(u));
@@ -397,9 +338,9 @@ export default class SortedSets extends Top {
 		return [l, r];
 	}
 
-	/** Combine two trees.
-	 *  @param u is the root of search tree
-	 *  @param v is the root of a second search tree with key values >= those
+	/** Append one tree after another
+	 *  @param u is the root of tree
+	 *  @param v is the root of a second tree with key values >= those
 	 *  in u's subtree
 	 *  @return subtree formed by combining the two
 	 */
@@ -409,29 +350,66 @@ export default class SortedSets extends Top {
 		return this.join(t1,t,v);
 	}
 
-	/** Determine if two SortedSets objects are equal.
-	 *  @param bst is a SortedSets object to be compared to this
-	 *  @return true if both represent the same sets and the
-	 *  keys match; otherwise return false
+	/** Determine if two BinaryForest are objects are equal.
 	 */
-	equals(bst) {
-		if (this === bst) return true;
-		if (typeof bst == 'string') {
-			let s = bst; bst = new SortedSets(this.n); bst.fromString(s);
+	equals(bt) {
+		if (this === bt) return true;
+		if (typeof bt == 'string') {
+			let s = bt; bt = new BinaryForest(this.n); bt.fromString(s);
 		}
-		if (!(bst instanceof SortedSets) || bst.n != this.n)
+		if (!(bt instanceof BinaryForest) || bt.n != this.n)
 			return false;
-		let s1 = new Sets(this.n); let s2 = new Sets(this.n);
 		for (let u = 1; u <= this.n; u++) {
-			if (this.key(u) != bst.key(u)) return false;
-			if (this.p(u) != 0) {
-				let fu = s1.find(u); let fp = s1.find(this.p(u));
-				if (fu != fp) s1.link(fu, fp);
+			if (this.left(u) != bt.left(u) || this.right(u) != bt.right(u) ||
+				this.p(u) != bt.p(u))
+				return false;
+		}
+	}
+
+	/** Determine if two BinaryForest objects represent the same sets.
+	 *  @param bt is a BinaryForest object to be compared to this
+	 *  @return true if both represent the same sets.
+	 */
+	matches(bt) {
+		if (this === bt) return true;
+		if (typeof bt == 'string') {
+			let s = bt; bt = new BinaryForest(this.n); bt.fromString(s);
+		}
+		if (!(bt instanceof BinaryForest) || bt.n != this.n)
+			return false;
+		let l = new List(this.n);
+		for (let u = 1; u <= this.n; u++) {
+			if (this.p(u)) continue;
+			l.clear();
+			for (let v = this.first(u); v; v = this.next(v)) l.enq(v);
+			for (let v = bt.first(bt.find(u)); v; v = bt.next(v))
+				if (!l.contains(v)) return false;
+		}
+		return true;
+	}
+
+	/** Determine if two BinaryForest objects consist of
+	 *  trees with matching in-fix node orders (left-to-right).
+	 *  @param bt is a BinaryForest object to be compared to this
+	 *  @return true if the trees in both contain the same nodes
+	 *  and in the same order (not necessarily matching tree structures);
+	 *  otherwise return false
+	 */
+	matchesOrder(bt) {
+		if (this === bt) return true;
+		if (typeof bt == 'string') {
+			let s = bt; bt = new BinaryForest(this.n); bt.fromString(s);
+		}
+		if (!(bt instanceof BinaryForest) || bt.n != this.n)
+			return false;
+		for (let u = 1; u <= this.n; u++) {
+			if (this.p(u)) continue;
+			let r1 = u; let r2 = bt.find(u);
+			let v1 = this.first(r1); let v2 = bt.first(r2);
+			while (v1 == v2 && v1 != 0) {
+				v1 = this.next(v1,r1); v2 = bt.next(v2,r2);
 			}
-			if (bst.p(u) != 0) {
-				let fu = s2.find(u); let fp = s2.find(bst.p(u));
-				if (fu != fp) s2.link(fu, fp);
-			}
+			if (v1 != v2) return false;
 		}
 		return s1.equals(s2);
 	}
@@ -470,12 +448,12 @@ export default class SortedSets extends Top {
 		let s = '';
 		if (this.left(u) == 0 && this.right(u) == 0) {
 			if (details && isroot) s += '*';
-			s += this.index2string(u, label) + ":" + this.key(u);
+			s += this.x2s(u, label);
 			return (details || isroot) ? '(' + s + ')' : s;
 		}
 		let ls = this.tree2string(this.left(u), details,pretty,label,0);
 		let rs = this.tree2string(this.right(u), details,pretty,label,0);
-		let cs = this.index2string(u, label) + ":" + this.key(u);
+		let cs = this.x2s(u, label);
 		if (isroot) cs = '*' + cs;
 		if (ls.length > 0) {
 			s += ls;
@@ -490,7 +468,7 @@ export default class SortedSets extends Top {
 		return (isroot || details) ? '(' + s + ')' : s;
 	}
 
-	/** Initialize this SortedSets object from a string.
+	/** Initialize this BinaryForest object from a string.
 	 *  @param s is a string representing a heap.
 	 *  @return on if success, else false
 	 */
@@ -498,8 +476,9 @@ export default class SortedSets extends Top {
 		let sc = new Scanner(s);
 		if (!sc.verify('{')) return false;
 		let n = 0; let sets = []; let items = new Set();
-		for (let l= sc.nextPairList('(',')'); l; l= sc.nextPairList('(',')')) {
-			for (let [i,k] of l) {
+		for (let l = sc.nextIndexList('(',')'); l;
+				 l = sc.nextIndexList('(',')')) {
+			for (let i of l) {
 				n = Math.max(n,i);
 				if (items.has(i)) return null;
 				items.add(i);
@@ -510,9 +489,9 @@ export default class SortedSets extends Top {
 		if (n != this.n) this.reset(n);
 		else this.clear();
 		for (let l of sets) {
-			let s = l[0][0];
-			for (let [i,k] of l) {
-				this.setkey(i, k); s = this.insert(i, s);
+			let s = l[0];
+			for (let i of l) {
+				s = this.insert(i, s);
 			}
 		}
 		return true;

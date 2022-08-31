@@ -65,12 +65,12 @@ export default class ArrayHeap extends Top {
 	 */
 	assign(h) {
 		if (h == this) return;
-		if (h.n > this.n) { reset(h.n, h.d); }
-		else { clear(); this._n = h.n; }
+		if (h.n > this.n) { this.reset(h.n, h.d); }
+		else { this.clear(); this._n = h.n; }
 
-		this.m = h.m;
-		for (p = 1; p <= h.m; p++) {
-			x = h.#item[p];
+		this.#m = h.m; this.#offset = h.#offset;
+		for (let p = 1; p <= h.m; p++) {
+			let x = h.#item[p];
 			this.#item[p] = x; this.#pos[x] = p; this.#key[x] = h.#key[x];
 			this.#steps++;
 		}
@@ -303,7 +303,7 @@ export default class ArrayHeap extends Top {
 			s += (details ? '(' : ' ');
 		for (let v = this.left(u); v <= this.right(u) && v <= this.m; v++) {
 			if (v != this.left(u)) s += ' ';
-			s += this.toString(details, label, pretty, v);
+			s += this.toString(details, pretty, label, v);
 		}
 		if (details && this.left(u) <= this.m) s += ')';
 		return (u == 1 ? '{' + s + '}' : s);
@@ -323,7 +323,7 @@ export default class ArrayHeap extends Top {
 			if (items.has(i)) return null;
 			items.add(i);
 		}
-		if (n <= this.n) this.reset(n);
+		if (n > this.n) this.reset(n, this.d);
 		else this.clear();
 		for (let [i,k] of l) this.insert(i, k);
 		return true;

@@ -306,10 +306,16 @@ export function randomConnectedGraph(n, d) {
  *  @param n is the number of vertices in the graph
  *  @param d is the number of edges incident to each vertex
  *  @param return a random d-regular graph with n vertices,
- *  or n+1 if both n and d are odd; if unable to generate a
- *  graph within the built-in iteration limit, an empty graph
- *  is returned; this becomes more likely to happen when n is
- *  small and/or d>n/3
+ *  or n+1 if both n and d are odd
+
+Suppose we create random perfect matchings with enough extra to
+ensure that there are not too many duplicate edges; then eliminate
+duplicates and then sample matchings from subgraph? Maybe find
+max degree matchings?
+
+Creating a random matching. Maintain a vector of unmatched vertices.
+Sample a pair from vector and swap selected vertices to the end.
+
  */
 export function randomRegularGraph(n, d) {
 	assert(n > d);
@@ -380,6 +386,18 @@ alternate approach
    - or by doing exactly d on the left, then augmenting vertices
    - on the left with a deficit - may get repeats this way
 2. find perfect d-match in graph
+
+yet another approach
+1. for each left vertex, select d random neighbors, while tracking
+   vertex degrees of right vertices
+2. maintain vector of eligible vertices and sample from this vector,
+   swapping selected neighbors with last in vector; when a new neighbor
+   becomes ineligible, reduce the vector length by 1
+3. if d1 is left-hand degree and d2=n1*d1/n2, limit the number of neighbors
+   with degree=floor(d2)+1
+4. if k is the number of remaining left vertices and some right vertex has
+   d2-k neighbors, switch to sampling by flow graph; this should only happen
+   when k is fairly small, so should not be too expensive
  */
 
 

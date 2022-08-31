@@ -72,6 +72,7 @@ export default class Top {
 			label = (x => this.n <= 26 ? '-abcdefghijklmnopqrstuvwxyz'[x] : x);
 		return label(x);
 	}
+	x2s(x,label) { return this.index2string(x,label); }
 
 	/** Convert a list of index values to a string.
 	 *  @param ilist is an array of valid index values

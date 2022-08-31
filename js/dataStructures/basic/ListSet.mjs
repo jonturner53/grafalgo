@@ -30,8 +30,9 @@ export default class ListSet extends Top {
 		this.#next = new Int32Array(capacity+1);
 		this.#prev = new Int32Array(capacity+1);
 		// initialize to singleton lists
+		this.#next.fill(0);
 		for (let i = 0; i <= this.n; i++) {
-			this.#next[i] = 0; this.#prev[i] = i;
+			this.#prev[i] = i;
 		}
 		this.#prev[0] = 0;
 	}
@@ -177,6 +178,15 @@ export default class ListSet extends Top {
 		this.#prev[f2] = l1;
 		this.#prev[f1] = l2
 		return f1;
+	}
+
+	/** Split a list at an item. */
+	split(f, i) {
+		assert (this.valid(f) && this.valid(i) && this.isfirst(f));
+		if (i == 0 || i == f) return;
+		let p = this.prev(i); let s = this.next(i);
+		this.#next[p] = s; this.#prev[s] = p;
+		this.#next[i] = 0; this.#prev[i] = i;
 	}
 
 	/** Sort the lists by item number */

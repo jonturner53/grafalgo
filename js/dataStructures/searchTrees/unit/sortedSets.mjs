@@ -26,11 +26,16 @@ try {
 	for (let u = ss.first(r); u != 0; u = ss.next(u)) l.enq(u);
 	assert(l, '[a b c d e f]', 'a5');
 	l.clear();
+	
 	for (let u = ss.last(r); u != 0; u = ss.prev(u)) l.enq(u);
 	assert(l, '[f e d c b a]', 'a6');
 	assert(ss.access(2, r), 2, 'a7');
 	assert(ss.access(5, r), 5, 'a8');
 	assert(ss.access(4, r), 4, 'a9');
+
+	ss.fromString('{(b:2 a:1 d:4 c:3) (h:8 g:7 j:10 i:7 f:6) (e:5)}');
+	r = ss.append(ss.find(1), ss.find(6));
+	assert(ss, '{(b:2 a:1 d:4 c:3 h:8 g:7 j:10 i:7 f:6) (e:5)}', 'b1');
 
 	console.log('passed tests');
 } catch(e) {

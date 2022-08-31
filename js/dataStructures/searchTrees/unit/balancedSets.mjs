@@ -32,6 +32,14 @@ try {
 	assert(ss.access(5, r), 5, 'a8');
 	assert(ss.access(4, r), 4, 'a9');
 
+	ss.fromString('{(a:0) (b:0) (c:0) (d:0) (e:0)}');
+	assert(ss,'{(a:0) (b:0) (c:0) (d:0) (e:0)}', 'b1');
+	let root = ss.append(1,2);
+		root = ss.append(root,3);
+		root = ss.append(root,4);
+		root = ss.append(root,5);
+	assert(ss.toString(1),'{((a:0:1) *b:0:2 ((c:0:1) d:0:2 (e:0:1)))}','b2');
+
 	console.log('passed tests');
 } catch(e) {
 	if (e instanceof AssertError)
