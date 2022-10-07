@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError } from './Errors.mjs';
+import { assert, AssertError, Fatal } from './Errors.mjs';
 
 export default class Tester {
 	testcases;		// array of test cases to run
@@ -75,17 +75,9 @@ export default class Tester {
 					results = algo.code(...tcase.args, this.trace && small);
 					t1 = Date.now();
 				} catch(e) {
-					if (e instanceof AssertError) {
-						if (e.message.length > 0) {
-							this.log(
-								`${tag} ${e.message}`);
-							continue;
-						} else {
-							throw(e);
-						}
-					} else {
-						throw(e);
-					}
+					this.log(`${tag} ${e.message}`);
+					if (e instanceof AssertError) continue;
+					throw(e);
 				}
 				let traceString = results[results.length-2];
 				if (this.trace && small)

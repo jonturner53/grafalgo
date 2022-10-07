@@ -8,7 +8,7 @@
 
 import { assert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
-import Sets from '../../dataStructures/basic/Sets.mjs';
+import MergeSets from '../../dataStructures/basic/MergeSets.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 // Nearest common ancestor computation.
@@ -43,7 +43,7 @@ export default function nca(t, root, pairs, u=root, pu=u) {
 	if (u == root) { // top-level invocation, so initialize data structures
 		g = new Graph(t.n, pairs.length);
 		noa = new Int32Array(g.n+1);	
-		noaSets = new Sets(t.n);
+		noaSets = new MergeSets(t.n);
 		mark = new Int8Array(pairs.length).fill(false);
 		ncav = new Array(pairs.length);
 
@@ -60,7 +60,7 @@ export default function nca(t, root, pairs, u=root, pu=u) {
 		let v = t.mate(u, e);
 		if (v == pu) continue;
 		nca(t, root, pairs, v, u);
-		noaSets.link(noaSets.find(u), noaSets.find(v));
+		noaSets.merge(noaSets.find(u), noaSets.find(v));
 		noa[noaSets.find(u)] = u;
 	}
 

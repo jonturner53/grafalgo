@@ -29,9 +29,9 @@ try {
 
 	lp.fromString("[h g f : d b a c e]");
 	assert(lp, "[h g f : d b a c e]", "c1");
-	lp.expand(9);
-	assert(lp.n, 9, "c2");
-	assert(lp, "[h g f : d b a c e i]", "c3");
+	lp.expand(10);
+	assert(lp.n, 10, "c2");
+	assert(lp, "[h g f : d b a c e i j]", "c3");
 
 	console.log('tests passed');
 } catch(e) {

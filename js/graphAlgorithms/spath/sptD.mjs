@@ -25,7 +25,7 @@ export default function sptD(g, s, trace=0) {
 	let link = new Int32Array(g.n+1); let ts = '';
 	let dist = new Array(g.n+1).fill(Infinity);
 	let border = new ArrayHeap(g.n, 2+Math.floor(g.m/g.n));
-	if (trace) ts += g.toString(0,1);
+	if (trace) ts += g.toString(1);
 
 	dist[s] = 0; border.insert(s, 0);
 	if (trace) ts += 'initial heap: ' + border + '\n\n' +
@@ -44,7 +44,7 @@ export default function sptD(g, s, trace=0) {
 		}
 		if (trace) {
 			ts += g.index2string(u) + ' ' +
-				  (link[u] > 0 ? g.edge2string(link[u]) : '-') +
+				  (link[u] > 0 ? g.e2s(link[u]) : '-') +
 				   ' ' + dist[u] + ' ' + border + '\n';
 		}
 	}

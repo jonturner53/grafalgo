@@ -10,7 +10,7 @@ import Top from '../../dataStructures/Top.mjs';
 import { assert } from '../../common/Errors.mjs';
 import Blossoms0 from './Blossoms0.mjs';
 import List from '../../dataStructures/basic/List.mjs';
-import BalancedSets from '../../dataStructures/searchTrees/BalancedSets.mjs';
+import BinaryForest from '../../dataStructures/graphs/BinaryForest.mjs';
 
 /** Data structure representing a collection of blossoms for use in
  *  Edmonds algorithm for weighted matching. Extended to speed up
@@ -31,7 +31,8 @@ export default class Blossoms extends Blossoms0 {
 	}
 
 	#init() {
-		this.#outer = new BalancedSets(this.g.n);
+		this.#outer = new BinaryForest(this.g.n);
+		this.#outer.addRanks();
 		this.#bid = new Int32Array(this.g.n+1);
 		this.#vset = new Int32Array(this.n+1);
 		for (let i = 0; i <= this.g.n; i++)
@@ -184,9 +185,11 @@ export default class Blossoms extends Blossoms0 {
 	 */
 	toString(details=0, pretty=0, label=false) {
 		let s = super.toString(details, pretty, label);
-		if (details)
-			s += 'outer blossom vertex sets: ' +
-				 this.#outer.toString(0,0,label) + '\n';
+		if (details) {
+			s += pretty ? 'outer blossom vertex sets:\n    ' : ' ';
+			s += this.#outer.toString(-1,0,label);
+			if (pretty) s +='\n';
+		}
 		return s;
 	}
 

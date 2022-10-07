@@ -6,24 +6,21 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError} from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
-import Scanner from '../basic/Scanner.mjs';
+import Forest from '../graphs/Forest.mjs';
 
 /** This class implements a data structure consisting of a disjoint
  *  set of Fibonacci heaps.
  *  The heap elements are identified by indexes in 1..n where n
  *  is specified when an FibHeaps object is constructed.
  */
-export default class FibHeaps extends Top {
+export default class FibHeaps extends Forest {
 	#key;		///< #key[i] is key of item i
 	#rank;		///< #rank[i] gives rank of item i
 	#mark;		///< #mark[i] is true if item i is considered marked
-	#p;			///< #p[i] is the parent of item i in its heap
-	#c;			///< #c[i] is some child of item i in its heap
-	#sibs;		///< #sibs is a ListSet object containing sibling lists
 
 	#rankVec;	///< #rankVec is an auxiliary array used during restructuring
 	#tmpq;		///< #tmpq is a List object used as a temporary queue 
@@ -41,19 +38,11 @@ export default class FibHeaps extends Top {
 	 *  @parm d is the base of the heap (defaults to 2)
 	 *  @param capacity is maximum index range (defaults to n)
 	 */
-	constructor(n, capacity=n) { super(n); this.#init(capacity); }
-	
-	/** Allocate space and initialize FibHeaps object.
-	 *  @param nMax is the maximum range
-	 */
-	#init(capacity) {
+	constructor(n=10, capacity=n) {
+		super(n);
 		this.#key = new Float32Array(capacity+1);
 		this.#rank = new Int32Array(capacity+1);
 		this.#mark = new Int8Array(capacity+1);
-		this.#p = new Int32Array(capacity+1);
-		this.#c = new Int32Array(capacity+1);
-		this.#sibs = new ListSet(this.n, capacity);
-
 		this.#rankVec = new Int32Array(this.#MAXRANK+1);
 		this.#tmpq = new List(this.n, capacity);
 
@@ -66,29 +55,19 @@ export default class FibHeaps extends Top {
 
 	get capacity() { return this.#key.length-1; }
 
-	/** Reset the heap discarding old value.
-	 *  @param n is the new range of the index set
-	 *  @param capacity the new max range.
-	 */
-	reset(n, capacity=n) {
-		assert(capacity >= n); this._n = n; this.#init(capacity);
-	}
-	
 	/** Assign a new value by copying from another heap.
 	 *  @param fh is another FibHeaps object
 	 */
 	assign(fh) {
-		if (fh == this) return;
+		if (fh == this || !(fh instanceof FibHeaps)) return;
 		if (fh.n > this.n) { reset(fh.n); }
 		else { clear(); this._n = fh.n; }
 
-		this.#sibs.assign(fh.#sibs);
+		this.super.assign(fh);
 		for (let i = 1; i < fh.n; i++) {
 			this.#key[i] = fh.#key[i];
 			this.#rank[i] = fh.#rank[i];
 			this.#mark[i] = fh.#mark[i];
-			this.#p[i] = fh.#p[i];
-			this.#c[i] = fh.#c[i];
 		}
 	}
 
@@ -99,60 +78,38 @@ export default class FibHeaps extends Top {
 		if (fh == this) return;
 		if (!(fh instanceof FibHeaps)) return;
 		this.#key = fh.#key; this.#rank = fh.#rank; this.#mark = fh.#mark;
-		this.#p = fh.#p; this.#c = fh.#c; this.#sibs = fh.#sibs;
 		this.#rankVec = fh.#rankVec; this.#tmpq = fh.#tmpq;
-		fh.#key = fh.#rank = fh.#p = fh.#c = fh.#mark = fh.#sibs = null;
-		fh.#rankVec = fh.#tmpq = null;
+		fh.#key = fh.#rank = fh.#mark = fh.#rankVec = fh.#tmpq = null;
 	}
 	
-	/** Expand the space available for this FibHeaps.
-	 *  Rebuilds old value in new space.
-	 *  @param size is the size of the resized object.
-	 */
-	expand(n) {
-		if (n <= this.n) return;
-		if (n > this.capacity) {
-			let nu = new FibHeaps(this.n,
-								Math.max(n, ~~(1.5 * this.capacity)));
-			nu.assign(this); this.xfer(nu);
-		}
-		this._n = n;
-	}
-
 	/** Remove all elements from heap. */
 	clear() {
-		this.#sibs.clear();
+		super.clear();
 		for (let i = 0; i < this.n; i++) {
-			this.#key[i] = this.#rank[i] = this.#p[i] = this.#c[i] = 0;
-			this.#mark[i] = false;
+			this.#key[i] = this.#rank[i] = 0; this.#mark[i] = false;
 		}
 	}
 
-	/** Return key of a heap item. */
-	key(i) { return this.#key[i]; }
+	/** Get/set the key of a heap item. */
+	key(i, v=false) {
+		if (v !== false) this.#key[i] = v;
+		return this.#key[i];
+	}
 
-	/** Return ran k of a heap item. */
-	rank(i) { return this.#rank[i]; }
+	/** Get/set the rank of a heap item. */
+	rank(i, r=false) {
+		if (r !== false) this.#rank[i] = r;
+		return this.#rank[i];
+	}
 
 	/** Return mark of a heap item. */
-	mark(i) { return this.#mark[i]; }
-
-	/** Return parent of a heap item. */
-	p(i) { return this.#p[i]; }
+	mark(i, m=-1) { 	
+		if (m != -1) this.#mark[i] = m;
+		return this.#mark[i];
+	}
 
 	/** Return a child of a heap item. */
-	c(i) { return this.#c[i]; }
-
-	/** Set the key of a singleton heap item. */
-	setkey(i, k) { assert(this.singleton(i)); this.#key[i] = k; }
-
-	/** Determine if an item is defines a singleton heap.
-	 *  @param i is a heap item
-	 *  @return true if it is a singleton.
-	 */
-	singleton(i) {
-		return this.#sibs.singleton(i) && this.#p[i] == 0 && this.#c[i] == 0;
-	}
+	c(i) { return this.firstChild(i); }
 
 	/** Return the item of minimum key in a heap.
 	 *  @param h is a heap.
@@ -160,7 +117,7 @@ export default class FibHeaps extends Top {
 	 */
 	findmin(h) { return h; }
 
-	/** Built a heap from a list of singletons.
+	/** Build a heap from a list of singletons.
 	 *  @param hl is a List object containing singleton items
 	 *  @param return the heap containing the listed items
 	 */
@@ -168,20 +125,16 @@ export default class FibHeaps extends Top {
 		let h = hl.first();
 		if (h == 0) return 0;
 		let minh = h;
-		for (let h1 = hl.next(h); h1 != 0; h1 = hl.next(h1)) {
-			if (this.key(h1) < this.key(minh)) minh = h1;
-			this.#sibs.join(h, h1);
-		}
+		for (let h1 = hl.next(h); h1 != 0; h1 = hl.next(h1))
+			h = this.meld(h,h1);
 		return minh;
 	}
 
 	meld(h1, h2) {
-		assert((h1 == 0 || (this.valid(h1) && this.p(h1) == 0)) &&
-			   (h2 == 0 || (this.valid(h2) && this.p(h2) == 0)));
 		if (h1 == 0) return h2;
 		if (h2 == 0 || h1 == h2) return h1;
-		return (this.key(h1) <= this.key(h2) ? this.#sibs.join(h1, h2) :
-											   this.#sibs.join(h2, h1));
+		return (this.key(h1) <= this.key(h2) ?
+					this.joinGroups(h1, h2) : this.joinGroups(h2, h1));
 	}
 
 	/** Insert item into a heap. 
@@ -192,113 +145,99 @@ export default class FibHeaps extends Top {
 	insert(i, h, k) {
 		this.#insertCount++;
 		if (i > this.n) this.expand(i);
-		this.setkey(i, k); return this.meld(i, h);
+		this.key(i,k); return this.meld(i, h);
 	}
 	
-	/** Decrease the key of an item in a heap.
+	/** Change the key of an item in a heap.
 	 *  @param i is an item
-	 *  @param delta is the amount by which i is to be decreased
 	 *  @param h is the heap containing i
+	 *  @param k is the new key value for i
 	 *  @return the modified heap
 	 */
 	changekey(i, h, k) {
 		this.#changekeyCount++;
-		let key = this.#key; let rank = this.#rank; let mark = this.#mark;
-		let p = this.#p; let c = this.#c; let sibs = this.#sibs;
-		assert(this.valid(i) && this.valid(h) && p[h] == 0);
-		if (k > key[i]) {
+		if (k > this.key(i)) {
 			h = this.delete(i, h);
 			return this.insert(i, (h != 0 ? h : i), k);
 		}
-		key[i] = k;
-		if (p[i] == 0) {
-			if (key[h] > key[i]) h = sibs.rotate(h, i);
+		this.key(i,k);
+		if (this.p(i) == 0) {
+			if (this.key(h) > this.key(i)) {
+				this.rotate(h,i); h = i;
+			}
 			return h;
 		}
-		let pi = p[i];
-		if (key[i] >= key[pi]) return h;
+		let pi = this.p(i);
+		if (this.key(i) >= this.key(pi)) return h;
 		do {
 			this.#decreasekeySteps++;
-			rank[pi]--;
-			c[pi] = sibs.delete(i, c[pi]);
-			p[i] = 0; mark[i] = false; h = this.meld(h, i);
-			i = pi; pi = p[i];
-		} while (mark[i]); // note: if i is marked, it's not a root
-		if (pi != 0) mark[i] = true;
-	
+			this.cut(i); this.rank(pi,this.rank(pi)-1);
+			this.mark(i,false);
+			h = this.meld(h, i);
+			i = pi; pi = this.p(i);
+		} while (this.mark(i)); // note: if i is marked, it's not a root
+		if (pi != 0) this.mark(i,true);
 		return h;
 	}
 
 	/** Merge the tree roots in heap, to eliminate repeated ranks.
-	 *  @param r is a tree root in a heap; all tree roots are assumed
-	 *  to be non-deleted nodes; also r is the id of the root list in sibs
-	 *  @return the resulting root with the smallest key
+	 *  @param r0 is the first tree root in a tree group for a heap;
+	 *  it is called after the node with the smallest key is removed from heap
+	 *  @return the root of the the tree root with the smallest key,
+	 *  following the merging
 	 */
-	#mergeRoots(r) {
-		let key = this.#key; let rank = this.#rank; let mark = this.#mark;
-		let p = this.#p; let c = this.#c; let sibs = this.#sibs;
-		let tmpq = this.#tmpq; let rankVec = this.#rankVec;
-
-		assert(this.valid(r) && p[r] == 0);
+	#mergeRoots(r0) {
+		let key = this.#key; let rank = this.#rank;
+		let tmpq = this.#tmpq; let rvec = this.#rankVec;
 
 		// Build queue of roots and find root with smallest key
-		let minRoot = r;
-		for (let sr = r; sr != 0; sr = sibs.next(sr)) {
+		let minRoot = r0;
+		for (let sr = r0; sr; sr = this.nextSibling(sr)) {
 			this.#mergeSteps++;
 			if (key[sr] < key[minRoot]) minRoot = sr;
-			tmpq.enq(sr); p[sr] = 0; mark[sr] = false;
+			tmpq.enq(sr); this.mark(sr,false);
 		}
-		r = sibs.rotate(r, minRoot); // r is now is min root
+		r0 = this.rotate(r0, minRoot); // r0 is now min root
 		// scan roots, merging trees of equal rank
 		let maxRank = -1; // maxRank = maximum rank seen so far
 		while (!tmpq.empty()) {
 			this.#mergeSteps++;
-			let r1 = tmpq.pop();
-			assert(rank[r1] <= this.#MAXRANK);
-			let r2 = rankVec[rank[r1]];
-			if (maxRank < rank[r1]) {
-				for (maxRank++; maxRank < rank[r1]; maxRank++)
-					rankVec[maxRank] = 0;
-				rankVec[rank[r1]] = r1;
+			let r1 = tmpq.pop(); let r2 = rvec[rank[r1]];
+			let rank1 = rank[r1];
+			if (maxRank < rank1) {
+				rvec[rank1] = r1;
+				for (maxRank++; maxRank < rank1; maxRank++)
+					rvec[maxRank] = 0;
 			} else if (r2 == 0) {
-				rankVec[rank[r1]] = r1;
-			} else if (key[r1] < key[r2] || (key[r1] == key[r2] && r1 == r)) {
-				r = sibs.delete(r2, r);
-				c[r1] = sibs.join(c[r1], r2);
-				rankVec[rank[r1]] = 0;
-				rank[r1]++; p[r2] = r1;
-				tmpq.enq(r1);
+				rvec[rank1] = r1;
+			} else if (key[r1] < key[r2] || (key[r1] == key[r2] && r1 == r0)) {
+				this.ungroup(r2,r0);
+				this.link(r2,r1); tmpq.enq(r1);
+				rvec[rank1] = 0; rank[r1]++;
 			} else {
-				r = sibs.delete(r1, r);
-				c[r2] = sibs.join(c[r2], r1);
-				rankVec[rank[r1]] = 0;
-				rank[r2]++; p[r1] = r2;
-				tmpq.enq(r2);
+				this.ungroup(r1,r0);
+				this.link(r1,r2); tmpq.enq(r2);
+				rvec[rank1] = 0; rank[r2]++;
 			}
 		}
-		return r;
+		return r0;
 	}
 		
 	/** Remove the item with smallest key from a heap.
-	 *  @param h is the canonical element of some heap
+	 *  @param h is the top item of some heap
 	 *  @return the pair [min, hnew] where min is the deleted item
-	 *  and hnew is the modified heap
+	 *  and hnew is the id of the modified heap
 	 */
 	deletemin(h) {
 		this.#deleteCount++;
-		let p = this.#p; let c = this.#c; let sibs = this.#sibs;
-		assert(this.valid(h) && p[h] == 0);
-	
-		// Merge h's children into root list and delete it
-		// First, make parent pointers of new root nodes 0
-		if (c[h] != 0) {
-			for (let i = c[h]; i != 0; i = sibs.next(i))
-				p[i] = 0;
-			sibs.join(h,c[h]); c[h] = 0;
+		// Move h's children into root list and delete h
+		for (let i = this.firstChild(h); i; i = this.firstChild(h)) {
+			this.cut(i); this.joinGroups(h,i);
 		}
-		this.#rank[h] = 0;
-		if (sibs.singleton(h)) return [h,0];
-		return [h, this.#mergeRoots(sibs.delete(h, h))];
+		this.rank(h,0);
+		if (!this.nextSibling(h)) return [h,0];
+		let r = this.ungroup(h,h); // r is first root remaining in tree group
+		return [h, (r ? this.#mergeRoots(r) : 0)];
 	}
 	
 	/** Delete an item from a heap.
@@ -307,104 +246,44 @@ export default class FibHeaps extends Top {
 	 *  @return the heap that results from removing i from h
 	 */
 	delete(i, h) {
-		assert(this.valid(i) && this.valid(h) && this.p(h) == 0);
 		let k = this.key(i);
 		h = decreasekey(i, (this.key(i) - this.key(h)) + 1, h);
 		h = deletemin(h);
-		this.#key[i] = k;
+		this.key(i,k);
 		return h;
 	}
 	
 	/** Determine if two FibHeaps objects are equal.
-	 *  @param h is another FibHeaps to be compared to this, or a string
+	 *  @param other is another FibHeaps to be compared to this, or a string
 	 *  representing an FibHeaps object.
-	 *  @return if h is an FibHeaps, return true if the heaps in both contain
-	 *  the same items with the same keys; if h is a string, compare the
-	 *  the string representation of this to h; otherwise, return false
+	 *  @return if true or false or an object that can be compared further
 	 */
-	equals(fh) {
-		if (this === fh) return true;
-		if (typeof fh == 'string') {
-			let s = fh; fh = new FibHeaps(this.n); fh.fromString(s);
-		}
-		if (!(fh instanceof FibHeaps) || this.n != fh.n)
-			return false;
-
-		let top1 = this.#top(); let top2 = fh.#top();
+	equals(other) {
+		let fh = super.setEquals(other);
+        if (typeof fh == 'boolean') return fh;
 		for (let i = 0; i < this.n; i++) {
-			if (this.key(i) != fh.key(i) || top1[i] != top2[i])
-				return false;
+			if (this.key(i) != fh.key(i)) return false;
 		}
-		return true;
-	}
-
-	/** Compute a vector that labels each heap item with the top item
-	 *  in its heap.
-	 *  @return a vector top, where top[i] is the canonical element
-	 *  of the heap containing i.
-	 */
-	#top() {
-		let top = new Array(this.n+1).fill(0);
-			// label each item with item at the top of its heap
-		for (let i = 1; i <= this.n; i++) {
-			// search path towards top item
-			let j = i;
-			while (top[j] == 0 && this.p(j) != 0)
-				j = this.p(j)
-			while (top[j] == 0 && !this.#sibs.isfirst(j))
-				j = this.#sibs.prev(j);
-			if (top[j] == 0) top[j] = j;
-			let topItem = top[j];
-			// now, repeat search, updating top values
-			j = i;
-			while (top[j] == 0 && this.p(j) != 0) {
-				top[j] = topItem; j = this.p(j)
-			}
-			while (top[j] == 0 && !this.#sibs.isfirst(j)) {
-				top[j] = topItem; j = this.#sibs.prev(j);
-			}
-		}
-		return top;
+		return fh;
 	}
 	
 	/** Construct a string representation of this object.
-	 *  @param s is a string in which the result is returned
+	 *  @param fmt is an integer in which low bits are format options
+	 *		00001 specifies that heaps appear on separate lines
+	 *		00010 specifies that singleton trees are shown
+	 *		00100 specifies that tree structure is shown
+	 *		01000 specifies that mark bits are shown
+	 *		10000 specifies that rank values are shown
+	 *  @param selectHeap specifies a single heap to be included
 	 *  @return the string
 	 */
-	toString(details=0, pretty=0, label=0) {
-		let s = '';
-		let done = new Array(this.n+1).fill(false);
-		for (let i = 1; i < this.n; i++) {
-			if (this.p(i) != 0 || done[i]) continue;
-			// i is in a heap we've not yet added to s
-			let h = this.#sibs.findList(i);
-			if (s != '') s += ' ';
-			s += this.heap2string(h, details, label);
-			if (pretty) s += '\n'; // one heap per line
-			// mark all tree roots in this heap as done
-			for (let r = h; r != 0; r = this.#sibs.next(r))
-				done[r] = true;
+	toString(fmt=0x2, label=0, selectHeap=0) {
+		if (!label) {
+			label = (u => `${this.x2s(u)}:${this.key(u)}` +
+						  (fmt&0x10 ? `:${this.rank(u)}` : '') +
+						  ((fmt&0x08 && this.mark(u)) ? '!' : ''));
 		}
-		return pretty ? '{\n' + s + '}\n' : '{' + s + '}';
-	}
-
-	/** Create a string representation of one heap.
-	 *  @param h is an item that identifies a heap or some
-	 *  item that is a first child of another heap item
-	 *  @return a string that represents the heap, or the
-	 *  portion of the heap including h and its siblings
-	 */
-	heap2string(h, details=0, label=0) {
-		let s = '';
-		for (let i = h; i != 0; i = this.#sibs.next(i)) {
-			if (i != h) s += ' ';
-			s += this.index2string(i, label) + ':' + this.key(i);
-			if (details)
-				s += (this.mark(i) ? '*' : ':') + this.rank(i);
-			if (this.#c[i] != 0)
-				s += this.heap2string(this.#c[i], details, label);
-		}
-		return (details || this.p(h) == 0 ? '(' + s + ')' : ' ' + s);
+		return super.toString(fmt&0x7, label, selectHeap);
 	}
 
 	/** Initialize this FibHeaps object from a string.
@@ -412,24 +291,20 @@ export default class FibHeaps extends Top {
 	 *  @return true on success, else false
 	 */
 	fromString(s) {
-		let sc = new Scanner(s);
-		if (!sc.verify('{')) return false;
-		let n = 0; let heaps = []; let items = new Set();
-		for (let l= sc.nextPairList('(',')'); l; l= sc.nextPairList('(',')')) {
-			for (let [i,k] of l) {
-				n = Math.max(n,i);
-				if (items.has(i)) return null;
-				items.add(i);
-			}
-			heaps.push(l);
-		}
-		if (!sc.verify('}')) return false;
-		if (n != this.n) this.reset(n);
+		let ls = new ListSet(); let key = [];
+		ls.fromString(s, (u,sc) => {
+							if (!sc.verify(':')) return;
+							let p = sc.nextNumber();
+							if (Number.isNaN(p)) return;
+							key[u] = p;
+						});
+		if (ls.n != this.n) this.reset(ls.n);
 		else this.clear();
-		for (let l of heaps) {
-			let h = l[0][0];
-			for (let [i,k] of l)
-				h = this.insert(i, h, k);
+		for (let u = 1; u <= ls.n; u++) {
+			if (!ls.isfirst(u)) continue;
+			this.key(u, key[u]);
+			for (let i = ls.next(u); i; i = ls.next(i))
+				this.insert(i, u, key[i]);
 		}
 		return true;
 	}
@@ -440,5 +315,28 @@ export default class FibHeaps extends Top {
 				 'changekey' : this.#changekeyCount,
 				 'decrease' : this.#decreasekeySteps,
 				 'merge' : this.#mergeSteps };
+	}
+
+	verify() {
+		for (let u = 1; u <= this.n; u++) {
+			if (this.p(u) && this.key(u) < this.key(this.p(u)))
+				return `heap-order violation at ${this.x2s(u)} ` +
+						`(${this.key(u)} this.key(this.p(u))})`;
+			let ru = 0;
+			for (let c = this.firstChild(u); c; c = this.nextSibling(c))
+				ru++;
+			if (this.rank(u) != ru)
+				return `rank violation at ${this.x2s(u)} ` +
+						`(${this.rank(u)} ${ru})`;
+
+			if (this.p(u) || this.prevSibling(u)) continue;
+			let minkey = this.key(u);
+			for (let r = this.nextSibling(u); r; r = this.nextSibling(r))
+				minkey = Math.min(minkey,this.key(r));
+			if (this.key(u) != minkey)
+				return `first tree in heap ${this.x2s(u)} does not have ` +
+						`smallest key (${minkey} ${this.key(u)})`;
+		}
+		return '';
 	}
 }

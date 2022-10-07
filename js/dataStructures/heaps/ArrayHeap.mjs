@@ -6,9 +6,10 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError} from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
-import Scanner from '../basic/Scanner.mjs';
+import List from '../basic/List.mjs';
+import Forest from '../graphs/Forest.mjs';
 
 /** This class implements a heap data structure.
  *  The heap elements are identified by indexes in 1..n where n
@@ -35,13 +36,8 @@ export default class ArrayHeap extends Top {
 	 *  @parm d is the base of the heap (defaults to 4)
 	 *  @param capacity is maximum index range (defaults to n)
 	 */
-	constructor(n, d=4, capacity=n) { super(n); this.#init(d, capacity); }
-	
-	/** Allocate space and initialize ArrayHeap object.
-	 *  @param d is the base of the heap.
-	 *  @param capacity is the maximum range
-	 */
-	#init(d, capacity) {
+	constructor(n=10, d=4, capacity=n) {
+		super(n);
 		this.#item = new Int32Array(capacity+1);
 		this.#pos = new Int32Array(capacity+1);
 		this.#key = new Float32Array(capacity+1);
@@ -51,20 +47,11 @@ export default class ArrayHeap extends Top {
 		this.#steps = capacity;
 	}
 
-	/** Reset the heap discarding old value.
-	 *  @param n is the new range of the index set
-	 *  @param d is the new base of the heap.
-	 *  @param capacity the new max range.
-	 */
-	reset(n, d=4, capacity=n) {
-		assert(capacity >= n); this._n = n; this.#init(d, capacity);
-	}
-	
 	/** Assign a new value by copying from another heap.
 	 *  @param h is another heap
 	 */
 	assign(h) {
-		if (h == this) return;
+		if (h == this || !(h instanceof ArrayHeap)) return;
 		if (h.n > this.n) { this.reset(h.n, h.d); }
 		else { this.clear(); this._n = h.n; }
 
@@ -81,8 +68,7 @@ export default class ArrayHeap extends Top {
 	 *  @param h is another heap
 	 */
 	xfer(h) {
-		if (h == this) return;
-		if (!(h instanceof ArrayHeap)) return;
+		if (h == this || !(h instanceof ArrayHeap)) return;
 		this.#d = h.#d; this.#m = h.#m; this.#offset = h.#offset;
 		this.#item = h.#item; this.#pos = h.#pos; this.#key = h.#key;
 		h.#item = h.#pos = h.#key = null;
@@ -90,26 +76,11 @@ export default class ArrayHeap extends Top {
 		this.#steps++;
 	}
 	
-	/** Expand the space available for this ArrayHeap.
-	 *  Rebuilds old value in new space.
-	 *  @param size is the size of the resized object.
-	 */
-	expand(n) {
-		if (n <= this.n) return;
-		if (n > this.capacity) {
-			let nu = new ArrayHeap(this.n, this.#d,
-							    Math.max(n, ~~(1.25 * this.capacity)));
-			nu.assign(this); this.xfer(nu);
-		}
-		this._n = n; this.#steps++;
-	}
-
 	/** Remove all elements from heap. */
 	clear() {
 		for (let x = 1; x <= this.#m; x++) this.#pos[this.#item[x]] = 0;
 		this.#m = 0; this.#offset = 0;
-		this.clearStats();
-		this.#steps = this.#m;
+		this.#steps += this.#m;
 	}
 
 	clearStats() {
@@ -122,6 +93,8 @@ export default class ArrayHeap extends Top {
 	get d() { return this.#d; }
 
 	get m() { return this.#m; }
+
+	itemAt(pos) { return this.#item[pos]; };
 
 	/** Return position of parent of a heap item.
 	 *  @param p is position of item in heap
@@ -144,7 +117,7 @@ export default class ArrayHeap extends Top {
 	/** Find an item in the heap with the smallest key.
 	 *  @return the number of an item that has the smallest key
 	 */
-	findmin() { return this.empty() ? 0 : this.#item[1]; }
+	findmin() { return this.empty() ? 0 : this.itemAt(1); }
 	
 	/** Delete a minimum key item from the heap and return it.
 	 *  @return an item of minimum key from the heap, after deleting it
@@ -152,7 +125,7 @@ export default class ArrayHeap extends Top {
 	 */
 	deletemin() {
 		if (this.empty()) return 0;
-		let i = this.#item[1]; this.delete(i);
+		let i = this.itemAt(1); this.delete(i);
 		return i;
 	}
 	
@@ -180,7 +153,7 @@ export default class ArrayHeap extends Top {
 	 *  @param key is the key value under which i is to be inserted
 	 */
 	insert(i, key) {
-		assert(i > 0);
+		fassert(i > 0);
 		this.#insertCount++;
 		if (i > this.capacity) this.expand(i);
 		this.#key[i] = key - this.#offset; this.#m++; this.#siftup(i, this.m);
@@ -190,9 +163,9 @@ export default class ArrayHeap extends Top {
 	 *  @param i is an index in the heap
 	 */
 	delete(i) {
-		assert(i > 0);
+		fassert(i > 0);
 		this.#deleteCount++;
-		let j = this.#item[this.#m--];
+		let j = this.itemAt(this.#m--);
 		if (i != j) {
 			if (this.#key[j] <= this.#key[i])
 				this.#siftup(j, this.#pos[i]);
@@ -210,8 +183,8 @@ export default class ArrayHeap extends Top {
 	#siftup(i, x) {
 		this.#siftupSteps++;
 		let px = this.p(x);
-		while (x > 1 && this.#key[i] < this.#key[this.#item[px]]) {
-			this.#item[x] = this.#item[px]; this.#pos[this.#item[x]] = x;
+		while (x > 1 && this.#key[i] < this.key(this.itemAt(px))) {
+			this.#item[x] = this.itemAt(px); this.#pos[this.itemAt(x)] = x;
 			x = px; px = this.p(x);
 			this.#siftupSteps++;
 		}
@@ -264,16 +237,14 @@ export default class ArrayHeap extends Top {
 	}
 
 	/** Determine if two heaps are equal.
-	 *  @param h is a heap to be compared to this
-	 *  @return true if both heap sets contain the same items with the
-	 *  the same keys; otherwise, return false
+	 *  @param other is a heap to be compared to this
+	 *  @return true or false if equality can be determined without
+	 *  further object comparison; otherwise return an object that
+	 *  can be compared
 	 */
-	equals(h) {
-		if (this === h) return true;
-		if (typeof h == 'string') {
-			let s = h; h = new ArrayHeap(this.n); h.fromString(s);
-		}
-		if (!(h instanceof ArrayHeap)) return false;
+	equals(other) {
+		let h = super.equals(other);
+		if (typeof h == 'boolean') return h;
 		if (this.m != h.m) return false;
 		for (let i = 1; i <= this.m; i++) {
 			let x = this.#item[i];
@@ -281,32 +252,22 @@ export default class ArrayHeap extends Top {
 			let y = h.#item[i];
 			if (!this.contains(y) || this.key(y) != h.key(y)) return false;
 		}
-		return true;
+		return h;
 	}
 	
 	/** Produce a string representation of the heap.
-	 *  @param details is a flag that (when true) causes implementation
-	 *  details to be shown.
-	 *  @param pretty is a flag that (when true) produces a more readable
-	 *  representation
-	 *  @param label is a function that is used to label heap items
-	 *  numerical values, not letters.
-	 *  @param u is intended only for recursive calls to toString; it
-	 *  identifies a position in the heap structure
+	 *  @param showTree is a flag which causes the tree structure
+	 *  of the heap to be shown
+	 *  @param label is an optional used produce item labels
 	 */
-	toString(details=0, pretty=0, label=0, u=1) {
-		if (this.empty()) return '{}';
-		if (u == 0) return '';
-		let s = this.index2string(this.#item[u], label) +
-				':' + this.key(this.#item[u]);
-		if (this.left(u) <= this.m)
-			s += (details ? '(' : ' ');
-		for (let v = this.left(u); v <= this.right(u) && v <= this.m; v++) {
-			if (v != this.left(u)) s += ' ';
-			s += this.toString(details, pretty, label, v);
+	toString(showTree=0, label=0) {
+		if (!label) label = (u => this.x2s(u) + ':' + this.key(u));
+		let f = new Forest(this.n);
+		for (let x = 1; x <= this.m; x++) {
+			if (this.p(x))
+				f.link(this.itemAt(x),this.itemAt(this.p(x)));
 		}
-		if (details && this.left(u) <= this.m) s += ')';
-		return (u == 1 ? '{' + s + '}' : s);
+		return f.toString((showTree ? 0x4 : 0), label).slice(1,-1);
 	}
 
 	/** Initialize this ArrayHeap object from a string.
@@ -314,18 +275,18 @@ export default class ArrayHeap extends Top {
 	 *  @return on if success, else false
 	 */
 	fromString(s) {
-		let sc = new Scanner(s);
-		let l = sc.nextPairList('{','}');
-		if (l == null) return null;
-		let n = 0; let items = new Set();
-		for (let [i,k] of l) {
-			n = Math.max(n,i);
-			if (items.has(i)) return null;
-			items.add(i);
-		}
-		if (n > this.n) this.reset(n, this.d);
+		let l = new List();
+		let key = [];
+		l.fromString(s, (u,sc) => {
+							if (!sc.verify(':')) return;
+							let p = sc.nextNumber();
+							if (Number.isNaN(p)) return;
+							key[u] = p;
+						});
+		if (l.n > this.n) this.reset(l.n, this.d);
 		else this.clear();
-		for (let [i,k] of l) this.insert(i, k);
+		for (let i = l.first(); i; i = l.next(i))
+			this.insert(i, key[i]);
 		return true;
 	}
 

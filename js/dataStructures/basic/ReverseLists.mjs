@@ -7,7 +7,8 @@
  */
 
 import Top from '../Top.mjs';
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
+import ListSet from './ListSet.mjs';
 import Scanner from './Scanner.mjs';
 
 /** The ReverseLists class maintains a collection of disjoint lists defined
@@ -18,44 +19,19 @@ export default class ReverseLists extends Top {
 	#nabor1;		// nabor1[i] is one of the neighbors of i in its list
 	#nabor2;		// nabor2[i] is the other neighbor of i in its list
 
-	constructor(n, capacity=n) {
+	constructor(n=10, capacity=n) {
 		super(n);
-		if (!capacity) capacity = this.n;
-		this.#init(capacity);
-	}
-
-	#init(capacity) {
-		assert(this.n <= capacity);
 		this.#nabor1 = new Int32Array(capacity+1);
 		this.#nabor2 = new Int32Array(capacity+1);
 		// initialize to singleton lists
-		for (let i = 0; i <= this.n; i++) {
+		for (let i = 0; i <= this.capacity; i++) {
 			this.#nabor1[i] = 0; this.#nabor2[i] = -i;
 		}
 		this.#nabor2[0] = 0;
 	}
 
-	reset(n, capacity=n) {
-		assert(n <= capacity);
-		this._n = n; this.#init(capacity);
-	}
-
 	/** Get the capacity. (max number of items it has space for). */
-	get _capacity() { return this.#nabor1.length - 1; }
-
-	expand(n) {
-		if (n <= this.n) return;
-		if (n > this._capacity) {
-			let nu = new ReverseLists(this.n,
-				Math.max(n, ~~(1.5*this._capacity)));
-			nu.assign(this); this.xfer(nu);
-		}
-		// make singletons from items in expanded range
-		for (let i = this.n+1; i <= n; i++) {
-			this.#nabor1[i] = 0; this.#nabor2[i] = -i;
-		}
-		this._n = n;
-	}
+	get capacity() { return this.#nabor1.length - 1; }
 
 	assign(dl) {
 		if (dl == this) return;
@@ -90,7 +66,7 @@ export default class ReverseLists extends Top {
 	 *  @return the last item in the list
 	 */
 	last(f) {
-		assert(this.valid(f) && this.isFirst(f));
+		fassert(this.valid(f) && this.isFirst(f));
 		return this.#nabor1[f] < 0 ? -this.#nabor1[f] : -this.#nabor2[f];
 	}
 
@@ -100,7 +76,7 @@ export default class ReverseLists extends Top {
 	 *  @return the pair [next(i), i] where next(i) is next list item or 0.
 	 */
 	next(i, j) {
-		assert(this.valid(i) && i != 0 && this.valid(j));
+		fassert(this.valid(i) && i != 0 && this.valid(j));
 		let n1 = this.#nabor1[i]; let n2 = this.#nabor2[i];
 		return [j == 0 ? (n1 >= 0 ? n1 : n2) :
 			   			 (j == n1 ? n2 : n1), i];
@@ -113,7 +89,7 @@ export default class ReverseLists extends Top {
 	 *  item.
 	 */
 	prev(i, j) {
-		assert(this.valid(i));
+		fassert(this.valid(i));
 		if (this.isFirst(i)) return [0, i];
 		let n1 = this.#nabor1[i]; let n2 = this.#nabor2[i];
 		return [j == 0 ? (n1 != 0 ? n1 : n2) :
@@ -125,7 +101,7 @@ export default class ReverseLists extends Top {
 	 *  @return true if it is the only item in its list, else false
 	 */
 	singleton(i) {
-		assert(this.valid(i));
+		fassert(this.valid(i));
 		return this.#nabor1[i] == -i || this.#nabor2[i] == -i;
 	}
 	
@@ -134,7 +110,7 @@ export default class ReverseLists extends Top {
 	 *  @return the first item of the modified list, or 0 if it was a singleton
 	 */
 	pop(f) {
-		assert(this.valid(f) && this.isFirst(f));
+		fassert(this.valid(f) && this.isFirst(f));
 		if (this.singleton(f)) return 0;
 		let s;
 		if (this.#nabor1[f] < 0) {
@@ -159,7 +135,7 @@ export default class ReverseLists extends Top {
 	join(f1, f2) {
 		if (f2 == 0 || f1 == f2) return f1;
 		if (f1 == 0) return f2;
-		assert(this.isFirst(f1) && this.isFirst(f2));
+		fassert(this.isFirst(f1) && this.isFirst(f2));
 		let l1 = this.last(f1); let l2 = this.last(f2);
 		if (this.#nabor1[f1] < 0)  this.#nabor1[f1] = -l2;
 		else 					   this.#nabor2[f1] = -l2;
@@ -185,16 +161,13 @@ export default class ReverseLists extends Top {
 	}
 
 	/** Determine if two ReverseLists objects are equal.
-	 *  @param dl is a second ReverseLists object or a string representing one
+	 *  @param other is another ReverseLists or a string representing one
 	 *  @return true if the two objects contain identical lists.
 	 */
-	equals(dl) {
-		if (this === dl) return true;
-		if (typeof dl == 'string') {
-			let s = dl; dl = new ReverseLists(this.n); dl.fromString(s);
-		} else if (!(dl instanceof ReverseLists))
-			return false;
-		if (this.n != dl.n) return false;
+	equals(other) {
+		let dl = super.equals(other);
+		if (typeof dl == 'boolean') return dl;
+		// dl is now an object that can be compared
 		for (let i = 1; i < this.n; i++) {
 			if (this.isFirst(i) != dl.isFirst(i)) return false;
 			if (!this.isFirst(i)) continue;
@@ -205,29 +178,47 @@ export default class ReverseLists extends Top {
 				if (j1 != j2) return false;
 			} while (j1 != 0);
 		}
-		return true;
+		return dl;
 	}
 	
 	/** Produce a string representation of the object.
-	 *  @param details causes singletons to be shown, when true
+	 *  @param fmt is a pair of format bits that controls the presentation
+	 *  	001 causes lists to be shown on separate lines
+	 *      010 causes singletons to be shown
 	 *  @param label is a function used to label list items
-	 *  @param pretty causes lists to be separated with newlines
 	 *  @return a string such as "[(a c), (d b g)]".
 	 */
-	toString(details=0, pretty=0, label=0) {
-		let s = '';
+	toString(fmt=0, label=0) {
+		if (!label) label = (u => this.x2s(u));
+		let ls = new ListSet(this.n);
 		for (let l = 1; l <= this.n; l++) {
-			if (!this.isFirst(l) || (this.singleton(l) && !details))
+			if (!this.isFirst(l)) continue;
+			let j = 0;
+			for (let i = l; i != 0; [i, j] = this.next(i,j)) {
+				if (i != l) ls.join(l,i)
+			}
+		}
+		return ls.toString(fmt,label);
+			
+
+
+/*
+		let s = (fmt&0x1 ? '{\n' : '{');
+		let first = true;
+		for (let l = 1; l <= this.n; l++) {
+			if (!this.isFirst(l) || (this.singleton(l) && !(fmt&0x2)))
 				continue;
-			if (s.length > 0) s += ',' + (pretty ? '\n ' : ' ');
-			s += '('; let j = 0;
+			if (first) first = false;
+			else s += (!(fmt&0x1) ? ' ' : '');
+			s += '['; let j = 0;
 			for (let i = l; i != 0; [i, j] = this.next(i,j)) {
 				if (i != l) s += ' ';
-				s += this.index2string(i, label);
+				s += this.x2s(i, label);
 			}
-			s += ')';
+			s += (fmt&0x1 ? ']\n' : ']');
 		}
-		return '[' + s + (pretty ? ']\n' : ']');
+		return '{' + s + (fmt&0x1 ? '}\n' : ']');
+*/
 	}
 
 	/** Initialize this from a string representation.
@@ -236,10 +227,10 @@ export default class ReverseLists extends Top {
 	 */
 	fromString(s) {
 		let sc = new Scanner(s);
-		if (!sc.verify('[')) return false;
+		if (!sc.verify('{')) return false;
 
 		let lists = []; let n = 0; let items = new Set();
-		let l = sc.nextIndexList('(', ')');
+		let l = sc.nextIndexList('[', ']');
 		while (l != null) {
 			for (let i of l) {
 				n = Math.max(i, n);
@@ -248,9 +239,9 @@ export default class ReverseLists extends Top {
 			}
 			lists.push(l);
 			if (!sc.verify(',')) break;
-			l = sc.nextIndexList('(', ')');
+			l = sc.nextIndexList('[', ']');
 		}
-		if (!sc.verify(']')) return false;
+		if (!sc.verify('}')) return false;
 
 		if (n > this.n) this.reset(n);
 		else this.clear();

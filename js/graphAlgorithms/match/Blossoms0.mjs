@@ -7,7 +7,7 @@
  */
 
 import Top from '../../dataStructures/Top.mjs';
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import Forest from '../../dataStructures/graphs/Forest.mjs';
@@ -318,7 +318,7 @@ loop. Perhaps that's enough.
 			this.flip(sb0, x, this.base(this.nextSub(sb0)));
 		}
 
-		if (sb0 != sbu) this.#subs.rotate(bu, sbu);
+		if (sb0 != sbu) this.#subs.rotate(sb0,sbu);
 		this.base(bu,u);
 		return;
 	}
@@ -423,7 +423,7 @@ loop. Perhaps that's enough.
 	 *  should be used with care
 	 */
 	expandInplace(b) {
-		assert(this.state(b) == '-1');
+		fassert(this.state(b) == '-1');
 		let sb0 = this.firstSub(b);
 
 		// find the sub-blossom of b containing its link terminus, u
@@ -584,15 +584,17 @@ loop. Perhaps that's enough.
 		}
 
 		let s = '';
+		if (pretty) s += 'outer blossoms:\n';
 		for (let b = this.firstOuter(); b != 0; b = this.nextOuter(b)) {
 			if (!showme[b]) continue;
-			if (!pretty && s != '') s += ' ';
+			if (pretty) s += '    ';
+			else if (s.length > 0) s += ' ';
 			s += (this.state(b) < 0 ? '-' : (this.state(b) > 0 ? '+' : '.'));
 			s += this.#subs.tree2string(b,
 					bb => this.x2s(bb) + this.link2string(bb));
-			if (pretty) s += '\n'; // one tree per line
+			if (pretty) s += '\n'; // one outer blossom per line
 		}
-		s = (pretty ? '{\n' + s + '}\n' : '{' + s + '}');
+		s = (pretty ? s : '{' + s + '}');
 
 		return s;
 	}

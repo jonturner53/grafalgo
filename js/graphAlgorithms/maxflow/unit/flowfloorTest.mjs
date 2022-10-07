@@ -21,12 +21,12 @@ import { randomGraph, randomFlograph } from '../../misc/RandomGraph.mjs';
 function run(g, trace) {
 	g.clearFlow();
 	let ts = '';
-	if (trace) ts += g.toString(0,1)
+	if (trace) ts += g.toString(1)
 	let [success, ts1, stats1] = flowfloor(g, trace);
-	if (trace) ts += ts1 + g.toString(0,1);
+	if (trace) ts += ts1 + g.toString(1);
 	if (!success) ts += 'unable to satisfy flow floors\n';
 	let [ts2] = maxflowD(g, trace);
-	if (trace) ts += ts2 + g.toString(0,1);
+	if (trace) ts += ts2 + g.toString(1);
 	return [ts, stats1];
 }
 

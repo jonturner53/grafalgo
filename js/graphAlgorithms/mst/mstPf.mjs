@@ -7,7 +7,6 @@
  */
 
 import List from '../../dataStructures/basic/List.mjs';
-import Sets from '../../dataStructures/basic/Sets.mjs';
 import FibHeaps from '../../dataStructures/heaps/FibHeaps.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 
@@ -22,7 +21,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 export default function mstPf(g, trace=0) {
 	let traceString = '';
 	if (trace) {
-		traceString += g.toString(0,1) + '\n' +
+		traceString += g.toString(1) + '\n' +
 			  'selected vertex, tree edge, heap contents\n';
 	}
 	let light = new Array(g.n+1).fill(-1);
@@ -46,9 +45,9 @@ export default function mstPf(g, trace=0) {
 				}
 			}
 			if (trace) {
-				traceString += g.index2string(u) + ' ' +
-					  (light[u] != 0 ? g.edge2string(light[u]) : '-')
-					  + ' ' + border.heap2string(h) + '\n';
+				traceString += g.x2s(u) + ' ' +
+					  (light[u] != 0 ? g.e2s(light[u]) : '-')
+					  + ' ' + border.toString(0,0,h) + '\n';
 			}
 		}
 	}

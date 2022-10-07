@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import { match2string } from './match.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
@@ -53,7 +53,7 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 
 	// divide vertices into two independent sets
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
-	assert(subsets != null, "wbimatchH: graph not bipartite");
+	fassert(subsets != null, "wbimatchH: graph not bipartite");
 
 	if (trace) {
 		traceString += `${g.toString(0,1)}augmenting path, path weight\n`;

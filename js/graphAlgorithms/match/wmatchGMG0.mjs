@@ -1,4 +1,4 @@
-/** @file wmatchGMGa.mjs
+/** @file wmatchGMG0.mjs
  *
  *  @author Jon Turner
  *  @date 2022
@@ -11,7 +11,6 @@ import Matching from './Matching.mjs';
 import Blossoms from './Blossoms.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
-import Sets from '../../dataStructures/basic/Sets.mjs';
 
 let g=null;       // shared copy of graph
 let match;        // Matching object representing matching for graph
@@ -40,7 +39,7 @@ let steps;      // total number of steps
  *  is unmatched; ts is a possibly empty trace string
  *  and stats is a statistics object
  */
-export default function wmatchGMGa(mg, traceFlag=false, subsets=null) {
+export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 	g = mg;
 	match = new Matching(g);
 	bloss = new Blossoms(g, match);
@@ -67,7 +66,7 @@ export default function wmatchGMGa(mg, traceFlag=false, subsets=null) {
 	while (true) {
 		if (trace) {
 			if (bloss.toString().length > 3) {
-				traceString += `outer blossoms:\n    ${''+bloss}\n`;
+				traceString += bloss.toString(1,1);
 			}
 		}
 		let s = verifyInvariant();
@@ -142,7 +141,7 @@ function searchStep(e,u,v,bu,bv) {
 			if (trace) {
 				traceString += '\n';
 				if (bloss.toString().length > 3)
-					traceString += `outer blossoms:\n    ${''+bloss}\n`;
+					traceString += bloss.toString(1,1);
 			}
 		} else {
 			blossoms++;
@@ -459,7 +458,7 @@ function verifyInvariant() {
 }
 
 function statusString() {
-	let s = 'complete state\nmatch:' + match.toString() + '\nbloss:' + 
+	let s = 'complete state\nmatch:' + match.toString() + '\n' + 
 			bloss.toString(1,1);
 	s += 'z values\n';
 	for (let u = 1; u <= g.n; u++) {

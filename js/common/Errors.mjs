@@ -30,6 +30,7 @@ export class AssertError extends Error {
  *  Expected forms
  *  assert(bool) => a.equals(b)
  *  assert(bool, tag) => a.equals(b)
+ *  assert(Boolean, Boolean, tag) => a == b
  *  assert(Number, Number, tag) => a == b
  *  assert(String, String, tag) => a == b
  *  assert(Adt, Adt, tag) => a.equals(b)
@@ -46,7 +47,8 @@ export function assert() {
 		if (!args[0]) throw new AssertError('');
 	} else if (args.length == 2) {
 		if (!args[0]) throw new AssertError(tag);
-	} else if (args.length == 3 && (typeof args[0] == 'number' ||
+	} else if (args.length == 3 && (typeof args[0] == 'boolean' ||
+									typeof args[0] == 'number'  ||
 									typeof args[0] == 'string')) {
 		if (args[0] != args[1])
 			throw new AssertError(`${tag} ${args[0]} ${args[1]}`);
@@ -68,4 +70,8 @@ export function assert() {
 		}
 		throw new AssertError("invalid arguments " + s);
 	}
+}
+
+export function fassert(condition, description) {
+	if (!condition) throw new Fatal(description);
 }

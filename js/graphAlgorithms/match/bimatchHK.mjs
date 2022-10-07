@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import { match2string } from './match.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import findSplit from '../misc/findSplit.mjs';
@@ -52,7 +52,7 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 
 	// divide vertices into two independent sets
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
-	assert(subsets != null, "bimatchHK: graph not bipartite");
+	fassert(subsets != null, "bimatchHK: graph not bipartite");
 
 	// add edges to match, yielding maximal (not maximum) matching
 	for (let u = 1; u <= g.n; u++) {

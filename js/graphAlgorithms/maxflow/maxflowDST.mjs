@@ -52,7 +52,7 @@ export default function maxflowDST(fg, trace=false) {
 			if (trace) ts += s + '\n';
 		}
 	}
-	if (trace) ts += g.toString(0,1);
+	if (trace) ts += g.toString(1);
 	let treeStats = trees.getStats();
 	findpathSteps += treeStats.spliceCount + treeStats.splaySteps;
 	return [ts, {'findpathCount': findpathCount,
@@ -99,9 +99,9 @@ function findpath() {
  *  while setting cost(u) to the residual capacity of e.
  */
 function extend(u, e) {
-	let [,c] = trees.findcost(u);
+	let [,c] = trees.findcost(u);  // this is just the cost of u
 	trees.addcost(u, g.res(e,u) - c);
-	trees.link(u, g.mate(u,e));
+	trees.graft(u, g.mate(u,e));
 	upEdge[u] = e;
 }
 
@@ -111,10 +111,10 @@ function extend(u, e) {
  */
 function prune(u) {
 	let e = upEdge[u];
-	trees.cut(u); upEdge[u] = 0;
-	let [,residual] = trees.findcost(u);
-	g.setFlow(e, (u == g.tail(e) ? g.cap(e) - residual : residual));
-	trees.addcost(u, huge - residual);
+	trees.prune(u); upEdge[u] = 0;
+	let [,ucost] = trees.findcost(u);
+	g.flow(e, (u == g.tail(e) ? g.cap(e) - ucost : ucost));
+	trees.addcost(u, huge - ucost);
 }
 
 /** Add flow to the source-sink path defined by the path in the
@@ -122,25 +122,34 @@ function prune(u) {
  *  @return the amount of flow added to the path
  */
 function augment(trace) {
+	let ts = ''; let path;
+	if (trace) path = trees.treepath(g.source);
+
 	// effectively saturate source/sink path by adjusting costs
-	let [u,flow] = trees.findcost(g.source);
-
-	let ts = '';
-	if (trace) {
-		let ps = trees.treepath2string(g.source);
-		ts += ps.slice(1, ps.search(/:[^:]+\]/));
-	}
-
-	trees.addcost(g.source, -flow);
+	let [u,rcap] = trees.findcost(g.source);
+	trees.addcost(g.source, -rcap);
 
 	// now, remove tree edges with zero residual capacity
 	// and saturate corresponding flow graph edges
-	let f; [u,f] = trees.findcost(g.source);
-	while (f == 0) {
-		let e = upEdge[u]; prune(u); nextEdge[u] = g.nextAt(u, e);
-		[u,f] = trees.findcost(g.source);
+	let c; [u,c] = trees.findcost(g.source);
+	let sentry; if (trace) sentry = path.length-1;
+	while (c == 0) {
+		if (trace) {
+			let s = `${g.x2s(u)}:${rcap}`;
+			let i; for (i = sentry; path[i] != u; i--) ;
+			let j; for (j = i+1; j != sentry; j++) {
+				let v = path[j];
+				s += ` ${g.x2s(v)}:${rcap+trees.cost(v)}`;
+			}
+			ts = (ts ? s + ' ' + ts : s);
+			sentry = i;
+		}
+		let e = upEdge[u]; 
+		if (e) { prune(u); nextEdge[u] = g.nextAt(u, e); }
+		[u,c] = trees.findcost(g.source);
 	}
-	return [flow, ts];
+	if (trace) ts += ' ' + g.x2s(path[path.length-1]);
+	return [rcap, ts];
 }
 
 /** Prepare for next phase of Dinic's algorithm.

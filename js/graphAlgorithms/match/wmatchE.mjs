@@ -6,12 +6,11 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import Matching from './Matching.mjs';
 import Blossoms0 from './Blossoms0.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
-import Sets from '../../dataStructures/basic/Sets.mjs';
 
 let g=null;       // shared copy of graph
 let match;        // Matching object representing matching for graph
@@ -67,7 +66,7 @@ export default function wmatchE(mg, traceFlag=false, subsets=null) {
 	while (true) {
 		if (trace) {
 			if (bloss.toString().length > 3)
-				traceString += `outer blossoms:\n    ${''+bloss}\n`;
+				traceString += bloss.toString(1,1);
 		}
 		let s = verifyInvariant();
 		if (s) {
@@ -96,7 +95,7 @@ export default function wmatchE(mg, traceFlag=false, subsets=null) {
 	}
 	steps += bloss.getStats().steps;
 
-	let s = verify(); assert(!s,s);
+	let s = verify(); fassert(!s,s);
 
     return [match, traceString,
 			{'paths': paths, 'blossoms': blossoms, 'deblossoms': deblossoms,
@@ -161,7 +160,7 @@ function searchStep(e,u,v,bu,bv) {
 			if (trace) {
 				traceString += '\n';
 				if (bloss.toString().length > 3)
-					traceString += `outer blossoms:\n    ${''+bloss}\n`;
+					traceString += bloss.toString(1,1);
 			}
 		} else {
 			blossoms++;

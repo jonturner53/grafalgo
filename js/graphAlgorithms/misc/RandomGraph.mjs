@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, fatal } from '../../common/Errors.mjs';
+import { fassert, fatal } from '../../common/Errors.mjs';
 import { randomInteger, scramble } from '../../common/Random.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
@@ -108,7 +108,7 @@ export function randomFlograph(n, d, ssd=d, ncuts=1, lookback=1) {
 	let q = ~~((n-2)/p); // size of vertex groups (may reduce vertex count) 
 	let k = lookback;
 	let mc = ~~(.25 * d*ssd/(1+Math.min(k, ssd/q)));
-	assert(p>1 && q>1 && 1<d && d*q <= q*(q-1)+mc);
+	fassert(p>1 && q>1 && 1<d && d*q <= q*(q-1)+mc);
 
 	n = 2 + p*q; let m = ~~(ssd + d*(n-2));
 	let g = new Flograph(n, m);
@@ -291,7 +291,7 @@ export function randomTree(n) {
  *  @param d is the average vertex degree
  */
 export function randomConnectedGraph(n, d) {
-	let m = ~~(d*n);
+	let m = ~~(d*n/2);
 	let g = randomTree(n);
 	add2graph(g, m, m > n*n/4,
 					([a,b]) => (n < 2 || a == n-1 && b == n ? null :
@@ -318,10 +318,10 @@ Sample a pair from vector and swap selected vertices to the end.
 
  */
 export function randomRegularGraph(n, d) {
-	assert(n > d);
+	fassert(n > d);
 	if ((n & 1) && (d & 1)) n++;
 
-	let m = n*d/2; let g = new Graph(n, m);
+	let m = ~~(n*d/2); let g = new Graph(n, m);
 	let deg = new Int32Array(n+1).fill(0); // deg[u] = degree of vertex u
 	let nabor = new Int32Array(n+1).fill(false);	
 		// nabor[v] is true if v is neighbor of "current vertex"
@@ -411,7 +411,7 @@ export function randomRegularBigraph(n, d) {
 
 /*
 export function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
-	assert(n1 > 0 && d1 > 0 && n2 >= d1);
+	fassert(n1 > 0 && d1 > 0 && n2 >= d1);
 	if ((n1 & 1) && (d1 & 1)) n1++;
 	let d2 = Math.ceil(n1*d1/n2);
 	let m = d1*n1;	// # of edges

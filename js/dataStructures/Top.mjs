@@ -28,6 +28,29 @@ export default class Top {
 
 	constructor(n=5) { this.#n = n; }
 
+	/** Reset the object, discarding value.  */
+	reset() {
+		this.xfer(new this.constructor(... arguments));
+	}
+
+	/** Expand the index range of an object and if needed, its capacity. */
+	expand(n) {
+		if (n < this.n) return;
+		if (n <= this.capacity) {
+			this._n = n;
+		} else {
+			let nu = new this.constructor(
+							this.n, Math.max(n,~~(1.5*this.capacity)));
+			nu.assign(this); this.xfer(nu); this._n = n;
+		}
+	}
+
+	/** Transfer the contents of another object to this. */
+	xfer(other) {
+		throw `Top: sub-class ${this.constructor.name} failed to ` +
+			  `define xfer method.`;
+	}
+
 	/** Get the index range for the object.
 	 *  @return the largest index value
 	 */
@@ -52,13 +75,28 @@ export default class Top {
  	 */
 	toString() { return ""; };
 
-	/** Compare two Top objects for equality.
-	 *  @param a2 is a Top object to be compared to this.
-	 *  @return true if this is equal to a2; for subclasses that do not
-	 *  provide their own equality check, comparison defaults to equality
-	 *  of the string representations.
+	/** Determine if two objects are equal.
+	 *  Uses string comparison for objects that lack a fromString method.
+	 *  @param other is an object to be compared to this, or a string
+	 *  @returns true or false if equality status can be determined
+	 *  without an explicit object comparison; otherwise returns an
+	 *  object that can be compared to "this".
 	 */
-	equals(a2) { return this.toString() == a2.toString(); }
+	equals(other) {
+		if (this === other) return true;
+        if (typeof other == 'string') {
+			if (!('fromString' in this)) 
+				return this.toString() == other.toString();
+            let s = other;
+			other = new this.constructor(this.n);
+			other.fromString(s);
+        }
+		if (other.constructor.name != this.constructor.name ||
+		    other.n != this.n) {
+			return false;
+		}
+		return other;
+	}
 
 	/** Convert an index to a string.
 	 *  @param x is a valid index for the data structure
@@ -67,10 +105,9 @@ export default class Top {
 	 *  just the string representing the number x, otherwise, it is a lower-case
 	 *  letter.
 	 */
-	index2string(x, label=null) {
-		if (!label)
-			label = (x => this.n <= 26 ? '-abcdefghijklmnopqrstuvwxyz'[x] : x);
-		return label(x);
+	index2string(x, label=0) {
+		if (label) return label(x);
+		return (this.n <= 26 ? '-abcdefghijklmnopqrstuvwxyz'[x] : x);
 	}
 	x2s(x,label) { return this.index2string(x,label); }
 
@@ -79,7 +116,7 @@ export default class Top {
 	 *	@param label is an optional function used to produce string from value
 	 *  @return a string that represents the list.
 	 */
-	ilist2string(ilist, label=null) {
+	ilist2string(ilist, label=0) {
 		let s = '';
 		for (let i of ilist) {
 			if (s.length > 0) s += ' ';

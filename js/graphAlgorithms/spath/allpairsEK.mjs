@@ -33,13 +33,13 @@ export default function allpairsEK(g, trace) {
 	let stats = { 'stepsBM' : statsBM.stepCount };
 
 	let ts = '';
-	if (trace) ts += g.toString(0,1);
+	if (trace) ts += g.toString(1);
     // transform edge lengths
     for (let e = g.first(); e != 0; e = g.next(e)) {
-        g.setLength(e, g.length(e) + (d[g.tail(e)] - d[g.head(e)]));
+        g.length(e, g.length(e) + (d[g.tail(e)] - d[g.head(e)]));
     }
 	if (trace)
-		ts += 'graph with non-negative edge lengths\n' + g.toString(0,1) +
+		ts += 'graph with non-negative edge lengths\n' + g.toString(1) +
 			  'current source, tree edges, distances\n';
 
     // compute shortest paths & put inverse-transformed distances in dist.
@@ -58,7 +58,7 @@ export default function allpairsEK(g, trace) {
 
     // Restore original edge lengths.
     for (let e = g.first(); e != 0; e = g.next(e)) {
-        g.setLength(e, g.length(e) - (d[g.tail(e)] - d[g.head(e)]));
+        g.length(e, g.length(e) - (d[g.tail(e)] - d[g.head(e)]));
     }
 
 	return [link, dist, ts, stats];

@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
@@ -86,7 +86,7 @@ function initLabels() {
 			}
 		}
 		if (u == last && !q.empty()) { pass++; last = q.last(); }
-		assert(pass<g.n, 'mcflowJEK: negative cost cycle');
+		fassert(pass<g.n, 'mcflowJEK: negative cost cycle');
 	}
 }
 

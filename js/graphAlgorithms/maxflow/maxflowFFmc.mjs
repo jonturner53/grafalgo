@@ -31,7 +31,7 @@ export default function maxflowFFmc(fg, trace=false) {
 		let [,s] = augment(g, link, trace);
 		if (trace) ts += s + '\n';
 	}
-	if (trace) ts += g.toString(0,1);
+	if (trace) ts += g.toString(1);
 	return [ts, {'findpathCount': findpathCount,
 				 'findpathSteps': findpathSteps}];
 }

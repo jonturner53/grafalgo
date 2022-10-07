@@ -41,17 +41,17 @@ export default function flowfloor(g, trace=false) {
     for (let e = g.first(); e != 0; e = g.next(e)) {
 		steps++;
         g1.join(g.tail(e), g.head(e), e);
-        g1.setCapacity(e,g.cap(e) - g.floor(e));
+        g1.cap(e,g.cap(e) - g.floor(e));
 	}
 	// Now, add new source/sink edges.
     for (let e = g.first(); e != 0; e = g.next(e)) {
 		steps++;
 		if (g.floor(e) == 0) continue;
-		g1.setCapacity(g1.join(g1.source, g1.head(e)), g.floor(e));
-		g1.setCapacity(g1.join(g1.tail(e), g1.sink), g.floor(e));
+		g1.cap(g1.join(g1.source, g1.head(e)), g.floor(e));
+		g1.cap(g1.join(g1.tail(e), g1.sink), g.floor(e));
     }
     // Finally, add high capacity edge from original sink to original source
-    let e = g1.join(g.sink, g.source); g1.setCapacity(e, totalCap);
+    let e = g1.join(g.sink, g.source); g1.cap(e, totalCap);
 
 	// Now, find max flow in g1 and check that floor values are all satisfied
 	let [ts,stats] = maxflowD(g1, trace);
@@ -59,7 +59,7 @@ export default function flowfloor(g, trace=false) {
 
 	// Now transfer computed flow back into g
     for (let e = g.first(); e != 0; e = g.next(e)) {
-		g.setFlow(e, g1.f(e) + g.floor(e)); steps++;
+		g.flow(e, g1.f(e) + g.floor(e)); steps++;
 	}
 	return [g1.totalFlow() == totalFloor, ts,
 			{'paths': stats.paths, 'steps': steps}];

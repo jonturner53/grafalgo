@@ -36,7 +36,7 @@ export default function sptBM(g, s, trace=0) {
 	}
 	let pass = 0; let last = q.last(); let steps = 0;
 	if (trace) {
-		ts += g.toString(0,1) + 'initial queue: ' + q + '\n\n' +
+		ts += g.toString(1) + 'initial queue: ' + q + '\n\n' +
 			  'selected vertex, distance, edge to parent, queue, ' +
 			  'pass count\n';
 	}

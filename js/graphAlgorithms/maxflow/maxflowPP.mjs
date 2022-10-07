@@ -8,7 +8,7 @@
 
 import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 
 /** Common code shared by various instances of the preflow-push
  *  algorithm of Goldman and Tarjan.
@@ -89,7 +89,7 @@ export default function maxflowPP(fg, getUbal, putUbal, trace=false,
 			u = getUnbal();
 		}
 	}
-	if (trace) traceString += g.toString(0,1);
+	if (trace) traceString += g.toString(1);
 	return [traceString, {  'relabelCount': relabelCount,
 							'relabelSteps': relabelSteps,
 							'balanceCount': balanceCount,
@@ -158,7 +158,7 @@ export function relabelAll() {
 		}
 	}
 
-	assert(d[g.source] >= g.n, 'relabelAll: source-to-sink path present');
+	fassert(d[g.source] >= g.n, 'relabelAll: source-to-sink path present');
 
 	// compute distance labels for remaining vertices
 	q.enq(g.source); d[g.source] = g.n;

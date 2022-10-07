@@ -49,49 +49,49 @@ export default function maxflowHardcase(k1, k2) {
 	let e;
 	for (let i = 0; c1+i < c2-1; i++) {
 		if ((i%4) == 0) { 
-			e = g.join(g.source,c1+i); g.setCapacity(e,k2*k2);
+			e = g.join(g.source,c1+i); g.cap(e,k2*k2);
 		}
-		e = g.join(c1+i,c1+i+1); g.setCapacity(e,k1*k2*k2);
+		e = g.join(c1+i,c1+i+1); g.cap(e,k1*k2*k2);
 	}
 	// build long chain from source
 	for (let i = 0; c2+i < bl-1; i++) {
 		if ((i%4) == 0 && c2+i < bl-3) { 
-			e = g.join(g.source,c2+i); g.setCapacity(e,k2*k2);
+			e = g.join(g.source,c2+i); g.cap(e,k2*k2);
 		}
-		e = g.join(c2+i,c2+i+1); g.setCapacity(e,k1*k2*k2);
+		e = g.join(c2+i,c2+i+1); g.cap(e,k1*k2*k2);
 	}
 	// connect source chains to bipartite graph
 	for (let i = 0; i < k2; i++) {
-		e = g.join(c2-1,bl+i); g.setCapacity(e,k1*k2); 
-		e = g.join(bl-1,br+i); g.setCapacity(e,k1*k2);
+		e = g.join(c2-1,bl+i); g.cap(e,k1*k2); 
+		e = g.join(bl-1,br+i); g.cap(e,k1*k2);
 	}
 	// build central bipartite graph
 	for (let i = 0; i < k2; i++) {
 		for (let j = 0; j < k2; j++) {
-			e = g.join(bl+i, br+j); g.setCapacity(e,1);
+			e = g.join(bl+i, br+j); g.cap(e,1);
 		}
 	}
 	// connect bipartite graph to sink chains
 	for (let i = 0; i < k2; i++) {
-		e = g.join(bl+i,c3); g.setCapacity(e,k1*k2); 
-		e = g.join(br+i,c4); g.setCapacity(e,k1*k2);
+		e = g.join(bl+i,c3); g.cap(e,k1*k2); 
+		e = g.join(br+i,c4); g.cap(e,k1*k2);
 	}
 	// build long chain to sink
 	for (let i = 0; c3+i < c4-1; i++) {
 		if ((i%4) == 1 && i > 1) {
-			e = g.join(c3+i,g.sink); g.setCapacity(e,k2*k2);
+			e = g.join(c3+i,g.sink); g.cap(e,k2*k2);
 		}
-		e = g.join(c3+i,c3+i+1); g.setCapacity(e,k1*k2*k2);
+		e = g.join(c3+i,c3+i+1); g.cap(e,k1*k2*k2);
 	}
-	e = g.join(c4-1,g.sink); g.setCapacity(e,k2*k2);
+	e = g.join(c4-1,g.sink); g.cap(e,k2*k2);
 	// build short chain to sink
 	for (let i = 0; c4+i < n-1; i++) {
 		if ((i%4) == 3) { 
-			e = g.join(c4+i,g.sink); g.setCapacity(e,k2*k2);
+			e = g.join(c4+i,g.sink); g.cap(e,k2*k2);
 		}
-		e = g.join(c4+i,c4+i+1); g.setCapacity(e,k1*k2*k2);
+		e = g.join(c4+i,c4+i+1); g.cap(e,k1*k2*k2);
 	}
-	e = g.join(n-1,g.sink); g.setCapacity(e,k2*k2);
+	e = g.join(n-1,g.sink); g.cap(e,k2*k2);
 
 	return g;
 }

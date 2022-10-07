@@ -7,7 +7,7 @@
  */
 
 import Top from '../Top.mjs';
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import Scanner from './Scanner.mjs';
 
 /** The ListSet class maintains a collection of disjoint lists defined
@@ -19,44 +19,17 @@ export default class ListSet extends Top {
 	#prev;		// #prev[i] is previous item on list or last for first item,
 				// where last is the last item on the list
 
-	constructor(n, capacity=n) {
+	constructor(n=10, capacity=n) {
 		super(n);
-		if (!capacity) capacity = this.n;
-		this.#init(capacity);
-	}
-
-	#init(capacity) {
-		assert(this.n <= capacity);
 		this.#next = new Int32Array(capacity+1);
 		this.#prev = new Int32Array(capacity+1);
 		// initialize to singleton lists
 		this.#next.fill(0);
-		for (let i = 0; i <= this.n; i++) {
-			this.#prev[i] = i;
-		}
-		this.#prev[0] = 0;
-	}
-
-	reset(n, capacity=n) {
-		assert(n <= capacity);
-		this._n = n; this.#init(capacity);
+		for (let i = 0; i <= this.capacity; i++) this.#prev[i] = i;
 	}
 
 	/** Get the capacity of the list (max number of items it has space for). */
 	get capacity() { return this.#next.length - 1; }
-
-	expand(n) {
-		if (n <= this.n) return;
-		if (n > this.capacity) {
-			let nu = new ListSet(this.n, Math.max(n, ~~(1.5 * this.capacity)));
-			nu.assign(this); this.xfer(nu);
-		}
-		// make singletons from items in expanded range
-		for (let i = this.n+1; i <= n; i++) {
-			this.#next[i] = 0; this.#prev[i] = i;
-		}
-		this._n = n;
-	}
 
 	assign(ls) {
 		if (ls == this) return;
@@ -81,14 +54,14 @@ export default class ListSet extends Top {
 		}
 	}
 
-	isfirst(i) { assert(this.valid(i)); return this.#next[this.#prev[i]] == 0; }
+	isfirst(i) { fassert(this.valid(i)); return this.#next[this.#prev[i]] == 0; }
 	
 	/** Get the last item in a list.
 	 *  @param f is the first item on a list.
 	 *  @return the last item in the list
 	 */
 	last(f) {
-		assert(this.isfirst(f));
+		fassert(this.isfirst(f));
 		return this.#prev[f];
 	}
 
@@ -97,7 +70,7 @@ export default class ListSet extends Top {
 	 *  @return the item that follows i in its list
 	 */
 	next(i) {
-		assert(this.valid(i)); return this.#next[i];
+		fassert(this.valid(i)); return this.#next[i];
 	}
 	
 	/** Get the previous list item.
@@ -108,12 +81,18 @@ export default class ListSet extends Top {
 		return (this.isfirst(i) ? 0 : this.#prev[i]);
 	}
 
+	/** Find the first item in a list. */
+	find(i) {
+		while (this.prev(i)) i = this.prev(i);
+		return i;
+	}
+
 	/** Determine if an item is in a singleton list.
 	 *  @param i is the index of an item
 	 *  @return true if it is the only item in its list, else false
 	 */
 	singleton(i) {
-		assert(this.valid(i));
+		fassert(this.valid(i));
 		return this.#prev[i] == i;
 	}
 	
@@ -122,12 +101,12 @@ export default class ListSet extends Top {
 	 *  @return the first item on the list
 	 */
 	findList(i) {
-		assert(this.valid(i));
+		fassert(this.valid(i));
 		while (this.prev(i) != 0) i = this.prev(i);
 		return i;
 	}
 
-	/** Rotate list l to make i it's first item.
+	/** Rotate list to make i it's first item.
 	 *  @param f is the first item on a list.
 	 *  @param i is another item on the same list
 	 *  @return the modified list
@@ -147,7 +126,7 @@ export default class ListSet extends Top {
 	 *  @return the first item of the modified list, or 0 if f was a singleton
 	 */
 	delete(i, f) {
-		assert(this.valid(i) && this.valid(f) && this.isfirst(f));
+		fassert(this.valid(i) && this.valid(f) && this.isfirst(f));
 		if (this.singleton(f)) return 0;
 		let l = this.last(f); let nf = this.next(f);
 		let pi = this.prev(i); let ni = this.next(i);
@@ -169,10 +148,10 @@ export default class ListSet extends Top {
 	 *  defined to be f1, for non-zero f1
 	 */
 	join(f1, f2) {
-		assert(this.valid(f1) && this.valid(f2));
+		fassert(this.valid(f1) && this.valid(f2));
 		if (f2 == 0 || f1 == f2) return f1;
 		if (f1 == 0) return f2;
-		assert(this.isfirst(f1) && this.isfirst(f2));
+		fassert(this.isfirst(f1) && this.isfirst(f2));
 		let l1 = this.last(f1); let l2 = this.last(f2);
 		this.#next[l1] = f2;
 		this.#prev[f2] = l1;
@@ -182,7 +161,7 @@ export default class ListSet extends Top {
 
 	/** Split a list at an item. */
 	split(f, i) {
-		assert (this.valid(f) && this.valid(i) && this.isfirst(f));
+		fassert (this.valid(f) && this.valid(i) && this.isfirst(f));
 		if (i == 0 || i == f) return;
 		let p = this.prev(i); let s = this.next(i);
 		this.#next[p] = s; this.#prev[s] = p;
@@ -206,17 +185,13 @@ export default class ListSet extends Top {
 	}
 
 	/** Determine if two ListSet are equal.
-	 *  @param ls is a second ListSet or a string representing a
+	 *  @param other is a second ListSet or a string representing a
 	 *  ListSet object
 	 *  @return true if the two ListSet objects contain identical lists.
 	 */
-	equals(ls) {
-		if (this === ls) return true;
-		if (typeof ls == 'string') {
-			let s = ls; ls = new ListSet(this.n); ls.fromString(s);
-		} else if (!(ls instanceof ListSet))
-			return false;
-		if (this.n != ls.n) return false;
+	equals(other) {
+		let ls = super.equals(other);
+		if (typeof ls == 'boolean') return ls;
 		for (let i = 1; i < this.n; i++) {
 			if (this.isfirst(i) != ls.isfirst(i)) return false;
 			if (!this.isfirst(i)) continue;
@@ -226,55 +201,54 @@ export default class ListSet extends Top {
 				if (j1 != j2) return false;
 			} while (j1 != 0);
 		}
-		return true;
+		return ls;
 	}
 	
 	/** Produce a string representation of the object.
-	 *  @param details causes singletons to be shown, when true
+	 *  @param fmt is a pair of format bits that controls presentation
+	 *     01 causes sets to be shown on separate lines
+	 *     10 causes singletons to be shown explictly
 	 *  @param label is a function used to label list items
-	 *  @param pretty causes lists to be separated with newlines
-	 *  @return a string such as "[(a c) (d b g)]".
+	 *  @return a string such as "{[a c] [d b g]}".
 	 */
-	toString(details=0, pretty=0, label=0) {
+	toString(fmt=0, label=0) {
+		if (!label) label = (u => this.x2s(u));
 		let s = '';
 		for (let l = 1; l <= this.n; l++) {
-			if (!this.isfirst(l) || (this.singleton(l) && !details))
+			if (!this.isfirst(l) || (this.singleton(l) && !(fmt&0x2)))
 				continue;
-			if (s.length > 0) s += (pretty ? '\n ' : ' ');
-			s += '(';
-			for (let i = l; i != 0; i = this.next(i)) {
+			if (s.length) s += '';
+			s += '[';
+			for (let i = l; i; i = this.next(i)) {
 				if (i != l) s += ' ';
-				s += this.index2string(i, label);
+				s += label(i);
 			}
-			s += ')';
+			s += ']' + (fmt&0x1 ? '\n' : '');
 		}
-		return '[' + s + (pretty ? ']\n' : ']');
+		return (fmt&0x1 ? `{\n${s}}\n` : `{${s}}`);
 	}
 
 	/** Initialize this from a string representation.
 	 *  @param s is a string, such as produced by toString().
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
+	fromString(s,prop=0) {
 		let sc = new Scanner(s);
-		if (!sc.verify('[')) return false;
-
+		if (!sc.verify('{')) return false;
 		let lists = []; let n = 0; let items = new Set();
-		let l = sc.nextIndexList('(', ')');
-		while (l != null) {
+		for (let l = sc.nextIndexList('[', ']', prop); l;
+				 l = sc.nextIndexList('[', ']', prop)) {
 			for (let i of l) {
 				n = Math.max(i, n);
 				if (items.has(i)) return false;
 				items.add(i);
 			}
 			lists.push(l);
-			l = sc.nextIndexList('(', ')');
 		}
-		if (!sc.verify(']')) return false;
-
-		if (n > this.n) this.reset(n);
+		if (!sc.verify('}')) return false;
+		if (n != this.n) this.reset(n);
 		else this.clear();
-		for (l of lists) {
+		for (let l of lists) {
 			for (let i of l) {
 				if (i != l[0]) this.join(l[0], i);
 			}

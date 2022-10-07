@@ -28,7 +28,7 @@ export default function sptDf(g, s, trace=0) {
 	let h = new FibHeaps(g.n);
 	let inheap = new Int8Array(g.n+1).fill(false);
 	let heapsize = 0;
-	if (trace) ts += g.toString(0,1);
+	if (trace) ts += g.toString(1);
 
 	dist[s] = 0;
 	let root = h.insert(s, s, 0); inheap[s] = true; heapsize++;
@@ -53,8 +53,8 @@ export default function sptDf(g, s, trace=0) {
 		}
 		if (trace) {
 			ts += g.index2string(u) + ' ' +
-				  (link[u] > 0 ? g.edge2string(link[u]) : '-') +
-				   ' ' + dist[u] + ' ' + h.heap2string(root) + '\n';
+				  (link[u] > 0 ? g.e2s(link[u]) : '-') +
+				   ' ' + dist[u] + ' ' + h.toString(root) + '\n';
 		}
 	}
 	return [link, dist, ts, h.getStats()];

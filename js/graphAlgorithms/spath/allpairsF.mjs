@@ -38,7 +38,7 @@ export default function allpairsF(g, trace=false) {
 
 	let ts = '';
 	if (trace)
-		ts += g.toString(0,1) + 'current midpoint plus link updates\n'; 
+		ts += g.toString(1) + 'current midpoint plus link updates\n'; 
     
     // compute distances
 	let updates = 0;

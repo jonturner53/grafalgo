@@ -7,37 +7,32 @@
  */
 
 import { assert, AssertError } from '../../../common/Errors.mjs';
-import List from '../../basic/List.mjs';
-import DualkeySets from '../DualkeySets.mjs';
+import DualKeySets from '../DualKeySets.mjs';
 
 try {
 	console.log('running basic tests');
 
-	let ss = new DualkeySets();
-	ss.fromString('{(b:2:21 a:1:23 d:4:20 c:3:27) ' +
-				  '(h:8:20 g:7:30 j:10:31 i:7:27 f:6:37) (e:5:29)}');
-	assert(ss, '{(b:2:21 a:1:23 d:4:20 c:3:27) (e:5:29) ' +
-			   '(h:8:20 g:7:30 j:10:31 i:7:27 f:6:37)}', 'a1');
-	ss.delete(7);
-	assert(ss, '{(b:2:21 a:1:23 d:4:20 c:3:27) (e:5:29) (g:7:30)' +
-			   '(h:8:20 j:10:31 i:7:27 f:6:37)}', 'a2');
-	ss.join(ss.find(1), 5, ss.find(10));
-	assert(ss, '{(b:2:21 a:1:23 d:4:20 c:3:27 e:5:29 ' +
-			   'h:8:20 j:10:31 i:7:27 f:6:37) (g:7:30)}', 'a3');
-	ss.split(9);
-	assert(ss, '{(b:2:21 a:1:23 d:4:20 c:3:27 e:5:29 f:6:37) ' +
-			   '(g:7:30) (h:8:20 j:10:31) (i:7:27)}', 'a4');
-	let r = ss.find(1); let l = new List();
-	for (let u = ss.first(r); u != 0; u = ss.next(u)) l.enq(u);
-	assert(l, '[a b c d e f]', 'a5');
-	l.clear();
-	for (let u = ss.last(r); u != 0; u = ss.prev(u)) l.enq(u);
-	assert(l, '[f e d c b a]', 'a6');
-	assert(ss.access(2, r), 2, 'a7');
-	assert(ss.access(5, r), 5, 'a8');
-	assert(ss.access(4, r), 4, 'a9');
-	assert(ss.findmin(3, ss.find(1)), 2, 'a10');
-	assert(ss.findmin(5, ss.find(1)), 4, 'a11');
+	let dk = new DualKeySets();
+	dk.fromString('{[b:2:21 a:1:23 d:4:20 c:3:27] ' +
+				  '[h:8:20 g:7:30 j:10:31 i:7:27 f:6:37] [e:5:29]}');
+	assert(dk,'{[b:2:21 a:1:23 d:4:20 c:3:27] [e:5:29] ' +
+			   '[h:8:20 g:7:30 j:10:31 i:7:27 f:6:37]}', 'a1');
+	dk.delete(7);
+	assert(dk, '{[b:2:21 a:1:23 d:4:20 c:3:27] [e:5:29] [g:7:30]' +
+			   '[h:8:20 j:10:31 i:7:27 f:6:37]}', 'a2');
+	dk.join(dk.find(1), 5, dk.find(10));
+	assert(dk, '{[b:2:21 a:1:23 d:4:20 c:3:27 e:5:29 ' +
+			   'h:8:20 j:10:31 i:7:27 f:6:37] [g:7:30]}', 'a3');
+	assert(dk.toString(0x1c), 
+		'{[(a:1:23:23:1 b:2:21:20:2 (c:3:27:27:1 d:4:20:20:1 -)) ' +
+		  '*e:5:29:20:3 ((f:6:37:37:1 i:7:27:27:1 -) h:8:20:20:2 ' +
+		  'j:10:31:31:1)]}', 'a4');
+	let u = dk.findmin(4,5); assert(u, 4, 'a5');
+		u = dk.findmin(3,5); assert(u, 2, 'a6');
+	dk.split(9);
+	assert(dk, '{[b:2:21 a:1:23 d:4:20 c:3:27 e:5:29 f:6:37] ' +
+			   '[g:7:30] [h:8:20 j:10:31] [i:7:27]}', 'a7');
+	assert(!dk.verify(), 'a8 ' + dk.verify());
 
 	console.log('passed tests');
 } catch(e) {

@@ -38,11 +38,22 @@ try {
 
 	assert(l.value(3) == null, 'c1');
 	l.setValue(3, 22); assert(l.value(3), 22, 'c2');
-	l.insert(26, 3, 5); assert(l.value(26), 5, 'c3');
+	l.insert(26, 3, 5);
 	let l2 = new List(); l2.fromString('[a e j b c z d g f m]');
 	assert(l != l2, 'c4');
 	l2.setValue(3, 22); l2.setValue(26, 5);
 	assert(l.equals(l2), 'c5');
+
+	let pvec = new Array(10);
+	let prop = (u,sc) => {
+					if (!sc.verify(':')) return;
+					let p = sc.nextNumber();
+					if (Number.isNaN(p)) return;
+					pvec[u] = p;
+				};
+	l.fromString('[a:1 b:2 e:5 d:4]', prop);
+	assert(l,'[a b e d]', 'd1');
+	assert(pvec[4], 4, 'd2');
 
 	console.log('passed tests');
 } catch(e) {

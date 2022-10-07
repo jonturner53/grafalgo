@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import findSplit from '../misc/findSplit.mjs';
 import bimatchHK from '../match/bimatchHK.mjs';
 import { match2string } from '../match/match.mjs';

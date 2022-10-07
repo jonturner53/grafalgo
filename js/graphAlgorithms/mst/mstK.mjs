@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import Sets from '../../dataStructures/basic/Sets.mjs';
+import MergeSets from '../../dataStructures/basic/MergeSets.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 /** Find a minimum spanning tree of g using Kruskal's algorithm.
@@ -23,19 +23,19 @@ export default function mstK(g, trace=0) {
 	edges.sort((e1, e2) => g.weight(e1) - g.weight(e2));
 	let traceString = '';
 	if (trace) {
-		traceString += g.toString(0,1) + 'sorted edge list\n' +
+		traceString += g.toString(1) + 'sorted edge list\n' +
 					   g.elist2string(edges) + '\n\n' +
 					   'selected tree edge, disjoint sets\n';
 	}
 
 	// now examine edges in order, merging separate subtrees
-	let treeEdges = []; let subtrees = new Sets(g.n);
+	let treeEdges = []; let subtrees = new MergeSets(g.n);
 	for (let i = 0; i < edges.length; i++) {
 		let e = edges[i];
 		let u = g.left(e); let v = g.right(e);
 		let cu = subtrees.find(u); let cv = subtrees.find(v);
 		if (cu != cv) {
-			treeEdges.push(e); subtrees.link(cu, cv);
+			treeEdges.push(e); subtrees.merge(cu, cv);
 			if (trace) {
 				traceString += g.edge2string(e) + ' ' + subtrees + '\n';
 			}

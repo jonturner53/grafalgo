@@ -9,7 +9,6 @@
 import { assert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
-import Sets from '../../dataStructures/basic/Sets.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import components from '../misc/components.mjs';
 import nca from '../misc/nca.mjs';
@@ -35,7 +34,7 @@ export default function mstVerify(G, elist) {
 		if (!g.validEdge(e))
 			return `mstVerify: edge ${e} is not in g`
 		let ee = t.join(g.left(e), g.right(e));
-		t.setWeight(ee, g.weight(e));
+		t.weight(ee, g.weight(e));
 	}
 
 	let [tcc, tcomp] = components(t);

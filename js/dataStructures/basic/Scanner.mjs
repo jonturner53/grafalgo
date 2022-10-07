@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 
 /** The Scanner class provides methods to parse a string incrementally.
@@ -183,41 +183,32 @@ export default class Scanner extends Top {
 	 *  By convention, data structures with an index range <=26
 	 *  have a string representation that substitutes lower-case
 	 *  letters for the index values used internally (so 1 becomes 'a',
-	 *  2 becomes 'b' and so forth). On input, if the next non-space
-	 *  character is a lower-case letter, we replace 'a' with 1, etc.
+	 *  2 becomes 'b' and so forth; also 0 becomes '-'). On input, if the
+	 *  next non-space character is a lower-case letter or a dash,
+	 *  the corresponding integer is returned.
 	 *  If the next non-space character is a digit, we read an integer
 	 *  and interpret it as an index.
-	 *  @return the index value on success, else 0
+	 *  @prop is an optional function that is called just before nextIndex
+	 *  returns, with arguments u and sc; u is the index value just read
+	 *  and sc is this scanner; prop can be used to extract additional
+	 *  information from the input string and save it in the caller's context
+	 *  @return the index value on success, else -1
 	 */
-	nextIndex() {
+	nextIndex(prop=0) {
+		let u = 0;
 		let i0 = this.firstNonSpace();
-		if (this.islower(this.#s[i0])) {
+		if (this.#s.charCodeAt(i0) == '-'.charCodeAt(0)) {
+			this.#i = i0 + 1; u = 0;
+		} else if (this.islower(this.#s[i0])) {
 			this.#i = i0 + 1; 
-			return this.#s.charCodeAt(i0) - ('a'.charCodeAt(0) - 1);
+			u = this.#s.charCodeAt(i0) - ('a'.charCodeAt(0) - 1);
+		} else {
+			u = this.nextInt();
+			if (Number.isNaN(u)) return -1;
 		}
-		let value = this.nextInt();
-		if (Number.isNaN(value)) return 0;
-		return value;
+		if (prop) prop(u, this);
+		return u;
 	}
-
-	/** Get the next index list from the scanned string.
-	 *  @param ld is the left delimiter for the index list (for example '[')
-	 *  @param rd is the right delimiter for the index list (for example '[')
-	 *  @return list on success, null on failure
-	nextIndexList(ld, rd) {
-		let l = [];
-		let i0 = this.#i;
-		if (!this.verify(ld)) return null;
-		let x = this.nextIndex();
-		while (x != 0) {
-			l.push(x); x = this.nextIndex();
-		}
-		if (!this.verify(rd)) {
-			this.#i = i0; l.length = 0; return null;
-		}
-		return l;
-	}
-	 */
 
 	/** Get the next list of index values from the scanned string.
 	 *  The list items may include one or more properties, separated by ':'s.
@@ -228,10 +219,23 @@ export default class Scanner extends Top {
 	 *  the form [i,p1,p2 ..] where i is an index and p1, p2 etc are
 	 *  property values
 	 */
+	nextIndexList(ld, rd, prop=0) {
+		let l = []; let i0 = this.#i;
+		if (!this.verify(ld)) return null;
+		for (let i = this.nextIndex(prop); i >= 0; i = this.nextIndex(prop)) {
+			l.push(i);
+		}
+		if (!this.verify(rd)) {
+			this.#i = i0; l.length = 0; return null;
+		}
+		return l;
+	}
+
+/*
 	nextIndexList(ld, rd, pcount=0) {
 		let l = []; let i0 = this.#i;
 		if (!this.verify(ld)) return null;
-		for (let i = this.nextIndex(); i; i = this.nextIndex()) {
+		for (let i = this.nextIndex(); i>=0; i = this.nextIndex()) {
 			if (pcount == 0) { l.push(i); continue; }
 			let tup = [i];
 			for (let j = 1; j <= pcount; j++) {
@@ -247,6 +251,7 @@ export default class Scanner extends Top {
 		}
 		return l;
 	}
+*/
 
 	nextPairList(ld, rd) { return this.nextIndexList(ld, rd, 1); }
 

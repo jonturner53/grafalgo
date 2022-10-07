@@ -7,7 +7,7 @@
  */
 
 import Top from '../Top.mjs';
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import Scanner from './Scanner.mjs';
 
 /** Data structure representing a list of unique integers.
@@ -35,49 +35,40 @@ export default class List extends Top {
 	 *  @param n is the range for the list
 	 *  @param capacity is the max storage capacity
 	 */
-	constructor(n, capacity=n) {
+	constructor(n=10, capacity=n) {
 		super(n);
-		if (!capacity) capacity = this.n;
-		this.#init(capacity);
-	}
-
-	#init(capacity) {
-		assert(capacity >= this.n);
 		this.#next = new Int32Array(capacity+1).fill(-1);
 		this.#next[0] = this.#first = this.#last = this.#length = 0;
-		if (this.#prev) this.#prev = new Int32Array(capacity+1);
-		if (this.#value) {
-			this.#value = new Array(capacity+1).fill(null);
-				// allow values to have any type
-		}
+		this.#prev = this.#value = null;
 	}
 
 	addPrev() {
+		if (this.hasPrev) return;
 		this.#prev = new Int32Array(this.capacity+1);
-		this.#prev[this.first()] = 0;
-		for (let i = this.first(); i != 0; i = this.next(i))
-			if (this.next(i) != 0) this.#prev[this.next(i)] = i;
+		for (let i = this.first(); i; i = this.next(i))
+			if (this.next(i)) this.#prev[this.next(i)] = i;
 	}
+	get hasPrev() { return this.#prev ? true : false; }
 
 	addValues() {
+		if (this.hasValues) return;
 		this.#value = new Array(this.#next.length).fill(null);
 	}
+	get hasValues() { return this.#value ? true : false; }
 
-	/** Reset the range and max capacity of the list; discard value. 
-	 *  @param n is the range of the index set
-	 *  @param capacity is the max range for which space is to be allocated
+	/** Get the value of an item.
+	 *  @param i is an integer
+	 *  @return the value of i or null if i is not a valid item or no value
+	 *  has been assigned to it
 	 */
-	reset(n, capacity=n) {
-		assert(capacity >= n); this._n = n; this.#init(capacity);
+	value(i) {
+		if (!this.valid(i) || !this.hasValues) return null;
+		return this.#value[i];
 	}
-
-	expand(n) {
-		if (n <= this.n) return;
-		if (n > this.capacity) {
-			let nu = new List(this.n, Math.max(n, ~~(1.5 * this.capacity)));
-			nu.assign(this); this.xfer(nu);
-		}
-		this._n = n;
+	setValue(i, v) {
+		if (!this.valid(i)) return;
+		if (!this.hasValues) this.addValues();
+		this.#value[i] = v;
 	}
 
 	/** Assign new value to list from another. 
@@ -87,10 +78,13 @@ export default class List extends Top {
 		if (l == this) return;
 		if (l.n > this.capacity) this.reset(l.n);
 		else { this.clear(); this._n = l.n; }
-		if (l.#prev && !this.#prev) this.addPrev();
-		if (l.#value && !this.#value) this.addValues();
+		if (l.hasPrev && !this.hasPrev) this.addPrev();
+		if (l.hasValues && !this.hasValues) this.addValues();
+		if (this.hasValues) {
+			for (let i = 0; i <= this.n; i++) this.setValue(i,l.value(i));
+		}
 		for (let i = l.first(); i != 0; i = l.next(i)) {
-			if (this.#value) this.enq(i, l.value(i));
+			if (this.hasValues) this.enq(i, l.value(i));
 			else this.enq(i);
 		}
 	}
@@ -173,26 +167,6 @@ export default class List extends Top {
 	 */
 	contains(i) { return this.valid(i) && i != 0 && this.#next[i] != -1; } 
 
-	/** Get the value of an item.
-	 *  @param i is an integer
-	 *  @return the value of i or null if i is not a valid item or no value
-	 *  has been assigned to it
-	 */
-	value(i) {
-		return this.#value && this.valid(i) && this.#value[i] ?
-					this.#value[i] : null;
-	}
-
-	/** Set the value of an item.
-	 *  @param i is a list item
-	 *  @param value is a for i
-	 */
-	setValue(i, value) {
-		assert(this.valid(i) && i != 0);
-		if (!this.#value) this.addValues();
-		this.#value[i] = value;
-	}
-
 	/** Insert an item into the list, relative to another. 
 	 *  @param i is item to insert
 	 *  @param j is item after which i is to be inserted;
@@ -201,7 +175,7 @@ export default class List extends Top {
 	 */
 	insert(i, j, value=null) {
 		if (i > this.n) this.expand(i);
-		assert(this.valid(i) && i != 0 && !this.contains(i) &&
+		fassert(this.valid(i) && i != 0 && !this.contains(i) &&
 					   (j == 0 || this.contains(j)));
 		if (value != null) this.setValue(i, value);
 		if (j == 0) {
@@ -224,7 +198,7 @@ export default class List extends Top {
 	 *  @return the item that follows the deleted item
 	 */
 	deleteNext(i) {
-		assert(i == 0 || this.contains(i));
+		fassert(i == 0 || this.contains(i));
 		if (i == this.last()) return 0;
 		let j;
 		if (i == 0) { j = this.#first;   this.#first = this.#next[j]; }
@@ -238,9 +212,8 @@ export default class List extends Top {
 				this.#prev[this.next(i)] = i;
 			this.#prev[j] = 0;
 		}
-		if (this.#value) this.#value[j] = null;
+		if (this.hasValues) this.setValue(j,null);
 		return (i == 0 ? this.first() : this.next(i));
-		//return j;
 	}
 
 	/** Remove a specified item.
@@ -248,7 +221,7 @@ export default class List extends Top {
 	 *  @return item that follows i
 	 */
 	delete(i) {
-		assert(this.valid(i));
+		fassert(this.valid(i));
 		if (!this.contains(i)) return;
 		return (i == this.first() ? this.deleteNext(0) :
 									this.deleteNext(this.prev(i)));
@@ -283,42 +256,31 @@ export default class List extends Top {
 	deq() { return this.pop(); }
 
 	/** Compare two lists for equality.
-	 *
-	 *  @param l is the list to be compared to this one
+	 *  @param other is the list to be compared to this one or a string
 	 *  @return true if they are the same list or have the
-	 *  same contents (in the same order);
-	 *  they need not have the same capacity to be equal
+	 *  same contents (in the same order)
 	 */
-	equals(l) {
-		if (this === l) return true;
-		if (typeof l == 'string') {
-			let s = l; l = new List(this.n); l.fromString(s);
-		} else if (!(l instanceof List)) {
-			return false;
-		}
-		if (this.length != l.length) return false;
+	equals(other) {
+		let l = super.equals(other); 
+		if (typeof l == 'boolean') return l;
 		let j = l.first();
 		for (let i = this.first(); i != 0; i = this.next(i)) {
 			if (i != j) return false;
 			if (this.value(i) != l.value(j)) return false;
 			j = l.next(j);
 		}
-		return j == 0;
+		return j == 0 ? l : false;
 	}
 
 	/** Compare two lists for set equality.
-	 *  @param l is the list to be compared to this one
+	 *  @param other is the list to be compared to this one
 	 *  @return true if they contain the same items, but not
 	 *  necessarily in the same order.
 	 */
-	matches(l) {
-		if (this === l) return true;
-		if (typeof l == 'string') {
-			let s = l; l = new List(this.n); l.fromString(s);
-		} else if (!(l instanceof List)) {
-			return false;
-		}
-		if (this.length != l.length) return false;
+	setEquals(other) {
+		let l = this._equals(other); 
+		if (!l) return false;
+		// l is now guaranteed to be an object that can be compared
 		for (let i = this.first(); i != 0; i = this.next(i))
 			if (!l.contains(i)) return false;
 		return true;
@@ -329,23 +291,26 @@ export default class List extends Top {
 	 *  for an item
 	 *  @return the string representation of the list
 	 */
-	toString(label=false) {
-		let s = "[";
-		for (let i = this.first(); i != 0; i = this.next(i)) {
-			if (i != this.first()) s += " ";
-			s += this.index2string(i, label);
-			if (this.#value) s += ':' + this.value(i);
+	toString(label=0) {
+		if (!label) {
+			label = (u => this.x2s(u) +
+					 (this.#value ? ':' + this.value(u) : ''));
 		}
-		return s + "]";
+		let s = '';
+		for (let i = this.first(); i != 0; i = this.next(i)) {
+			if (i != this.first()) s += ' ';
+			s += label(i);
+		}
+		return '[' + s + ']';
 	}
 	
 	/** Initialize this from a string representation.
 	 *  @param s is a string, such as produced by toString().
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
+	fromString(s,prop=0) {
 		let sc = new Scanner(s);
-		let l = sc.nextIndexList('[', ']');
+		let l = sc.nextIndexList('[', ']',prop);
 		if (l == null) return false;
 		let n = 0; let items = new Set();
 		for (let i of l) {

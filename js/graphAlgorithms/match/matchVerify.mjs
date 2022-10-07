@@ -7,7 +7,7 @@
  */
 
 import List from '../../dataStructures/basic/List.mjs';
-import Sets from '../../dataStructures/basic/Sets.mjs';
+import MergeSets from '../../dataStructures/basic/MergeSets.mjs';
 
 let g;         // shared reference to graph
 let blossoms;  // set per blossom
@@ -25,7 +25,7 @@ let match;     // matching edge at a vertex
  */
 export default function matchVerify(mg, match) {
 	g = mg;
-	blossoms = new Sets(g.n);
+	blossoms = new MergeSets(g.n);
 	origin = new Int32Array(g.n+1);
 	state = new Int8Array(g.n+1);
 	link = new Int32Array(g.n+1);

@@ -31,10 +31,10 @@ let g = new Graph(); g.fromString(
 	 	'e[f:1 g:3] f[e:1 g:2 h:3] g[e:3 f:2 h:1] i[j:5] j[i:5]}');
 tester.addTest('small 3 component graph', g);
 
-g = randomConnectedGraph(10, 3); g.randomWeights(randomInteger, 0, 99);
+g = randomConnectedGraph(10, 3); g.randomWeights(randomInteger, 0, 9);
 tester.addTest('small random graph', g);
 
-g = randomGraph(1000, 20); g.randomWeights(randomFraction);
+g = randomGraph(1000, 20); g.randomWeights(randomInteger, 0, 99);
 tester.addTest('large random graph', g);
 
 tester.run();

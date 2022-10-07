@@ -23,7 +23,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 export default function mstP(g, trace=0, d=2+Math.floor(g.m/g.n)) {
 	let traceString = '';
 	if (trace) {
-		traceString += g.toString(0,1) + '\n' +
+		traceString += g.toString(1) + '\n' +
 			  'selected vertex, tree edge, heap contents\n';
 	}
 

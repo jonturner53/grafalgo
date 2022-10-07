@@ -44,7 +44,7 @@ export default function maxflowD(fg, trace=false) {
 			steps += augsteps;
 		}
 	}
-	if (trace) ts += g.toString(0,1);
+	if (trace) ts += g.toString(1);
 	return [ts, {'phases': phases, 'paths': paths, 'steps': steps} ];
 }
 

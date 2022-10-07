@@ -7,7 +7,7 @@
  */
 
 import Top from '../Top.mjs';
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import Scanner from './Scanner.mjs';
 
 /** Data structure that represents a pair of complementary index lists.
@@ -19,79 +19,48 @@ import Scanner from './Scanner.mjs';
  *  Initially, all items are in the out list.
  */
 export default class ListPair extends Top {
-	#n1;		///< number of items in in-list
-	#n2;		///< number of items in out-list
+	#n1;		// number of items in in-list
+	#n2;		// number of items in out-list
 
-	#first1;	///< first item in the in-list
-	#last1;	    ///< last item in the in-list
-	#first2;	///< first item in the out-list
-	#last2	    ///< last item in the out-list
-	#next;		///< #next[i] defines next item after i
-				///< in items use positive #next values
-				///< out items use negative #next values
-	#prev;		///< #prev[i] defines item preceding i
-				///< in items use positive #prev values
-				///< out items use negative #prev values
+	#first1;	// first item in the in-list
+	#last1;	    // last item in the in-list
+	#first2;	// first item in the out-list
+	#last2	    //last item in the out-list
+	#next;		// #next[i] defines next item after i
+				// in items use positive #next values
+				// out items use negative #next values
+	#prev;		// #prev[i] defines item preceding i
+				// in items use positive #prev values
+				// out items use negative #prev values
 	
 	/** Constructor for list pair.
 	 *  @param n specifies the range of integer values
 	 *  @param capacity specifies the maximum range to provide space for
 	 */
-	constructor(n, capacity=n) {
+	constructor(n=10, capacity=n) {
 		super(n);
-		if (!capacity) capacity = this.n;
-		this.#init(capacity);
-	}
-
-	/** Allocate space and initialize.
-	 *  @param capacity is the maximum range
-	 */
-	#init(capacity) {
-		assert(this.n <= capacity);
 		this.#next = new Int32Array(capacity+1);
 		this.#prev = new Int32Array(capacity+1);
 		this.#first1 = this.#last1 = 0;
 		this.#first2 = 1; this.#last2 = this.n;
-		for (let i = 1; i <= this.n; i++) {
-			this.#next[i] = -(i+1); this.#prev[i] = -(i-1);
+		for (let i = 1; i <= capacity; i++) {
+			this.#next[i] = i+1; this.#prev[i] = -(i-1);
 		}
 		this.#next[this.n] = this.#prev[1] = 0;
-		this.#next[0] = this.#prev[0] = 0;
 		this.#n1 = 0; this.#n2 = this.n;
 	}
-	
-	/** Reset the list to support a different range and capacity.
-	 *  Amount of space allocated is determined by value of this.n.
-	 *  @param n specifies the range of integer values
-	 *  @param capacity specifies the maximum range to provide space for
-	 */
-	reset(n, capacity=n) {
-		assert(n <= capacity); this._n = n; this.#init(capacity);
-	}
-	
-	/** Expand the space available for this ListPair.
-	 *  Rebuilds old value in new space.
-	 *  @param n is the range of the expanded object.
+
+	/** Expand index range and possibly the space.
+	 *  Default version does not suffice here;
+	 *  must also add new list items to second list.
 	 */
 	expand(n) {
-		assert(n > 0);
 		if (n <= this.n) return;
-		if (n > this.capacity) {
-			let nu = new ListPair(this.n, Math.max(n, ~~(1.5 * this.capacity)));
-			nu.assign(this); this.xfer(nu);
-		}
-		for (let i = this.n+1; i <= n; i++) {
-			this.#next[i] = -(i+1); this.#prev[i] = -(i-1);
-		}
-		if (this.#first2 == 0) {
-			this.#first2 = this.n+1; this.#prev[this.#first2] = 0;
-		} else {
-			this.#next[this.#last2] = -(this.n+1);
-			this.#prev[this.n+1] = -this.#last2;
-		}
-		this.#last2 = n; this.#next[this.#last2] = 0;
-		this.#n2 = n - this.#n1;
-		this._n = n;
+		let n0 = this.n;
+		super.expand(n);
+		this.#next[this.#last2] = n0+1; this.#prev[n0+1] = -this.#last2;
+		this.#next[n] = 0; this.#last2 = n;
+		this.#n2 += n-n0;
 	}
 	
 	/** Assign one ListPair to another by copying its contents.
@@ -129,8 +98,8 @@ export default class ListPair extends Top {
 	 *  @param return true if i is a member of the "in-list", else false.
 	 */
 	in1(i) {
-		assert(this.valid(i));
-		return this.#next[i] > 0 || i == this.#last1;
+		fassert(this.valid(i), `ListPair.in1: invalid list item ${i} (n=${this.n})`);
+		return this.#prev[i] > 0 || i == this.#first1;
 	}
 	
 	/** Determine if an int belongs to the "out-list".
@@ -138,8 +107,8 @@ export default class ListPair extends Top {
 	 *  @param return true if i is a member of the "out-list", else false.
 	 */
 	in2(i) {
-		assert(this.valid(i));
-		return this.#next[i] < 0 || i == this.#last2;
+		fassert(this.valid(i));
+		return this.#prev[i] < 0 || i == this.#first2;
 	}
 	
 	/** Get the number of elements in list 1.  */
@@ -173,7 +142,7 @@ export default class ListPair extends Top {
 	 *  @return the next int on the in-list or 0 if no more values
 	 */
 	next1(i) {
-		assert(this.in1(i)); return this.#next[i];
+		fassert(this.in1(i)); return this.#next[i];
 	}
 	
 	/** Get the next value in the list2.
@@ -181,7 +150,7 @@ export default class ListPair extends Top {
 	 *  @return the next value on the out-list or 0 if no more values
 	 */
 	next2(i) {
-		assert(this.in2(i)); return -this.#next[i];
+		fassert(this.in2(i)); return this.#next[i];
 	}
 	
 	/** Get the previous value in list 1.
@@ -189,7 +158,7 @@ export default class ListPair extends Top {
 	 *  @return the previous value on the in-list or 0 if no more values
 	 */
 	prev1(i) {
-		assert(this.in1(i)); return this.#prev[i];
+		fassert(this.in1(i)); return this.#prev[i];
 	}
 	
 	/** Get the previous value in list 2.
@@ -197,19 +166,16 @@ export default class ListPair extends Top {
 	 *  @return the previous value on the out-list or 0 if no more values
 	 */
 	prev2(i) {
-		assert(this.in2(i)); return -this.#prev[i];
+		fassert(this.in2(i)); return -this.#prev[i];
 	}
 	
 	/** Compare two list pairs for equality.
-	 *  @param lp is another list pair
-	 *  @return true if the in-lists are identical; the out-lists may differ
+	 *  @param other is another list pair or a string
+	 *  @return true if the two lists are identical
 	 */
-	equals(lp) {
-		if (lp === this) return true;
-		if (typeof lp == 'string') {
-			let s = lp; lp = new ListPair(this.n); lp.fromString(s);
-		}
-		if (!(lp instanceof ListPair)) return false;
+	equals(other) {
+		let lp = super.equals(other);
+		if (typeof lp == 'boolean') return lp;
 		if (this.n1 != lp.n1 || this.n2 != lp.n2) return false;
 		let i = this.first1(); let j = lp.first1();
 		while (i != 0) {
@@ -221,7 +187,7 @@ export default class ListPair extends Top {
 			if (i != j) return false;
 			i = this.next2(i); j = lp.next2(j);
 		}
-		return true;
+		return lp;
 	}
 	
 	/** Remove all elements from inSet. */
@@ -236,8 +202,8 @@ export default class ListPair extends Top {
 	swap(i, j=-1) {
 		if (j < 0) j = this.in1(i) ? this.last2() : this.last1();
 
-		assert(this.valid(i) && i != 0 && this.valid(j));
-		assert((this.in1(i)  && (j == 0 || this.in2(j))) ||
+		fassert(this.valid(i) && i != 0 && this.valid(j));
+		fassert((this.in1(i)  && (j == 0 || this.in2(j))) ||
 			   (this.in2(i) && (j == 0 || this.in1(j))));
 
 		if (this.in1(i)) {
@@ -252,21 +218,21 @@ export default class ListPair extends Top {
 				this.#next[i] = this.#prev[i] = 0;
 				this.#first2 = this.#last2 = i;
 			} else if (j == 0) {
-				this.#next[i] = -this.#first2; this.#prev[i] = 0;
+				this.#next[i] = this.#first2; this.#prev[i] = 0;
 				this.#prev[this.#first2] = -i; this.#first2 = i;
 			} else if (j == this.#last2) {
-				this.#next[j] = -i; this.#prev[i] = -j;
+				this.#next[j] = i; this.#prev[i] = -j;
 				this.#next[i] = 0; this.#last2 = i;
 			} else {
 				this.#next[i] = this.#next[j]; this.#prev[i] = -j; 
-				this.#prev[-this.#next[j]] = -i; this.#next[j] = -i;
+				this.#prev[this.#next[j]] = -i; this.#next[j] = i;
 			}
 			this.#n1--; this.#n2++;
 		} else {
 			// first remove i from out-list
 			if (i == this.last2()) this.#last2 = -this.#prev[i];
-			else this.#prev[-this.#next[i]] = this.#prev[i];
-			if (i == this.first2()) this.#first2 = -this.#next[i];
+			else this.#prev[this.#next[i]] = this.#prev[i];
+			if (i == this.first2()) this.#first2 = this.#next[i];
 			else this.#next[-this.#prev[i]] = this.#next[i];
 	
 			// now add i to in-list
@@ -289,25 +255,22 @@ export default class ListPair extends Top {
 	}
 	
 	/** Create a string representation of a given string.
-	 *  @param details enables inclusion of out-string when true,
-	 *  otherwise, only the in-string is shown
-	 *  @param label is a function used to label list items
-	 *  not as letters
-	 *  @param pretty uses newline to separate in-list from out-list
+	 *  @param label is an optional function used to produce item strings.
 	 *  @return the string
 	 */
-	toString(details=0, pretty=0, label=0) {
+	toString(label=0) {
+		if (!label) label = (u => this.x2s(u));
 		let s = '';
 		for (let i = this.first1(); i != 0; i = this.next1(i)) {
-			s += this.index2string(i, label);
+			s += label(i);
 			if (i != this.last1()) s += ' ';
 		}
-		s += (pretty ? '\n:' : ' : ');
+		s += ' : ';
 		for (let i = this.first2(); i != 0; i = this.next2(i)) {
-			s += this.index2string(i, label);
+			s += label(i);
 			if (i != this.last2()) s += ' ';
 		}
-		return (pretty ? '[' + s + ']\n' : '[' + s + ']');
+		return '[' + s + ']';
 	}
 
 	/** Initialize this from a string representation.
