@@ -1,4 +1,4 @@
-/** \file splaySets.mjs
+/** \file balancedSplaySets.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,12 +8,12 @@
 
 import { assert, AssertError } from '../../../common/Errors.mjs';
 import List from '../../basic/List.mjs';
-import SplaySets from '../SplaySets.mjs';
+import BalancedSplaySets from '../BalancedSplaySets.mjs';
 
 try {
 	console.log('running basic tests');
 
-	let ss = new SplaySets();
+	let ss = new BalancedSplaySets();
 	ss.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}');
 	assert(ss, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}', 'a1');
 	ss.delete(7);

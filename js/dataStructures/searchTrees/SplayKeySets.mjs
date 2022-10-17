@@ -1,4 +1,4 @@
-/** @file SplaySets.mjs
+/** @file SplayKeySets.mjs
  *
  *  @author Jon Turner
  *  @date 2022
@@ -13,7 +13,7 @@ import SplayForest from './SplayForest.mjs';
 /** This class implements a balanced binary search tree class.
  *  It partitions the index set into multiple search trees.
  */
-export default class SplaySets extends SplayForest {
+export default class SplayKeySets extends SplayForest {
 	#key;
 
 	/** Constructor for SplaySets object.
@@ -25,18 +25,18 @@ export default class SplaySets extends SplayForest {
 		this.#key = new Float32Array(this.capacity+1);
 	}
 
-	/** Assign a new value by copying from another SimpleKeySets object.
-	 *  @param ks is another SimpleKeySets object
+	/** Assign a new value by copying from another SplayKeySets object.
+	 *  @param ks is another SplayKeySets object
 	 */
 	assign(ks) {
-		if (ks == this || !(ks instanceof SimpleKeySets)) return;
+		if (ks == this || !(ks instanceof SplayKeySets)) return;
 		super.assign(ks);
 		for (u = 1; u <= ks.n; u++) this.key(u, ks.key(u));
 		this.clearStats();
 	}
 	
-	/** Assign a new value by transferring from another SimpleKeySets.
-	 *  @param ks is another SimpleKeySets object.
+	/** Assign a new value by transferring from another SplayKeySets.
+	 *  @param ks is another SplayKeySets object.
 	 */
 	xfer(ks) {
 		if (ks == this) return;

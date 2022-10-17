@@ -9,12 +9,12 @@
 import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import ListSet from '../basic/ListSet.mjs';
-import KeySets from './KeySets.mjs';
+import BalancedKeySets from './BalancedKeySets.mjs';
 
 /** This class implements a balanced binary search tree class.
  *  It partitions the index set into multiple search trees.
  */
-export default class DualKeySets extends KeySets {
+export default class DualKeySets extends BalancedKeySets {
 	#key2;		 // #key2[u] is second key value
 	#min2;		 // #min2[u] is the smallest key2 value in the subtree at u
 
