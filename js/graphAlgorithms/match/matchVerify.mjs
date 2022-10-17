@@ -15,11 +15,10 @@ let origin;    // original vertex for each blossom
 let state;     // state used in path search
 let link;     // edge to parent in tree
 let mark;      // mark bits used by nca
-let match;     // matching edge at a vertex
 
 /** Verify a maximum matching.
  *  @param mg is an undirected graph
- *  @param match is a an array of matching edges incident to vertices
+ *  @param match is a Matching object
  *  @return a string which is empty if match is a maximum matching,
  *  else it describes an error
  */
@@ -37,7 +36,7 @@ export default function matchVerify(mg, match) {
 	let q = new List(g.edgeRange); // list of edges to be processed in main loop
 	for (let u = 1; u <= g.n; u++) {
 		origin[u] = u;
-		if (match[u] == 0) {
+		if (!match.at(u)) {
 			state[u] = even;
 			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 				if (!q.contains(e)) q.enq(e);
@@ -54,11 +53,11 @@ export default function matchVerify(mg, match) {
 		if (state[vp] == unreached) {
 			// v is not contained in a blossom and is matched
 			// so extend tree and add newly eligible edges to q
-			let w = g.mate(v,match[v]);
+			let w = g.mate(v,match.at(v));
 			state[v] = odd;  link[v] = e;
-			state[w] = even; link[w] = match[v];
+			state[w] = even; link[w] = match.at(v);
 			for (let ee = g.firstAt(w); ee != 0; ee = g.nextAt(w,ee)) {
-				if ((ee != match[w]) && !q.contains(ee))
+				if ((ee != match.at(w)) && !q.contains(ee))
 					q.enq(ee);
 			}
 			continue;
@@ -71,9 +70,9 @@ export default function matchVerify(mg, match) {
 		// up and vp are in same tree - collapse blossom
 		let x = up;
 		while (x != a) {
-			origin[blossoms.link(blossoms.find(x), blossoms.find(a))] = a;
+			origin[blossoms.merge(blossoms.find(x), blossoms.find(a))] = a;
 			x = g.mate(x,link[x]); // x now odd
-			origin[blossoms.link(x,blossoms.find(a))] = a;
+			origin[blossoms.merge(x,blossoms.find(a))] = a;
 			for (let ee = g.firstAt(x); ee != 0; ee = g.nextAt(x,ee)) {
 				if (!q.contains(ee)) q.enq(ee);
 			}
@@ -81,10 +80,10 @@ export default function matchVerify(mg, match) {
 		}
 		x = vp;
 		while (x != a) {
-			origin[blossoms.link(blossoms.find(x),
+			origin[blossoms.merge(blossoms.find(x),
 					      blossoms.find(a))] = a;
 			x = g.mate(x,link[x]); // x now odd
-			origin[blossoms.link(x,blossoms.find(a))] = a;
+			origin[blossoms.merge(x,blossoms.find(a))] = a;
 			for (let ee = g.firstAt(x); ee != 0; ee = g.nextAt(x,ee)) {
 				if (!q.contains(ee)) q.enq(ee);
 			}

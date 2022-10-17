@@ -1,4 +1,4 @@
-/** @file wmatchGMG0.mjs
+/** @file wmatchE.mjs
  *
  *  @author Jon Turner
  *  @date 2022
@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { fassert } from '../../common/Errors.mjs';
 import Matching from './Matching.mjs';
 import Blossoms from './Blossoms.mjs';
 import List from '../../dataStructures/basic/List.mjs';
@@ -30,8 +30,8 @@ let deblossoms; // number of odd blossoms expanded
 let relabels;   // number of relabeling steps
 let steps;      // total number of steps
 
-/** Compute a maximum weighted matching in a graph using Galil, Micali
- *  Gabows' implementation of Edmonds's weighted matching algorithm.
+/** Compute a maximum weighted matching in a graph using a
+ *  Edmonds's weighted matching algorithm.
  *  @param g is an undirected graph with weights
  *  @param trace causes a trace string to be returned when true
  *  @return a triple [match, ts, stats] where match is an array
@@ -59,21 +59,21 @@ export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 
 	for (let u = 1; u <= g.n; u++) q.enq(u);
 
-	if (trace) {
-        traceString += `${g.toString(0,1)}\n`;
-	}
+	if (trace) { traceString += `${g.toString(1)}`; }
 
 	while (true) {
 		if (trace) {
-			if (bloss.toString().length > 3) {
-				traceString += bloss.toString(1,1);
-			}
+			traceString += '\n';
+			if (bloss.toString().length > 3)
+				traceString += bloss.toString(1);
 		}
+		/*
 		let s = verifyInvariant();
 		if (s) {
 			s = traceString + 'Error: ' + s + '\n' + statusString();
 			console.log(s); return [match, s];
 		}
+		*/
 
 		while (!q.empty()) {
 			let u = q.deq(); let bu = bloss.outer(u);
@@ -81,9 +81,34 @@ export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 			for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 				steps++;
 				let v = g.mate(u,e); let bv = bloss.outer(v);
-				if (bv != bu) {
-					if (slack(e) > 0) continue;
-					if (searchStep(e,u,v,bu,bv)) break;
+				if (bv == bu || slack(e) > 0) continue;
+				if (bloss.state(bv) == 0) {
+					let bw = bloss.addBranch(e,v,bv); add2q(bw);
+					if (trace) traceString += `branch: ${g.x2s(u)} ${g.e2s(e)} ` +
+											  `${g.e2s(match.at(bloss.base(bv)))}\n`;
+					continue;
+				} else if (bloss.state(bv) == +1) {
+					let ba = nca(bu,bv);
+					if (ba) {
+						blossoms++;
+						let [b,subs] = bloss.addBlossom(e,ba); add2q(b); z[b] = 0;
+						if (trace) {
+							traceString += `blossom: ${bloss.x2s(b)} ` +
+										   `${subs.toString(x => bloss.x2s(x))}\n`;
+						}
+						bu = b; continue;
+					}
+					// augment the path without expanding blossoms
+					paths++;
+					augment(e);
+					if (trace) traceString += ' :';
+					newPhase();
+					if (trace) {
+						traceString += '\n    ' + match.toString() + '\n';
+						if (bloss.toString().length > 3)
+							traceString += '\n' + bloss.toString(1);
+					}
+					break;
 				}
 			}
 		}
@@ -96,71 +121,13 @@ export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 	}
 	steps += bloss.getStats().steps;
 
-	let s = verify(); assert(!s,s);
+	let s = verify(); fassert(!s,s);
 
     return [match, traceString,
 			{'paths': paths, 'blossoms': blossoms, 'deblossoms': deblossoms,
 			 'relabels': relabels, 'steps': steps}];
 }
 
-/** Add vertices in an even outer blossom to the pending blossom queue.
- *  @param b is an even outer blossom to be added to q
- */
-function addBloss2q(b) {
-	for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
-		steps++;
-		if (!q.contains(u)) q.enq(u);
-	}
-}
-
-/** Perform one step in augmenting search.
- *  The step either adds a branch to a matching tree, forms a new blossom,
- *  or augments the matching.
- *  @param e is an edge with an even endpoint
- *  @param u is an endpoint of e
- *  @param bu is the even outer blossom containing u
- *  @param v is the other endpoint of e
- *  @param bv is the outer blossom containing v
- *  @return true if an augmenting path or blossom is found, else false
- */
-function searchStep(e,u,v,bu,bv) {
-	if (bloss.state(bv) == 0) {
-		let bw = bloss.addBranch(e,v,bv);
-		addBloss2q(bw);
-		if (trace) traceString += `branch: ${g.x2s(u)} ${g.e2s(e)} ` +
-								  `${g.e2s(match.at(bloss.base(bv)))}\n`;
-		return false;
-	} else if (bloss.state(bv) == +1) {
-		let ba = nca(bu,bv);
-		if (ba == 0) {
-			// augment the path without expanding blossoms
-			paths++;
-			augment(e);
-			if (trace) traceString += ' :';
-			newPhase();
-			if (trace) {
-				traceString += '\n';
-				if (bloss.toString().length > 3)
-					traceString += bloss.toString(1,1);
-			}
-		} else {
-			blossoms++;
-			let [b,subs] = bloss.addBlossom(e,ba);
-			addBloss2q(b);
-			z[b] = 0;
-			if (trace) {
-				traceString += `blossom: ${bloss.x2s(b)} ` +
-							   `${subs.toString(x => bloss.x2s(x))}\n`;
-			}
-		}
-		return true;
-	}
-}
-
-/** Return the slack of an "outer edge".
- *  @param e is an edge joining vertices in different outer blossoms
- */
-let slack = (e => z[g.left(e)] + z[g.right(e)] - g.weight(e));
 
 /** Augment the current matching, using the path found by findpath.
  *  @param e is an edge joining two even outer blossoms in distinct trees;
@@ -203,7 +170,9 @@ function augment(e) {
 		x = g.mate(y,ee); bx = bloss.outer(x); lx = bloss.link(bx);
 	}
 	bloss.flip(bx,x); bloss.state(bx,0);
-	if (trace) traceString += `${ts}${bloss.x2s(bx)}`;
+	if (trace) {
+		traceString += `${ts}${bloss.x2s(bx)}`;
+	}
 }
 
 /** Prepare for next phase, following an augmentation.
@@ -312,8 +281,8 @@ function relabel() {
 		let first = true;
 		for (let e = g.first(); e; e = g.next(e)) {
 			steps++;
-			let u = g.left(e);  let bu = bloss.outer(u);
-			let v = g.right(e); let bv = bloss.outer(v);
+			let u = g.left(e);  let bu = outer[u];
+			let v = g.right(e); let bv = outer[v];
 			if (bu == bv || slack(e) != 0) continue;
 			if (bloss.state(bu) == +1 && bloss.state(bv) == 0) {
 				if (!q.contains(u)) q.enq(u);
@@ -327,13 +296,13 @@ function relabel() {
 			}
 		}
 	}
-	if (trace) traceString += ']\n    [';
+	if (trace) traceString += '] [';
 	if (delta == d3) {
 		let first = true;
 		for (let e = g.first(); e; e = g.next(e)) {
 			steps++;
-			let u = g.left(e);  let bu = bloss.outer(u);
-			let v = g.right(e); let bv = bloss.outer(v);
+			let u = g.left(e);  let bu = outer[u];
+			let v = g.right(e); let bv = outer[v];
 			if (bu == bv || slack(e) != 0) continue;
 			if (bloss.state(bu) + bloss.state(bv) == +2) {
 				if (!q.contains(u)) q.enq(u);
@@ -346,7 +315,7 @@ function relabel() {
 			}
 		}
 	}
-	if (trace) traceString += ']\n    [';
+	if (trace) traceString += '] [';
 
 	// and expand odd blossoms with zero z in place, adding the new
 	// vertices in new even outer blossoms to q
@@ -362,7 +331,7 @@ function relabel() {
 			}
 			for (let sb = blist.first(); sb; sb = blist.next(sb)) {
 				steps++;
-				if (bloss.state(sb) == +1) addBloss2q(sb)
+				if (bloss.state(sb) == +1) add2q(sb)
 			}
 		}
 	}
@@ -370,6 +339,21 @@ function relabel() {
 
 	return false;
 }
+
+/** Add vertices in an even outer blossom to the pending blossom queue.
+ *  @param b is an even outer blossom to be added to q
+ */
+function add2q(b) {
+	for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
+		if (!q.contains(u)) q.enq(u);
+		steps++;
+	}
+}
+
+/** Return the slack of an "outer edge".
+ *  @param e is an edge joining vertices in different outer blossoms
+ */
+let slack = (e => z[g.left(e)] + z[g.right(e)] - g.weight(e));
 
 /** Find the nearest common ancestor of two vertices in
  *  the current graph.
@@ -414,6 +398,26 @@ function nca(bu, bv) {
 	return result;
 }
 
+function statusString() {
+	let s = 'complete state\nmatch:' + match.toString() + '\nbloss:' + 
+			bloss.toString(1);
+	s += 'z values\n';
+	for (let u = 1; u <= g.n; u++) {
+		if (u > 1) s += ' ';
+		s += `${g.x2s(u)}:${z[u]}`
+	}
+	s += '\n';
+	let first = true
+	for (let b = g.n+1; b <= bloss.n; b++) {
+		if (!bloss.validBid(b)) continue;
+		if (first) first = false;
+		else s += ' ';
+		s += `${bloss.x2s(b)}:${z[b]}`
+	}
+	s += '\n';
+	return s;
+}
+
 export function verify() {
 	let s = verifyInvariant();
 	if (!s) {
@@ -427,7 +431,7 @@ export function verify() {
 	}
 	if (s) {
 		s = traceString + 'Error(f): ' + s + '\n' + statusString();
-		console.log(s + g.toString(0,1));
+		console.log(s + g.toString(1));
 	}
 	return s;
 }
@@ -455,24 +459,4 @@ function verifyInvariant() {
 		}
 	}
 	return '';
-}
-
-function statusString() {
-	let s = 'complete state\nmatch:' + match.toString() + '\n' + 
-			bloss.toString(1,1);
-	s += 'z values\n';
-	for (let u = 1; u <= g.n; u++) {
-		if (u > 1) s += ' ';
-		s += `${g.x2s(u)}:${z[u]}`
-	}
-	s += '\n';
-	let first = true
-	for (let b = g.n+1; b <= bloss.n; b++) {
-		if (!bloss.validBid(b)) continue;
-		if (first) first = false;
-		else s += ' ';
-		s += `${bloss.x2s(b)}:${z[b]}`
-	}
-	s += '\n';
-	return s;
 }

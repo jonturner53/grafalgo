@@ -6,13 +6,13 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
-import { match2string } from './match.mjs';
+import { assert } from '../../common/Errors.mjs';
+import Matching from './Matching.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import findSplit from '../misc/findSplit.mjs';
 
 let g;            // shared copy of graph
-let match;        // match[u] is edge incident to u in matching or 0
+let match;        // Matching object
 let link = null;  // link[u] is parent edge of u in augmenting path
 let free;         // free contains unmatched vertices in first subset
 let level;        // level[u] is distance to u from a free vertex
@@ -30,15 +30,14 @@ let steps;       // total number of steps
  *  Hopcroft-Karp algorithm.
  *  @param g is an undirected bipartite graph
  *  @param trace causes a trace string to be returned when true
- *  @return a triple [match, ts, stats] where match is an array
- *  matching a vertex u to its matched edge match[u] or 0 if u
- *  is unmatched; ts is a possibly empty trace string
+ *  @return a triple [match, ts, stats] where match is a Matching
+ *  object; ts is a possibly empty trace string
  *  and stats is a statistics object
  *  @exceptions throws an exception if graph is not bipartite
  */
 export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 	g = bg; trace = traceFlag; traceString = '';
-	match = new Int32Array(g.n+1); // match is returned
+	match = new Matching(g); // match is returned
 	if (link == null || link.length != g.n+1) {
 		link = new Int32Array(g.n+1);
 		level = new Int32Array(g.n+1);
@@ -52,25 +51,25 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 
 	// divide vertices into two independent sets
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
-	fassert(subsets != null, "bimatchHK: graph not bipartite");
+	assert(subsets != null, "bimatchHK: graph not bipartite");
 
 	// add edges to match, yielding maximal (not maximum) matching
 	for (let u = 1; u <= g.n; u++) {
-		if (match[u]) continue;
+		if (match.at(u)) continue;
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			steps++;
 			let v = g.mate(u,e);
-			if (!match[v]) { match[u] = match[v] = e; break; }
+			if (!match.at(v)) { match.add(e); break; }
 		}
 	}
 
 	if (trace)
-		traceString += `initial matching: ${match2string(g,match)}\n` +
+		traceString += `initial matching: ${match.toString()}\n` +
 					   `augmenting paths\n`;
 
 	// add unmatched vertices from first subset to free
 	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
-		if (match[u] == 0 && g.firstAt(u) != 0) free.enq(u);
+		if (!match.at(u) && g.firstAt(u) != 0) free.enq(u);
 		steps++;
 	}
 	while (newPhase()) {
@@ -88,7 +87,7 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 	}
 
 	if (trace)
-		traceString += `final matching: ${match2string(g,match)}\n`;
+		traceString += `final matching: ${match.toString()}\n`;
 		
     return [match, traceString,
 			{'phases': phases, 'paths': paths, 'steps': steps}];
@@ -112,12 +111,12 @@ function newPhase() {
 		let u = q.deq(); // u in first subset
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			steps++;
-			if (e == match[u]) continue;
+			if (e == match.at(u)) continue;
 			let v = g.mate(u,e); // v in second subset
 			if (level[v] != g.n) continue;
 			// first time we've seen v
 			level[v] = level[u] + 1; 
-			let ee = match[v];
+			let ee = match.at(v);
 			if (ee == 0) stopLevel = level[v]; // alt-path here too
 			if (stopLevel == level[v]) continue;
 			let w = g.mate(v,ee);
@@ -140,7 +139,7 @@ function findpath(u) {
 		steps++;
 		let v = g.mate(u,e);
 		if (level[v] != level[u] + 1) continue;
-		let ee = match[v];
+		let ee = match.at(v);
 		if (ee == 0) { nextedge[u] = e; link[v] = e; return v; }
 		let w = g.mate(v,ee);
 		if (level[w] != level[v] + 1) continue;
@@ -158,17 +157,18 @@ function findpath(u) {
  */
 function augment(u) {
 	let ts = '';
-	if (trace) ts += g.index2string(u);
+	if (trace) ts += g.x2s(u);
 	while (true) {
 		steps++;
 		let e = link[u];
 		if (e == 0) break;
 		let v = g.mate(u,e);
-		if (trace) ts = `${g.edge2string(e)} ${ts}`;
-		match[u] = match[v] = e;
+		if (trace) ts = `${g.e2s(e)} ${ts}`;
+		match.add(e);
 		let ee = link[v];
 		if (ee == 0) break;
-		if (trace) ts = `${g.edge2string(ee)} ${ts}`;
+		if (trace) ts = `${g.e2s(ee)} ${ts}`;
+		match.drop(ee);
 		u = g.mate(v,ee);
 	}
 	if (trace) traceString += `[${ts}]\n`;

@@ -11,7 +11,7 @@ import { fassert } from '../../common/Errors.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
-import SplayForest from '../graphs/SplayForest.mjs';
+import SplayForest from '../searchTrees/SplayForest.mjs';
 
 /** Data structure representing a collection of paths.
  *
@@ -20,8 +20,8 @@ import SplayForest from '../graphs/SplayForest.mjs';
  *  in a path.
  */
 export default class PathSet extends SplayForest {
-	#dcost;		///< #dcost[u] = cost(u)-mincost(u)
-	#dmin;		///< #dmin[u] = mincost(u)-mincost(p(u)) 
+	#dcost;		// #dcost[u] = cost(u)-mincost(u)
+	#dmin;		// #dmin[u] = mincost(u)-mincost(p(u)) 
 
 	/** Constructor for List object.
 	 *  @param n is the range for the list
@@ -141,7 +141,7 @@ export default class PathSet extends SplayForest {
 		this.dmin(c, this.dmin(c) - this.dmin(y));
 	}
 	
-	/** Return the id of some path.
+	/** Return the id of the path containing a specified node.
 	 *  @param u is a node in some path
 	 *  @param nosplay is an optional flag that prevents the normal
 	 *  restructuring of the underlying tree
@@ -288,7 +288,8 @@ export default class PathSet extends SplayForest {
 				':' + (mc[u]+this.dcost(u)) +
 				((fmt&0x8) ? `:${this.dmin(u)}:${this.dcost(u)}` : ''));
 		let s = ''; let first = true;
-		for (let u = this.firstTree(); u; u = this.nextTree(u)) {
+		for (let u = 1; u <= this.n; u++) {
+			if (this.p(u)) continue;
 			if (this.singleton(u) && !(fmt&0x2)) continue;
 			if (first) first = false;
 			else s += (fmt&0x1 ? '\n' : ' ');
@@ -306,9 +307,16 @@ export default class PathSet extends SplayForest {
 		let sc = new Scanner(s);
 		if (!sc.verify('{')) return false;
 		let n = 0; let paths = []; let items = new Set();
-		for (let l = sc.nextPairList('[',']'); l;
-				 l = sc.nextPairList('[',']')) {
-			for (let [i,c] of l) {
+		let cost = [];
+		let prop = (u,sc) => {
+						if (!sc.verify(':')) return;
+						let p = sc.nextNumber();
+						if (Number.isNaN(p)) return;
+						cost[u] = p;
+					};
+		for (let l = sc.nextIndexList('[',']',prop); l;
+				 l = sc.nextIndexList('[',']',prop)) {
+			for (let i of l) {
 				n = Math.max(n,i);
 				if (items.has(i)) return null;
 				items.add(i);
@@ -324,11 +332,11 @@ export default class PathSet extends SplayForest {
 		if (n != this.n) this.reset(n);
 		else this.clear();
 		for (let [l,succ] of paths) {
-			let [p,c] = l[0];
-			this.dcost(p,0); this.dmin(p,c);
-			for (let [i,c] of l) {
+			let p = l[0];
+			this.dcost(p,0); this.dmin(p,cost[p]);
+			for (let i of l) {
 				if (i == p) continue;
-				this.dcost(i,0); this.dmin(i,c);
+				this.dcost(i,0); this.dmin(i,cost[i]);
 				p = this.findtail(p);
 				let [t1,] = this.split(p);
 				p = this.join(t1,p,i);
@@ -337,85 +345,4 @@ export default class PathSet extends SplayForest {
 		}
 		return true;
 	}
-	/** Create a string representation of a given list.
-	 *  @param label is an optional function that returns a text label
-	 *  for an item
-	 *  @return the string representation of the list
-	toString(details=0, pretty=0, label=null) {
-		let s = '{' + (pretty ? '\n' : '');
-		let first = true;
-		for (let u = 1; u <= this.n; u++) {
-			if (this.p(u)) {
-				if (first) first = false;
-				else if (!pretty) s += ' ';
-				else first = false;
-				s += this.path2string(u, 0, details, label);
-				if (pretty) s += '\n';
-			}
-		}
-		s += '}' + (pretty ? '\n' : '');
-		return s;
-	}
-	 */
-
-	/** Create a string representation of a path.
-	 *  @param q is the root of some subtree
-	 *  @param mc is the mincost of q's parent
-	 *  @param details is a flag, which if true produces a more detailed
-	 *  view of the data structure
-	 *  @param is a function used to produce a label from a node index
-	 *  @return the string
-	path2string(q, mc=0, details=0, label=null) {
-		if (q == 0) return '';
-		let s = (this.p(q) <= 0 ? '[' : '');
-		mc += this.dmin(q);
-		let leaf = (this.left(q) == 0 && this.right(q) == 0);
-		let showParens = details && this.p(q) > 0 && !leaf;
-		if (showParens) s += '(';
-		if (this.left(q) != 0)
-			s += this.path2string(this.left(q), mc, details, label) + ' ';
-		s += this.index2string(q, label) + (details && leaf ? '.' : ':');
-		s += (details ? this.dmin(q) + ':' + this.dcost(q) :
-						mc + this.dcost(q));
-		if (this.right(q) != 0)
-			s += ' ' + this.path2string(this.right(q), mc, details, label);
-		if (showParens) s += ')';
-		if (this.p(q) <= 0) s += ']';
-		return s;
-	}
-	 */
-	
-	/** Initialize this from a string representation.
-	 *  @param s is a string, such as produced by toString().
-	 *  @return true on success, else false
-	fromString(s) {
-		let sc = new Scanner(s);
-		if (!sc.verify('{')) return false;
-		let n = 0; let items = new Set(); let paths = [];
-		for (let p= sc.nextPairList('[',']'); p; p= sc.nextPairList('[',']')) {
-			for (let [u,c] of p) {
-				if (items.has(u)) return false;
-				items.add(u); n = Math.max(n, u);
-				let succ = 0;
-				if (sc.verify('->')) {
-					succ = sc.nextIndex();
-					if (succ < 0) return false;
-				}
-				paths.push([p, succ]);
-			}
-		}
-		if (!sc.verify('}')) return false;
-		if (n != this.n) this.reset(n);
-		else this.clear();
-		for (let [p, succ] of paths) {
-			let q = p[0][0]; // first vertex in p
-			for (let [u, c] of p) {
-				this.#dmin[u] = c; this.#dcost[u] = 0;
-				if (u != q) q = this.join(q, u, 0);
-			}
-			//this.setSucc(q, succ);
-		}
-		return true;
-	}
-	 */
 }

@@ -108,7 +108,8 @@ export function randomFlograph(n, d, ssd=d, ncuts=1, lookback=1) {
 	let q = ~~((n-2)/p); // size of vertex groups (may reduce vertex count) 
 	let k = lookback;
 	let mc = ~~(.25 * d*ssd/(1+Math.min(k, ssd/q)));
-	fassert(p>1 && q>1 && 1<d && d*q <= q*(q-1)+mc);
+	fassert(p>1 && q>1 && 1<d && d*q <= q*(q-1)+mc,
+			`randomFlograph: ${n} ${d} ${ssd} ${ncuts} ${lookback}`);
 
 	n = 2 + p*q; let m = ~~(ssd + d*(n-2));
 	let g = new Flograph(n, m);

@@ -48,7 +48,7 @@ export default function mcflowK(fg, trace=false) {
 		if (trace) ts += s;
 		u = findCycle();
 	}
-	if (trace) ts += g.toString(0,1);
+	if (trace) ts += g.toString(1);
 	return [ ts, { 'cycleCount': cycleCount,
 				   'findCyclePasses': findCyclePasses,
 				   'findCycleSteps': findCycleSteps} ];
@@ -71,9 +71,9 @@ function findCycle() {
 			findCycleSteps++;
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
-			if (C[v] > C[u] + g.cost(e,u)) {
+			if (C[v] > C[u] + g.costFrom(e,u)) {
 				link[v] = e;
-				C[v] = C[u] +  g.cost(e,u);
+				C[v] = C[u] +  g.costFrom(e,u);
 				if (!q.contains(v)) q.enq(v);
 			}
 		}
@@ -134,7 +134,7 @@ function augment(z, trace=false) {
 	do {
 		let v = g.mate(u,e);
 		g.addFlow(e,v,f);
-		if (trace) ts = `${g.index2string(v)}:${g.cost(e,v)} ${ts}`;
+		if (trace) ts = `${g.index2string(v)}:${g.costFrom(e,v)} ${ts}`;
 		u = v; e = link[u];
 	} while (u != z);
 	if (trace) ts = `${f} [${ts}] ${g.totalCost()}\n`;

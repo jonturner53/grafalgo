@@ -10,7 +10,7 @@ import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import Scanner from '../basic/Scanner.mjs';
-import BinaryForest from './BinaryForest.mjs';
+import BinaryForest from '../graphs/BinaryForest.mjs';
 
 /** This class implements a balanced version of the binary tree class. */
 export default class BalancedForest extends BinaryForest {
@@ -58,11 +58,31 @@ export default class BalancedForest extends BinaryForest {
 		return this.#rank[u];
 	}
 
-	delete(u,post=false) {
-		super.delete(u, (c,pc) => {
-							(post == false ? 0 : post(c,pc));
-							this.rerankDown(c,pc);
-						});
+	/** Insert a node based on a key value.
+	 *  @param u is a singleton node
+	 *  @param t is the root of the tree containing u
+	 *  @param key is an array mapping nodes to key values;
+	 *  @param prebal is an optional function, which is called
+	 *  with argument u after u is inserted but before rebalancing.
+	 *  @return the root of the modified tree
+	 */
+	insertByKey(u, t, key, prebal=0) {
+		t = super.insertByKey(u, t, key);
+		if (prebal) prebal(u);
+		this.rerankUp(u);
+		return this.find(t);
+	}
+
+	/** Delete a node from a tree.
+	 *  @param u is a non-singleton tree node.
+	 *  @param prebal is an optional function that is called before
+	 *  reblancing, with argument pu, where pu is the parent of the
+	 *  node that took u's place in the tree.
+	 */
+	delete(u, prebal=0) {
+		let [c,pc] = super.delete(u);
+		if (prebal) prebal(pc);
+		this.rerankDown(c,pc);
 	}
 
 	/** Join two trees (or subtrees) at a node.

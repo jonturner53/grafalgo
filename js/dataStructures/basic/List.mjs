@@ -176,7 +176,8 @@ export default class List extends Top {
 	insert(i, j, value=null) {
 		if (i > this.n) this.expand(i);
 		fassert(this.valid(i) && i != 0 && !this.contains(i) &&
-					   (j == 0 || this.contains(j)));
+					   (j == 0 || this.contains(j)),
+				`List.enq: ${this.x2s(i)} ${this.x2s(j)} ${this.toString()}`);
 		if (value != null) this.setValue(i, value);
 		if (j == 0) {
 			if (this.empty()) this.#last = i;
@@ -278,8 +279,8 @@ export default class List extends Top {
 	 *  necessarily in the same order.
 	 */
 	setEquals(other) {
-		let l = this._equals(other); 
-		if (!l) return false;
+		let l = super.equals(other); 
+		if (typeof l == 'boolean') return l;
 		// l is now guaranteed to be an object that can be compared
 		for (let i = this.first(); i != 0; i = this.next(i))
 			if (!l.contains(i)) return false;

@@ -60,7 +60,7 @@ export default function mcflowJEK(fg, trace=false, mostNeg=false) {
 		if (trace) 
 			ts += `[${s}] ${resCap} ${cost} ${totalCost}\n`;
 	}
-	if (trace) ts += 'graph with mincost flow\n' + g.toString(0,1);
+	if (trace) ts += 'graph with mincost flow\n' + g.toString(1);
 	return [ts, { 'paths': paths, 'steps' : steps } ];
 }
 
@@ -80,8 +80,8 @@ function initLabels() {
 			steps++;
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
-			if (lambda[v] > lambda[u] + g.cost(e,u)) {
-				lambda[v] = lambda[u] + g.cost(e,u); link[v] = e;
+			if (lambda[v] > lambda[u] + g.costFrom(e,u)) {
+				lambda[v] = lambda[u] + g.costFrom(e,u); link[v] = e;
 				if (!q.contains(v)) q.enq(v);
 			}
 		}
@@ -102,9 +102,9 @@ function findpath() {
 			steps++;
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
-			if (c[v] > c[u] + g.cost(e,u) + (lambda[u] - lambda[v])) {
+			if (c[v] > c[u] + g.costFrom(e,u) + (lambda[u] - lambda[v])) {
 				link[v] = e;
-				c[v] = c[u] + g.cost(e,u) + (lambda[u] - lambda[v]);
+				c[v] = c[u] + g.costFrom(e,u) + (lambda[u] - lambda[v]);
 				if (!border.contains(v)) border.insert(v,c[v]);
 				else border.changekey(v,c[v]);
 			}
@@ -125,7 +125,7 @@ function pathProperties() {
 	let u = g.sink; let e = link[u];
 	while (u != g.source) {
 		let v = g.mate(u,e);
-		resCap = Math.min(resCap, g.res(e,v)); cost += g.cost(e,v);
+		resCap = Math.min(resCap, g.res(e,v)); cost += g.costFrom(e,v);
 		u = v; e = link[u]; steps++;
 	}
 	return [resCap, cost]

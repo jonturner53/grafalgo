@@ -21,10 +21,10 @@ export default function mcflowVerify(g) {
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		let u = g.tail(e); let v = g.head(e);
 		if (g.res(e,u) > 0) {
-			let ee = rg.join(u,v); rg.setLength(ee, g.cost(e,u));
+			let ee = rg.join(u,v); rg.length(ee, g.costFrom(e,u));
 		}
 		if (g.res(e,v) > 0) {
-			let ee = rg.join(v,u); rg.setLength(ee, g.cost(e,v));
+			let ee = rg.join(v,u); rg.length(ee, g.costFrom(e,v));
 		}
 	}
 	try {

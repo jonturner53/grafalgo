@@ -26,7 +26,9 @@ let ovh;          // ho is heap of odd vertices, with key[u]=z[u]
 let evh;          // he is heap of even vertices, with key[u]=z[u]
 let obh;          // ho is heap of odd outer blossoms, with key[b]=z[b]/2
 let ebh;          // he is heap of even outer blossoms, with key[b]=z[b]/2
-let heu;          // heu is heap of edges with one even, one unreached endpoint
+let eeh;          // euh is heap of edges with two even endpoints
+                  // key[e={u,v}] = (z[u]+z[v]-weight(e))/2
+let euh;          // euh is heap of edges with one even, one unreached endpoint
                   // key[e={u,v}] = z[u]+z[v]-weight(e)
 
 let trace;
@@ -60,6 +62,8 @@ export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 	evh = new ArrayHeap(g.n);
 	obh = new ArrayHeap(bloss.n);
 	ebh = new ArrayHeap(bloss.n);
+	eeh = new ArrayHeap(g.edgeRange);
+	euh = new SplitHeaps(g.edgeRange);
 
 	trace = traceFlag; traceString = '';
 	paths = blossoms = deblossoms = relabels = 0; steps = g.n + g.edgeCapacity;
@@ -73,10 +77,11 @@ export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 	for (let u = 1; u <= g.n; u++) q.enq(u);
 
 	if (trace) {
-        traceString += `${g.toString(0,1)}\n`;
+        traceString += `${g.toString(1)}\n`;
 	}
 
-	while (true) {
+	let finished = false;
+	while (!finished) {
 		if (trace) {
 			if (bloss.toString().length > 3) {
 				traceString += `outer blossoms:\n    ${''+bloss}\n`;
@@ -88,7 +93,7 @@ export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 			console.log(s); return [match, s];
 		}
 
-		while (!euh.empty() || !evh.empty()) {
+		while (!euh.empty() || !eeh.empty()) {
 			steps++;
 			if (!euh.empty()) {
 				let e = euh.deletemin();
@@ -104,7 +109,7 @@ export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 		}
 
 		relabels++;
-		if (relabel()) break;
+		finished = relabel();
 	}
 
 	if (trace) {
@@ -122,7 +127,7 @@ export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 /** Add vertices in an even outer blossom to the pending blossom queue.
  *  @param b is an even outer blossom to be added to q
  */
-function addBloss2q(b) {
+function add2q(b) {
 	for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
 		steps++;
 		if (!q.contains(u)) q.enq(u);
@@ -171,11 +176,10 @@ function newBranch(e) {
  *  @param v is the other endpoint of e
  *  @param bv is the outer blossom containing v
  *  @return true if an augmenting path or blossom is found, else false
- */
 function searchStep(e,u,v,bu,bv) {
 	if (bloss.state(bv) == 0) {
 		let bw = bloss.addBranch(e,v,bv);
-		addBloss2q(bw);
+		add2q(bw);
 		if (trace) traceString += `branch: ${g.x2s(u)} ${g.e2s(e)} ` +
 								  `${g.e2s(match.at(bloss.base(bv)))}\n`;
 		return false;
@@ -195,7 +199,7 @@ function searchStep(e,u,v,bu,bv) {
 		} else {
 			blossoms++;
 			let [b,subs] = bloss.addBlossom(e,ba);
-			addBloss2q(b);
+			add2q(b);
 			z[b] = 0;
 			if (trace) {
 				traceString += `blossom: ${bloss.x2s(b)} ` +
@@ -205,6 +209,7 @@ function searchStep(e,u,v,bu,bv) {
 		return true;
 	}
 }
+ */
 
 function newBlossom(e) {
 	blossoms++;
@@ -515,7 +520,7 @@ export function verify() {
 	}
 	if (s) {
 		s = traceString + 'Error(f): ' + s + '\n' + statusString();
-		console.log(s + g.toString(0,1));
+		console.log(s + g.toString(1));
 	}
 	return s;
 }

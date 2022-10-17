@@ -28,9 +28,9 @@ try {
 	r = ss.find(1); l.clear();
 	for (let u = ss.last(r); u != 0; u = ss.prev(u)) l.enq(u);
 	assert(l, '[f e d c b a]', 'a6');
-	assert(ss.access(3, ss.find(2), 3), 3, 'a7');
-	assert(ss.access(1, ss.find(5), 1), 1, 'a8');
-	assert(ss.access(2, ss.find(4), 2), 2, 'a9');
+	assert(ss.search(3, ss.find(2), 3), 3, 'a7');
+	assert(ss.search(1, ss.find(5), 1), 1, 'a8');
+	assert(ss.search(2, ss.find(4), 2), 2, 'a9');
 
 	console.log('passed tests');
 } catch(e) {

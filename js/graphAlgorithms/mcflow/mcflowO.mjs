@@ -47,7 +47,7 @@ export default function mcflowO(fg, traceFlag=false) {
 	let maxcap = 0;
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		maxcap = Math.max(maxcap, g.cap(e,));
-		g.setFlow(e, 0);
+		g.flow(e, 0);
 	}
 	for (Delta = 1; 2*Delta <= maxcap; Delta <<= 1) {}
 
@@ -69,7 +69,7 @@ export default function mcflowO(fg, traceFlag=false) {
 		Delta /= 2;
 		if (trace) traceString += '\n';
 	}
-	if (trace) traceString += g.toString(0,1);
+	if (trace) traceString += g.toString(1);
 	return [traceString, {  'phaseCount': phaseCount, 'pathCount': pathCount,
 			 	  			'findpathSteps': findpathSteps } ];
 }
@@ -86,14 +86,14 @@ function newPhase() {
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		let u = g.tail(e); let v = g.head(e);
 		if (g.res(e,u) >= Delta) {
-			if (g.cost(e,u) + (lambda[u] - lambda[v]) < 0) {
+			if (g.costFrom(e,u) + (lambda[u] - lambda[v]) < 0) {
 				if (trace) s += ` ${g.edge2string(e)}:${g.index2string(u)}`
 				g.addFlow(e,u,Delta);
 				excess[u] -= Delta; excess[v] += Delta;
 			}
 		}
 		if (g.res(e,v) >= Delta) {
-			if (g.cost(e,v) + (lambda[v] - lambda[u]) < 0) {
+			if (g.costFrom(e,v) + (lambda[v] - lambda[u]) < 0) {
 				if (trace) s += ` ${g.edge2string(e)}:${g.index2string(v)}`
 				g.addFlow(e,v,Delta);
 				excess[v] -= Delta; excess[u] += Delta;
@@ -140,9 +140,9 @@ function findpath() {
 			findpathSteps++;
 			if (g.res(e,u) < Delta) continue;
 			let v = g.mate(u,e);
-			if (c[v] > c[u] + g.cost(e,u) + (lambda[u]-lambda[v])) {
+			if (c[v] > c[u] + g.costFrom(e,u) + (lambda[u]-lambda[v])) {
 				link[v] = e;
-				c[v] = c[u] + g.cost(e,u) + (lambda[u]-lambda[v]);
+				c[v] = c[u] + g.costFrom(e,u) + (lambda[u]-lambda[v]);
 				if (!border.contains(v)) border.insert(v,c[v]);
 				else border.changekey(v,c[v]);
 			}
@@ -166,7 +166,7 @@ function augment(t) {
 		if (trace) {
 			if (ts.length > 0) ts = ' ' + ts;
 			ts = g.index2string(s) + ts;
-			cost += g.cost(e,u) * Delta;
+			cost += g.costFrom(e,u) * Delta;
 		}
 		s = u;
 	}

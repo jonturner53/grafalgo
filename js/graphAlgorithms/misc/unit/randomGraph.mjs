@@ -16,31 +16,31 @@ try {
 	console.log('running basic tests');
 
 	let g = randomGraph(10, 3);
-	console.log('sparse undirected graph\n', g.toString(0,1));
+	console.log('sparse undirected graph\n', g.toString(1));
 
 	g = randomGraph(10, 5);
-	console.log('dense undirected graph\n', g.toString(0,1));
+	console.log('dense undirected graph\n', g.toString(1));
 
 	g = randomBigraph(8, 12, 5);
-	console.log('undirected bigraph\n', g.toString(0,1));
+	console.log('undirected bigraph\n', g.toString(1));
 
 	g = randomDigraph(10, 2);
-	console.log('sparse directed graph\n', g.toString(0,1));
+	console.log('sparse directed graph\n', g.toString(1));
 
 	g = randomDigraph(7, 3);
-	console.log('dense directed graph\n', g.toString(0,1));
+	console.log('dense directed graph\n', g.toString(1));
 
 	g = randomDag(10, 2);
-	console.log('sparse dag\n', g.toString(0,1));
+	console.log('sparse dag\n', g.toString(1));
 
 	g = randomTree(10);
-	console.log('tree\n', g.toString(0,1));
+	console.log('tree\n', g.toString(1));
 
 	g = randomConnectedGraph(10, 3);
-	console.log('connected graph\n', g.toString(0,1));
+	console.log('connected graph\n', g.toString(1));
 
-	g = randomFlograph(3, 3, 1, 3, 4, 2);
-	console.log('flow graph\n', g.toString(0,1));
+	g = randomFlograph(10, 3, 3, 1);
+	console.log('flow graph\n', g.toString(1));
 
 	console.log('passed tests');
 } catch(e) {

@@ -18,7 +18,6 @@ export default class Forest extends Top {
 	#sibs;		// lists of siblings (and tree roots)
 	#p;			// #p[u] is parent of u or 0
 	#c;			// #c[u] is first child of u or 0
-	#roots;     // List of tree roots
 
 	steps;		// number of steps
 
@@ -29,8 +28,6 @@ export default class Forest extends Top {
 	constructor(n=10, capacity=n) {
 		super(n);
 		this.#sibs= new ListSet(n,capacity);
-		this.#roots = new List(capacity); this.#roots.addPrev();
-		for (let u = 1; u <= this.n; u++) this.#roots.enq(u);
 		this.#p = new Int32Array(capacity+1);
 		this.#c = new Int32Array(capacity+1);
 		this.steps = 0;
@@ -39,10 +36,7 @@ export default class Forest extends Top {
 	get capacity() { return this.#p.length-1; }
 
 	expand(n) {
-		let n0 = this.n;
-		super.expand(n);
-		for (let u = n0 + 1; u <= this.n; u++) this.#roots.enq(u);
-		this.#sibs.expand(n);
+		super.expand(n); this.#sibs.expand(n);
 	}
 
 	/** Assign one graph to another.
@@ -64,21 +58,15 @@ export default class Forest extends Top {
 	 */
 	xfer(f) {
 		if (f == this || !(f instanceof Forest)) return;
-		this._n = f.n; this.#roots = f.#roots;
+		this._n = f.n;
 		this.#sibs = f.#sibs; this.#p = f.#p; this.#c = f.#c;
 		f.#sibs = f.#p = f.#c = null;
 	}
 
 	/** Convert all trees to singletons. */
 	clear() {
-		this.#sibs.clear(); this.#roots.clear();
-		for (let u = 1; u <= this.n; u++) this.#roots.enq(u);
-		this.#p.fill(0); this.#c.fill(0);
+		this.#sibs.clear(); this.#p.fill(0); this.#c.fill(0);
 	}
-
-	firstTree() { return this.#roots.first(); }
-
-	nextTree(u) { return this.#roots.next(u); }
 
 	/** Get the parent of a node.
 	 *  @param u is a node in the forest
@@ -173,7 +161,7 @@ export default class Forest extends Top {
 	}
 	
 	/** Link one tree to another.
-	 *  @param u is the root of a tree that is the only in its group;
+	 *  @param u is the root of a tree that is the only one in its group;
 	 *  (if necessary, the client must call ungroup before calling link)
 	 *  @param v is a node in some other tree
 	 */
@@ -182,7 +170,6 @@ export default class Forest extends Top {
 		if (u > this.n || v > this.n) {
 			this.expand(Math.max(u, v));
 		}
-		this.#roots.delete(u);
 		this.#c[v] = this.#sibs.join(this.firstChild(v), u);
 		this.#p[u] = v;
 	}
@@ -194,7 +181,7 @@ export default class Forest extends Top {
 		if (this.p(u) == 0) return;
 		let p = this.#p[u]; let firstSib = this.firstChild(p);
 		this.#c[p] = this.#sibs.delete(u, firstSib);
-		this.#roots.enq(u); this.#p[u] = 0;
+		this.#p[u] = 0;
 	}
 
 	/** Join two tree groups.
@@ -265,7 +252,8 @@ export default class Forest extends Top {
 		if (typeof f == 'boolean') return f;
 		// f is an object that can be compared to this
 		let l = new List(this.n);
-		for (let r = this.firstTree(); r; r = this.nextTree(r)) {
+		for (let r = 1; r <= this.n; r++) {
+			if (this.p(r)) continue;
 			l.clear();
 			for (let u = this.first(r); u; u = this.next(u)) l.enq(u);
 			let len = 0;
@@ -289,7 +277,8 @@ export default class Forest extends Top {
 		let f = super.equals(other);
 		if (typeof f == 'boolean') return f;
 		// f is an object that can be compared to this
-		for (let r1 = this.firstTree(); r1; r1 = this.nextTree(r1)) {
+		for (let r1 = 1; r1 <= this.n; r1++) {
+			if (this.p(r1)) continue;
 			let r2 = f.root(r1);
 			let v1 = this.first(r1); let v2 = f.first(r2);
 			while (v1 == v2 && v1 != 0) {
@@ -336,6 +325,10 @@ export default class Forest extends Top {
 
 	/** Create a string representation of one tree.
 	 *  @param t is a the root of a tree or subtree
+	 *  @param trees is a flag which causes the tree structure to be shown;
+	 *  when not set, the vertices in the tree are simply listed.
+	 *  @param label is an optional function that returns a vertex label
+	 *  @param treeRoot is a flag that is set to indicate that t is a tree root
 	 *  @return a string that represents the tree
 	 */
 	tree2string(t, trees=0, label=0, treeRoot=1) {
@@ -386,31 +379,6 @@ export default class Forest extends Top {
 		}
 		return true;
 	}
-
-	/** Scan the input for a subtree and compute node to parent map.
-	 *  @param sc is a Scanner for the input string
-	 *  @param items is a set of node indices seen so far
-	 *  @param map is an array of pairs [u,v] where v is the
-	 *  parent of u
-	 *  @return pair [u,n] where u is the root of the next subtree
-	 *  in the input and n is the maximum index in the subtree at u
-	nextSubtree(sc, items, map) {
-		let u = sc.nextIndex();
-		if (u < 0) return [0,0];
-		if (items.has(u)) return null;
-		items.add(u);
-		let n = u;
-		if (!sc.verify('(')) return [u,n];
-		while (!sc.verify(')')) {
-			let p = this.nextSubtree(sc, items, map);
-			if (p == null) return null;
-			let [v,nv] = p;
-			map.push([v,u]);
-			n = Math.max(n, nv);
-		}
-		return [u,n];
-	}
-	 */
 
 	/** Scan the input for a subtree and compute node to parent map.
 	 *  @param sc is a Scanner for the input string

@@ -10,7 +10,7 @@ import { assert, AssertError} from '../../../common/Errors.mjs';
 import Tester from '../../../common/Tester.mjs';
 import wbimatchF from '../wbimatchF.mjs';
 import wbimatchH from '../wbimatchH.mjs';
-import wbimatchEGMG from '../wbimatchEGMG.mjs';
+//import wbimatchEGMG from '../wbimatchEGMG.mjs';
 import matchVerify from '../matchVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomBigraph } from '../../misc/RandomGraph.mjs';
@@ -18,8 +18,8 @@ import { randomInteger } from '../../../common/Random.mjs';
 
 let algomap = {
 	'F' : wbimatchF,
-	'H' : wbimatchH,
-	'EGMG' : wbimatchEGMG
+	'H' : wbimatchH
+	//'EGMG' : wbimatchEGMG
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
@@ -33,13 +33,14 @@ tester.addTest('small graph', g);
 
 g = randomBigraph(4, 3); g.randomWeights(randomInteger, 1, 9);
 tester.addTest('small random', g);
+
 g = randomBigraph(100, 3); g.randomWeights(randomInteger, 1, 99);
 tester.addTest('medium random', g);
+
 g = randomBigraph(500, 3); g.randomWeights(randomInteger, 1, 999);
 tester.addTest('large random', g);
+
 g = randomBigraph(500, 100); g.randomWeights(randomInteger, 1, 999);
 tester.addTest('large random and dense', g);
-/*
-*/
 
 tester.run();

@@ -10,38 +10,28 @@ import Top from '../../dataStructures/Top.mjs';
 import { assert } from '../../common/Errors.mjs';
 import Blossoms0 from './Blossoms0.mjs';
 import List from '../../dataStructures/basic/List.mjs';
-import BinaryForest from '../../dataStructures/graphs/BinaryForest.mjs';
+import BalancedForest from '../../dataStructures/graphs/BalancedForest.mjs';
 
 /** Data structure representing a collection of blossoms for use in
  *  Edmonds algorithm for weighted matching. Extended to speed up
  *  identification of outer blossom containing a vertex.
  */
 export default class Blossoms extends Blossoms0 {
-	#outer;         // sets of vertices in outer blossoms
-
-	#bid;           // bid[u] is blossom id of u, a tree root in outer
-	#vset;          // vset[b] is root of tree in outer for an outer blossom b
+	#outer;     // sets of vertices in outer blossoms
+	#bid;       // bid[u] is blossom id of u, a tree root in outer
+	#vset;      // vset[b] is root of tree in outer for an outer blossom b
 
 	/** Constructor for Blossoms object.
 	 *  @param g is the client's graph on which matching is computed
 	 *  @param match is the client's matching object
 	 */
 	constructor(g, match) {
-		super(g,match); this.#init();
-	}
-
-	#init() {
-		this.#outer = new BinaryForest(this.g.n);
-		this.#outer.addRanks();
+		super(g,match);
+		this.#outer = new BalancedForest(this.g.n);
 		this.#bid = new Int32Array(this.g.n+1);
 		this.#vset = new Int32Array(this.n+1);
 		for (let i = 0; i <= this.g.n; i++)
 			this.#bid[i] = this.#vset[i] = i;
-	}
-
-	/** Reset this. */
-	reset(g, match) {
-		super.reset(); this.#init();
 	}
 
 	/** Assign new value to this from another. 

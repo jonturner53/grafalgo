@@ -9,7 +9,6 @@
 import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import ListSet from '../basic/ListSet.mjs';
-import BalancedForest from '../graphs/BalancedForest.mjs';
 import KeySets from './KeySets.mjs';
 
 /** This class implements a balanced binary search tree class.
@@ -19,8 +18,8 @@ export default class DualKeySets extends KeySets {
 	#key2;		 // #key2[u] is second key value
 	#min2;		 // #min2[u] is the smallest key2 value in the subtree at u
 
-	_findminSteps;	///< number of steps in findmin method
-	_updateSteps;		///< number of steps in update method
+	findminSteps;   // number of steps in findmin method
+	updateSteps;    // number of steps in update method
 	
 	/** Constructor for DualKeySets object.
 	 *  @param n is index range for object
@@ -55,11 +54,11 @@ export default class DualKeySets extends KeySets {
 	}
 	
 	clearStats() {
-		super.clearStats(); this._findminSteps = this._updateSteps = 0;
+		super.clearStats(); this.findminSteps = this.updateSteps = 0;
 	}
 
 	/** Get/set key2 value. */
-	key2(u,k=false) {
+	key2(u, k=false) {
 		if (k !== false) {
 			this.#key2[u] = k; this.update(u);
 		}
@@ -122,16 +121,16 @@ export default class DualKeySets extends KeySets {
 	 *  @return the id of the set following insertion
 	 */
 	insert(u, t) {
-		return super.insert(u, t, (u) => this.update(u));
+		return super.insert(u, t, u => this.update(u));
 	}
 
 	/** Update min2 values along path to root.
 	 *  @param u is a node defining a path to the root;
 	 *  min2 values are updated along this path
 	 */
-	update(u) {;
+	update(u) {
 		while (u != 0) {
-			this._update++;
+			this.updateSteps++;
 			let m2 = this.key2(u);
 			if (this.left(u) != 0)
 				m2 = Math.min(m2, this.min2(this.left(u)));
@@ -145,7 +144,7 @@ export default class DualKeySets extends KeySets {
 	/** Delete an item from a set.
 	 *  @param u is an item in a set
 	 */
-	delete(u) { super.delete(u, (c,pc) => { this.update(pc); }); }
+	delete(u) { super.delete(u, pu => this.update(pu)); }
 
 	/** Extend swap operation to maintain key2, min2 fields. */
 	swap(u, v) {
@@ -214,7 +213,7 @@ export default class DualKeySets extends KeySets {
 			this.key(u, key[u]); this.key2(u, key2[u]);
 			let s = u;
 			for (let i = ls.next(u); i; i = ls.next(i)) {
-				this.key(i, key[i]); this.key2(i,key2[i]);
+				this.key(i, key[i]); this.key2(i, key2[i]);
 				s = this.insert(i,s);
 			}
 		}
@@ -224,8 +223,8 @@ export default class DualKeySets extends KeySets {
 	/** Return statistics object. */
 	getStats() {
 		let stats = super.getStats();
-		stats.findminSteps = this._findminSteps;
-		stats.update = this._updateSteps;
+		stats.findminSteps = this.findminSteps;
+		stats.update = this.updateSteps;
 		return stats;
 	}
 

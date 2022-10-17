@@ -71,7 +71,7 @@ export default class Blossoms0 extends Top {
 	}
 
 	/** Assign new value to this from another. 
-	 *  @paran bloss is a Blossoms object
+	 *  @paran bloss is a Blossoms0 object
 	 */
 	assign(bloss) {
 		if (bloss == this) return;
@@ -165,7 +165,7 @@ export default class Blossoms0 extends Top {
 	 *  @return the parent blossom of b in the blossom hierarchy, or 0
 	 *  if b is an outer blossom
 	 */
-	parent(b) { return this.#subs.parent(b); }
+	parent(b) { return this.#subs.p(b); }
 
 	/** Get the first sub-blossom of a given blossom.
 	 *  @param b is a (possibly trivial) blossom
@@ -242,20 +242,6 @@ Still, not quite complete. Better way to say this?
 		}
 	}
 
-/*
-What if we generated a reversible list of the edges on the path,
-as in the unweighted case, but using the sub-blossom structure
-in place of the bridge info? Might this simplify the flipping?
-
-Maybe we could do the sub-blossom marking in the process?
-
-Perhaps I am over-thinking it. This started with trying to
-generate the string representing the augmenting path. Perhaps
-it's better just to show the augmenting path connecting the
-outer blossoms. The new blossom is shown at the top of the main
-loop. Perhaps that's enough.
-*/
-				
 	/** Reverse the matching edges in a portion of a non-trivial blossom.
 	 *  @param u is the endpoint of an edge incident to a blossom
 	 *  @param bu is the id of a blossom containing u; this method
@@ -506,9 +492,9 @@ loop. Perhaps that's enough.
 		if (bloss === this) return true;
 		if (typeof bloss == 'string') {
 			let s = bloss;
-			bloss = new Blossoms(this.g, this.match); bloss.fromString(s); 
+			bloss = new Blossoms0(this.g, this.match); bloss.fromString(s); 
 		}
-        if (!(bloss instanceof Blossoms)) return false;
+        if (!(bloss instanceof Blossoms0)) return false;
 		if (bloss.n != this.n) return false;
 		if (this.#ids.length != bloss.#ids.length) return false;
 
@@ -563,12 +549,15 @@ loop. Perhaps that's enough.
 		return true;
 	}
 
-	/** Create a string representation of Blossoms object.
+	/** Create a string representation of Blossoms0 object.
+	 *  Shows all non-trivial blossoms plus blossoms in the matching forest.
+	 *  @param fmt is an integer with low order bits specifying format optons
+	 *    001 specifies a newline between succesive outer blossoms
 	 *  @param label is an optional function that returns a text label
 	 *  for an item
 	 *  @return the string representation of the list
 	 */
-	toString(details=0, pretty=0, label=false) {
+	toString(fmt=0) {
 		// first determine which outer blossoms to include in string
 		// show all non-trivial blossoms, plus vertices in a blossom tree
 		let showme = new Int8Array(this.n);
@@ -584,17 +573,17 @@ loop. Perhaps that's enough.
 		}
 
 		let s = '';
-		if (pretty) s += 'outer blossoms:\n';
+		if (fmt) s += 'outer blossoms:\n';
 		for (let b = this.firstOuter(); b != 0; b = this.nextOuter(b)) {
 			if (!showme[b]) continue;
-			if (pretty) s += '    ';
+			if (fmt) s += '    ';
 			else if (s.length > 0) s += ' ';
 			s += (this.state(b) < 0 ? '-' : (this.state(b) > 0 ? '+' : '.'));
-			s += this.#subs.tree2string(b,
+			s += this.#subs.tree2string(b, fmt,
 					bb => this.x2s(bb) + this.link2string(bb));
-			if (pretty) s += '\n'; // one outer blossom per line
+			if (fmt) s += '\n'; // one outer blossom per line
 		}
-		s = (pretty ? s : '{' + s + '}');
+		s = (fmt ? s : '{' + s + '}');
 
 		return s;
 	}

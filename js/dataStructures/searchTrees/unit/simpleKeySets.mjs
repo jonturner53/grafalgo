@@ -29,9 +29,9 @@ try {
 	
 	for (let u = ks.last(r); u != 0; u = ks.prev(u)) l.enq(u);
 	assert(l, '[f e d c b a]', 'a6');
-	assert(ks.access(2, r), 2, 'a7');
-	assert(ks.access(5, r), 5, 'a8');
-	assert(ks.access(4, r), 4, 'a9');
+	assert(ks.search(2, r), 2, 'a7');
+	assert(ks.search(5, r), 5, 'a8');
+	assert(ks.search(4, r), 4, 'a9');
 
 	ks.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}');
 	r = ks.append(ks.find(1), ks.find(6));

@@ -24,7 +24,7 @@ function runK(g, trace) {
 	let ts = '';
 	g.clearFlow();
 	maxflowD(g);
-	if (trace) ts += g.toString(0,1);
+	if (trace) ts += g.toString(1);
 	let [s,stats] = mcflowK(g, trace);
 	return [ts+s, stats];
 }
@@ -33,7 +33,7 @@ function runKGT(g, trace) {
 	let ts = '';
 	g.clearFlow();
 	maxflowD(g);
-	if (trace) ts += g.toString(0,1);
+	if (trace) ts += g.toString(1);
 	let [s,stats] = mcflowKGT(g, trace);
 	return [ts+s, stats];
 }
@@ -42,7 +42,7 @@ function runJEK(g, trace) {
 	let ts = '';
 	g.clearFlow();
 	mcflowK(g);  // eliminate negative cycles
-	if (trace) ts += g.toString(0,1);
+	if (trace) ts += g.toString(1);
 	let [s,stats] = mcflowJEK(g, trace);
 	return [ts+s, stats];
 }

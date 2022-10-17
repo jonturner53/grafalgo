@@ -310,7 +310,7 @@ export default class Flograph extends Digraph {
 					 (this.x2s(this.mate(u,e)) + ':' +
 					  (this.floor(e)>0 ? this.floor(e) + '-' : '') +
                    	  (this.cap(e) + (this.f(e)>0 ? '/' + this.f(e) : '')) +
-					  (this.hasCosts && this.cost(e) ? ':' + this.cost(e) : '')
+					  (this.hasCosts && this.cost(e) ? '@' + this.cost(e) : '')
 					 ));
 		}
 		if (!vlab) {
@@ -369,7 +369,7 @@ export default class Flograph extends Digraph {
 							if (Number.isNaN(flow)) return false;
 							flows[i] = flow;
 						}
-						if (sc.verify(':')) {
+						if (sc.verify('@')) {
 							let cost = sc.nextNumber();
 							if (Number.isNaN(cost)) return false;
 							costs[i] = cost;

@@ -28,9 +28,9 @@ try {
 	l.clear();
 	for (let u = ks.last(r); u != 0; u = ks.prev(u)) l.enq(u);
 	assert(l, '[f e d c b a]', 'a6');
-	assert(ks.access(2, r), 2, 'a7');
-	assert(ks.access(5, r), 5, 'a8');
-	assert(ks.access(4, r), 4, 'a9');
+	assert(ks.search(2, r), 2, 'a7');
+	assert(ks.search(5, r), 5, 'a8');
+	assert(ks.search(4, r), 4, 'a9');
 	ks.fromString('{[a:0] [b:0] [c:0] [d:0] [e:0]}');
 	assert(ks,'{[a:0] [b:0] [c:0] [d:0] [e:0]}', 'b1');
 	let root = ks.append(1,2);

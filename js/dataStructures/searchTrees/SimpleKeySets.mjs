@@ -57,33 +57,14 @@ export default class SimpleKeySets extends BinaryForest {
 	 *  @param t is id (root) of bst
 	 *  @return node u where key(u)==k or 0 if there is no such node
 	 */
-	access(k, t) {
-		let u = t;
-		while (u != 0 && this.key(u) != k) {
-			this.steps++;
-			if (k < this.key(u)) u = this.left(u);
-			else				 u = this.right(u);
-		}
-		return u;
-	}
+	search(k, t) { return super.search(k,t,this.#key); }
 	
 	/** Insert an item into a set.
 	 *  @param u is an item to be inserted
 	 *  @param t is the id for a set (the root of its tree)
 	 *  @return the id of the set following insertion
 	 */
-	insert(u, t) {
-		fassert(this.valid(u) && this.singleton(u) && (t == 0 || this.valid(t)));
-		if (t == 0 || t == u) return u;
-		let v = t; let pv = 0;
-		while (v != 0) {
-			pv = v; this.steps++;
-			if (this.key(u) <= this.key(v)) v = this.left(v);
-			else							v = this.right(v);
-		}
-		this.link(u, pv, this.key(u) <= this.key(pv) ? -1 : +1);
-		return t;
-	}
+	insert(u, t) { return super.insertByKey(u, t, this.#key); }
 	
 	/** Determine if two SimpleKeySets objects are equal.
 	 *  @param other is a SimpleKeySets object to be compared to this

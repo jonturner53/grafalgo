@@ -7,16 +7,15 @@
  */
 
 import Top from '../../dataStructures/Top.mjs';
-import { assert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 
 /** Data structure representing a matching of a graph.
  */
 export default class Matching extends Top {
-	g;              // reference to graph
-	#elist;         // list of edges in matching
-    #map;           // array mapping vertex to matching edge
+	g;			 // reference to graph
+	#elist;		 // list of edges in matching
+	#map;		 // array mapping vertex to matching edge
 	
 	/** Constructor for Matching.
 	 *  @param g is the graph for the matching
@@ -93,25 +92,32 @@ export default class Matching extends Top {
 	/** Return the weight of a matching.
 	 */
 	weight() {
-	    let w = 0;
-	    for (let e = this.first(); e != 0; e = this.next(e))
+		let w = 0;
+		for (let e = this.first(); e != 0; e = this.next(e))
 			w += this.g.weight(e);
-	    return w;
+		return w;
 	}
 
 	/** Compare two matchings for equality.
-	 *  @param match is the matching to be compared to this one,
+	 *  @param other is the matching to be compared to this one,
 	 *  or a string representing a matching
 	 *  @return true if they contain the same edges
 	 */
-	equals(match) {
-		if (this === match) return true;
-		if (typeof match == 'string') {
-			let s = match; match = new Matching(this.g); match.fromString(s);
-		} else if (!(match instanceof Matching)) {
+	equals(other) {
+		if (this === other) return true;
+        if (typeof other == 'string') {
+			if (!('fromString' in this)) 
+				return this.toString() == other.toString();
+            let s = other;
+			other = new this.constructor(this.g);
+			other.fromString(s);
+        }
+		if (other.constructor.name != this.constructor.name ||
+		    other.n != this.n) {
 			return false;
 		}
-		return this.#elist.matches(match.#elist);
+		if (!this.#elist.setEquals(other.#elist)) return false;
+		return other;
 	}
 
 	/** Create a string representation of the matching.

@@ -231,30 +231,6 @@ export default class Scanner extends Top {
 		return l;
 	}
 
-/*
-	nextIndexList(ld, rd, pcount=0) {
-		let l = []; let i0 = this.#i;
-		if (!this.verify(ld)) return null;
-		for (let i = this.nextIndex(); i>=0; i = this.nextIndex()) {
-			if (pcount == 0) { l.push(i); continue; }
-			let tup = [i];
-			for (let j = 1; j <= pcount; j++) {
-				if (!this.verify(':')) { this.#i = i0; return null; }
-				let k = this.nextNumber();
-				if (Number.isNaN(k)) { this.#i = i0; return null; }
-				tup.push(k);
-			}
-			l.push(tup);
-		}
-		if (!this.verify(rd)) {
-			this.#i = i0; l.length = 0; return null;
-		}
-		return l;
-	}
-*/
-
-	nextPairList(ld, rd) { return this.nextIndexList(ld, rd, 1); }
-
 	/** Return the next line in the input.
 	 *  Read up to the next newline character and return the string up to
 	 *  and including the newline character. If no complete line remains

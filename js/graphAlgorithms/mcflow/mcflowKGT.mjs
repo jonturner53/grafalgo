@@ -56,7 +56,7 @@ export default function mcflowKGT(fg, traceflag=false) {
 		augment(u,i);
 		[u,i] = findCycle();
 	}
-	if (trace) traceString += g.toString(0,1);
+	if (trace) traceString += g.toString(1);
 	return [ traceString, { 'cycleCount': cycleCount,
 				   'findCycleSteps': findCycleSteps} ];
 }
@@ -77,8 +77,8 @@ function findCycle() {
 			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 				findCycleSteps++;
 				let v = g.mate(u,e);
-				if (g.res(e,v) > 0 && C[i-1][v] + g.cost(e,v) < C[i][u]) {
-					C[i][u] = C[i-1][v] + g.cost(e,v); P[i][u] = e;
+				if (g.res(e,v) > 0 && C[i-1][v] + g.costFrom(e,v) < C[i][u]) {
+					C[i][u] = C[i-1][v] + g.costFrom(e,v); P[i][u] = e;
 				}
 			}
 		}
@@ -138,7 +138,7 @@ function augment(z,i) {
 		let e = P[j--][u];
 		let v = g.mate(u,e);
 		g.addFlow(e,v,f);
-		if (trace) ts = `${g.index2string(v)}:${g.cost(e,v)} ${ts}`;
+		if (trace) ts = `${g.index2string(v)}:${g.costFrom(e,v)} ${ts}`;
 		u = v;
 	} while (u != z);
 	if (trace) traceString += `${f} [${ts}] ${g.totalCost()}\n`;

@@ -153,7 +153,6 @@ export default class DynamicTrees extends PathSet {
 	 */
 	explicitForest() {
 		let f = new Forest(this.n)
-		//for (let t = this.firstTree(); t; t = this.nextTree()) {
 		for (let t = 1; t <= this.n; t++) {
 			if (this.p(t)) continue;
 			let succ = this.succ(t);

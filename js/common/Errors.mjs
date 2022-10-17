@@ -72,6 +72,6 @@ export function assert() {
 	}
 }
 
-export function fassert(condition, description) {
+export function fassert(condition, description='') {
 	if (!condition) throw new Fatal(description);
 }
