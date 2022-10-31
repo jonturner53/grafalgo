@@ -13,7 +13,7 @@ export function warning(msg) {
 export class Fatal extends Error {
   constructor(message) {
     super(message);
-    this.name = 'Fatal';
+    this.name = 'FATAL';
   }
 }
 

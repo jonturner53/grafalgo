@@ -28,6 +28,7 @@ export default class Blossoms0 extends Top {
 
     #ids;           // list of available blossom ids (reduced by n)
 	#blist;         // temporary list used when forming new blossom
+					// or expanding a blossom
 	#elist;         // temporary list used by flip
 	#mark;          // temporary path marks used by flip
 
@@ -134,19 +135,22 @@ export default class Blossoms0 extends Top {
 
 	/** Get the first outer blossom */
 	firstOuter() {
-		let b = this.#subs.firstTree();
-		while (b > this.g.n && this.#ids.contains(b-this.g.n)) {
-			b = this.#subs.nextTree(b); this.steps++;
+		for (let b = 1; b <= this.n; b++) {
+			if (this.parent(b)) continue;
+			if (b <= this.g.n || !this.#ids.contains(b-this.g.n))
+				return b;
 		}
-		return b; 
+		return 0; 
 	}
 
 	/** Get the next outer blossom */
 	nextOuter(b) {
-		b = this.#subs.nextTree(b);
-		while (b > this.g.n && this.#ids.contains(b-this.g.n))
-			b = this.#subs.nextTree(b); this.steps++;
-		return b; 
+		for (b++; b <= this.n; b++) {
+			if (this.parent(b)) continue;
+			if (b <= this.g.n || !this.#ids.contains(b-this.g.n))
+				return b;
+		}
+		return 0; 
 	}
 
 	/** Get the outer blossom containing a vertex or sub-blossom. */
@@ -313,8 +317,11 @@ Still, not quite complete. Better way to say this?
 	 *  @param e is an edge
 	 *  @param nca is outer blossom that is the nearest common ancestor
 	 *  of the outer blossoms containing e's endpoints
-	 *  @return pair [b, subs] where b is the id of the new blossom and
-	 *  subs is a List of the sub-blossoms in b
+	 *  @return triple [nu, blist, bu] where nu is the new blossom's id;
+	 *  blist is a list of its sub-blossoms, starting at the base;
+	 *  bu is the last blossom in the part of the blossom cycle that
+	 *  precedes the edge e; it can be used to identify the previous states
+	 *  of the sub-blossoms
 	 */
 	addBlossom(e, nca) {
 		// initialize
@@ -360,7 +367,7 @@ Still, not quite complete. Better way to say this?
 		let nub = this.construct(blist);
 		this.state(nub, +1);
 		this.link(nub, ncaLink);
-		return [nub, blist];
+		return [nub, blist, bu];
 	}
 
 	/** Construct a blossom from a list.
@@ -368,11 +375,13 @@ Still, not quite complete. Better way to say this?
 	 *  @return a new blossom obtained by combinining the blossoms in blist
 	 */
 	construct(blist) {
+		fassert(!this.#ids.empty());
 		let nub = this.g.n + this.#ids.deq();
 
 		let b0 = blist.first();
-		for (let b = b0; b != 0; b = blist.next(b))
+		for (let b = b0; b != 0; b = blist.next(b)) {
 			this.#subs.link(b,nub);
+		}
 		this.base(nub, this.base(b0));
 
 		return nub;
@@ -409,11 +418,12 @@ Still, not quite complete. Better way to say this?
 	 *  should be used with care
 	 */
 	expandInplace(b) {
-		fassert(this.state(b) == '-1');
+		fassert(b >= this.g.n && this.state(b) == '-1');
 		let sb0 = this.firstSub(b);
 
 		// find the sub-blossom of b containing its link terminus, u
 		let [u,e] = this.link(b);
+
 		let sbu = u;
 		while (this.parent(sbu) != b) {
 			sbu = this.parent(sbu); this.steps++;
@@ -478,7 +488,6 @@ Still, not quite complete. Better way to say this?
 		while (sb0 != 0) {
 			this.steps++;
 			blist.enq(sb0);
-			let sb1 = this.nextSub(sb0);
 			this.#subs.cut(sb0);	// remove sb0 from b's list of sub-blossoms
 			sb0 = this.firstSub(b);
 		}
@@ -512,7 +521,7 @@ Still, not quite complete. Better way to say this?
 		}
 		// q now contains super-blossoms for which bidmap has been initialized
 		while (!q.empty()) {
-			let b = q.deq(); let pb = this.parent(b)
+			let b = q.deq(); let pb = this.parent(b);
 			if (pb && !bidmap[pb] && !q.contains(pb)) {
 				bidmap[pb] = bloss.parent(bidmap[b]); q.enq(pb);
 			}
@@ -573,7 +582,6 @@ Still, not quite complete. Better way to say this?
 		}
 
 		let s = '';
-		if (fmt) s += 'outer blossoms:\n';
 		for (let b = this.firstOuter(); b != 0; b = this.nextOuter(b)) {
 			if (!showme[b]) continue;
 			if (fmt) s += '    ';
@@ -696,6 +704,7 @@ Still, not quite complete. Better way to say this?
 						   `${this.x2s(this.base(b))}`;
 			}
 		}
+
 		// check that matching edges alternate around a blossom
 		// and that links are consistent
 		for (let b = 1; b <= this.n; b++) {
@@ -757,8 +766,9 @@ Still, not quite complete. Better way to say this?
 					   `blossom ${this.x2s(b)} is incorrect.`
 			let w = this.g.mate(v,e); let bw = this.outer(w);
 			if (this.state(bw) == 0 || this.state(bw) == this.state(b))
-				return `state of blossom ${this.x2s(b)}'s parent ` +
-					   `${this.x2s(bw)} is not consistent.`;
+				return `state of blossom ${this.x2s(b)}'s tree parent ` +
+					   `${this.x2s(bw)} is not consistent. ` +
+					   `(${this.state(b)},${this.state(bw)})`;
 		}
 		return '';
 	}

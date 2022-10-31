@@ -1,4 +1,4 @@
-/** @file wmatchE.mjs
+/** @file wmatchGMG0.mjs
  *
  *  @author Jon Turner
  *  @date 2022
@@ -6,9 +6,9 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
+import { assert, fassert } from '../../common/Errors.mjs';
 import Matching from './Matching.mjs';
-import Blossoms from './Blossoms.mjs';
+import Blossoms0 from './Blossoms0.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 
@@ -17,9 +17,17 @@ let match;        // Matching object representing matching for graph
 let bloss;        // Blossoms object representing blossoms and matching trees
 
 let z;            // z[b] is dual variable for blossom (or vertex) b
-let q;            // list of even vertices
 let blist;        // temporary list of blossoms
 let mark;         // temporary array of flags
+
+let ovh;          // heap of odd vertices, with key[u]=z[u]
+let evh;          // heap of even vertices, with key[u]=z[u]
+let obh;          // heap of odd outer blossoms, with key[b]=z[b]/2
+let ebh;          // heap of even outer blossoms, with key[b]=z[b]/2
+let eeh;          // heap of edges with two even endpoints
+                  // key[e={u,v}] = (z[u]+z[v]-weight(e))/2
+let euh;          // heap of edges with one even, one unreached endpoint
+                  // key[e={u,v}] = z[u]+z[v]-weight(e)
 
 let trace;
 let traceString;
@@ -30,8 +38,9 @@ let deblossoms; // number of odd blossoms expanded
 let relabels;   // number of relabeling steps
 let steps;      // total number of steps
 
-/** Compute a maximum weighted matching in a graph using a
- *  Edmonds's weighted matching algorithm.
+/** Compute a maximum weighted matching in a graph using a simplified
+ *  version of Galil, Micali and Gabows' implementation of Edmonds's
+ *  weighted matching algorithm.
  *  @param g is an undirected graph with weights
  *  @param trace causes a trace string to be returned when true
  *  @return a triple [match, ts, stats] where match is an array
@@ -39,95 +48,203 @@ let steps;      // total number of steps
  *  is unmatched; ts is a possibly empty trace string
  *  and stats is a statistics object
  */
-export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
+export default function wmatchGMG0(mg, traceFlag=false, subsets=null) {
 	g = mg;
 	match = new Matching(g);
-	bloss = new Blossoms(g, match);
+	bloss = new Blossoms0(g, match);
 	z = new Float32Array(bloss.n+1);
-	q = new List(bloss.n);
 	blist = new List(bloss.n);
 	mark = new Int8Array(bloss.n+1).fill(false);
+	
+	ovh = new ArrayHeap(g.n);
+	evh = new ArrayHeap(g.n);
+	obh = new ArrayHeap(bloss.n);
+	ebh = new ArrayHeap(bloss.n);
+	eeh = new ArrayHeap(g.edgeRange);
+	euh = new ArrayHeap(g.edgeRange);
 
 	trace = traceFlag; traceString = '';
-	paths = blossoms = deblossoms = relabels = 0; steps = g.n + g.edgeCapacity;
+	paths = blossoms = deblossoms = relabels = 0;
+	steps = g.n + g.edgeRange;
 
 	let maxwt = -Infinity;
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		maxwt = Math.max(g.weight(e),maxwt);
 	}
 	z.fill(maxwt/2.0,1,g.n+1);
+	for (let u = 1; u <= g.n; u++) evh.insert(u,z[u]);
+	for (let e = g.first(); e != 0; e = g.next(e)) eeh.insert(e,slack(e)/2);
 
-	for (let u = 1; u <= g.n; u++) q.enq(u);
+	if (trace) {
+        traceString += `${g.toString(1)}\n`;
+	}
 
-	if (trace) { traceString += `${g.toString(1)}`; }
-
-	while (true) {
+	let finished = false;
+	while (!finished) {
 		if (trace) {
-			traceString += '\n';
-			if (bloss.toString().length > 3)
-				traceString += bloss.toString(1);
-		}
-		/*
-		let s = verifyInvariant();
-		if (s) {
-			s = traceString + 'Error: ' + s + '\n' + statusString();
-			console.log(s); return [match, s];
-		}
-		*/
-
-		while (!q.empty()) {
-			let u = q.deq(); let bu = bloss.outer(u);
-			if (bloss.state(bu) != +1) continue;
-			for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
-				steps++;
-				let v = g.mate(u,e); let bv = bloss.outer(v);
-				if (bv == bu || slack(e) > 0) continue;
-				if (bloss.state(bv) == 0) {
-					let bw = bloss.addBranch(e,v,bv); add2q(bw);
-					if (trace) traceString += `branch: ${g.x2s(u)} ${g.e2s(e)} ` +
-											  `${g.e2s(match.at(bloss.base(bv)))}\n`;
-					continue;
-				} else if (bloss.state(bv) == +1) {
-					let ba = nca(bu,bv);
-					if (ba) {
-						blossoms++;
-						let [b,subs] = bloss.addBlossom(e,ba); add2q(b); z[b] = 0;
-						if (trace) {
-							traceString += `blossom: ${bloss.x2s(b)} ` +
-										   `${subs.toString(x => bloss.x2s(x))}\n`;
-						}
-						bu = b; continue;
-					}
-					// augment the path without expanding blossoms
-					paths++;
-					augment(e);
-					if (trace) traceString += ' :';
-					newPhase();
-					if (trace) {
-						traceString += '\n    ' + match.toString() + '\n';
-						if (bloss.toString().length > 3)
-							traceString += '\n' + bloss.toString(1);
-					}
-					break;
-				}
+			traceString += '\nmatching: ' + match.toString() + '\n';
+			if (bloss.toString().length > 3) {
+				traceString += `outer blossoms:\n${bloss.toString(1)}`;
 			}
 		}
+
+		// process eligible edges with an even endpoint
+		while (true) {
+			/*
+			let s = verifyInvariant();
+			if (s) {
+				s = traceString + 'ERROR: ' + s + '\n' + statusString();
+				console.log(s); return [match, s];
+			}
+			*/
+
+			steps++;
+			let ee = eeh.findmin();
+			let eu = euh.findmin();
+			if (ee && eeh.key(ee) == 0) {
+				eeh.delete(ee)
+				let [u,v] = [g.left(ee),g.right(ee)];
+				let [bu,bv] = [bloss.outer(u),bloss.outer(v)];
+				if (bu == bv) continue;
+				let ba = nca(bu,bv);
+				if (ba == 0) {
+					augment(ee);
+				} else {
+					newBlossom(ee,ba);
+				}
+			} else if (eu && euh.key(eu) == 0) {
+				euh.delete(eu); newBranch(eu);
+			} else {
+				break;
+			}
+		}
+
+		// adjust vertex/blossom labels, creating more eligible edges
+		// and/or reducing number of vertices in odd blossoms
 		relabels++;
-		if (relabel()) break;
+		finished = relabel();
 	}
 
 	if (trace) {
-		traceString += `final matching:\n    ${match.toString()}\n`;
+		traceString += `final matching: ${match.toString()}\n`;
 	}
 	steps += bloss.getStats().steps;
 
-	let s = verify(); fassert(!s,s);
+	let s = verify(); assert(!s,s);
 
     return [match, traceString,
 			{'paths': paths, 'blossoms': blossoms, 'deblossoms': deblossoms,
 			 'relabels': relabels, 'steps': steps}];
 }
 
+function newBranch(e) {
+	let [u,v] = [g.left(e),g.right(e)];
+	let [bu,bv] = [bloss.outer(u),bloss.outer(v)];
+	if (bloss.state(bu) != +1) [u,v,bu,bv] = [v,u,bv,bu];
+	let bw = bloss.addBranch(e,v,bv);
+	if (trace) {
+		traceString +=
+			`branch: ${bu>g.n ? bu + ':' : ''}${g.x2s(u)} ` +
+					`${bv>g.n ? bv + ':' : ''}${g.e2s(e)} ` +
+					`${bw>g.n ? bw + ':' : ''}` +
+					`${g.e2s(match.at(bloss.base(bv)))}\n`;
+	}
+
+	// now, update the heaps to reflect new states of bv and bw
+
+	// add bv to obh and vertices in bv to ovh; update euh
+	if (bv > g.n) obh.insert(bv,z[bv]/2);
+	for (let x = bloss.firstIn(bv); x; x = bloss.nextIn(bv,x)) {
+		ovh.insert(x,z[x]);
+		for (let ex = g.firstAt(x); ex; ex = g.nextAt(x,ex)) {
+			if (euh.contains(ex)) euh.delete(ex);
+		}
+	}
+	
+	// add bw to ebh and vertices in bw to evh; update euh and eeh
+	if (bw > g.n) ebh.insert(bw,z[bw]/2);
+	for (let x = bloss.firstIn(bw); x; x = bloss.nextIn(bw,x)) {
+		evh.insert(x,z[x]);
+		for (let ex = g.firstAt(x); ex; ex = g.nextAt(x,ex)) {
+			let y = g.mate(x,ex); let by = bloss.outer(y);
+			if (euh.contains(ex)) euh.delete(ex);
+			if (by == bw) continue;
+			if (bloss.state(by) == 0) {
+				euh.insert(ex, slack(ex));
+			} else if (bloss.state(by) == +1) {
+				//euh.delete(ex);
+				//if (by != bw) 
+				eeh.insert(ex, slack(ex)/2);
+			}
+		}
+	}
+}
+
+function newBlossom(e,ba) {
+	blossoms++;
+	let [b,subs] = bloss.addBlossom(e,ba);
+	z[b] = 0;
+	if (trace) {
+		traceString += `blossom: ${bloss.x2s(b)} ` +
+					   `${subs.toString(x => bloss.x2s(x))}\n`;
+	}
+
+	// now update heaps
+	ebh.insert(b,0);
+	for (let sb = subs.first(); sb; sb = subs.next(sb)) {
+		if (ebh.contains(sb)) {
+			if (ebh.contains(sb)) {
+				z[sb] = 2*ebh.key(sb); ebh.delete(sb);
+			}
+			for (let x = bloss.firstIn(sb); x; x = bloss.nextIn(sb,x))
+				if (!evh.contains(x)) evh.insert(x,z[x]);
+		} else if ((sb <= g.n && ovh.contains(sb)) || obh.contains(sb)) {
+			if (sb <= g.n && ovh.contains(sb)) {
+				z[sb] = ovh.key(sb); ovh.delete(sb);
+			}
+			if (obh.contains(sb)) {
+				z[sb] = 2*obh.key(sb); obh.delete(sb);
+			}
+			for (let x = bloss.firstIn(sb); x; x = bloss.nextIn(sb,x)) {
+				if (ovh.contains(x)) {
+					z[x] = ovh.key(x); ovh.delete(x);
+				}
+				evh.insert(x,z[x]);
+				for (let ex = g.firstAt(x); ex; ex = g.nextAt(x,ex)) {
+					let y = g.mate(x,ex); let by = bloss.outer(y);
+					if (by == b) continue;
+					if (bloss.state(by) == 0) {
+						euh.insert(ex, slack(ex));
+					} else if (bloss.state(by) == +1) {
+						eeh.insert(ex, slack(ex)/2);
+					}
+				}
+			}
+		}
+	}
+}
+
+/** Return the slack of an "outer edge".
+ *  @param e is an edge joining vertices in different outer blossoms
+ */
+function slack(e) {
+	return zz(g.left(e)) + zz(g.right(e)) - g.weight(e);
+}
+
+/** Get the corrected z value of a blossom and update it.
+ *  @param b is a blossom (possibly trivial)
+ *  @return the corrected value of z; if b is in a blossom heap,
+ *  the key in the heap is its corrected value.
+ */
+function zz(b) {
+	if (b <= g.n) {
+		return evh.contains(b) ? evh.key(b) :
+			   (ovh.contains(b) ? ovh.key(b) : z[b]);
+	} else {
+		return ebh.contains(b) ? 2*ebh.key(b) :
+			   (obh.contains(b) ? 2*obh.key(b) : z[b]);
+	}
+}
 
 /** Augment the current matching, using the path found by findpath.
  *  @param e is an edge joining two even outer blossoms in distinct trees;
@@ -149,11 +266,11 @@ function augment(e) {
 		} else {
 			bloss.flip(bx,y); match.add(ee);
 		}
-		bloss.state(bx,0); bloss.link(bx,null);
-		if (trace) ts = `${g.e2s(e)} ${bloss.x2s(bx)}${ts}`
+		bloss.link(bx,null);
+		if (trace) ts = `${g.e2s(ee)} ${bloss.x2s(bx)}${ts}`
 		x = g.mate(y,ee); bx = bloss.outer(x); lx = bloss.link(bx);
 	}
-	bloss.flip(bx,x); bloss.state(bx,0);
+	bloss.flip(bx,x);
 	if (trace) ts = `${bloss.x2s(bx)}${ts}${g.e2s(e)}* `
 
 	x = g.right(e); bx = bloss.outer(x); lx = bloss.link(bx);
@@ -166,194 +283,146 @@ function augment(e) {
 			bloss.flip(bx,y); match.add(ee);
 		}
 		if (trace) { ts += `${bloss.x2s(bx)}${g.e2s(ee)} `; }
-		bloss.state(bx,0); bloss.link(bx,null);
+		bloss.link(bx,null);
 		x = g.mate(y,ee); bx = bloss.outer(x); lx = bloss.link(bx);
 	}
-	bloss.flip(bx,x); bloss.state(bx,0);
+	bloss.flip(bx,x);
+	if (trace) traceString += `${ts}${bloss.x2s(bx)} :`;
+
+	newPhase();
 	if (trace) {
-		traceString += `${ts}${bloss.x2s(bx)}`;
+		traceString += '\n';
+		if (bloss.toString().length > 3)
+			traceString += `outer blossoms:\n${bloss.toString(1)}`;
 	}
 }
 
 /** Prepare for next phase, following an augmentation.
  *  Expand all outer blossoms with z==0, set states of remaining outer
  *  blossoms to unreached or even and their links to null.
- *  Put all vertices in even blossoms into queue of even vertices.
  */
 function newPhase() {
 	// expand outer blossoms with z == 0
 	blist.clear();
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
-		if (z[b] == 0 && b > g.n) blist.enq(b);
+		if (zz(b) == 0) blist.enq(b);  // note: b must be even
 	}
 	while (!blist.empty()) {
 		let b = blist.deq();
 		if (trace) traceString += ` ${bloss.x2s(b)}`;
-		let subs = bloss.expandBlossom(b); deblossoms++;
+		let subs = bloss.expandBlossom(b); 
 		for (let sb = subs.first(); sb; sb = subs.next(sb)) {
-			if (z[sb] == 0 && sb > g.n) {
-				blist.enq(sb);
-			}
+			if (zz(sb) == 0 && sb > g.n) blist.enq(sb);
 		}
 	}
+
+	// update the z variables while clearing the vertex and blossom heaps
+	for (let u = evh.findmin(); u; u = evh.findmin()) {
+		z[u] = evh.key(u); evh.delete(u);
+	}
+	for (let u = ovh.findmin(); u; u = ovh.findmin(u)) {
+		z[u] = ovh.key(u); ovh.delete(u);
+	}
+	for (let b = ebh.findmin(); b; b = ebh.findmin(b)) {
+		z[b] = 2*ebh.key(b); ebh.delete(b);
+	}
+	for (let b = obh.findmin(); b; b = obh.findmin(b)) {
+		z[b] = 2*obh.key(b); obh.delete(b);
+	}
 	// set states of remaining outer blossoms based on matching status
-	// and add vertices in even outer blossoms to q
-	q.clear();
+	// and update vertex heaps and blossom heaps
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
-		bloss.state(b, match.at(bloss.base(b)) ? 0 : +1);
-		bloss.link(b,null);
+		bloss.state(b, match.at(bloss.base(b)) ? 0 : +1); bloss.link(b,null);
 		if (bloss.state(b) == 0) continue;
-		for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u))
-			q.enq(u);
+		if (b > g.n) ebh.insert(b, z[b]/2);
+		for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
+			evh.insert(u, z[u]);
+		}
+	}
+
+	// add eligible edges to euh or eeh as appropriate
+	euh.clear(); eeh.clear();
+	for (let e = g.first(); e; e = g.next(e)) {
+		let [u,v] = [g.left(e),g.right(e)];
+		let [bu,bv] = [bloss.outer(u),bloss.outer(v)];
+		if (bu == bv) continue;
+		if (bloss.state(bu) + bloss.state(bv) == +2)
+			eeh.insert(e, slack(e)/2); 
+		else if (bloss.state(bu) + bloss.state(bv) == +1)
+			euh.insert(e, slack(e));
 	}
 }
 
 /** Adjust the labels for the vertices and blossoms.
- *  This is a brute-force version, using no special data structures.
  *  Takes O(m) time.
  *  @return tuple true if we have a max weight matching, else false
  */
 function relabel() {
-	// first initialize outer blossom of all vertices and sub-blossoms
-	let outer = new Int32Array(bloss.n);
-	blist.clear();
-	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
-		blist.enq(b);
-		while (!blist.empty()) {
-			steps++;
-			let bb = blist.deq(); outer[bb] = b;
-			for (let sb = bloss.firstSub(bb); sb; sb = bloss.nextSub(sb))
-				blist.enq(sb);
-		}
-	}
-
-	let d1 = Infinity;
-	for (let u = 1; u <= g.n; u++) {
-		if (bloss.state(outer[u]) == +1) d1 = Math.min(d1, z[u]);
-	}
-
-	let d2 = Infinity; let d3 = Infinity;
-	for (let e = g.first(); e; e = g.next(e)) {
-		steps++;
-		let u = g.left(e); let v = g.right(e);
-		if (outer[u] == outer[v]) continue;
-		let su = bloss.state(outer[u]); let sv = bloss.state(outer[v]);
-		if (su + sv == +1) {
-			d2 = Math.min(d2, slack(e));
-		} else if (su + sv == +2 && outer[u] != outer[v]) {
-			d3 = Math.min(d3, slack(e) / 2);
-		}
-	}
-
-	let d4 = Infinity;
-	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
-		steps++;
-		if (b > g.n && bloss.state(b) == -1)
-			d4 = Math.min(d4, z[b]/2);
-	}
-
+	let d1 = evh.empty() ? 0 : evh.key(evh.findmin());
+	let d2 = euh.empty() ? Infinity : euh.key(euh.findmin());
+	let d3 = eeh.empty() ? Infinity : eeh.key(eeh.findmin());
+	let d4 = obh.empty() ? Infinity : obh.key(obh.findmin());
 	let delta = Math.min(d1,d2,d3,d4);
 
 	if (trace) traceString += `relab(${delta})`;
-	
-	// adjust the z values for vertices and outer blossoms
-	for (let u = 1; u <= g.n; u++) {
-		steps++;
-		if (bloss.state(outer[u]) == +1) z[u] -= delta;
-		if (bloss.state(outer[u]) == -1) z[u] += delta;
-	}
 
-	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
-		steps++;
-		if (b <= g.n) continue;
-		if (bloss.state(b) == +1) z[b] += 2*delta;
-		if (bloss.state(b) == -1) z[b] -= 2*delta;
-	}
+	evh.add2keys(-delta);   ovh.add2keys(+delta);
+	ebh.add2keys(+delta);   obh.add2keys(-delta);
+	eeh.add2keys(-delta);   euh.add2keys(-delta);
 
-	if (d1 == Infinity || delta == d1) {
-		if (trace) traceString += ' and finished\n';
-		return true; // we have max weight matching
-	}
 
-	// now, add new even vertices to q
-	if (trace) traceString += '\n    [';
-	if (delta == d2) {
+	// expand odd blossoms with zero z in place
+	if (trace) traceString += ' [';
+	if (delta == d4) {
 		let first = true;
-		for (let e = g.first(); e; e = g.next(e)) {
+		for (let b = obh.findmin(); obh.key(b) == 0; b = obh.findmin()) {
 			steps++;
-			let u = g.left(e);  let bu = outer[u];
-			let v = g.right(e); let bv = outer[v];
-			if (bu == bv || slack(e) != 0) continue;
-			if (bloss.state(bu) == +1 && bloss.state(bv) == 0) {
-				if (!q.contains(u)) q.enq(u);
-			} else if (bloss.state(bv) == +1 && bloss.state(bu) == 0) {
-				if (!q.contains(v)) q.enq(v);
-			}
-			if (trace && bloss.state(bu) + bloss.state(bv) == 1) {
+			z[b] = 0; obh.delete(b);
+			let blist = bloss.expandInplace(b); deblossoms++;
+
+			if (trace) {
 				if (first) first = false;
 				else traceString += ' ';
-				traceString += `${g.e2s(e)}`;
+				traceString += b;
 			}
-		}
-	}
-	if (trace) traceString += '] [';
-	if (delta == d3) {
-		let first = true;
-		for (let e = g.first(); e; e = g.next(e)) {
-			steps++;
-			let u = g.left(e);  let bu = outer[u];
-			let v = g.right(e); let bv = outer[v];
-			if (bu == bv || slack(e) != 0) continue;
-			if (bloss.state(bu) + bloss.state(bv) == +2) {
-				if (!q.contains(u)) q.enq(u);
-				if (!q.contains(v)) q.enq(v);
-				if (trace) {
-					if (first) first = false;
-					else traceString += ' ';
-					traceString += `${g.e2s(e)}`;
+
+			for (let sb = blist.first(); sb; sb = blist.next(sb)) {
+				steps++;
+				if (sb <= g.n) {
+					z[sb] = ovh.key(sb); ovh.delete(sb);
+				}
+				let ssb = bloss.state(sb); // new state from expandInPlace
+				if (ssb == -1) {
+					if (sb <= g.n) ovh.insert(sb,z[sb]);
+					else           obh.insert(sb,z[sb]/2);
+				} else if (ssb == +1) {
+					if (sb <= g.n) evh.insert(sb,z[sb]);
+					else           ebh.insert(sb,z[sb]/2);
+				}
+				for (let u = bloss.firstIn(sb); u; u = bloss.nextIn(sb,u)) {
+					if (sb > g.n && ssb != -1) {
+						z[u] = ovh.key(u); ovh.delete(u);
+						if (ssb == +1) evh.insert(u,z[u]);
+					}
+					for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
+						let v = g.mate(u,e); let bv = bloss.outer(v);
+						if (bv == sb) continue;
+						let sbv = bloss.state(bv);
+						     if (ssb + sbv == +1) euh.insert(e,slack(e));
+						else if (ssb + sbv == +2) eeh.insert(e,slack(e)/2);
+					}
 				}
 			}
 		}
 	}
-	if (trace) traceString += '] [';
 
-	// and expand odd blossoms with zero z in place, adding the new
-	// vertices in new even outer blossoms to q
-	if (delta == d4) {
-		let first = true;
-		for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
-			if (b <= g.n || bloss.state(b) != -1 || z[b] != 0) continue;
-			let blist = bloss.expandInplace(b); deblossoms++;
-			if (trace) {
-				if (first) first = false;
-				else traceString += ' ';
-				traceString += `${bloss.x2s(b)}`;
-			}
-			for (let sb = blist.first(); sb; sb = blist.next(sb)) {
-				steps++;
-				if (bloss.state(sb) == +1) add2q(sb)
-			}
-		}
+	if (delta < d1) {
+		if (trace) traceString += ']\n';
+		return false;
 	}
-	if (trace) traceString += ']\n';
-
-	return false;
+	if (trace) traceString += '] and finished\n';
+	return true; // we have max weight matching
 }
-
-/** Add vertices in an even outer blossom to the pending blossom queue.
- *  @param b is an even outer blossom to be added to q
- */
-function add2q(b) {
-	for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
-		if (!q.contains(u)) q.enq(u);
-		steps++;
-	}
-}
-
-/** Return the slack of an "outer edge".
- *  @param e is an edge joining vertices in different outer blossoms
- */
-let slack = (e => z[g.left(e)] + z[g.right(e)] - g.weight(e));
 
 /** Find the nearest common ancestor of two vertices in
  *  the current graph.
@@ -398,39 +467,19 @@ function nca(bu, bv) {
 	return result;
 }
 
-function statusString() {
-	let s = 'complete state\nmatch:' + match.toString() + '\nbloss:' + 
-			bloss.toString(1);
-	s += 'z values\n';
-	for (let u = 1; u <= g.n; u++) {
-		if (u > 1) s += ' ';
-		s += `${g.x2s(u)}:${z[u]}`
-	}
-	s += '\n';
-	let first = true
-	for (let b = g.n+1; b <= bloss.n; b++) {
-		if (!bloss.validBid(b)) continue;
-		if (first) first = false;
-		else s += ' ';
-		s += `${bloss.x2s(b)}:${z[b]}`
-	}
-	s += '\n';
-	return s;
-}
-
 export function verify() {
 	let s = verifyInvariant();
 	if (!s) {
 		for (let u = 1; u <= g.n; u++) {
-			if (!match.at(u) && z[u] > 0) {
+			if (!match.at(u) && zz(u) > 0) {
 				s += `for unmatched vertex ${bloss.x2s(u)}, ` +
-					   `z(${bloss.x2s(u)})=${z[u]}`;
+					   `z(${bloss.x2s(u)})=${zz(u)}`;
 				break;
 			}
 		}
 	}
 	if (s) {
-		s = traceString + 'Error(f): ' + s + '\n' + statusString();
+		s = traceString + 'ERROR xx: ' + s + '\n' + statusString();
 		console.log(s + g.toString(1));
 	}
 	return s;
@@ -440,23 +489,131 @@ function verifyInvariant() {
 	let mv = match.verify(); if (mv) return mv;
 	let bv = bloss.verify(); if (bv) return bv;
 	for (let b = 1; b <= bloss.n; b++) {
-		if (b <= g.n && z[b] < 0)
-			return `vertex ${bloss.x2s(b)} has negative z=${z[b]}`;
-		else if (b > g.n && bloss.validBid(b) && z[b] < 0)
-			return `blossom ${bloss.x2s(b)} has negative z=${z[b]}`;
+		if (b <= g.n && zz(b) < 0)
+			return `vertex ${bloss.x2s(b)} has negative z=${zz(b)}`;
+		else if (b > g.n && bloss.validBid(b) && zz(b) < 0)
+			return `blossom ${bloss.x2s(b)} has negative z=${zz(b)}`;
 	}
 	for (let e = g.first(); e; e = g.next(e)) {
 		let u = g.left(e); let v = g.right(e);
 		if (bloss.outer(u) == bloss.outer(v)) continue;
 		if (slack(e) < 0)
-			return `edge ${g.e2s(e)} has negative slack=${slack(e)}` +
-				   `states=[${bloss.state(u)},bloss.state(v)}] ` +
-				   `z=[${z[u]},z[v]}]`;
+			return `edge ${g.e2s(e)} has negative slack=${slack(e)} ` +
+				   `states=[${bloss.state(bloss.outer(u))},` +
+				   `${bloss.state(bloss.outer(v))}] z=[${zz(u)},${zz(v)}]`;
 		if (match.contains(e) && slack(e) > 0) {
 			return `matched edge ${g.e2s(e)} has non-zero slack=${slack(e)}` +
-				   `states=[${bloss.state(u)},bloss.state(v)}] ` +
-				   `z=[${z[u]},z[v]}]`;
+				   ` states=[${bloss.state(bloss.outer(u))},` +
+				   `${bloss.state(bloss.outer(v))}] z=[${zz(u)},${zz(v)}]`;
 		}
 	}
+	for (let u = 1; u <= g.n; u++)
+		if (ebh.contains(u) || obh.contains(u))
+				return `vertex ${g.x2s(u)} in blossom heap`;
+	// check that state of each outer blossom and vertex matches the
+	// heap that it's in
+	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
+		let bstate = bloss.state(b);
+		if (b <= g.n && (ebh.contains(b) || obh.contains(b)))
+				return `vertex ${g.x2s(b)} in blossom heap`;
+		if (b > g.n) {
+			if (ebh.contains(b) && bloss.state(b) != +1)
+				return `blossom ${b} in ebh has state ${bloss.state(b)}`;
+			if (obh.contains(b) && bloss.state(b) != -1)
+				return `blossom ${b} in obh has state ${bloss.state(b)}`;
+			if (!ebh.contains(b) && bloss.state(b) == +1)
+				return `even blossom ${b} is not in ebh`;
+			if (!obh.contains(b) && bloss.state(b) == -1)
+				return `odd blossom ${b} is not in obh`;
+		}
+		for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
+fassert(u <= g.n, `u=${bloss.x2s(u)}`);
+			if (evh.contains(u) && bloss.state(b) != +1)
+				return `vertex ${g.x2s(u)} in evh has state ${bloss.state(b)}`;
+			if (ovh.contains(u) && bloss.state(b) != -1)
+				return `vertex ${g.x2s(u)} in ovh has state ${bloss.state(b)}`;
+			if (!evh.contains(u) && bloss.state(b) == +1)
+				return `even vertex ${g.x2s(u)} is not in evh`;
+			if (!ovh.contains(u) && bloss.state(b) == -1)
+				return `odd vertex ${g.x2s(u)} is not in ovh`;
+		}
+	}
+	// check that the endpoint states of each edge match its edge heap
+	for (let e = g.first(); e; e = g.next(e)) {
+		let [u,v] = [g.left(e),g.right(e)];
+		let [bu,bv] = [bloss.outer(u),bloss.outer(v)];
+		if (bu == bv) continue;
+		let stateSum = bloss.state(bu) + bloss.state(bv);
+		if (eeh.contains(e) && stateSum != +2)
+			return `eeh contains incompatible edge ${g.e2s(e)}`;
+		if (euh.contains(e) && stateSum != +1)
+			return `euh contains incompatible edge ${g.e2s(e)}`;
+		if (!eeh.contains(e) && stateSum == +2)
+			return `eeh is missing edge ${g.e2s(e)}`;
+		if (!euh.contains(e) && stateSum == +1)
+			return `euh is missing edge ${g.e2s(e)}`;
+	}
+	for (let b = ebh.first(); b; b = ebh.next(b)) {
+		if (b <= g.n || bloss.outer(b) != b)
+			return `blossom ${bloss.x2s(b)} in ebh is not a non-trivial ` +
+				   `outer blossom`;
+	}
+	for (let b = obh.first(); b; b = obh.next(b)) {
+		if (b <= g.n || bloss.outer(b) != b)
+			return `blossom ${bloss.x2s(b)} in obh is not a non-trivial ` +
+				   `outer blossom`;
+	}
+	for (let e = eeh.first(); e; e = eeh.next(e)) {
+		if (eeh.key(e) != slack(e)/2)
+			return `eeh.key(${g.e2s(e)})=${eeh.key(e)} != ` +
+				   `slack(${g.e2s(e)})/2=${slack(e)/2}`;
+	}
+	for (let e = euh.first(); e; e = euh.next(e)) {
+		if (euh.key(e) != slack(e))
+			return `euh.key(${g.e2s(e)})=${euh.key(e)} != ` +
+				   `slack(${g.e2s(e)})=${slack(e)}`;
+	}
+		
 	return '';
+}
+
+function statusString() {
+	let s = 'complete state\nmatch:' + match.toString() +
+			'\nouter blossoms:\n' + bloss.toString(1);
+	s += 'z values\n';
+	for (let u = 1; u <= g.n; u++) {
+		if (u > 1) s += ' ';
+		s += `${g.x2s(u)}:${zz(u)}`
+	}
+	s += '\n';
+	let first = true
+	for (let b = g.n+1; b <= bloss.n; b++) {
+		if (!bloss.validBid(b)) continue;
+		if (first) first = false;
+		else s += ' ';
+		s += `${bloss.x2s(b)}:${zz(b)}`
+	}
+	s += '\n' + heaps2string();
+	return s;
+}
+
+function heaps2string() {
+	let s = '';
+	if (!evh.empty())
+		s += 'evh: ' + evh.toString() + '\n';
+	if (!ovh.empty())
+		s += 'ovh: ' + ovh.toString() + '\n';
+	if (!ebh.empty())
+		s += 'ebh: ' + ebh.toString(0,b => `${b}:${ebh.key(b)}`) + '\n';
+	if (!obh.empty())
+		s += 'obh: ' + obh.toString(0,b => `${b}:${obh.key(b)}`) + '\n';
+	if (!eeh.empty())
+		s += 'eeh: ' + eeh.toString(0,e => 
+				g.n > 26 ? g.e2s(e) : g.x2s(g.left(e)) + g.x2s(g.right(e)) +
+							':' + eeh.key(e)) + '\n';
+	if (!euh.empty())
+		s += 'euh: ' + euh.toString(0,e => 
+				g.n > 26 ? g.e2s(e) : g.x2s(g.left(e)) + g.x2s(g.right(e)) +
+							':' + euh.key(e)) + '\n';
+	return s;
 }

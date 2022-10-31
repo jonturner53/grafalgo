@@ -113,6 +113,13 @@ export default class ArrayHeap extends Top {
 	 *  @param return position where right child would go if there were one
 	 */
 	right(pos) { return this.d*pos+1; }
+
+	first() { return this.m >= 1 ? this.itemAt(1) : 0; }
+
+	next(i) { 
+		let pi = this.#pos[i];
+		return (pi && pi < this.m ?  this.#item[pi+1] : 0);
+	}
 	
 	/** Find an item in the heap with the smallest key.
 	 *  @return the number of an item that has the smallest key
@@ -135,6 +142,8 @@ export default class ArrayHeap extends Top {
 	 */
 	key(i) { return this.#offset + this.#key[i]; }
 
+	get offset() { return this.#offset; }
+
 	add2keys(delta) { this.#offset += delta; }
 	
 	/** Determine if an item is in the heap.
@@ -153,10 +162,12 @@ export default class ArrayHeap extends Top {
 	 *  @param key is the key value under which i is to be inserted
 	 */
 	insert(i, key) {
-		fassert(i > 0);
+		fassert(i > 0 && this.valid(i), `ArrayHeap.insert: invalid item ${i}`);
+		if (this.contains(i)) { this.changekey(i,key); return; }
 		this.#insertCount++;
 		if (i > this.capacity) this.expand(i);
 		this.#key[i] = key - this.#offset; this.#m++; this.#siftup(i, this.m);
+fassert(this.contains(i));
 	}
 	
 	/** Remove an index from the heap.
@@ -165,6 +176,7 @@ export default class ArrayHeap extends Top {
 	delete(i) {
 		fassert(i > 0);
 		this.#deleteCount++;
+		if (!this.contains(i)) return;
 		let j = this.itemAt(this.#m--);
 		if (i != j) {
 			if (this.#key[j] <= this.#key[i])
@@ -183,7 +195,7 @@ export default class ArrayHeap extends Top {
 	#siftup(i, x) {
 		this.#siftupSteps++;
 		let px = this.p(x);
-		while (x > 1 && this.#key[i] < this.key(this.itemAt(px))) {
+		while (x > 1 && this.#key[i] < this.#key[this.itemAt(px)]) {
 			this.#item[x] = this.itemAt(px); this.#pos[this.itemAt(x)] = x;
 			x = px; px = this.p(x);
 			this.#siftupSteps++;
@@ -229,11 +241,10 @@ export default class ArrayHeap extends Top {
 	 */
 	changekey(i, k) {
 		this.#changekeyCount++;
-		let ki = this.#key[i] - this.#offset;
-		this.#key[i] = k - this.#offset;
-		if (k == ki) return;
-		if (k < ki) this.#siftup(i, this.#pos[i]);
-		else this.#siftdown(i, this.#pos[i]);
+		let ki = this.#key[i] + this.#offset;
+		this.#key[i] += k - ki;
+			 if (k < ki) this.#siftup(i, this.#pos[i]);
+		else if (k > ki) this.#siftdown(i, this.#pos[i]);
 	}
 
 	/** Determine if two heaps are equal.
@@ -262,10 +273,16 @@ export default class ArrayHeap extends Top {
 	 */
 	toString(showTree=0, label=0) {
 		if (!label) label = (u => this.x2s(u) + ':' + this.key(u));
+		if (!showTree || this.m <= 1) {
+			let s = '[';
+			for (let i = 1; i <= this.m; i++)
+				s += (i > 1 ? ' ' : '') + label(this.itemAt(i));
+			return s + ']';
+		}
+		if (this.m == 1) return '[' + label(this.itemAt(1)) + ']';
 		let f = new Forest(this.n);
-		for (let x = 1; x <= this.m; x++) {
-			if (this.p(x))
-				f.link(this.itemAt(x),this.itemAt(this.p(x)));
+		for (let x = 2; x <= this.m; x++) {
+			f.link(this.itemAt(x),this.itemAt(this.p(x)));
 		}
 		return f.toString((showTree ? 0x4 : 0), label).slice(1,-1);
 	}

@@ -124,7 +124,12 @@ export default class Matching extends Top {
 	 *  @return the string representation
 	 */
 	toString() {
-		return this.#elist.toString(e => this.g.edge2string(e));
+		let w = this.weight();
+		return (w != 0 ? '' + w + ' ' : '') +
+			   this.#elist.toString(e =>
+					this.g.n <= 26 ?  this.g.e2s(e,0,1) +
+									  ':' + this.g.weight(e) :
+									  this.g.e2s(e));
 	}
 
 	/** Initialize this from a string representation.

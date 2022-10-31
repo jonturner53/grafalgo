@@ -49,7 +49,7 @@ export default function wmatchE(mg, traceFlag=false, subsets=null) {
 	mark = new Int8Array(bloss.n+1).fill(false);
 
 	trace = traceFlag; traceString = '';
-	paths = blossoms = deblossoms = relabels = 0; steps = g.n + g.edgeCapacity;
+	paths = blossoms = deblossoms = relabels = 0; steps = g.n + g.edgeRange;
 
 	let maxwt = -Infinity;
 	for (let e = g.first(); e != 0; e = g.next(e)) {
@@ -63,9 +63,9 @@ export default function wmatchE(mg, traceFlag=false, subsets=null) {
 
 	while (true) {
 		if (trace) {
-			traceString += '\n';
+			traceString += '\nmatching: ' + match.toString() + '\n';
 			if (bloss.toString().length > 3)
-				traceString += bloss.toString(1);
+				traceString += 'outer blossoms:\n' + bloss.toString(1);
 		}
 		/*
 		let s = verifyInvariant();
@@ -101,13 +101,6 @@ export default function wmatchE(mg, traceFlag=false, subsets=null) {
 					// augment the path without expanding blossoms
 					paths++;
 					augment(e);
-					if (trace) traceString += ' :';
-					newPhase();
-					if (trace) {
-						traceString += '\n    ' + match.toString() + '\n';
-						if (bloss.toString().length > 3)
-							traceString += '\n' + bloss.toString(1);
-					}
 					break;
 				}
 			}
@@ -150,7 +143,7 @@ function augment(e) {
 			bloss.flip(bx,y); match.add(ee);
 		}
 		bloss.state(bx,0); bloss.link(bx,null);
-		if (trace) ts = `${g.e2s(e)} ${bloss.x2s(bx)}${ts}`
+		if (trace) ts = `${g.e2s(ee)} ${bloss.x2s(bx)}${ts}`
 		x = g.mate(y,ee); bx = bloss.outer(x); lx = bloss.link(bx);
 	}
 	bloss.flip(bx,x); bloss.state(bx,0);
@@ -170,8 +163,13 @@ function augment(e) {
 		x = g.mate(y,ee); bx = bloss.outer(x); lx = bloss.link(bx);
 	}
 	bloss.flip(bx,x); bloss.state(bx,0);
+	if (trace) traceString += `${ts}${bloss.x2s(bx)}:`;
+
+	newPhase();
 	if (trace) {
-		traceString += `${ts}${bloss.x2s(bx)}`;
+		traceString += '\n';
+		if (bloss.toString().length > 3)
+			traceString += 'outer blossoms:\n' + bloss.toString(1);
 	}
 }
 
@@ -184,13 +182,15 @@ function newPhase() {
 	// expand outer blossoms with z == 0
 	blist.clear();
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
+		steps++;
 		if (z[b] == 0 && b > g.n) blist.enq(b);
 	}
 	while (!blist.empty()) {
 		let b = blist.deq();
 		if (trace) traceString += ` ${bloss.x2s(b)}`;
-		let subs = bloss.expandBlossom(b); deblossoms++;
+		let subs = bloss.expandBlossom(b); 
 		for (let sb = subs.first(); sb; sb = subs.next(sb)) {
+			steps++;
 			if (z[sb] == 0 && sb > g.n) {
 				blist.enq(sb);
 			}
@@ -200,11 +200,13 @@ function newPhase() {
 	// and add vertices in even outer blossoms to q
 	q.clear();
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
+		steps++;
 		bloss.state(b, match.at(bloss.base(b)) ? 0 : +1);
 		bloss.link(b,null);
 		if (bloss.state(b) == 0) continue;
-		for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u))
-			q.enq(u);
+		for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
+			steps++; q.enq(u);
+		}
 	}
 }
 
@@ -218,6 +220,7 @@ function relabel() {
 	let outer = new Int32Array(bloss.n);
 	blist.clear();
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
+		steps++;
 		blist.enq(b);
 		while (!blist.empty()) {
 			steps++;
@@ -229,6 +232,7 @@ function relabel() {
 
 	let d1 = Infinity;
 	for (let u = 1; u <= g.n; u++) {
+		steps++;
 		if (bloss.state(outer[u]) == +1) d1 = Math.min(d1, z[u]);
 	}
 
@@ -296,7 +300,7 @@ function relabel() {
 			}
 		}
 	}
-	if (trace) traceString += '] [';
+	if (trace) traceString += ']\n    [';
 	if (delta == d3) {
 		let first = true;
 		for (let e = g.first(); e; e = g.next(e)) {
@@ -315,23 +319,45 @@ function relabel() {
 			}
 		}
 	}
-	if (trace) traceString += '] [';
+	if (trace) traceString += ']\n    [';
 
 	// and expand odd blossoms with zero z in place, adding the new
 	// vertices in new even outer blossoms to q
 	if (delta == d4) {
-		let first = true;
+		// expand odd blossoms with zero z
+		blist.clear(); let first = 1;
 		for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
-			if (b <= g.n || bloss.state(b) != -1 || z[b] != 0) continue;
-			let blist = bloss.expandInplace(b); deblossoms++;
+			if (z[b] == 0 && b > g.n && bloss.state(b) == -1)
+				blist.enq(b);
+		}
+		while (!blist.empty()) {
+			let b = blist.deq();
 			if (trace) {
-				if (first) first = false;
+				if (first) first = 0;
 				else traceString += ' ';
-				traceString += `${bloss.x2s(b)}`;
+				traceString += bloss.x2s(b);
 			}
-			for (let sb = blist.first(); sb; sb = blist.next(sb)) {
+			let subs = bloss.expandInplace(b); deblossoms++;
+			for (let sb = subs.first(); sb; sb = subs.next(sb)) {
 				steps++;
-				if (bloss.state(sb) == +1) add2q(sb)
+				if (z[sb] == 0 && sb > g.n && bloss.state(sb) == -1) {
+					blist.enq(sb);
+				}
+				if (bloss.state(sb) == +1) add2q(sb);
+
+				// should really include this also
+				if (bloss.state(sb) == 0) {
+					for (let u = bloss.firstIn(sb); u; u = bloss.nextIn(sb,u)) {
+						for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
+							let v = g.mate(u,e); let bv = bloss.outer(v);
+							if (bloss.state(bv) == +1 &&
+								slack(e) == 0 && !q.contains(v)) {
+								q.enq(v);
+							}
+							steps++;
+						}
+					}
+				}
 			}
 		}
 	}

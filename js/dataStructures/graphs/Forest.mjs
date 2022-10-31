@@ -166,7 +166,8 @@ export default class Forest extends Top {
 	 *  @param v is a node in some other tree
 	 */
 	link(u, v) {
-		fassert(u > 0 && v > 0);
+		fassert(u > 0 && this.p(u) == 0 && v > 0,
+				`Forest.link: bad arguments ${u} ${v}`);
 		if (u > this.n || v > this.n) {
 			this.expand(Math.max(u, v));
 		}
@@ -334,7 +335,7 @@ export default class Forest extends Top {
 	tree2string(t, trees=0, label=0, treeRoot=1) {
 		let s = label(t);
 		if (this.firstChild(t) == 0) {
-			return s + (treeRoot && trees? '()' : '');
+			return s; // + (treeRoot && trees ? '()' : '');
 		}
 		if (trees) s += '(';
 		for (let c = this.firstChild(t); c; c = this.nextSibling(c)) {
@@ -408,5 +409,19 @@ export default class Forest extends Top {
 
 	getStats() {
 		return { 'steps': this.steps };
+	}
+
+	verify() {
+		for (let u = 1; u <= this.n; u++) {
+			let sib = this.nextSibling(u);
+			if (sib && this.p(sib) != this.p(u))
+				return `siblings ${this.x2s(u)} and ${this.x2s(sib)} ` +
+					   `have different parents`;
+			if (this.firstChild(u)) {
+				if (this.p(this.firstChild(u)) != u)
+					return `first child ${this.x2s(this.firstChild(u))} of ` +
+						   `${this.x2s(u)} has different parent`;
+			}
+		}
 	}
 }

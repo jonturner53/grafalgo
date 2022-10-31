@@ -151,7 +151,6 @@ export default class ListSet extends Top {
 		fassert(this.valid(f1) && this.valid(f2));
 		if (f2 == 0 || f1 == f2) return f1;
 		if (f1 == 0) return f2;
-		fassert(this.isfirst(f1) && this.isfirst(f2));
 		let l1 = this.last(f1); let l2 = this.last(f2);
 		this.#next[l1] = f2;
 		this.#prev[f2] = l1;
