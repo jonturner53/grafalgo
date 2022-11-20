@@ -70,10 +70,16 @@ export default class BinaryForest extends Top {
 		this.clearStats();
 	}
 	
-	/** Convert all nodes to singleton trees. */
-	clear() {
-		this.#left.fill(0); this.#right.fill(0); this.#p.fill(0);
-		this.clearStats();
+	/** Convert nodes to singleton trees. */
+	clear(h=0) {
+		if (h) {
+			while (!this.singleton(h)) {
+				h = this.delete(h); this.steps++;
+			}
+		} else {
+			this.#left.fill(0); this.#right.fill(0); this.#p.fill(0);
+			this.steps += this.n;
+		}
 	}
 
 	clearStats() { this.steps = this.rotations = 0; }
@@ -114,7 +120,7 @@ export default class BinaryForest extends Top {
 	}
 
 	/* Determine if a node is a tree root, */
-	isroot(r) { return this.#p[r] <= 0; }
+	isroot(r) { return r && this.#p[r] <= 0; }
 
 	/* Get the sibling of a node. */
 	sibling(u) {
@@ -250,6 +256,7 @@ export default class BinaryForest extends Top {
 	 *  -1 means left, +1 means right and 0 means don't care
 	 */
 	link(u,v,side=0) {
+		fassert(v != 0);
 		if (u) this.p(u,v);
 		if (side < 0) {
 			this.left(v,u);
@@ -267,43 +274,36 @@ export default class BinaryForest extends Top {
 		}
 	}
 	
-	/** Insert a node or tree immediately after a node in another tree.
-	 *  @param u is a singleton node or a tree root
-	 *  @param v is a node in another tree which defines the
-	 *  point where u is to be inserted.
-	 *  @return the root of the modified tree
+	/** Insert a node immediately after another node in a tree.
+	 *  @param u is a singleton
+	 *  @param v is a node in a tree which defines the point where u is
+	 *  to be inserted; if zero, u is inserted before all nodes in tree
+	 *  @param t is the tree root
+	 *  @param balance(u) is an optional balance function called right
+	 *  after u is inserted
+	 *  @return the root of the resuling tree
 	 */
-	insertAfter(u, v) {
-		let [t1,t] = this.split(v);
-		let w = this.first(t);
-		let [,t2] = this.split(w);
-		return this.join(t1, v, this.join(u, w, t2));
-	}
-
-	/** Append one tree after another
-	 *  @param u is the root of tree
-	 *  @param v is the root of a second tree
-	 *  @return subtree formed by combining the two with the nodes
-	 *  in v's subtree to the right of the nodes in u's subtree
-	 */
-	append(u,v) {
-		if (u == 0 || u == v) return v;
-		else if (v == 0) return u;
-		let t = this.last(u);
-		let [t1] = this.split(t);
-		t = this.join(t1,t,v);
-		return t;
+	insertAfter(u, v, t, balance=0) {
+		if (!t || t == u) return u;
+		if (!v)
+			this.link(u, this.first(t), -1);
+		else if (!this.right(v))
+			this.link(u, v, +1);
+		else
+			this.link(u, this.first(this.right(v)), -1);
+		if (balance) balance(u);
+		return this.find(t);
 	}
 
 	/** Insert a node based on a key value.
 	 *  @param u is a singleton node
-	 *  @param t is the root of the tree containing u
 	 *  @param key is an array mapping nodes to key values;
 	 *  the trees are assumed to be ordered by the keys
+	 *  @param t is the root of the tree containing u
 	 *  @return the root of the modified tree
 	 */
-	insertByKey(u, t, key) {
-		if (t == 0 || t == u) return u;
+	insertByKey(u, key, t=0, balance=0) {
+		if (!t || t == u) return u;
 		let v = t; let pv = 0;
 		while (v != 0) {
 			pv = v; this.steps++;
@@ -311,30 +311,42 @@ export default class BinaryForest extends Top {
 			else				  v = this.right(v);
 		}
 		this.link(u, pv, key[u] <= key[pv] ? -1 : +1);
-		return t;
+		if (balance) balance(u);
+		return this.find(t);
 	}
 
 	/** Delete a node from a tree.
 	 *  @param u is a non-singleton tree node.
-	 *  @return a pair [c,pc] where c is the node that replaced u in
-	 *  the tree (or possibly 0) and pc is its parent; these are
-	 *  provided to facilitate possible rebalancing of the tree
+	 *  @param t is the tree containing u
+	 *  @param balance(cu,pu) is an optional balancing function which
+	 *  is called just after u's removal; its arguments are u's former
+	 *  child and parent
+	 *  @return the resulting tree
 	 */
-	delete(u) {
-		if (this.singleton(u)) return;
-		if (this.left(u) != 0 && this.right(u) != 0)
+	delete(u, t=0, balance=0) {
+		if (this.singleton(u)) return u;
+		if (!t) t = this.find(u); 
+		// find a node close to the root
+		let tt = (u != t ? t : (this.left(u) ? this.left(u) : this.right(u)));
+		if (this.left(u) && this.right(u))
 			this.swap(u, this.prev(u)); 
 		// now, u has at most one child
-		let c = (this.left(u) ? this.left(u) : this.right(u));
-		// c is now the only child that could be non-null
-		let pc = this.p(u);
-		if (c != 0) this.p(c, pc);
-		if (pc != 0) {
-				 if (u ==  this.left(pc))  this.left(pc, c);
-			else if (u == this.right(pc)) this.right(pc, c);
+		let cu = (this.left(u) ? this.left(u) : this.right(u));
+		// cu is now the only child that could be non-zero
+		let pu = this.p(u);
+		if (cu != 0) this.p(cu, pu);
+		if (pu != 0) {
+				 if (u ==  this.left(pu))  this.left(pu, cu);
+			else if (u == this.right(pu)) this.right(pu, cu);
 		}
 		this.p(u,0); this.left(u,0); this.right(u,0);
-		return [c,pc];
+		if (balance) balance(cu,pu);
+		return this.find(tt);
+/*
+minor glitch
+in a splay forest, the final find, adds a redundant splay
+not sure it's worth trying to fix it
+*/
 	}
 
 	/** Swap the positions of two nodes in same tree.
@@ -392,18 +404,36 @@ export default class BinaryForest extends Top {
 	 */
 	split(u) {
 		fassert(this.valid(u));
-		let v = u; let w = this.p(v);
+		let v = u; let p = this.p(v);
 		let [l,r] = [this.left(u), this.right(u)];
-		while (w > 0) {
+		this.left(u,0); this.right(u,0); this.p(u,0);
+		while (p > 0) {
 			this.steps++;
-			let pw = this.p(w); // get this now, since join may change it
-			if (v == this.left(w))  r = this.join(r, w, this.right(w));
-			else			  		l = this.join(this.left(w), w, l);
-			v = w; w = pw;
+			let gp = this.p(p); this.p(p,0); // isolate p's subtree
+			if (v == this.left(p)) {
+				r = this.join(r,p,this.right(p));
+			} else {
+			  	l = this.join(this.left(p),p,l);
+			}
+			v = p; p = gp;
 		}
-		this.left(u,0); this.right(u,0);
-		this.p(u,0); this.p(l,0); this.p(r,0);
-		return [l, r];
+		this.p(l,0); this.p(r,0);
+		return [l,r];
+	}
+		
+	/** Append one tree after another
+	 *  @param u is the root of tree
+	 *  @param v is the root of a second tree
+	 *  @return subtree formed by combining the two with the nodes
+	 *  in v's subtree to the right of the nodes in u's subtree
+	 */
+	append(u,v) {
+		if (u == 0 || u == v) return v;
+		else if (v == 0) return u;
+		let t = this.last(u);
+		let [t1] = this.split(t);
+		t = this.join(t1,t,v);
+		return t;
 	}
 
 	/** Perform a rotation in a tree.
@@ -548,7 +578,7 @@ export default class BinaryForest extends Top {
 					this.tree2string(this.left(u),fmt,label,0) : '';
 		let sr = (this.right(u) || fmt&0x4) ?
 					this.tree2string(this.right(u),fmt,label,0) : '';
-		let lu = (fmt&0x4 && treeRoot ? '*' : '') + label(u);
+		let lu = (treeRoot ? '*' : '') + label(u);
 		if (fmt&0x4 || (sl && lu && sr))
 			s += sl + ' ' + lu + ' ' + sr;
 		else if (sl) 
@@ -659,7 +689,8 @@ export default class BinaryForest extends Top {
 	 */
 	verify() {
 		if (this.left(0) || this.right(0) || this.p(0))
-			return `null node has non-null neighbor`;
+			return `null node has non-null neighbor ${this.x2s(this.left(0))} ` +
+				   `${this.x2s(this.right(0))} ${this.x2s(this.p(0))}`;
 		for (let u = 1; u <= this.n; u++) {
 			let pu = this.p(u);
 			if (pu) {

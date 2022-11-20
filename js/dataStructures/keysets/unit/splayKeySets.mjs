@@ -8,12 +8,12 @@
 
 import { assert, AssertError } from '../../../common/Errors.mjs';
 import List from '../../basic/List.mjs';
-import BalancedSplaySets from '../BalancedSplaySets.mjs';
+import SplayKeySets from '../SplayKeySets.mjs';
 
 try {
 	console.log('running basic tests');
 
-	let ss = new BalancedSplaySets();
+	let ss = new SplayKeySets();
 	ss.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}');
 	assert(ss, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}', 'a1');
 	ss.delete(7);

@@ -11,7 +11,7 @@ import { fassert } from '../../common/Errors.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
-import SplayForest from '../searchTrees/SplayForest.mjs';
+import SplayForest from '../keysets/SplayForest.mjs';
 
 /** Data structure representing a collection of paths.
  *
@@ -191,7 +191,7 @@ export default class PathSet extends SplayForest {
 	 */
 	join(r, u, q) {
 		let dmin_u = this.dmin(u);
-		let sq = this.succ(q);
+		let sq = (q ? this.succ(q) : 0);
 		super.join(r,u,q);
 		if (r == 0 && q == 0) {
 			; // do nothing

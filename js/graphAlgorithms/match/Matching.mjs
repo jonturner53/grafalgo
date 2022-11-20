@@ -121,12 +121,19 @@ export default class Matching extends Top {
 	}
 
 	/** Create a string representation of the matching.
+	 *  @param show is an optional function where show(e) returns
+	 *  true if e should be included in the returned string;
+	 *  if omitted, all edges are included
 	 *  @return the string representation
 	 */
-	toString() {
+	toString(show=0) {
+		let showList = new List(this.g.edgeRange);
+		for (let e = this.#elist.first(); e; e = this.#elist.next(e)) {
+			if (!show || show(e)) showList.enq(e);
+		}
 		let w = this.weight();
 		return (w != 0 ? '' + w + ' ' : '') +
-			   this.#elist.toString(e =>
+			   showList.toString(e =>
 					this.g.n <= 26 ?  this.g.e2s(e,0,1) +
 									  ':' + this.g.weight(e) :
 									  this.g.e2s(e));

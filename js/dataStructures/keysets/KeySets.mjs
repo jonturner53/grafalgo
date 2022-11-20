@@ -1,4 +1,4 @@
-/** @file SplayKeySets.mjs
+/** @file KeySets.mjs
  *
  *  @author Jon Turner
  *  @date 2022
@@ -7,16 +7,16 @@
  */
 
 import { fassert } from '../../common/Errors.mjs';
-import ListSet from '../basic/ListSet.mjs';
-import SplayForest from './SplayForest.mjs';
+import ListSet from '../basic/ListSet.mjs'
+import BinaryForest from '../graphs/BinaryForest.mjs';
 
-/** This class implements a balanced binary search tree class.
+/** This class implements a generic binary search tree class.
  *  It partitions the index set into multiple search trees.
  */
-export default class SplayKeySets extends SplayForest {
+export default class KeySets extends BinaryForest {
 	#key;
 
-	/** Constructor for SplaySets object.
+	/** Constructor for KeySets object.
 	 *  @param n is index range for object
 	 *  @param capacity is maximum index range (defaults to n)
 	 */
@@ -24,19 +24,19 @@ export default class SplayKeySets extends SplayForest {
 		super(n,capacity);
 		this.#key = new Float32Array(this.capacity+1);
 	}
-
-	/** Assign a new value by copying from another SplayKeySets object.
-	 *  @param ks is another SplayKeySets object
+	
+	/** Assign a new value by copying from another KeySets object.
+	 *  @param ks is another KeySets object
 	 */
 	assign(ks) {
-		if (ks == this || !(ks instanceof SplayKeySets)) return;
+		if (ks == this || !(ks instanceof KeySets)) return;
 		super.assign(ks);
 		for (u = 1; u <= ks.n; u++) this.key(u, ks.key(u));
 		this.clearStats();
 	}
 	
-	/** Assign a new value by transferring from another SplayKeySets.
-	 *  @param ks is another SplayKeySets object.
+	/** Assign a new value by transferring from another KeySets.
+	 *  @param ks is another KeySets object.
 	 */
 	xfer(ks) {
 		if (ks == this) return;
@@ -51,23 +51,23 @@ export default class SplayKeySets extends SplayForest {
 		if (k != null) this.#key[u] = k;
 		return this.#key[u];
 	}
-
+	
 	/** Find an item with a specified key
 	 *  @param k is key to be found
 	 *  @param t is id (root) of bst
 	 *  @return node u where key(u)==k or 0 if there is no such node
 	 */
-	search(k, t) { return super.search(k, t, this.#key); }
-
+	search(k, t) { return super.search(k,t,this.#key); }
+	
 	/** Insert an item into a set.
 	 *  @param u is an item to be inserted
 	 *  @param t is the id for a set (the root of its tree)
 	 *  @return the id of the set following insertion
 	 */
-	insert(u, t) { return super.insertByKey(u, t, this.#key); }
-
-	/** Determine if two SplaySets objects are equal.
-	 *  @param other is a SplaySets object to be compared to this
+	insert(u, t) { return super.insertByKey(u, this.#key, t); }
+	
+	/** Determine if two KeySets objects are equal.
+	 *  @param other is a KeySets object to be compared to this
 	 *  @return true if both represent the same sets and the
 	 *  keys match; otherwise return false
 	 */
@@ -80,7 +80,7 @@ export default class SplayKeySets extends SplayForest {
 		return ks;
 	}
 	
-	/** Produce a string representation of the SplaySets object.
+	/** Produce a string representation of the KeySets object.
 	 *  @param fmt is an integer with low order bits specifying format options.
 	 *    0b001 specifies newlines between sets
 	 *    0b010 specifies that singletons be shown
@@ -94,7 +94,7 @@ export default class SplayKeySets extends SplayForest {
 		return super.toString(fmt, label);
 	}
 	
-	/** Initialize this SplaySets object from a string.
+	/** Initialize this KeySets object from a string.
 	 *  @param s is a string representing a heap.
 	 *  @return on if success, else false
 	 */

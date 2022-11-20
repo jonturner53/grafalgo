@@ -15,9 +15,9 @@ try {
 
 	let sf = new SplayForest();
 	sf.fromString('{[b a d c] [h g j i f]}');
-	assert(sf, '{[b a d c] [h g j i f]}', 'a1');
-	sf.delete(7);
-	assert(sf, '{[b a d c] [h j i f]}', 'a2');
+	assert(sf, '{[b a *d c] [h g j *i f]}', 'a1');
+	sf.delete(7,9);
+	assert(sf, '{[b a *d c] [h j *i f]}', 'a2');
 	sf.join(sf.find(1), 5, sf.find(10));
 	assert(sf, '{[b a d c e h j i f]}', 'a3');
 	sf.split(10);
@@ -32,8 +32,8 @@ try {
 	let r1 = sf.find(3); let r2 = sf.find(9);
 	sf.join(r1,10,r2);
 	assert(sf.toString(4), '{[((b a d) c (- e h)) *j (- i f)]}', 'b1');
-	sf.delete(10);
-	assert(sf.toString(4), '{[((b a d) c -) *e (- h (- i f))]}', 'b2');
+	sf.delete(10,10);
+	assert(sf.toString(4), '{[(b a d) *c (- e (- h (- i f)))]}', 'b2');
 
 	sf.fromListString('{[a b c d] [e f g] [h i j k l m n] [p q r]}');
 	assert(sf.toString(4),
@@ -44,15 +44,10 @@ try {
 	assert(sf.search(9,13,key), 9, 'f3');
 
 	key[15] = 10.5;
-	sf.insertByKey(15, 13, key);
+	sf.insertByKey(15, key, 13);
 	assert(sf.toString(4),
 			'{[(a b -) *c d] [e *f g] ' +
-			'[(h i ((- j k) l -)) *o (- m n)] [p *q r]}', 'f4');
-
-	sf.insertAfter(17, 11);
-	assert(sf.toString(4),
-			'{[(a b -) *c d] [e *f g] ' +
-			'[(h i j) *k ((p q r) l (- o (- m n)))]}', 'f5');
+			'[((h i ((- j k) l -)) o -) *m n] [p *q r]}', 'f4');
 
 	console.log('passed tests');
 } catch(e) {

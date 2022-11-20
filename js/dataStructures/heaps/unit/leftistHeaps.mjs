@@ -1,4 +1,4 @@
-/** \file leftistHeaps.java
+/** \file leftistHeaps.mjs
  *
  *  @author Jon Turner
  *  @date 2021

@@ -29,16 +29,9 @@ export default class SplayForest extends BinaryForest {
 	 *  @return the root of the tree following the restructuring
 	 */
 	splay(x) {
-		while (this.p(x)) {
-			let y = this.p(x);
-			if (y == 0) return;
+		for (let y = this.p(x); y; y = this.p(x)) {
 			let z = this.p(y);
-			if (z != 0) {
-				if (this.outerGrandchild(x))
-					this.rotate(y);
-				else
-					this.rotate(x);
-			}
+			if (z) this.rotate(this.outerGrandchild(x) ? y : x)
 			this.rotate(x);
 		}
 		return x;
@@ -65,11 +58,13 @@ export default class SplayForest extends BinaryForest {
 	 *  the trees are assumed to be ordered by the keys
 	 *  @return the root of the modified tree
 	 */
-	insertByKey(u, t, key) {
-		super.insertByKey(u, t, key); return this.splay(u);
+	insertByKey(u, key, t) {
+		return super.insertByKey(u, key, t, u => this.splay(u));
 	}
 
-	delete(u) { let [c,pc] = super.delete(u); this.splay(pc); }
+	delete(u,t=0) {
+		return super.delete(u, t, (cu,pu) => { this.splay(pu); });
+	}
 
 	split(u) { this.splay(u); return super.split(u); }
 

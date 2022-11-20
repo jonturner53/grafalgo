@@ -1,4 +1,4 @@
-/** @file BalancedKeySets.mjs
+/** @file SplayKeySets.mjs
  *
  *  @author Jon Turner
  *  @date 2022
@@ -8,38 +8,39 @@
 
 import { fassert } from '../../common/Errors.mjs';
 import ListSet from '../basic/ListSet.mjs';
-import BalancedForest from './BalancedForest.mjs';
+import SplayForest from './SplayForest.mjs';
 
 /** This class implements a balanced binary search tree class.
  *  It partitions the index set into multiple search trees.
  */
-export default class BalancedKeySets extends BalancedForest {
+export default class SplayKeySets extends SplayForest {
 	#key;
 
-	/** Constructor for BalancedKeySets object.
+	/** Constructor for SplaySets object.
 	 *  @param n is index range for object
 	 *  @param capacity is maximum index range (defaults to n)
 	 */
 	constructor(n=10, capacity=n) {
 		super(n,capacity);
-		this.#key = new Float32Array(capacity+1);
+		this.#key = new Float32Array(this.capacity+1);
 	}
 
-	/** Assign a new value by copying from another BalancedKeySets object.
-	 *  @param ks is another BalancedKeySets object
+	/** Assign a new value by copying from another SplayKeySets object.
+	 *  @param ks is another SplayKeySets object
 	 */
 	assign(ks) {
-		if (ks == this || !(ks instanceof BalancedKeySets)) return;
+		if (ks == this || !(ks instanceof SplayKeySets)) return;
 		super.assign(ks);
 		for (u = 1; u <= ks.n; u++) this.key(u, ks.key(u));
 		this.clearStats();
 	}
 	
-	/** Assign a new value by transferring from another BalancedKeySets.
-	 *  @param ks is another BalancedKeySets object.
+	/** Assign a new value by transferring from another SplayKeySets.
+	 *  @param ks is another SplayKeySets object.
 	 */
 	xfer(ks) {
-		if (ks == this || !(ks instanceof this.constructor)) return;
+		if (ks == this) return;
+		if (!(ks instanceof this.constructor)) return;
 		super.xfer(ks);
 		this.#key = ks.#key; ks.#key = null;
 		this.clearStats();
@@ -50,35 +51,23 @@ export default class BalancedKeySets extends BalancedForest {
 		if (k != null) this.#key[u] = k;
 		return this.#key[u];
 	}
-	
+
 	/** Find an item with a specified key
 	 *  @param k is key to be found
 	 *  @param t is id (root) of bst
 	 *  @return node u where key(u)==k or 0 if there is no such node
 	 */
-	search(k, t) { return super.search(k, t, this.#key);
-		let u = t;
-		while (u != 0 && this.key(u) != k) {
-			this.steps++;
-			if (k < this.key(u)) u = this.left(u);
-			else				 u = this.right(u);
-		}
-		return u;
-	}
-	
+	search(k, t) { return super.search(k, t, this.#key); }
+
 	/** Insert an item into a set.
 	 *  @param u is an item to be inserted
-	 *  @param t is the id for a set (the root of its tree)
-	 *  @param prebal is an optional function that is called
-	 *  after u is inserted into the tree but before the tree is rebalanced
+	 *  @param s is the id for a set (the root of its tree)
 	 *  @return the id of the set following insertion
 	 */
-	insert(u, t, prebal=0) {
-		return super.insertByKey(u, t, this.#key, prebal);
-	}
-	
-	/** Determine if two BalancedKeySets objects are equal.
-	 *  @param other is a BalancedKeySets object to be compared to this
+	insert(u, s) { return super.insertByKey(u, this.#key, s); }
+
+	/** Determine if two SplaySets objects are equal.
+	 *  @param other is a SplaySets object to be compared to this
 	 *  @return true if both represent the same sets and the
 	 *  keys match; otherwise return false
 	 */
@@ -91,26 +80,21 @@ export default class BalancedKeySets extends BalancedForest {
 		return ks;
 	}
 	
-	/** Produce a string representation of the BalancedKeySets object.
+	/** Produce a string representation of the SplaySets object.
 	 *  @param fmt is an integer with low order bits specifying format options.
-	 *    0b0001 specifies newlines between sets
-	 *    0b0010 specifies that singletons be shown
-	 *    0b0100 specifies that the underlying tree structure be shown
-	 *    0b1000 specifies that the ranks be shown
+	 *    0b001 specifies newlines between sets
+	 *    0b010 specifies that singletons be shown
+	 *    0b100 specifies that the underlying tree structure be shown
 	 *  default for fmt is 0b010
-	 *  @param label is a function that is used to insert one or more
-	 *  additional node fields following the key
+	 *  @param label is a function that is used to label heap items
 	 *  numerical values, not letters.
 	 */
 	toString(fmt=0b010, label=0) {
-		if (!label) {
-			label = (x => this.x2s(x) + ':' + this.key(x) +
-					 (fmt&0x8 ? ':' + this.rank(x) : ''));
-		}
-		return super.toString(fmt,label);
+		if (!label) label = (x => this.x2s(x) + ':' + this.key(x));
+		return super.toString(fmt, label);
 	}
 	
-	/** Initialize this BalancedKeySets object from a string.
+	/** Initialize this SplaySets object from a string.
 	 *  @param s is a string representing a heap.
 	 *  @return on if success, else false
 	 */

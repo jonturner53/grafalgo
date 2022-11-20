@@ -196,6 +196,7 @@ export default class Scanner extends Top {
 	 */
 	nextIndex(prop=0) {
 		let u = 0;
+		this.verify('*'); // ignore optional asterisk
 		let i0 = this.firstNonSpace();
 		if (this.#s.charCodeAt(i0) == '-'.charCodeAt(0)) {
 			this.#i = i0 + 1; u = 0;

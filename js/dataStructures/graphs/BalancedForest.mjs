@@ -45,8 +45,8 @@ export default class BalancedForest extends BinaryForest {
 		this.#rank = f.#rank; f.#rank = null;
 	}
 	
-	/** Convert all nodes to singleton trees. */
-	clear() { super.clear(); this.#rank.fill(1,1); }
+	/** Convert nodes to singleton trees. */
+	clear(h=0) { super.clear(h); if (!h) this.#rank.fill(1,1); }
 
 	/* Get or set the rank child of a node.
 	 * @param u is a node
@@ -57,32 +57,49 @@ export default class BalancedForest extends BinaryForest {
 		if (r >= 0) this.#rank[u] = r;
 		return this.#rank[u];
 	}
+	
+	/** Insert a singleton immediately after a node in a tree.
+	 *  @param u is a singleton
+	 *  @param v is a node in a tree which defines the point where u is
+	 *  to be inserted; if zero, u is inserted before all nodes in tree
+	 *  @param prebal is an optional function, which is called
+	 *  with argument u after u is inserted but before rebalancing.
+	 *  @param t is the tree root
+	 */
+	insertAfter(u, v, t, prebal=0) {
+		return super.insertAfter(u, v, t,  u => { if (prebal) prebal(u);
+												this.rerankUp(u);
+												});
+	}
 
 	/** Insert a node based on a key value.
 	 *  @param u is a singleton node
-	 *  @param t is the root of the tree containing u
 	 *  @param key is an array mapping nodes to key values;
+	 *  @param t is the root of the tree containing u
 	 *  @param prebal is an optional function, which is called
 	 *  with argument u after u is inserted but before rebalancing.
 	 *  @return the root of the modified tree
 	 */
-	insertByKey(u, t, key, prebal=0) {
-		t = super.insertByKey(u, t, key);
-		if (prebal) prebal(u);
-		this.rerankUp(u);
-		return this.find(t);
+	insertByKey(u, key, t, prebal=0) {
+		return super.insertByKey(u, key, t, u => { if (prebal) prebal(u);
+												 this.rerankUp(u);
+												 });
 	}
 
 	/** Delete a node from a tree.
 	 *  @param u is a non-singleton tree node.
+	 *  @param t is the tree containing u
 	 *  @param prebal is an optional function that is called before
 	 *  reblancing, with argument pu, where pu is the parent of the
-	 *  node that took u's place in the tree.
+	 *  node that took u's final position in the tree.
+	 *  @return the modified tree
 	 */
-	delete(u, prebal=0) {
-		let [c,pc] = super.delete(u);
-		if (prebal) prebal(pc);
-		this.rerankDown(c,pc);
+	delete(u, t=0, prebal=0) {
+		t = super.delete(u, t, (cu,pu) => { if (prebal) prebal(u);
+										 	this.rerankDown(cu,pu);
+											});
+		this.rank(u,1);
+		return t;
 	}
 
 	/** Join two trees (or subtrees) at a node.
@@ -123,6 +140,8 @@ export default class BalancedForest extends BinaryForest {
 		}
 	}
 
+	split(u) { let pair = super.split(u); this.rank(u,1); return pair; }
+
 	/** Adjust ranks after a node rank increases, leading to a violation
 	 *  of the rank invariant; may do up to two rotations, as well;
 	 *  assumes that other nodes satisfy the invariant.
@@ -137,7 +156,6 @@ export default class BalancedForest extends BinaryForest {
 		}
 		if (this.gp(x) == 0 || rx != this.rank(this.gp(x)))
 			return;
-		// rank(gp(x)) = rank(x) and rank(aunt(x)) = rank(x)-1
 		if (this.outerGrandchild(x)) this.rotate(this.p(x));
 		else this.rotate2(x);
 	}

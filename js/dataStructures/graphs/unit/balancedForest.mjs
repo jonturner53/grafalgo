@@ -16,7 +16,7 @@ try {
 
 	f.fromString('{[a b c d e] [h i j k l m n o p q r]}');
 	let s = f.verify(); assert(!s, 'a1 ' + s);
-	assert(f,'{[a b c d e] [h i j k l m n o p q r]}','a1');
+	assert(f,'{[a b c d e] [h i j k l m n o p q r]}','a2');
 	assert(f.toString(0xc),
 			'{[(a:1 b:1 c:1) *d:2 e:1] ' +
 			 '[(h:1 i:2 j:1) *k:3 (l:1 m:2 ((n:1 o:1 p:1) q:2 r:1))]}', 'a3');
@@ -39,7 +39,7 @@ try {
 	assert(f.toString(0xc),
 			'{[(((h:1 i:2 j:1) k:2 l:1) m:3 ((a:1 b:1 c:1) d:2 e:1)) ' +
 			 '*f:3 ((o:1 p:1 -) q:2 r:1)]}', 'a12');
-	f.delete(6);
+	f.delete(6, 6);
 	assert(f.toString(0xc),
 			'{[(((h:1 i:2 j:1) k:2 l:1) m:3 (a:1 b:2 (c:1 d:1 -))) *e:1 ' +
 			  '((o:1 p:1 -) q:2 r:1)]}', 'a13');
@@ -53,15 +53,15 @@ try {
 	assert(f.search(9,10,key), 9, 'b2');
 
 	key[15] = 10.5;
-	f.insertByKey(15, 13, key);
+	f.insertByKey(15, key, 13);
 	assert(f.toString(0xc),
 			'{[(a:1 b:1 c:1) *d:2 e:1] [(- h:1 i:1) *j:2 k:1] ' +
 			'[(o:1 l:1 -) *m:2 ((- n:1 p:1) q:2 r:1)]}', 'b3');
 
-	f.insertAfter(10, 14);
+	f.insertAfter(10, 14, 13);
 	assert(f.toString(0xc),
 			'{[(a:1 b:1 c:1) *d:2 e:1] ' +
-			'[((o:1 l:1 m:1) n:2 (- h:1 i:1)) *j:2 (k:1 p:2 (q:1 r:1 -))]}',
+			'[(o:1 l:1 -) *m:2 ((- n:1 (((- h:1 i:1) j:2 k:1) p:1 -)) q:2 r:1)]}',
 			'b4');
 
 	console.log('passed tests');

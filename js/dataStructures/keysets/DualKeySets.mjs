@@ -144,7 +144,7 @@ export default class DualKeySets extends BalancedKeySets {
 	/** Delete an item from a set.
 	 *  @param u is an item in a set
 	 */
-	delete(u) { super.delete(u, pu => this.update(pu)); }
+	delete(u) { super.delete(u, 0, pu => this.update(pu)); }
 
 	/** Extend swap operation to maintain key2, min2 fields. */
 	swap(u, v) {
