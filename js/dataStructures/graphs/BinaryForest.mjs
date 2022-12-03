@@ -70,16 +70,24 @@ export default class BinaryForest extends Top {
 		this.clearStats();
 	}
 	
-	/** Convert nodes to singleton trees. */
-	clear(h=0) {
-		if (h) {
-			while (!this.singleton(h)) {
-				h = this.delete(h); this.steps++;
-			}
+	/** Clear trees in forest, leaving singletons.
+	 *  @param r specifies the root of a tree (or subtree) to be cleared;
+	 *  if zero, all trees are cleared.
+	 */
+	clear(r=0) {
+		if (r) {
+			this.clearHelper(r);
 		} else {
 			this.#left.fill(0); this.#right.fill(0); this.#p.fill(0);
 			this.steps += this.n;
 		}
+	}
+	
+	clearHelper(r) {
+		this.steps++;
+		if (this.left(r)) this.clearHelper(this.left(r));
+		if (this.right(r)) this.clearHelper(this.right(r));
+		this.cut(r);
 	}
 
 	clearStats() { this.steps = this.rotations = 0; }
@@ -149,8 +157,8 @@ export default class BinaryForest extends Top {
 		return this.outerChild(this.sibling(x));
 	}
 
-	/** Get neice of a node (near child of sibling) */
-	neice(x) {
+	/** Get niece of a node (near child of sibling) */
+	niece(x) {
 		return this.innerChild(this.sibling(x));
 	}
 
@@ -279,11 +287,12 @@ export default class BinaryForest extends Top {
 	 *  @param v is a node in a tree which defines the point where u is
 	 *  to be inserted; if zero, u is inserted before all nodes in tree
 	 *  @param t is the tree root
-	 *  @param balance(u) is an optional balance function called right
-	 *  after u is inserted
+	 *  @param renew(u) is an optional function that can be used to adjust
+	 *  client data that is affected by the tree structure; it is called
+	 *  just after u is inserted
 	 *  @return the root of the resuling tree
 	 */
-	insertAfter(u, v, t, balance=0) {
+	insertAfter(u, v, t, renew=0) {
 		if (!t || t == u) return u;
 		if (!v)
 			this.link(u, this.first(t), -1);
@@ -291,7 +300,7 @@ export default class BinaryForest extends Top {
 			this.link(u, v, +1);
 		else
 			this.link(u, this.first(this.right(v)), -1);
-		if (balance) balance(u);
+		if (renew) renew(u);
 		return this.find(t);
 	}
 
@@ -300,9 +309,12 @@ export default class BinaryForest extends Top {
 	 *  @param key is an array mapping nodes to key values;
 	 *  the trees are assumed to be ordered by the keys
 	 *  @param t is the root of the tree containing u
+	 *  @param renew(u) is an optional function that can be used to adjust
+	 *  client data that is affected by the tree structure; it is called
+	 *  just after u is inserted
 	 *  @return the root of the modified tree
 	 */
-	insertByKey(u, key, t=0, balance=0) {
+	insertByKey(u, key, t=0, renew=0) {
 		if (!t || t == u) return u;
 		let v = t; let pv = 0;
 		while (v != 0) {
@@ -311,19 +323,20 @@ export default class BinaryForest extends Top {
 			else				  v = this.right(v);
 		}
 		this.link(u, pv, key[u] <= key[pv] ? -1 : +1);
-		if (balance) balance(u);
+		if (renew) renew(u);
 		return this.find(t);
 	}
 
 	/** Delete a node from a tree.
 	 *  @param u is a non-singleton tree node.
 	 *  @param t is the tree containing u
-	 *  @param balance(cu,pu) is an optional balancing function which
-	 *  is called just after u's removal; its arguments are u's former
+	 *  @param renew(cu,pu) is an optional function which can be used
+	 *  to adjust client data that is affected by the tree structure;
+	 *  it is called just after u's removal and its arguments are u's former
 	 *  child and parent
 	 *  @return the resulting tree
 	 */
-	delete(u, t=0, balance=0) {
+	delete(u, t=0, renew=0) {
 		if (this.singleton(u)) return u;
 		if (!t) t = this.find(u); 
 		// find a node close to the root
@@ -340,8 +353,9 @@ export default class BinaryForest extends Top {
 			else if (u == this.right(pu)) this.right(pu, cu);
 		}
 		this.p(u,0); this.left(u,0); this.right(u,0);
-		if (balance) balance(cu,pu);
-		return this.find(tt);
+		if (renew) renew(cu,pu);
+		tt = this.find(tt);
+		return tt;
 /*
 minor glitch
 in a splay forest, the final find, adds a redundant splay
@@ -389,20 +403,27 @@ not sure it's worth trying to fix it
 	 *  @param t1 is a tree
 	 *  @param u is a node
 	 *  @param t2 is a second tree
+	 *  @param renew(u) is an optional function that can be used to adjust
+	 *  client data that is affected by the tree structure; it is called
+	 *  at the conclusion of the operation.
 	 *  @return root of new tree making t1 the left subtree of u
 	 *  and t2 the right subtree
 	 */
-	join(t1, u, t2) {
+	join(t1, u, t2, renew=0) {
 		this.link(t1,u,-1); this.link(t2,u,+1); this.p(u,0);
+		if (renew) renew(u);
 		return u;
 	}
 
 	/** Split a tree on a node.
 	 *  @param u is a node in a tree
+	 *  @param renew(u) is an optional function that can be used to adjust
+	 *  client data that is affected by the tree structure; it is called
+	 *  at the conclusion of the split.
 	 *  @return a pair [t1,t2] where t1 has the nodes that were to the
 	 *  the left of u and t2 has the nodes that were to the right of u
 	 */
-	split(u) {
+	split(u, renew=0) {
 		fassert(this.valid(u));
 		let v = u; let p = this.p(v);
 		let [l,r] = [this.left(u), this.right(u)];
@@ -418,6 +439,7 @@ not sure it's worth trying to fix it
 			v = p; p = gp;
 		}
 		this.p(l,0); this.p(r,0);
+		if (renew) renew(u);
 		return [l,r];
 	}
 		
@@ -546,16 +568,18 @@ not sure it's worth trying to fix it
 	 *    0b010 specifies that singletons are shown
 	 *    0b100 specifies that the tree structure is shown
 	 *  the default value is 0b100
-	 *  @param label is a function that is used to label nodes
+	 *  @param nodeLabel(u) is a function that is used to label nodes
+	 *  @param treeLabel(t) is an optional function used to label trees
 	 */
-	toString(fmt=0x4, label=0) {
-		if (!label) label = (u => this.x2s(u));
+	toString(fmt=0x4, nodeLabel=0, treeLabel=0) {
+		if (!nodeLabel) nodeLabel = (u => this.x2s(u));
 		let s = '';
 		for (let u = 1; u <= this.n; u++) {
 			if (this.p(u) > 0) continue;
 			if (this.singleton(u) && !(fmt&0x2)) continue;
 			if (!(fmt&0x1) && s) s += ' ';
-			s += `${this.tree2string(u,fmt,label)}`;
+			if (treeLabel) s += treeLabel(u);
+			s += this.tree2string(u,fmt,nodeLabel);
 			if (fmt&0x1) s += '\n';
 		}
 		return fmt&0x1 ? '{\n' + s + '}\n' : '{' + s + '}';
@@ -566,19 +590,19 @@ not sure it's worth trying to fix it
 	 *  @param treeRoot is true if h is the canonical element of the heap
 	 *  @return the string
 	 */
-	tree2string(u, fmt, label=0, treeRoot=1) {
+	tree2string(u, fmt, nodeLabel=0, treeRoot=1) {
 		if (u == 0) return (treeRoot ? '[-]' : ((fmt&0x4) ? '-' : ''));
 		let s = '';
 		if (this.left(u) == 0 && this.right(u) == 0) {
-			s += label(u);
+			s += nodeLabel(u);
 			return treeRoot ? '[' + s + ']' : s;
 		}
 
 		let sl = (this.left(u) || fmt&0x4) ?
-					this.tree2string(this.left(u),fmt,label,0) : '';
+					this.tree2string(this.left(u),fmt,nodeLabel,0) : '';
 		let sr = (this.right(u) || fmt&0x4) ?
-					this.tree2string(this.right(u),fmt,label,0) : '';
-		let lu = (treeRoot ? '*' : '') + label(u);
+					this.tree2string(this.right(u),fmt,nodeLabel,0) : '';
+		let lu = (treeRoot ? '*' : '') + nodeLabel(u);
 		if (fmt&0x4 || (sl && lu && sr))
 			s += sl + ' ' + lu + ' ' + sr;
 		else if (sl) 

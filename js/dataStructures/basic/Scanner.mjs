@@ -37,6 +37,9 @@ export default class Scanner extends Top {
 	/** Get the length of the unscanned portion of the string.  */
 	get length() { return this.#s.length - this.#i; }
 
+	/** Return true if no non-space characters remaining. */
+	empty() { return this.firstNonSpace() == this.#s.length; }
+
 	/** Return a string representation of the Scanner object.
 	 *  This is just the unscanned portion of the string.
 	 */

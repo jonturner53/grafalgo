@@ -1,4 +1,4 @@
-/** @file SplitHeaps.mjs
+/** @file OrderedHeaps.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -14,17 +14,24 @@ import BalancedForest from '../graphs/BalancedForest.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
 /** This class implements a data structure consisting of a disjoint
- *  set of splittable heaps. The items in each heap have a key, but
- *  also have a total ordering that is independent of the keys.
+ *  set of heaps, with an efficient add2keys operation and an efficient
+ *  divide() operation for dividing a heap into two parts.
+ *  The heap items have a key that is used in the usual
+ *  heap operations, but each heap also defines 
+ *  a "list ordering" that is independent of the keys.
  *  One can iterate through the items in the defined order and
- *  insert items relative to another in a heap.
+ *  insert items relative to one another.
+ *  
+ *  This data structure was originally devised to support
+ *  Galil, Micali and Gabow's variation of Edmonds algorithm
+ *  for weighted matching in general graphs.
  */
-export default class SplitHeaps extends BalancedForest {
+export default class OrderedHeaps extends BalancedForest {
 	#key;           // #key[i] is key of item i
 	#minkey;        // #minkey[i] is smallest key within subtree at i 
 	#offset;		// offset[h] is a key offset for heap h
 
-	/** Constructor for SplitHeaps object.
+	/** Constructor for OrderedHeaps object.
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) {
@@ -35,10 +42,10 @@ export default class SplitHeaps extends BalancedForest {
 	}
 
 	/** Assign a new value by copying from another heap.
-	 *  @param lh is another SplitHeaps object
+	 *  @param lh is another OrderedHeaps object
 	 */
 	assign(sh) {
-		if (sh == this || (!sh instanceof SplitHeaps)) return;
+		if (sh == this || (!sh instanceof OrderedHeaps)) return;
 		if (sh.n != this.n) this.reset(sh.n);
 		else this.clear();
 
@@ -63,13 +70,25 @@ export default class SplitHeaps extends BalancedForest {
 		this.clearStats();
 	}
 
-	/** Revert to initial state. */
+	/** Clear heaps, converting them to singletons.
+	 *  @param h is a heap; if non-zero, the specified heap is cleared,
+	 *  otherwise all are.
+	 */
 	clear(h=0) {
-		super.clear(h);
-		if (!h) {
+		if (h) {
+			let offset = this.#offset[h];
+			for (let u = super.first(h); u; u = super.next(u)) {
+				this.#key[u] += offset;
+				this.#minkey[u] = this.#key[u];
+				this.#offset[u] = 0;
+			}
+		} else {
 			this.#key.fill(0); this.#minkey.fill(0); this.#offset.fill(0);
 		}
+		super.clear(h);
 	}
+
+	contains(i, h) { return this.find(i) == h }
 
 	/** Get key of a heap item. */
 	key(i, h=super.find(i)) {
@@ -81,6 +100,7 @@ export default class SplitHeaps extends BalancedForest {
 	 *  @return the item in h that has the smallest key
 	 */
 	findmin(h) {
+		if (!h) return 0;
 		let i = h;
 		while (i) {
 			let l = this.left(i); let r = this.right(i);
@@ -89,7 +109,7 @@ export default class SplitHeaps extends BalancedForest {
 					(this.#minkey[l] < this.#minkey[r] ? l : r)));
 			this.steps++;
 		}
-		fassert(false, `program error in SplitHeaps.findmin(${this.x2s(h)})`);
+		fassert(false, `program error in OrderedHeaps.findmin(${this.x2s(h)})`);
 	}
 
 	/** Extend rotation operation to maintain minkey field. */
@@ -106,10 +126,15 @@ export default class SplitHeaps extends BalancedForest {
 		if (!this.p(x)) this.#offset[x] = this.#offset[y];
 	}
 
-	add2keys(delta, h) { this.#offset[h] += delta; }
+	add2keys(delta, h) { if (h) this.#offset[h] += delta; }
+
+	changekey(i, k, h) {
+		this.#key[i] = k - this.#offset[h];
+		this.refresh(i);
+	}
 
 	/** Update minkey fields, following a change to an item. */
-	update(i) {
+	refresh(i) {
 		while (i) {
 			let min = this.#key[i];
 			let l = this.left(i); let r = this.right(i);
@@ -123,7 +148,8 @@ export default class SplitHeaps extends BalancedForest {
 
 	/** Insert item into a heap. 
 	 *  @param i is a singleton
-	 *  @param h is a heap into which i is to be inserted.
+	 *  @param h is a heap into which i is to be inserted; if h=0, the
+	 *  the singleton heap i is returned
 	 *  @param j is an item in h; item i is inserted immediately after j in the
 	 *  linear ordering of the heap items; if j=0, i is inserted before the
 	 *  first item in the heap.
@@ -132,24 +158,28 @@ export default class SplitHeaps extends BalancedForest {
 	 */
 	insertAfter(i, j, k, h=this.find(j)) {
 		fassert(this.valid(i) && this.valid(j) && this.valid(h));
-		let offset = this.#offset[h]; this.#key[i] = k - offset;
-		h = super.insertAfter(i, j, h, i => this.update(i));
+		let offset = h ? this.#offset[h] : 0;
+		this.#key[i] = k - offset; this.#minkey[i] = this.#key[i];
+		h = super.insertAfter(i, j, h, i => this.refresh(i));
 		this.#offset[h] = offset;
 		return h;
 	}
 
-	/** Delete a node from a heap.
-	 *  @param u is a node in a heap
-	 *  @param h is the heap containing u
-	 *  @return
-	delete(u, h=this.find(u)) {
-		if (this.singleton(u)) return;
+	/** Delete an item from a heap.
+	 *  @param i is an item in a heap
+	 *  @param h is the heap containing i
+	 *  @return the id of the resulting heap
+	*/
+	delete(i, h=this.find(i)) {
+		if (this.singleton(i)) return;
 		let offset = this.#offset[h];
-		// identify a node near the root that is not u
-		let hh = (u != h ? h : (this.left(h) ? this.left(h) : this.right(h)));
-		super.delete(u, pu => this.update(pu));
+		// identify an item near the root that is not i
+		let hh = (i != h ? h : (this.left(h) ? this.left(h) : this.right(h)));
+		super.delete(i, h, pi => this.refresh(pi));
 		hh = this.find(hh);
-		this.#offset[hh] = this.#offset[u] = offset;
+		this.#offset[hh] = offset;
+		this.#key[i] += offset; this.#minkey[i] = this.#key[i];
+		this.#offset[i] = 0;
 		return hh;
 	}
 
@@ -160,18 +190,25 @@ export default class SplitHeaps extends BalancedForest {
 	 *  that come before i in h and h2 is the heap consisting
 	 *  of i and the items that come after it
 	 */
-	splitHeap(i, h=this.find(i)) {
+	divide(i, h=this.find(i)) {
 		let offset = this.#offset[h];
 		let [h1,h2] = super.split(i);
-		this.#minkey[i] = Math.min(this.#key[i], this.#minkey[h2]);
-		h2 = super.join(0,i,h2);
-		this.#offset[h1] = this.#offset[h2] = offset;
+		if (h1) this.#offset[h1] = offset;
+		if (h2) this.#offset[h2] = offset;
+		this.#minkey[i] = this.#key[i]; this.#offset[i] = offset;
+		h2 = this.join(0,i,h2);
+		this.#offset[h2] = offset;
 		return [h1,h2];
 	}
 
-	/** Determine if two SplitHeaps objects are equal.
-	 *  @param other is another SplitHeaps to be compared to this,
-	 *  or a string representing an SplitHeaps object.
+	/** Adds refresh to join operations performed within parent class.
+	 *  These can occur within splits.
+	 */
+	join(t1, u, t2) { return super.join(t1, u, t2, u => this.refresh(u)); }
+
+	/** Determine if two OrderedHeaps objects are equal.
+	 *  @param other is another OrderedHeaps to be compared to this,
+	 *  or a string representing an OrderedHeaps object.
 	 *  @return true, false or an object
 	 */
 	equals(other) {
@@ -184,7 +221,7 @@ export default class SplitHeaps extends BalancedForest {
 		return sh;
 	}
 
-	/** Produce a string representation of the SplitHeap object.
+	/** Produce a string representation of the OrderedHeap object.
 	 *  @param fmt is an integer with low order bits specifying format options.
 	 *    0b0001 specifies newlines between sets
 	 *    0b0010 specifies that singletons be shown
@@ -202,7 +239,7 @@ export default class SplitHeaps extends BalancedForest {
 		return super.toString(fmt,label);
 	}
 
-	/** Initialize this SplitHeaps object from a string.
+	/** Initialize this OrderedHeaps object from a string.
 	 *  @param s is a string representing a heap.
 	 *  @return true on success, else false
 	 */
@@ -227,5 +264,21 @@ export default class SplitHeaps extends BalancedForest {
 			}
 		}
 		return true;
+	}
+
+	verify() {
+		for (let u = 1; u <= this.n; u++) {
+			let mk = this.#key[u];
+			if (this.left(u)) mk = Math.min(mk, this.#minkey[this.left(u)]);
+			if (this.right(u)) mk = Math.min(mk, this.#minkey[this.right(u)]);
+			if (this.#minkey[u] != mk)
+				return `minkey mismatch at ${this.x2s(u)} ` +
+					   `${this.#minkey[u]}!=${mk}=min(` +
+					   (this.left(u) ? ''+this.#minkey[this.left(u)] : '') +
+					   `,${this.#key[u]},` +
+					   (this.right(u) ? ''+this.#minkey[this.right(u)] : '') +
+					   ')'
+		}
+		return '';
 	}
 }

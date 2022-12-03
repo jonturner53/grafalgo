@@ -19,7 +19,7 @@ export default class DualKeySets extends BalancedKeySets {
 	#min2;		 // #min2[u] is the smallest key2 value in the subtree at u
 
 	findminSteps;   // number of steps in findmin method
-	updateSteps;    // number of steps in update method
+	renewSteps;    // number of steps in renew method
 	
 	/** Constructor for DualKeySets object.
 	 *  @param n is index range for object
@@ -54,13 +54,13 @@ export default class DualKeySets extends BalancedKeySets {
 	}
 	
 	clearStats() {
-		super.clearStats(); this.findminSteps = this.updateSteps = 0;
+		super.clearStats(); this.findminSteps = this.renewSteps = 0;
 	}
 
 	/** Get/set key2 value. */
 	key2(u, k=false) {
 		if (k !== false) {
-			this.#key2[u] = k; this.update(u);
+			this.#key2[u] = k; this.renew(u);
 		}
 		return this.#key2[u];
 	}
@@ -121,16 +121,16 @@ export default class DualKeySets extends BalancedKeySets {
 	 *  @return the id of the set following insertion
 	 */
 	insert(u, t) {
-		return super.insert(u, t, u => this.update(u));
+		return super.insert(u, t, u => this.renew(u));
 	}
 
 	/** Update min2 values along path to root.
 	 *  @param u is a node defining a path to the root;
-	 *  min2 values are updated along this path
+	 *  min2 values are renewed along this path
 	 */
-	update(u) {
+	renew(u) {
 		while (u != 0) {
-			this.updateSteps++;
+			this.renewSteps++;
 			let m2 = this.key2(u);
 			if (this.left(u) != 0)
 				m2 = Math.min(m2, this.min2(this.left(u)));
@@ -144,7 +144,7 @@ export default class DualKeySets extends BalancedKeySets {
 	/** Delete an item from a set.
 	 *  @param u is an item in a set
 	 */
-	delete(u) { super.delete(u, 0, pu => this.update(pu)); }
+	delete(u) { super.delete(u, 0, pu => this.renew(pu)); }
 
 	/** Extend swap operation to maintain key2, min2 fields. */
 	swap(u, v) {
@@ -154,7 +154,9 @@ export default class DualKeySets extends BalancedKeySets {
 	}
 
 	/** Extend join operation to maintain min2 field. */
-	join(t1, u, t2) { super.join(t1, u, t2); this.update(u); }
+	join(t1, u, t2) {
+		return super.join(t1, u, t2, u => this.renew(u));
+	}
 
 	/** Determine if two DualKeySets objects are equal.
 	 *  @param other is a DualKeySets object to be compared to this
@@ -224,7 +226,7 @@ export default class DualKeySets extends BalancedKeySets {
 	getStats() {
 		let stats = super.getStats();
 		stats.findminSteps = this.findminSteps;
-		stats.update = this.updateSteps;
+		stats.renew = this.renewSteps;
 		return stats;
 	}
 

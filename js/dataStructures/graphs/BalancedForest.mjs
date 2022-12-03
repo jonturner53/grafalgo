@@ -45,8 +45,19 @@ export default class BalancedForest extends BinaryForest {
 		this.#rank = f.#rank; f.#rank = null;
 	}
 	
-	/** Convert nodes to singleton trees. */
-	clear(h=0) { super.clear(h); if (!h) this.#rank.fill(1,1); }
+	/** Clear trees converting them to singletons.
+	 *  @param r is the root of a tree or sub-tree; if specified,
+	 *  only the specified tree is cleared, otherwise all are
+	 */
+	clear(r=0) {
+		if (r) {
+			for (let u = this.first(r); u; u = this.next(u))
+				this.rank(r,1);
+		} else {
+			this.#rank.fill(1,1);
+		}
+		super.clear(r);
+	}
 
 	/* Get or set the rank child of a node.
 	 * @param u is a node
@@ -62,12 +73,13 @@ export default class BalancedForest extends BinaryForest {
 	 *  @param u is a singleton
 	 *  @param v is a node in a tree which defines the point where u is
 	 *  to be inserted; if zero, u is inserted before all nodes in tree
-	 *  @param prebal is an optional function, which is called
-	 *  with argument u after u is inserted but before rebalancing.
+	 *  @param renew(u) is an optional function that can be used to adjust
+	 *  client data that is affected by the tree structure; it is called
+	 *  just before the tree is rebalanced.
 	 *  @param t is the tree root
 	 */
-	insertAfter(u, v, t, prebal=0) {
-		return super.insertAfter(u, v, t,  u => { if (prebal) prebal(u);
+	insertAfter(u, v, t, renew=0) {
+		return super.insertAfter(u, v, t,  u => { if (renew) renew(u);
 												this.rerankUp(u);
 												});
 	}
@@ -76,12 +88,12 @@ export default class BalancedForest extends BinaryForest {
 	 *  @param u is a singleton node
 	 *  @param key is an array mapping nodes to key values;
 	 *  @param t is the root of the tree containing u
-	 *  @param prebal is an optional function, which is called
+	 *  @param renew(u) is an optional function, which is called
 	 *  with argument u after u is inserted but before rebalancing.
 	 *  @return the root of the modified tree
 	 */
-	insertByKey(u, key, t, prebal=0) {
-		return super.insertByKey(u, key, t, u => { if (prebal) prebal(u);
+	insertByKey(u, key, t, renew=0) {
+		return super.insertByKey(u, key, t, u => { if (renew) renew(u);
 												 this.rerankUp(u);
 												 });
 	}
@@ -89,26 +101,37 @@ export default class BalancedForest extends BinaryForest {
 	/** Delete a node from a tree.
 	 *  @param u is a non-singleton tree node.
 	 *  @param t is the tree containing u
-	 *  @param prebal is an optional function that is called before
-	 *  reblancing, with argument pu, where pu is the parent of the
-	 *  node that took u's final position in the tree.
+	 *  @param renew(pu) is an optional function that can be used to adjust
+	 *  client data that is affected by the tree structure; it is called
+	 *  just before the tree is rebalanced and its argument is u's parent
+	 *  just before the rebalancing takes place.
 	 *  @return the modified tree
 	 */
-	delete(u, t=0, prebal=0) {
-		t = super.delete(u, t, (cu,pu) => { if (prebal) prebal(u);
+	delete(u, t=0, renew=0) {
+		t = super.delete(u, t, (cu,pu) => { if (renew) renew(pu);
 										 	this.rerankDown(cu,pu);
 											});
 		this.rank(u,1);
 		return t;
 	}
 
+	swap(u, v) {
+		super.swap(u,v);
+		let ru = this.rank(u); this.rank(u, this.rank(v)); this.rank(v, ru);
+	}
+
 	/** Join two trees (or subtrees) at a node.
 	 *  @param t1 is a tree
 	 *  @param u is a node
 	 *  @param t2 is a second tree (likewise)
+	 *  @param renew is an optional function 
+	 *  @param renew(pu) is an optional function that can be used to adjust
+	 *  client data that is affected by the tree structure; it is called
+	 *  just before the tree is rebalanced and its argument is u's parent
+	 *  just before the rebalancing takes place.
 	 *  @return root of new tree (or subtree) formed by joining t1, u and t2.
 	 */
-	join(t1, u, t2) {
+	join(t1, u, t2, renew=0) {
 		let r1 = this.rank(t1); let r2 = this.rank(t2);
 		if (r1 == r2) {
 			let t = super.join(t1,u,t2); this.rank(t, r1+1);
@@ -123,6 +146,7 @@ export default class BalancedForest extends BinaryForest {
 			super.join(v, u, t2);
 			this.link(u,pv,+1); this.rank(u, r2+1);
 			this.p(t1,0);
+			if (renew) renew(u);
 			this.rerankUp(u);
 			let t =  this.find(t1);
 			return t;
@@ -134,13 +158,16 @@ export default class BalancedForest extends BinaryForest {
 			super.join(t1, u, v);
 			this.link(u,pv,-1); this.rank(u, r1+1)
 			this.p(t2,0);
+			if (renew) renew(u);
 			this.rerankUp(u);
 			let t = this.find(t2);
 			return t;
 		}
 	}
 
-	split(u) { let pair = super.split(u); this.rank(u,1); return pair; }
+	split(u, renew=0) {
+		let pair = super.split(u, renew); this.rank(u,1); return pair;
+	}
 
 	/** Adjust ranks after a node rank increases, leading to a violation
 	 *  of the rank invariant; may do up to two rotations, as well;
@@ -216,14 +243,16 @@ export default class BalancedForest extends BinaryForest {
      *    0b0010 specifies that singletons are shown
      *    0b0100 specifies that the tree structure is shown
 	 *	  0b1000 specifies that the node ranks are shown
-	 *  @param label is an optional function used to produce node label
+	 *  @param nodeLabel(u) is an optional function used to produce node label
+	 *  @param treeLabel(t) is an optional function used to produce tree label
 	 *  @return a string
 	 */
-	toString(fmt=0x0,label=0) {
-		if (!label) {
-			label = (u => this.x2s(u) + ((fmt&0x8) ? ':' + this.rank(u) : ''));
+	toString(fmt=0x0, nodeLabel=0, treeLabel=0) {
+		if (!nodeLabel) {
+			nodeLabel =
+				(u => this.x2s(u) + ((fmt&0x8) ? ':' + this.rank(u) : ''));
 		}
-		return super.toString(fmt, label);
+		return super.toString(fmt, nodeLabel, treeLabel);
 	}
 
 	/** Initialize this object from a string. */

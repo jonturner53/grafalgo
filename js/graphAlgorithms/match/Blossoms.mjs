@@ -11,7 +11,7 @@ import { fassert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import Forest from '../../dataStructures/graphs/Forest.mjs';
-import BalancedForest from '../../dataStructures/keysets/BalancedForest.mjs';
+import BalancedForest from '../../dataStructures/graphs/BalancedForest.mjs';
 
 const FAST = 0;		// flag used to enable faster outer computation
 
@@ -209,7 +209,7 @@ this.cnt = 0;
 
 	/** Add a branch to a matching tree.
 	 *  @param e is an equality edge
-	 *  @param v is an endpoint of e in an unreached blossom
+	 *  @param v is an endpoint of e in an unbound blossom
 	 *  @param bv (optional) is the blossom containing v
 	 *  @return the even blossom added to the tree
 	 */
@@ -306,7 +306,7 @@ this.cnt = 0;
 
 	/** Expand a non-trivial outer blossom.
 	 *  @param b is a blossom to be expanded; the
-	 *  states of the new outer blossoms become unreached,
+	 *  states of the new outer blossoms become unbound,
 	 *  with the possible exception of the first sub-blossom,
 	 *  which is assigned a state of even, if it is unmatched;
 	 *  also, the links of all new outer-blossoms becomes [0,0].
@@ -747,7 +747,7 @@ this.cnt = 0;
 			let [v,e] = this.link(b);
 			if (this.state(b) == 0) {
 				if (!v) continue;
-				return `unreached outer blossom ${this.x2s(b)} has link`;
+				return `unbound outer blossom ${this.x2s(b)} has link`;
 			}
 			if (!v) {
 				if (this.state(b) != -1) continue;

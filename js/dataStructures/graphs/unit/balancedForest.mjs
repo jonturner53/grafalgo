@@ -41,7 +41,7 @@ try {
 			 '*f:3 ((o:1 p:1 -) q:2 r:1)]}', 'a12');
 	f.delete(6, 6);
 	assert(f.toString(0xc),
-			'{[(((h:1 i:2 j:1) k:2 l:1) m:3 (a:1 b:2 (c:1 d:1 -))) *e:1 ' +
+			'{[(((h:1 i:2 j:1) k:2 l:1) m:3 (a:1 b:2 (c:1 d:1 -))) *e:3 ' +
 			  '((o:1 p:1 -) q:2 r:1)]}', 'a13');
 
 	f.fromString('{[a b c d e] [h i j k] [l m n p q r]}');

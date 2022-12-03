@@ -162,7 +162,7 @@ import { range, shuffle, scramble, randomFraction, randomInteger, randomExp,
 
 import ListSet from './dataStructures/basic/ListSet.mjs';
 import ReverseLists from './dataStructures/basic/ReverseLists.mjs';
-import Sets from './dataStructures/basic/Sets.mjs';
+import MergeSets from './dataStructures/basic/MergeSets.mjs';
 import List from './dataStructures/basic/List.mjs';
 import ListPair from './dataStructures/basic/ListPair.mjs';
 import Scanner from './dataStructures/basic/Scanner.mjs';
@@ -170,15 +170,21 @@ import Scanner from './dataStructures/basic/Scanner.mjs';
 import Digraph from './dataStructures/graphs/Digraph.mjs';
 import Flograph from './dataStructures/graphs/Flograph.mjs';
 import Graph from './dataStructures/graphs/Graph.mjs';
+import Forest from './dataStructures/graphs/Forest.mjs';
+import BinaryForest from './dataStructures/graphs/BinaryForest.mjs';
+import BalancedForest from './dataStructures/graphs/BalancedForest.mjs';
 
 import ArrayHeap from './dataStructures/heaps/ArrayHeap.mjs';
 import FibHeaps from './dataStructures/heaps/FibHeaps.mjs';
 import LeftistHeaps from './dataStructures/heaps/LeftistHeaps.mjs';
+import OrderedHeaps from './dataStructures/heaps/OrderedHeaps.mjs';
+import DivisibleHeap from './dataStructures/heaps/DivisibleHeap.mjs';
 
-import SortedSets from './dataStructures/searchTrees/SortedSets.mjs';
-import BalancedSets from './dataStructures/searchTrees/BalancedSets.mjs';
-import SplaySets from './dataStructures/searchTrees/SplaySets.mjs';
-import DualkeySets from './dataStructures/searchTrees/DualkeySets.mjs';
+import KeySets from './dataStructures/keysets/KeySets.mjs';
+import BalancedKeySets from './dataStructures/keysets/BalancedKeySets.mjs';
+import SplayForest from './dataStructures/keysets/SplayForest.mjs';
+import SplayKeySets from './dataStructures/keysets/SplayKeySets.mjs';
+import DualKeySets from './dataStructures/keysets/DualKeySets.mjs';
 
 import PathSet from './dataStructures/misc/PathSet.mjs';
 import DynamicTrees from './dataStructures/misc/DynamicTrees.mjs';
@@ -240,8 +246,11 @@ import ecolorV from './graphAlgorithms/ecolor/ecolorV.mjs';
 import mdmatchG from './graphAlgorithms/ecolor/mdmatchG.mjs';
 import ecolorVerify from './graphAlgorithms/ecolor/ecolorVerify.mjs';
 
+console.log('aa');
+
 let codeArea = document.getElementById("codeArea");
 let outputArea = document.getElementById("outputArea");
+console.log('bb');
 
 /** Substitute for console.log. */
 function log() {
@@ -262,6 +271,8 @@ function updateCurrentMenu(menu) {
 	currentMenu = menu; currentMenu.activate();
 }
 
+console.log('cc');
+
 let scratchPad = '// scratch pad\n';
 codeArea.value = scratchPad;
 let scratchButton = document.getElementById("scratchButton");
@@ -273,6 +284,8 @@ scratchButton.addEventListener("click", () => {
 	scratchButton.style.backgroundColor = 'lightGreen';
 	currentMenu = null;
 });
+
+console.log('dd');
 
 /** Menu class implements selector/button combo */
 class Menu {
@@ -429,6 +442,5 @@ argString.addEventListener('change', () => {
 });
 
 </script>
-<script src="../googleAnalytics.js"></script>
 </body>
 </html>

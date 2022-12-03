@@ -167,7 +167,6 @@ export default class ArrayHeap extends Top {
 		this.#insertCount++;
 		if (i > this.capacity) this.expand(i);
 		this.#key[i] = key - this.#offset; this.#m++; this.#siftup(i, this.m);
-fassert(this.contains(i));
 	}
 	
 	/** Remove an index from the heap.
@@ -242,7 +241,8 @@ fassert(this.contains(i));
 	changekey(i, k) {
 		this.#changekeyCount++;
 		let ki = this.#key[i] + this.#offset;
-		this.#key[i] += k - ki;
+		//this.#key[i] += k - ki;
+		this.#key[i] = k - this.#offset;
 			 if (k < ki) this.#siftup(i, this.#pos[i]);
 		else if (k > ki) this.#siftdown(i, this.#pos[i]);
 	}
