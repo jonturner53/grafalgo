@@ -42,6 +42,9 @@ try {
 	assert(ls, "{[e a c] [h k d i] [j f] [l g b]}", "c3");
 	ls.sort();
 	assert(ls, "{[a c e] [d h i k] [f j] [b g l]}", "c4");
+	ls.sort((a,b)=>b-a);
+	assert(ls, "{[e c a] [k i h d] [j f] [l g b]}", "c5");
+	assert(ls.setEquals('{[a c e] [d h i k] [f j] [b g l]}'), "c6");
 
 	let pvec = new Array(10);
 	let prop = (u,sc) => {

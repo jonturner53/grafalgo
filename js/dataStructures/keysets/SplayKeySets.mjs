@@ -8,7 +8,7 @@
 
 import { fassert } from '../../common/Errors.mjs';
 import ListSet from '../basic/ListSet.mjs';
-import SplayForest from './SplayForest.mjs';
+import SplayForest from '../graphs/SplayForest.mjs';
 
 /** This class implements a balanced binary search tree class.
  *  It partitions the index set into multiple search trees.

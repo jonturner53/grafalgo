@@ -117,29 +117,6 @@ export default class Forest extends Top {
 		return u;
 	}
 
-	/** Return the next leaf descendant of a node.
-	 *  @param u is a tree node
-	 *  @param v is a descendant of u that is also a leaf
-	 *  @return the next leaf in the prefix ordering
-	 */
-	nextLeaf(u,v) {
-		while (v != u) {
-			this.steps++;
-			if (this.nextSibling(v))
-				return this.firstLeaf(this.nextSibling(v));
-			v = this.p(v);
-		}
-		return 0;
-	}
-
-	/** Return the last leaf descendant of a node */
-	lastLeaf(u) {
-		while (this.lastChild(u)) {
-			u = this.lastChild(u); this.steps++;
-		}
-		return u;
-	}
-
 	/** Return the first node in the prefix ordering within a subtree. */
 	first(u) { return u; }
 
@@ -158,6 +135,30 @@ export default class Forest extends Top {
 			u = this.p(u);
 		} while (u != root);
 		return 0;
+	}
+
+	/** Return the next leaf in a tree or subtree.
+	 *  @param u is a leaf node
+	 *  @param root is an ancestor of u
+	 *  @return the next leaf following u in the prefix ordering,
+	 *  within the subtree defined by root
+	 */
+	nextLeaf(u,root=0) {
+		while (u != root) {
+			this.steps++;
+			if (this.nextSibling(u))
+				return this.firstLeaf(this.nextSibling(u));
+			u = this.p(u);
+		}
+		return 0;
+	}
+
+	/** Return the last leaf descendant of a node */
+	lastLeaf(u) {
+		while (this.lastChild(u)) {
+			u = this.lastChild(u); this.steps++;
+		}
+		return u;
 	}
 	
 	/** Link one tree to another.
@@ -204,6 +205,7 @@ export default class Forest extends Top {
 	 *  @param c is a sibling  of u that becomems the first child in
 	 *  the list following the rotation
 	 *  @return the new first sibling
+	 *  - no longer used, drop it?
 	 */
 	rotate(f, c) {
 		this.#sibs.rotate(f, c); 

@@ -294,9 +294,10 @@ export default class Flograph extends Digraph {
 		if (e == 0) return '-';
 		return '(' + this.x2s(this.tail(e), label) + ',' 
 				   + this.x2s(this.head(e), label) + ','
-				   + (this.hasCosts ? this.cost(e) + ',' : '') 
 				   + (this.floor(e)>0 ? this.floor(e) + '-' : '')
-				   + this.cap(e) + (this.f(e)>0 ? '/' + this.f(e) : '') + ')';
+				   + this.cap(e)
+				   + (this.cost(e) ? '@' + this.cost(e) : '') 
+				   + (this.f(e)>0 ? '/' + this.f(e) : '') + ')';
 	}
 
 	/** Construct a string representation of the Flograph object.
@@ -305,12 +306,13 @@ export default class Flograph extends Digraph {
 	 */
 	toString(fmt=0, elab=0, vlab=0) {
 		if (!elab) {
-			elab = (e,u) =>
+			elab = (e,u) => 
 					(u == this.head(e) ? '' :
 					 (this.x2s(this.mate(u,e)) + ':' +
 					  (this.floor(e)>0 ? this.floor(e) + '-' : '') +
-                   	  (this.cap(e) + (this.f(e)>0 ? '/' + this.f(e) : '')) +
-					  (this.hasCosts && this.cost(e) ? '@' + this.cost(e) : '')
+                   	  this.cap(e) +
+					  (this.cost(e) ? '@' + this.cost(e) : '') +
+					  (this.f(e)>0 ? '/' + this.f(e) : '')
 					 ));
 		}
 		if (!vlab) {
@@ -364,15 +366,15 @@ export default class Flograph extends Digraph {
 							if (Number.isNaN(cap)) return false; 
 							caps[i] = cap;
 						}
-						if (sc.verify('/')) {
-							let flow = sc.nextNumber();
-							if (Number.isNaN(flow)) return false;
-							flows[i] = flow;
-						}
 						if (sc.verify('@')) {
 							let cost = sc.nextNumber();
 							if (Number.isNaN(cost)) return false;
 							costs[i] = cost;
+						}
+						if (sc.verify('/')) {
+							let flow = sc.nextNumber();
+							if (Number.isNaN(flow)) return false;
+							flows[i] = flow;
 						}
 						return true;
 					});

@@ -18,7 +18,6 @@ try {
 	assert(g, '{h}', 'a3');
 	g.join(1, 4);
 	g.join(1, 3); g.join(2, 4); g.join(3, 5);
-			  // {a[d c] b[d] c[a e] d[a b] e[c] }
 	assert(g, '{a[d c] b[d] c[a e] d[b a] e[c] h[]}', 'a4');
 	g.join(5, 1); g.join(2, 7); g.join(3, 7);
 	assert(g, '{a[d c e] b[d g] c[a e g] d[a b] e[c a] g[b c] h}', 'a5');

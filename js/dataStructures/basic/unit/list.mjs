@@ -37,11 +37,11 @@ try {
 	assert(l, '[a e j b c d g f m]', 'b10');
 
 	assert(l.value(3) == null, 'c1');
-	l.setValue(3, 22); assert(l.value(3), 22, 'c2');
+	l.value(3, 22); assert(l.value(3), 22, 'c2');
 	l.insert(26, 3, 5);
 	let l2 = new List(); l2.fromString('[a e j b c z d g f m]');
 	assert(l != l2, 'c4');
-	l2.setValue(3, 22); l2.setValue(26, 5);
+	l2.value(3, 22); l2.value(26, 5);
 	assert(l.equals(l2), 'c5');
 
 	let pvec = new Array(10);

@@ -18,8 +18,8 @@ import Forest from '../graphs/Forest.mjs';
  *  supports constant-time union of two sets.
  */
 export default class MergeSets extends Top {
-	#p;			///< #p[i] is parent of i
-	#rank;	 	///< #rank[i] is rank of i
+	#p;			// #p[i] is parent of i
+	#rank;	 	// #rank[i] is rank of i
 
 	#mergeCount;
 	#findCount;

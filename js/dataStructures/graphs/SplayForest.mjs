@@ -10,7 +10,7 @@ import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import Scanner from '../basic/Scanner.mjs';
-import BinaryForest from '../graphs/BinaryForest.mjs';
+import BinaryForest from './BinaryForest.mjs';
 
 /** This class adds a splay operation to the BinaryForest class
  *  and uses it to implicitly balance the trees in the forest.
@@ -51,13 +51,10 @@ export default class SplayForest extends BinaryForest {
 		return this.splay(super.search(k, t, key));
 	}
 
-	/** Insert a node based on a key value.
-	 *  @param u is a singleton node
-	 *  @param t is the root of the tree containing u
-	 *  @param key is an array mapping nodes to key values;
-	 *  the trees are assumed to be ordered by the keys
-	 *  @return the root of the modified tree
-	 */
+	insertAfter(u, v, t) {
+		return super.insertAfter(u, v, t, u => this.splay(u));
+	}
+
 	insertByKey(u, key, t) {
 		return super.insertByKey(u, key, t, u => this.splay(u));
 	}

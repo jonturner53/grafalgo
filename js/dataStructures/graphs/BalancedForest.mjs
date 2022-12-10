@@ -73,13 +73,13 @@ export default class BalancedForest extends BinaryForest {
 	 *  @param u is a singleton
 	 *  @param v is a node in a tree which defines the point where u is
 	 *  to be inserted; if zero, u is inserted before all nodes in tree
-	 *  @param renew(u) is an optional function that can be used to adjust
+	 *  @param refresh(u) is an optional function that can be used to adjust
 	 *  client data that is affected by the tree structure; it is called
 	 *  just before the tree is rebalanced.
 	 *  @param t is the tree root
 	 */
-	insertAfter(u, v, t, renew=0) {
-		return super.insertAfter(u, v, t,  u => { if (renew) renew(u);
+	insertAfter(u, v, t, refresh=0) {
+		return super.insertAfter(u, v, t, u => { if (refresh) refresh(u);
 												this.rerankUp(u);
 												});
 	}
@@ -88,12 +88,13 @@ export default class BalancedForest extends BinaryForest {
 	 *  @param u is a singleton node
 	 *  @param key is an array mapping nodes to key values;
 	 *  @param t is the root of the tree containing u
-	 *  @param renew(u) is an optional function, which is called
+	 *  @param refresh(u) is an optional function, which is called
 	 *  with argument u after u is inserted but before rebalancing.
 	 *  @return the root of the modified tree
 	 */
-	insertByKey(u, key, t, renew=0) {
-		return super.insertByKey(u, key, t, u => { if (renew) renew(u);
+	insertByKey(u, key, t, compare, refresh=0) {
+		return super.insertByKey(u, key, t, compare,
+											u => { if (refresh) refresh(u);
 												 this.rerankUp(u);
 												 });
 	}
@@ -101,14 +102,14 @@ export default class BalancedForest extends BinaryForest {
 	/** Delete a node from a tree.
 	 *  @param u is a non-singleton tree node.
 	 *  @param t is the tree containing u
-	 *  @param renew(pu) is an optional function that can be used to adjust
+	 *  @param refresh(pu) is an optional function that can be used to adjust
 	 *  client data that is affected by the tree structure; it is called
 	 *  just before the tree is rebalanced and its argument is u's parent
 	 *  just before the rebalancing takes place.
 	 *  @return the modified tree
 	 */
-	delete(u, t=0, renew=0) {
-		t = super.delete(u, t, (cu,pu) => { if (renew) renew(pu);
+	delete(u, t=0, refresh=0) {
+		t = super.delete(u, t, (cu,pu) => { if (refresh) refresh(pu);
 										 	this.rerankDown(cu,pu);
 											});
 		this.rank(u,1);
@@ -124,14 +125,14 @@ export default class BalancedForest extends BinaryForest {
 	 *  @param t1 is a tree
 	 *  @param u is a node
 	 *  @param t2 is a second tree (likewise)
-	 *  @param renew is an optional function 
-	 *  @param renew(pu) is an optional function that can be used to adjust
+	 *  @param refresh is an optional function 
+	 *  @param refresh(pu) is an optional function that can be used to adjust
 	 *  client data that is affected by the tree structure; it is called
 	 *  just before the tree is rebalanced and its argument is u's parent
 	 *  just before the rebalancing takes place.
 	 *  @return root of new tree (or subtree) formed by joining t1, u and t2.
 	 */
-	join(t1, u, t2, renew=0) {
+	join(t1, u, t2, refresh=0) {
 		let r1 = this.rank(t1); let r2 = this.rank(t2);
 		if (r1 == r2) {
 			let t = super.join(t1,u,t2); this.rank(t, r1+1);
@@ -146,7 +147,7 @@ export default class BalancedForest extends BinaryForest {
 			super.join(v, u, t2);
 			this.link(u,pv,+1); this.rank(u, r2+1);
 			this.p(t1,0);
-			if (renew) renew(u);
+			if (refresh) refresh(u);
 			this.rerankUp(u);
 			let t =  this.find(t1);
 			return t;
@@ -158,15 +159,15 @@ export default class BalancedForest extends BinaryForest {
 			super.join(t1, u, v);
 			this.link(u,pv,-1); this.rank(u, r1+1)
 			this.p(t2,0);
-			if (renew) renew(u);
+			if (refresh) refresh(u);
 			this.rerankUp(u);
 			let t = this.find(t2);
 			return t;
 		}
 	}
 
-	split(u, renew=0) {
-		let pair = super.split(u, renew); this.rank(u,1); return pair;
+	split(u, refresh=0) {
+		let pair = super.split(u, refresh); this.rank(u,1); return pair;
 	}
 
 	/** Adjust ranks after a node rank increases, leading to a violation

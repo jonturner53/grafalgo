@@ -7,7 +7,7 @@
  */
 
 import Top from '../Top.mjs';
-import { fassert } from '../../common/Errors.mjs';
+import { assert, fassert } from '../../common/Errors.mjs';
 import Scanner from './Scanner.mjs';
 
 /** Data structure representing a list of unique integers.
@@ -23,13 +23,13 @@ import Scanner from './Scanner.mjs';
  *  popLast(), at(i) where i<0)
  */
 export default class List extends Top {
-	#first;		///< first item in list
-	#last;		///< last item in list
-	#length;	///< number of items in list
-	#next;		///< #next[i] is successor of i in list
-	#prev;		///< #prev[i] is predecessor of i in list
-				///< allocated dynamically as required
-	#value;		///< allocated dynamically as required
+	#first;		// first item in list
+	#last;		// last item in list
+	#length;	// number of items in list
+	#next;		// #next[i] is successor of i in list
+	#prev;		// #prev[i] is predecessor of i in list
+				// allocated dynamically as required
+	#value;		// allocated dynamically as required
 	
 	/** Constructor for List object.
 	 *  @param n is the range for the list
@@ -42,46 +42,52 @@ export default class List extends Top {
 		this.#prev = this.#value = null;
 	}
 
+	/** Convert to a doubly-linked list. */
 	addPrev() {
 		if (this.hasPrev) return;
 		this.#prev = new Int32Array(this.capacity+1);
 		for (let i = this.first(); i; i = this.next(i))
 			if (this.next(i)) this.#prev[this.next(i)] = i;
 	}
+
+	/** Determine if this object is doubly-linked. */
 	get hasPrev() { return this.#prev ? true : false; }
 
+	/** Add a value for each list item */
 	addValues() {
 		if (this.hasValues) return;
 		this.#value = new Array(this.#next.length).fill(null);
 	}
+
+	/** Determine if this object includes item values. */
 	get hasValues() { return this.#value ? true : false; }
 
 	/** Get the value of an item.
 	 *  @param i is an integer
-	 *  @return the value of i or null if i is not a valid item or no value
-	 *  has been assigned to it
+	 *  @param val is an optional value to be assigned to i
+	 *  @return the value of i or null if i is not a valid item or no
+	 *  value has been assigned to it
 	 */
-	value(i) {
-		if (!this.valid(i) || !this.hasValues) return null;
-		return this.#value[i];
-	}
-	setValue(i, v) {
-		if (!this.valid(i)) return;
-		if (!this.hasValues) this.addValues();
-		this.#value[i] = v;
+	value(i, val=null) {
+		if (val != null) {
+			if (!this.hasValues) this.addValues();
+			this.#value[i] = val;
+		}
+		return (this.valid(i) && this.hasValues ? this.#value[i] : null);
 	}
 
 	/** Assign new value to list from another. 
 	 *  @paran l is a list whose value is to be assigned to this
 	 */
 	assign(l) {
+		fassert(l instanceof List);
 		if (l == this) return;
 		if (l.n > this.capacity) this.reset(l.n);
 		else { this.clear(); this._n = l.n; }
 		if (l.hasPrev && !this.hasPrev) this.addPrev();
 		if (l.hasValues && !this.hasValues) this.addValues();
 		if (this.hasValues) {
-			for (let i = 0; i <= this.n; i++) this.setValue(i,l.value(i));
+			for (let i = 0; i <= this.n; i++) this.value(i,l.value(i));
 		}
 		for (let i = l.first(); i != 0; i = l.next(i)) {
 			if (this.hasValues) this.enq(i, l.value(i));
@@ -93,6 +99,7 @@ export default class List extends Top {
 	 *  @param l is a list whose contents are to be transferred to this
 	 */
 	xfer(l) {
+		fassert(l instanceof List);
 		if (l == this) return;
 		this._n = l.n;
 		this.#first = l.first(); this.#last = l.last();
@@ -178,7 +185,7 @@ export default class List extends Top {
 		fassert(this.valid(i) && i != 0 && !this.contains(i) &&
 					   (j == 0 || this.contains(j)),
 				`List.enq: ${this.x2s(i)} ${this.x2s(j)} ${this.toString()}`);
-		if (value != null) this.setValue(i, value);
+		if (value != null) this.value(i, value);
 		if (j == 0) {
 			if (this.empty()) this.#last = i;
 			this.#next[i] = this.#first; this.#first = i; this.#length++;
@@ -213,7 +220,7 @@ export default class List extends Top {
 				this.#prev[this.next(i)] = i;
 			this.#prev[j] = 0;
 		}
-		if (this.hasValues) this.setValue(j,null);
+		if (this.hasValues) this.value(j,null);
 		return (i == 0 ? this.first() : this.next(i));
 	}
 

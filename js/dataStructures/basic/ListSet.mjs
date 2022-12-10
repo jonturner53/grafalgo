@@ -8,6 +8,7 @@
 
 import Top from '../Top.mjs';
 import { fassert } from '../../common/Errors.mjs';
+import List from './List.mjs';
 import Scanner from './Scanner.mjs';
 
 /** The ListSet class maintains a collection of disjoint lists defined
@@ -167,8 +168,13 @@ export default class ListSet extends Top {
 		this.#next[i] = 0; this.#prev[i] = i;
 	}
 
-	/** Sort the lists by item number */
-	sort() {
+	/** Sort the lists in ascending order.
+	 *  @param cmp(a,b) is an optional comparison funcion used to compare two
+	 *  items; it returns -1 if a<b, 0 if a=b and +1 if a>b. If no comparison
+	 *  function is provided, the function (a,b) => a-b is used.
+	 */
+	sort(cmp=0) {
+		if (!cmp) cmp = ((a,b) => a-b);
 		let vec = [];
 		for (let i = 1; i <= this.n; i++) {
 			if (this.singleton(i) || !this.isfirst(i)) continue;
@@ -177,13 +183,13 @@ export default class ListSet extends Top {
 				vec.push(j); j = this.delete(j, j);
 			}
 			vec.push(j);
-			vec.sort((a,b) => a-b);
+			vec.sort(cmp);
 			for (j = 1; j < vec.length; j++)
 				this.join(vec[0], vec[j])
 		}
 	}
 
-	/** Determine if two ListSet are equal.
+	/** Determine if two ListSets are equal.
 	 *  @param other is a second ListSet or a string representing a
 	 *  ListSet object
 	 *  @return true if the two ListSet objects contain identical lists.
@@ -202,6 +208,29 @@ export default class ListSet extends Top {
 		}
 		return ls;
 	}
+
+	/** Determine if two ListSets define the same sets.
+	 *  @param other is a second ListSet or a string representing a
+	 *  ListSet object
+	 *  @return true if the two ListSet objects define identical sets.
+	 */
+	setEquals(other) {
+		let ls = super.equals(other);
+		if (typeof ls == 'boolean') return ls;
+		let l = new List(this.n);
+		for (let i = 1; i < this.n; i++) {
+			if (!this.isfirst(i)) continue;
+			l.clear();
+			for (let j = i; j; j = this.next(j)) l.enq(j);
+			let lng = 0;
+			for (let j = ls.find(i); j; j = ls.next(j)) {
+				if (!l.contains(j)) return false;
+				lng++;
+			}
+			if (lng != l.length) return false;
+		}
+		return ls;
+	}
 	
 	/** Produce a string representation of the object.
 	 *  @param fmt is a pair of format bits that controls presentation
@@ -216,7 +245,7 @@ export default class ListSet extends Top {
 		for (let l = 1; l <= this.n; l++) {
 			if (!this.isfirst(l) || (this.singleton(l) && !(fmt&0x2)))
 				continue;
-			if (s.length) s += '';
+			if (s.length) s += ' ';
 			s += '[';
 			for (let i = l; i; i = this.next(i)) {
 				if (i != l) s += ' ';

@@ -199,26 +199,6 @@ export default class ReverseLists extends Top {
 			}
 		}
 		return ls.toString(fmt,label);
-			
-
-
-/*
-		let s = (fmt&0x1 ? '{\n' : '{');
-		let first = true;
-		for (let l = 1; l <= this.n; l++) {
-			if (!this.isFirst(l) || (this.singleton(l) && !(fmt&0x2)))
-				continue;
-			if (first) first = false;
-			else s += (!(fmt&0x1) ? ' ' : '');
-			s += '['; let j = 0;
-			for (let i = l; i != 0; [i, j] = this.next(i,j)) {
-				if (i != l) s += ' ';
-				s += this.x2s(i, label);
-			}
-			s += (fmt&0x1 ? ']\n' : ']');
-		}
-		return '{' + s + (fmt&0x1 ? '}\n' : ']');
-*/
 	}
 
 	/** Initialize this from a string representation.

@@ -19,13 +19,13 @@ import Scanner from './Scanner.mjs';
  *  Initially, all items are in the out list.
  */
 export default class ListPair extends Top {
-	#n1;		// number of items in in-list
-	#n2;		// number of items in out-list
+	#n1;		// number of items in list 1
+	#n2;		// number of items in list 2
 
-	#first1;	// first item in the in-list
-	#last1;	    // last item in the in-list
-	#first2;	// first item in the out-list
-	#last2	    //last item in the out-list
+	#first1;	// first item in the list 1
+	#last1;	    // last item in the list 1
+	#first2;	// first item in the list 2
+	#last2	    //last item in the list 2
 	#next;		// #next[i] defines next item after i
 				// in items use positive #next values
 				// out items use negative #next values
@@ -49,6 +49,8 @@ export default class ListPair extends Top {
 		this.#next[this.n] = this.#prev[1] = 0;
 		this.#n1 = 0; this.#n2 = this.n;
 	}
+
+	get capacity() { return this.#next.length - 1; }
 
 	/** Expand index range and possibly the space.
 	 *  Default version does not suffice here;
@@ -90,24 +92,22 @@ export default class ListPair extends Top {
 		this.#first2 = l.#first2; this.#last2 = l.#last2;
 		this.#n1 = l.#n1; this.#n2 = l.#n2;
 	}
-
-	get capacity() { return this.#next.length - 1; }
 	
-	/** Determine if an item belongs to the "in-list".
+	/** Determine if an item belongs to list 1
 	 *  @param i is a valid list item
-	 *  @param return true if i is a member of the "in-list", else false.
+	 *  @param return true if i is a member of the list 1, else false.
 	 */
 	in1(i) {
-		fassert(this.valid(i), `ListPair.in1: invalid list item ${i} (n=${this.n})`);
+		fassert(this.valid(i), `ListPair.in1: invalid item ${i} (n=${this.n})`);
 		return this.#prev[i] > 0 || i == this.#first1;
 	}
 	
-	/** Determine if an int belongs to the "out-list".
+	/** Determine if an int belongs to the list 2.
 	 *  @param i is a valid list item
-	 *  @param return true if i is a member of the "out-list", else false.
+	 *  @param return true if i is a member of the list 2, else false.
 	 */
 	in2(i) {
-		fassert(this.valid(i));
+		fassert(this.valid(i), `ListPair.in2: invalid item ${i} (n=${this.n})`);
 		return this.#prev[i] < 0 || i == this.#first2;
 	}
 	
@@ -118,36 +118,37 @@ export default class ListPair extends Top {
 	n2() { return this.#n2; }
 	
 	/** Get the first item in list 1.
-	 *  @return the first value on the in-list or 0 if the list is empty.
+	 *  @return the first value on the list 1 or 0 if the list is empty.
 	 */
 	first1() { return this.#first1; }
 	
 	/** Get the first item in list 2.
-	 *  @return the first value on the out-list or 0 if the list is empty.
+	 *  @return the first value on the list 2 or 0 if the list is empty.
 	 */
 	first2() { return this.#first2; }
 	
 	/** Get the last item in list 1.
-	 *  @return the last value on the in-list or 0 if the list is empty.
+	 *  @return the last value on the list 1 or 0 if the list is empty.
 	 */
 	last1() { return this.#last1; }
 	
 	/** Get the first item in list 2.
-	 *  @return the last value on the out-list or 0 if the list is empty.
+	 *  @return the last value on the list 2 or 0 if the list is empty.
 	 */
 	last2() { return this.#last2; }
 	
 	/** Get the next item in list 1.
 	 *  @param i is the "current" value
-	 *  @return the next int on the in-list or 0 if no more values
+	 *  @return the next int on the list 1 or 0 if no more values
 	 */
 	next1(i) {
-		fassert(this.in1(i)); return this.#next[i];
+		fassert(this.in1(i), `ListPair.next: item ${i} not in list1`);
+		return this.#next[i];
 	}
 	
 	/** Get the next value in the list2.
 	 *  @param i is the "current" value
-	 *  @return the next value on the out-list or 0 if no more values
+	 *  @return the next value on the list 2 or 0 if no more values
 	 */
 	next2(i) {
 		fassert(this.in2(i)); return this.#next[i];
@@ -155,7 +156,7 @@ export default class ListPair extends Top {
 	
 	/** Get the previous value in list 1.
 	 *  @param i is the "current" value
-	 *  @return the previous value on the in-list or 0 if no more values
+	 *  @return the previous value on the list 1 or 0 if no more values
 	 */
 	prev1(i) {
 		fassert(this.in1(i)); return this.#prev[i];
@@ -163,34 +164,13 @@ export default class ListPair extends Top {
 	
 	/** Get the previous value in list 2.
 	 *  @param i is the "current" value
-	 *  @return the previous value on the out-list or 0 if no more values
+	 *  @return the previous value on the list 2 or 0 if no more values
 	 */
 	prev2(i) {
 		fassert(this.in2(i)); return -this.#prev[i];
 	}
 	
-	/** Compare two list pairs for equality.
-	 *  @param other is another list pair or a string
-	 *  @return true if the two lists are identical
-	 */
-	equals(other) {
-		let lp = super.equals(other);
-		if (typeof lp == 'boolean') return lp;
-		if (this.n1 != lp.n1 || this.n2 != lp.n2) return false;
-		let i = this.first1(); let j = lp.first1();
-		while (i != 0) {
-			if (i != j) return false;
-			i = this.next1(i); j = lp.next1(j);
-		}
-		i = this.first2(); j = lp.first2();
-		while (i != 0) {
-			if (i != j) return false;
-			i = this.next2(i); j = lp.next2(j);
-		}
-		return lp;
-	}
-	
-	/** Remove all elements from inSet. */
+	/** Remove all elements from list 1. */
 	clear() { while (this.first1() != 0) this.swap(this.first1()); }
 	
 	/** Move an item from one list to the other.
@@ -207,13 +187,13 @@ export default class ListPair extends Top {
 			   (this.in2(i) && (j == 0 || this.in1(j))));
 
 		if (this.in1(i)) {
-			// first remove i from in-list
+			// first remove i from list 1
 			if (i == this.last1()) this.#last1 = this.#prev[i];
 			else this.#prev[this.#next[i]] = this.#prev[i];
 			if (i == this.first1()) this.#first1 = this.#next[i];
 			else this.#next[this.#prev[i]] = this.#next[i];
 	
-			// now add i to out-list
+			// now add i to list 2
 			if (this.#n2 == 0) {
 				this.#next[i] = this.#prev[i] = 0;
 				this.#first2 = this.#last2 = i;
@@ -229,13 +209,13 @@ export default class ListPair extends Top {
 			}
 			this.#n1--; this.#n2++;
 		} else {
-			// first remove i from out-list
+			// first remove i from list 2
 			if (i == this.last2()) this.#last2 = -this.#prev[i];
 			else this.#prev[this.#next[i]] = this.#prev[i];
 			if (i == this.first2()) this.#first2 = this.#next[i];
 			else this.#next[-this.#prev[i]] = this.#next[i];
 	
-			// now add i to in-list
+			// now add i to list 1
 			if (this.#n1 == 0) {
 				this.#next[i] = this.#prev[i] = 0;
 				this.#first1 = this.#last1 = i;
@@ -252,6 +232,20 @@ export default class ListPair extends Top {
 			this.#n1++; this.#n2--;
 		}
 		return;
+	}
+	
+	/** Compare two list pairs for equality.
+	 *  @param other is another list pair or a string
+	 *  @return true if the two lists are identical
+	 */
+	equals(other) {
+		let lp = super.equals(other);
+		if (typeof lp == 'boolean') return lp;
+		if (this.n1 != lp.n1 || this.n2 != lp.n2) return false;
+		let i = this.first1(); let j = lp.first1();
+		while (i && i == j) { i = this.next1(i); j = lp.next1(j); }
+		if (i != j) return false;
+		return lp;
 	}
 	
 	/** Create a string representation of a given string.
@@ -281,21 +275,21 @@ export default class ListPair extends Top {
 		let sc = new Scanner(s);
 
 		// first read values into two lists
-        let li = sc.nextIndexList('[', ':');
-        if (li == null) return false;
+        let l1 = sc.nextIndexList('[', ':');
+        if (l1 == null) return false;
 		sc.reset(-1);
-        let lo = sc.nextIndexList(':', ']');
-        if (lo == null) return false;
-		let n = Math.max(Math.max(...li), Math.max(...lo));
+        let l2 = sc.nextIndexList(':', ']');
+        if (l2 == null) return false;
+		let n = Math.max(Math.max(...l1), Math.max(...l2));
 
 		// verify that lists are valid
-		if (li.length + lo.length != n) return false;
+		if (l1.length + l2.length != n) return false;
         let items = new Set();
-        for (let i of li) {
+        for (let i of l1) {
             if (items.has(i)) return false;
             items.add(i);
         }
-        for (let i of lo) {
+        for (let i of l2) {
             if (items.has(i)) return false;
             items.add(i);
         }
@@ -303,9 +297,9 @@ export default class ListPair extends Top {
 		// initialize this
 		if (n != this.n) this.reset(n);
 		else this.clear();
-        for (let i of li) this.swap(i);
-        for (let i of lo) { this.swap(i); this.swap(i); }
-			// double swap produces correct order for out-list
+        for (let i of l1) this.swap(i);
+        for (let i of l2) { this.swap(i); this.swap(i); }
+			// double swap produces correct order for list 2
 		return true;
 	}
 }

@@ -37,8 +37,8 @@ function basicTests(trace=false) {
 					 'g[h] h[g i] i[h]}');
 	
 		let [k, ls, ts] = components(g, trace);
-		assert(k, 3, 'a1');
-		assert(ls, '[(a b c d e f) (g h i)]', 'a2');
+		assert(k, 2, 'a1');
+		assert(ls, '{[a b c d e f] [g h i]}', 'a2');
 		if (trace) console.log(ts);
 	
 		console.log('passed tests');

@@ -27,11 +27,11 @@ try {
 	assert(g, '{a->[b:4/1 c:3/2] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f[]}', 'a6');
 	assert(g.totalFlow(), 3, 'a7');
 	g.cost(1, 5);
-	assert(g, '{a->[b:4/1:5 c:3/2] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f[]}',
+	assert(g, '{a->[b:4@5/1 c:3/2] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}',
 			   'a8');
-	assert(g.fromString('{a->[b:4/1:5 c:3/2] b[c:3:7 d:1-4/2:3] c[e:4] ' +
+	assert(g.fromString('{a->[b:4@5/1 c:3/2] b[c:3@7 d:1-4@3/2] c[e:4] ' +
 						'd[f:2-4/2] e[f:3] ->f[]}'), 'a9');
-	assert(g,	'{a->[b:4/1:5 c:3/2] b[c:3:7 d:1-4/2:3] c[e:4] ' +
+	assert(g,	'{a->[b:4@5/1 c:3/2] b[c:3@7 d:1-4@3/2] c[e:4] ' +
 				'd[f:2-4/2] e[f:3] ->f[]}', 'a10');
 
 	console.log('passed tests');

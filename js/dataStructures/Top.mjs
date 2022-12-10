@@ -6,6 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { fassert } from '../common/Errors.mjs';
+
 /** The Top class is the super-class from which other classes
  *  in grafalgo are derived.
  *
@@ -33,24 +35,6 @@ export default class Top {
 		this.xfer(new this.constructor(... arguments));
 	}
 
-	/** Expand the index range of an object and if needed, its capacity. */
-	expand(n) {
-		if (n < this.n) return;
-		if (n <= this.capacity) {
-			this._n = n;
-		} else {
-			let nu = new this.constructor(
-							this.n, Math.max(n,~~(1.5*this.capacity)));
-			nu.assign(this); this.xfer(nu); this._n = n;
-		}
-	}
-
-	/** Transfer the contents of another object to this. */
-	xfer(other) {
-		throw `Top: sub-class ${this.constructor.name} failed to ` +
-			  `define xfer method.`;
-	}
-
 	/** Get the index range for the object.
 	 *  @return the largest index value
 	 */
@@ -61,6 +45,26 @@ export default class Top {
 	 *  @param n becomes the largest index value
 	 */
 	set _n(n) { this.#n = n; }
+
+	/** Expand the index range of an object and possibly, its capacity. */
+	expand(n) {
+		fassert(n >= this.n);
+		let cap = ('capacity' in this) ? this.capacity : this.n;
+		if (n <= cap) {
+			this._n = n;
+		} else {
+			let nu = (('capacity' in this) ?
+						new this.constructor(this.n, Math.max(n,~~(1.5*cap))) :
+						new this.constructor(this.n));
+			nu.assign(this); this.xfer(nu); this._n = n;
+		}
+	}
+
+	/** Transfer the contents of another object to this. */
+	xfer(other) {
+		throw `Top: sub-class ${this.constructor.name} failed to ` +
+			  `define xfer method.`;
+	}
 
 	/** Determine if a given index is valid.
 	 *  @param[in] i is an integer

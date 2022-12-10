@@ -183,7 +183,7 @@ this.cnt = 0;
 
 	lastIn(b) { return this.#subs.lastLeaf(b); }
 
-	nextIn(b,u) { return this.#subs.nextLeaf(b,u); }
+	nextIn(b,u) { return this.#subs.nextLeaf(u,b); }
 
 	/** Get the parent of a blossom in the blossom hierarchy.
 	 *  @param b is a blossom id

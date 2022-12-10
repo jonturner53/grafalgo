@@ -231,23 +231,6 @@ export default class BinaryForest extends Top {
 		return u;
 	}
 
-	/** Search for an item with a specified key
-	 *  @param k is a specific key value to be located
-	 *  @param t is the root of the tree (or subtree) to be searched
-	 *  @param key is an array mapping each node to a key value;
-	 *  the tree nodes are assumed to be ordered according to key
-	 *  @return node u where key[u]==k or 0 if there is no such node
-	 */
-	search(k, t, key) {
-		let u = t;
-		while (u != 0 && key[u] != k) {
-			this.steps++;
-			if (k < key[u]) u = this.left(u);
-			else			u = this.right(u);
-		}
-		return u;
-	}
-
 	/** Remove a subtree.  */
 	cut(u) {
 		let pu = this.p(u);
@@ -282,63 +265,41 @@ export default class BinaryForest extends Top {
 		}
 	}
 	
-	/** Insert a node immediately after another node in a tree.
+	/** Insert a node immediately after another vertes in a tree.
 	 *  @param u is a singleton
-	 *  @param v is a node in a tree which defines the point where u is
+	 *  @param v is a vertes in a tree which defines the point where u is
 	 *  to be inserted; if zero, u is inserted before all nodes in tree
-	 *  @param t is the tree root
-	 *  @param renew(u) is an optional function that can be used to adjust
+	 *  @param t is the tree root; if omitted, the tree containing v is used
+	 *  @param refresh(u) is an optional function that can be used to adjust
 	 *  client data that is affected by the tree structure; it is called
 	 *  just after u is inserted
 	 *  @return the root of the resuling tree
 	 */
-	insertAfter(u, v, t, renew=0) {
-		if (!t || t == u) return u;
+	insertAfter(u, v, t=this.find(v), refresh=0) {
+		fassert(v || t, 'BinaryForest:insertAfter: either v or t must ' +
+					    'be defined');
+		if (t == u) return u;
 		if (!v)
 			this.link(u, this.first(t), -1);
 		else if (!this.right(v))
 			this.link(u, v, +1);
 		else
 			this.link(u, this.first(this.right(v)), -1);
-		if (renew) renew(u);
-		return this.find(t);
-	}
-
-	/** Insert a node based on a key value.
-	 *  @param u is a singleton node
-	 *  @param key is an array mapping nodes to key values;
-	 *  the trees are assumed to be ordered by the keys
-	 *  @param t is the root of the tree containing u
-	 *  @param renew(u) is an optional function that can be used to adjust
-	 *  client data that is affected by the tree structure; it is called
-	 *  just after u is inserted
-	 *  @return the root of the modified tree
-	 */
-	insertByKey(u, key, t=0, renew=0) {
-		if (!t || t == u) return u;
-		let v = t; let pv = 0;
-		while (v != 0) {
-			pv = v; this.steps++;
-			if (key[u] <= key[v]) v = this.left(v);
-			else				  v = this.right(v);
-		}
-		this.link(u, pv, key[u] <= key[pv] ? -1 : +1);
-		if (renew) renew(u);
+		if (refresh) refresh(u);
 		return this.find(t);
 	}
 
 	/** Delete a node from a tree.
 	 *  @param u is a non-singleton tree node.
 	 *  @param t is the tree containing u
-	 *  @param renew(cu,pu) is an optional function which can be used
+	 *  @param refresh(cu,pu) is an optional function which can be used
 	 *  to adjust client data that is affected by the tree structure;
 	 *  it is called just after u's removal and its arguments are u's former
 	 *  child and parent
 	 *  @return the resulting tree
 	 */
-	delete(u, t=0, renew=0) {
+	delete(u, t=this.find(u), refresh=0) {
 		if (this.singleton(u)) return u;
-		if (!t) t = this.find(u); 
 		// find a node close to the root
 		let tt = (u != t ? t : (this.left(u) ? this.left(u) : this.right(u)));
 		if (this.left(u) && this.right(u))
@@ -353,14 +314,9 @@ export default class BinaryForest extends Top {
 			else if (u == this.right(pu)) this.right(pu, cu);
 		}
 		this.p(u,0); this.left(u,0); this.right(u,0);
-		if (renew) renew(cu,pu);
+		if (refresh) refresh(cu,pu);
 		tt = this.find(tt);
 		return tt;
-/*
-minor glitch
-in a splay forest, the final find, adds a redundant splay
-not sure it's worth trying to fix it
-*/
 	}
 
 	/** Swap the positions of two nodes in same tree.
@@ -403,27 +359,27 @@ not sure it's worth trying to fix it
 	 *  @param t1 is a tree
 	 *  @param u is a node
 	 *  @param t2 is a second tree
-	 *  @param renew(u) is an optional function that can be used to adjust
+	 *  @param refresh(u) is an optional function that can be used to adjust
 	 *  client data that is affected by the tree structure; it is called
 	 *  at the conclusion of the operation.
 	 *  @return root of new tree making t1 the left subtree of u
 	 *  and t2 the right subtree
 	 */
-	join(t1, u, t2, renew=0) {
+	join(t1, u, t2, refresh=0) {
 		this.link(t1,u,-1); this.link(t2,u,+1); this.p(u,0);
-		if (renew) renew(u);
+		if (refresh) refresh(u);
 		return u;
 	}
 
 	/** Split a tree on a node.
 	 *  @param u is a node in a tree
-	 *  @param renew(u) is an optional function that can be used to adjust
+	 *  @param refresh(u) is an optional function that can be used to adjust
 	 *  client data that is affected by the tree structure; it is called
 	 *  at the conclusion of the split.
 	 *  @return a pair [t1,t2] where t1 has the nodes that were to the
 	 *  the left of u and t2 has the nodes that were to the right of u
 	 */
-	split(u, renew=0) {
+	split(u, refresh=0) {
 		fassert(this.valid(u));
 		let v = u; let p = this.p(v);
 		let [l,r] = [this.left(u), this.right(u)];
@@ -432,15 +388,59 @@ not sure it's worth trying to fix it
 			this.steps++;
 			let gp = this.p(p); this.p(p,0); // isolate p's subtree
 			if (v == this.left(p)) {
-				r = this.join(r,p,this.right(p));
+				r = this.join(r,p,this.right(p),refresh);
 			} else {
-			  	l = this.join(this.left(p),p,l);
+			  	l = this.join(this.left(p),p,l,refresh);
 			}
 			v = p; p = gp;
 		}
 		this.p(l,0); this.p(r,0);
-		if (renew) renew(u);
+		if (refresh) refresh(u);
 		return [l,r];
+	}
+
+	/** Insert a node based on a key value.
+	 *  @param u is a singleton node
+	 *  @param key is an array mapping nodes to key values;
+	 *  the trees are assumed to be ordered by the keys
+	 *  @param t is the root of some tree.
+	 *  @param refresh(u) is an optional function that can be used to adjust
+	 *  client data that is affected by the tree structure; it is called
+	 *  just after u is inserted
+	 *  @return the root of the modified tree
+	 */
+	insertByKey(u, key, t, compare=((a,b)=>a-b), refresh=0) {
+		if (!t || t == u) return u;
+		let v = t; let pv = 0;
+		while (v != 0) {
+			pv = v; this.steps++;
+			if (compare(key[u],key[v]) <= 0)
+				v = this.left(v);
+			else
+				v = this.right(v);
+		}
+		this.link(u, pv, key[u] <= key[pv] ? -1 : +1);
+		if (refresh) refresh(u);
+		return this.find(t);
+	}
+
+	/** Search for an item with a specified key
+	 *  @param k is a specific key value to be located
+	 *  @param t is the root of the tree (or subtree) to be searched
+	 *  @param key is an array mapping each node to a key value;
+	 *  the tree nodes are assumed to be ordered according to key
+	 *  @return node u where key[u]==k or 0 if there is no such node
+	 */
+	search(k, t, key, compare=((a,b)=>a-b)) {
+		let u = t;
+		while (u != 0 && compare(key[u],k) != 0) {
+			this.steps++;
+			if (compare(k,key[u]) < 0)
+				u = this.left(u);
+			else
+				u = this.right(u);
+		}
+		return u;
 	}
 		
 	/** Append one tree after another
