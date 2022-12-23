@@ -23,44 +23,34 @@ export default class Forest extends Top {
 
 	/** Construct Forest with space for a specified # of nodes.
 	 *  @param n is the number of nodes in the forest
-	 *  @param cap is the initial capacity (defaults to n)
 	 */
-	constructor(n=10, capacity=n) {
+	constructor(n=10) {
 		super(n);
-		this.#sibs= new ListSet(n,capacity);
-		this.#p = new Int32Array(capacity+1);
-		this.#c = new Int32Array(capacity+1);
+		this.#sibs= new ListSet(this.n);
+		this.#p = new Int32Array(this.n+1);
+		this.#c = new Int32Array(this.n+1);
 		this.steps = 0;
 	}
 
-	get capacity() { return this.#p.length-1; }
-
-	expand(n) {
-		super.expand(n); this.#sibs.expand(n);
-	}
-
-	/** Assign one graph to another.
-	 *  @param g is another graph that is to replace this one.
+	/** Assign one Forest to another.
+	 *  @param other is another Forest that is to replace this one.
 	 */
-	assign(f) {
-		if (f == this || !(f instanceof Forest)) return;
-		if (f.n > this.capacity) this.reset(f.n);
-		else { this.clear(); this._n = f.n; }
-		for (let u = 1; u <= this.n; u++) {
-			for (let c = f.firstChild(u); c != 0; c = f.nextSibling(c)) {
+	assign(other, relaxed=false) {
+		super.assign(other, relaxed);
+		for (let u = 1; u <= other.n; u++) {
+			for (let c = other.firstChild(u); c; c = other.nextSibling(c)) {
 				this.link(c,u);
 			}
 		}
 	}
 
-	/** Assign one graph to another by transferring its contents.
-	 *  @param g is another graph that is to replace this one.
+	/** Assign one Forest to another by transferring its contents.
+	 *  @param other is another Forest that is to replace this one.
 	 */
-	xfer(f) {
-		if (f == this || !(f instanceof Forest)) return;
-		this._n = f.n;
-		this.#sibs = f.#sibs; this.#p = f.#p; this.#c = f.#c;
-		f.#sibs = f.#p = f.#c = null;
+	xfer(other) {
+		super.xfer(other);
+		this.#sibs = other.#sibs; this.#p = other.#p; this.#c = other.#c;
+		other.#sibs = other.#p = other.#c = null;
 	}
 
 	/** Convert all trees to singletons. */
@@ -215,12 +205,12 @@ export default class Forest extends Top {
 	
 	/** Compare another Forest to this one.
 	 *  @param other is a Forest object or a string representing a Forest
-	 *  @return true if f is equal to this; note, the order of siblings
+	 *  @return true if other is equal to this; note, the order of siblings
 	 *  and the order of trees within groups does not affect equality
 	 */
 	equals(other) {
-		let f = super.equals(other);
-		if (typeof f == 'boolean') return f;
+		other = super.equals(other);
+		if (typeof other == 'boolean') return other;
 
 		// identify the first tree root in each group in this
 		let firstRoot1 = new Int32Array(this.n+1);
@@ -232,18 +222,18 @@ export default class Forest extends Top {
 		// likewise in f
 		let firstRoot2 = new Int32Array(this.n+1);
 		for (let u = 1; u <= this.n; u++) {
-			if (f.p(u) || !f.#sibs.isfirst(u)) continue;
-			for (let t = u; t; t = f.nextSibling(t)) {
+			if (other.p(u) || !other.#sibs.isfirst(u)) continue;
+			for (let t = u; t; t = other.nextSibling(t)) {
 				firstRoot2[t] = u;
 			}
 		}
 
 		for (let u = 1; u <= this.n; u++) {
-			if (this.p(u) != f.p(u)) return false;
+			if (this.p(u) != other.p(u)) return false;
 			if (!this.p(u) && firstRoot1[u] != firstRoot2[u])
 				return false;
 		}
-		return f;
+		return other;
 	}
 
 	/** Determine if two Forest objects represent the same sets.
@@ -385,25 +375,24 @@ export default class Forest extends Top {
 
 	/** Scan the input for a subtree and compute node to parent map.
 	 *  @param sc is a Scanner for the input string
-	 *  @param items is a set of node indices seen so far
-	 *  @param map is an array of triples [u,v,pvec] where v is the
-	 *  parent of u and pvec is a possible vector of properties for v
-	 *  @return pair [u,n,pvec] where u is the root of the next subtree
-	 *  in the input, n is the maximum index in the subtree at u and 
-	 *  pvec is a possible vector of properties
-	 *  the maximum index in the subtree at u
+	 *  @param items is a set of node indices seen so far.
+	 *  @param pmap is an array of pairs [u,v] where v is the
+	 *  parent of u.
+	 *  @return pair [u,n] where u is the root of the next subtree
+	 *  in the input and n is the maximum index in the subtree at u,
+	 *  or null if no valid subtree in scanned string.
 	 */
-	nextSubtree(sc, items, map, prop=0) {
+	nextSubtree(sc, items, pmap, prop=0) {
 		let u = sc.nextIndex(prop);
 		if (u < 0 || items.has(u)) return null;
 		items.add(u);
 		if (!sc.verify('(')) return [u,u];
 		let n = u;
 		while (!sc.verify(')')) {
-			let pair = this.nextSubtree(sc, items, map, prop);
+			let pair = this.nextSubtree(sc, items, pmap, prop);
 			if (pair == null) return null;
 			let [v,nv] = pair;
-			map.push([v,u]);
+			pmap.push([v,u]);
 			n = Math.max(n, nv);
 		}
 		return [u,n];

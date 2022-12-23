@@ -35,27 +35,23 @@ export default class ListPair extends Top {
 	
 	/** Constructor for list pair.
 	 *  @param n specifies the range of integer values
-	 *  @param capacity specifies the maximum range to provide space for
 	 */
-	constructor(n=10, capacity=n) {
+	constructor(n=10) {
 		super(n);
-		this.#next = new Int32Array(capacity+1);
-		this.#prev = new Int32Array(capacity+1);
+		this.#next = new Int32Array(this.n+1);
+		this.#prev = new Int32Array(this.n+1);
 		this.#first1 = this.#last1 = 0;
 		this.#first2 = 1; this.#last2 = this.n;
-		for (let i = 1; i <= capacity; i++) {
+		for (let i = 1; i <= this.n; i++) {
 			this.#next[i] = i+1; this.#prev[i] = -(i-1);
 		}
 		this.#next[this.n] = this.#prev[1] = 0;
 		this.#n1 = 0; this.#n2 = this.n;
 	}
 
-	get capacity() { return this.#next.length - 1; }
-
 	/** Expand index range and possibly the space.
 	 *  Default version does not suffice here;
 	 *  must also add new list items to second list.
-	 */
 	expand(n) {
 		if (n <= this.n) return;
 		let n0 = this.n;
@@ -64,33 +60,31 @@ export default class ListPair extends Top {
 		this.#next[n] = 0; this.#last2 = n;
 		this.#n2 += n-n0;
 	}
+	 */
 	
 	/** Assign one ListPair to another by copying its contents.
 	 *  @param l is the ListPair whose contents is to be copied.
 	 */
-	assign(l) {
-		if (l == this) return;
-		if (l.n > this.capacity) reset(l.n);
-		else { this.clear(); this._n = l.n; }
-		for (let i = l.first1(); i != 0; i = l.next1(i)) {
+	assign(other, relaxed=false) {
+		super.assign(other, relaxed);
+		for (let i = other.first1(); i != 0; i = other.next1(i)) {
 			if (this.in2(i)) this.swap(i);
 		}
-		for (let i = l.first2(); i != 0; i = l.next2(i)) {
-			this.swap(i); this.swap(i); // to match order in l
+		for (let i = other.first2(); i != 0; i = other.next2(i)) {
+			this.swap(i); this.swap(i); // to match order in other
 		}
 	}
 
 	/** Assign one ListPair to another by transferring its contents.
-	 *  @param l is the ListPair to assign.
+	 *  @param other is the ListPair to assign.
 	 */
-	xfer(l) {
-		if (l == this) return;
-		this._n = l.n;
-		this.#next = l.#next; this.#prev = l.#prev;
-		l.#next = l.#prev = null;
-		this.#first1 = l.#first1; this.#last1 = l.#last1;
-		this.#first2 = l.#first2; this.#last2 = l.#last2;
-		this.#n1 = l.#n1; this.#n2 = l.#n2;
+	xfer(other) {
+		super.xfer(other);
+		this.#next = other.#next; this.#prev = other.#prev;
+		other.#next = other.#prev = null;
+		this.#first1 = other.#first1; this.#last1 = other.#last1;
+		this.#first2 = other.#first2; this.#last2 = other.#last2;
+		this.#n1 = other.#n1; this.#n2 = other.#n2;
 	}
 	
 	/** Determine if an item belongs to list 1

@@ -8,7 +8,7 @@
 
 import Top from '../Top.mjs';
 import { fassert } from '../../common/Errors.mjs';
-import Forest from '../graphs/Forest.mjs';
+import Forest from '../trees/Forest.mjs';
 import PathSet from './PathSet.mjs';
 
 /** Data structure representing a collection of paths.
@@ -132,7 +132,8 @@ export default class DynamicTrees extends PathSet {
 	equals(dt) {
 		if (this == dt) return true;
 		if (typeof dt == 'string') {
-			let s = dt; dt = new DynamicTrees(this.n); dt.fromString(s);
+			let s = dt; dt = new DynamicTrees(this.n);
+			if (!dt.fromString(s)) return s == this.toString();
 		} else if (!(dt instanceof DynamicTrees) || this.n != dt.n) {
 			return false;
 		}
@@ -205,13 +206,17 @@ export default class DynamicTrees extends PathSet {
 	fromString(s) {
 		let f = new Forest();
 		let dmin = new Float32Array(f.n+1);
-		f.fromString(s, (u,sc) => {
+		if (!f.fromString(s, (u,sc) => {
 							dmin[u] = 0;
-							if (!sc.verify(':')) return;
+							if (!sc.verify(':')) {
+								dmin[u] = 0; return true;
+							}
 							let cost = sc.nextNumber();
-							if (Number.isNaN(cost)) return;
+							if (Number.isNaN(cost)) return false;
 							dmin[u] = cost;
-						});
+							return true
+						}))
+			return false;
 		if (this.n != f.n) this.reset(f.n);
 		else this.clear();
 		for (let u = 1; u <= this.n; u++) {
@@ -220,57 +225,6 @@ export default class DynamicTrees extends PathSet {
 		}
 		return true;
 	}
-
-
-	/** Initialize this from a string representation.
-	 *  @param s is a string, such as produced by toString().
-	 *  @return true on success, else false
-	fromString(s) {
-		let sc = new Scanner(s);
-		if (!sc.verify('{')) return false;
-		let n = 0; let props = []; let vertices = new Set();
-		let k = this.nextSubtree(sc, 0, props, vertices);
-		while (k > 0) {
-			n = Math.max(n, k);
-			k = this.nextSubtree(sc, 0, props, vertices);
-		}
-		if (k == -1 || !sc.verify('}')) return false;
-		if (n != this.n) this.reset(n);
-		else this.clear();
-		for (let [u,c,p] of props) {
-			this.addcost(u,c); this.succ(u,p);
-		}
-		return true;
-	}
-	 */
-
-	/** Get the next subtree from a scanner.
-	 *  @param sc is a Scanner
-	 *  @param parent is the parent of the subtree root or 0 for tree roots
-	 *  @param props is an array of triples [u,c,p] where c is cost of u
-	 *  and p is parent of u.
-	 *  @param vertices is a Set representing vertices seen so far
-	 *  @return n on success, where n is the largest vertex number in the
-	 *  subtree; return 0 if no subtree to be scanned and -1 on error.
-	nextSubtree(sc, parent, props, vertices) {
-		let u = sc.nextIndex(); if (u < 0) return 0;
-		if (vertices.has(u) || !sc.verify(':')) return -1;
-		vertices.add(u);
-		let c = sc.nextNumber();
-		if (isNaN(c)) return -1;
-		props.push([u,c,parent]);
-		let n = u;	// largest vertex number seen in subtree
-		if (!sc.verify('(')) return n;
-		let k = this.nextSubtree(sc, u, props, vertices);
-		if (k <= 0) return -1;
-		while (k > 0) {
-			n = Math.max(n, k);
-			k = this.nextSubtree(sc, u, props, vertices);
-		}
-		if (k < 0 || !sc.verify(')')) return -1;
-		return n;
-	}
-	 */
 
 	clearStats() {
 		super.clearStats();this.exposeCount = this.spliceCount = 0;

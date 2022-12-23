@@ -11,7 +11,7 @@ import Matching from './Matching.mjs';
 import Blossoms from './Blossoms.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
-import DivisibleHeap from '../../dataStructures/heaps/DivisibleHeap.mjs';
+import PartitionedHeap from '../../dataStructures/heaps/PartitionedHeap.mjs';
 
 let g=null;       // shared copy of graph
 let match;        // Matching object representing matching for graph
@@ -28,7 +28,7 @@ let ebh;          // heap of even outer blossoms, with key[b]=z[b]/2
 
 let eeh;          // heap of edges with two even endpoints
                   // key(e) = slack(e)/2
-let exh;          // DivisibleHeap object containing subheap of edges incident
+let exh;          // PartitionedHeap object containing subheap of edges incident
 				  // to each odd or unbound blossom, key(e) = slack(e)
 let firstVertex;  // firstVertex[b] is first vertex in blossom b
 
@@ -66,7 +66,7 @@ export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 	obh = new ArrayHeap(bloss.n);
 	ebh = new ArrayHeap(bloss.n);
 	eeh = new ArrayHeap(g.edgeRange);
-	exh = new DivisibleHeap(g.edgeRange+g.n, bloss.n);
+	exh = new PartitionedHeap(g.edgeRange+g.n, bloss.n);
 	firstVertex = new Int32Array(bloss.n+1);
 
 	trace = traceFlag; traceString = '';
@@ -383,11 +383,11 @@ function newPhase() {
 			for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
 				// insert dummy edge for u in b's subheap within exh
 				let e = u + g.edgeRange;
-				exh.insertAfter(e, laste, Infinity, b); laste = e;
+				exh.insertAfter(e, laste, b, Infinity); laste = e;
 				for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 					let v = g.mate(u,e); let bv = bloss.outer(v);
 					if (bloss.state(bv) == +1) {
-						exh.insertAfter(e, laste, slack(e), b); laste = e;
+						exh.insertAfter(e, laste, b, slack(e)); laste = e;
 					}
 				}
 			}
@@ -489,7 +489,7 @@ function addEXedges(b) {
 			if (bloss.state(bv) == +1)
 				eeh.insert(e,slack(e)/2);
 			else {// bv is odd or unbound
-				exh.insertAfter(e, v+g.edgeRange, slack(e), bv);
+				exh.insertAfter(e, v+g.edgeRange, bv, slack(e));
 			}
 			steps++;
 		}

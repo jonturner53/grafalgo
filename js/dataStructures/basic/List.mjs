@@ -33,11 +33,10 @@ export default class List extends Top {
 	
 	/** Constructor for List object.
 	 *  @param n is the range for the list
-	 *  @param capacity is the max storage capacity
 	 */
-	constructor(n=10, capacity=n) {
+	constructor(n=10) {
 		super(n);
-		this.#next = new Int32Array(capacity+1).fill(-1);
+		this.#next = new Int32Array(this.n+1).fill(-1);
 		this.#next[0] = this.#first = this.#last = this.#length = 0;
 		this.#prev = this.#value = null;
 	}
@@ -45,7 +44,7 @@ export default class List extends Top {
 	/** Convert to a doubly-linked list. */
 	addPrev() {
 		if (this.hasPrev) return;
-		this.#prev = new Int32Array(this.capacity+1);
+		this.#prev = new Int32Array(this.n+1);
 		for (let i = this.first(); i; i = this.next(i))
 			if (this.next(i)) this.#prev[this.next(i)] = i;
 	}
@@ -66,7 +65,7 @@ export default class List extends Top {
 	 *  @param i is an integer
 	 *  @param val is an optional value to be assigned to i
 	 *  @return the value of i or null if i is not a valid item or no
-	 *  value has been assigned to it
+	 *  value has been assigned to i
 	 */
 	value(i, val=null) {
 		if (val != null) {
@@ -77,36 +76,36 @@ export default class List extends Top {
 	}
 
 	/** Assign new value to list from another. 
-	 *  @paran l is a list whose value is to be assigned to this
+	 *  @param other is a list whose value is to be assigned to this
+	 *  @param relaxed is a boolean; when false, this.n is adjusted
+	 *  to exactly match other.n; when true, this.n is only adjusted
+	 *  if it is less than other.n; relaxed assignments are used to
+	 *  implement the expand method
 	 */
-	assign(l) {
-		fassert(l instanceof List);
-		if (l == this) return;
-		if (l.n > this.capacity) this.reset(l.n);
-		else { this.clear(); this._n = l.n; }
-		if (l.hasPrev && !this.hasPrev) this.addPrev();
-		if (l.hasValues && !this.hasValues) this.addValues();
+	assign(other, relaxed=false) {
+		super.assign(other, relaxed);
+
+		if (other.hasPrev && !this.hasPrev) this.addPrev();
+		if (other.hasValues && !this.hasValues) this.addValues();
 		if (this.hasValues) {
-			for (let i = 0; i <= this.n; i++) this.value(i,l.value(i));
+			for (let i = 0; i <= this.n; i++) this.value(i,other.value(i));
 		}
-		for (let i = l.first(); i != 0; i = l.next(i)) {
-			if (this.hasValues) this.enq(i, l.value(i));
+		for (let i = other.first(); i; i = other.next(i)) {
+			if (this.hasValues) this.enq(i, other.value(i));
 			else this.enq(i);
 		}
 	}
 
 	/** Assign a new value to this, by transferring contents of another list.
-	 *  @param l is a list whose contents are to be transferred to this
+	 *  @param other is a list whose contents are to be transferred to this
 	 */
-	xfer(l) {
-		fassert(l instanceof List);
-		if (l == this) return;
-		this._n = l.n;
-		this.#first = l.first(); this.#last = l.last();
-		this.#length = l.length;
-		this.#next = l.#next; l.#next = null;
-		this.#prev = l.#prev; l.#prev = null;
-		this.#value = l.#value; l.#value = null;
+	xfer(other) {
+		super.xfer(other);
+		this.#first = other.first(); this.#last = other.last();
+		this.#length = other.length;
+		this.#next = other.#next; other.#next = null;
+		this.#prev = other.#prev; other.#prev = null;
+		this.#value = other.#value; other.#value = null;
 	}
 	
 	/** Remove all elements from list. */
@@ -115,9 +114,6 @@ export default class List extends Top {
 	/** Get the number of items in the list. */
 	get length() { return this.#length; }
 
-	/** Get the capacity of the list (max number of items it has space for). */
-	get capacity() { return this.#next.length - 1; }
-	
 	/** Get the next item in a list.
 	 *  @param i is an item on the list
 	 *  @return the item that follows i, or 0 if there is no next item
@@ -326,7 +322,7 @@ export default class List extends Top {
             if (items.has(i)) return false;
             items.add(i);
 		}
-		if (n > this.n) this.reset(n);
+		if (n != this.n) this.reset(n);
 		else this.clear();
 		for (let i of l) this.enq(i);
 		return true;

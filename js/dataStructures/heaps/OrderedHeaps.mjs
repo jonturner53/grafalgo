@@ -10,7 +10,7 @@ import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
-import BalancedForest from '../graphs/BalancedForest.mjs';
+import BalancedForest from '../trees/BalancedForest.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
 /** This class implements a data structure consisting of a disjoint
@@ -53,7 +53,7 @@ export default class OrderedHeaps extends BalancedForest {
 			if (sh.p(h)) continue;
 			let hh = sh.first(h);
 			for (let u = sh.next(hh); u; u = sh.next(u))
-				hh = this.insertAfter(u, hh, sh.prev(u), sh.key(u,h));
+				hh = this.insertAfter(u, hh, sh.key(u,h), sh.prev(u));
 		}
 		this.clearStats();
 	}
@@ -88,10 +88,21 @@ export default class OrderedHeaps extends BalancedForest {
 		super.clear(h);
 	}
 
+	/** Find the heap containing a given item. 
+	 *  @param i is an item in some heap
+	 *  @return the id of the heap containing i
+	 */
+	find(i) { return super.root(i); }
+
+	/** Determine if an item is contained in a heap.
+	 *  @param i is a heap item
+	 *  @param h is a heap
+	 *  @return true if h contains i, else false
+	 */
 	contains(i, h) { return this.find(i) == h }
 
 	/** Get key of a heap item. */
-	key(i, h=super.find(i)) {
+	key(i, h=super.root(i)) {
 		return this.#key[i] + this.#offset[h];
 	}
 
@@ -112,57 +123,47 @@ export default class OrderedHeaps extends BalancedForest {
 		fassert(false, `program error in OrderedHeaps.findmin(${this.x2s(h)})`);
 	}
 
-	/** Extend rotation operation to maintain minkey field. */
-	rotate(x) {
-		let y = this.p(x);
-		if (y == 0) return;
-		super.rotate(x);
-		this.#minkey[x] = this.#minkey[y]; 
-		let min = this.#key[y];
-		let l = this.left(y); let r = this.right(y);
-		if (l)  min = Math.min(min, this.#minkey[l]);
-		if (r) min = Math.min(min, this.#minkey[r]);
-		this.#minkey[y] = min;
-		if (!this.p(x)) this.#offset[x] = this.#offset[y];
+	/** Remove a miniminum key item from from the heap and return it.
+	 *  @param h is a heap.
+	 *  @return [u,h] where u is the min key item and h is the id of the
+	 *  resulting heap
+	 */
+	deletemin(h) {
+		let u = this.findmin(h); h = this.delete(u,h);
+		return [u,h];
 	}
 
-	add2keys(delta, h) { if (h) this.#offset[h] += delta; }
-
-	changekey(i, k, h) {
-		this.#key[i] = k - this.#offset[h];
-		this.refresh(i);
-	}
-
-	/** Update minkey fields, following a change to an item. */
-	refresh(i) {
-		while (i) {
-			let min = this.#key[i];
-			let l = this.left(i); let r = this.right(i);
-			if (l) min = Math.min(min, this.#minkey[l]);
-			if (r) min = Math.min(min, this.#minkey[r]);
-			this.#minkey[i] = min;
-			i = this.p(i);
-			this.steps++;
-		}
+	/** Insert an item in a heap.
+	 *  @param i is a heap item
+	 *  @param k is the key with which i is inserted
+	 *  @param h is the heap into which i is inserted
+	 *  @return id of modified heap.
+	 */
+	insert(i, h, k) {
+		return this.insertAfter(i, h, k, this.last(h));
 	}
 
 	/** Insert item into a heap. 
 	 *  @param i is a singleton
-	 *  @param h is a heap into which i is to be inserted; if h=0, the
-	 *  the singleton heap i is returned
-	 *  @param j is an item in h; item i is inserted immediately after j in the
 	 *  linear ordering of the heap items; if j=0, i is inserted before the
 	 *  first item in the heap.
+	 *  @param h is a heap into which i is to be inserted; if h=0, the
+	 *  the singleton heap i is returned
 	 *  @param k is the key under which i is inserted
+	 *  @param j is an item in h; item i is inserted immediately after j in the
 	 *  @return the id of the modified heap
 	 */
-	insertAfter(i, j, k, h=this.find(j)) {
+	insertAfter(i, h, k, j) {
 		fassert(this.valid(i) && this.valid(j) && this.valid(h));
-		let offset = h ? this.#offset[h] : 0;
-		this.#key[i] = k - offset; this.#minkey[i] = this.#key[i];
-		h = super.insertAfter(i, j, h, i => this.refresh(i));
-		this.#offset[h] = offset;
-		return h;
+		if (h) {
+			let offset = this.#offset[h];
+			this.#key[i] = k - offset; this.#minkey[i] = this.#key[i];
+			h = super.insertAfter(i, h, j, x => this.refresh(x));
+			this.#offset[h] = offset;
+			return h;
+		} else {
+			this.#key[i] = this.#minkey[i] = k; return i;
+		}
 	}
 
 	/** Delete an item from a heap.
@@ -206,6 +207,49 @@ export default class OrderedHeaps extends BalancedForest {
 	 */
 	join(t1, u, t2) { return super.join(t1, u, t2, u => this.refresh(u)); }
 
+	/** Add increment to all the keys in a heap
+	 *  @param delta is an increment to be added to the keys in a heap
+	 *  @param h is the heap to be modeified.
+	 */
+	add2keys(delta, h) { if (h) this.#offset[h] += delta; }
+
+	/** Change the key of a heap item.
+	 *  @param i is an item in a heap.
+	 *  @param k is the new key value for i
+	 *  @param h is the heap containing i
+	 */
+	changekey(i, k, h) {
+		this.#key[i] = k - this.#offset[h];
+		this.refresh(i);
+	}
+
+	/** Update minkey fields, following a change to an item. */
+	refresh(i) {
+		while (i) {
+			let min = this.#key[i];
+			let l = this.left(i); let r = this.right(i);
+			if (l) min = Math.min(min, this.#minkey[l]);
+			if (r) min = Math.min(min, this.#minkey[r]);
+			this.#minkey[i] = min;
+			i = this.p(i);
+			this.steps++;
+		}
+	}
+
+	/** Extend rotation operation to maintain minkey field. */
+	rotate(x) {
+		let y = this.p(x);
+		if (y == 0) return;
+		super.rotate(x);
+		this.#minkey[x] = this.#minkey[y]; 
+		let min = this.#key[y];
+		let l = this.left(y); let r = this.right(y);
+		if (l)  min = Math.min(min, this.#minkey[l]);
+		if (r) min = Math.min(min, this.#minkey[r]);
+		this.#minkey[y] = min;
+		if (!this.p(x)) this.#offset[x] = this.#offset[y];
+	}
+
 	/** Determine if two OrderedHeaps objects are equal.
 	 *  @param other is another OrderedHeaps to be compared to this,
 	 *  or a string representing an OrderedHeaps object.
@@ -246,10 +290,13 @@ export default class OrderedHeaps extends BalancedForest {
 	fromString(s) {
 		let ls = new ListSet(); let key = [];
 		ls.fromString(s, (u,sc) => {
-							if (!sc.verify(':')) return;
+							if (!sc.verify(':')) {
+								key[u] = 0; return true;
+							}
 							let p = sc.nextNumber();
-							if (Number.isNaN(p)) return;
+							if (Number.isNaN(p)) return false;
 							key[u] = p;
+							return true;
 						});
 		if (ls.n != this.n) this.reset(ls.n);
 		else this.clear();
@@ -259,7 +306,7 @@ export default class OrderedHeaps extends BalancedForest {
 			this.#minkey[u] = key[u];
 			let h = u; let pi = u;
 			for (let i = ls.next(u); i; i = ls.next(i)) {
-				h = this.insertAfter(i, pi, key[i], h);
+				h = this.insertAfter(i, h, key[i], pi);
 				pi = i;
 			}
 		}

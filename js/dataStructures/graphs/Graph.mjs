@@ -37,12 +37,11 @@ export default class Graph extends Top {
 	/** Construct Graph with space for a specified # of vertices and edges.
 	 *  @param n is the number of vertices in the graph
 	 *  @param erange is the initial range for edge values (defaults to n)
-	 *  @param capacity is the initial vertex capacity (defaults to n)
 	 */
-	constructor(n=10, erange=n, capacity=n) {
+	constructor(n=10, erange=n) {
+		fassert(n > 0 && erange > 0);
 		super(n);
-		fassert(this.n > 0 && capacity >= this.n && erange > 0);
-		this._firstEp = new Int32Array(capacity+1);
+		this._firstEp = new Int32Array(this.n+1);
 		this._left = new Int32Array(erange+1);
 		this._right = new Int32Array(erange+1);
 		this._edges = new ListPair(erange);
@@ -50,7 +49,6 @@ export default class Graph extends Top {
 		this._weight = null;
 	}
 
-	get capacity() { return this._firstEp.length-1; }
 	get edgeRange() { return this._left.length-1; }
 
 	get hasWeights() { return (this._weight ? true : false); }
@@ -69,56 +67,46 @@ export default class Graph extends Top {
 	 *  @param erange is the desired new edge range
 	 */
 	expand(n, erange) {
-		if (n <= this.n && erange <= this.edgeRange) return;
-		if (n <= this.capacity && erange <= this.edgeRange) {
-			this._n = n;
-		} else {
-			// more space needed
-			let vr = (n <= this.capacity ? this.capacity :
-							 Math.max(n, ~~(1.5*this.capacity)));
-			let er = (erange <= this.edgeRange ? this.edgeRange:
-							 Math.max(erange, ~~(1.5*this.edgeRange)));
-			let nu = new this.constructor(this.n, er, vr);
-			nu.assign(this); this.xfer(nu); this._n = n;
-		}
+		fassert(n > this.n || erange > this.edgeRange);
+		let nu = new this.constructor(n, erange);
+		nu.assign(this,true); this.xfer(nu);
 	}
 
 	/** Assign one graph to another.
-	 *  @param g is another graph that is to replace this one.
+	 *  @param other is another graph that is to replace this one.
 	 */
-	assign(g) {
-		fassert(g instanceof Graph);
-		if (g == this) return;
-		if (g.n > this.capacity || g.m > this.edgeRange) {
-			this.reset(g.n, g.m);
-		} else {
-			this.clear(); this._n = g.n;
-		}
-		if (g.hasWeights && !this.hasWeights) this.addWeights();
-		if (!g.hasWeights && this.hasWeights) this._weight = null;
-		for (let e = g.first(); e != 0; e = g.next(e)) {
-			let ee = (this.edgeRange >= g.edgeRange ?
-					  		this.join(g.left(e), g.right(e), e) :
-							this.join(g.left(e), g.right(e)));
-			if (g.hasWeights) {
-				this._weight[ee] = g.weight(e);
+	assign(other, relaxed=false) {
+		fassert(other != this &&
+				this.constructor.name == other.constructor.name);
+		if (this.n == other.n && this.edgeRange == other.edgeRange ||
+		    relaxed && this.n >= other.n && this.edgeRange >= other.edgeRange)
+				this.clear();
+		else
+			this.reset(other.n, other.edgeRange);
+
+		if (other.hasWeights && !this.hasWeights) this.addWeights();
+		if (!other.hasWeights && this.hasWeights) this._weight = null;
+		for (let e = other.first(); e != 0; e = other.next(e)) {
+			let ee = (this.edgeRange >= other.edgeRange ?
+					  		this.join(other.left(e), other.right(e), e) :
+							this.join(other.left(e), other.right(e)));
+			if (other.hasWeights) {
+				this._weight[ee] = other.weight(e);
 			}
 		}
 	}
 
 	/** Assign one graph to another by transferring its contents.
-	 *  @param g is another graph that is to replace this one.
+	 *  @param other is another graph that is to replace this one.
 	 */
-	xfer(g) {
-		fassert(g instanceof Graph);
-		if (g == this) return;
-		this._n = g.n;
-		this._firstEp = g._firstEp;
-		this._left = g._left; this._right = g._right;
-		this._weight = g._weight;
-		this._edges = g._edges; this._epLists = g._epLists;
-		g._firstEp = g._left = g._right = g._weight = null;
-		g._edges = null; g._epLists = null;
+	xfer(other) {
+		super.xfer(other);
+		this._firstEp = other._firstEp;
+		this._left = other._left; this._right = other._right;
+		this._weight = other._weight;
+		this._edges = other._edges; this._epLists = other._epLists;
+		other._firstEp = other._left = other._right = other._weight = null;
+		other._edges = null; other._epLists = null;
 	}
 
 	/** Remove all the edges from a graph.  */
@@ -389,21 +377,28 @@ export default class Graph extends Top {
 	 *  @return true if other is equal to this
 	 */
 	equals(other) {
-		let g = super.equals(other);
-		if (typeof g == 'boolean') return g;
+		if (this === other) return true;
+		// handle string case here
+        if (typeof other == 'string') {
+            let s = other; other = new this.constructor();
+			if (!other.fromString(s)) return s == this.toString();
+			if (other.n > this.n) return false;
+			if (other.n < this.n)
+				other.expand(this.n,other.edgeRange);
+        } else if (!super.equals(other)) return false;
 		// now compare the edges using sorted edge lists
-		if (g.m != this.m) return false;
-		let el1 = this.sortedElist(); let el2 = g.sortedElist();
+		if (other.m != this.m) return false;
+		let el1 = this.sortedElist(); let el2 = other.sortedElist();
 		for (let i = 0; i < el1.length; i++) {
 			let e1 = el1[i]; let e2 = el2[i];
 			let m1 = Math.min(this.left(e1), this.right(e1));
 			let M1 = Math.max(this.left(e1), this.right(e1));
-			let m2 = Math.min(g.left(e2), g.right(e2));
-			let M2 = Math.max(g.left(e2), g.right(e2));
-			if (m1 != m2 || M1 != M2 || this.weight(e1) != g.weight(e2))
+			let m2 = Math.min(other.left(e2), other.right(e2));
+			let M2 = Math.max(other.left(e2), other.right(e2));
+			if (m1 != m2 || M1 != M2 || this.weight(e1) != other.weight(e2))
 				return false;
 		}
-		return g;
+		return other;
 	}
 	
 	/** Create a string representation of an edge.
@@ -506,20 +501,6 @@ export default class Graph extends Top {
 		return vlab(u) + (s ? `[${s}]` : '');
 	}
 
-	//vertex2string(u, label=0) { return this.x2s(u, label); }
-
-	/** Create a string representation for a neighbor of a given vertex.
-	 *  @param u is a vertex
-	 *  @param e is an edge incident to u
-	 *  @param label is optional function for neighbor string
-	 *  @return a string that represents the neighbor of u, suitable for
-	 *  use in an adjacency list string.
-	nabor2string(u, e, label=0) {
-		return this.x2s(this.mate(u, e), label) +
-				 (this.hasWeights ? ':' + this.weight(e) : '');
-	}
-	 */
-		
 	/** Get the next vertex (from the start of an alist) from a scanner.
 	 *  @param sc is a scanner for a string representation of a flow graph
 	 *  @return the vertex that is assumed to be the next thing in the
@@ -597,65 +578,6 @@ export default class Graph extends Top {
 		}
 		return true;
 	}
-
-	/** Read adjacency list from Scanner.
-	 *  Designed to work for all subclasses of Graph class.
-	 *  @param sc is a Scanner object
-	 *  @return a pair [u, tuples] where u is the common endpoint of the
-	 *  vertices in the adjacency list and tuples is an array of tuples,
-	 *  where the first item in each tuple is the other endpoint of an
-	 *  edge incident to u and the remaining items are edge properties
-	 *  that depend on the specific type of graph; return null if no
-	 *  valid adjacency list found
-	nextAlist(sc, enexte=0, vnext=0) {
-		let u = vnext(sc);
-		if (u < 0) return null;
-		if (!sc.verify('[')) return [u,[]];
-		let tuples = [];
-		for (let t = enext(sc); t; t = enext(sc)) {}
-		if (!sc.verify(']')) return null;
-		return [u, tuples];
-	}
-	 */
-
-	/** Get the next neighbor of a some vertex from a scanner
-	 *  (class-specific).
-	 *  @param sc is a Scanner
-	 *  @return a tuple [v,w] where v is a vertex and w is a weight;
-	 *  if no weight specified in the input w=null; if there is no valid
-	 *  next neighbor, return null
-	nextNabor(sc) {
-		let v = this.nextVertex(sc);
-		if (v < 0) return null;
-		if (!sc.verify(':')) return [v,null];
-		let w = sc.nextNumber();
-		if (Number.isNaN(w)) return null;
-		return [v,w];
-	}
-	 */
-
-	/** Add edge to graph (class-specific).
-	 *  Used by fromString.
-	 *  @param u is one endpoint of a new edge
-	 *  @param the second argument is a tuple [v,w] where
-	 *  v is a second endpoint and w is a an optional weight to be
-	 *  assigned to the new edge
-	addEdge(u, [v,w]) {
-		if (u > v) return;
-		let e = this.join(u, v);
-		if (w != null) this.weight(e, w);
-	}
-	 */
-
-	/** Return 1 if edge with specified endpoints should be counted
-	 *  (class-specific).
-	countit(u, v) { return u <= v ? 1 : 0; }
-	 */
-
-	/** Perform final check on scanned graph (class-specific).
-	 *  @return true if check passes.
-	finalCheck() { return true; }
-	 */
 
 	/** Compute the degree of a vertex.
 	 *  @param u is a vertex
@@ -748,12 +670,12 @@ export default class Graph extends Top {
 	 *  @param f is a random number generator used to generate the
 	 *  random edge weights; it is invoked using any extra arguments
 	 *  provided by caller; for example randomWeights(randomInteger, 1, 10)
-     *  will assign random integer weights in 1..10.
+	 *  will assign random integer weights in 1..10.
 	 */
 	randomWeights(f) {
 		if (!this.hasWeights) this.addWeights();
 		let fargs = [... arguments].slice(1);
-        for (let e = this.first(); e != 0; e = this.next(e)) {
+		for (let e = this.first(); e != 0; e = this.next(e)) {
 			let w = f(...fargs); this.weight(e, w);
 		}
 	}

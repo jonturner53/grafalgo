@@ -20,31 +20,26 @@ export default class ListSet extends Top {
 	#prev;		// #prev[i] is previous item on list or last for first item,
 				// where last is the last item on the list
 
-	constructor(n=10, capacity=n) {
+	constructor(n=10) {
 		super(n);
-		this.#next = new Int32Array(capacity+1);
-		this.#prev = new Int32Array(capacity+1);
+		this.#next = new Int32Array(this.n+1);
+		this.#prev = new Int32Array(this.n+1);
 		// initialize to singleton lists
 		this.#next.fill(0);
-		for (let i = 0; i <= this.capacity; i++) this.#prev[i] = i;
+		for (let i = 0; i <= this.n; i++) this.#prev[i] = i;
 	}
 
-	/** Get the capacity of the list (max number of items it has space for). */
-	get capacity() { return this.#next.length - 1; }
-
-	assign(ls) {
-		if (ls == this) return;
-		if (ls.n > this.capacity) this.reset(ls.n);
-		else { this.clear(); this._n = ls.n; }
-		for (let i = 1; i <= this.n; i++) {
+	assign(other, relaxed=false) {
+		super.assign(other, relaxed);
+		for (let i = 1; i <= other.n; i++) {
 			this.#next[i] = ls.#next[i]; this.#prev[i] = ls.#prev[i];
 		}
 	}
-	xfer(ls) {
-		if (ls == this) return;
-		this._n = ls.n;
-		this.#next = ls.#next; this.#prev = ls.#prev;
-		ls.#next = ls.#prev = null;
+
+	xfer(other) {
+		super.xfer(other);
+		this.#next = other.#next; this.#prev = other.#prev;
+		other.#next = other.#prev = null;
 	}
 	
 	/** Clear the data structure, moving all items into single node lists.

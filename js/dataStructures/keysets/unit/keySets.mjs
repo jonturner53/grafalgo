@@ -15,8 +15,8 @@ try {
 
 	let ks = new KeySets();
 	ks.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}');
-	assert(ks, '{[b:2 a:1 c:3 d:4] [h:8 g:7 j:10 i:7 f:6] [e:5]}', 'a1');
-	ks.delete(7);
+	assert(ks, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}', 'a1');
+	ks.delete(7,ks.find(7));
 	assert(ks, '{[b:2 a:1 d:4 c:3] [h:8 j:10 i:7 f:6] [e:5] [g:7]}', 'a2');
 	ks.join(ks.find(1), 5, ks.find(10));
 	assert(ks, '{[b:2 a:1 d:4 c:3 h:8 j:10 i:7 f:6 e:5] [g:7]}', 'a3');
@@ -25,17 +25,18 @@ try {
 	let r = ks.find(1); let l = new List();
 	for (let u = ks.first(r); u != 0; u = ks.next(u)) l.enq(u);
 	assert(l, '[a b c d e f]', 'a5');
-	l.clear();
-	
-	for (let u = ks.last(r); u != 0; u = ks.prev(u)) l.enq(u);
-	assert(l, '[f e d c b a]', 'a6');
-	assert(ks.search(2, r), 2, 'a7');
-	assert(ks.search(5, r), 5, 'a8');
-	assert(ks.search(4, r), 4, 'a9');
+	assert(ks.includes(2, r), 2, 'a7');
+	assert(ks.includes(5, r), 5, 'a8');
+	assert(ks.includes(7, r), 0, 'a9');
+	assert(ks.contains(5, r), true, 'a10');
 
-	ks.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}');
-	r = ks.append(ks.find(1), ks.find(6));
-	assert(ks, '{[b:2 a:1 d:4 c:3 h:8 g:7 j:10 i:7 f:6] [e:5]}', 'b1');
+	ks.reset(10, (a,b) => a.localeCompare(b),
+				 (sc) => { let s = sc.nextString(); return s ? s : null; },
+				 k => '"' + k + '"');
+	ks.fromString('{[a:"bb" b:"aa" c:"dd" d:"c c"] [e:"ee"]}');
+	assert(ks, '{[b:"aa" *a:"bb" d:"c c" c:"dd"] [e:"ee"]}', 'b1');
+	assert(ks.toString(6), '{[b:"aa" *a:"bb" (d:"c c" c:"dd" -)] [e:"ee"]}', 'b2');
+	assert(ks.includes('c c',1), 4, 'b3');
 
 	console.log('passed tests');
 } catch(e) {

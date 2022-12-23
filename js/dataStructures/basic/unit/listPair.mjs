@@ -27,7 +27,7 @@ try {
 	lp.swap(6, 4); lp.swap(8, 0);
 	assert(lp, "[h d f b : a c e g]", "b2");
 
-	lp.fromString("[h g f : d b a c e]");
+	assert(lp.fromString("[h g f : d b a c e]"), 'c0');
 	assert(lp, "[h g f : d b a c e]", "c1");
 	lp.expand(10);
 	assert(lp.n, 10, "c2");

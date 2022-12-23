@@ -10,7 +10,7 @@ import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
-import Forest from '../graphs/Forest.mjs';
+import Forest from '../trees/Forest.mjs';
 
 /** This class implements a data structure consisting of a disjoint
  *  set of Fibonacci heaps.
@@ -292,12 +292,16 @@ export default class FibHeaps extends Forest {
 	 */
 	fromString(s) {
 		let ls = new ListSet(); let key = [];
-		ls.fromString(s, (u,sc) => {
-							if (!sc.verify(':')) return;
+		if (!ls.fromString(s, (u,sc) => {
+							if (!sc.verify(':')) {
+								key[u] = 0; return true;
+							}
 							let p = sc.nextNumber();
-							if (Number.isNaN(p)) return;
+							if (Number.isNaN(p)) return false;
 							key[u] = p;
-						});
+							return true;
+						}))
+			return false;
 		if (ls.n != this.n) this.reset(ls.n);
 		else this.clear();
 		for (let u = 1; u <= ls.n; u++) {

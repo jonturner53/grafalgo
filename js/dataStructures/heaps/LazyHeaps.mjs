@@ -11,7 +11,6 @@ import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
-import BinaryForest from '../graphs/BinaryForest.mjs';
 import LeftistHeaps from './LeftistHeaps.mjs';
 
 /** This class implements a data structure consisting of a disjoint
@@ -45,8 +44,6 @@ export default class LazyHeaps extends LeftistHeaps {
 
 		this.purgeSteps = 0;
 	}
-
-	get capacity() { return this.n; }
 
 	expand(n) { fassert(false, 'LazyHeaps: expand not implemented'); }
 
@@ -88,6 +85,8 @@ export default class LazyHeaps extends LeftistHeaps {
 		for (let i = this.nn+1; i < this.n; i++) this.link(i+1,i,1);
 		this.#dummy = this.nn+1;
 	}
+
+	find(i) { return super.root(i); }
 
 	/** Determine if a node is a dummy.
 	 *  @param i is a node index
@@ -203,14 +202,15 @@ export default class LazyHeaps extends LeftistHeaps {
 	}
 	 */
 
-	/** Determine if two BinaryForest objects represent the same sets.
-	 *  @param lh is a BinaryForest object to be compared to this
+	/** Determine if two LazyHeaps objects represent the same sets.
+	 *  @param lh is a LazyHeaps object to be compared to this
 	 *  @return true if both represent the same sets.
 	 */
 	equals(lh) {
 		if (this === lh) return true;
         if (typeof lh == 'string') {
-            let s = lh; lh = new LazyHeaps(this.n); lh.fromString(s);
+            let s = lh; lh = new LazyHeaps(this.n);
+			if (!lh.fromString(s)) return s == this.toString();
         }
 		if (lh.constructor.name != 'LazyHeaps' || lh.n != this.n)
 			return false;
@@ -273,12 +273,16 @@ export default class LazyHeaps extends LeftistHeaps {
 	 */
 	fromString(s) {
 		let ls = new ListSet(); let key = [];
-		ls.fromString(s, (u,sc) => {
-							if (!sc.verify(':')) return;
+		if (!ls.fromString(s, (u,sc) => {
+							if (!sc.verify(':')) {
+								key[u] = 0; return true;
+							}
 							let p = sc.nextNumber();
-							if (Number.isNaN(p)) return;
+							if (Number.isNaN(p)) return false;
 							key[u] = p;
-						});
+							return true;
+						}))
+			return false;
 		if (2*ls.n != this.n) this.reset(2*ls.n);
 		else this.clear();
 		for (let u = 1; u <= ls.n; u++) {

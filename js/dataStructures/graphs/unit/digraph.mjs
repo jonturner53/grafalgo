@@ -47,7 +47,7 @@ try {
 	assert(g2, '{a[] b[] c[] d[] e[] f[] g[] h[] i[]}', g2.m, 0, 'b4'); 
 
 	g.reset(4, 10, 10);
-	g.fromString('{a[d b] b[c] c[d] d[b a] e[d b a]}');
+	assert(g.fromString('{a[d b] b[c] c[d] d[b a] e[d b a]}','c0'));
 	assert(g, '{a[b d] b[c] c[d] d[a b] e[a b d]}', 'c1');
 	g.length(g.findEdge(1,4), 5);
 	assert(g, '{a[b:0 d:5] b[c:0] c[d:0] d[a:0 b:0] e[a:0 b:0 d:0]}', 'c2');

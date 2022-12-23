@@ -37,7 +37,7 @@ try {
 	assert(stats.siftdown, 3, 'b12');
 
 	let h3 = new ArrayHeap(25, 2);
-	h3.fromString('[g:1 f:2 c:5 a:5 d:2 h:7 j:8 k:6 m:4]');
+	assert(h3.fromString('[g:1 f:2 c:5 a:5 d:2 h:7 j:8 k:6 m:4]'), 'f0');
 	assert(h3.toString(1),'[g:1(f:2(m:4(k:6 a:5) d:2) c:5(h:7 j:8))]','f1');
 
 	h3.delete(1); assert(h3, '[g:1 f:2 c:5 d:2 h:7 j:8 k:6 m:4]', 'f2');

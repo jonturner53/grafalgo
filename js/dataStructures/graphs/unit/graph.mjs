@@ -48,7 +48,7 @@ try {
 	assert(g2, '{a[] b[] c[] d[] e[] f[] g[] h[] i[]}', g2.m, 0, 'b3'); 
 
 	g.reset(4, 10, 10);
-	g.fromString('{a[d b] b[a c] c[b d] d[a c]}');
+	assert(g.fromString('{a[d b] b[a c] c[b d] d[a c]}'),'c0');
 	assert(g, '{a[b d] b[a c] c[b d] d[a c]}', 'c1');
 	g.fromString('{a[d:1 b:2] b[c:3] c[d:4]}')
 	assert(g, '{a[b:2 d:1] b[a:2 c:3] c[b:3 d:4] d[a:1 c:4]}', 'c2');

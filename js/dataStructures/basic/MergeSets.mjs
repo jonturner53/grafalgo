@@ -10,7 +10,7 @@ import Top from '../Top.mjs';
 import { fassert } from '../../common/Errors.mjs';
 import ListSet from './ListSet.mjs';
 import Scanner from './Scanner.mjs';
-import Forest from '../graphs/Forest.mjs';
+import Forest from '../trees/Forest.mjs';
 
 /** Sets data structure maintains a collection of disjoint
  *  sets over the integers 1..N for some positive integer N. Allows
@@ -25,10 +25,10 @@ export default class MergeSets extends Top {
 	#findCount;
 	#findSteps;
 	
-	constructor(n=10, capacity=n) {
+	constructor(n=10) {
 		super(n);
-		this.#p = new Int32Array(capacity+1); 
-		this.#rank = new Int32Array(capacity+1);
+		this.#p = new Int32Array(this.n+1); 
+		this.#rank = new Int32Array(this.n+1);
 		this.clear();
 	
 		this.#mergeCount = 0;
@@ -36,30 +36,34 @@ export default class MergeSets extends Top {
 		this.#findSteps = 0;
 	}
 	
-	/** Copy another object to this one.
-	 *  @param source is another MergeSets object or a ListSet object.
+	/** Assign another MergeSets object to this one.
+	 *  @param other is another MergeSets object.
 	 */
-	assign(ds) {
-		if (ds == this) return;
-		if (ds.n > this.capacity) this.reset(ds.n);
-		else { this.clear(); this._n = ds.n; }
-		if (ds instanceof MergeSets) {
-			for (let i = 0; i <= this.n; i++) {
-				this.#p[i] = ds.#p[i]; this.#rank[i] = ds.#rank[i];
-			}
-		} else if (ds instanceof ListSet) {
-			for (let i = 0; i <= this.n; i++) {
-				if (!ds.isfirst(i)) continue;
-				for (let j = ds.next(i); j != 0; j = ds.next(j))
-					this.merge(this.find(i), j);
-			}
+	assign(ds, relaxed=false) {
+		super.assign(other, relaxed);
+		for (let i = 0; i <= other.n; i++) {
+			this.#p[i] = ds.#p[i]; this.#rank[i] = ds.#rank[i];
 		}
 	}
 
-	xfer(ds) {
-		if (ds == this) return;
-		this._n = ds.n;
-		this.#p = ds.#p; this.#rank = ds.#rank; ds.#p = ds.#rank = null;
+	/** Import a ListSets object into to this MergeSets object.
+	 *  @param other is a ListSets object.
+	 */
+	importFrom(other) {
+		fassert(other.constructor.name == 'ListSet');
+		if (this.n != other.n) this.reset(other.n);
+		else this.clear();
+		for (let i = 0; i <= this.n; i++) {
+			if (!other.isfirst(i)) continue;
+			for (let j = other.next(i); j != 0; j = other.next(j))
+				this.merge(this.find(i), j);
+		}
+	}
+
+	xfer(other) {
+		super.xfer(other);
+		this.#p = other.#p; this.#rank = other.#rank;
+		other.#p = other.#rank = null;
 	}
 	
 	/** Clear all items in a given range.
@@ -69,8 +73,6 @@ export default class MergeSets extends Top {
 	clear(lo=0, hi=this.n+1) {
 		for (let i = lo; i < hi; i++) { this.#p[i] = i; this.#rank[i] = 0; }
 	}
-
-	get capacity() { return this.#p.length - 1; }
 
 	/** Return parent of a set element in the tree representation of the set.
 	 *  @param i index of a set element
@@ -178,15 +180,9 @@ export default class MergeSets extends Top {
 	 *  @return true on success, else false
 	 */
 	fromString(s) {
-		let ls = new ListSet(); ls.fromString(s);
-		if (this.n != ls.n) this.reset(ls.n);
-		else this.clear();
-		for (let i = 1; i <= this.n; i++) {
-			if (!ls.isfirst(i)) continue;
-			for (let j = ls.next(i); j; j = ls.next(j)) {
-				this.merge(i,j);
-			}
-		}
+		let ls = new ListSet(); 
+		if (!ls.fromString(s)) return false;
+		this.importFrom(ls);
 		return true;
 	}
 

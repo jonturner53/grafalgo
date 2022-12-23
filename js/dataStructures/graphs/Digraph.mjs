@@ -22,28 +22,27 @@ export default class Digraph extends Graph {
 	/** Constructor for directed graph
 	 *  @param n is the number of vertices
 	 *  @param erange is the max number of edges to provide space for
-	 *  @param capacity is the max number of vertices to provide space for
 	 */
-	constructor(n, erange=n, capacity=n) {
-		super(n, erange, capacity);
-		this._firstEpOut = new Int32Array(this.capacity+1);
+	constructor(n, erange=n) {
+		super(n, erange);
+		this._firstEpOut = new Int32Array(this.n+1);
 	} 
 
 	/** Assign one graph to another by copying its contents.
-	 *  @param g is another graph whose contents is copied to this one
+	 *  @param other is another graph whose contents is copied to this one
 	 */
-	assign(g) {
-		fassert(g instanceof Digraph);
-		super.assign(g);
+	assign(other, relaxed=false) {
+		super.assign(other, relaxed);
+		for (let u = 1; u <= this.n; u++)
+			this._firstEpOut[u] = other._firstEpOut[u];
 	}
 	
 	/** Assign one graph to another by transferring its contents.
-	 *  @param g is another graph whose contents is transferred to this one
+	 *  @param other is another graph whose contents is transferred to this one
 	 */
-	xfer(g) {
-		fassert(g instanceof Digraph);
-		super.xfer(g)
-		this._firstEpOut = g._firstEpOut; g._firstEpOut = null;
+	xfer(other) {
+		super.xfer(other)
+		this._firstEpOut = other._firstEpOut; other._firstEpOut = null;
 	}
 
 	/** Get the tail of a directed edge.
@@ -249,19 +248,31 @@ export default class Digraph extends Graph {
 	 *  vertices, edges and edge weights
 	 */
 	equals(other) {
-		let g = super.equals(other);
-		if (typeof g == 'boolean') return g;
-		// g is now an object that can be compared
-		if (this.m != g.m) return false;
-		let el1 = this.sortedElist(); let el2 = g.sortedElist();
+		if (this === other) return true;
+		// handle string case here
+        if (typeof other == 'string') {
+            let s = other; other = new this.constructor();
+			if (!other.fromString(s)) return s == this.toString();
+			if (other.n > this.n) return false;
+			if (other.n < this.n)
+				other.expand(this.n,other.edgeRange);
+        } else if (other.constructor.name != this.constructor.name ||
+		    other.n != this.n) {
+			return false;
+		}
+		// now compare the edges using sorted edge lists
+		// note: cannot use super.equals since directed graphs require
+		// different sorting order
+		if (this.m != other.m) return false;
+		let el1 = this.sortedElist(); let el2 = other.sortedElist();
 		for (let i = 0; i < el1.length; i++) {
 			let e1 = el1[i]; let e2 = el2[i];
-			let t1 = this.tail(e1); let t2 = g.tail(e2);
-			let h1 = this.head(e1); let h2 = g.head(e2);
-			if (t1 != t2 || h1 != h2 || this.length(e1) != g.length(e2))
+			let t1 = this.tail(e1); let t2 = other.tail(e2);
+			let h1 = this.head(e1); let h2 = other.head(e2);
+			if (t1 != t2 || h1 != h2 || this.length(e1) != other.length(e2))
 				return false;
 		}
-		return g;
+		return other;
 	}
 
 	/** Create a string representation of an edge.

@@ -33,6 +33,8 @@ try {
 	r = ds.find(2);
 	assert(ds.toString(0b1100), '{[a:3(b c d:1(e) f:2(g) h:1(i) j)]}', 'a9');
 	assert(r, 1, 'a12');
+
+	assert(ds.fromString('{[a c] [d b e] [f g] [h i j]}'), 'a10');
 	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError)

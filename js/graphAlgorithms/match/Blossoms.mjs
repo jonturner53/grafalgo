@@ -10,8 +10,8 @@ import Top from '../../dataStructures/Top.mjs';
 import { fassert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
-import Forest from '../../dataStructures/graphs/Forest.mjs';
-import BalancedForest from '../../dataStructures/graphs/BalancedForest.mjs';
+import Forest from '../../dataStructures/trees/Forest.mjs';
+import BalancedForest from '../../dataStructures/trees/BalancedForest.mjs';
 
 const FAST = 0;		// flag used to enable faster outer computation
 
@@ -166,7 +166,7 @@ this.cnt = 0;
 		else if (this.#outerMethod == 1)
 			return this.#outer[b];
 		else
-			return this.#outer.bid[this.#outer.bf.find(b)];
+			return this.#outer.bid[this.#outer.bf.root(b)];
 	}
 
 	refreshOuter(b) {
@@ -414,7 +414,7 @@ this.cnt = 0;
 					root[b] = t1; bid[t1] = b;
 					bf.join(0,next,t2);
 				} else {
-					root[b] = bf.find(b); bid[root[b]] = b;
+					root[b] = bf.root(b); bid[root[b]] = b;
 				}
 				this.steps++;
 			}

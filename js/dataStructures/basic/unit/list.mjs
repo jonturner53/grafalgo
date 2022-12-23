@@ -18,7 +18,7 @@ try {
 	assert(l.empty(), 'a2');
 	assert(!l.contains(3), 'a3');
 
-	l.fromString('[b e f c a d g i]');
+	assert(l.fromString('[b e f c a d g i]'), 'b0');
 	assert(l, '[b e f c a d g i]', 'b1');
 	assert(l.contains(3), 'b2');
 	assert(!l.contains(8), 'b3');
@@ -46,10 +46,13 @@ try {
 
 	let pvec = new Array(10);
 	let prop = (u,sc) => {
-					if (!sc.verify(':')) return;
+					if (!sc.verify(':')) {
+						pvec[u] = 0; return true;
+					}
 					let p = sc.nextNumber();
-					if (Number.isNaN(p)) return;
+					if (Number.isNaN(p)) return false;
 					pvec[u] = p;
+					return true;
 				};
 	l.fromString('[a:1 b:2 e:5 d:4]', prop);
 	assert(l,'[a b e d]', 'd1');

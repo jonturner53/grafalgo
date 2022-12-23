@@ -35,21 +35,25 @@ try {
 
 	let pvec = new Array(10);
 	let prop = (u,sc) => {
-					if (!sc.verify(':')) return;
+					if (!sc.verify(':')) {
+						pvec[u] = 0; return true;
+					}
 					let p = sc.nextNumber();
-					if (Number.isNaN(p)) return;
+					if (Number.isNaN(p)) return false;
 					pvec[u] = p;
+					return true;
 				};
-	s = new Scanner("a:11 b:22");
+	s = new Scanner("a:11 b:22 c");
 	assert(s.nextIndex(prop), 1, 'c1'); assert(pvec[1], 11, 'c2');
-	assert(s.nextIndex(prop), 2, 'c3'); assert(pvec[2], 22, 'c2');
+	assert(s.nextIndex(prop), 2, 'c3'); assert(pvec[2], 22, 'c4');
+	assert(s.nextIndex(prop), 3, 'c5'); assert(pvec[3], 0, 'c6');
 
 	s = new Scanner("[a b]");
-	assert(s, '[a b]', 'c3');
-	s = new Scanner("[a:1 b:2 c:3]");
+	assert(s, '[a b]', 'd1');
+	s = new Scanner("[a:1 b c:3]");
 	let l = s.nextIndexList('[',']',prop);
-	assert(l[0],1,'c5'); assert(l[1],2,'c6'); assert(l[2], 3,'c7');
-	assert(pvec[1],1,'c8'); assert(pvec[2],2,'c9'); assert(pvec[3],3,'c10');
+	assert(l[0],1,'d2'); assert(l[1],2,'d3'); assert(l[2], 3,'d4');
+	assert(pvec[1],1,'d5'); assert(pvec[2],0,'d6'); assert(pvec[3],3,'d7');
 
 	console.log('passed tests');
 } catch(e) {

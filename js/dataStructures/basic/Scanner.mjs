@@ -159,7 +159,7 @@ export default class Scanner extends Top {
 		this.#i = i; return value;
 	}
 
-	/** Extract next word.
+	/** Scan next word.
 	 *  A word is defined as an alphanumeric string (including underscores)
 	 *  that starts with a non-digit.
 	 *  @return the next word encountered, after skipping space characters;
@@ -180,6 +180,19 @@ export default class Scanner extends Top {
 		return s.slice(i0);
 	}
 
+	/** Scan for a string enclosed in double quotes. */
+	nextString() {
+		let s = this.#s; let n = s.length;
+		if (!this.verify('"')) return '';
+		let i0 = this.#i;
+		for (let i = i0; i < n; i++) {
+			if (s[i] == '"') {
+				this.#i = i+1; return s.slice(i0,i);
+			}
+		}
+		this.#i--; return '';
+	}
+
 	/** Read an index value.
 	 *  An index typically represents some component of a data structure,
 	 *  such as an element of a set or vertex in a graph.
@@ -191,11 +204,13 @@ export default class Scanner extends Top {
 	 *  the corresponding integer is returned.
 	 *  If the next non-space character is a digit, we read an integer
 	 *  and interpret it as an index.
-	 *  @prop is an optional function that is called just before nextIndex
-	 *  returns, with arguments u and sc; u is the index value just read
-	 *  and sc is this scanner; prop can be used to extract additional
-	 *  information from the input string and save it in the caller's context
-	 *  @return the index value on success, else -1
+	 *  @param prop(u,sc) is an optional function that is called just before
+	 *  nextIndex returns if u!=0; u is the index value just read and sc is
+	 *  this scanner; prop should return true on success, false on failure;
+	 *  prop is typically used to extract additional information from
+	 *  the scanned string and save it in the caller's context
+	 *  @return the index value on success, -1 if no index is found in input
+	 *  or -2 if an index is found but the prop function returns false
 	 */
 	nextIndex(prop=0) {
 		let u = 0;
@@ -210,23 +225,22 @@ export default class Scanner extends Top {
 			u = this.nextInt();
 			if (Number.isNaN(u)) return -1;
 		}
-		if (prop) prop(u, this);
-		return u;
+		return (u && prop && !prop(u, this) ? -2 : u);
 	}
 
 	/** Get the next list of index values from the scanned string.
 	 *  The list items may include one or more properties, separated by ':'s.
 	 *  @param ld is the left delimiter for the index list (for example '[')
 	 *  @param rd is the right delimiter for the index list (for example '[')
-	 *  @pcount is the number of properties to expect
-	 *  @return list of index values if pcount==0, and list of tuples of
-	 *  the form [i,p1,p2 ..] where i is an index and p1, p2 etc are
-	 *  property values
+	 *  @param prop is an optional function used to scan for one or more
+	 *  "properties" of the index
+	 *  @return list of index values or null on failure
 	 */
 	nextIndexList(ld, rd, prop=0) {
 		let l = []; let i0 = this.#i;
 		if (!this.verify(ld)) return null;
-		for (let i = this.nextIndex(prop); i >= 0; i = this.nextIndex(prop)) {
+		for (let i = this.nextIndex(prop); i != -1; i = this.nextIndex(prop)) {
+			if (i == -2) return null;
 			l.push(i);
 		}
 		if (!this.verify(rd)) {

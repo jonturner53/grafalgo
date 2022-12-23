@@ -14,7 +14,7 @@ try {
 
 	let f = new BalancedForest();
 
-	f.fromString('{[a b c d e] [h i j k l m n o p q r]}');
+	assert(f.fromString('{[a b c d e] [h i j k l m n o p q r]}'), 'a0');
 	let s = f.verify(); assert(!s, 'a1 ' + s);
 	assert(f,'{[a b c d e] [h i j k l m n o p q r]}','a2');
 	assert(f.toString(0xc),
@@ -53,18 +53,28 @@ try {
 	assert(f.search(9,10,key), 9, 'b2');
 
 	key[15] = 10.5;
-	f.insertByKey(15, key, 13);
+	f.insertByKey(15, 13, key);
 	assert(f.toString(0xc),
 			'{[(a:1 b:1 c:1) *d:2 e:1] [(- h:1 i:1) *j:2 k:1] ' +
 			'[(o:1 l:1 -) *m:2 ((- n:1 p:1) q:2 r:1)]}', 'b3');
 
-	f.insertAfter(10, 14, 13);
+	f.insertAfter(10, 13, 14);
 	assert(f.toString(0xc),
 			'{[(a:1 b:1 c:1) *d:2 e:1] ' +
-			'[(o:1 l:1 -) *m:2 ((- n:1 (((- h:1 i:1) j:2 k:1) p:1 -)) q:2 r:1)]}',
-			'b4');
+			'[(o:1 l:1 -) *m:2 ((- n:1 (((- h:1 i:1) j:2 k:1) p:1 -)) ' +
+			'q:2 r:1)]}', 'b4');
 
+	let compare = (a,b) => a.localeCompare(b);
+	f = new BalancedForest();
+	key = [ '', 'abc', 'bcd', 'cde', 'def' ];
+	f.insertByKey(1, 0, key, compare);
+	f.insertByKey(2, 1, key, compare);
+	f.insertByKey(3, 2, key, compare);
+	f.insertByKey(4, 2, key, compare);
+	assert(f.toString(4,u => `${f.x2s(u)}:${key[u]}`),
+		   '{[a:abc *b:bcd (- c:cde d:def)]}','f5');
 	console.log('passed tests');
+
 } catch(e) {
     if (e instanceof AssertError) {
 		if (e.message.length != 0)

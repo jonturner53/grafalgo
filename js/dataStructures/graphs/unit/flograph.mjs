@@ -13,7 +13,8 @@ try {
 	console.log('running basic tests');
 
 	let g = new Flograph(6, 20);
-	g.fromString('{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f[]}');
+	assert(g.fromString('{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f[]}'),
+		   'a00');
 	assert(g.toString(),
 		   '{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}', 'a0');
 	assert(g, '{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}', 'a1');

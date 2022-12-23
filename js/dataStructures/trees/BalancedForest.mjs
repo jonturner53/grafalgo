@@ -10,7 +10,7 @@ import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import Scanner from '../basic/Scanner.mjs';
-import BinaryForest from '../graphs/BinaryForest.mjs';
+import BinaryForest from './BinaryForest.mjs';
 
 /** This class implements a balanced version of the binary tree class. */
 export default class BalancedForest extends BinaryForest {
@@ -18,21 +18,18 @@ export default class BalancedForest extends BinaryForest {
 
 	/** Constructor for BinaryForest object.
 	 *  @param n is index range for object
-	 *  @param capacity is maximum index range (defaults to n)
 	 */
-	constructor(n=10, capacity=n) {
-		super(n, capacity);
-		this.#rank = new Int8Array(this.capacity+1).fill(1,1);
+	constructor(n=10) {
+		super(n);
+		this.#rank = new Int8Array(this.n+1).fill(1,1);
 	}
 
 	/** Assign a new value by copying from another BinaryForest.
-	 *  @param f is another BinaryForest
+	 *  @param other is another BinaryForest
 	 */
-	assign(f) {
-		if (f == this) return;
-		if (!(f instanceof BalancedForest)) return;
-		super.assign(f);
-		for (u = 1; u <= f.n; u++) this.rank(u, f.rank(u));
+	assign(other, relaxed=false) {
+		super.assign(other,relaxed);
+		for (let u = 1; u <= other.n; u++) this.rank(u, other.rank(u));
 	}
 
 	/** Assign a new value by transferring from another BinaryForest.
@@ -71,29 +68,30 @@ export default class BalancedForest extends BinaryForest {
 	
 	/** Insert a singleton immediately after a node in a tree.
 	 *  @param u is a singleton
-	 *  @param v is a node in a tree which defines the point where u is
+	 *  @param t is the tree root
+	 *  @param v is a node in t which defines the point where u is
 	 *  to be inserted; if zero, u is inserted before all nodes in tree
 	 *  @param refresh(u) is an optional function that can be used to adjust
 	 *  client data that is affected by the tree structure; it is called
 	 *  just before the tree is rebalanced.
-	 *  @param t is the tree root
 	 */
-	insertAfter(u, v, t, refresh=0) {
-		return super.insertAfter(u, v, t, u => { if (refresh) refresh(u);
+	insertAfter(u, t, v, refresh=0) {
+		return super.insertAfter(u, t, v, u => { if (refresh) refresh(u);
 												this.rerankUp(u);
 												});
 	}
 
 	/** Insert a node based on a key value.
 	 *  @param u is a singleton node
-	 *  @param key is an array mapping nodes to key values;
 	 *  @param t is the root of the tree containing u
+	 *  @param key is an array mapping nodes to key values;
+	 *  @compare is an optional key comparison function
 	 *  @param refresh(u) is an optional function, which is called
 	 *  with argument u after u is inserted but before rebalancing.
 	 *  @return the root of the modified tree
 	 */
-	insertByKey(u, key, t, compare, refresh=0) {
-		return super.insertByKey(u, key, t, compare,
+	insertByKey(u, t, key, compare, refresh=0) {
+		return super.insertByKey(u, t, key, compare,
 											u => { if (refresh) refresh(u);
 												 this.rerankUp(u);
 												 });
@@ -149,7 +147,7 @@ export default class BalancedForest extends BinaryForest {
 			this.p(t1,0);
 			if (refresh) refresh(u);
 			this.rerankUp(u);
-			let t =  this.find(t1);
+			let t =  this.root(t1);
 			return t;
 		} else { // (r1 < r2)  mirror of first case
 			let v = t2; let pv = 0;		// track parent in case t1==0
@@ -161,7 +159,7 @@ export default class BalancedForest extends BinaryForest {
 			this.p(t2,0);
 			if (refresh) refresh(u);
 			this.rerankUp(u);
-			let t = this.find(t2);
+			let t = this.root(t2);
 			return t;
 		}
 	}
@@ -232,9 +230,9 @@ export default class BalancedForest extends BinaryForest {
 	 *  and they appear in the same left-to-right order.
 	 */
 	equals(other) {
-		let bf = super.listEquals(other);
-		if (typeof bf == 'boolean') return bf;
-		return bf;
+		other = super.listEquals(other);
+		if (typeof other == 'boolean') return other;
+		return other;
 	}
 
 	/** Return a string representation of this object.

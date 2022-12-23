@@ -13,7 +13,7 @@ try {
 	console.log('running basic tests');
 
 	let f = new Forest();
-	f.fromString('{[a(b(c d) e)] [f(g h i(j k))]}');
+	assert(f.fromString('{[a(b(c d) e)] [f(g h i(j k))]}'), 'a0');
 	assert(f, '{[a(b(c d) e)] [f(g h i(j k))]}', 'a1');
 	assert(f.firstChild(2), 3, 'a2');
 	assert(f.firstChild(3), 0, 'a3');
@@ -26,16 +26,19 @@ try {
 	f.link(13,14);
 	assert(f, '{[a(e)] [f(h(b(c d)) i(j k) g)] [n(m)]}', 'a7');
 	f.joinGroups(1,14); f.joinGroups(1,12);
-	assert(f, '{[a(e) l() n(m)] [f(h(b(c d)) i(j k) g)]}', 'a8');
+	assert(f, '{[a(e) n(m) l] [f(h(b(c d)) i(j k) g)]}', 'a8');
 
 	f.clear();
 	let prop = new Array(7);
 	f.fromString('{[a:1(b:2(c:3 d:4) e:5)] [f:6]}',
 						(u,sc) => {
-							if (!sc.verify(':')) return;
+							if (!sc.verify(':')) {
+								prop[u] = 0; return true;
+							}
 							let p = sc.nextNumber();
-							if (Number.isNaN(p)) return;
+							if (Number.isNaN(p)) return false;
 							prop[u] = p;
+							return true;
 						});
 	assert(prop[1], 1, 'd1'); assert(prop[2], 2, 'd2');
 	assert(prop[3], 3, 'd3'); assert(prop[4], 4, 'd4');

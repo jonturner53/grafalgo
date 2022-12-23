@@ -1,4 +1,4 @@
-/** @file Flograph.java
+/** @file Flograph.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -28,10 +28,9 @@ export default class Flograph extends Digraph {
 	/** Constructor for directed graph
 	 *  @param n is the number of vertices
 	 *  @param erange is the max number of edges to provide space for
-	 *  @param capacity is the max number of vertices to provide space for
 	 */
-	constructor(n, erange, capacity) {
-		super(n, erange, capacity); 
+	constructor(n, erange) {
+		super(n, erange); 
 		this.#f = new Int32Array(this.edgeRange+1);
 		this.#cap = new Int32Array(this.edgeRange+1);
 		this.#source = 1; this.#sink = this.n;
@@ -47,38 +46,31 @@ export default class Flograph extends Digraph {
 	get hasFloors() { return (this.#floor ? true : false); }
 
 	/** Assign one Flograph to another (but not its flow).
-	 *  @param g is another Flograph that is copied to this one
+	 *  @param other is another Flograph that is copied to this one
 	 */
-	assign(g) {
-		fassert(g instanceof Flograph);
-        if (g == this) return;
-        if (g.n > this.capacity || g.m > this.edgeRange) {
-            this.reset(g.n, g.m);
-        } else {
-            this.clear(); this._n = g.n;
-        }
-		if (g.hasFloors && !this.hasFloors) this.addFloors();
-		if (!g.hasFloors && this.hasFloors) this.#floor = null;
-		for (let e = g.first(); e != 0; e = g.next(e)) {
-			let ee = (this.edgeRange >= g.edgeRange ?
-                            this.join(g.left(e), g.right(e), e) :
-                            this.join(g.left(e), g.right(e)));
-			this.cap(ee, g.cap(e)); this.flow(ee, 0);
-			if (g.hasCosts) this.cost(ee, g.cost(e));
-			if (g.hasFloors) this.floor(ee, g.floor(e));
+	assign(other, relaxed=false) {
+		super.assign(other, relaxed);
+		if (other.hasFloors && !this.hasFloors) this.addFloors();
+		if (!other.hasFloors && this.hasFloors) this.#floor = null;
+		for (let e = other.first(); e; e = other.next(e)) {
+			let ee = (this.edgeRange >= other.edgeRange ?
+                            this.join(other.left(e), other.right(e), e) :
+                            this.join(other.left(e), other.right(e)));
+			this.cap(ee, other.cap(e)); this.flow(ee, 0);
+			if (other.hasCosts) this.cost(ee, other.cost(e));
+			if (other.hasFloors) this.floor(ee, other.floor(e));
 		}
-		this.setSource(g.source); this.setSink(g.sink);
+		this.setSource(other.source); this.setSink(other.sink);
 	}
 
 	/** Assign one graph to another by transferring its contents.
-	 *  @param g is another graph whose contents is traferred to this one
+	 *  @param other is another graph whose contents is traferred to this one
 	 */
-	xfer(g) {
-		fassert(g instanceof Flograph);
-		super.xfer(g);
-		this.#f = g.#f; this.#cap = g.#cap;
-		g.#f = g.#cap = null;
-		this.#floor = g.#floor; g.#floor = null;
+	xfer(other) {
+		super.xfer(other);
+		this.#f = other.#f; this.#cap = other.#cap;
+		other.#f = other.#cap = null;
+		this.#floor = other.#floor; other.#floor = null;
 	}
 
 	/** Get the source vertex.
@@ -245,27 +237,24 @@ export default class Flograph extends Digraph {
 	 *  @param g is a Flograph object or a string representing one.
 	 *  @param includeFlow (when true) causes the comparison to include
 	 *  flows on edges
-	 *  @return true if g is equal to this; that is, it has the same
+	 *  @return true if other is equal to this; that is, it has the same
 	 *  vertices, edges, capacities and costs (and possibly flows);
 	 *  endpoint lists are sorted as a side effect
 	 */
 	equals(other, includeFlow=false) {
-		let g = super.equals(other);
-		if (typeof g == 'boolean') return g;
-		if (this.m != g.m) return false;
-		let el1 = this.sortedElist(); let el2 = g.sortedElist();
+		other = super.equals(other);
+		if (typeof other == 'boolean') return other;
+		if (this.m != other.m) return false;
+		let el1 = this.sortedElist(); let el2 = other.sortedElist();
 		for (let i = 0; i < el1.length; i++) {
 			let e1 = el1[i]; let e2 = el2[i];
-			if (this.tail(e1) != g.tail(e2) ||
-				this.head(e1) != g.head(e2) ||
-				this.cap(e1) != g.cap(e2) ||
-				this.cost(e1) != this.cost(e2) ||
-				this.floor(e1) != g.floor(e2) ||
-				(includeFlow && this.f(e1) != g.f(e2))) {
+			if (this.cap(e1) != other.cap(e2) ||
+				this.floor(e1) != other.floor(e2) ||
+				(includeFlow && this.f(e1) != other.f(e2))) {
 				return false;
 			}
 		}
-		return g;
+		return other;
 	}
 
 	/** Compare two edges incident to the same endpoint u.

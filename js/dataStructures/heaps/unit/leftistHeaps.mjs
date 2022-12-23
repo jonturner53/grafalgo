@@ -29,10 +29,11 @@ try {
 	assert(min, 5, 'a3.1'); assert(h, 6, 'a3.2');
 	assert(lh, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}', 'a4');
 	let lh2 = new LeftistHeaps();
-	lh2.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}');
-	assert(lh, lh2, 'a5');
+	assert(lh2.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}'),
+		   'a5');
+	assert(lh, lh2, 'a6');
 	lh.meld(1, 6);
-	assert(lh, '{[b:2 a:1 d:4 c:3 h:8 g:7 j:10 i:9 f:6] [e:5]}', 'a6');
+	assert(lh, '{[b:2 a:1 d:4 c:3 h:8 g:7 j:10 i:9 f:6] [e:5]}', 'a7');
 
 	console.log('passed tests');
 } catch(e) {

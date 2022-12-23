@@ -10,7 +10,7 @@ import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
-import BinaryForest from '../graphs/BinaryForest.mjs';
+import BinaryForest from '../trees/BinaryForest.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
 /** This class implements a data structure consisting of a disjoint
@@ -195,12 +195,16 @@ export default class LeftistHeaps extends BinaryForest {
 	 */
 	fromString(s) {
 		let ls = new ListSet(); let key = [];
-		ls.fromString(s, (u,sc) => {
-							if (!sc.verify(':')) return;
+		if (!ls.fromString(s, (u,sc) => {
+							if (!sc.verify(':')) {
+								key[u] = 0; return true;
+							}
 							let p = sc.nextNumber();
-							if (Number.isNaN(p)) return;
+							if (Number.isNaN(p)) return false;
 							key[u] = p;
-						});
+							return true;
+						}))
+			return false;
 		if (ls.n != this.n) this.reset(ls.n);
 		else this.clear();
 		for (let u = 1; u <= ls.n; u++) {

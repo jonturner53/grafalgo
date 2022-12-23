@@ -31,7 +31,7 @@ try {
 	dl.clear(); 
 	assert(dl, "{}", "b8");
 
-	dl.fromString("{[d i h k], [e a  c], [g b l], [j f]}");
+	assert(dl.fromString("{[d i h k], [e a  c], [g b l], [j f]}",'c0'));
 	assert(dl, "{[d i h k], [e a c], [g b l], [j f]}", "c1");
 	assert(dl.n, 12, "c2");
 	dl.reverse(4); dl.reverse(10);

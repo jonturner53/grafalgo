@@ -35,7 +35,7 @@ try {
 	ls.clear(); 
 	assert(ls, "{[h]}", "b11");
 
-	ls.fromString("{[d i h k] [e a  c] [g b l ] [j f]}");
+	assert(ls.fromString("{[d i h k] [e a  c] [g b l ] [j f]}"), 'c0');
 	assert(ls, "{[d i h k] [e a c] [g b l] [j f]}", "c1");
 	assert(ls.n, 12, "c2");
 	ls.rotate(4, 8); ls.rotate(7, 12); 
@@ -48,10 +48,13 @@ try {
 
 	let pvec = new Array(10);
 	let prop = (u,sc) => {
-					if (!sc.verify(':')) return;
+					if (!sc.verify(':')) {
+						pvec[u] = 0; return true;
+					}
 					let p = sc.nextNumber();
-					if (Number.isNaN(p)) return;
+					if (Number.isNaN(p)) return false;
 					pvec[u] = p;
+					return true;
 				};
 	ls.fromString('{[a:1 c:3] [b:2 e:5 d:4]}', prop);
 	assert(ls,'{[a c] [b e d]}', 'd1');

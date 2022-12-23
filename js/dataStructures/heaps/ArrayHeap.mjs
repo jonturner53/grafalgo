@@ -9,7 +9,7 @@
 import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
-import Forest from '../graphs/Forest.mjs';
+import Forest from '../trees/Forest.mjs';
 
 /** This class implements a heap data structure.
  *  The heap elements are identified by indexes in 1..n where n
@@ -48,30 +48,31 @@ export default class ArrayHeap extends Top {
 	}
 
 	/** Assign a new value by copying from another heap.
-	 *  @param h is another heap
+	 *  @param other is another ArrayHeap
 	 */
-	assign(h) {
-		if (h == this || !(h instanceof ArrayHeap)) return;
-		if (h.n > this.n) { this.reset(h.n, h.d); }
-		else { this.clear(); this._n = h.n; }
+	assign(other) {
+		if (other == this || !(other instanceof ArrayHeap)) return;
+		if (other.n > this.n) { this.reset(other.n, other.d); }
+		else { this.clear(); this._n = other.n; }
 
-		this.#m = h.m; this.#offset = h.#offset;
-		for (let p = 1; p <= h.m; p++) {
-			let x = h.#item[p];
-			this.#item[p] = x; this.#pos[x] = p; this.#key[x] = h.#key[x];
+		this.#m = other.m; this.#offset = other.#offset;
+		for (let p = 1; p <= other.m; p++) {
+			let x = other.#item[p];
+			this.#item[p] = x; this.#pos[x] = p; this.#key[x] = other.#key[x];
 			this.#steps++;
 		}
 		this.clearStats();
 	}
 
 	/** Assign a new value by transferring from another heap.
-	 *  @param h is another heap
+	 *  @param other is another ArrayHeap
 	 */
-	xfer(h) {
-		if (h == this || !(h instanceof ArrayHeap)) return;
-		this.#d = h.#d; this.#m = h.#m; this.#offset = h.#offset;
-		this.#item = h.#item; this.#pos = h.#pos; this.#key = h.#key;
-		h.#item = h.#pos = h.#key = null;
+	xfer(other) {
+		if (other == this || !(other instanceof ArrayHeap)) return;
+		this._n = other.n;
+		this.#d = other.#d; this.#m = other.#m; this.#offset = other.#offset;
+		this.#item = other.#item; this.#pos = other.#pos; this.#key = other.#key;
+		other.#item = other.#pos = other.#key = null;
 		this.clearStats();
 		this.#steps++;
 	}
@@ -294,12 +295,16 @@ export default class ArrayHeap extends Top {
 	fromString(s) {
 		let l = new List();
 		let key = [];
-		l.fromString(s, (u,sc) => {
-							if (!sc.verify(':')) return;
+		if (!l.fromString(s, (u,sc) => {
+							if (!sc.verify(':')) {
+								key[u] = 0; return true;
+							}
 							let p = sc.nextNumber();
-							if (Number.isNaN(p)) return;
+							if (Number.isNaN(p)) return false;
 							key[u] = p;
-						});
+							return true;
+						}))
+			return false;
 		if (l.n > this.n) this.reset(l.n, this.d);
 		else this.clear();
 		for (let i = l.first(); i; i = l.next(i))

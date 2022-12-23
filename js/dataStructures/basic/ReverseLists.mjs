@@ -19,34 +19,30 @@ export default class ReverseLists extends Top {
 	#nabor1;		// nabor1[i] is one of the neighbors of i in its list
 	#nabor2;		// nabor2[i] is the other neighbor of i in its list
 
-	constructor(n=10, capacity=n) {
+	constructor(n=10) {
 		super(n);
-		this.#nabor1 = new Int32Array(capacity+1);
-		this.#nabor2 = new Int32Array(capacity+1);
+		this.#nabor1 = new Int32Array(this.n+1);
+		this.#nabor2 = new Int32Array(this.n+1);
 		// initialize to singleton lists
-		for (let i = 0; i <= this.capacity; i++) {
+		for (let i = 0; i <= this.n; i++) {
 			this.#nabor1[i] = 0; this.#nabor2[i] = -i;
 		}
 		this.#nabor2[0] = 0;
 	}
 
-	/** Get the capacity. (max number of items it has space for). */
-	get capacity() { return this.#nabor1.length - 1; }
-
-	assign(dl) {
-		if (dl == this) return;
-		if (dl.n > this.capacity) this.reset(dl.n);
-		else { this.clear(); this._n = dl.n; }
-		for (let i = 1; i <= this.n; i++) {
-			this.#nabor1[i] = dl.#nabor1[i]; this.#nabor2[i] = dl.#nabor2[i];
+	assign(other, relaxed=false) {
+		super.assign(other, relaxed);
+		for (let i = 1; i <= other.n; i++) {
+			this.#nabor1[i] = other.#nabor1[i]; this.#nabor2[i] = other.#nabor2[i];
 		}
 	}
 
-	xfer(dl) {
-		if (dl == this) return;
-		this._n = dl.n;
-		this.#nabor1 = dl.#nabor1; this.#nabor2 = dl.#nabor2;
-		dl.#nabor1 = dl.#nabor2 = null;
+	xfer(other) {
+		super.xfer(other);
+		if (other == this) return;
+		this._n = other.n;
+		this.#nabor1 = other.#nabor1; this.#nabor2 = other.#nabor2;
+		other.#nabor1 = other.#nabor2 = null;
 	}
 	
 	/** Clear the data structure, moving all items into singletons.
@@ -165,11 +161,10 @@ export default class ReverseLists extends Top {
 	 *  @return true if the two objects contain identical lists.
 	 */
 	equals(other) {
-		let dl = super.equals(other);
-		if (typeof dl == 'boolean') return dl;
-		// dl is now an object that can be compared
+		other = super.equals(other);
+		if (typeof other == 'boolean') return other;
 		for (let i = 1; i < this.n; i++) {
-			if (this.isFirst(i) != dl.isFirst(i)) return false;
+			if (this.isFirst(i) != other.isFirst(i)) return false;
 			if (!this.isFirst(i)) continue;
 			let j1 = i; let k1 = 0; let j2 = i; let k2 = 0;
 			do {
@@ -178,7 +173,7 @@ export default class ReverseLists extends Top {
 				if (j1 != j2) return false;
 			} while (j1 != 0);
 		}
-		return dl;
+		return other;
 	}
 	
 	/** Produce a string representation of the object.
@@ -223,7 +218,7 @@ export default class ReverseLists extends Top {
 		}
 		if (!sc.verify('}')) return false;
 
-		if (n > this.n) this.reset(n);
+		if (n != this.n) this.reset(n);
 		else this.clear();
 		for (l of lists) {
 			for (let i of l) {

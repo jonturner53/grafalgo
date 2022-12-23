@@ -18,9 +18,8 @@ import BinaryForest from './BinaryForest.mjs';
 export default class SplayForest extends BinaryForest {
 	/** Constructor for BinaryForest object.
 	 *  @param n is index range for object
-	 *  @param capacity is maximum index range
 	 */
-	constructor(n=10, capacity=n) { super(n,capacity); }
+	constructor(n=10) { super(n); }
 
 	/** Splay a search tree.
 	 *  @param x is a tree node; the operation performs a series of rotations,
@@ -44,19 +43,19 @@ export default class SplayForest extends BinaryForest {
 	 *  @return the of the tree containing u.
 	 */
 	find(u, nosplay=false) {
-        return nosplay ? super.find(u) : this.splay(u);
+        return nosplay ? super.root(u) : this.splay(u);
     }
 
 	search(k, t, key) {
 		return this.splay(super.search(k, t, key));
 	}
 
-	insertAfter(u, v, t) {
-		return super.insertAfter(u, v, t, u => this.splay(u));
+	insertAfter(u, t, v) {
+		return super.insertAfter(u, t, v, u => this.splay(u));
 	}
 
-	insertByKey(u, key, t) {
-		return super.insertByKey(u, key, t, u => this.splay(u));
+	insertByKey(u, t, key, compare=((a,b)=>a-b)) {
+		return super.insertByKey(u, t, key, compare, u => this.splay(u));
 	}
 
 	delete(u,t=0) {

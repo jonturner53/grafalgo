@@ -11,7 +11,7 @@ import { fassert } from '../../common/Errors.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
-import SplayForest from '../keysets/SplayForest.mjs';
+import SplayForest from '../trees/SplayForest.mjs';
 
 /** Data structure representing a collection of paths.
  *
@@ -300,7 +300,7 @@ export default class PathSet extends SplayForest {
 	}
 
 	/** Initialize this PathSets object from a string.
-	 *  @param s is a string representing a heap.
+	 *  @param s is a string representing a PathSets object.
 	 *  @return true on success, else false
 	 */
 	fromString(s) {
@@ -309,16 +309,19 @@ export default class PathSet extends SplayForest {
 		let n = 0; let paths = []; let items = new Set();
 		let cost = [];
 		let prop = (u,sc) => {
-						if (!sc.verify(':')) return;
+						if (!sc.verify(':')) {
+							cost[u] = 0; return true;
+						}
 						let p = sc.nextNumber();
-						if (Number.isNaN(p)) return;
+						if (Number.isNaN(p)) return false;
 						cost[u] = p;
+						return true
 					};
 		for (let l = sc.nextIndexList('[',']',prop); l;
 				 l = sc.nextIndexList('[',']',prop)) {
 			for (let i of l) {
 				n = Math.max(n,i);
-				if (items.has(i)) return null;
+				if (items.has(i)) return false;
 				items.add(i);
 			}
 			let succ = 0;

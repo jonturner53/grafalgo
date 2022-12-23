@@ -35,6 +35,19 @@ export default class Top {
 		this.xfer(new this.constructor(... arguments));
 	}
 
+    assign(other, relaxed=false) {
+        fassert(other != this &&
+                this.constructor.name == other.constructor.name);
+        if (this.n == other.n || relaxed && this.n > other.n) this.clear();
+        else this.reset(other.n);
+	}
+
+	xfer(other) {
+        fassert(other != this &&
+                this.constructor.name == other.constructor.name);
+		this.#n = other.#n;
+	}
+
 	/** Get the index range for the object.
 	 *  @return the largest index value
 	 */
@@ -48,22 +61,18 @@ export default class Top {
 
 	/** Expand the index range of an object and possibly, its capacity. */
 	expand(n) {
-		fassert(n >= this.n);
-		let cap = ('capacity' in this) ? this.capacity : this.n;
-		if (n <= cap) {
-			this._n = n;
-		} else {
-			let nu = (('capacity' in this) ?
-						new this.constructor(this.n, Math.max(n,~~(1.5*cap))) :
-						new this.constructor(this.n));
-			nu.assign(this); this.xfer(nu); this._n = n;
-		}
+		fassert(n > this.n);
+		let nu = new this.constructor(n);
+		nu.assign(this,true); this.xfer(nu);
 	}
 
-	/** Transfer the contents of another object to this. */
-	xfer(other) {
+	clear() {
 		throw `Top: sub-class ${this.constructor.name} failed to ` +
-			  `define xfer method.`;
+			  `define clear method.`;
+	}
+	toString() {
+		throw `Top: sub-class ${this.constructor.name} failed to ` +
+			  `define toString method.`;
 	}
 
 	/** Determine if a given index is valid.
@@ -72,12 +81,6 @@ export default class Top {
 	 *  else false
 	 */
 	valid(i) { i = Math.floor(i); return 0 <= i && i <= this.#n; }
-
-	/** Create a string representation of the data structure.
-	 *  Should show all information relevant to the provided abstraction.
-	 *  Subclasses are all expected to implement this method.
- 	 */
-	toString() { return ""; };
 
 	/** Determine if two objects are equal.
 	 *  Uses string comparison for objects that lack a fromString method.
@@ -92,10 +95,11 @@ export default class Top {
 			if (!('fromString' in this)) 
 				return this.toString() == other.toString();
             let s = other;
-			other = new this.constructor(this.n);
-			other.fromString(s);
-        }
-		if (other.constructor.name != this.constructor.name ||
+			other = new this.constructor();
+			if (!other.fromString(s)) return s == this.toString();
+			if (other.n > this.n) return false;
+			if (other.n < this.n) other.expand(this.n);
+        } else if (other.constructor.name != this.constructor.name ||
 		    other.n != this.n) {
 			return false;
 		}

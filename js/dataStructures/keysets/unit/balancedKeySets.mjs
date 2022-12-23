@@ -1,4 +1,4 @@
-/** \file balancedKeySets.mjs
+/** \file keySets.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,12 +8,12 @@
 
 import { assert, AssertError } from '../../../common/Errors.mjs';
 import List from '../../basic/List.mjs';
-import BalancedKeySets from '../BalancedKeySets.mjs';
+import KeySets from '../KeySets.mjs';
 
 try {
 	console.log('running basic tests');
 
-	let ks = new BalancedKeySets();
+	let ks = new KeySets();
 	ks.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}');
 	assert(ks, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}', 'a1');
 	ks.delete(7);
