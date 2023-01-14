@@ -1,4 +1,4 @@
-/** \file partitionedHeap.mjs
+/** \file groupHeap.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,12 +8,12 @@
 
 import { assert, AssertError } from '../../../common/Errors.mjs';
 import List from '../../basic/List.mjs';
-import PartitionedHeap from '../PartitionedHeap.mjs';
+import GroupHeap from '../GroupHeap.mjs';
 
 try {
 	console.log('running basic tests');
 
-	let dh = new PartitionedHeap();
+	let dh = new GroupHeap();
 	if (!dh.fromString('{1[a:3 b:2] 2@![c:2 d:5 e:1 j:7] ' +
 					   '6[f:6 g:3] 4@[i:10]}'), 'a0');
 	assert(dh,'{1[*a:3 b:2] 2@![c:2 *d:5 e:1 j:7] 6[*f:6 g:3] 4@[i:10]}', 'a1');

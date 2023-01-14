@@ -43,7 +43,7 @@ try {
 		h = sh.insertAfter(5,h,2,10);
 	assert(sh,'{[b:6 h:8 a:5 j:13 e:2 *d:8 i:9 g:10 c:7 f:12]}', 'b1');
 	assert(sh.findmin(4), 5, 'b2');
-	sh.changekey(6,1,4);
+	sh.changekey(6,4,1);
 	assert(sh,'{[b:6 h:8 a:5 j:13 e:2 *d:8 i:9 g:10 c:7 f:1]}', 'b3');
 	assert(sh.findmin(h), 6, 'b4');
 	let [h1,h2] = sh.divide(10,h);
@@ -53,7 +53,9 @@ try {
 	assert(sh,'{[b:6 *h:8 a:5] [j:13 *e:2] [d:8 *i:9 g:10] [c:7 *f:1]}', 'b5');
 	assert(sh.findmin(8), 1, 'b6');
 	assert(sh.findmin(9), 4, 'b7');
-	assert(!sh.verify(), 'b8' +sh.verify());
+	sh.append(6,8);
+	assert(sh,'{[c:7 *f:1 b:6 h:8 a:5] [j:13 *e:2] [d:8 *i:9 g:10]}', 'b8');
+	assert(!sh.verify(), 'b9' +sh.verify());
 
 	console.log('passed tests');
 } catch(e) {

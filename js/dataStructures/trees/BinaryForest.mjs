@@ -433,18 +433,17 @@ export default class BinaryForest extends Top {
 	}
 		
 	/** Append one tree after another
-	 *  @param u is the root of tree
-	 *  @param v is the root of a second tree
+	 *  @param t1 is the root of tree
+	 *  @param t2 is the root of a second tree
 	 *  @return subtree formed by combining the two with the nodes
-	 *  in v's subtree to the right of the nodes in u's subtree
+	 *  in t2's subtree to the right of the nodes in u's subtree
 	 */
-	append(u,v) {
-		if (u == 0 || u == v) return v;
-		else if (v == 0) return u;
-		let t = this.last(u);
-		let [t1] = this.split(t);
-		t = this.join(t1,t,v);
-		return t;
+	append(t1,t2) {
+		if (t1 == 0 || t1 == t2) return t2;
+		else if (t2 == 0) return t1;
+		let u = this.last(t1);
+		[t1] = this.split(u);
+		return this.join(t1,u,t2);
 	}
 
 	/** Perform a rotation in a tree.

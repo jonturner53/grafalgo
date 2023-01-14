@@ -106,31 +106,20 @@ export default class OrderedHeaps extends BalancedForest {
 		return this.#key[i] + this.#offset[h];
 	}
 
-	/** Return the item of minimum key in a heap.
-	 *  @param h is a heap.
-	 *  @return the item in h that has the smallest key
+	/** Add increment to all the keys in a heap
+	 *  @param delta is an increment to be added to the keys in a heap
+	 *  @param h is the heap to be modeified.
 	 */
-	findmin(h) {
-		if (!h) return 0;
-		let i = h;
-		while (i) {
-			let l = this.left(i); let r = this.right(i);
-			if (this.#key[i] == this.#minkey[i]) return i;
-			i = (!l ? r : (!r ? l :
-					(this.#minkey[l] < this.#minkey[r] ? l : r)));
-			this.steps++;
-		}
-		fassert(false, `program error in OrderedHeaps.findmin(${this.x2s(h)})`);
-	}
+	add2keys(delta, h) { if (h) this.#offset[h] += delta; }
 
-	/** Remove a miniminum key item from from the heap and return it.
-	 *  @param h is a heap.
-	 *  @return [u,h] where u is the min key item and h is the id of the
-	 *  resulting heap
+	/** Change the key of a heap item.
+	 *  @param i is an item in a heap.
+	 *  @param h is the heap containing i
+	 *  @param k is the new key value for i
 	 */
-	deletemin(h) {
-		let u = this.findmin(h); h = this.delete(u,h);
-		return [u,h];
+	changekey(i, h, k) {
+		this.#key[i] = k - this.#offset[h];
+		this.refresh(i);
 	}
 
 	/** Insert an item in a heap.
@@ -202,26 +191,10 @@ export default class OrderedHeaps extends BalancedForest {
 		return [h1,h2];
 	}
 
-	/** Adds refresh to join operations performed within parent class.
-	 *  These can occur within splits.
+	/** Limited join operation, for use when all arguments have same offset.
+	 *  Provided to support joins done within splits within super class.
 	 */
 	join(t1, u, t2) { return super.join(t1, u, t2, u => this.refresh(u)); }
-
-	/** Add increment to all the keys in a heap
-	 *  @param delta is an increment to be added to the keys in a heap
-	 *  @param h is the heap to be modeified.
-	 */
-	add2keys(delta, h) { if (h) this.#offset[h] += delta; }
-
-	/** Change the key of a heap item.
-	 *  @param i is an item in a heap.
-	 *  @param k is the new key value for i
-	 *  @param h is the heap containing i
-	 */
-	changekey(i, k, h) {
-		this.#key[i] = k - this.#offset[h];
-		this.refresh(i);
-	}
 
 	/** Update minkey fields, following a change to an item. */
 	refresh(i) {
@@ -231,9 +204,50 @@ export default class OrderedHeaps extends BalancedForest {
 			if (l) min = Math.min(min, this.#minkey[l]);
 			if (r) min = Math.min(min, this.#minkey[r]);
 			this.#minkey[i] = min;
+			if (this.p(i) && this.#key[this.p(i)] <= min ||
+				this.sibling(i) && this.#minkey[this.sibling(i)] <= min) {
+				return;
+			}
 			i = this.p(i);
 			this.steps++;
 		}
+	}
+
+	/** Return an item of minimum key in a heap.
+	 *  @param h is a heap.
+	 *  @param which specifies which item of minimum key to return;
+	 *  if which==-1, the "leftmost" item is minimum key is returned,
+	 *  if which==+1, the "rightmost" is returned and if which==0, the
+	 *  first item of minimum key that is encountered is returned
+	 *  @return the item in h that has the smallest key
+	 */
+	findmin(h, which=0) {
+		if (!h) return 0;
+		let k = this.#minkey[h];
+		let i = h;
+		while (i) {
+			let l = this.left(i); let r = this.right(i);
+			if (this.#key[i] == k) {
+				if (which == 0 ||
+					which == -1 && (!l || this.#minkey[l] != k) ||
+					which == +1 && (!r || this.#minkey[r] != k)) {
+					return i;
+				}
+			}
+			i = (l && this.minkey[l] == k ? l : r);
+			this.steps++;
+		}
+		fassert(false, `program error in OrderedHeaps.findmin(${this.x2s(h)})`);
+	}
+
+	/** Remove a miniminum key item from from the heap and return it.
+	 *  @param h is a heap.
+	 *  @return [u,h] where u is the min key item and h is the id of the
+	 *  resulting heap
+	 */
+	deletemin(h) {
+		let u = this.findmin(h); h = this.delete(u,h);
+		return [u,h];
 	}
 
 	/** Extend rotation operation to maintain minkey field. */

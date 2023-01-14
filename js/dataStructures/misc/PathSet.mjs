@@ -31,6 +31,7 @@ export default class PathSet extends SplayForest {
 		super(n,capacity);
 		this.#dcost = new Float32Array(capacity+1).fill(0);
 		this.#dmin = new Float32Array(capacity+1).fill(0);
+		this.#dcost[0] = this.#dmin[0] = Infinity;
 	}
 
 	/** Assign new value to PathSet from another. 
@@ -125,20 +126,19 @@ export default class PathSet extends SplayForest {
 		super.rotate(x);
 	
 		// update dmin, dcost values
-		this.dmin(a, this.dmin(a) + this.dmin(x));
-		this.dmin(b, this.dmin(b) + this.dmin(x));
-	
-		this.dcost(x, this.dcost(x) + this.dmin(x));
 		let dmx = this.dmin(x);
+		let dma = this.dmin(a); let dmb = this.dmin(b); let dmc = this.dmin(c);
+			// note: if a=0, dma = Infinity; same for b,c
+
+		this.dcost(x, this.dcost(x) + dmx);
 		this.dmin(x, this.dmin(y));
 
-		this.dmin(y, this.dcost(y));
-		if (b > 0) this.dmin(y, Math.min(this.dmin(y),this.dmin(b)+dmx));
-		if (c > 0) this.dmin(y, Math.min(this.dmin(y),this.dmin(c)));
-		this.#dcost[y] = this.dcost(y) - this.dmin(y);
+		this.dmin(y, Math.min(this.dcost(y), dmb+dmx, dmc));
+		this.dcost(y, this.dcost(y) - this.dmin(y))
 
-		this.dmin(b, this.dmin(b) - this.dmin(y));
-		this.dmin(c, this.dmin(c) - this.dmin(y));
+		this.dmin(a, dma + dmx);
+		this.dmin(b, dmb + dmx - this.dmin(y));
+		this.dmin(c, dmc       - this.dmin(y));
 	}
 	
 	/** Return the id of the path containing a specified node.

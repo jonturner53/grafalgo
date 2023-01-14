@@ -66,6 +66,7 @@ export default class KeySets extends BalancedForest {
 
 	clear() { super.clear(); this.#key.fill(0); }
 
+	/** Find the set containing a given item. */
 	find(u) { return super.root(u); }
 	
 	/** Get or set the key value of a node. */
