@@ -26,7 +26,6 @@ export default class DualKeySets extends KeySets {
 	
 	/** Constructor for DualKeySets object.
 	 *  @param n is index range for object
-	 *  @param capacity is maximum index range (defaults to n)
 	 */
 	constructor(n=10) {
 		super(n);
@@ -88,14 +87,14 @@ export default class DualKeySets extends KeySets {
 			if (this.key(u) > limit) {
 				u = l; continue;
 			}
-			// so, u defines an eligible subtree
+			// so, u defines a boundary subtree
 			if (best == 0 || this.key2(u) < bestMin ||
 				(l && this.min2(l) < bestMin)) {
 				best = u;
 				bestMin = this.key2(u) <= this.min2(l) ?
 								 		  this.key2(u) : this.min2(l);
 			}
-			u = this.right(u); // right subtree may contain eligible subtrees
+			u = this.right(u); // right subtree may contain boundary subtrees
 		}
 		if (best == 0) return 0;
 		if (this.key2(best) == bestMin) return best;
@@ -165,8 +164,6 @@ export default class DualKeySets extends KeySets {
 	join(t1, u, t2) {
 		return super.join(t1, u, t2, u => this.refresh(u));
 	}
-
-	split(u) { return super.split(u, u => this.refresh(u)); }
 
 	/** Determine if two DualKeySets objects are equal.
 	 *  @param other is a DualKeySets object to be compared to this

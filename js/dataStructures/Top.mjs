@@ -59,7 +59,7 @@ export default class Top {
 	 */
 	set _n(n) { this.#n = n; }
 
-	/** Expand the index range of an object and possibly, its capacity. */
+	/** Expand the index range of an object. */
 	expand(n) {
 		fassert(n > this.n);
 		let nu = new this.constructor(n);

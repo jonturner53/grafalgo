@@ -18,12 +18,12 @@ import Forest from '../trees/Forest.mjs';
  *  is specified when an FibHeaps object is constructed.
  */
 export default class FibHeaps extends Forest {
-	#key;		///< #key[i] is key of item i
-	#rank;		///< #rank[i] gives rank of item i
-	#mark;		///< #mark[i] is true if item i is considered marked
+	#key;        // #key[i] is key of item i
+	#rank;       // #rank[i] gives rank of item i
+	#mark;       // #mark[i] is true if item i is considered marked
 
-	#rankVec;	///< #rankVec is an auxiliary array used during restructuring
-	#tmpq;		///< #tmpq is a List object used as a temporary queue 
+	#rankVec;    // #rankVec is an auxiliary array used during restructuring
+	#tmpq;       // #tmpq is a List object used as a temporary queue 
 
 	#insertCount;
 	#deleteCount;
@@ -35,16 +35,14 @@ export default class FibHeaps extends Forest {
 
 	/** Constructor for FibHeaps object.
 	 *  @param n is index range for object
-	 *  @parm d is the base of the heap (defaults to 2)
-	 *  @param capacity is maximum index range (defaults to n)
 	 */
-	constructor(n=10, capacity=n) {
+	constructor(n=10) {
 		super(n);
-		this.#key = new Float32Array(capacity+1);
-		this.#rank = new Int32Array(capacity+1);
-		this.#mark = new Int8Array(capacity+1);
+		this.#key = new Float32Array(this.n+1);
+		this.#rank = new Int32Array(this.n+1);
+		this.#mark = new Int8Array(this.n+1);
 		this.#rankVec = new Int32Array(this.#MAXRANK+1);
-		this.#tmpq = new List(this.n, capacity);
+		this.#tmpq = new List(this.n);
 
 		this.#insertCount = 0;
 		this.#deleteCount = 0;
@@ -53,30 +51,23 @@ export default class FibHeaps extends Forest {
 		this.#mergeSteps = 0;
 	}
 
-	get capacity() { return this.#key.length-1; }
-
 	/** Assign a new value by copying from another heap.
-	 *  @param fh is another FibHeaps object
+	 *  @param other is another FibHeaps object
 	 */
-	assign(fh) {
-		if (fh == this || !(fh instanceof FibHeaps)) return;
-		if (fh.n > this.n) { reset(fh.n); }
-		else { clear(); this._n = fh.n; }
-
-		this.super.assign(fh);
-		for (let i = 1; i < fh.n; i++) {
-			this.#key[i] = fh.#key[i];
-			this.#rank[i] = fh.#rank[i];
-			this.#mark[i] = fh.#mark[i];
+	assign(other, relaxed=false) {
+		super.assign(fh, relaxed);
+		for (let i = 1; i < other.n; i++) {
+			this.#key[i] = other.#key[i];
+			this.#rank[i] = other.#rank[i];
+			this.#mark[i] = other.#mark[i];
 		}
 	}
 
 	/** Assign a new value by transferring from another heap.
-	 *  @param h is another heap
+	 *  @param other is another heap
 	 */
-	xfer(fh) {
-		if (fh == this) return;
-		if (!(fh instanceof FibHeaps)) return;
+	xfer(other) {
+		super.xfer(other);
 		this.#key = fh.#key; this.#rank = fh.#rank; this.#mark = fh.#mark;
 		this.#rankVec = fh.#rankVec; this.#tmpq = fh.#tmpq;
 		fh.#key = fh.#rank = fh.#mark = fh.#rankVec = fh.#tmpq = null;

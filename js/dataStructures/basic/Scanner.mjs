@@ -183,14 +183,14 @@ export default class Scanner extends Top {
 	/** Scan for a string enclosed in double quotes. */
 	nextString() {
 		let s = this.#s; let n = s.length;
-		if (!this.verify('"')) return '';
+		if (!this.verify('"')) return null;
 		let i0 = this.#i;
 		for (let i = i0; i < n; i++) {
 			if (s[i] == '"') {
 				this.#i = i+1; return s.slice(i0,i);
 			}
 		}
-		this.#i--; return '';
+		this.#i--; return null;
 	}
 
 	/** Read an index value.

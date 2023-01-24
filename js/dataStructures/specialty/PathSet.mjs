@@ -191,7 +191,7 @@ export default class PathSet extends SplayForest {
 	 */
 	join(r, u, q) {
 		let dmin_u = this.dmin(u);
-		let sq = (q ? this.succ(q) : 0);
+		let sq = (q ? this.property(q) : 0);
 		super.join(r,u,q);
 		if (r == 0 && q == 0) {
 			; // do nothing
@@ -206,7 +206,7 @@ export default class PathSet extends SplayForest {
 			this.dmin(r, this.dmin(r) - this.dmin(u));
 			this.dmin(q, this.dmin(q) - this.dmin(u));
 		}
-		this.dcost(u, dmin_u - this.dmin(u)); this.succ(u, sq);
+		this.dcost(u, dmin_u - this.dmin(u)); this.property(u, sq);
 		return u;
 	}
 	
@@ -215,7 +215,7 @@ export default class PathSet extends SplayForest {
 	 *  parts, the original portion of the path that precedes u, u itself, and
 	 *  the portion of the original path that follows u
 	 *  @return the a pair consisting of the two new path segments
-	 *  note: the first path segment acquires u as its successor and the
+	 *  note: the first path segment acquires u as its property and the
 	 *  second segment inherits its successor from the original
 	 *  path being split
 	 */
@@ -223,7 +223,7 @@ export default class PathSet extends SplayForest {
 		let [p,q] = super.split(u);
 		let su = this.succ(u);
 		if (p != 0) { this.#dmin[p] += this.dmin(u); this.p(p,0); }
-		if (q != 0) { this.#dmin[q] += this.dmin(u); this.succ(q,su); }
+		if (q != 0) { this.#dmin[q] += this.dmin(u); this.property(q,su); }
 		this.#dmin[u] += this.dcost(u); this.#dcost[u] = 0;
 		return [p,q];
 	}
@@ -255,19 +255,12 @@ export default class PathSet extends SplayForest {
 		for (let r = 1; r <= this.n; r++) {
 			if (this.p(r)) continue;
 			q.enq(r);
-			mincost[r] = this.dmin(r);
 			while (!q.empty()) {
 				let u = q.deq();
-				if (this.left(u)) {
-					let lu = this.left(u);
-					q.enq(lu);
-					mincost[lu] = mincost[u] + this.dmin(lu);
-				}
-				if (this.right(u)) {
-					let ru = this.right(u);
-					q.enq(ru);
-					mincost[ru] = mincost[u] + this.dmin(ru);
-				}
+				mincost[u] = (this.p(u) ? mincost[this.p(u)] : 0)
+							 + this.#dmin[u];
+				if (this.left(u))  q.enq(this.left(u));
+				if (this.right(u)) q.enq(this.right(u));
 			}
 		}
 		return mincost;
@@ -287,16 +280,19 @@ export default class PathSet extends SplayForest {
 		let xlabel = (u => (label ?  this.label(u) : this.x2s(u)) +
 				':' + (mc[u]+this.dcost(u)) +
 				((fmt&0x8) ? `:${this.dmin(u)}:${this.dcost(u)}` : ''));
+		return super.toString(fmt,xlabel,v => this.x2s(this.property(v)));
+/*
 		let s = ''; let first = true;
 		for (let u = 1; u <= this.n; u++) {
 			if (this.p(u)) continue;
 			if (this.singleton(u) && !(fmt&0x2)) continue;
 			if (first) first = false;
 			else s += (fmt&0x1 ? '\n' : ' ');
-			s += `${this.tree2string(u,fmt,xlabel)}` +
-				  (this.succ(u) ? '->' + this.x2s(this.succ(u)) : '');
+			s += this.tree2string(u,fmt,xlabel,
+								  (v => this.x2s(this.property(v))));
 		}
 		return fmt&0x1 ? '{\n' + s + '\n}' : '{' + s + '}';
+*/
 	}
 
 	/** Initialize this PathSets object from a string.
@@ -304,11 +300,8 @@ export default class PathSet extends SplayForest {
 	 *  @return true on success, else false
 	 */
 	fromString(s) {
-		let sc = new Scanner(s);
-		if (!sc.verify('{')) return false;
-		let n = 0; let paths = []; let items = new Set();
 		let cost = [];
-		let prop = (u,sc) => {
+		let nodeProp = (u,sc) => {
 						if (!sc.verify(':')) {
 							cost[u] = 0; return true;
 						}
@@ -317,24 +310,44 @@ export default class PathSet extends SplayForest {
 						cost[u] = p;
 						return true
 					};
-		for (let l = sc.nextIndexList('[',']',prop); l;
-				 l = sc.nextIndexList('[',']',prop)) {
+		let pathProp = (sc => {
+						let p = sc.nextIndex();
+						return p > 0 ? p : 0;
+						});
+		if (!super.fromListString(s, nodeProp, pathProp))
+			return false;
+
+		for (let u = 1; u <= this.n; u++) {
+			if (this.p(u)) continue;
+			this.docosts1(u,cost); this.docosts2(u);
+		}
+		return true;
+/*
+		if (!sc.verify('{')) return false;
+		let n = 0; let paths = []; let items = new Set();
+		let cost = [];
+		let nodeProp = (u,sc) => {
+						if (!sc.verify(':')) {
+							cost[u] = 0; return true;
+						}
+						let p = sc.nextNumber();
+						if (Number.isNaN(p)) return false;
+						cost[u] = p;
+						return true
+					};
+		for (let l = sc.nextIndexList('[',']',nodeProp); l;
+				 l = sc.nextIndexList('[',']',nodeProp)) {
 			for (let i of l) {
 				n = Math.max(n,i);
 				if (items.has(i)) return false;
 				items.add(i);
 			}
-			let succ = 0;
-			if (sc.verify('->')) {
-				succ = sc.nextIndex();
-				if (succ < 0) return false;
-			}
-			paths.push([l, succ]);
+			paths.push([l]);
 		}
 		if (!sc.verify('}')) return false;
 		if (n != this.n) this.reset(n);
 		else this.clear();
-		for (let [l,succ] of paths) {
+		for (let [l,pprop] of paths) {
 			let p = l[0];
 			this.dcost(p,0); this.dmin(p,cost[p]);
 			for (let i of l) {
@@ -344,8 +357,37 @@ export default class PathSet extends SplayForest {
 				let [t1,] = this.split(p);
 				p = this.join(t1,p,i);
 			}
-			this.succ(p,succ);
+			this.pprop(p,pprop);
 		}
 		return true;
+*/
+	}
+
+	/** First phase of differential cost computation for a tree.
+	 *  @param u is a tree node
+	 *  @param cost is an array of absolute node costs.
+	 */
+	docosts1(u,cost) {
+		let l = this.left(u); let r = this.right(u);
+		let mc = cost[u];
+		if (l) {
+			this.docosts1(l,cost);
+			mc = Math.min(mc, this.#dmin[l]);
+		}
+		if (r) {
+			this.docosts1(r,cost);
+			mc = Math.min(mc, this.#dmin[r]);
+		}
+		this.#dcost[u] = cost[u] - mc;
+		this.#dmin[u] = mc;  // adjust this in second phase
+	}
+
+	/** Second phase of differential cost computation. */
+	docosts2(u) {
+		let l = this.left(u); let r = this.right(u);
+		if (this.left(u))  this.docosts2(this.left(u));
+		if (this.right(u)) this.docosts2(this.right(u));
+		if (this.p(u))
+			this.#dmin[u] -= this.#dmin[this.p(u)];
 	}
 }

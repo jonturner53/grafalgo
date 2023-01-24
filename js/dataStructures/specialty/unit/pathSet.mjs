@@ -45,6 +45,9 @@ try {
 			'[d:2:0:0 *g:3:2:1 -]}', 'a13');
 	assert(ps.cost(1), 5, 'a14'); assert(ps.mincost(6), 1, 'a15');
 
+	ps.fromString('{g[a:5 f:2 c:4] [b:1] b[d:2 g:3 e:4]}');
+	assert(ps,'{g[a:5 f:2 c:4] [b:1] b[d:2 g:3 e:4]}','b1');
+
 	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError)

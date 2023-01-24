@@ -186,22 +186,6 @@ export default class LazyHeaps extends LeftistHeaps {
 		return d;
 	}
 	
-	/** Determine if two LazyHeaps objects are equal.
-	 *  @param other is another LazyHeaps to be compared to this,
-	 *  or a string representing an LazyHeaps object.
-	 *  @return true, false or an object
-	equals(other) {
-		let lh = super.setEquals(other);
-		if (typeof lh == 'boolean') return lh;
-		// check that keys and retired status match
-		for (let i = 1; i <= this.nn; i++) {
-			if (this.retired(i) != lh.retired(i)) return false;
-			if (!this.retired(i) && this.key(i) != lh.key(i)) return false;
-		}
-		return lh;
-	}
-	 */
-
 	/** Determine if two LazyHeaps objects represent the same sets.
 	 *  @param lh is a LazyHeaps object to be compared to this
 	 *  @return true if both represent the same sets.

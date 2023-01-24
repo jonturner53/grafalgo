@@ -17,12 +17,12 @@ import Scanner from '../basic/Scanner.mjs';
  *  set of leftist heaps.
  */
 export default class LeftistHeaps extends BinaryForest {
-	#key;		// #key[i] is key of item i
-	#rank;		// #rank[i] gives rank of item i
+	#key;    	// #key[i] is key of item i
+	#rank;	    // #rank[i] gives rank of item i
 
     insertCount;       // calls to insert
     deleteCount;       // calls to deletemin
-    meldSteps;		    // steps in meld operations
+    meldSteps;         // steps in meld operations
 
 	/** Constructor for LeftistHeaps object.
 	 *  @param n is index range for object
@@ -42,29 +42,25 @@ export default class LeftistHeaps extends BinaryForest {
 	}
 
 	/** Assign a new value by copying from another heap.
-	 *  @param lh is another LeftistHeaps object
+	 *  @param other is another LeftistHeaps object
 	 */
-	assign(lh) {
-		if (lh == this || (!lh instanceof LeftistHeaps)) return;
-		if (lh.n != this.n) this.reset(lh.n);
-		else this.clear();
-
-		for (let r = 1; r <= lh.n; r++) {
-			if (lh.p(r)) continue;
-			let rr = lh.first(r);
-			for (let u = lh.next(rr); u; u = lh.next(u))
-				rr = this.insert(u, rr, lh.key(u));
+	assign(other, relaxed=false) {
+		super.assign(other, relaxed);
+		for (let r = 1; r <= other.n; r++) {
+			if (other.p(r)) continue;
+			let rr = other.first(r);
+			for (let u = other.next(rr); u; u = other.next(u))
+				rr = this.insert(u, rr, other.key(u));
 		}
 	}
 
 	/** Assign a new value by transferring from another heap.
 	 *  @param h is another heap
 	 */
-	xfer(lh) {
-		if (lh == this) return;
-		super.xfer(lh);
-		this.#key = lh.#key; this.#rank = lh.#rank;
-		lh.#key = lh.#rank = null;
+	xfer(other) {
+		super.xfer(other);
+		this.#key = other.#key; this.#rank = other.#rank;
+		other.#key = other.#rank = null;
 	}
 
 	/** Revert to initial state. */

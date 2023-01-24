@@ -13,8 +13,8 @@ try {
 	console.log('running basic tests');
 
 	let f = new BinaryForest();
-	assert(f.fromString('{[a b (c d e)] ' +
-						'[((h i -) j k) l ((m n -) o (- p (q r -)))]}'), 'a0');
+	assert(f.fromString('{[a *b (c d e)] ' +
+						'[((h i -) j k) *l ((m n -) o (- p (q r -)))]}'), 'a0');
 	assert(f,'{[a *b (c d e)] ' +
 			  '[((h i -) j k) *l ((m n -) o (- p (q r -)))]}', 'a1');
 	assert(f.singleton(6),true,'a2');
@@ -42,49 +42,50 @@ try {
 	assert(f.prev(1),0,'b5');
 
 	f.swap(12,15);
-	assert(f,'{[a b (c d e)] ' +
-			  '[((h i -) j k) o ((m n -) l (- p (q r -)))]}', 'c1');
+	assert(f,'{[a *b (c d e)] ' +
+			  '[((h i -) j k) *o ((m n -) l (- p (q r -)))]}', 'c1');
 	f.cut(10);
-	assert(f,'{[a b (c d e)] [(h i -) j k] ' +
-			  '[- o ((m n -) l (- p (q r -)))]}', 'c2');
+	assert(f,'{[a *b (c d e)] [(h i -) *j k] ' +
+			  '[- *o ((m n -) l (- p (q r -)))]}', 'c2');
 	f.link(2,6,-1);
-	assert(f,'{[(a b (c d e)) f -] ' +
-			  '[(h i -) j k] ' +
-			  '[- o ((m n -) l (- p (q r -)))]}', 'c3');
+	assert(f,'{[(a b (c d e)) *f -] ' +
+			  '[(h i -) *j k] ' +
+			  '[- *o ((m n -) l (- p (q r -)))]}', 'c3');
 	let [t1,t2] = f.split(12);
 	assert(t1,15,'c4'); assert(t2,16,'c5');
-	assert(f,'{[(a b (c d e)) f -] ' +
-			  '[(h i -) j k] ' +
-			  '[- o (m n -)] ' +
-			  '[- p (q r -)]}', 'c6');
+	assert(f,'{[(a b (c d e)) *f -] ' +
+			  '[(h i -) *j k] ' +
+			  '[- *o (m n -)] ' +
+			  '[- *p (q r -)]}', 'c6');
 	let t = f.join(6,7,10);
 	assert(t,7,'c7');
-	assert(f,'{[((a b (c d e)) f -) g ((h i -) j k)] ' +
-			  '[- o (m n -)] ' +
-			  '[- p (q r -)]}', 'c8');
+	assert(f,'{[((a b (c d e)) *f -) g ((h i -) j k)] ' +
+			  '[- *o (m n -)] ' +
+			  '[- *p (q r -)]}', 'c8');
 	t = f.append(15,16);
 	assert(t,14,'c9');
-	assert(f,'{[((a b (c d e)) f -) g ((h i -) j k)] ' +
-			  '[(- o m) n (- p (q r -))]}', 'c10');
+	assert(f,'{[((a b (c d e)) f -) *g ((h i -) j k)] ' +
+			  '[(- o m) *n (- p (q r -))]}', 'c10');
 	f.swap(2,4);
-	assert(!f.listEquals('{[(a b (c d (e f -))) g ((h i -) j k)] ' +
-			 		  	 '[(o m -) n (p q r)]}'), 'd6');
-	assert(f.setEquals('{[(a b (c d (e f -))) g ((h i -) j k)] ' +
-			 		    '[(o m -) n (p q r)]}'), 'd7');
-	assert(!f.setEquals('{[(a b (c d (e f -))) g ((h i -) j k)] ' +
-			 		     '[(o m -) n (- q r)]}'), 'd8');
+	assert(!f.listEquals('{[(a b (c d (e f -))) *g ((h i -) j k)] ' +
+			 		  	 '[(o m -) *n (p q r)]}'), 'd6');
+	assert(f.setEquals('{[(a b (c d (e f -))) *g ((h i -) j k)] ' +
+			 		    '[(o m -) *n (p q r)]}'), 'd7');
+	assert(!f.setEquals('{[(a b (c d (e f -))) *g ((h i -) j k)] ' +
+			 		     '[(o m -) *n (- q r)]}'), 'd8');
 
-	assert(f,'{[((a d (c b e)) f -) g ((h i -) j k)] ' +
-			 '[(- o m) n (- p (q r -))]}', 'e1');
+	assert(f,'{[((a d (c b e)) f -) *g ((h i -) j k)] ' +
+			 '[(- o m) *n (- p (q r -))]}', 'e1');
 	f.delete(7);
-	assert(f,'{[(- o m) n (- p (q r -))] [(a d (c b e)) f ((h i -) j k)]}',
+	assert(f,'{[(- o m) *n (- p (q r -))] [(a d (c b e)) *f ((h i -) j k)]}',
 			 'e2');
 	assert(!f.verify(), 'e3');
 
 	f.fromListString('{[a b c d] [e f g] [h i j k l m n] [p q r]}');
-	assert(f,'{[(a b -) c d] [e f g] ' +
-			  '[((((h i -) j -) k -) l -) m n] [p q r]}', 'f1');
-	assert(f.toString(0),'{[a b *c d] [e *f g] [h i j k l *m n] [p *q r]}','f2');
+	assert(f,'{[(a b -) *c d] [e *f g] ' +
+			  '[((((h i -) j -) k -) l -) *m n] [p *q r]}', 'f1');
+	assert(f.toString(0),'{[a b *c d] [e *f g] [h i j k l *m n] [p *q r]}',
+			'f2');
 
 	let key = new Float32Array(18);
 	for (let i = 0; i <= 18; i++) key[i] = i;
@@ -92,11 +93,14 @@ try {
 
 	key[15] = 10.5;
 	f.insertByKey(15, 13, key);
-	assert(f,'{[(a b -) c d] [e f g] ' +
-			  '[((((h i -) j o) k -) l -) m n] [p q r]}', 'f4');
+	assert(f,'{[(a b -) *c d] [e *f g] ' +
+			  '[((((h i -) j o) k -) l -) *m n] [p *q r]}', 'f4');
 
 	f.insertAfter(10, f.delete(10), 11);
 	assert(f,'{[(a b -) *c d] [e *f g] [(((h i o) k j) l -) *m n] ' +
+			 '[p *q r]}', 'f5');
+	f.property(3,3); f.property(13,13);
+	assert(f,'{3[(a b -) *c d] [e *f g] 13[(((h i o) k j) l -) *m n] ' +
 			 '[p *q r]}', 'f5');
 
 	let compare = (a,b) => a.localeCompare(b);

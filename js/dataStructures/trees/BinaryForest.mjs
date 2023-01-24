@@ -370,8 +370,7 @@ export default class BinaryForest extends Top {
 	split(u, refresh=0) {
 		fassert(this.valid(u));
 		let v = u; let p = this.p(v);
-		let [l,r] = [this.left(u), this.right(u)];
-		this.left(u,0); this.right(u,0); this.p(u,0);
+		let [l,r] = [this.left(v), this.right(v)];
 		while (p > 0) {
 			this.steps++;
 			let gp = this.p(p); this.p(p,0); // isolate p's subtree
@@ -383,6 +382,7 @@ export default class BinaryForest extends Top {
 			v = p; p = gp;
 		}
 		this.p(l,0); this.p(r,0);
+		this.left(u,0); this.right(u,0); this.p(u,0);
 		if (refresh) refresh(u);
 		return [l,r];
 	}
@@ -557,16 +557,18 @@ export default class BinaryForest extends Top {
 	 *    0b100 specifies that the tree structure is shown
 	 *  the default value is 0b100
 	 *  @param nodeLabel(u) is a function that is used to label nodes
-	 *  @param treeLabel(t) is an optional function used to label trees
+	 *  @param treeProp(t) is an optional function used to generate a string
+	 *  representing a tree property
 	 */
-	toString(fmt=0x4, nodeLabel=0, treeLabel=0) {
+	toString(fmt=0x4, nodeLabel=0, treeProp=0) {
 		if (!nodeLabel) nodeLabel = (u => this.x2s(u));
+		if (!treeProp) treeProp = (u => this.property(u));
 		let s = '';
 		for (let u = 1; u <= this.n; u++) {
 			if (this.p(u) > 0) continue;
 			if (this.singleton(u) && !(fmt&0x2)) continue;
 			if (!(fmt&0x1) && s) s += ' ';
-			if (treeLabel) s += treeLabel(u);
+			if (this.property(u)) s += treeProp(u);
 			s += this.tree2string(u,fmt,nodeLabel);
 			if (fmt&0x1) s += '\n';
 		}
@@ -605,15 +607,30 @@ export default class BinaryForest extends Top {
 	 *  @param s is a string representing a forest.
 	 *  @param prop is an optional function used to parse and
 	 *  process node properties.
+	 *  @param tprop is an optional function used to parse and
+	 *  process tree properties
 	 *  @return true on success, else false
 	 */
-	fromString(s,prop=0) {
+	fromString(s,prop=0,tprop=0) {
 		let sc = new Scanner(s);
+		if (!tprop)
+			tprop = (sc) => {
+							let p = sc.nextNumber();
+							if (isNaN(p)) return 0;
+							return p;
+							};
+		
         if (!sc.verify('{')) return false;
 		// scan input building parent mapping
-        let pmap = [];
+		
+		let pmap = [];
 		while (!sc.verify('}')) {
-			if (this.nextSubtree(sc, pmap, prop) < 0) return false;
+			if (sc.verify('[')) {
+				sc.reset(-1);
+			} else {
+				if (!tprop(sc)) return false;
+			}
+			if (this.nextSubtree(sc, pmap, prop, tprop) < 0) return false;
 		}
 		let n = 0; let nodes = new Set();
 		for (let [u,p] of pmap) {
@@ -625,7 +642,8 @@ export default class BinaryForest extends Top {
 		if (n != this.n) this.reset(n);
 		else this.clear();
 		for (let [u,p,side] of pmap) {
-			if (side) this.link(u,p,side);
+			if (p > 0) this.link(u,p,side);
+			else this.property(u,-p);
 		}
 		return true;
 	}
@@ -634,34 +652,45 @@ export default class BinaryForest extends Top {
 	 *  @param sc is a scanner
 	 *  @param pmap is an array of pairs [u,p,side] representing a mapping
 	 *  from a node u to its parent, with side specifying that u is the left
-	 *  child (-1) or right child (+1); nextSubtree adds new mappings to pmap
+	 *  child (-1) or right child (+1); if u is a tree root, p may be either
+	 *  0 or negative, in which case its inverse is the tree's property;
+	 *  nextSubtree adds new mappings to pmap
+	 *  @param prop is an optional function used to scan for an item property
+	 *  @param tprop is an optional function used to scan for a tree property,
+	 *  which is a positive integer value
 	 *  @param treeRoot is a flag at the root of a tree.
 	 *  @return the root of the subtree scanned (possibly 0 for empty subtree)
 	 *  or -1 if no valid subtree
 	 */
-	nextSubtree(sc, pmap, prop=0, treeRoot=1) {
+	nextSubtree(sc, pmap, prop=0, tprop=0, treeRoot=1) {
 		if (treeRoot) {
-			if (!sc.verify('[')) return -1;
-			let t1 = this.nextSubtree(sc, pmap, prop, 0);
+			let treeProp = 0;
+			if (!sc.verify('[')) {
+				treeProp = tprop(sc);
+				if (!treeProp) return -1;
+				if (!sc.verify('[')) return -1;
+			}
+			let t1 = this.nextSubtree(sc, pmap, prop, 0, 0);
 			if (t1 < 0) return -1;
 			let u = sc.nextIndex(prop);
 			if (u == -2) return -1;
 			if (u == -1) { // special case for singleton tree
-				pmap.push([t1,0,0]);  // t1 is tree root, so no parent
+				pmap.push([t1,-treeProp,0]);  // t1 is tree root, so no parent
 				return (sc.verify(']') ? t1 : -1);
 			}
-			let t2 = this.nextSubtree(sc, pmap, prop, 0);
+			pmap.push([u,-treeProp,0]);
+			let t2 = this.nextSubtree(sc, pmap, prop, 0, 0);
 			if (t2 < 0) return -1;
 			if (t1 && u) pmap.push([t1,u,-1]);
 			if (t2 && u) pmap.push([t2,u,+1]);
 			return (sc.verify(']') ? u : -1);
 		}
 		if (sc.verify('(')) {
-			let t1 = this.nextSubtree(sc, pmap, prop, 0);
+			let t1 = this.nextSubtree(sc, pmap, prop, 0, 0);
 			if (t1 < 0) return -1;
 			let u = sc.nextIndex(prop);
 			if (u < 0) return -1;
-			let t2 = this.nextSubtree(sc, pmap, prop, 0);
+			let t2 = this.nextSubtree(sc, pmap, prop, 0, 0);
 			if (t2 < 0) return -1;
 			if (t1 && u) pmap.push([t1,u,-1]);
 			if (t2 && u) pmap.push([t2,u,+1]);
@@ -673,19 +702,46 @@ export default class BinaryForest extends Top {
 
 	/** Initialize this object from a string that represents a set of lists.
 	 *  @param s is a string representing a heap.
+	 *  @param prop is an optional function used to parse a list item property
+	 *  @param lprop is an optional function used to parse a list property;
+	 *  which must be a positive integer value
 	 *  @return on if success, else false
 	 */
-	fromListString(s, prop=0) {
-		let ls = new ListSet(); 
-		if (!ls.fromString(s, prop)) return false;
-		if (ls.n != this.n) this.reset(ls.n);
-		else this.clear();
-		for (let u = 1; u <= this.n; u++) {
-			if (!ls.isfirst(u)) continue;
-			let r = u;
-			for (let v = ls.next(r); v; v = ls.next(v)) {
-				r = this.append(r,v); 
+	fromListString(s, prop=0, lprop=0) {
+		let sc = new Scanner(s);
+		if (!lprop) 
+			lprop = (sc => {
+						let p = sc.nextNumber();
+						if (isNaN(p)) return 0;
+						return p;
+						});
+		if (!sc.verify('{')) return false;
+		let lists = []; let n = 0; let items = new Set();
+		while (!sc.verify('}')) {
+			let listProp = 0;
+			if (sc.verify('[')) {
+				sc.reset(-1);
+			} else {
+				listProp = lprop(sc);
+				if (!listProp) return false;
 			}
+			let l = sc.nextIndexList('[', ']', prop);
+			if (!l) return false;
+			for (let i of l) {
+				n = Math.max(i, n);
+				if (items.has(i)) return false;
+				items.add(i);
+			}
+			lists.push([l,listProp]);
+		}
+		if (n != this.n) this.reset(n);
+		else this.clear();
+		for (let [l,p] of lists) {
+			let t = l[0];
+			for (let u of l) {
+				t = this.append(t,u);
+			}
+			this.property(t,p);
 		}
 		return true;
 	}
@@ -696,8 +752,8 @@ export default class BinaryForest extends Top {
 	 */
 	verify() {
 		if (this.left(0) || this.right(0) || this.p(0))
-			return `null node has non-null neighbor ${this.x2s(this.left(0))} ` +
-				   `${this.x2s(this.right(0))} ${this.x2s(this.p(0))}`;
+			return `null node has non-null neighbor ${this.x2s(this.left(0))} `
+				   + `${this.x2s(this.right(0))} ${this.x2s(this.p(0))}`;
 		for (let u = 1; u <= this.n; u++) {
 			let pu = this.p(u);
 			if (pu) {

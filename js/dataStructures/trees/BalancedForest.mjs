@@ -133,7 +133,9 @@ export default class BalancedForest extends BinaryForest {
 	join(t1, u, t2, refresh=0) {
 		let r1 = this.rank(t1); let r2 = this.rank(t2);
 		if (r1 == r2) {
-			let t = super.join(t1,u,t2); this.rank(t, r1+1);
+			let t = super.join(t1,u,t2);
+			if (refresh) refresh(u);
+			this.rank(t, r1+1);
 			return t;
 		}
 		if (r1 > r2) {
@@ -155,7 +157,7 @@ export default class BalancedForest extends BinaryForest {
 				pv = v; v = this.left(v); this.steps++;
 			}
 			super.join(t1, u, v);
-			this.link(u,pv,-1); this.rank(u, r1+1)
+			this.link(u,pv,-1); this.rank(u,r1+1)
 			this.p(t2,0);
 			if (refresh) refresh(u);
 			this.rerankUp(u);

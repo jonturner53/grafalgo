@@ -11,34 +11,34 @@ import ListSet from '../basic/ListSet.mjs';
 import Top from '../Top.mjs';
 import BalancedForest from '../trees/BalancedForest.mjs';
 
-/** This class implements a balanced binary search tree class.
- *  It partitions the index set into multiple search trees.
+/** This class implements a key set: a collection of disjoint sets with
+ *  each set element having an associated key. It supports an efficient
+ *  search operation to find an element with a specified key value.
+ *  The implementation used here is based on a balanced binary forest.
+ *  It can support either numeric keys or strings.
  */
 export default class KeySets extends BalancedForest {
 	#key;        // #key[u] is the key of item u
-	compare;     // element comparison function
-	nextKey;     // function to scan next key
-	key2string;  // function to convert key to string
+	#stringKey;  // true if the keys are strings
+	#compare;    // function used to compare two strings
 
 	/** Constructor for KeySets object.
 	 *  @param n is index range for object
+	 *  @param stringKey is a flag; if true, the object is constructed using
+	 *  strings as the key values; otherwise, it uses Numbers
 	 */
-	constructor(n=10, compare, nextKey, key2string) {
+	constructor(n=10, stringKey=false) {
 		super(n);
-		this.#key = new Array(this.n+1);
-		this.compare = (compare ? compare : (a,b)=>a-b);
-		this.nextKey = (nextKey ? nextKey :
-							(sc) => {
-                            	let p = sc.nextNumber();
-                            	return (Number.isNaN(p) ? null : p);
-                        	});
-		this.key2string = (key2string ? key2string : k => ''+k);
+		this.#stringKey = stringKey;
+		this.#compare = (stringKey ? (a,b) => a.localeCompare(b) :
+									 (a,b) => a-b);
+		this.#key = new Array(this.n+1).fill(this.#stringKey ? '' : 0);
 	}
 
 	/** Expand this object. */
 	expand(n) {
 		fassert(n > this.n);
-		let nu = new KeySets(n,this.compare,this.nextKey,this.key2string);
+		let nu = new KeySets(n, this.#stringKey);
 		nu.assign(this,true); this.xfer(nu);
 	}
 
@@ -47,8 +47,8 @@ export default class KeySets extends BalancedForest {
 	 */
 	assign(other, relaxed=false) {
 		super.assign(other, relaxed);
-		this.compare = other.compare;
-		this.nextKey = other.nextKey; this.key2string = other.key2string;
+		this.#stringKey = other.#stringKey;
+		this.#compare = other.#compare;
 		for (let u = 1; u <= other.n; u++)
 			this.key(u, other.key(u));
 	}
@@ -59,17 +59,16 @@ export default class KeySets extends BalancedForest {
 	xfer(other) {
 		super.xfer(other);
 		this.#key = other.#key; other.#key = null;
-		this.compare = other.compare; other.compare = null;
-		this.nextKey = other.nextKey; other.nextKey = null;
-		this.key2string = other.key2string; other.key2string = null;
+		this.#stringKey = other.#stringKey; other.#stringKey = null;
+		this.#compare = other.#compare; other.#compare = null;
 	}
 
-	clear() { super.clear(); this.#key.fill(0); }
+	clear() { super.clear(); this.#key.fill(null); }
 
 	/** Find the set containing a given item. */
 	find(u) { return super.root(u); }
 	
-	/** Get or set the key value of a node. */
+	/** Get or set the key value of an item. */
 	key(u, k=null) {
 		if (k != null) this.#key[u] = k;
 		return this.#key[u];
@@ -82,13 +81,13 @@ export default class KeySets extends BalancedForest {
 	 */
 	contains(u, s) { return s == this.find(u); }
 	
-	/** Determine if a given set contains an item with a specified key.
+	/** Lookup an item in a set based on its key.
 	 *  @param k is a key.
 	 *  @param s is the id of a set.
 	 *  @return an item with the key k or 0.
 	 */
-	includes(k, s) {
-		return this.search(k, s, this.#key, this.compare);
+	lookup(k, s) {
+		return this.search(k, s, this.#key, (a,b) => this.#compare(a,b));
 	}
 	
 	/** Insert an item into a set.
@@ -100,7 +99,8 @@ export default class KeySets extends BalancedForest {
 	 */
 	insert(u, t, refresh=0) {
 		if (u > this.n) this.expand(u);
-		return super.insertByKey(u, t, this.#key, this.compare, refresh);
+		return super.insertByKey(u, t, this.#key,
+								 (a,b) => this.#compare(a,b), refresh);
 	}
 
 	/** Determine if two KeySets objects are equal.
@@ -112,11 +112,10 @@ export default class KeySets extends BalancedForest {
 		if (this === other) return true;
 
 		// must handle the string case here to ensure other
-		// has correct compare function
+		// has correct stringKey value
         if (typeof other == 'string') {
             let s = other;
-			other = new KeySets(this.n, this.compare,
-								this.nextKey, this.key2string);
+			other = new KeySets(this.n, this.#stringKey);
 			if (!other.fromString(s)) return s == this.toString();
 			if (other.n > this.n) return false;
 			if (other.n < this.n) other.expand(this.n);
@@ -125,7 +124,7 @@ export default class KeySets extends BalancedForest {
 		if (!super.setEquals(other)) return false;
 
 		for (let u = 1; u <= this.n; u++) {
-			if (this.compare(this.key(u),other.key(u)) != 0) return false;
+			if (this.key(u) != other.key(u)) return false;
 		}
 		return other;
 	}
@@ -143,7 +142,8 @@ export default class KeySets extends BalancedForest {
 	 */
 	toString(fmt=0b010, label=0) {
 		if (!label) {
-			label = (x => this.x2s(x) + ':' + this.key2string(this.key(x)) +
+			label = (x => this.x2s(x) + ':' +
+						  (this.#stringKey ? `"${this.key(x)}"` : this.key(x)) +
 					 (fmt&0x8 ? ':' + this.rank(x) : ''));
 		}
 		return super.toString(fmt,label);
@@ -156,19 +156,22 @@ export default class KeySets extends BalancedForest {
 	fromString(s) {
 		let ls = new ListSet(); let key = [];
 		if (!ls.fromString(s, (u,sc) => {
-							if (!sc.verify(':')) {
-								key[u] = 0; return true;
+							if (!sc.verify(':')) return true;
+							let k;
+							if (this.#stringKey) {
+								k = sc.nextString();
+								if (k == null) return false;
+							} else {
+								k = sc.nextNumber();
+								if (isNaN(k)) return false;
 							}
-							let k = this.nextKey(sc);
-							if (k == null) return false;
 							key[u] = k;
 							return true;
 						}))
 			return false;
-		if (ls.n != this.n)
-			this.reset(ls.n, this.compare, this.nextKey, this.key2string);
-		else
-			this.clear();
+
+		if (ls.n != this.n) this.reset(ls.n, this.#stringKey);
+		else this.clear();
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
 			this.key(u, key[u]);

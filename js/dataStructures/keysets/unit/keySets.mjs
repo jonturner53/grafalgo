@@ -25,18 +25,17 @@ try {
 	let r = ks.find(1); let l = new List();
 	for (let u = ks.first(r); u != 0; u = ks.next(u)) l.enq(u);
 	assert(l, '[a b c d e f]', 'a5');
-	assert(ks.includes(2, r), 2, 'a7');
-	assert(ks.includes(5, r), 5, 'a8');
-	assert(ks.includes(7, r), 0, 'a9');
+	assert(ks.lookup(2, r), 2, 'a7');
+	assert(ks.lookup(5, r), 5, 'a8');
+	assert(ks.lookup(7, r), 0, 'a9');
 	assert(ks.contains(5, r), true, 'a10');
 
-	ks.reset(10, (a,b) => a.localeCompare(b),
-				 (sc) => { let s = sc.nextString(); return s ? s : null; },
-				 k => '"' + k + '"');
-	ks.fromString('{[a:"bb" b:"aa" c:"dd" d:"c c"] [e:"ee"]}');
-	assert(ks, '{[b:"aa" *a:"bb" d:"c c" c:"dd"] [e:"ee"]}', 'b1');
-	assert(ks.toString(6), '{[b:"aa" *a:"bb" (d:"c c" c:"dd" -)] [e:"ee"]}', 'b2');
-	assert(ks.includes('c c',1), 4, 'b3');
+	ks.reset(10, true);  // switch to keys that are strings
+	ks.fromString('{[a:"bb" b:"aa" c d:"c c"] [e:"ee"]}');
+	assert(ks, '{[b:"aa" *a:"bb" d:"c c" c:""] [e:"ee"]}', 'b1');
+	assert(ks.toString(6), '{[c:"" *b:"aa" (- a:"bb" d:"c c")] ' +
+							'[e:"ee"]}', 'b2');
+	assert(ks.lookup('c c',1), 4, 'b3');
 
 	console.log('passed tests');
 } catch(e) {

@@ -11,7 +11,7 @@ import Matching from './Matching.mjs';
 import Blossoms from './Blossoms.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
-import PartitionedHeap from '../../dataStructures/heaps/PartitionedHeap.mjs';
+import GroupHeap from '../../dataStructures/heaps/GroupHeap.mjs';
 
 let g=null;       // shared copy of graph
 let match;        // Matching object representing matching for graph
@@ -28,7 +28,7 @@ let ebh;          // heap of even outer blossoms, with key[b]=z[b]/2
 
 let eeh;          // heap of edges with two even endpoints
                   // key(e) = slack(e)/2
-let exh;          // PartitionedHeap object containing subheap of edges incident
+let exh;          // GroupHeap object containing a group of edges incident
 				  // to each odd or unbound blossom, key(e) = slack(e)
 let firstVertex;  // firstVertex[b] is first vertex in blossom b
 
@@ -66,7 +66,7 @@ export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 	obh = new ArrayHeap(bloss.n);
 	ebh = new ArrayHeap(bloss.n);
 	eeh = new ArrayHeap(g.edgeRange);
-	exh = new PartitionedHeap(g.edgeRange+g.n, bloss.n);
+	exh = new GroupHeap(g.edgeRange+g.n, bloss.n);
 	firstVertex = new Int32Array(bloss.n+1);
 
 	trace = traceFlag; traceString = '';
@@ -137,11 +137,6 @@ export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 							traceString += 'outer blossoms:\n' +
 											bloss.toString(1);
 					}
-//traceString += heaps2string() + '\n';
-//traceString += exh.toString(2, e => 
-	//	e > g.edgeRange ? g.x2s(e-g.edgeRange) :
-	//	 (g.n > 26 ? g.e2s(e) : g.x2s(g.left(e)) + g.x2s(g.right(e)))) + '\n';
-//traceString += exh.active.toString(0,u => ''+u + ':' + exh.active.key(u)) + '\n';
 					continue;
 				}
 
@@ -161,8 +156,10 @@ export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
 						if (sb > g.n) {
 							z[sb] = 2*obh.key(sb); obh.delete(sb);
 						}
-						for (let u = bloss.firstIn(sb); u; u = bloss.nextIn(sb,u)) {
-							z[u] = ovh.key(u); ovh.delete(u); evh.insert(u, z[u]);
+						for (let u = bloss.firstIn(sb); u;
+									 u = bloss.nextIn(sb,u)) {
+							z[u] = ovh.key(u); ovh.delete(u);
+							evh.insert(u, z[u]);
 						}
 						exh.clear(sb); addEXedges(sb)
 					}
@@ -383,11 +380,11 @@ function newPhase() {
 			for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
 				// insert dummy edge for u in b's subheap within exh
 				let e = u + g.edgeRange;
-				exh.insertAfter(e, laste, b, Infinity); laste = e;
+				exh.insertAfter(e, b, Infinity, laste); laste = e;
 				for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 					let v = g.mate(u,e); let bv = bloss.outer(v);
 					if (bloss.state(bv) == +1) {
-						exh.insertAfter(e, laste, b, slack(e)); laste = e;
+						exh.insertAfter(e, b, slack(e), laste); laste = e;
 					}
 				}
 			}
@@ -489,7 +486,7 @@ function addEXedges(b) {
 			if (bloss.state(bv) == +1)
 				eeh.insert(e,slack(e)/2);
 			else {// bv is odd or unbound
-				exh.insertAfter(e, v+g.edgeRange, bv, slack(e));
+				exh.insertAfter(e, bv, slack(e), v+g.edgeRange);
 			}
 			steps++;
 		}
@@ -550,6 +547,7 @@ function checkTerm() {
 
 function verifyInvariant() {
 	//let mv = match.verify(); if (mv) return mv;
+	let exhv = exh.groups.verify(); if (exhv) return exhv;
 	let bv = bloss.verify(); if (bv) return bv;
 	for (let b = 1; b <= bloss.n; b++) {
 		if (b <= g.n && zz(b) < 0)

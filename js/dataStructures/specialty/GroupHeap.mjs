@@ -10,16 +10,15 @@ import Top from '../../dataStructures/Top.mjs';
 import { fassert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
-import ArrayHeap from './ArrayHeap.mjs';
+import ArrayHeap from '../heaps/ArrayHeap.mjs';
 import OrderedHeaps from './OrderedHeaps.mjs';
 
-/** Data structure representing a partitioned heap.
- *  The collection of heap items is divided into "groups", where each
+/** Data structure representing a group heap.
+ *  The collection of items is divided into "groups", where each
  *  group is classified as "active" or "inactive" and can change status
- *  on request. Heap items within each group have a defined list order
- *  that is maintained, in addition to the usual ordering based on keys.
+ *  on request. Items within each group have a defined list order.
  *  The items in the active groups define a single collective heap,
- *  and operations line findmin are defined on this heap.
+ *  and operations like findmin are defined on this heap.
  *  Each group has a group identifier that is assigned by the client.
  *
  *  This data structure was originally devised to support
@@ -52,7 +51,7 @@ export default class GroupHeap extends Top {
 	}
 
 	/** Assign new value to this from another. 
-	 *  @paran other is a GroupHeap object
+	 *  @param other is a GroupHeap object
 	 */
 	assign(other) {
 		fassert(other instanceof GroupHeap);
@@ -145,9 +144,7 @@ export default class GroupHeap extends Top {
 	/** Deactivate a group */
 	deactivate(g) { this.#updateKeys(g); this.active.delete(g); }
 
-	/** Find the item in an active heap with the smallest key.
-	 *  @return the item with the smallest key incident to g
-	 */
+	/** Find the active item with the smallest key.  */
 	findmin() {
 		let g = this.active.findmin();
 		if (!g) return 0;
@@ -155,8 +152,8 @@ export default class GroupHeap extends Top {
 		return this.groups.findmin(this.top[g]);
 	}
 
-	/** Modify the key values of items in active groups.
-	 *  @param delta is a value to be added to the keys.
+	/** Modify the key values of all active items.
+	 *  @param delta is a value to be added to the keys of all active items.
 	 */
 	add2keys(delta) { this.active.add2keys(delta); }
 
@@ -346,10 +343,5 @@ export default class GroupHeap extends Top {
 		this.steps += this.active.getStats().steps +
 					  this.groups.getStats().steps;
 		return { 'steps': this.steps };
-	}
-
-	verify() {
-		for (let g = 1; g <= this.gn; g++) {
-		}
 	}
 }

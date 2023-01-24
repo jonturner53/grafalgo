@@ -16,13 +16,13 @@ import Forest from '../trees/Forest.mjs';
  *  is specified when a heap object is constructed.
  */
 export default class ArrayHeap extends Top {
-	#d;			///< base of heap
-	#m;			///< # of items in the heap set
+	#d;          // base of heap
+	#m;          // # of items in the heap set
 
-	#item;		///< {#item[1],...,#item[m]} is the items in the heap
-	#pos;		///< #pos[i] gives position of i in #item
-	#key;		///< #key[i] is key of item i
-	#offset;	///< offset for key values, allowing all to shift at once
+	#item;       // {#item[1],...,#item[m]} is the items in the heap
+	#pos;        // #pos[i] gives position of i in #item
+	#key;        // #key[i] is key of item i
+	#offset;     // offset for key values, allowing all to shift at once
 
 	#insertCount;		// calls to insert
 	#deleteCount;		// calls to delete
@@ -34,26 +34,23 @@ export default class ArrayHeap extends Top {
 	/** Constructor for ArrayHeap object.
 	 *  @param n is index range for object
 	 *  @parm d is the base of the heap (defaults to 4)
-	 *  @param capacity is maximum index range (defaults to n)
 	 */
-	constructor(n=10, d=4, capacity=n) {
+	constructor(n=10, d=4) {
 		super(n);
-		this.#item = new Int32Array(capacity+1);
-		this.#pos = new Int32Array(capacity+1);
-		this.#key = new Float32Array(capacity+1);
+		this.#item = new Int32Array(n+1);
+		this.#pos = new Int32Array(n+1);
+		this.#key = new Float32Array(n+1);
 		this.#item[0] = this.#m = 0; this.#d = d;
 		this.#offset = 0;
 		this.clearStats();
-		this.#steps = capacity;
+		this.#steps = n;
 	}
 
 	/** Assign a new value by copying from another heap.
 	 *  @param other is another ArrayHeap
 	 */
-	assign(other) {
-		if (other == this || !(other instanceof ArrayHeap)) return;
-		if (other.n > this.n) { this.reset(other.n, other.d); }
-		else { this.clear(); this._n = other.n; }
+	assign(other, relaxed=false) {
+		super.assign(other, relaxed);
 
 		this.#m = other.m; this.#offset = other.#offset;
 		for (let p = 1; p <= other.m; p++) {
@@ -88,8 +85,6 @@ export default class ArrayHeap extends Top {
 		this.#insertCount = this.#deleteCount = this.#changekeyCount = 0
 		this.#siftupSteps = this.#siftdownSteps = this.#steps = 0;
 	}
-
-	get capacity() { return this.#item.length-1; }
 
 	get d() { return this.#d; }
 
@@ -166,7 +161,7 @@ export default class ArrayHeap extends Top {
 		fassert(i > 0 && this.valid(i), `ArrayHeap.insert: invalid item ${i}`);
 		if (this.contains(i)) { this.changekey(i,key); return; }
 		this.#insertCount++;
-		if (i > this.capacity) this.expand(i);
+		if (i > this.n) this.expand(i);
 		this.#key[i] = key - this.#offset; this.#m++; this.#siftup(i, this.m);
 	}
 	
