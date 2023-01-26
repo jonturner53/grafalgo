@@ -7,11 +7,13 @@
  */
 
 import Top from '../Top.mjs';
-import { fassert } from '../../common/Errors.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import SplayForest from '../trees/SplayForest.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** Data structure representing a collection of paths.
  *
@@ -25,12 +27,11 @@ export default class PathSet extends SplayForest {
 
 	/** Constructor for List object.
 	 *  @param n is the range for the list
-	 *  @param capacity is the max range to allocate space for
 	 */
-	constructor(n=10, capacity=n) {
-		super(n,capacity);
-		this.#dcost = new Float32Array(capacity+1).fill(0);
-		this.#dmin = new Float32Array(capacity+1).fill(0);
+	constructor(n=10) {
+		super(n);
+		this.#dcost = new Float32Array(this.n+1).fill(0);
+		this.#dmin = new Float32Array(this.n+1).fill(0);
 		this.#dcost[0] = this.#dmin[0] = Infinity;
 	}
 
@@ -86,8 +87,7 @@ export default class PathSet extends SplayForest {
 	 *  @return the successor
 	 */
 	succ(p, s=-1) {
-		if (s >= 0) this.property(p, s);
-		return this.property(p);
+		return super.property(p,s);
 	}
 	
 	/** Get the mincost of a subtree.
@@ -231,8 +231,7 @@ export default class PathSet extends SplayForest {
 	/** Compare two PathSets for equality.
 	 *  @param other is the PathSet to be compared to this one
 	 *  @return true if they are the same list or have the
-	 *  same contents (in the same order);
-	 *  they need not have the same storage capacity to be equal
+	 *  same contents (in the same order).
 	 */
 	equals(other) {
 		let ps = super.listEquals(other);

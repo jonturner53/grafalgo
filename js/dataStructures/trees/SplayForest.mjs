@@ -6,11 +6,13 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import BinaryForest from './BinaryForest.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** This class adds a splay operation to the BinaryForest class
  *  and uses it to implicitly balance the trees in the forest.

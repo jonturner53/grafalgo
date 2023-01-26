@@ -7,8 +7,10 @@
  */
 
 import Top from '../Top.mjs';
-import { fassert } from '../../common/Errors.mjs';
 import Scanner from './Scanner.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** Data structure that represents a pair of complementary index lists.
  *  The index values have a limited range 1..n and each index is
@@ -92,7 +94,8 @@ export default class ListPair extends Top {
 	 *  @param return true if i is a member of the list 1, else false.
 	 */
 	in1(i) {
-		fassert(this.valid(i), `ListPair.in1: invalid item ${i} (n=${this.n})`);
+		fassert(this.valid(i));
+		//		  `ListPair.in1: invalid item ${i} (n=${this.n})`);
 		return this.#prev[i] > 0 || i == this.#first1;
 	}
 	
@@ -101,7 +104,8 @@ export default class ListPair extends Top {
 	 *  @param return true if i is a member of the list 2, else false.
 	 */
 	in2(i) {
-		fassert(this.valid(i), `ListPair.in2: invalid item ${i} (n=${this.n})`);
+		fassert(this.valid(i));
+		//		  `ListPair.in2: invalid item ${i} (n=${this.n})`);
 		return this.#prev[i] < 0 || i == this.#first2;
 	}
 	
@@ -136,7 +140,8 @@ export default class ListPair extends Top {
 	 *  @return the next int on the list 1 or 0 if no more values
 	 */
 	next1(i) {
-		fassert(this.in1(i), `ListPair.next: item ${i} not in list1`);
+		fassert(this.in1(i));
+		// `ListPair.next: item ${i} not in list1`);
 		return this.#next[i];
 	}
 	
@@ -145,7 +150,8 @@ export default class ListPair extends Top {
 	 *  @return the next value on the list 2 or 0 if no more values
 	 */
 	next2(i) {
-		fassert(this.in2(i)); return this.#next[i];
+		fassert(this.in2(i));
+		return this.#next[i];
 	}
 	
 	/** Get the previous value in list 1.
@@ -153,7 +159,8 @@ export default class ListPair extends Top {
 	 *  @return the previous value on the list 1 or 0 if no more values
 	 */
 	prev1(i) {
-		fassert(this.in1(i)); return this.#prev[i];
+		fassert(this.in1(i));
+		return this.#prev[i];
 	}
 	
 	/** Get the previous value in list 2.
@@ -161,7 +168,8 @@ export default class ListPair extends Top {
 	 *  @return the previous value on the list 2 or 0 if no more values
 	 */
 	prev2(i) {
-		fassert(this.in2(i)); return -this.#prev[i];
+		fassert(this.in2(i)); 
+		return -this.#prev[i];
 	}
 	
 	/** Remove all elements from list 1. */

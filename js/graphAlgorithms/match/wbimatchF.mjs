@@ -7,7 +7,6 @@
  */
 
 import { assert } from '../../common/Errors.mjs';
-import { match2string } from './match.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import findSplit from '../misc/findSplit.mjs';
@@ -32,8 +31,6 @@ import Matching from './Matching.mjs';
  *  and stats is a statistics object, both from Dinic's algorithm;
  *  if dmin>0, the returned (generalized) matching will satisfy the
  *  specified minimum degree if it is possible to do so
-
-
  *  @return a triple [match, ts, stats] where match is a Matching object,
  *  ts is a possibly empty trace string
  *  and stats is a statistics object; both from Dinic's algorithm

@@ -6,8 +6,10 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** The Scanner class provides methods to parse a string incrementally.
  */

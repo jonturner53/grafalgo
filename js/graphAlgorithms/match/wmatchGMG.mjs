@@ -11,7 +11,7 @@ import Matching from './Matching.mjs';
 import Blossoms from './Blossoms.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
-import GroupHeap from '../../dataStructures/heaps/GroupHeap.mjs';
+import GroupHeap from '../../dataStructures/specialty/GroupHeap.mjs';
 
 let g=null;       // shared copy of graph
 let match;        // Matching object representing matching for graph

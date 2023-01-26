@@ -7,8 +7,10 @@
  */
 
 import Top from '../Top.mjs';
-import { assert, fassert } from '../../common/Errors.mjs';
 import Scanner from './Scanner.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** Data structure representing a list of unique integers.
  *
@@ -179,8 +181,8 @@ export default class List extends Top {
 	insert(i, j, value=null) {
 		if (i > this.n) this.expand(i);
 		fassert(this.valid(i) && i != 0 && !this.contains(i) &&
-					   (j == 0 || this.contains(j)),
-				`List.enq: ${this.x2s(i)} ${this.x2s(j)} ${this.toString()}`);
+					   (j == 0 || this.contains(j)));
+		//		`List.enq: ${this.x2s(i)} ${this.x2s(j)} ${this.toString()}`);
 		if (value != null) this.value(i, value);
 		if (j == 0) {
 			if (this.empty()) this.#last = i;

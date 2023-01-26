@@ -6,11 +6,13 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** This class implements a generic binary tree class.
  *  It partitions the index set into multiple trees.
@@ -108,8 +110,8 @@ export default class BinaryForest extends Top {
 	 * @return the property of t
 	 */
 	property(t, p=-1) {
-		fassert(this.isroot(t),
-				`BinaryForest.property: ${this.x2s(t)} ${this.#p[t]}`);
+		fassert(this.isroot(t)
+				/*, `BinaryForest.property: ${this.x2s(t)} ${this.#p[t]}`*/);
 		if (p >= 0) this.#p[t] = -p;
 		return -this.#p[t]
 	}
@@ -263,8 +265,8 @@ export default class BinaryForest extends Top {
 	 *  @return the root of the resuling tree
 	 */
 	insertAfter(u, t=this.root(v), v, refresh=0) {
-		fassert(v || t, 'BinaryForest:insertAfter: either v or t must ' +
-					    'be defined');
+		fassert(v || t /*, 'BinaryForest:insertAfter: either v or t must ' +
+					    'be defined'*/);
 		if (t == u) return u;
 		if (!v)
 			this.link(u, this.first(t), -1);

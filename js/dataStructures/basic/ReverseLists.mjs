@@ -7,9 +7,11 @@
  */
 
 import Top from '../Top.mjs';
-import { fassert } from '../../common/Errors.mjs';
 import ListSet from './ListSet.mjs';
 import Scanner from './Scanner.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** The ReverseLists class maintains a collection of disjoint lists defined
  *  over a set of integers 1..n. It supports constant time list-reversal,

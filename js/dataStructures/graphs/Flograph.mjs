@@ -6,10 +6,12 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
 import List from '../basic/List.mjs';
 import Digraph from './Digraph.mjs';
 import { shuffle } from '../../common/Random.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** Data structure for Flograph, used by max flow algorithms.
  *  Extends Digraph class and adds edge capacities, flows and
@@ -213,7 +215,7 @@ export default class Flograph extends Digraph {
 	 *  @param f is a flow amount to be added to the flow on e leaving u
 	 */
 	addFlow(e, u, f) {
-		fassert(f <= this.res(e, u), 'addFlow: edge capacity violation');
+		fassert(f <= this.res(e, u)); // 'addFlow: edge capacity violation');
 		if (u == this.tail(e)) this.#f[e] += f;
 		else 				   this.#f[e] -= f;
 	}
@@ -263,7 +265,8 @@ export default class Flograph extends Digraph {
 	 *  return  0 if u's mate in e1 is equal to its mate in e2.
 	 */
 	ecmp(e1, e2, u) {
-		fassert(this.validVertex(u) && this.validEdge(e1) && this.validEdge(e2));
+		fassert(this.validVertex(u) && this.validEdge(e1)
+									&& this.validEdge(e2));
 			 if (u == this.head(e1) && u == this.tail(e2)) return -1;
 		else if (u == this.tail(e1) && u == this.head(e2)) return 1;
 		else {

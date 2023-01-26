@@ -37,7 +37,7 @@ let steps;       // total number of steps
  */
 export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 	g = bg; trace = traceFlag; traceString = '';
-	match = new Matching(g); // match is returned
+	match = new Int32Array(g.n+1); // match is returned
 	if (link == null || link.length != g.n+1) {
 		link = new Int32Array(g.n+1);
 		level = new Int32Array(g.n+1);
@@ -55,21 +55,27 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 
 	// add edges to match, yielding maximal (not maximum) matching
 	for (let u = 1; u <= g.n; u++) {
-		if (match.at(u)) continue;
+		if (match[u]) continue;
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			steps++;
 			let v = g.mate(u,e);
-			if (!match.at(v)) { match.add(e); break; }
+			if (!match[v]) { match[u] = match[v] = e; break; }
 		}
 	}
 
-	if (trace)
-		traceString += `initial matching: ${match.toString()}\n` +
+	let matchObj = new Matching(g);
+	if (trace) {
+		for (let u = 1; u <= g.n; u++) {
+			let e = match[u];
+			if (e && !matchObj.contains(e)) matchObj.add(e);
+		}
+		traceString += `initial matching: ${matchObj.toString()}\n` +
 					   `augmenting paths\n`;
+	}
 
 	// add unmatched vertices from first subset to free
 	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
-		if (!match.at(u) && g.firstAt(u) != 0) free.enq(u);
+		if (!match[u] && g.firstAt(u) != 0) free.enq(u);
 		steps++;
 	}
 	while (newPhase()) {
@@ -86,10 +92,15 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 		}
 	}
 
+	matchObj.clear();
+	for (let u = 1; u <= g.n; u++) {
+		let e = match[u];
+		if (e && !matchObj.contains(e)) matchObj.add(e);
+	}
 	if (trace)
-		traceString += `final matching: ${match.toString()}\n`;
+		traceString += `final matching: ${matchObj.toString()}\n`;
 		
-    return [match, traceString,
+    return [matchObj, traceString,
 			{'phases': phases, 'paths': paths, 'steps': steps}];
 }
 
@@ -111,12 +122,12 @@ function newPhase() {
 		let u = q.deq(); // u in first subset
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			steps++;
-			if (e == match.at(u)) continue;
+			if (e == match[u]) continue;
 			let v = g.mate(u,e); // v in second subset
 			if (level[v] != g.n) continue;
 			// first time we've seen v
 			level[v] = level[u] + 1; 
-			let ee = match.at(v);
+			let ee = match[v];
 			if (ee == 0) stopLevel = level[v]; // alt-path here too
 			if (stopLevel == level[v]) continue;
 			let w = g.mate(v,ee);
@@ -139,7 +150,7 @@ function findpath(u) {
 		steps++;
 		let v = g.mate(u,e);
 		if (level[v] != level[u] + 1) continue;
-		let ee = match.at(v);
+		let ee = match[v];
 		if (ee == 0) { nextedge[u] = e; link[v] = e; return v; }
 		let w = g.mate(v,ee);
 		if (level[w] != level[v] + 1) continue;
@@ -164,11 +175,10 @@ function augment(u) {
 		if (e == 0) break;
 		let v = g.mate(u,e);
 		if (trace) ts = `${g.e2s(e)} ${ts}`;
-		match.add(e);
+		match[u] = match[v] = e;
 		let ee = link[v];
 		if (ee == 0) break;
 		if (trace) ts = `${g.e2s(ee)} ${ts}`;
-		match.drop(ee);
 		u = g.mate(v,ee);
 	}
 	if (trace) traceString += `[${ts}]\n`;

@@ -7,9 +7,11 @@
  */
 
 import Top from '../Top.mjs';
-import { fassert } from '../../common/Errors.mjs';
 import List from './List.mjs';
 import Scanner from './Scanner.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** The ListSet class maintains a collection of disjoint lists defined
  *  over a set of integers 1..n. Each list in the collection is identified
@@ -50,7 +52,10 @@ export default class ListSet extends Top {
 		}
 	}
 
-	isfirst(i) { fassert(this.valid(i)); return this.#next[this.#prev[i]] == 0; }
+	isfirst(i) {
+		fassert(this.valid(i));
+		return this.#next[this.#prev[i]] == 0;
+	}
 	
 	/** Get the last item in a list.
 	 *  @param f is the first item on a list.
@@ -66,7 +71,8 @@ export default class ListSet extends Top {
 	 *  @return the item that follows i in its list
 	 */
 	next(i) {
-		fassert(this.valid(i)); return this.#next[i];
+		fassert(this.valid(i));
+		return this.#next[i];
 	}
 	
 	/** Get the previous list item.

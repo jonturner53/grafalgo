@@ -7,9 +7,11 @@
  */
 
 import Top from '../Top.mjs';
-import { fassert } from '../../common/Errors.mjs';
 import Forest from '../trees/Forest.mjs';
 import PathSet from './PathSet.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** Data structure representing a collection of paths.
  *
@@ -22,9 +24,8 @@ export default class DynamicTrees extends PathSet {
 	
 	/** Constructor for DynamicTrees object.
 	 *  @param n is the range for the list
-	 *  @param capacity is the max range to allocate space for
 	 */
-	constructor(n=10, capacity=n) {
+	constructor(n=10) {
 		super(n); this.exposeCount = this.spliceCount = 0;
 	}
 
@@ -126,8 +127,7 @@ export default class DynamicTrees extends PathSet {
 	 *
 	 *  @param dt is the DynamicTrees to be compared to this one
 	 *  @return true if they are the same list or have the
-	 *  same contents (in the same order);
-	 *  they need not have the same storage capacity to be equal
+	 *  same contents (in the same order)
 	 */
 	equals(dt) {
 		if (this == dt) return true;

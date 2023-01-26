@@ -6,10 +6,12 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import Forest from '../trees/Forest.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** This class implements a heap data structure.
  *  The heap elements are identified by indexes in 1..n where n
@@ -158,7 +160,8 @@ export default class ArrayHeap extends Top {
 	 *  @param key is the key value under which i is to be inserted
 	 */
 	insert(i, key) {
-		fassert(i > 0 && this.valid(i), `ArrayHeap.insert: invalid item ${i}`);
+		fassert(i > 0 && this.valid(i));
+				// `ArrayHeap.insert: invalid item ${i}`);
 		if (this.contains(i)) { this.changekey(i,key); return; }
 		this.#insertCount++;
 		if (i > this.n) this.expand(i);

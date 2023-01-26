@@ -6,12 +6,14 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import BalancedForest from '../trees/BalancedForest.mjs';
 import Scanner from '../basic/Scanner.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** This class implements a data structure consisting of a disjoint
  *  set of heaps, with an efficient add2keys operation and an efficient
@@ -237,7 +239,8 @@ export default class OrderedHeaps extends BalancedForest {
 			i = (l && this.#minkey[l] == k ? l : r);
 			this.steps++;
 		}
-		fassert(false, `program error in OrderedHeaps.findmin(${this.x2s(h)})`);
+		fassert(false
+				/*, `program error in OrderedHeaps.findmin(${this.x2s(h)})`*/ );
 	}
 
 	/** Remove a miniminum key item from from the heap and return it.

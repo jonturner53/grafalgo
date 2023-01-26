@@ -7,13 +7,13 @@
  */
 
 import { fassert } from '../../common/Errors.mjs';
-import { match2string } from './match.mjs';
+import Matching from './Matching.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import findSplit from '../misc/findSplit.mjs';
 
 let g;            // shared copy of graph
-let match;        // match[u] is edge incident to u in matching or 0
+let match;        // match is a Matching object
 let lab;          // lab[u] is vertex label at u
 let link = null;  // link[u] is edge to parent of u in shortest path forest
 let free;         // list containing free vertices in first subset
@@ -36,18 +36,17 @@ let steps;       // total number of steps
  *  @exceptions throws an exception if graph is not bipartite
  */
 export default function wbimatchH(bg, traceFlag=false, subsets=null) {
-	g = bg;
+	g = bg; match = new Matching(g);
 	trace = traceFlag; traceString = '';
 	paths = steps = 0;
 	if (link == null || link.length < g.n+1) {
 		link = new Int32Array(g.n+1);
-		match = new Int32Array(g.n+1);
 		lab = new Int32Array(g.n+1);
 		free = new List(g.n); free.addPrev();
 		leaves = new ArrayHeap(g.n,4);
 		cost = new Float32Array(g.n+1);
 	} else {
-		match.fill(0); free.clear(); leaves.clear();
+		free.clear(); leaves.clear();
 	}
 	steps += g.n;
 
@@ -74,7 +73,7 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 		augment(u); u = findpath(); paths++;
 	}
 	if (trace) {
-		traceString += 'matching: ' + match2string(g,match) + '\n';
+		traceString += 'matching: ' + match.toString() + '\n';
 	}
 	return [match, traceString, { 'paths': paths, 'steps': steps }];
 }
@@ -116,12 +115,12 @@ function findpath() {
 		maxcost = Math.max(maxcost, cost[u]);
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			steps++;
-			if (e == match[u]) continue;
+			if (e == match.at(u)) continue;
 			let v = g.mate(u,e);
 			if (cost[v] > (cost[u]-g.weight(e)) + (lab[u]-lab[v])) {
 				link[v] = e;
 				cost[v] = (cost[u]-g.weight(e)) + (lab[u]-lab[v]);
-				let ee = match[v];
+				let ee = match.at(v);
 				if (ee == 0) {
 					if (cost[v] + lab[v] < bestPathCost) {
 						bestSink = v; bestPathCost = cost[v] + lab[v];
@@ -171,9 +170,9 @@ function augment(u) {
 	let e = link[u];
 	while (e != 0) {
 		steps++;
-		match[u] = e; u = g.mate(u,e); match[u] = e; e = link[u];
+		match.add(e);  u = g.mate(u,e); e = link[u];
 		if (e == 0) break;
-		u = g.mate(u,e); e = link[u];
+		match.drop(e); u = g.mate(u,e); e = link[u];
 	}
 	free.delete(u);
 }

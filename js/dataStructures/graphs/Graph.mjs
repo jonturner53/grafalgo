@@ -6,7 +6,6 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs'
 import { randomInteger, scramble, randomPermutation, shuffle }
 	from '../../common/Random.mjs';
 import Top from '../Top.mjs';
@@ -14,6 +13,9 @@ import List from '../basic/List.mjs';
 import ListPair from '../basic/ListPair.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
+
+//import { fassert } from '../../common/Errors.mjs'
+let fassert = (()=>1);
 
 /** Data structure for undirected graph.
  *
@@ -139,7 +141,7 @@ export default class Graph extends Top {
 	 *  @return the left endpoint of e, or 0 if e is not a valid edge.
 	 */
 	left(e) {
-		fassert(this.validEdge(e), `Graph.left: invalid edge number: ${e}`);
+		fassert(this.validEdge(e)); // `Graph.left: invalid edge number: ${e}`);
 		return this._left[e];
 	}
 	

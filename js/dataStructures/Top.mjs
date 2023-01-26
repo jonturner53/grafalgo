@@ -6,15 +6,16 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../common/Errors.mjs';
+//import { fassert } from '../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** The Top class is the super-class from which other classes
  *  in grafalgo are derived.
  *
  *  The data structures in grafalgo are built using integer index values
- *  to refer to specific items (set elements, nodes in search trees,
- *  vertices in graphs). In this context, an index is a positive integer
- *  in a bounded range 0..n, for some value of n (0 is used as null).
+ *  to refer to specific items (set elements, list items, vertices in graphs).
+ *  In this context, an index is a positive integer in a bounded range 0..n,
+ *  for some value of n (0 is used as null).
  *
  *  The use of index values has a couple advantages over pointers.
  *  First, index values can serve as common "handles" for

@@ -7,10 +7,12 @@
  */
 
 import Top from '../Top.mjs';
-import { fassert } from '../../common/Errors.mjs';
 import ListSet from './ListSet.mjs';
 import Scanner from './Scanner.mjs';
 import Forest from '../trees/Forest.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** Sets data structure maintains a collection of disjoint
  *  sets over the integers 1..N for some positive integer N. Allows

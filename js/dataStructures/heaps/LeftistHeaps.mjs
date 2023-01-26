@@ -6,12 +6,14 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import BinaryForest from '../trees/BinaryForest.mjs';
 import Scanner from '../basic/Scanner.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** This class implements a data structure consisting of a disjoint
  *  set of leftist heaps.

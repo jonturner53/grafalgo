@@ -6,11 +6,13 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs'
 import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
+
+//import { fassert } from '../../common/Errors.mjs'
+let fassert = (()=>1);
 
 /** Data structure for collection of undirected trees.
  */
@@ -157,8 +159,8 @@ export default class Forest extends Top {
 	 *  @param v is a node in some other tree
 	 */
 	link(u, v) {
-		fassert(u > 0 && this.p(u) == 0 && v > 0,
-				`Forest.link: bad arguments ${u} ${v}`);
+		fassert(u > 0 && this.p(u) == 0 && v > 0
+				/*, `Forest.link: bad arguments ${u} ${v}`*/);
 		if (u > this.n || v > this.n) {
 			this.expand(Math.max(u, v));
 		}

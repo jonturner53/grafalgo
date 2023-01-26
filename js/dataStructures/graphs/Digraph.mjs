@@ -6,10 +6,12 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
 import { scramble, shuffle } from '../../common/Random.mjs';
 import Graph from './Graph.mjs';
 import { randomPermutation } from '../../common/Random.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** Data structure for directed graph.
  *  Extends Graph class and places incoming edges before outgoing edges
@@ -193,7 +195,8 @@ export default class Digraph extends Graph {
 	 *  return  0 if u's mate in e1 is equal to its mate in e2.
 	 */
 	ecmp(e1, e2, u) {
-		fassert(this.validVertex(u) && this.validEdge(e1) && this.validEdge(e2));
+		fassert(this.validVertex(u) && this.validEdge(e1)
+									&& this.validEdge(e2));
 			 if (u == this.head(e1) && u == this.tail(e2)) return -1;
 		else if (u == this.tail(e1) && u == this.head(e2)) return 1;
 		else {

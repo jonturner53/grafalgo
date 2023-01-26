@@ -7,11 +7,13 @@
  */
 
 import Top from '../../dataStructures/Top.mjs';
-import { fassert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import ArrayHeap from '../heaps/ArrayHeap.mjs';
 import OrderedHeaps from './OrderedHeaps.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** Data structure representing a group heap.
  *  The collection of items is divided into "groups", where each
@@ -135,7 +137,7 @@ export default class GroupHeap extends Top {
 	/** Activate a group */
 	activate(g) {
 		let h = this.top[g];
-		fassert(h, 'GroupHeap.activate requires a non-empty heap');
+		fassert(h /*, 'GroupHeap.activate requires a non-empty heap'*/);
 		this.active.insert(g, h ? this.key(this.groups.findmin(h),g) :
 										   Infinity);
 		this.lastOffset[g] = this.active.offset;

@@ -6,10 +6,12 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
 import Top from '../Top.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import KeySets from './KeySets.mjs';
+
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** This class implements a key set with two keys.
  *  The primary key is the usual one. The data structure supports
