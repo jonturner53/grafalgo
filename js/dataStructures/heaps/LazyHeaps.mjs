@@ -48,7 +48,7 @@ export default class LazyHeaps extends LeftistHeaps {
 	}
 
 	expand(n) {
-		fassert(false); /*, 'LazyHeaps: expand not implemented'*/);
+		fassert(false /*, 'LazyHeaps: expand not implemented'*/);
 	}
 
 	/** Assign a new value by copying from another heap.
