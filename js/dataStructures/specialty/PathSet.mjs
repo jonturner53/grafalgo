@@ -96,7 +96,9 @@ export default class PathSet extends SplayForest {
 	 */
 	mincost(u) {
 		let mc = 0;
-		for (let v = u; v > 0; v = this.p(v)) mc += this.dmin(v);
+		for (let v = u; v > 0; v = this.p(v)) {
+			mc += this.dmin(v); this.steps++;
+		}
 		return mc;
 	}
 	

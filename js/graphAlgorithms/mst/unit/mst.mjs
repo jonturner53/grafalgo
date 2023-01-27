@@ -12,6 +12,7 @@ import mstP from '../mstP.mjs';
 import mstPf from '../mstPf.mjs';
 import mstK from '../mstK.mjs';
 import mstCT from '../mstCT.mjs';
+import hardcaseP from '../hardcaseP.mjs';
 import mstVerify from '../mstVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
@@ -32,9 +33,15 @@ let g = new Graph(); g.fromString(
 tester.addTest('small 3 component graph', g);
 
 g = randomConnectedGraph(10, 3); g.randomWeights(randomInteger, 0, 9);
-tester.addTest('small random graph', g);
+tester.addTest('small random graph (10,15)', g);
 
 g = randomGraph(1000, 20); g.randomWeights(randomInteger, 0, 99);
 tester.addTest('large random graph', g);
+
+g = hardcaseP(1000);
+tester.addTest('large hard case (100, 4950)', g);
+
+g = hardcaseP(2000);
+tester.addTest('larger hard case (200,19800)', g);
 
 tester.run();

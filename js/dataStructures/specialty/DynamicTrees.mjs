@@ -19,8 +19,7 @@ let fassert = (()=>1);
  *  has a cost. Supports efficient search for the first mincost node.
  */
 export default class DynamicTrees extends PathSet {
-	exposeCount;
-	spliceCount;
+	splices;
 	
 	/** Constructor for DynamicTrees object.
 	 *  @param n is the range for the list
@@ -36,7 +35,6 @@ export default class DynamicTrees extends PathSet {
 	 *  a single path.
 	 */
 	expose(u) {
-		this.exposeCount++;
 		fassert(this.valid(u));
 		let [p,s] = [0,u];
 		while (s != 0) {
@@ -55,7 +53,7 @@ export default class DynamicTrees extends PathSet {
 	 *  extending p further up the tree.
 	 */ 
 	#splice([p,s]) {
-		this.spliceCount++;
+		this.splices++;
 		let next_s = this.succ(super.findpath(s));
 		let [p1,p2] = this.split(s);
 		if (p1 != 0) this.succ(p1, s);
@@ -227,13 +225,13 @@ export default class DynamicTrees extends PathSet {
 	}
 
 	clearStats() {
-		super.clearStats();this.exposeCount = this.spliceCount = 0;
+		super.clearStats(); this.splices = 0;
 	}
 
 	getStats() {
-		return { 'exposeCount' : this.exposeCount,
-				 'spliceCount' : this.spliceCount,
-				 'splayCount'  : this.splayCount,
-				 'splaySteps'  : this.splaySteps};
+		return { 'splices' : this.splices,
+				 'splaysteps'  : this.splaysteps,
+				 'steps'  : this.steps
+				};
 	}
 }

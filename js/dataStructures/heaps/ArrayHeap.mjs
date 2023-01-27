@@ -26,12 +26,9 @@ export default class ArrayHeap extends Top {
 	#key;        // #key[i] is key of item i
 	#offset;     // offset for key values, allowing all to shift at once
 
-	#insertCount;		// calls to insert
-	#deleteCount;		// calls to delete
-	#changekeyCount;	// calls to changekey
-	#siftupSteps;		// steps taken by siftup
-	#siftdownSteps;		// steps taken by siftdown
-	#steps;				// total steps
+	changekeys;  // calls to changekey
+	upsteps;     // steps taken by siftup
+	downsteps;   // steps taken by siftdown
 
 	/** Constructor for ArrayHeap object.
 	 *  @param n is index range for object
@@ -45,7 +42,6 @@ export default class ArrayHeap extends Top {
 		this.#item[0] = this.#m = 0; this.#d = d;
 		this.#offset = 0;
 		this.clearStats();
-		this.#steps = n;
 	}
 
 	/** Assign a new value by copying from another heap.
@@ -58,7 +54,6 @@ export default class ArrayHeap extends Top {
 		for (let p = 1; p <= other.m; p++) {
 			let x = other.#item[p];
 			this.#item[p] = x; this.#pos[x] = p; this.#key[x] = other.#key[x];
-			this.#steps++;
 		}
 		this.clearStats();
 	}
@@ -70,22 +65,20 @@ export default class ArrayHeap extends Top {
 		if (other == this || !(other instanceof ArrayHeap)) return;
 		this._n = other.n;
 		this.#d = other.#d; this.#m = other.#m; this.#offset = other.#offset;
-		this.#item = other.#item; this.#pos = other.#pos; this.#key = other.#key;
+		this.#item = other.#item; this.#pos = other.#pos;
+		this.#key = other.#key;
 		other.#item = other.#pos = other.#key = null;
 		this.clearStats();
-		this.#steps++;
 	}
 	
 	/** Remove all elements from heap. */
 	clear() {
 		for (let x = 1; x <= this.#m; x++) this.#pos[this.#item[x]] = 0;
 		this.#m = 0; this.#offset = 0;
-		this.#steps += this.#m;
 	}
 
 	clearStats() {
-		this.#insertCount = this.#deleteCount = this.#changekeyCount = 0
-		this.#siftupSteps = this.#siftdownSteps = this.#steps = 0;
+		this.changekeys = 0; this.upsteps = this.downsteps = 0;
 	}
 
 	get d() { return this.#d; }
@@ -160,12 +153,11 @@ export default class ArrayHeap extends Top {
 	 *  @param key is the key value under which i is to be inserted
 	 */
 	insert(i, key) {
-		fassert(i > 0 && this.valid(i));
-				// `ArrayHeap.insert: invalid item ${i}`);
+		fassert(i > 0 && this.valid(i)
+				/*, `ArrayHeap.insert: invalid item ${i}`*/ );
 		if (this.contains(i)) { this.changekey(i,key); return; }
-		this.#insertCount++;
 		if (i > this.n) this.expand(i);
-		this.#key[i] = key - this.#offset; this.#m++; this.#siftup(i, this.m);
+		this.#key[i] = key - this.#offset; this.#m++; this.siftup(i, this.m);
 	}
 	
 	/** Remove an index from the heap.
@@ -173,14 +165,13 @@ export default class ArrayHeap extends Top {
 	 */
 	delete(i) {
 		fassert(i > 0);
-		this.#deleteCount++;
 		if (!this.contains(i)) return;
 		let j = this.itemAt(this.#m--);
 		if (i != j) {
 			if (this.#key[j] <= this.#key[i])
-				this.#siftup(j, this.#pos[i]);
+				this.siftup(j, this.#pos[i]);
 			else
-				this.#siftdown(j, this.#pos[i]);
+				this.siftdown(j, this.#pos[i]);
 		}
 		this.#pos[i] = 0;
 	}
@@ -190,13 +181,13 @@ export default class ArrayHeap extends Top {
 	 *  @param i is an item to be positioned in the heap
 	 *  @param x is a tentative position for i in the heap
 	 */
-	#siftup(i, x) {
-		this.#siftupSteps++;
+	siftup(i, x) {
+		this.upsteps++;
 		let px = this.p(x);
 		while (x > 1 && this.#key[i] < this.#key[this.itemAt(px)]) {
 			this.#item[x] = this.itemAt(px); this.#pos[this.itemAt(x)] = x;
 			x = px; px = this.p(x);
-			this.#siftupSteps++;
+			this.upsteps++;
 		}
 		this.#item[x] = i; this.#pos[i] = x;
 	}
@@ -206,7 +197,7 @@ export default class ArrayHeap extends Top {
 	 *  @param i is an item to be positioned in the heap
  	 *  @param x is a tentative position for i in the heap
  	 */
-	#siftdown(i, x) {
+	siftdown(i, x) {
 		let cx = this.#minchild(x);
 		while (cx != 0 && this.#key[this.#item[cx]] < this.#key[i]) {
 			this.#item[x] = this.#item[cx]; this.#pos[this.#item[x]] = x;
@@ -222,11 +213,11 @@ export default class ArrayHeap extends Top {
 	 *  the smallest key
 	 */
 	#minchild(x) {
-		this.#siftdownSteps++;
+		this.downsteps++;
 		let minc = this.left(x);
 		if (minc > this.m) return 0;
 		for (let y = minc + 1; y <= this.right(x) && y <= this.m; y++) {
-			this.#siftdownSteps++;
+			this.downsteps++;
 			if (this.#key[this.#item[y]] < this.#key[this.#item[minc]])
 				minc = y;
 		}
@@ -238,12 +229,12 @@ export default class ArrayHeap extends Top {
 	 *  @param k is a new key value for item i
 	 */
 	changekey(i, k) {
-		this.#changekeyCount++;
+		this.changekeys++;
 		let ki = this.#key[i] + this.#offset;
 		//this.#key[i] += k - ki;
 		this.#key[i] = k - this.#offset;
-			 if (k < ki) this.#siftup(i, this.#pos[i]);
-		else if (k > ki) this.#siftdown(i, this.#pos[i]);
+			 if (k < ki) this.siftup(i, this.#pos[i]);
+		else if (k > ki) this.siftdown(i, this.#pos[i]);
 	}
 
 	/** Determine if two heaps are equal.
@@ -312,12 +303,10 @@ export default class ArrayHeap extends Top {
 
 	/** Return statistics object. */
 	getStats() {
-		this.#steps += this.#siftupSteps + this.#siftdownSteps
 		return {
-			'insert' : this.#insertCount, 'delete' : this.#deleteCount,
-			'changekey' : this.#changekeyCount,
-			'siftup' : this.#siftupSteps, 'siftdown' : this.#siftdownSteps,
-			'steps' : this.#steps
+			'changekeys' : this.changekeys,
+			'upsteps' : this.upsteps, 'downsteps' : this.downsteps,
+			'steps' : this.upsteps + this.downsteps
 		};
 	}
 }

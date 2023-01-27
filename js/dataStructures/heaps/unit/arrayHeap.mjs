@@ -30,11 +30,9 @@ try {
 	assert(h1.deletemin(), 8, 'b6');
 	assert(h1, '[f:2 g:4 j:10]', 'b7');
 	let stats = h1.getStats();
-	assert(stats.insert, 4, 'b8');
-	assert(stats.delete, 1, 'b9');
-	assert(stats.changekey, 0, 'b10');
-	assert(stats.siftup, 6, 'b11');
-	assert(stats.siftdown, 3, 'b12');
+	assert(stats.changekeys, 0, 'b10');
+	assert(stats.upsteps, 6, 'b11');
+	assert(stats.downsteps, 3, 'b12');
 
 	let h3 = new ArrayHeap(25, 2);
 	assert(h3.fromString('[g:1 f:2 c:5 a:5 d:2 h:7 j:8 k:6 m:4]'), 'f0');

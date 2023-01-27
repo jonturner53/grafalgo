@@ -22,9 +22,7 @@ export default class LeftistHeaps extends BinaryForest {
 	#key;    	// #key[i] is key of item i
 	#rank;	    // #rank[i] gives rank of item i
 
-    insertCount;       // calls to insert
-    deleteCount;       // calls to deletemin
-    meldSteps;         // steps in meld operations
+    meldsteps;         // steps in meld operations
 
 	/** Constructor for LeftistHeaps object.
 	 *  @param n is index range for object
@@ -38,9 +36,7 @@ export default class LeftistHeaps extends BinaryForest {
 		this.#key = new Float32Array(this.n+1)
 		this.#rank = new Int32Array(this.n+1).fill(1,1);
 
-	    this.insertCount = 0;
-	    this.deleteCount = 0;
-	    this.meldSteps = 0;
+	    this.clearStats();
 	}
 
 	/** Assign a new value by copying from another heap.
@@ -71,6 +67,10 @@ export default class LeftistHeaps extends BinaryForest {
 		this.#key.fill(0); this.#rank.fill(1,1);
 	}
 
+	clearStats() {
+		super.clearStats(); this.meldsteps = 0;
+	}
+
 	/** Return key of a heap item. */
 	key(i, k=false) {
 		if (k !== false) this.#key[i] = k;
@@ -89,7 +89,7 @@ export default class LeftistHeaps extends BinaryForest {
 	 *  @return the identifier of the result of melding h1 and h2
 	 */
 	meld(h1, h2) {
-		this.meldSteps++; this.steps++;
+		this.meldsteps++;
 		// relies on null node having rank==0
 		if (h1 == 0) return h2;
 		if (h2 == 0 || h1 == h2) return h1;
@@ -148,7 +148,6 @@ export default class LeftistHeaps extends BinaryForest {
 	heapify(hlist) {
 		if (hlist.empty()) return 0;
 		while (hlist.length > 1) {
-			this.steps++;
 			let h = this.meld(hlist.at(1), hlist.at(2));
 			hlist.deq(); hlist.deq(); hlist.enq(h);
 		}
@@ -216,9 +215,8 @@ export default class LeftistHeaps extends BinaryForest {
 	}
 
 	getStats() {
-		return { 'insert' : this.insertCount,
-				 'delete' : this.deleteCount,
-				 'meld' : this.meldSteps,
-				 'steps' : this.steps };
+		return { 'meld' : this.meldsteps,
+				 'steps' : this.meldsteps
+				};
 	}
 }

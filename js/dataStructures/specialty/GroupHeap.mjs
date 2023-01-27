@@ -49,7 +49,7 @@ export default class GroupHeap extends Top {
 		this.top = new Int32Array(gn+1);
 		this.lastOffset = new Float32Array(gn+1);
 
-		this.steps = 0;
+		this.clearStats();
 	}
 
 	/** Assign new value to this from another. 
@@ -345,5 +345,11 @@ export default class GroupHeap extends Top {
 		this.steps += this.active.getStats().steps +
 					  this.groups.getStats().steps;
 		return { 'steps': this.steps };
+	}
+
+	clearStats() {
+		this.active.clearStats();
+		this.groups.clearStats();
+		this.steps = 0;
 	}
 }

@@ -20,7 +20,7 @@ export default function hardcaseP(n, m=n*(n-1)/2) {
 		for (let v = n; v > u; v--) {
 			if (k++ % skip >= 1) continue;
 			if (wt > 0) {
-				let e = g.join(u, v); g.setWeight(e, wt--);
+				let e = g.join(u, v); g.weight(e, wt--);
 			}
 		}
 	}

@@ -18,9 +18,9 @@ let trees;		// dynamic trees data structure
 let upEdge;		// upEdge[u] is edge in g that links u to its tree parent
 let huge;		// large value used for initial cost of tree roots
 
-let findpathCount; // number of calls to findpath
-let findpathSteps; // total steps in findpath
-let phaseCount;	   // number of phases
+let paths; // number of calls to findpath
+let steps; // total steps in findpath
+let phases;	   // number of phases
 
 /** Compute a maximum flow in a graph using Dinic's algorithm with
  *  Sleator & Tarjan dynmic trees data structure.
@@ -34,30 +34,32 @@ export default function maxflowDST(fg, trace=false) {
 	trees = new DynamicTrees(g.n);
 	upEdge = new Int32Array(g.n+1);
 
+	paths = steps = phases = 0;
+
 	huge = 1;
 	for (let e = g.first(); e != 0; e = g.next(e))
 		huge += g.cap(e, g.tail(e));
 	for (let u = 1; u <= g.n; u++)
 		trees.addcost(u, huge);
+	steps += g.n;
 
 	let ts = '';
 	if (trace) ts += 'augmenting paths with residual capacities\n';
 
-	findpathCount = findpathSteps = phaseCount = 0;
 	while (newphase()) {
-		phaseCount++;
+		phases++;
 		while (findpath()) {
-			findpathCount++;
+			paths++;
 			let [,s] = augment(trace);
 			if (trace) ts += s + '\n';
 		}
 	}
 	if (trace) ts += g.toString(1);
 	let treeStats = trees.getStats();
-	findpathSteps += treeStats.spliceCount + treeStats.splaySteps;
-	return [ts, {'findpathCount': findpathCount,
-				 'findpathSteps': findpathSteps,
-				 'phaseCount': phaseCount} ];
+	steps += treeStats.splices + treeStats.splays;
+	return [ts, {'paths': paths,
+				 'steps': steps,
+				 'phases': phases} ];
 }
 
 /** Find an augmenting path from specified vertex to sink in residual graph.
@@ -69,7 +71,7 @@ function findpath() {
 		let u = trees.findroot(g.source); let e = nextEdge[u];
 		// look for unsaturated path from u to sink
 		while (true) {
-			findpathSteps++; 
+			steps++; 
 			if (u == g.sink) return true;
 			if (e == 0) { nextEdge[u] = 0; break; }
 			let v = g.mate(u,e);
@@ -82,7 +84,7 @@ function findpath() {
 		}
 		// no path found, prune dead-end
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			findpathSteps++;
+			steps++;
 			let v = g.mate(u,e);
 			if (e == upEdge[v])  {
 				prune(v); nextEdge[v] = g.nextAt(v, e);
@@ -134,6 +136,7 @@ function augment(trace) {
 	let c; [u,c] = trees.findcost(g.source);
 	let sentry; if (trace) sentry = path.length-1;
 	while (c == 0) {
+		steps++;
 		if (trace) {
 			let s = `${g.x2s(u)}:${rcap}`;
 			let i; for (i = sentry; path[i] != u; i--) ;
@@ -160,6 +163,7 @@ function newphase() {
 	for (let u = 1; u <= g.n; u++) {
 		level[u] = g.n; nextEdge[u] = g.firstAt(u);
 		if (upEdge[u] != 0) prune(u);  // cleanup from last phase
+		steps++;
 	}
 	let q = new List(g.n);
 	q.enq(g.source); level[g.source] = 0;
@@ -172,6 +176,7 @@ function newphase() {
 				if (v == g.sink) return true;
 				q.enq(v);
 			}
+			steps++;
 		}
 	}
 	return false;

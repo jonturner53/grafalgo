@@ -25,7 +25,7 @@ export default class LazyHeaps extends LeftistHeaps {
 				// or an array of bits
 	#plist;		// temporary list used by purge
 
-	purgeSteps;
+	purgesteps;
 
 	/** Constructor for LazyHeaps object.
 	 *  @param n is index range for object
@@ -44,7 +44,7 @@ export default class LazyHeaps extends LeftistHeaps {
 		for (let i = this.nn+1; i < this.n; i++) this.link(i+1,i,1);
 		this.#dummy = this.nn+1;
 
-		this.purgeSteps = 0;
+		this.clearStats();
 	}
 
 	expand(n) {
@@ -89,6 +89,8 @@ export default class LazyHeaps extends LeftistHeaps {
 		for (let i = this.nn+1; i < this.n; i++) this.link(i+1,i,1);
 		this.#dummy = this.nn+1;
 	}
+
+	clearStats() { super.clearStats(); this.purgesteps = 0; }
 
 	find(i) { return super.root(i); }
 
@@ -159,7 +161,7 @@ export default class LazyHeaps extends LeftistHeaps {
 	 */
 	#purge(h) {
 		if (h == 0) return;
-		this.purgeSteps++;
+		this.purgesteps++;
 		fassert(this.valid(h));
 		if (this.isactive(h)) {
 			this.#plist.enq(h);
@@ -284,9 +286,9 @@ export default class LazyHeaps extends LeftistHeaps {
 	}
 
 	getStats() {
-		return { 'insert' : this.insertCount,
-				 'delete' : this.deleteCount,
-				 'meld' : this.meldSteps,
-				 'purge' : this.purgeSteps };
+		return { 'meldsteps' : this.meldsteps,
+				 'purgesteps' : this.purgesteps,
+				 'steps' : this.meldsteps + this.purgesteps
+				};
 	}
 }

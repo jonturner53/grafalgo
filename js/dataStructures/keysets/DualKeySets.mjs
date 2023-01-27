@@ -23,9 +23,6 @@ export default class DualKeySets extends KeySets {
 	#key2;		 // #key2[u] is second key value
 	#min2;		 // #min2[u] is the smallest key2 value in the subtree at u
 
-	findminSteps;   // number of steps in findmin method
-	refreshSteps;   // number of steps in refresh method
-	
 	/** Constructor for DualKeySets object.
 	 *  @param n is index range for object
 	 */
@@ -85,7 +82,7 @@ export default class DualKeySets extends KeySets {
 		// first, find eligible subtrees on boundary and identify best one
 		let u = t; let best = 0; let bestMin = 0;
 		while (u != 0) {
-			let l = this.left(u);
+			let l = this.left(u); this.steps++;
 			if (this.key(u) > limit) {
 				u = l; continue;
 			}
@@ -106,6 +103,7 @@ export default class DualKeySets extends KeySets {
 			let l = this.left(u); let r = this.right(u);
 				 if (l && this.min2(l) == bestMin) u = l;
 			else if (r && this.min2(r) == bestMin) u = r;
+			this.steps++;
 		}
 		return u;
 	}
@@ -134,9 +132,9 @@ export default class DualKeySets extends KeySets {
 	 */
 	refresh(u) {
 		while (u != 0) {
-			this.refreshSteps++;
 			this.update2(u);
 			u = this.p(u);
+			this.steps++;
 		}
 	}
 
@@ -231,14 +229,6 @@ export default class DualKeySets extends KeySets {
 			}
 		}
 		return true;
-	}
-
-	/** Return statistics object. */
-	getStats() {
-		let stats = super.getStats();
-		stats.findminSteps = this.findminSteps;
-		stats.refresh = this.refreshSteps;
-		return stats;
 	}
 
 	verify() {

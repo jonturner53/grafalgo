@@ -54,7 +54,8 @@ export default class BinaryForest extends Top {
 	 */
 	xfer(other) {
 		super.xfer(other);
-		this.#left = other.#left; this.#right = other.#right; this.#p = other.#p;
+		this.#left = other.#left; this.#right = other.#right;
+		this.#p = other.#p;
 		other.#left = other.#right = other.#p = null;
 		this.clearStats();
 	}
