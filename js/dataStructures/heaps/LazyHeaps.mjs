@@ -236,12 +236,15 @@ export default class LazyHeaps extends LeftistHeaps {
 	 *  heap is included in the string
 	 */
 	toString(fmt=0x2, label=0, selectHeap=0) {
-		if (!label) {
-			label = x =>
-						(!(fmt&0x4) && this.isdummy(x) ? '' :
-				  			(this.isdummy(x) ? ''+x : this.x2s(x)) +
-				   			(!this.isactive(x) ? '!' : (':' + this.key(x)) + 
-							((fmt&0x8) ? ':'+this.rank(x) : '')));
+		if (!label) label = x => this.x2s(x);
+		let xlabel;
+		if (fmt&0x4) {
+			xlabel = x =>
+						(this.isdummy(x) ? ''+x : label(x)) +
+			   			(!this.isactive(x) ? '!' : (':' + this.key(x)) + 
+							((fmt&0x8) ? ':'+this.rank(x) : ''));
+		} else {
+			xlabel = x => label(x) + ':' + this.key(x);
 		}
 		let s = '';
 		for (let u = 1; u <= this.n; u++) {
@@ -250,8 +253,18 @@ export default class LazyHeaps extends LeftistHeaps {
 			if (selectHeap && u != selectHeap) continue;
 			if (u == this.#dummy) continue;
 			if (!(fmt&0x01) && s) s += ' ';
-			s += `${super.tree2string(u,fmt,label)}`;
-			if (fmt&0x01) s += '\n';
+			if (fmt&0x4) {
+				s += `${super.tree2string(u,fmt,xlabel)}`;
+				if (fmt&0x01) s += '\n';
+			} else {
+				let ss = '';
+				for (let v = this.first(u); v; v = this.next(v)) {
+					if (!this.isactive(v)) continue;
+					if (ss) ss += ' ';
+					ss += xlabel(v);
+				}
+				if (ss) s += '[' + ss + ']' + (fmt&0x01 ? '\n' : '');
+			}
 		}
 		if (selectHeap) return s;
 		return fmt&0x1 ? '{\n' + s + '}\n' : '{' + s + '}';

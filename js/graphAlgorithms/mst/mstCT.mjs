@@ -15,7 +15,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 /** Compute min spanning tree of a graph using Cheriton/Tarjan algorithm.
  *  @param g is weighted graph
  *  @param trace controls the amount of trace output produced
- *  @return a tuple [treeEdges, traceString, stats] where is an array listing the
+ *  @return tuple [treeEdges, traceString, stats] where is an array listing the
  *  edges in the mst (or forest), traceString is a trace string and stats is
  *  a statistics object
  */
@@ -25,8 +25,8 @@ export default function mstCT(g, trace=0) {
 	// initialize collection of edge endpoint heaps
 	// each heap contains edge endpoints touching one mst subtree
 	let epHeap = new LazyHeaps(2*(2*g.edgeRange+1), 
-		ee => ee > 1 && trees.find(g.left(Math.trunc(ee/2))) ==
-				  		trees.find(g.right(Math.trunc(ee/2))));
+		ee => ee == 1 || trees.find(g.left(~~(ee/2))) ==
+				  		 trees.find(g.right(~~(ee/2))));
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		epHeap.key(2*e, g.weight(e)); epHeap.key(2*e+1, g.weight(e));
 	}
@@ -67,12 +67,8 @@ export default function mstCT(g, trace=0) {
 			traceString += g.edge2string(e) + ' ' + q + ' ' + trees;
 			if (g.n <= 26) {
 				let s = epHeap.toString(0x2, ep =>
-				  			(!epHeap.isactive(ep) ? '.' : 
-							 g.x2s(g.left(Math.floor(ep/2))) + 
-	                         g.x2s(g.right(Math.floor(ep/2))) +
-				   			 ':' + epHeap.key(ep)),
-						h[trees.find(u)]);
-				traceString += '\n    ' + s.slice(0,75) + '\n';
+						 g.x2s(g.left(~~(ep/2))) + g.x2s(g.right(~~(ep/2))) );
+				traceString += '\n    ' + s + '\n';
 			}
 		}
 	}
