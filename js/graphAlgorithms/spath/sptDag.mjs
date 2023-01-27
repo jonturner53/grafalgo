@@ -33,7 +33,7 @@ export default function sptDag(g, s, trace=0) {
 
 	let ts = '';
 	if (trace) {
-		ts += g.toString(0,1) + 'sorted vertex list: ' +
+		ts += g.toString(1) + 'sorted vertex list: ' +
 			  g.ilist2string(topo) + '\n\n' +
 			  'selected vertex, distance, edge to parent\n';
 	}

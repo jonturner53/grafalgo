@@ -6,6 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { AssertError } from './Errors.mjs';
+
 export default class Tester {
 	testcases;		// array of test cases to run
 	verify;			// function used to check test results

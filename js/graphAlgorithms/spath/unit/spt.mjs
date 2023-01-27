@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError} from '../../../common/Errors.mjs';
+import { assert, AssertError } from '../../../common/Errors.mjs';
 import Tester from '../../../common/Tester.mjs';
 
 import sptDag from '../sptDag.mjs';
