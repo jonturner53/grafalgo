@@ -24,10 +24,10 @@ import toposort from '../misc/toposort.mjs';
  */
 export default function sptDag(g, s, trace=0) {
 	let topo = toposort(g); // sorted list of vertices
-	assert(topo, 'Error: graph is not acyclic');
+	if (!topo) assert(0, 'graph is not acyclic');
 
 	let link = new Int32Array(g.n+1);
-	let dist = new Array(g.n+1).fill(Number.POSITIVE_INFINITY);
+	let dist = new Array(g.n+1).fill(Infinity);
 	let reached = new Int8Array(g.n+1).fill(false);
 		// reached[u]==true means u is no longer unlabeled
 

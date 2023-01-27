@@ -36,15 +36,18 @@ let g = new Digraph(); g.fromString(
 tester.addTest('small graph', g, 1);
 
 g = randomDigraph(10, 3.5); g.randomLengths(randomInteger, 1, 99);
-tester.addTest('small random graph', g, 1);
+tester.addTest('small random graph (10,3.5)', g, 1);
 
 g = randomDag(10, 3); g.randomLengths(randomInteger, 1, 99);
-tester.addTest('small random dag', g, 1);
+tester.addTest('small random dag (10,3)', g, 1);
 
 g = randomDigraph(10, 3.5); g.randomLengths(randomInteger, -15, 99);
-tester.addTest('small random graph with negative edges', g, 1);
+tester.addTest('small random graph with negative edges (10,3.5)', g, 1);
 
 g = randomDigraph(1000, 10); g.randomLengths(randomFraction);
-tester.addTest('large random graph', g, 1);
+tester.addTest('large random graph (1000,10)', g, 1);
+
+g = randomDigraph(2000, 20); g.randomLengths(randomFraction);
+tester.addTest('larger random graph (2000,20)', g, 1);
 
 tester.run();

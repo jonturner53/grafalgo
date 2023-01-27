@@ -56,7 +56,7 @@ export default function sptBM(g, s, trace=0) {
 				  (link[u] != 0 ? g.edge2string(link[u]) : '-') + ' ' +
 				  q + ' ' + pass + '\n';
 		}
-		assert(pass < g.n, 'Error: negative cycle');
+		if (pass >= g.n) assert(0, 'negative cycle');
 	}
 	return [link, dist, ts, { 'passCount': pass, 'stepCount': steps }];
 }

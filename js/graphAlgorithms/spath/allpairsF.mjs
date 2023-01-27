@@ -43,7 +43,7 @@ export default function allpairsF(g, trace=false) {
     // compute distances
 	let updates = 0;
     for (let s = 1; s <= g.n; s++) {
-        assert(dist[s][s] >= 0, 'Error: negative cycle');
+        if (dist[s][s] < 0) assert(0, 'negative cycle');
 		if (trace)
 			ts += g.index2string(s) + ': ';
         for (let v = 1; v <= g.n; v++) {

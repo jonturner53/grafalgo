@@ -24,7 +24,7 @@ import FibHeaps from '../../dataStructures/heaps/FibHeaps.mjs';
  */
 export default function sptDf(g, s, trace=0) {
 	let link = new Int32Array(g.n+1); let ts = '';
-	let dist = new Array(g.n+1).fill(Number.POSITIVE_INFINITY);
+	let dist = new Array(g.n+1).fill(Infinity);
 	let h = new FibHeaps(g.n);
 	let inheap = new Int8Array(g.n+1).fill(false);
 	let heapsize = 0;
@@ -39,7 +39,7 @@ export default function sptDf(g, s, trace=0) {
 		let u; [u, root] = h.deletemin(root);
 		inheap[u] = false; heapsize--;
 		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
-			assert(g.length(e)>=0, `Error: negative edge ${g.edge2string(e)}`);
+			if (g.length(e) < 0) assert(0, `Error: negative edge ${g.e2s(e)}`);
 			let v = g.head(e);
 			if (dist[v] > dist[u] + g.length(e)) {
 				dist[v] = dist[u] + g.length(e); link[v] = e;

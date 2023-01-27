@@ -34,7 +34,8 @@ export default function sptD(g, s, trace=0) {
 	while (!border.empty()) {
 		let u = border.deletemin();
 		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
-			assert(g.length(e)>=0, `Error: negative edge ${g.edge2string(e)}`);
+			if (g.length(e) < 0)
+				assert(0,`negative edge ${g.e2s(e)}`);
 			let v = g.head(e);
 			if (dist[v] > dist[u] + g.length(e)) {
 				dist[v] = dist[u] + g.length(e); link[v] = e;

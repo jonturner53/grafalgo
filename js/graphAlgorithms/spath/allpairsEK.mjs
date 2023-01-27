@@ -29,7 +29,7 @@ export default function allpairsEK(g, trace) {
 	let link = []; link.push(null);
     
     // compute distances in augmented graph
-	let [pe,d,,statsBM] = sptBM(g, 0);
+	let [,d,,statsBM] = sptBM(g, 0);
 	let stats = { 'stepsBM' : statsBM.stepCount };
 
 	let ts = '';
@@ -47,10 +47,10 @@ export default function allpairsEK(g, trace) {
     for (let u = 1; u <= g.n; u++) {
         let [pu,du,,statsD] = sptD(g, u);
 		link.push(pu); dist.push(du);
-		stats.stepsD += statsD.siftup + statsD.siftdown;
+		stats.stepsD += statsD.upsteps + statsD.downsteps;
         for (let v = 1; v <= g.n; v++) dist[u][v] -= (d[u]-d[v]);
-		if (stats) {
-			ts += g.index2string(u) + '\n' +
+		if (trace) {
+			ts += g.x2s(u) + '\n' +
 				  g.elist2string(link[u], null, true) + '\n' +
 				  g.nlist2string(dist[u]) + '\n';
 		}
