@@ -41,7 +41,7 @@ export default function sptBM(g, s, trace=0) {
 			  'pass count\n';
 	}
 	while (!q.empty()) {
-		let u = q.pop();
+		let u = q.deq();
 		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u,e)) {
 			let v = g.head(e); steps++;
 			if (dist[u] + g.length(e) < dist[v]) {

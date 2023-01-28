@@ -2,7 +2,6 @@
 <html>
 <head>
 <style>
-
 .headerFooter {
 	position: absolute;
 	background-color: navy;
@@ -21,7 +20,7 @@
 }
 
 .fixedWidthButton {
-	width: 85;
+	width: 80%;
 	border: 1px solid black;
 	margin: 1px 0px 1px 0px;
 	padding: 1px 1px 1px 1px;
@@ -32,11 +31,8 @@
 }
 
 .smallButton {
-	width: 13px;
-	height: 13px;
+	margin: 1px 1px 0px 1px;
 	border: 1px solid black;
-	padding: 0px 0px 2px 0px;
-	margin: 0px 0px 0px 0px;
 	background-color: beige;
 	border-radius: 2px;
 }
@@ -44,78 +40,87 @@
 </head>
 
 <body>
-<div style="position:absolute; width: 750px; height: 565;
+<div style="position:absolute; width: 80%; height: 100%;
 			border-style: solid; border-width: 1px;">
 
 	<div id="header" class="headerFooter"
-		 style="top: 1; left: 1; width: 748;
+		 style="margin:.2% .2% .2% .2%; height: 3.6%; width: 99.6%;
+				font-size: 140%;
 				text-align: center; padding: 4px 0 4px 0;"
 	>Graph Algorithms and Data Structures</div>
 
 	<textarea id="codeArea"
-		style="position: absolute; left: 3; top: 30;
-		width: 600; height: 265;
-		color: black; font-family: courier; font-size: 75%;"
+		style="position: absolute; top: 5%;
+				margin:.2% .2% .2% .2%; width: 80%; height: 47%;
+				color: black; font-family: courier; font-size: 75%;"
 	></textarea>
 
 	<textarea id="outputArea"
-		style="position: absolute; left: 3; bottom: 2;
-		width: 600; height: 265;
-		color: black; font-family: courier; font-size: 75%;"
+		style="position: absolute; bottom: .2%;
+				margin:.2% .2% .2% .2%; width: 80%; height: 47%;
+				color: black; font-family: courier; font-size: 75%;"
 	></textarea>
 
-	<div style="font-family: Verdana; font-size: 75%; position: absolute;
-			   top:30; left:605;">
+	<div style="font-family: Verdana; font-size: 110%; position: absolute;
+			   top:5%; left:81%; width:18%; height:48%;left-margin:.1%;">
 		data structures<br>
-		<button id="dstructButton" class="smallButton"></button>
-		<select id="dstructMenu" style="font-size: 100%; width:120">
-		</select>
-	</div>
-	<div style="font-family: Verdana; font-size: 75%; position: absolute;
-			   top:65; left:605;">
-		<button id="testDstructButton" class="smallButton"></button>
-		<select id="testDstructMenu" style="font-size: 100%; width:120">
-		</select>
-	</div>
-
-	<div style="font-family: Verdana; font-size: 75%; position: absolute;
-			   top:90; left:605;">
+		<div style="width:100%; height:5%; margin:.2% .2% .2% .2%;">
+			<button id="dstructButton" class="smallButton;"
+				style="width:10%; height:90%"></button>
+			<select id="dstructMenu"
+				style="font-size:100%; left-margin:.1%; width:80%">
+				<option value="foo">Foo</option>
+			</select>
+		</div>
+		<div style="width:100%; height:2%;"> </div>
+		<div style="width:100%; height:5%; margin:.2% .2% .2% .2%;">
+			<button id="testDstructButton" class="smallButton;"
+				style="width:10%; height:90%"></button>
+			<select id="testDstructMenu"
+				style="font-size:100%; left-margin:.1%; width:80%">
+				<option value="bar">Bar</option>
+			</select>
+		</div>
+		<div style="width:100%; height:4%;"> </div>
 		algorithms<br>
-		<button id="algoButton" class="smallButton"></button>
-		<select id="algoMenu" style="font-size: 100%; width:120">
-		</select>
-	</div>
-	<div style="font-family: Verdana; font-size: 75%; position: absolute;
-			   top:125; left:605;">
-		<button id="testAlgoButton" class="smallButton"></button>
-		<select id="testAlgoMenu" style="font-size: 100%; width:120">
-		</select>
-	</div>
-
-	<div style="font-family: Verdana; font-size: 75%; position: absolute;
-			   top:150; left:605;">
+		<div style="width:100%; height:5%; margin:.2% .2% .2% .2%;">
+			<button id="algoButton" class="smallButton;"
+				style="width:10%; height:90%"></button>
+			<select id="algoMenu"
+				style="font-size:100%; left-margin:1px; width:80%">
+				<option value="foo">Foo</option>
+			</select>
+		</div>
+		<div style="width:100%; height:2%;"> </div>
+		<div style="width:100%; height:5%; margin:.2% .2% .2% .2%">
+			<button id="testAlgoButton" class="smallButton;"
+				style="width:10%; height:90%"></button>
+			<select id="testAlgoMenu"
+				style="font-size:100%; left-margin:1px; width:80%">
+				<option value="bar">Bar</option>
+			</select>
+		</div>
+		<div style="width:100%; height:4%;"> </div>
 		common<br>
-		<button id="commonButton" class="smallButton"></button>
-		<select id="commonMenu" style="font-size: 100%; width:120">
-		</select>
+		<div style="width:100%; height:5%; margin:1px 1px 1px 1px;">
+			<button id="commonButton" class="smallButton;"
+				style="width:10%; height:90%"></button>
+			<select id="commonMenu"
+				style="font-size:100%; left-margin:1px; width:80%">
+				<option value="foo">Foo</option>
+			</select>
+		</div>
+		<div style="width:100%; height:10%;"> </div>
+		<button id="scratchButton" class="fixedWidthButton"
+			style="width:80%">scratch pad</button>
 	</div>
 
-	<div style="font-family: Verdana; font-size: 80%;
-				position: absolute; top: 200; left: 605;">
-		<button id="scratchButton" class="fixedWidthButton">scratch pad</button>
-	</div>
-
-	<input type="text" size="19" value="" id="argString"
-               style="position: absolute; top: 300; left: 605; font-size: 80%"
-	>
-
-	<div style="font-family: Verdana; font-size: 80%;
-				position: absolute; top: 323; left: 605;">
-		<button id="runButton" class="fixedWidthButton">run</button>
-	</div>
-
-	<div style="font-family: Verdana; font-size: 80%;
-				position: absolute; top: 347; left: 605;">
+	<div style="font-family: Verdana; font-size: 110%; position: absolute;
+			   bottom:.2%; right:.2%; width:19%; height:47%;">
+		<input type="text" size="19" value="" id="argString"
+               style="width:99%; left:.2%; font-size:100%">
+		<div style="width:100%; height:1%;"> </div>
+		<button id="runButton" class="fixedWidthButton">run</button><br>
 		<button id="clearButton" class="fixedWidthButton">clear</button>
 	</div>
 </div>
