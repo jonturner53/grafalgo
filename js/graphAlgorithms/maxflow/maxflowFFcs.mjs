@@ -15,8 +15,8 @@ let g;			// shared reference to flow graph
 let link;		// link[u] is edge to u from its parent in shortest path tree
 let scale;		// scaling parameter
 
-let findpathCount; // number of calls to findpath
-let findpathSteps; // total steps in findpath
+let paths; // number of calls to findpath
+let pathSteps; // total steps in findpath
 
 /** Compute a maximum flow in a graph using the capacity scaling variant of
  *  the Ford and Fulkerson algorithm.
@@ -28,7 +28,7 @@ export default function maxflowFFmc(fg, trace=false) {
 	let ts = '';
 	if (trace)
 		ts += 'augmenting paths with residual capacities\n';
-	findpathCount = findpathSteps = 0;
+	paths = pathSteps = 0;
 
 	// initialize scale factor to largest power of 2
 	// that is <= (max edge capacity)/2
@@ -38,13 +38,13 @@ export default function maxflowFFmc(fg, trace=false) {
 	for (scale = 1; scale <= maxCap/2; scale *= 2) {}   
 
 	while (findpath(g.source)) {
-		findpathCount++;
+		paths++;
 		let [,s] = augment(g, link, trace);
 		if (trace) ts += s + '\n';
 	}
-	if (trace) ts += g.toString(1);
-	return [ts, {'findpathCount': findpathCount,
-				 'findpathSteps': findpathSteps}];
+	if (trace) ts += '\n' + g.toString(1);
+	return [ts, {'paths': paths,
+				 'pathSteps': pathSteps}];
 }
 
 /** Find a high capacity augmenting path from a specified vertex to the sink.
@@ -60,7 +60,7 @@ function findpath(s) {
 		while (!q.empty()) {
 			let u = q.deq();
 			for (let e = g.firstAt(u); e != 0; e=g.nextAt(u,e)) {
-				findpathSteps++;
+				pathSteps++;
 				let v = g.mate(u,e);
 				if (g.res(e,u) >= scale && link[v] == 0 && v != g.source) {
 					link[v] = e; 

@@ -12,8 +12,8 @@ import augment from './augment.mjs';
 
 let g;			// shared reference to flow graph
 let link;		// link[u] is edge to u from its parent in shortest path tree
-let findpathCount; // number of calls to findpath
-let findpathSteps; // number of steps in all calls to findpath
+let paths;      // number of calls to findpath
+let pathsteps;  // number of steps in all calls to findpath
 
 /** Compute a maximum flow in a graph using the Ford and Fulkerson algorithm.
  *  @param fg is Flograph, possibly with some initial flow already present.
@@ -23,15 +23,15 @@ export default function maxflowFFsp(fg, trace=false) {
 	g = fg; link = new Int32Array(g.n+1);
 	let ts = '';
 	if (trace) ts += 'augmenting paths with residual capacities\n';
-	findpathCount = findpathSteps = 0;
+	paths = pathsteps = 0;
 	while (findpath(g.source)) {
-		findpathCount++;
+		paths++;
 		let [,s] = augment(g, link, trace);
 		if (trace) ts += s + '\n';
 	}
-	if (trace) ts += g.toString(1);
-	return [ts, {'findpathCount': findpathCount,
-				 'findpathSteps': findpathSteps}];
+	if (trace) ts += '\n' + g.toString(1);
+	return [ts, {'paths': paths,
+				 'pathsteps': pathsteps}];
 }
 
 /** Find a shortest augmenting path from a specified vertex to the sink.
@@ -45,7 +45,7 @@ function findpath(s) {
     while (!q.empty()) {
         let u = q.deq();
         for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			findpathSteps++;
+			pathsteps++;
             let v = g.mate(u,e);
             if (g.res(e, u) > 0 && link[v] == 0 && v != g.source) {
                 link[v] = e;
