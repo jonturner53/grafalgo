@@ -10,17 +10,17 @@ import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import DynamicTrees from '../../dataStructures/specialty/DynamicTrees.mjs';
 
-let g;			// shared reference to flow graph
-let level;		// level[u] is distance from source to u in residual graph
-let nextEdge;	// nextEdge[u] is the next edge to be processed at u
+let g;           // shared reference to flow graph
+let level;       // level[u] is distance from source to u in residual graph
+let nextEdge;    // nextEdge[u] is the next edge to be processed at u
 
-let trees;		// dynamic trees data structure
-let upEdge;		// upEdge[u] is edge in g that links u to its tree parent
-let huge;		// large value used for initial cost of tree roots
+let trees;       // dynamic trees data structure
+let upEdge;      // upEdge[u] is edge in g that links u to its tree parent
+let huge;        // large value used for initial cost of tree roots
 
-let paths; // number of calls to findpath
-let steps; // total steps in findpath
-let phases;	   // number of phases
+let paths;       // number of calls to findpath
+let steps;       // total steps in findpath
+let phases;      // number of phases
 
 /** Compute a maximum flow in a graph using Dinic's algorithm with
  *  Sleator & Tarjan dynmic trees data structure.
@@ -56,7 +56,8 @@ export default function maxflowDST(fg, trace=false) {
 	}
 	if (trace) ts += g.toString(1);
 	let treeStats = trees.getStats();
-	steps += treeStats.splices + treeStats.splays;
+	steps += treeStats.splays;
+console.log(JSON.stringify(treeStats));
 	return [ts, {'flow': g.flowStats().totalFlow,
                  'paths': paths, 'steps': steps, 'phases': phases} ];
 }

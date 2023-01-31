@@ -25,7 +25,7 @@ export default class DynamicTrees extends PathSet {
 	 *  @param n is the range for the list
 	 */
 	constructor(n=10) {
-		super(n); this.exposeCount = this.spliceCount = 0;
+		super(n); this.splices = 0;
 	}
 
 	/** Expose a path in a tree.
