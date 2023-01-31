@@ -30,7 +30,8 @@ export default function maxflowFFsp(fg, trace=false) {
 		if (trace) ts += s + '\n';
 	}
 	if (trace) ts += '\n' + g.toString(1);
-	return [ts, {'paths': paths, 'steps': steps}];
+	return [ts, {'flow': g.flowStats().totalFlow,
+                 'paths': paths, 'steps': steps}];
 }
 
 /** Find a shortest augmenting path from a specified vertex to the sink.

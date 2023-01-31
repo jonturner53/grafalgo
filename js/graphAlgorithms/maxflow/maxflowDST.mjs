@@ -38,7 +38,7 @@ export default function maxflowDST(fg, trace=false) {
 
 	huge = 1;
 	for (let e = g.first(); e != 0; e = g.next(e))
-		huge += g.cap(e, g.tail(e));
+		huge += g.cap(e);
 	for (let u = 1; u <= g.n; u++)
 		trees.addcost(u, huge);
 	steps += g.n;
@@ -57,9 +57,8 @@ export default function maxflowDST(fg, trace=false) {
 	if (trace) ts += g.toString(1);
 	let treeStats = trees.getStats();
 	steps += treeStats.splices + treeStats.splays;
-	return [ts, {'paths': paths,
-				 'steps': steps,
-				 'phases': phases} ];
+	return [ts, {'flow': g.flowStats().totalFlow,
+                 'paths': paths, 'steps': steps, 'phases': phases} ];
 }
 
 /** Find an augmenting path from specified vertex to sink in residual graph.

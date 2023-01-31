@@ -40,7 +40,8 @@ export default function maxflowFFmc(fg, trace=false) {
 		if (trace) ts += s + '\n';
 	}
 	if (trace) ts += '\n' + g.toString(1);
-	return [ts, {'paths': paths, 'steps': border.getStats().steps }];
+	return [ts, {'flow': g.flowStats().totalFlow,
+				 'paths': paths, 'steps': border.getStats().steps }];
 }
 
 /** Find a max capacity augmenting path from a specified vertex to the sink.

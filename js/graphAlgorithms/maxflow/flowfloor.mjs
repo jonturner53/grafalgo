@@ -28,7 +28,7 @@ export default function flowfloor(g, trace=false) {
 	let floorCount = 0; let totalCap = 0; let totalFloor = 0;
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		steps++;
-		totalCap += g.cap(g.tail(e),e);
+		totalCap += g.cap(e);
 		totalFloor += g.floor(e);
 		if (g.floor(e) > 0) floorCount++;
 	}
@@ -62,5 +62,6 @@ export default function flowfloor(g, trace=false) {
 		g.flow(e, g1.f(e) + g.floor(e)); steps++;
 	}
 	return [g1.totalFlow() == totalFloor, ts,
-			{'paths': stats.paths, 'steps': steps}];
+			{'flow': g.flowStats().totalFlow,
+             'paths': stats.paths, 'steps': steps}];
 }

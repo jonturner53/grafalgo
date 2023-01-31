@@ -45,7 +45,8 @@ export default function maxflowD(fg, trace=false) {
 		}
 	}
 	if (trace) ts += g.toString(1);
-	return [ts, {'phases': phases, 'paths': paths, 'steps': steps} ];
+	return [ts, {'flow': g.flowStats().totalFlow,
+                 'phases': phases, 'paths': paths, 'steps': steps} ];
 }
 
 /** Prepare for next phase of Dinic's algorithm.

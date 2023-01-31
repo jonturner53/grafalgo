@@ -34,7 +34,7 @@ export default function maxflowFFmc(fg, trace=false) {
 	// that is <= (max edge capacity)/2
 	let maxCap = 0;
 	for (let e = g.first(); e != 0; e = g.next(e)) 
-		maxCap = Math.max(maxCap, g.cap(e, g.tail(e)));
+		maxCap = Math.max(maxCap, g.cap(e));
 	for (scale = 1; scale <= maxCap/2; scale *= 2) {}   
 
 	while (findpath(g.source)) {
@@ -43,7 +43,8 @@ export default function maxflowFFmc(fg, trace=false) {
 		if (trace) ts += s + '\n';
 	}
 	if (trace) ts += '\n' + g.toString(1);
-	return [ts, {'paths': paths, 'steps': steps}];
+	return [ts, {'flow': g.flowStats().totalFlow,
+                 'paths': paths, 'steps': steps}];
 }
 
 /** Find a high capacity augmenting path from a specified vertex to the sink.
@@ -54,14 +55,14 @@ function findpath(s) {
 	let q = new List(g.n);
 
 	while (scale >= 1) {
-		link.fill(0);
+		link.fill(-1); link[g.source] = 0;
 		q.enq(g.source);
 		while (!q.empty()) {
 			let u = q.deq();
 			for (let e = g.firstAt(u); e != 0; e=g.nextAt(u,e)) {
 				steps++;
 				let v = g.mate(u,e);
-				if (g.res(e,u) >= scale && link[v] == 0 && v != g.source) {
+				if (g.res(e,u) >= scale && link[v] < 0) {
 					link[v] = e; 
 					if (v == g.sink) return true;
 					q.enq(v);
