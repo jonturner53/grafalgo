@@ -56,8 +56,7 @@ export default function maxflowDST(fg, trace=false) {
 	}
 	if (trace) ts += g.toString(1);
 	let treeStats = trees.getStats();
-	steps += treeStats.splays;
-console.log(JSON.stringify(treeStats));
+	steps += treeStats.steps;
 	return [ts, {'flow': g.flowStats().totalFlow,
                  'paths': paths, 'steps': steps, 'phases': phases} ];
 }

@@ -229,6 +229,6 @@ export default class DynamicTrees extends PathSet {
 	}
 
 	getStats() {
-		return { 'splices' : this.splices, 'splays'  : this.splays, 'steps'  : this.steps };
+		return { 'splices' : this.splices, 'steps' : super.steps };
 	}
 }
