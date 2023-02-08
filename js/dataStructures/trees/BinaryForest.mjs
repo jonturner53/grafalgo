@@ -456,23 +456,21 @@ export default class BinaryForest extends Top {
 	 */
 	rotate(x) {
 		this.steps++; this.rotations++;
-		let px = this.p(x); let gpx = this.#p[px];
-		if (px == 0) return;
-		let cx = 0;
-		if (x == this.left(px)) {
-			cx = this.right(x); this.left(px, cx); this.right(x, px);
+		let p = this.#p; let left= this.#left; let right = this.#right;
+		let y = p[x]; if (!y) return;
+		p[x] = p[y];
+		     if (y == left[p[y]])  left[p[x]] = x;
+		else if (y == right[p[y]]) right[p[x]] = x;
+		if (x == left[y]) {
+			left[y] = right[x];
+			if (left[y]) p[left[y]] = y;
+			right[x] = y;
 		} else {
-			cx = this.left(x); this.right(px, cx); this.left(x, px);
+			right[y] = left[x];
+			if (right[y]) p[right[y]] = y;
+			left[x] = y;
 		}
-		this.p(px, x); if (cx != 0) this.p(cx, px);
-		if (gpx > 0) {
-			if (px == this.left(gpx)) {
-				this.left(gpx, x);
-			} else if (px == this.right(gpx)) {
-				this.right(gpx, x);
-			}
-		}
-		this.#p[x] = gpx;
+		p[y] = x;
 	}
 
 	/** Perform a double-rotation on a tree.

@@ -21,11 +21,11 @@ export default function maxflowVerify(g) {
 		let s = 0;
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u, e)) {
 			if (g.f(e) < g.floor(e) || g.f(e) > g.cap(e))
-				return(`Error: capacity violation at ${g.edge2string(e)}`);
+				return(`Error: capacity violation at ${g.e2s(e)}`);
 			s += g.f(e, u);
 		}
 		if (s != 0)
-			return(`Error: unbalanced flow at vertex ${g.index2string(u)}`);
+			return(`Error: unbalanced flow at vertex ${g.x2s(u)}`);
 	}
 	let reached = new Int8Array(g.n+1);
 	let q = new List(g.n);

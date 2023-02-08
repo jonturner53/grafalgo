@@ -17,7 +17,7 @@ let nextEdge;	// nextEdge[u] is the next edge to be processed at u
 
 let phases;	    // number of phases
 let paths;      // number of calls to findpath
-let steps;      // total steps in findpath
+let steps;      // total steps
 
 /** Compute a maximum flow in a graph using Dinic's algorithm.
  *  @param fg is Flograph, possibly with some initial flow already present.

@@ -10,6 +10,8 @@ import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import DynamicTrees from '../../dataStructures/specialty/DynamicTrees.mjs';
 
+import maxflowVerify from './maxflowVerify.mjs';
+
 let g;           // shared reference to flow graph
 let level;       // level[u] is distance from source to u in residual graph
 let nextEdge;    // nextEdge[u] is the next edge to be processed at u
@@ -21,6 +23,14 @@ let huge;        // large value used for initial cost of tree roots
 let paths;       // number of calls to findpath
 let steps;       // total steps in findpath
 let phases;      // number of phases
+
+let extendCnt;
+let pruneCnt;
+let newphaseTime;
+let fpt0;
+let apt0;
+let apt1;
+let apt2;
 
 /** Compute a maximum flow in a graph using Dinic's algorithm with
  *  Sleator & Tarjan dynmic trees data structure.
@@ -47,7 +57,7 @@ export default function maxflowDST(fg, trace=false) {
 	if (trace) ts += 'augmenting paths with residual capacities\n';
 
 	while (newphase()) {
-		phases++;
+		phases++; 
 		while (findpath()) {
 			paths++;
 			let [,s] = augment(trace);
@@ -57,14 +67,13 @@ export default function maxflowDST(fg, trace=false) {
 	if (trace) ts += g.toString(1);
 	let treeStats = trees.getStats();
 	steps += treeStats.steps;
-	return [ts, {'flow': g.flowStats().totalFlow,
-                 'paths': paths, 'steps': steps, 'phases': phases} ];
+	return [ts, {'flow': g.flowStats().totalFlow, 'phases': phases,
+                 'paths': paths, 'steps': steps}];
 }
 
 /** Find an augmenting path from specified vertex to sink in residual graph.
  *  @return true if there is an augmenting path from source to the sink
  */
-
 function findpath() {
 	while (nextEdge[g.source] != 0) {
 		let u = trees.findroot(g.source); let e = nextEdge[u];
@@ -76,7 +85,7 @@ function findpath() {
 			let v = g.mate(u,e);
 			if (g.res(e,u) > 0 && level[v]==level[u] + 1 && nextEdge[v] != 0) {
 				extend(u, e);
-				u = trees.findroot(u); e = nextEdge[u];
+				u = trees.findroot(g.source); e = nextEdge[u];
 			} else {
 				e = nextEdge[u] = g.nextAt(u,e);
 			}
@@ -124,7 +133,15 @@ function prune(u) {
  */
 function augment(trace) {
 	let ts = ''; let path;
-	if (trace) path = trees.treepath(g.source);
+	if (trace) {
+		let p = trees.findpath(g.source); let s = '';
+		for (let u = trees.first(p); u; u = trees.next(u)) {
+			if (s) s += ' ';
+			s += g.x2s(u);
+			if (trees.next(u)) s += ':' + trees.cost(u);
+		}
+		ts += s;
+	}
 
 	// effectively saturate source/sink path by adjusting costs
 	let [u,rcap] = trees.findcost(g.source);
@@ -133,24 +150,12 @@ function augment(trace) {
 	// now, remove tree edges with zero residual capacity
 	// and saturate corresponding flow graph edges
 	let c; [u,c] = trees.findcost(g.source);
-	let sentry; if (trace) sentry = path.length-1;
 	while (c == 0) {
 		steps++;
-		if (trace) {
-			let s = `${g.x2s(u)}:${rcap}`;
-			let i; for (i = sentry; path[i] != u; i--) ;
-			let j; for (j = i+1; j != sentry; j++) {
-				let v = path[j];
-				s += ` ${g.x2s(v)}:${rcap+trees.cost(v)}`;
-			}
-			ts = (ts ? s + ' ' + ts : s);
-			sentry = i;
-		}
 		let e = upEdge[u]; 
 		if (e) { prune(u); nextEdge[u] = g.nextAt(u, e); }
 		[u,c] = trees.findcost(g.source);
 	}
-	if (trace) ts += ' ' + g.x2s(path[path.length-1]);
 	return [rcap, ts];
 }
 
@@ -168,7 +173,7 @@ function newphase() {
 	q.enq(g.source); level[g.source] = 0;
 	while (!q.empty()) {
 		let u = q.deq();
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u, e)) {
+		for (let e = g.firstAt(u); e; e = g.nextAt(u, e)) {
 			let v = g.mate(u, e);
 			if (g.res(e, u) > 0 && level[v] == g.n) {
 				level[v] = level[u] + 1;

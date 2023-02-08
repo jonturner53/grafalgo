@@ -13,19 +13,23 @@ import PathSet from './PathSet.mjs';
 //import { fassert } from '../../common/Errors.mjs';
 let fassert = (()=>1);
 
+let spliceTime;
+
 /** Data structure representing a collection of paths.
  *
  *  Paths can be split apart or joined together and each path node
  *  has a cost. Supports efficient search for the first mincost node.
  */
 export default class DynamicTrees extends PathSet {
+	exposes;
 	splices;
 	
 	/** Constructor for DynamicTrees object.
 	 *  @param n is the range for the list
 	 */
 	constructor(n=10) {
-		super(n); this.splices = 0;
+		super(n); this.exposes = this.splices = 0;
+this.spliceTime = 0;
 	}
 
 	/** Expose a path in a tree.
@@ -35,7 +39,8 @@ export default class DynamicTrees extends PathSet {
 	 *  a single path.
 	 */
 	expose(u) {
-		fassert(this.valid(u));
+		//fassert(this.valid(u));
+		this.exposes++;
 		let [p,s] = [0,u];
 		while (s != 0) {
 			[p,s] = this.#splice([p,s]);
@@ -66,7 +71,7 @@ export default class DynamicTrees extends PathSet {
 	 *  @return the root of the tree containing u
 	 */
 	findroot(u) {
-		fassert(this.valid(u));
+		//fassert(this.valid(u));
 		let p = this.expose(u);
 		let x = this.findtail(p);
 		this.succ(x, 0); // works because x is now both tail and path id
@@ -91,7 +96,7 @@ export default class DynamicTrees extends PathSet {
 	 *  path from u to the tree root
 	 */
 	addcost(u, c) {
-		fassert(this.valid(u));
+		//fassert(this.valid(u));
 		this.addpathcost(this.expose(u), c);
 	}
 	
@@ -102,7 +107,7 @@ export default class DynamicTrees extends PathSet {
 	 *  a subtree of u
 	 */
 	graft(t, u) {
-		fassert(this.valid(t) && this.valid(u));
+		//fassert(this.valid(t) && this.valid(u));
 		let p = this.expose(u); // id of path from u to tree root
 		let sp = this.succ(p);
 		this.succ(this.join(0, this.expose(t), p), sp);
@@ -113,7 +118,7 @@ export default class DynamicTrees extends PathSet {
 	 *  The operation removes the edge from u to its parent.
 	 */
 	prune(u) {
-		fassert(this.valid(u));
+		//fassert(this.valid(u));
 		let v = this.succ(this.findpath(u));
 		let [p,q] = this.split(u);
 		if (p != 0) this.succ(p, u);
@@ -225,10 +230,10 @@ export default class DynamicTrees extends PathSet {
 	}
 
 	clearStats() {
-		super.clearStats(); this.splices = 0;
+		super.clearStats(); this.exposes = this.splices = 0;
 	}
 
 	getStats() {
-		return { 'splices' : this.splices, 'steps' : this.steps };
+		return { 'exposes' : this.exposes, 'splices' : this.splices, 'steps' : this.steps };
 	}
 }

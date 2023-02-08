@@ -53,7 +53,8 @@ export default class SplayForest extends BinaryForest {
 	}
 
 	insertAfter(u, t, v) {
-		return super.insertAfter(u, t, v, u => this.splay(u));
+		//return super.insertAfter(u, t, v, u => this.splay(u));
+		super.insertAfter(u, t, v); this.splay(u);
 	}
 
 	insertByKey(u, t, key, compare=((a,b)=>a-b)) {
