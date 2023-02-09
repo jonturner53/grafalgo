@@ -381,8 +381,8 @@ export default class Flograph extends Digraph {
 		for (let i = 0; i < pairs.length; i++) {
 			let [u,v] = pairs[i];
 			let e = this.join(u,v);
-			if (floors[i]) this.floor(e, floors[i]);
 			this.cap(e, caps[i]);
+			if (floors[i]) this.floor(e, floors[i]);
 			if (flows[i]) this.flow(e, flows[i]);
 			if (costs[i]) this.cost(e, costs[i]);
 		}

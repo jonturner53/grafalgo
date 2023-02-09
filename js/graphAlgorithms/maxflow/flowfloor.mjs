@@ -54,7 +54,7 @@ export default function flowfloor(g, trace=false) {
     let e = g1.join(g.sink, g.source); g1.cap(e, totalCap);
 
 	// Now, find max flow in g1 and check that floor values are all satisfied
-	let [ts,stats] = maxflowD(g1, trace);
+	let [ts,stats] = maxflowD(g1,trace);
 	paths += stats.paths; steps += stats.steps;
 
 	// Now transfer computed flow back into g

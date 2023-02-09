@@ -21,12 +21,12 @@ import { randomGraph, randomFlograph } from '../../misc/RandomGraph.mjs';
 function run(g, trace) {
 	g.clearFlow();
 	let ts = '';
-	if (trace) ts += g.toString(1)
+//	if (trace) ts += g.toString(1)
 	let [success, ts1, stats1] = flowfloor(g, trace);
-	if (trace) ts += ts1 + g.toString(1);
-	if (!success) ts += 'unable to satisfy flow floors\n';
+	if (success) ts1 += '\nfound feasible flow\n\n';
+	else         ts1 += '\nno feasible flow\n\n';
 	let [ts2] = maxflowD(g, trace);
-	if (trace) ts += ts2 + g.toString(1);
+	if (trace) ts += ts1 + ts2;
 	return [ts, stats1];
 }
 
@@ -42,6 +42,7 @@ let g = new Flograph(); g.fromString(
 	'e[f:1 g:3 h:4] f[e:1 g:2 h:3] g[e:3 f:2 h:1] ' +
 	'h[f:3 i:4 j:2] i[g:1-5 j:6] ->j[]}');
 tester.addTest('small graph', g);
+tester.run();
 
 g = randomFlograph(14, 5, 3, 1, 1);
 g.randomCapacities(randomInteger, 1, 19);
@@ -58,4 +59,3 @@ g.randomCapacities(randomInteger, 1, 99);
 g.randomFloors(randomInteger, 0, 7);
 tester.addTest('large random', g);
 
-tester.run();

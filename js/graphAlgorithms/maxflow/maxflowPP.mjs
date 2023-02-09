@@ -47,7 +47,7 @@ export default function maxflowPP(fg, getUbal, putUbal, trace=false,
 	relabelCount = 0; relabelSteps = 0;
 	balanceCount = 0; balanceSteps = 0;
 
-	excess.fill(0); let s = g.source;
+	let s = g.source;
 	for (let e = g.firstOut(s); e != 0; e = g.nextAt(s,e)) {
 		let f = g.res(e,s); if (f == 0) continue;
 		g.addFlow(e, s, f);
@@ -89,7 +89,7 @@ export default function maxflowPP(fg, getUbal, putUbal, trace=false,
 			u = getUnbal();
 		}
 	}
-	if (trace) traceString += g.toString(1);
+	if (trace) traceString += '\n' + g.toString(1);
 	return [traceString, {'flow': g.flowStats().totalFlow,
                  		  'relabelCount': relabelCount,
 						  'relabelSteps': relabelSteps,

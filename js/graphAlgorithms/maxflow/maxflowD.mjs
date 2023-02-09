@@ -44,7 +44,7 @@ export default function maxflowD(fg, trace=false) {
 			steps += augsteps;
 		}
 	}
-	if (trace) ts += g.toString(1);
+	if (trace) ts += '\n' + g.toString(1);
 	return [ts, {'flow': g.flowStats().totalFlow,
                  'phases': phases, 'paths': paths, 'steps': steps} ];
 }
