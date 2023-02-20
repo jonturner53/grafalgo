@@ -41,6 +41,9 @@ let g = new Flograph(); g.fromString(
 	'{a->[b:3 d:2] b[c:3 d:2-7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
 	'e[f:1 g:3 h:4] f[e:1 g:2 h:3] g[e:3 f:2 h:1] ' +
 	'h[f:3 i:4 j:2] i[g:1-5 j:6] ->j[]}');
+g.fromString('{a->[b:3 d:2] b[c:3 d:2-7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
+             'e[f:1 g:3 h:1-4] f[e:1 g:2 h:3] g[e:3 f:2-7 h:1] ' +
+             'h[f:3 i:4 j:2] i[g:2-5 j:6] ->j[]}');
 tester.addTest('small graph', g);
 tester.run();
 
