@@ -23,9 +23,9 @@ let sinks;    // list of sinks (nodes with negative excess)
 let trace;
 let traceString;
 
-let phaseCount;     // number of scaling phases
-let pathCount;      // number of augmenting paths
-let findpathSteps;  // number of steps in findpath method
+let phases;     // number of scaling phases
+let paths;      // number of augmenting paths
+let steps;  // number of steps in findpath method
 
 /** Find minimum cost maximum flow in a weighted flow graph using Orlin's
  *  capacity scaling algorithm.
@@ -41,7 +41,7 @@ export default function mcflowO(fg, traceFlag=false) {
 	sources = new List(g.n); sources.addPrev(); // doubly linked
 	sinks = new List(g.n); sinks.addPrev();
 
-	phaseCount = pathCount = findpathSteps = 0;
+	phases = paths = steps = 0;
 
 	// Initialize scaling factor
 	let maxcap = 0;
@@ -59,10 +59,10 @@ export default function mcflowO(fg, traceFlag=false) {
 	g.clearFlow();
 
 	while (Delta >= 1) {
-		newPhase(); phaseCount++;
+		newPhase(); phases++;
 		let t = findpath();
 		while (t != 0) {
-			pathCount++;
+			paths++;
 			augment(t);
 			t = findpath();
 		}
@@ -70,8 +70,8 @@ export default function mcflowO(fg, traceFlag=false) {
 		if (trace) traceString += '\n';
 	}
 	if (trace) traceString += g.toString(1);
-	return [traceString, {  'phaseCount': phaseCount, 'pathCount': pathCount,
-			 	  			'findpathSteps': findpathSteps } ];
+	return [traceString, {  'phases': phases, 'paths': paths,
+			 	  			'steps': steps } ];
 }
 
 /** Do start of phase processing.  */
@@ -84,6 +84,7 @@ function newPhase() {
 		flow = g.totalFlow(); cost = g.totalCost();
 	}
 	for (let e = g.first(); e != 0; e = g.next(e)) {
+		steps++;
 		let u = g.tail(e); let v = g.head(e);
 		if (g.res(e,u) >= Delta) {
 			if (g.costFrom(e,u) + (lambda[u] - lambda[v]) < 0) {
@@ -104,6 +105,7 @@ function newPhase() {
 	// identify candidate sources and sinks
 	sources.clear(); sinks.clear();
 	for (let u = 1; u <= g.n; u++) {
+		steps++;
 		if (excess[u] >= Delta) {
 			sources.enq(u);
 		} else if (excess[u] <= -Delta) {
@@ -130,6 +132,7 @@ function findpath() {
 	// search from all sources in parallel
 	for (let s = sources.first(); s != 0; s = sources.next(s)) {
 		c[s] = 0; border.insert(s,0);
+		steps++;
 	}
 	let cmax = -Infinity; let t = 0;
 	while (!border.empty()) {
@@ -137,7 +140,7 @@ function findpath() {
 		if (t == 0 && sinks.contains(u)) t = u;
 			// don't stop yet as need all c values to update lambda
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			findpathSteps++;
+			steps++;
 			if (g.res(e,u) < Delta) continue;
 			let v = g.mate(u,e);
 			if (c[v] > c[u] + g.costFrom(e,u) + (lambda[u]-lambda[v])) {
@@ -150,7 +153,7 @@ function findpath() {
 	}
 	if (t != 0) { // adjust labels
 		for (let u = 1; u <= g.n; u++)
-			lambda[u] += Math.min(c[u],cmax);
+			lambda[u] += Math.min(c[u],cmax); steps++;
 	}
 	return t;
 }
@@ -162,6 +165,7 @@ function findpath() {
 function augment(t) {
 	let s = t; let ts = ''; let cost = 0;
 	for (let e = link[s]; e != 0; e = link[s]) {
+		steps++;
 		let u = g.mate(s,e); g.addFlow(e,u,Delta);
 		if (trace) {
 			if (ts.length > 0) ts = ' ' + ts;
