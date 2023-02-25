@@ -77,10 +77,10 @@ let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, 'mcflow', algomap, verify);
 
 let g = new Flograph(); g.fromString(
-	'{a->[b:1,5 d:-1,6] b[c:3,3 d:1,7 g:2,3] c[d:2,1 e:1,5] ' +
-	'd[b:2,3 e:1,2 f:2,1 g:1,3] ' +
-	'e[f:-1,1 g:1,3 h:0,4] f[e:1,1 g:2,2 h:1,3] g[e:3,3 f:4,2 h:6,1] ' +
-	'h[f:1,3 i:2,4 j:2,5] i[h:2,4 g:1,5 j:1,6] ->j[]}');
+	'{a->[b:5@1 d:6@-1] b[c:3@3 d:7@1 g:3@2] c[d:1@2 e:5@1] ' +
+	'd[b:3@2 e:2@1 f:1@2 g:3@1] ' +
+	'e[f:1@-1 g:3@1 h:4] f[e:1@1 g:2@2 h:3@1] g[e:3@3 f:2@4 h:1@6] ' +
+	'h[f:3@1 i:4@2 j:5@2] i[h:4@2 g:5@1 j:6@1] ->j[]}');
 tester.addTest('small graph', g);
 
 g = randomFlograph(14, 4, 3);

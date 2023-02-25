@@ -15,6 +15,9 @@ let link;	  // link[] is parent edge of u
 let q;        // queue used in findCycle
 let cycleIds; // array used to label cycles with an integer identifier
 
+let trace;
+let traceString;
+
 let cycles;   // number of negative cycles found
 let passes;   // number of passes in findCycle
 let steps;    // steps involved in searching for cycles
@@ -25,8 +28,8 @@ let steps;    // steps involved in searching for cycles
  *  on return, the flow is a minimum cost flow with the same value
  *  as the initial flow
  */
-export default function mcflowK(fg, trace=false) {
-	g = fg;
+export default function mcflowK(fg, traceFlag=false) {
+	g = fg; trace = traceFlag;
 
 	C = new Float32Array(g.n+1);
 	link = new Int32Array(g.n+1);
@@ -35,21 +38,18 @@ export default function mcflowK(fg, trace=false) {
 
 	cycles = steps = passes = 0;
 
-	let ts = '';
+	traceString = '';
 	if (trace) {
-		ts += 'initial cost: ' + g.totalCost() + '\n' +
-			  'cycleCapacity cycle totalCost\n';
+		traceString += '\ninitial cost: ' + g.totalCost() + '\n' +
+			  		   'cycles with cycle capacity, totalCost\n';
 	}
 
 	let u = findCycle();
 	while (u != 0) {
-		cycles++;
-		let s = augment(u, trace);
-		if (trace) ts += s;
-		u = findCycle();
+		augment(u, trace); u = findCycle(); cycles++;
 	}
-	if (trace) ts += g.toString(1);
-	return [ ts, { 'cycles': cycles, 'passes': passes, 'steps': steps} ];
+	if (trace) traceString += '\n' + g.toString(1);
+	return [ traceString, { 'cycles': cycles, 'passes': passes, 'steps': steps} ];
 }
 
 /** Find a negative cost cycle in the residual graph.
@@ -117,26 +117,26 @@ function cycleCheck() {
  *  without changing the flow value.
  *  @param z is a vertex on a cycle defined by the link array
  */
-function augment(z, trace=false) {
+function augment(z) {
 	// determine residual capacity of cycle
-	let u = z; let e = link[u]; let f = Infinity;
+	let u = z; let e; let f = Infinity;
 	do {
-		let v = g.mate(u,e);
-		f = Math.min(f,g.res(e,v));
-		u = v; e = link[u];
+		e = link[u]; u = g.mate(u,e);
+		f = Math.min(f,g.res(e,u));
 		steps++;
 	} while (u != z);
 
 	// add flow to saturate cycle
-	let ts = '';
-	if (trace) ts += g.index2string(z);
-	u = z; e = link[u];
+	let ts = g.x2s(z); u = z;
 	do {
-		let v = g.mate(u,e);
-		g.addFlow(e,v,f);
-		if (trace) ts = `${g.index2string(v)}:${g.costFrom(e,v)} ${ts}`;
-		u = v; e = link[u];
+		e = link[u]; u = g.mate(u,e);
+		if (trace) {
+			ts = `${g.x2s(u)}:${g.res(e,u)} ${ts}`;
+		}
+		g.addFlow(e,u,f);
 	} while (u != z);
-	if (trace) ts = `${f} [${ts}] ${g.totalCost()}\n`;
-	return ts;
+
+	if (trace) {
+		traceString += `[${ts}] ${f} ${g.totalCost()}\n`;
+	}
 }
