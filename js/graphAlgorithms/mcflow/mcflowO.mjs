@@ -6,26 +6,26 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
 
-let g;	      // shared reference to flow graph
+let g;        // shared reference to flow graph
 let Delta;    // scaling parameter
-let link;    // link[u] is parent edge of u
+let link;     // link[u] is parent edge of u
 let lambda;   // lambda[u] is vertex label used to make costs non-negative
 let excess;   // excess[u] is excess flow entering u
 let sources;  // list of sources (nodes with positive excess)
 let sinks;    // list of sinks (nodes with negative excess)
+let cmax;     // upper bound on shortest path lengths
 
 let trace;
 let traceString;
 
 let phases;     // number of scaling phases
 let paths;      // number of augmenting paths
-let steps;  // number of steps in findpath method
+let steps;      // number of steps in findpath method
 
 /** Find minimum cost maximum flow in a weighted flow graph using Orlin's
  *  capacity scaling algorithm.
@@ -43,13 +43,16 @@ export default function mcflowO(fg, traceFlag=false) {
 
 	phases = paths = steps = 0;
 
-	// Initialize scaling factor
-	let maxcap = 0;
+	// Initialize cmax and scaling factor
+	let maxcap = 0; let maxcost = g.cost(g.first());
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		maxcap = Math.max(maxcap, g.cap(e,));
+		maxcost = Math.max(maxcost, Math.abs(g.cost(e)));
 		g.flow(e, 0);
 	}
 	for (Delta = 1; 2*Delta <= maxcap; Delta <<= 1) {}
+	cmax = g.n * maxcost;
+traceString += 'cmax=' + cmax + '\n';
 
 	// Determine a max flow so that we can initialize excess
 	// values at s and t
@@ -88,7 +91,7 @@ function newPhase() {
 		let u = g.tail(e); let v = g.head(e);
 		if (g.res(e,u) >= Delta) {
 			if (g.costFrom(e,u) + (lambda[u] - lambda[v]) < 0) {
-				if (trace) s += ` ${g.edge2string(e)}:${g.index2string(u)}`
+				if (trace) s += ` ${g.edge2string(e)}:${g.index2string(u)}`;
 				g.addFlow(e,u,Delta);
 				excess[u] -= Delta; excess[v] += Delta;
 			}
@@ -131,12 +134,13 @@ function findpath() {
 
 	// search from all sources in parallel
 	for (let s = sources.first(); s != 0; s = sources.next(s)) {
-		c[s] = 0; border.insert(s,0);
-		steps++;
+		c[s] = 0; border.insert(s,0); steps++;
 	}
-	let cmax = -Infinity; let t = 0;
+	let t = 0;
+	let cmax = -Infinity;
 	while (!border.empty()) {
-		let u = border.deletemin(); cmax = Math.max(cmax,c[u]);
+		let u = border.deletemin();
+		cmax = Math.max(cmax,c[u]);
 		if (t == 0 && sinks.contains(u)) t = u;
 			// don't stop yet as need all c values to update lambda
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
@@ -152,8 +156,10 @@ function findpath() {
 		}
 	}
 	if (t != 0) { // adjust labels
-		for (let u = 1; u <= g.n; u++)
-			lambda[u] += Math.min(c[u],cmax); steps++;
+		for (let u = 1; u <= g.n; u++) {
+			lambda[u] += Math.min(c[u],cmax);
+		}
+		steps += g.n;
 	}
 	return t;
 }

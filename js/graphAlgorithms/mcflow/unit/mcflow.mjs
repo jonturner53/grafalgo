@@ -11,6 +11,7 @@ import Tester from '../../../common/Tester.mjs';
 import maxflowD from '../../maxflow/maxflowD.mjs';
 import mcflowK from '../mcflowK.mjs';
 import mcflowKGT from '../mcflowKGT.mjs';
+import mcflowJ from '../mcflowJ.mjs';
 import mcflowJEK from '../mcflowJEK.mjs';
 import mcflowO from '../mcflowO.mjs';
 import maxflowVerify from '../../maxflow/maxflowVerify.mjs';
@@ -38,11 +39,20 @@ function runKGT(g, trace) {
 	return [ts+s, stats];
 }
 
+function runJ(g, trace) {
+	let ts = '';
+	g.clearFlow();
+	//mcflowK(g);  // eliminate negative cycles
+	//if (trace) ts += g.toString(1);
+	let [s,stats] = mcflowJ(g, trace);
+	return [ts+s, stats];
+}
+
 function runJEK(g, trace) {
 	let ts = '';
 	g.clearFlow();
-	mcflowK(g);  // eliminate negative cycles
-	if (trace) ts += g.toString(1);
+	//mcflowK(g);  // eliminate negative cycles
+	//if (trace) ts += g.toString(1);
 	let [s,stats] = mcflowJEK(g, trace);
 	return [ts+s, stats];
 }
@@ -52,6 +62,7 @@ function run(g, trace, f) { g.clearFlow(); return f(g,trace); }
 let algomap = {
 	'K' : (g,trace) => runK(g,trace),
 	'KGT' : (g,trace) => runKGT(g,trace),
+	'J' : (g,trace) => runJ(g,trace),
 	'JEK' : (g,trace) => runJEK(g,trace),
 	'O' : (g,trace) => run(g,trace,mcflowO)
 }
@@ -85,6 +96,11 @@ tester.addTest(`medium random (${g.n},${g.m})`, g);
 g = randomFlograph(62, 15);
 g.randomCapacities(randomInteger, 1, 999);
 g.randomCosts(randomInteger, -999, 999);
+tester.addTest(`large random (${g.n},${g.m})`, g);
+
+g = randomFlograph(122, 20);
+g.randomCapacities(randomInteger, 1, 999);
+g.randomCosts(randomInteger, 0, 999);
 tester.addTest(`large random (${g.n},${g.m})`, g);
 
 tester.run();

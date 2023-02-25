@@ -15,9 +15,9 @@ let link;	  // link[] is parent edge of u
 let q;        // queue used in findCycle
 let cycleIds; // array used to label cycles with an integer identifier
 
-let cycleCount;		  // number of negative cycles found
-let findCycleSteps;  // steps involved in searching for cycles
-let findCyclePasses;  // number of passes in findCycle
+let cycles;   // number of negative cycles found
+let passes;   // number of passes in findCycle
+let steps;    // steps involved in searching for cycles
 
 /** Find minimum cost flow in a weighted flow graph using
  *  Klein's cycle reduction method. 
@@ -33,7 +33,7 @@ export default function mcflowK(fg, trace=false) {
 	q = new List(g.n);
 	cycleIds = new Int8Array(g.n+1);
 
-	cycleCount = findCycleSteps = findCyclePasses = 0;
+	cycles = steps = passes = 0;
 
 	let ts = '';
 	if (trace) {
@@ -43,15 +43,13 @@ export default function mcflowK(fg, trace=false) {
 
 	let u = findCycle();
 	while (u != 0) {
-		cycleCount++;
+		cycles++;
 		let s = augment(u, trace);
 		if (trace) ts += s;
 		u = findCycle();
 	}
 	if (trace) ts += g.toString(1);
-	return [ ts, { 'cycleCount': cycleCount,
-				   'findCyclePasses': findCyclePasses,
-				   'findCycleSteps': findCycleSteps} ];
+	return [ ts, { 'cycles': cycles, 'passes': passes, 'steps': steps} ];
 }
 
 /** Find a negative cost cycle in the residual graph.
@@ -68,7 +66,7 @@ function findCycle() {
 	while (!q.empty()) {
 		let u = q.deq();
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			findCycleSteps++;
+			steps++;
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
 			if (C[v] > C[u] + g.costFrom(e,u)) {
@@ -79,7 +77,7 @@ function findCycle() {
 		}
 
 		if (u == last) {
-			findCyclePasses++;
+			passes++;
 			let v = cycleCheck();
 			if (v != 0) return v;
 			last = q.last();
@@ -103,6 +101,7 @@ function cycleCheck() {
 			e = link[v];
 			if (e == 0) break;
 			v = g.mate(v,e);
+			steps++;
 		}
 		if (cycleIds[v] == id && e != 0) return v;
 		
@@ -125,6 +124,7 @@ function augment(z, trace=false) {
 		let v = g.mate(u,e);
 		f = Math.min(f,g.res(e,v));
 		u = v; e = link[u];
+		steps++;
 	} while (u != z);
 
 	// add flow to saturate cycle
