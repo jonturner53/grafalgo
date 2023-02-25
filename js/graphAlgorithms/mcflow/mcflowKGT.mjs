@@ -19,8 +19,8 @@ let P;        // P[i][u]=edge to parent of u in mcp of length i to u
 let meanCost; // used to determine min mean cycle cost
 let mark;     // used to identify cycle
 
-let cycleCount;       // number of negative cycles found
-let findCycleSteps;   // steps involved in searching for cycles
+let cycles;   // number of negative cycles found
+let steps;    // steps involved in searching for cycles
 
 let trace;
 let traceString;
@@ -44,21 +44,19 @@ export default function mcflowKGT(fg, traceflag=false) {
 
 	trace = traceflag; traceString = '';
 
-	cycleCount = findCycleSteps = 0;
+	cycles = steps = 0;
 
 	if (trace) {
-		traceString += 'initial cost: ' + g.totalCost() + '\n' +
-			  'cycleCapacity cycle totalCost\n';
+		traceString += g.toString(1) + 
+					   '\ninitial cost: ' + g.totalCost() + '\n' +
+			  		   'cycles with capacity and resulting flow cost\n';
 	}
 	let [u,i] = findCycle();
 	while (u != 0) {
-		cycleCount++;
-		augment(u,i);
-		[u,i] = findCycle();
+		augment(u,i); [u,i] = findCycle(); cycles++;
 	}
-	if (trace) traceString += g.toString(1);
-	return [ traceString, { 'cycleCount': cycleCount,
-				   'findCycleSteps': findCycleSteps} ];
+	if (trace) traceString += '\n' + g.toString(1);
+	return [ traceString, { 'cycles': cycles, 'steps': steps} ];
 }
 
 /** Find a negative cost cycle in the residual graph.
@@ -75,7 +73,7 @@ function findCycle() {
 			// compute C[i][u] the cost of min cost path to u with i edges
 			C[i][u] = Infinity; 
 			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-				findCycleSteps++;
+				steps++;
 				let v = g.mate(u,e);
 				if (g.res(e,v) > 0 && C[i-1][v] + g.costFrom(e,v) < C[i][u]) {
 					C[i][u] = C[i-1][v] + g.costFrom(e,v); P[i][u] = e;
@@ -89,7 +87,7 @@ function findCycle() {
 	for (let u = 1; u <= n; u++) {
 		meanCost[u] = [0, (C[n][u] - C[0][u]) / n];
 		for (let i = 0; i < n; i++) {
-			findCycleSteps++;
+			steps++;
 			let mc = (C[n][u] - C[i][u]) / (n - i);
 			if (mc > meanCost[u][1]) {
 				meanCost[u] = [n-i,mc];
@@ -104,7 +102,7 @@ function findCycle() {
 	mark.fill(0);
 	let u = umin; let i = n; mark[u] = i;
 	while (i > 0) {
-		findCycleSteps++;
+		steps++;
 		let e = P[i][u]; let v = g.mate(u,e);
 		if (mark[v]) {
 			return [v, mark[v]];
@@ -125,21 +123,18 @@ function augment(z,i) {
 	// C[i][z] is min mean cycle cost and P values give parent edges
 	let u = z; let j = i; let f = Infinity;
 	do {
-		let e = P[j--][u];
-		let v = g.mate(u,e);
+		let e = P[j--][u]; let v = g.mate(u,e);
 		f = Math.min(f,g.res(e,v));
-		u = v;
+		u = v; steps++
 	} while (u != z);
 
 	// now add flow to the path to saturate cycle
-	let ts = ''; if (trace) ts += g.index2string(z);
+	let ts = ''; if (trace) ts += g.x2s(z);
 	u = z; j = i;
 	do {
-		let e = P[j--][u];
-		let v = g.mate(u,e);
-		g.addFlow(e,v,f);
-		if (trace) ts = `${g.index2string(v)}:${g.costFrom(e,v)} ${ts}`;
-		u = v;
+		let e = P[j--][u]; u = g.mate(u,e);
+		if (trace) ts = `${g.x2s(u)}:${g.res(e,u)} ${ts}`;
+		g.addFlow(e,u,f);
 	} while (u != z);
-	if (trace) traceString += `${f} [${ts}] ${g.totalCost()}\n`;
+	if (trace) traceString += `[${ts}] ${f} ${g.totalCost()}\n`;
 }

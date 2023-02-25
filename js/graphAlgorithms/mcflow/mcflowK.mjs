@@ -42,7 +42,7 @@ export default function mcflowK(fg, traceFlag=false) {
 	if (trace) {
 		traceString += g.toString(1) + 
 					   '\ninitial cost: ' + g.totalCost() + '\n' +
-			  		   'cycles with cycle capacity, totalCost\n';
+			  		   'cycles with capacity and resulting flow cost\n';
 	}
 
 	let u = findCycle();
