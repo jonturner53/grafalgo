@@ -40,7 +40,8 @@ export default function mcflowK(fg, traceFlag=false) {
 
 	traceString = '';
 	if (trace) {
-		traceString += '\ninitial cost: ' + g.totalCost() + '\n' +
+		traceString += g.toString(1) + 
+					   '\ninitial cost: ' + g.totalCost() + '\n' +
 			  		   'cycles with cycle capacity, totalCost\n';
 	}
 
