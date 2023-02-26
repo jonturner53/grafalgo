@@ -18,6 +18,9 @@ let excess;   // excess[u] is excess flow entering u
 let sources;  // list of sources (nodes with positive excess)
 let sinks;    // list of sinks (nodes with negative excess)
 
+let border;   // heap used by findpath
+let c;        // array of path costs used by findpath
+
 let trace;
 let traceString;
 
@@ -29,14 +32,15 @@ let steps;      // number of steps in findpath method
  *  Requires that the original graph has no negative cost cycles.
  */
 export default function mcflowJEK(fg, traceFlag=false) {
-	g = fg;
-	trace = traceFlag; traceString = '';
+	g = fg; trace = traceFlag; traceString = '';
 
 	link = new Int32Array(g.n+1);
 	lambda = new Float32Array(g.n+1);
 	excess = new Int32Array(g.n+1);
 	sources = new List(g.n); sources.addPrev(); // doubly linked
 	sinks = new List(g.n); sinks.addPrev();
+	border = new ArrayHeap(g.n,2);
+	c = new Float32Array(g.n+1);
 
 	paths = steps = 0;
 
@@ -66,11 +70,18 @@ export default function mcflowJEK(fg, traceFlag=false) {
 		}
 	}
 
+	traceString = '';
+	if (trace) {
+		traceString += g.toString(1) + '\nsources, sinks and paths ' +
+					   'with capacity and flow cost\n';
+	}
+
 	let t = findpath();
 	while (t) {
 		paths++; augment(t); t = findpath();
 	}
-	if (trace) traceString += g.toString(1);
+	if (trace) traceString += '\n' + g.toString(1);
+	steps += border.getStats().steps;
 	return [traceString, { 'paths': paths, 'steps': steps } ];
 }
 
@@ -79,16 +90,13 @@ export default function mcflowJEK(fg, traceFlag=false) {
  *  vector defines the path from the sink back to some source
  */
 function findpath() {
-	let c = new Float32Array(g.n+1);
-	let border = new ArrayHeap(g.n,2);
-	link.fill(0); c.fill(Infinity);
+	border.clear(); link.fill(0); c.fill(Infinity);
 
 	// search from all sources in parallel
 	for (let s = sources.first(); s != 0; s = sources.next(s)) {
 		c[s] = 0; border.insert(s,0); steps++;
 	}
-	let t = 0;
-	let cmax = -Infinity;
+	let t = 0; let cmax = -Infinity;
 	while (!border.empty()) {
 		let u = border.deletemin();
 		cmax = Math.max(cmax,c[u]);

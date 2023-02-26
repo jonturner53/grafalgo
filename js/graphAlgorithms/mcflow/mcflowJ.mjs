@@ -66,14 +66,15 @@ export default function mcflowJ(fg, traceFlag=false) {
 	}
 
 	if (trace) {
-		traceString += g.toString(1); 
+		traceString += g.toString(1) + '\n' + 'sources, sinks and paths ' +
+					   'with capacity and flow cost\n'
 	}
 	let t = findpath();
 	while (t) {
 		paths++; augment(t);
 		t = findpath();
 	}
-	if (trace) traceString += g.toString(1);
+	if (trace) traceString += '\n' + g.toString(1);
 	return [traceString, { 'paths': paths, 'steps': steps } ];
 }
 
@@ -119,20 +120,19 @@ function augment(t) {
 	delta = Math.min(delta, excess[u]);
 	delta = Math.min(delta, -excess[t]);
 
-	u = t; let ts = ''; let cost = 0;
+	u = t; let ts = '';
 	for (let e = link[u]; e; e = link[u]) {
 		steps++;
 		u = g.mate(u,e); g.addFlow(e,u,delta);
 		if (trace) {
 			if (ts.length > 0) ts = ' ' + ts;
 			ts = g.x2s(u) + ':' + g.res(e,u) + ts;
-			cost += g.costFrom(e,u) * delta;
 		}
 	}
 	if (trace) {
 		traceString += sources.toString(u => g.x2s(u) + ':' + excess[u]) + ' ';
 		traceString += sinks.toString(u => g.x2s(u) + ':' + excess[u]) + '\n  ';
-		traceString += `[${ts} ${g.x2s(t)}] ${delta} ${cost} ${g.totalCost()}\n`;
+		traceString += `[${ts} ${g.x2s(t)}] ${delta} ${g.totalCost()}\n`;
 	}
 	excess[u] -= delta; excess[t] += delta;
 	if (excess[u] == 0) sources.delete(u);
