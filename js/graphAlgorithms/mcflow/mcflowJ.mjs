@@ -123,11 +123,12 @@ function augment(t) {
 	u = t; let ts = '';
 	for (let e = link[u]; e; e = link[u]) {
 		steps++;
-		u = g.mate(u,e); g.addFlow(e,u,delta);
+		u = g.mate(u,e);
 		if (trace) {
 			if (ts.length > 0) ts = ' ' + ts;
 			ts = g.x2s(u) + ':' + g.res(e,u) + ts;
 		}
+		g.addFlow(e,u,delta);
 	}
 	if (trace) {
 		traceString += sources.toString(u => g.x2s(u) + ':' + excess[u]) + ' ';
