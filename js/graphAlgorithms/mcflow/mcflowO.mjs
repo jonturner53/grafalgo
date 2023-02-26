@@ -89,14 +89,12 @@ function newPhase() {
 		let u = g.tail(e); let v = g.head(e);
 		if (g.res(e,u) >= Delta) {
 			if (g.costFrom(e,u) + (lambda[u] - lambda[v]) < 0) {
-				if (trace) s += ` ${g.edge2string(e)}:${g.index2string(u)}`;
 				g.addFlow(e,u,Delta);
 				excess[u] -= Delta; excess[v] += Delta;
 			}
 		}
 		if (g.res(e,v) >= Delta) {
 			if (g.costFrom(e,v) + (lambda[v] - lambda[u]) < 0) {
-				if (trace) s += ` ${g.edge2string(e)}:${g.index2string(v)}`
 				g.addFlow(e,v,Delta);
 				excess[v] -= Delta; excess[u] += Delta;
 			}
