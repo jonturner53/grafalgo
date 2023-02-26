@@ -67,7 +67,7 @@ export default function mcflowJ(fg, traceFlag=false) {
 
 	if (trace) {
 		traceString += g.toString(1) + '\n' + 'sources, sinks and paths ' +
-					   'with capacity and flow cost\n'
+					   'with added flow and resulting flow cost\n'
 	}
 	let t = findpath();
 	while (t) {

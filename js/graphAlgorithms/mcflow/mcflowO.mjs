@@ -18,7 +18,6 @@ let lambda;   // lambda[u] is vertex label used to make costs non-negative
 let excess;   // excess[u] is excess flow entering u
 let sources;  // list of sources (nodes with positive excess)
 let sinks;    // list of sinks (nodes with negative excess)
-let cmax;     // upper bound on shortest path lengths
 
 let trace;
 let traceString;
@@ -43,16 +42,12 @@ export default function mcflowO(fg, traceFlag=false) {
 
 	phases = paths = steps = 0;
 
-	// Initialize cmax and scaling factor
-	let maxcap = 0; let maxcost = g.cost(g.first());
+	// Initialize scaling factor
+	let maxcap = 0;
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		maxcap = Math.max(maxcap, g.cap(e,));
-		maxcost = Math.max(maxcost, Math.abs(g.cost(e)));
-		g.flow(e, 0);
 	}
 	for (Delta = 1; 2*Delta <= maxcap; Delta <<= 1) {}
-	cmax = g.n * maxcost;
-traceString += 'cmax=' + cmax + '\n';
 
 	// Determine a max flow so that we can initialize excess
 	// values at s and t
@@ -61,13 +56,16 @@ traceString += 'cmax=' + cmax + '\n';
 	excess[g.sink] = -g.totalFlow();
 	g.clearFlow();
 
+	if (trace) {
+		traceString += 'sources, sinks and paths ' +
+					   'with added flow and resulting flow cost\n'
+	}
+
 	while (Delta >= 1) {
 		newPhase(); phases++;
 		let t = findpath();
 		while (t != 0) {
-			paths++;
-			augment(t);
-			t = findpath();
+			augment(t); t = findpath(); paths++;
 		}
 		Delta /= 2;
 		if (trace) traceString += '\n';
@@ -114,11 +112,6 @@ function newPhase() {
 		} else if (excess[u] <= -Delta) {
 			sinks.enq(u);
 		}
-	}
-	if (trace) {
-		traceString +=	`Delta=${Delta} flow ${flow}, cost ${cost}\n` +
-						`adding to:${s}\n` +
-					    `sources ${''+sources}, sinks${''+sinks}\n`; 
 	}
 	return;
 }
@@ -169,20 +162,22 @@ function findpath() {
  *  by the link array
  */
 function augment(t) {
-	let s = t; let ts = ''; let cost = 0;
-	for (let e = link[s]; e != 0; e = link[s]) {
+	let u = t; let ts = '';
+	if (trace) ts += g.x2s(t);
+	for (let e = link[u]; e != 0; e = link[u]) {
 		steps++;
-		let u = g.mate(s,e); g.addFlow(e,u,Delta);
+		u = g.mate(u,e);
 		if (trace) {
-			if (ts.length > 0) ts = ' ' + ts;
-			ts = g.index2string(s) + ts;
-			cost += g.costFrom(e,u) * Delta;
+			ts = `${g.x2s(u)}:${g.res(e,u)} ${ts}`;
 		}
-		s = u;
+		g.addFlow(e,u,Delta);
 	}
-	if (trace)
-		traceString += `[${g.index2string(s)} ${ts}] ${cost}\n`;
-	excess[s] -= Delta; excess[t] += Delta;
-	if (excess[s] < Delta) sources.delete(s);
+	if (trace) {
+		traceString += sources.toString(u => g.x2s(u) + ':' + excess[u]) + ' ';
+		traceString += sinks.toString(u => g.x2s(u) + ':' + excess[u]) + '\n  ';
+		traceString += `[${ts}] ${Delta} ${g.totalCost()}\n`;
+	}
+	excess[u] -= Delta; excess[t] += Delta;
+	if (excess[u] < Delta) sources.delete(u);
 	if (excess[t] > -Delta) sinks.delete(t);
 }
