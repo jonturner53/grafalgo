@@ -39,6 +39,7 @@ export default function bimatchHK(bg, traceFlag=false, subsets=null) {
 	g = bg; trace = traceFlag; traceString = '';
 	match = new Int32Array(g.n+1); // match is returned
 	if (link == null || link.length != g.n+1) {
+		// avoid rebuilding data structures when possible
 		link = new Int32Array(g.n+1);
 		level = new Int32Array(g.n+1);
 		nextedge = new Int32Array(g.n+1);

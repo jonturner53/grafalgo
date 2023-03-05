@@ -9,8 +9,7 @@
 import { assert, AssertError} from '../../../common/Errors.mjs';
 import Tester from '../../../common/Tester.mjs';
 import maxflowD from '../../maxflow/maxflowD.mjs';
-import mcflowK from '../mcflowK.mjs';
-import mcflowKGT from '../mcflowKGT.mjs';
+import ncrJEK from '../ncrJEK.mjs';
 import mcflowJ from '../mcflowJ.mjs';
 import mcflowJEK from '../mcflowJEK.mjs';
 import mcflowO from '../mcflowO.mjs';
@@ -21,44 +20,14 @@ import Flograph from '../../../dataStructures/graphs/Flograph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomFlograph } from '../../misc/RandomGraph.mjs';
 
-function runK(g, trace) {
-	let ts = '';
-	g.clearFlow();
-	maxflowD(g);
-	let [s,stats] = mcflowK(g, trace);
-	return [ts+s, stats];
-}
-
-function runKGT(g, trace) {
-	let ts = '';
-	g.clearFlow();
-	maxflowD(g);
-	let [s,stats] = mcflowKGT(g, trace);
-	return [ts+s, stats];
-}
-
-function runJ(g, trace) {
-	let ts = '';
-	g.clearFlow();
-	let [s,stats] = mcflowJ(g, trace);
-	return [ts+s, stats];
-}
-
-function runJEK(g, trace) {
-	let ts = '';
-	g.clearFlow();
-	let [s,stats] = mcflowJEK(g, trace);
-	return [ts+s, stats];
-}
-
-function run(g, trace, f) { g.clearFlow(); return f(g,trace); }
-
 let algomap = {
-	'K' : (g,trace) => runK(g,trace),
-	'KGT' : (g,trace) => runKGT(g,trace),
-	'J' : (g,trace) => runJ(g,trace),
-	'JEK' : (g,trace) => runJEK(g,trace),
+	'J' : (g,trace) => run(g,trace,mcflowJ),
+	'JEK' : (g,trace) => run(g,trace,mcflowJEK),
 	'O' : (g,trace) => run(g,trace,mcflowO)
+}
+
+function run(g, trace, algo) {
+	g.clearFlow(); ncrJEK(g); return algo(g,trace);
 }
 
 function verify(g) {
@@ -79,22 +48,22 @@ tester.addTest('small graph', g);
 
 g = randomFlograph(14, 4, 3);
 g.randomCapacities(randomInteger, 1, 9);
-g.randomCosts(randomInteger, -9, 9);
+g.randomCosts(randomInteger, -9, 9); 
 tester.addTest(`small random (${g.n},${g.m})`, g);
 
 g = randomFlograph(32, 10);
 g.randomCapacities(randomInteger, 1, 99);
-g.randomCosts(randomInteger, -99, 99);
+g.randomCosts(randomInteger, -9, 99); 
 tester.addTest(`medium random (${g.n},${g.m})`, g);
 
 g = randomFlograph(62, 15);
 g.randomCapacities(randomInteger, 1, 999);
-g.randomCosts(randomInteger, -999, 999);
+g.randomCosts(randomInteger, -99, 999); 
 tester.addTest(`large random (${g.n},${g.m})`, g);
 
 g = randomFlograph(122, 20);
 g.randomCapacities(randomInteger, 1, 999);
-g.randomCosts(randomInteger, 0, 999);
+g.randomCosts(randomInteger, -99, 999); 
 tester.addTest(`large random (${g.n},${g.m})`, g);
 
 tester.run();

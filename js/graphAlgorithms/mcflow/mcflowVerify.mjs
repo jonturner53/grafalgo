@@ -36,5 +36,14 @@ export default function mcflowVerify(g) {
 		else
 			throw(e);
 	}
+
+	for (let u = 1; u <= g.n; u++) {
+		if (u == g.source || u == g.sink) continue;
+		let s = 0;
+		for (let e = g.firstAt(u); e; e = g.nextAt(u,e))
+			s += g.f(e,u);
+		if (s != 0)
+			return `Error: ${g.x2s(u)} violates flow conservation`;
+	}
 	return '';
 }

@@ -19,6 +19,9 @@ let excess;   // excess[u] is excess flow entering u
 let sources;  // list of sources (nodes with positive excess)
 let sinks;    // list of sinks (nodes with negative excess)
 
+let border;   // Array heap used by findpath
+let Cost;     // Path costs used by findpath
+
 let trace;
 let traceString;
 
@@ -39,6 +42,9 @@ export default function mcflowO(fg, traceFlag=false) {
 	excess = new Int32Array(g.n+1);
 	sources = new List(g.n); sources.addPrev(); // doubly linked
 	sinks = new List(g.n); sinks.addPrev();
+
+	Cost = new Float32Array(g.n+1);
+	border = new ArrayHeap(g.n,2);
 
 	phases = paths = steps = 0;
 
@@ -71,6 +77,7 @@ export default function mcflowO(fg, traceFlag=false) {
 		if (trace) traceString += '\n';
 	}
 	if (trace) traceString += g.toString(1);
+	steps += border.getStats().steps;
 	return [traceString, {  'phases': phases, 'paths': paths,
 			 	  			'steps': steps } ];
 }
@@ -119,36 +126,34 @@ function newPhase() {
  *  vector defines the path from the sink back to some source
  */
 function findpath() {
-	let c = new Float32Array(g.n+1);
-	let border = new ArrayHeap(g.n,2);
-	link.fill(0); c.fill(Infinity);
+	border.clear(); link.fill(0); Cost.fill(Infinity);
 
 	// search from all sources in parallel
 	for (let s = sources.first(); s != 0; s = sources.next(s)) {
-		c[s] = 0; border.insert(s,0); steps++;
+		Cost[s] = 0; border.insert(s,0); steps++;
 	}
 	let t = 0;
 	let cmax = -Infinity;
 	while (!border.empty()) {
 		let u = border.deletemin();
-		cmax = Math.max(cmax,c[u]);
+		cmax = Math.max(cmax,Cost[u]);
 		if (t == 0 && sinks.contains(u)) t = u;
 			// don't stop yet as need all c values to update lambda
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			steps++;
 			if (g.res(e,u) < Delta) continue;
 			let v = g.mate(u,e);
-			if (c[v] > c[u] + g.costFrom(e,u) + (lambda[u]-lambda[v])) {
+			if (Cost[v] > Cost[u] + g.costFrom(e,u) + (lambda[u]-lambda[v])) {
 				link[v] = e;
-				c[v] = c[u] + g.costFrom(e,u) + (lambda[u]-lambda[v]);
-				if (!border.contains(v)) border.insert(v,c[v]);
-				else border.changekey(v,c[v]);
+				Cost[v] = Cost[u] + g.costFrom(e,u) + (lambda[u]-lambda[v]);
+				if (!border.contains(v)) border.insert(v,Cost[v]);
+				else border.changekey(v,Cost[v]);
 			}
 		}
 	}
 	if (t != 0) { // adjust labels
 		for (let u = 1; u <= g.n; u++) {
-			lambda[u] += Math.min(c[u],cmax);
+			lambda[u] += Math.min(Cost[u],cmax);
 		}
 		steps += g.n;
 	}

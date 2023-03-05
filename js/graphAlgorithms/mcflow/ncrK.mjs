@@ -1,4 +1,4 @@
-/** @file mcflowK.js
+/** @file ncrK.js
  * 
  *  @author Jon Turner
  *  @date 2022
@@ -28,7 +28,7 @@ let steps;    // steps involved in searching for cycles
  *  on return, the flow is a minimum cost flow with the same value
  *  as the initial flow
  */
-export default function mcflowK(fg, traceFlag=false) {
+export default function ncrK(fg, traceFlag=false) {
 	g = fg; trace = traceFlag;
 
 	C = new Float32Array(g.n+1);

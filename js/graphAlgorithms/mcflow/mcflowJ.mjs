@@ -13,9 +13,8 @@ import maxflowD from '../maxflow/maxflowD.mjs';
 
 let g;        // shared reference to flow graph
 let link;     // link[u] is parent edge of u
-let excess;   // excess[u] is excess flow entering u
-let sources;  // list of sources (nodes with positive excess)
-let sinks;    // list of sinks (nodes with negative excess)
+let Cost;     // Cost[u] is pathcost to u, used by findpath
+let q;        // queue of vertices, used by findpath
 
 let trace;
 let traceString;
@@ -23,104 +22,71 @@ let traceString;
 let paths;      // number of augmenting paths
 let steps;      // number of steps in findpath method
 
-/** Find minimum cost maximum flow in a weighted flow graph using Orlin's
- *  capacity scaling algorithm.
- *  Requires that the original graph has no negative cost cycles.
+let count = 0;
+
+/** Find minimum cost maximum flow in a weighted flow graph using Jewell's
+ *  least-cost augmenting path algorithm.
+ *  @param fg is a graph, with a possibly non-zero flow and no unsaturated
+ *  negative cycle.
+ *  @return [traceString, stats]
+ *  @exception throws exception if negative cycle detected
  */
 export default function mcflowJ(fg, traceFlag=false) {
 	g = fg;
-
 	link = new Int32Array(g.n+1);
-	excess = new Int32Array(g.n+1);
-	sources = new List(g.n); sources.addPrev(); // doubly linked
-	sinks = new List(g.n); sinks.addPrev();
+	Cost = new Float32Array(g.n+1);
+	q = new List(g.n);
 
 	trace = traceFlag; traceString = '';
 	paths = steps = 0;
 
-	// Determine a max flow so that we can initialize excess
-	// values at s and t
-	maxflowD(g);
-	excess[g.source] = g.totalFlow();
-	excess[g.sink] = -g.totalFlow();
-	let totalExcess = excess[g.source];
-	g.clearFlow();
-
-	// saturate negative cost edges
-	for (let e = g.first(); e != 0; e = g.next(e)) {
-		steps++;
-		if (g.cost(e) < 0) {
-			g.flow(e, g.cap(e));
-			excess[g.tail(e)] -= g.cap(e);
-			excess[g.head(e)] += g.cap(e);
-			totalExcess += g.cap(e);
-		}
-	}
-	for (let u = 1; u <= g.n; u++) {
-		steps++;
-		if (excess[u] > 0) {
-			sources.enq(u);
-		} else if (excess[u] < 0) {
-			sinks.enq(u);
-		}
-	}
-
 	if (trace) {
-		traceString += g.toString(1) + '\n' + 'sources, sinks and paths ' +
-					   'with added flow and resulting flow cost\n'
+		traceString += g.toString(1) + '\n' +
+					   'paths with added flow and resulting flow cost\n'
 	}
-	let t = findpath();
-	while (t) {
-		paths++; augment(t);
-		t = findpath();
+	while (findpath()) {
+		augment(); paths++;
 	}
 	if (trace) traceString += '\n' + g.toString(1);
 	return [traceString, { 'paths': paths, 'steps': steps } ];
 }
 
-/** Find a least cost augmenting path from some source and update the labels.
- *  @return the "sink" vertex for the computed path; on return, the link
- *  vector defines the path from the sink back to some source
+/** Find a least cost augmenting path from source.
+ *  @return true on success, false on failure; on success,
+ *  the link vector defines a path from the sink back to the source.
  */
 function findpath() {
-	let c = new Float32Array(g.n+1);
-	let q = new List(g.n);
-	link.fill(0); c.fill(Infinity);
+	q.clear(); link.fill(0); Cost.fill(Infinity);
 
-	// search from all sources in parallel
-	for (let s = sources.first(); s != 0; s = sources.next(s)) {
-		c[s] = 0; q.enq(s); steps++;
-	}
-	let t = 0; let cmax = -Infinity;
+	Cost[g.source] = 0; q.enq(g.source);
+	let pass = 0; let last = q.last;
 	while (!q.empty()) {
 		let u = q.deq();
-		if (sinks.contains(u)) t = u;
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e); steps++;
-			if (c[v] > c[u] + g.costFrom(e,u)) {
-				c[v] = c[u] + g.costFrom(e,u); link[v] = e;
+			if (Cost[v] > Cost[u] + g.costFrom(e,u)) {
+				Cost[v] = Cost[u] + g.costFrom(e,u); link[v] = e;
 				if (!q.contains(v)) q.enq(v);
 			}
 		}
+		if (u == last) {
+			assert(pass < g.n, 'mcflowJ: negative cost cycle detected');
+			pass++; last = q.last;
+		}
 	}
-	return t;
+	return link[g.sink] ? true : false;
 }
 
-/** Augment the flow along a path
- *  @param t is the sink vertex for the path; the path is defined
- *  by the link array
- */
-function augment(t) {
-	let u = t; let delta = Infinity;
+/** Augment the flow along augmenting path */
+function augment() {
+	let u = g.sink; let delta = Infinity;
 	for (let e = link[u]; e != 0; e = link[u]) {
 		u = g.mate(u,e);
 		delta = Math.min(delta, g.res(e,u));
 	}
-	delta = Math.min(delta, excess[u]);
-	delta = Math.min(delta, -excess[t]);
 
-	u = t; let ts = '';
+	u = g.sink; let ts = '';
 	for (let e = link[u]; e; e = link[u]) {
 		steps++;
 		u = g.mate(u,e);
@@ -131,11 +97,6 @@ function augment(t) {
 		g.addFlow(e,u,delta);
 	}
 	if (trace) {
-		traceString += sources.toString(u => g.x2s(u) + ':' + excess[u]) + ' ';
-		traceString += sinks.toString(u => g.x2s(u) + ':' + excess[u]) + '\n  ';
-		traceString += `[${ts} ${g.x2s(t)}] ${delta} ${g.totalCost()}\n`;
+		traceString += `[${ts} ${g.x2s(g.sink)}] ${delta} ${g.totalCost()}\n`;
 	}
-	excess[u] -= delta; excess[t] += delta;
-	if (excess[u] == 0) sources.delete(u);
-	if (excess[t] == 0) sinks.delete(t);
 }

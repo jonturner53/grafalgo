@@ -1,4 +1,4 @@
-/** @file mcflowKGT.js
+/** @file ncrKGT.mjs
  * 
  *  @author Jon Turner
  *  @date 2022
@@ -32,7 +32,7 @@ let traceString;
  *  on return, the flow is a minimum cost flow with the same value
  *  as the initial flow
  */
-export default function mcflowKGT(fg, traceflag=false) {
+export default function ncrKGT(fg, traceflag=false) {
 	g = fg;
 	C = new Array(); P = new Array();
 	for (let i = 0; i <= g.n; i++) {
