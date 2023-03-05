@@ -80,6 +80,7 @@ export default function ncrJEK(fg, traceFlag=false) {
 	}
 	if (trace) traceString += '\n' + g.toString(1);
 	steps += border.getStats().steps;
+	g = link = Cost = border = excess = sources = sinks = null;
 	return [traceString, { 'paths': paths, 'steps': steps } ];
 }
 

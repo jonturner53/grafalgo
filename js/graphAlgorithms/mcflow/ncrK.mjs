@@ -10,7 +10,7 @@ import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 
 let g;		  // shared reference to flow graph
-let C;        // C[u] is cost of path to u from source in findCycle
+let Cost;     // Cost[u] is cost of path to u from source in findCycle
 let link;	  // link[] is parent edge of u
 let q;        // queue used in findCycle
 let cycleIds; // array used to label cycles with an integer identifier
@@ -31,7 +31,7 @@ let steps;    // steps involved in searching for cycles
 export default function ncrK(fg, traceFlag=false) {
 	g = fg; trace = traceFlag;
 
-	C = new Float32Array(g.n+1);
+	Cost = new Float32Array(g.n+1);
 	link = new Int32Array(g.n+1);
 	q = new List(g.n);
 	cycleIds = new Int8Array(g.n+1);
@@ -50,6 +50,7 @@ export default function ncrK(fg, traceFlag=false) {
 		augment(u, trace); u = findCycle(); cycles++;
 	}
 	if (trace) traceString += '\n' + g.toString(1);
+	g = Cost = link = q = cycleIds = null;
 	return [ traceString, { 'cycles': cycles, 'passes': passes, 'steps': steps} ];
 }
 
@@ -60,7 +61,7 @@ export default function ncrK(fg, traceFlag=false) {
  *  at link[returnedVertex].
  */
 function findCycle() {
-	C.fill(0); link.fill(0); q.clear();
+	Cost.fill(0); link.fill(0); q.clear();
 	for (let u = 1; u <= g.n; u++) q.enq(u);
 
 	let last = q.last(); // each pass completes when last removed from q
@@ -70,9 +71,9 @@ function findCycle() {
 			steps++;
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
-			if (C[v] > C[u] + g.costFrom(e,u)) {
+			if (Cost[v] > Cost[u] + g.costFrom(e,u)) {
 				link[v] = e;
-				C[v] = C[u] +  g.costFrom(e,u);
+				Cost[v] = Cost[u] +  g.costFrom(e,u);
 				if (!q.contains(v)) q.enq(v);
 			}
 		}

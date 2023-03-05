@@ -54,6 +54,7 @@ export default function mcflowJEK(fg, traceFlag=false) {
 
 	if (trace) traceString += '\n' + g.toString(1);
 	steps += border.getStats().steps;
+	g = link = lambda = border = Cost = q = null;
 	return [traceString, { 'paths': paths, 'steps': steps } ];
 }
 

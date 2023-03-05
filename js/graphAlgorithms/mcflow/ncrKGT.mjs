@@ -14,8 +14,8 @@ import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 let g;          // shared reference to flow graph
 
 // private data used by findCycle
-let C;        // C[i][u]=cost of min cost path (mcp) of length i to u in g
-let P;        // P[i][u]=edge to parent of u in mcp of length i to u
+let Cost;     // Cost[i][u]=cost of min cost path (mcp) of length i to u in g
+let Link;     // Link[i][u]=edge to parent of u in mcp of length i to u
 let meanCost; // used to determine min mean cycle cost
 let mark;     // used to identify cycle
 
@@ -34,10 +34,10 @@ let traceString;
  */
 export default function ncrKGT(fg, traceflag=false) {
 	g = fg;
-	C = new Array(); P = new Array();
+	Cost = new Array(); Link = new Array();
 	for (let i = 0; i <= g.n; i++) {
-		C.push(new Float32Array(g.n+1));
-		P.push(new Int32Array(g.n+1));
+		Cost.push(new Float32Array(g.n+1));
+		Link.push(new Int32Array(g.n+1));
 	}
 	meanCost = new Array(g.n+1);
 	mark = new Int32Array(g.n+1);
@@ -56,27 +56,30 @@ export default function ncrKGT(fg, traceflag=false) {
 		augment(u,i); [u,i] = findCycle(); cycles++;
 	}
 	if (trace) traceString += '\n' + g.toString(1);
+	g = Link = Cost = meanCost = mark = null;
 	return [ traceString, { 'cycles': cycles, 'steps': steps} ];
 }
 
 /** Find a negative cost cycle in the residual graph.
  *  @return a pair [u,i] where u is a vertex on a min mean cost cycle and
- *  i is a value for which the path starting at P[i][u] and continuing up
+ *  i is a value for which the path starting at Link[i][u] and continuing up
  *  the tree defined by the parent points contains a min mean cost cycle.
  */
 function findCycle() {
 	let n = g.n;
 	// First, compute shortest path lengths of length i <= n
-	C[0].fill(0); P[0].fill(0);
+	Cost[0].fill(0); Link[0].fill(0);
 	for (let i = 1; i <= n; i++) {
 		for (let u = 1; u <= n; u++) {
-			// compute C[i][u] the cost of min cost path to u with i edges
-			C[i][u] = Infinity; 
+			// compute Cost[i][u] the cost of min cost path to u with i edges
+			Cost[i][u] = Infinity; 
 			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 				steps++;
 				let v = g.mate(u,e);
-				if (g.res(e,v) > 0 && C[i-1][v] + g.costFrom(e,v) < C[i][u]) {
-					C[i][u] = C[i-1][v] + g.costFrom(e,v); P[i][u] = e;
+				if (g.res(e,v) > 0 &&
+					Cost[i-1][v] + g.costFrom(e,v) < Cost[i][u]) {
+					Cost[i][u] = Cost[i-1][v] + g.costFrom(e,v);
+					Link[i][u] = e;
 				}
 			}
 		}
@@ -85,10 +88,10 @@ function findCycle() {
 	// Now apply Karp's equation to find cost of least mean cost cycle
 	let umin = 1;
 	for (let u = 1; u <= n; u++) {
-		meanCost[u] = [0, (C[n][u] - C[0][u]) / n];
+		meanCost[u] = [0, (Cost[n][u] - Cost[0][u]) / n];
 		for (let i = 0; i < n; i++) {
 			steps++;
-			let mc = (C[n][u] - C[i][u]) / (n - i);
+			let mc = (Cost[n][u] - Cost[i][u]) / (n - i);
 			if (mc > meanCost[u][1]) {
 				meanCost[u] = [n-i,mc];
 			}
@@ -103,7 +106,7 @@ function findCycle() {
 	let u = umin; let i = n; mark[u] = i;
 	while (i > 0) {
 		steps++;
-		let e = P[i][u]; let v = g.mate(u,e);
+		let e = Link[i][u]; let v = g.mate(u,e);
 		if (mark[v]) {
 			return [v, mark[v]];
 		}
@@ -120,10 +123,10 @@ function findCycle() {
  *  back up the parent pointers to z is the required cycle
  */
 function augment(z,i) {
-	// C[i][z] is min mean cycle cost and P values give parent edges
+	// Cost[i][z] is min mean cycle cost and Link values give parent edges
 	let u = z; let j = i; let f = Infinity;
 	do {
-		let e = P[j--][u]; let v = g.mate(u,e);
+		let e = Link[j--][u]; let v = g.mate(u,e);
 		f = Math.min(f,g.res(e,v));
 		u = v; steps++
 	} while (u != z);
@@ -132,7 +135,7 @@ function augment(z,i) {
 	let ts = ''; if (trace) ts += g.x2s(z);
 	u = z; j = i;
 	do {
-		let e = P[j--][u]; u = g.mate(u,e);
+		let e = Link[j--][u]; u = g.mate(u,e);
 		if (trace) ts = `${g.x2s(u)}:${g.res(e,u)} ${ts}`;
 		g.addFlow(e,u,f);
 	} while (u != z);

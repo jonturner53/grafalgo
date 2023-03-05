@@ -22,8 +22,6 @@ let traceString;
 let paths;      // number of augmenting paths
 let steps;      // number of steps in findpath method
 
-let count = 0;
-
 /** Find minimum cost maximum flow in a weighted flow graph using Jewell's
  *  least-cost augmenting path algorithm.
  *  @param fg is a graph, with a possibly non-zero flow and no unsaturated
@@ -48,6 +46,7 @@ export default function mcflowJ(fg, traceFlag=false) {
 		augment(); paths++;
 	}
 	if (trace) traceString += '\n' + g.toString(1);
+	g = link = Cost = q = null;
 	return [traceString, { 'paths': paths, 'steps': steps } ];
 }
 
