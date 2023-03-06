@@ -8,7 +8,6 @@
 
 import { assert, AssertError} from '../../../common/Errors.mjs';
 import Tester from '../../../common/Tester.mjs';
-import maxflowD from '../../maxflow/maxflowD.mjs';
 import ncrJEK from '../ncrJEK.mjs';
 import mcflowJ from '../mcflowJ.mjs';
 import mcflowJEK from '../mcflowJEK.mjs';
@@ -21,9 +20,13 @@ import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomFlograph } from '../../misc/RandomGraph.mjs';
 
 let algomap = {
-	'J' : (g,trace) => run(g,trace,mcflowJ),
-	'JEK' : (g,trace) => run(g,trace,mcflowJEK),
+	'J' : (g,trace) => runJ(g,trace,mcflowJ),
+	'JEK' : (g,trace) => runJ(g,trace,mcflowJEK),
 	'O' : (g,trace) => run(g,trace,mcflowO)
+}
+
+function runJ(g, trace, algo) {
+	g.clearFlow(); ncrJEK(g); return algo(g,0,trace);
 }
 
 function run(g, trace, algo) {

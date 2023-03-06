@@ -51,9 +51,9 @@ export default function sptBM(g, s, trace=0) {
 		}
 		if (u == last && !q.empty()) { pass++; last = q.last(); }
 		if (trace) {
-			ts += g.index2string(u) + ' ' +
+			ts += g.x2s(u) + ' ' +
 				  (dist[u] != Infinity ? dist[u] : '-') + ' ' +
-				  (link[u] != 0 ? g.edge2string(link[u]) : '-') + ' ' +
+				  (link[u] != 0 ? g.e2s(link[u]) : '-') + ' ' +
 				  q + ' ' + pass + '\n';
 		}
 		if (pass >= g.n) assert(0, 'negative cycle');

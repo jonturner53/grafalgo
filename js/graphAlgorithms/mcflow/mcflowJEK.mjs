@@ -31,7 +31,7 @@ let steps;      // number of steps in findpath method
  *  unsaturated negative cycles
  *  @return [traceString,statsObject]
  */
-export default function mcflowJEK(fg, traceFlag=false) {
+export default function mcflowJEK(fg, leastCost=false, traceFlag=false) {
 	g = fg; trace = traceFlag; traceString = '';
 
 	link = new Int32Array(g.n+1);
@@ -50,12 +50,17 @@ export default function mcflowJEK(fg, traceFlag=false) {
 
 	initLabels();
 	while (findpath()) {
-		augment(); paths++; }
+		let [rcap,pathCost] = pathProps();
+		if (leastCost && pathCost >= 0) break;
+		augment(rcap); paths++;
+	}
 
 	if (trace) traceString += '\n' + g.toString(1);
 	steps += border.getStats().steps;
+	let stats = { 'flow': g.totalFlow(), 'cost': g.totalCost(),
+                  'paths': paths, 'steps': steps };
 	g = link = lambda = border = Cost = q = null;
-	return [traceString, { 'paths': paths, 'steps': steps } ];
+	return [traceString, stats];
 }
 
 /** Initialize vertex labels, making edge costs non-negative. */
@@ -116,25 +121,32 @@ function findpath() {
 	return true;
 }
 
-/** Augment the flow along a path
- */
-function augment() {
-	let u = g.sink; let delta = Infinity;
+/** Compute residual capacity and cost of source/sink path. */
+function pathProps() {
+	let u = g.sink; let rcap = Infinity; let cost = 0;
 	for (let e = link[u]; e != 0; e = link[u]) {
-		u = g.mate(u,e); delta = Math.min(delta, g.res(e,u));
+		u = g.mate(u,e);
+		rcap = Math.min(rcap, g.res(e,u));
+		cost += g.costFrom(e,u);
 	}
+	return [rcap,cost];
+}
 
-	u = g.sink; let ts = '';
-	for (let e = link[u]; e != 0; e = link[u]) {
+/** Augment the flow along augmenting path.
+ *  @param rcap is residual capacity of source/sink path.
+ */
+function augment(rcap) {
+	let u = g.sink; let ts = '';
+	for (let e = link[u]; e; e = link[u]) {
 		steps++;
 		u = g.mate(u,e);
 		if (trace) {
 			if (ts.length > 0) ts = ' ' + ts;
 			ts = g.x2s(u) + ':' + g.res(e,u) + ts;
 		}
-		g.addFlow(e,u,delta);
+		g.addFlow(e,u,rcap);
 	}
 	if (trace) {
-		traceString += `[${ts} ${g.x2s(g.sink)}] ${delta} ${g.totalCost()}\n`;
+		traceString += `[${ts} ${g.x2s(g.sink)}] ${rcap} ${g.totalCost()}\n`;
 	}
 }
