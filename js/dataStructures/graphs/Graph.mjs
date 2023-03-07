@@ -14,8 +14,8 @@ import ListPair from '../basic/ListPair.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
-//import { fassert } from '../../common/Errors.mjs'
-let fassert = (()=>1);
+import { fassert } from '../../common/Errors.mjs'
+//let fassert = (()=>1);
 
 /** Data structure for undirected graph.
  *
@@ -80,18 +80,19 @@ export default class Graph extends Top {
 	assign(other, relaxed=false) {
 		fassert(other != this &&
 				this.constructor.name == other.constructor.name);
-		if (this.n == other.n && this.edgeRange == other.edgeRange ||
-		    relaxed && this.n >= other.n && this.edgeRange >= other.edgeRange)
-				this.clear();
+		if ((this.n == other.n || relaxed && this.n > other.n) &&
+			this.edgeRange >= other.m)
+			this.clear();
 		else
-			this.reset(other.n, other.edgeRange);
+			this.reset(other.n, other.m);
 
 		if (other.hasWeights && !this.hasWeights) this.addWeights();
 		if (!other.hasWeights && this.hasWeights) this._weight = null;
 		for (let e = other.first(); e != 0; e = other.next(e)) {
-			let ee = (this.edgeRange >= other.edgeRange ?
-					  		this.join(other.left(e), other.right(e), e) :
-							this.join(other.left(e), other.right(e)));
+			let ee = this._edges.in2(e) ?
+						this.join(other.left(e), other.right(e), e) :
+						this.join(other.left(e), other.right(e));
+				// preserve edge numbers when possible; consider dropping that
 			if (other.hasWeights) {
 				this._weight[ee] = other.weight(e);
 			}
@@ -227,7 +228,7 @@ export default class Graph extends Top {
 			   (e > 0 || this._edges.first2() == 0) &&
 			   !this._edges.in1(e));
 		if (u > this.n || v > this.n || this._edges.n2() == 0) {
-			this.expand(Math.max(this.n, Math.max(u, v)),
+			this.expand(Math.max(this.n, u, v),
 						Math.max(e, this._edges.n+1));
 			if (e == 0) e = this._edges.first2();
 		}
@@ -542,7 +543,7 @@ export default class Graph extends Top {
 
 		// configure graph
 		let erange = Math.max(1,pairs.length);
-		if (n != this.n || erange != this.erange) this.reset(n, erange);
+		if (n != this.n || erange > this.erange) this.reset(n, erange);
 		else this.clear();
 
 		for (let i = 0; i < pairs.length; i++) {

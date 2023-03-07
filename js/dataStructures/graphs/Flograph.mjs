@@ -54,10 +54,11 @@ export default class Flograph extends Digraph {
 		super.assign(other, relaxed);
 		if (other.hasFloors && !this.hasFloors) this.addFloors();
 		if (!other.hasFloors && this.hasFloors) this.#floor = null;
+		this.clear();
 		for (let e = other.first(); e; e = other.next(e)) {
-			let ee = (this.edgeRange >= other.edgeRange ?
-                            this.join(other.left(e), other.right(e), e) :
-                            this.join(other.left(e), other.right(e)));
+			let ee = this._edges.in2(e) ?
+					 	this.join(other.left(e), other.right(e), e) :
+						this.join(other.left(e), other.right(e));
 			this.cap(ee, other.cap(e)); this.flow(ee, 0);
 			if (other.hasCosts) this.cost(ee, other.cost(e));
 			if (other.hasFloors) this.floor(ee, other.floor(e));
@@ -167,14 +168,14 @@ export default class Flograph extends Digraph {
 		let q = new List(this.n); let reached = new List(this.n);
 		q.enq(1); reached.enq(1);
 		while (!q.empty()) {
-		    let u = q.deq();
-		    for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e)) {
-		        let v = this.mate(u,e);
-		        if (!reached.contains(v) && !q.contains(v) &&
+			let u = q.deq();
+			for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e)) {
+				let v = this.mate(u,e);
+				if (!reached.contains(v) && !q.contains(v) &&
 					this.res(e,u) > 0) {
-		            q.enq(v); reached.enq(v);
-		        }
-		    }
+					q.enq(v); reached.enq(v);
+				}
+			}
 		}
 		return reached;
 	}
@@ -302,7 +303,7 @@ export default class Flograph extends Digraph {
 					(u == this.head(e) ? '' :
 					 (this.x2s(this.mate(u,e)) + ':' +
 					  (this.floor(e)>0 ? this.floor(e) + '-' : '') +
-                   	  this.cap(e) +
+				   	  this.cap(e) +
 					  (this.cost(e) ? '@' + this.cost(e) : '') +
 					  (this.f(e)>0 ? '/' + this.f(e) : '')
 					 ));
@@ -431,7 +432,7 @@ export default class Flograph extends Digraph {
 	randomFloors(f) {
 		if (!this.hasFloors) this.addFloors();
 		let fargs = [... arguments].slice(1);
-        for (let e = this.first(); e != 0; e = this.next(e)) {
+		for (let e = this.first(); e != 0; e = this.next(e)) {
 			let w = f(...fargs); this.floor(e, Math.min(w, this.cap(e)));
 		}
 	}

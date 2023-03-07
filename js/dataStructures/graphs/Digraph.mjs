@@ -35,7 +35,7 @@ export default class Digraph extends Graph {
 	 */
 	assign(other, relaxed=false) {
 		super.assign(other, relaxed);
-		for (let u = 1; u <= this.n; u++)
+		for (let u = 1; u <= other.n; u++)
 			this._firstEpOut[u] = other._firstEpOut[u];
 	}
 	

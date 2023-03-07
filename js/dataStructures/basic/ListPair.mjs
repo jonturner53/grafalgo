@@ -90,23 +90,19 @@ export default class ListPair extends Top {
 	}
 	
 	/** Determine if an item belongs to list 1
-	 *  @param i is a valid list item
-	 *  @param return true if i is a member of the list 1, else false.
+	 *  @param i is an integer
+	 *  @param return true if i is a member of list 1, else false.
 	 */
 	in1(i) {
-		fassert(this.valid(i));
-		//		  `ListPair.in1: invalid item ${i} (n=${this.n})`);
-		return this.#prev[i] > 0 || i == this.#first1;
+		return this.valid(i) && (this.#prev[i] > 0 || i == this.#first1);
 	}
 	
-	/** Determine if an int belongs to the list 2.
-	 *  @param i is a valid list item
-	 *  @param return true if i is a member of the list 2, else false.
+	/** Determine if an item belongs to list 2.
+	 *  @param i is an integer
+	 *  @param return true if i is a member of list 2, else false.
 	 */
 	in2(i) {
-		fassert(this.valid(i));
-		//		  `ListPair.in2: invalid item ${i} (n=${this.n})`);
-		return this.#prev[i] < 0 || i == this.#first2;
+		return this.valid(i) && (this.#prev[i] < 0 || i == this.#first2);
 	}
 	
 	/** Get the number of elements in list 1.  */

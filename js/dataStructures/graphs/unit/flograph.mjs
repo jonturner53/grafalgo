@@ -1,4 +1,4 @@
-/** \file TestFlograph.mjs
+/** \file flograph.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -8,6 +8,7 @@
 
 import { assert, AssertError } from '../../../common/Errors.mjs';
 import Flograph from '../Flograph.mjs';
+import {randomFlograph} from '../../../graphAlgorithms/misc/RandomGraph.mjs';
 
 try {
 	console.log('running basic tests');
