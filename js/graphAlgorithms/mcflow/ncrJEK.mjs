@@ -43,13 +43,6 @@ export default function ncrJEK(fg, traceFlag=false) {
 
 	paths = steps = 0;
 
-	// initialize excess values
-	for (let u = 1; u <= g.n; u++) {
-		if (u == g.source || u == g.sink) continue;
-		for (let e = g.firstAt(u); e; e = g.nextAt(u,e))
-			excess[u] -= g.f(e,u);
-	}
-
 	// saturate negative cost edges that are not already saturated
 	for (let u = 1; u <= g.n; u++) {
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
@@ -134,20 +127,19 @@ function augment(t) {
 	delta = Math.min(delta, excess[u]);
 	delta = Math.min(delta, -excess[t]);
 
-	u = t; let ts = ''; let cost = 0;
+	u = t; let ts = '';
 	for (let e = link[u]; e != 0; e = link[u]) {
 		u = g.mate(u,e); steps++;
 		if (trace) {
 			if (ts.length > 0) ts = ' ' + ts;
 			ts = g.x2s(u) + ':' + g.res(e,u) + ts;
-			cost += g.costFrom(e,u) * delta;
 		}
 		g.addFlow(e,u,delta);
 	}
 	if (trace) {
 		traceString += sources.toString(u => g.x2s(u) + ':' + excess[u]) + ' ';
 		traceString += sinks.toString(u => g.x2s(u) + ':' + excess[u]) + '\n  ';
-		traceString += `[${ts} ${g.x2s(t)}] ${delta} ${cost} ${g.totalCost()}\n`;
+		traceString += `[${ts} ${g.x2s(t)}] ${delta} ${g.totalCost()}\n`;
 	}
 	excess[u] -= delta; excess[t] += delta;
 	if (excess[u] == 0) sources.delete(u);
