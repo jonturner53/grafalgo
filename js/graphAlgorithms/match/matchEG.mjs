@@ -7,7 +7,6 @@
  */
 
 import { assert } from '../../common/Errors.mjs';
-import { match2string, matchSize } from './match.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ReverseLists from '../../dataStructures/basic/ReverseLists.mjs';
 import MergeSets from '../../dataStructures/basic/MergeSets.mjs';
