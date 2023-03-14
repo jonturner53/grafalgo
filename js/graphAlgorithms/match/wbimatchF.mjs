@@ -66,7 +66,7 @@ export default function wbimatchF(g, trace=false, subsets=null,
         let [,ts,stats] = flowfloor(fg, trace);
         steps += stats.steps;
     }
-	let [ts, stats] = mcflowJEK(fg, trace, 1); // solve least-cost flow problem
+	let [ts, stats] = mcflowJEK(fg, 1, trace); // solve least-cost flow problem
 	paths += stats.paths; steps += stats.steps;
 	// construct matching from flow
 	let match = (dmax ? new Graph(g.n,g.edgeRange) : new Matching(g));

@@ -23,9 +23,9 @@ export default class MergeSets extends Top {
 	#p;			// #p[i] is parent of i
 	#rank;	 	// #rank[i] is rank of i
 
-	#mergeCount;
-	#findCount;
-	#findSteps;
+	merges;
+	finds;
+	steps;
 	
 	constructor(n=10) {
 		super(n);
@@ -33,9 +33,7 @@ export default class MergeSets extends Top {
 		this.#rank = new Int32Array(this.n+1);
 		this.clear();
 	
-		this.#mergeCount = 0;
-		this.#findCount = 0;
-		this.#findSteps = 0;
+		this.merges = this.finds = this.steps = 0;
 	}
 	
 	/** Assign another MergeSets object to this one.
@@ -94,11 +92,11 @@ export default class MergeSets extends Top {
 	 *  @return the canonical element of the set containing i
 	 */
 	find(i) {
-		this.#findCount++;
+		this.finds++;
 		fassert(this.valid(i));
 		let root;
 		for (root = i; this.p(root) != root; root = this.p(root)) {
-			this.#findSteps++;
+			this.steps++;
 		}
 		while (i != root) { let pi = this.p(i); this.#p[i] = root; i = pi; }
 		return root;
@@ -111,7 +109,7 @@ export default class MergeSets extends Top {
 	 *  the given sets
 	 */
 	merge(i, j) {
-		this.#mergeCount++;
+		this.merges++;
 		fassert(this.valid(i) && this.valid(j) &&
 			   this.p(i) == i && this.p(j) == j && i != j);
 		if (this.rank(i) < this.rank(j)) {
@@ -189,8 +187,8 @@ export default class MergeSets extends Top {
 	}
 
 	getStats() {
-		return { 'merge' : this.#mergeCount,
-				 'find'	: this.#findCount,
-				 'findSteps' : this._findSteps };
+		return { 'merge' : this.merges,
+				 'find'	: this.finds,
+				 'steps' : this.steps };
 	}
 }

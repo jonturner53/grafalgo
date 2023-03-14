@@ -83,7 +83,7 @@ export default function mcflowO(fg, traceFlag=false) {
 			 	  			'steps': steps } ];
 }
 
-/** Do start of phase processing.  */
+/** Do start of phase processing. */
 function newPhase() {
 	// If any edge violates labeling condition, add Delta units of
 	// flow to it. This eliminates it from the residual graph for
