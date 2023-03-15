@@ -45,7 +45,7 @@ export default function mdmatchG(mg, trace=false, subsets=null) {
 	if (!subsets) subsets = findSplit(g);
 
 	traceString = '';
-	if (trace) traceString += g.toString(0,1);
+	if (trace) traceString += g.toString(1);
 	steps =  0;
 
 	let Delta = 0;
@@ -65,7 +65,7 @@ export default function mdmatchG(mg, trace=false, subsets=null) {
 	let [match1,,stats1] = bimatchHK(sg,0,subsets);
 	steps += stats1.steps;
 	// Now construct medge1 array using g's edge numbers
-	let medge1 = new Int32Array[g.n+1];
+	let medge1 = new Int32Array(g.n+1);
 	for (let e = match1.first(); e; e = match1.next(e))
 		medge1[sg.left(e)] = medge1[sg.right(e)] = emap[e];
 
@@ -80,7 +80,7 @@ export default function mdmatchG(mg, trace=false, subsets=null) {
 	let [match2,,stats2] = bimatchHK(sg,0,subsets);
 	steps += stats2.steps;
 	// Now construct medge2 array using g's edge numbers
-	let medge2 = new Int32Array[g.n+1];
+	let medge2 = new Int32Array(g.n+1);
 	for (let e = match2.first(); e; e = match2.next(e))
 		medge2[sg.left(e)] = medge2[sg.right(e)] = emap[e];
 
@@ -119,8 +119,7 @@ export default function mdmatchG(mg, trace=false, subsets=null) {
 				steps++;
 				if (e == 0 || w == v) break;
 				if (trace) traceString += ' ' + g.e2s(e,0,1);
-				//medge[w] = e; w = g.mate(w,e); medge[w] = e; e = medge2[w];
-				match.add(e); w = g.mate(w,e); e = medge2[w];
+				medge[w] = e; w = g.mate(w,e); medge[w] = e; e = medge2[w];
 				mark[w]++;
 			}
 		} else {

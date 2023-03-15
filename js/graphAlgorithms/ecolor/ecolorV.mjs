@@ -52,7 +52,7 @@ export default function ecolorV(g, trace=false) {
 		}
 		if (cu != 0) {
 			// cu == cv
-			g.setWeight(e,cu);
+			g.weight(e,cu);
 			if (trace) ts += g.edge2string(e) + '\n';
 			avail[u].delete(cu); avail[v].delete(cu);
 			emap[u][cu] = e; emap[v][cu] = e;
@@ -69,7 +69,7 @@ export default function ecolorV(g, trace=false) {
 			// c is the color to use for f
 			steps++; psteps++;
 			let ff = emap[w][c];	// next edge in the path
-			g.setWeight(f,c);
+			g.weight(f,c);
 			if (trace) ts += (w == v ? '' : ' ') + g.edge2string(f);
 			emap[g.left(f)][c] = f; emap[g.right(f)][c] = f;
 			c = (c == cu ? cv : cu);
@@ -77,7 +77,7 @@ export default function ecolorV(g, trace=false) {
 			f = ff;
 		}
 		// color the last edge and update the avail sets at endpoints
-		g.setWeight(f,c);
+		g.weight(f,c);
 		if (trace) ts += ' ' + g.edge2string(f) + '\n';
 		emap[g.left(f)][c] = f; emap[g.right(f)][c] = f;
 		avail[u].delete(cu); avail[v].delete(cv);
@@ -88,7 +88,7 @@ export default function ecolorV(g, trace=false) {
 		emap[w][c] = 0;
 		avail[w].push(c);
 	}
-	if (trace) ts += g.toString(0,1);
+	if (trace) ts += g.toString(1);
 	return [ts, { 'paths': paths, 'avg path length': ~~(psteps/paths),
 				  'steps': steps }];
 }

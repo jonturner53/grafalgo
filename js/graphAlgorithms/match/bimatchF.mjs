@@ -52,13 +52,13 @@ export default function bimatchF(g, trace=false, subsets=null,
 	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
 		steps++;
 		let e = fg.join(fg.source,u); fg.cap(e, (dmax ? dmax[u] : 1));
-		if (dmin) fg.setFloor(e,dmin[u]);
+		if (dmin) fg.floor(e,dmin[u]);
 	}
 	for (let u = subsets.first2(); u != 0; u = subsets.next2(u)) {
 		steps++;
 		let e = fg.join(u,fg.sink);
 		fg.cap(e, (dmax!=null ? dmax[u] : 1));
-		if (dmin) fg.setFloor(e,dmin[u]);
+		if (dmin) fg.floor(e,dmin[u]);
 	}
 
 	// compute flow(s)

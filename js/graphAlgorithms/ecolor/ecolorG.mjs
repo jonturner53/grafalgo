@@ -52,7 +52,7 @@ export default function ecolorG(cg, trace=false) {
 
 	nextColor = 1;
 	rcolor(g.maxDegree(), trace);
-	if (trace) traceString += g.toString(0,1);
+	if (trace) traceString += g.toString(1);
 	return [traceString, {'matches': matches, 'steps': steps}];
 }
 
@@ -67,7 +67,7 @@ function rcolor(Delta, trace) {
 	// if wg is a matching, just color its edges and remove from wg
 	if (Delta == 1) {
 		if (trace) traceString += nextColor;
-		for (e = wg.first(); e; e = wg.first()) {
+		for (let e = wg.first(); e; e = wg.first()) {
 			if (trace) traceString += ' ' + g.e2s(e,0,1);
 			g.weight(e,nextColor); wg.delete(e);
 			steps++;
@@ -80,12 +80,12 @@ function rcolor(Delta, trace) {
 	// for odd Delta, extract matching on all degree Delta vertices,
 	// color its edges and remove them from wg
 	if (Delta & 1) {
-		let [match,,stats] = mdmatchG(wg,subsets);
+		let [medge,,stats] = mdmatchG(wg,subsets);
 		matches++; steps += stats.steps;
 		if (trace) traceString += nextColor;
 		for (let u = 1; u < g.n; u++) {
 			steps++;
-			let e = match.at(u);
+			let e = medge[u];
 			if (e && u < g.mate(u,e)) {
 				g.weight(e, nextColor); wg.delete(e);
 				if (trace) traceString += ' ' + g.e2s(e,0,1);
