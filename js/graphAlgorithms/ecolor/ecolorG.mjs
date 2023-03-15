@@ -67,11 +67,9 @@ function rcolor(Delta, trace) {
 	// if wg is a matching, just color its edges and remove from wg
 	if (Delta == 1) {
 		if (trace) traceString += nextColor;
-		let e = wg.first();
-		while (e != 0) {
-			if (trace) traceString += ' ' + (g.n>26 ? e2s1(e) : e2s2(e));
-			g.setWeight(e,nextColor);
-			wg.delete(e); e = wg.first();
+		for (e = wg.first(); e; e = wg.first()) {
+			if (trace) traceString += ' ' + g.e2s(e,0,1);
+			g.weight(e,nextColor); wg.delete(e);
 			steps++;
 		}
 		if (trace) traceString += '\n';
@@ -82,14 +80,15 @@ function rcolor(Delta, trace) {
 	// for odd Delta, extract matching on all degree Delta vertices,
 	// color its edges and remove them from wg
 	if (Delta & 1) {
-		let [medge,,stats] = mdmatchG(wg,0,subsets);
+		let [match,,stats] = mdmatchG(wg,subsets);
 		matches++; steps += stats.steps;
 		if (trace) traceString += nextColor;
 		for (let u = 1; u < g.n; u++) {
-			let e = medge[u]; steps++;
-			if (e != 0 && u < g.mate(u,e)) {
-				g.setWeight(e, nextColor); wg.delete(e);
-				if (trace) traceString += ' ' + (g.n>26 ? e2s1(e) : e2s2(e));
+			steps++;
+			let e = match.at(u);
+			if (e && u < g.mate(u,e)) {
+				g.weight(e, nextColor); wg.delete(e);
+				if (trace) traceString += ' ' + g.e2s(e,0,1);
 			}
 		}
 		if (trace) traceString += '\n';
@@ -103,7 +102,7 @@ function rcolor(Delta, trace) {
 	eulerPartition();
 	// now, wg has no edges but euler and handle define euler partition
 	if (trace) {
-		traceString += euler.toString(0,0,g.n>26 ? e2s1 : e2s2) + '\n';
+		traceString += euler.toString(0,0,e=>g.e2s(e,0,1)) + '\n';
 	}
 
 	// rebuild the two halves of wg defined by Euler partition
@@ -128,17 +127,10 @@ function rcolor(Delta, trace) {
 	rcolor(Delta/2, trace);
 }
 
-// alternate edge2string functions
-function e2s1(e) { return g.edge2string(e); }
-function e2s2(e) {
-	return g.index2string(g.left(e)) + g.index2string(g.right(e));
-}
-
 /** Find an Euler partition in the working graph.
  *  The partition is returned in the euler/handle data structures.
- *  Specifically, handle contains the "first" edge of some edge set
- *  in the partition. The edge sets are defined by circular lists in
- *  the euler data structure.
+ *  Specifically, handle contains the "first" edge of some edge list
+ *  in the euler data structure.
  */
 function eulerPartition() {
 	for (let u = 1; u <= wg.n; u++) degree[u] = wg.degree(u);

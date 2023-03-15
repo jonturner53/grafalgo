@@ -9,7 +9,6 @@
 import { fassert } from '../../common/Errors.mjs';
 import findSplit from '../misc/findSplit.mjs';
 import bimatchHK from '../match/bimatchHK.mjs';
-import { match2string } from '../match/match.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 let g;			    // shared reference to input graph
@@ -37,16 +36,12 @@ let steps;		// number of steps (inner loops)
 export default function mdmatchG(mg, trace=false, subsets=null) {
 	// initialize data structures
 	g = mg;
-	if (degree == null || degree.length != g.n+1) {
-		degree = new Int32Array(g.n+1);
-		medge = new Int32Array(g.n+1);
-		emap = new Int32Array(g.m+1);
-		mark = new Int8Array(g.n+1);
-		sg = new Graph(g.n,g.m);
-	} else {
-		// skip allocation if existing arrays match required size
-		degree.fill(0); medge.fill(0); mark.fill(0); sg.clear();
-	}
+	degree = new Int32Array(g.n+1);
+	medge = new Int32Array(g.n+1);
+	emap = new Int32Array(g.m+1);
+	mark = new Int8Array(g.n+1);
+	sg = new Graph(g.n,g.m); // note sg.edgeRange == g.m, not g.edgeRange
+
 	if (!subsets) subsets = findSplit(g);
 
 	traceString = '';
@@ -60,18 +55,19 @@ export default function mdmatchG(mg, trace=false, subsets=null) {
 
 	// compute subgraph that includes all edges incident to max degree
 	// vertices in first subset of bipartition; then get its matching
+	// note: computed subgraph has no
 	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
 		if (degree[u] != Delta) continue;
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			let ee = sg.join(u,g.mate(u,e)); emap[ee] = e;
 		}
 	}
-	let [medge1,,stats1] = bimatchHK(sg,0,subsets);
+	let [match1,,stats1] = bimatchHK(sg,0,subsets);
 	steps += stats1.steps;
-	// finally remap edge numbers to be consistent with g
-	for (let u = 1; u <= g.n; u++) {
-		let e = medge1[u]; if (e != 0) medge1[u] = emap[e];
-	}
+	// Now construct medge1 array using g's edge numbers
+	let medge1 = new Int32Array[g.n+1];
+	for (let e = match1.first(); e; e = match1.next(e))
+		medge1[sg.left(e)] = medge1[sg.right(e)] = emap[e];
 
 	// repeat for second subset of bipartition
 	emap.fill(0); sg.clear();
@@ -81,28 +77,32 @@ export default function mdmatchG(mg, trace=false, subsets=null) {
 			let ee = sg.join(u,g.mate(u,e)); emap[ee] = e;
 		}
 	}
-	let [medge2,,stats2] = bimatchHK(sg,0,subsets);
+	let [match2,,stats2] = bimatchHK(sg,0,subsets);
 	steps += stats2.steps;
-	for (let u = 1; u <= g.n; u++) {
-		let e = medge2[u]; if (e != 0) medge2[u] = emap[e];
-	}
-	steps += 3*g.n;  // for the loops above
+	// Now construct medge2 array using g's edge numbers
+	let medge2 = new Int32Array[g.n+1];
+	for (let e = match2.first(); e; e = match2.next(e))
+		medge2[sg.left(e)] = medge2[sg.right(e)] = emap[e];
 
 	if (trace)
-		traceString +=  ` first matching: ${match2string(g,medge1)}\n` +
-						`second matching: ${match2string(g,medge2)}\n` +
+		traceString +=  ` first matching: ${g.elist2string(medge1,0,0,1)}\n` +
+						`second matching: ${g.elist2string(medge2,0,0,1)}\n` +
 						`paths\n`;
 
-	// Now add all edges in both matchings to the result matching.
+	// So now, medge1 and medge2 represent the two matchings using in g
+	// Add all edges in both matchings to the result matching.
 	// Also, every other edge on alternating paths
 	for (let u = 1; u <= g.n; u++) {
 		steps++;
 		let e1 = medge1[u]; let e2 = medge2[u];
 		if (mark[u] || (e1 == 0 && e2 == 0)) continue;
 		if (e1 == e2) {
-			let v = g.mate(u,e1); medge[u] = medge[v] = e1; mark[v]++;
+			let v = g.mate(u,e1);
+			medge[u] = medge[v] = e1; mark[v]++;
 			continue;
 		}
+
+		// u is incident to one matching or to both using different edges
 		let v = start(u, Delta, medge1, medge2);
 			// returns vertex from which to traverse alternating
 			// path/cycle containg u
@@ -110,27 +110,29 @@ export default function mdmatchG(mg, trace=false, subsets=null) {
 		let w = v; mark[w]++;
 		if (medge1[w]) {
 			let e = medge1[w];
-			if (trace) traceString += g.edge2string(e,0,1);
+			if (trace) traceString += g.e2s(e,0,1);
 			medge[w] = e; w = g.mate(w,e); medge[w] = e; e = medge2[w];
 			mark[w]++;
 			while (e != 0) {
-				if (trace) traceString += ' ' + g.edge2string(e,0,1);
-				w = g.mate(w,e); e = medge1[w]; mark[w]++; steps++;
+				if (trace) traceString += ' ' + g.e2s(e,0,1);
+				w = g.mate(w,e); e = medge1[w]; mark[w]++;
+				steps++;
 				if (e == 0 || w == v) break;
-				if (trace) traceString += ' ' + g.edge2string(e,0,1);
-				medge[w] = e; w = g.mate(w,e); medge[w] = e; e = medge2[w];
+				if (trace) traceString += ' ' + g.e2s(e,0,1);
+				//medge[w] = e; w = g.mate(w,e); medge[w] = e; e = medge2[w];
+				match.add(e); w = g.mate(w,e); e = medge2[w];
 				mark[w]++;
 			}
 		} else {
 			let e = medge2[w];
-			if (trace) traceString += g.edge2string(e,0,1);
+			if (trace) traceString += g.e2s(e,0,1);
 			medge[w] = e; w = g.mate(w,e); medge[w] = e; e = medge1[w];
 			mark[w]++;
 			while (e != 0) {
-				if (trace) traceString += ' ' + g.edge2string(e,0,1);
+				if (trace) traceString += ' ' + g.e2s(e,0,1);
 				w = g.mate(w,e); e = medge2[w]; mark[w]++; steps++;
 				if (e == 0 || w == v) break;
-				if (trace) traceString += ' ' + g.edge2string(e,0,1);
+				if (trace) traceString += ' ' + g.e2s(e,0,1);
 				medge[w] = e; w = g.mate(w,e); medge[w] = e; e = medge1[w];
 				mark[w]++;
 			}
@@ -138,7 +140,7 @@ export default function mdmatchG(mg, trace=false, subsets=null) {
 		if (trace) traceString += '\n';
 	}
 	if (trace) 
-		traceString +=  ` final matching: ${match2string(g,medge)}\n`;
+		traceString +=  ` final matching: ${g.elist2string(medge,0,0,1)}\n`;
 	return [medge, traceString, {'steps': steps}];
 }
 
