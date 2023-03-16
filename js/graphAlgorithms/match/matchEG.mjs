@@ -130,7 +130,7 @@ function addBranch(u, e) {
 	let w = g.mate(v,ee); state[w] = +1; link[w] = ee;
 	add2q(w);
 	if (trace)
-		traceString += `add branch: ${g.x2s(u)} ${g.e2s(e)} ${g.e2s(ee)}\n`
+		traceString += `add branch: ${g.x2s(u)}--${g.x2s(v)}--${g.x2s(w)}\n`
 	return;
 }
 
