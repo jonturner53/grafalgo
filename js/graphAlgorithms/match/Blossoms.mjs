@@ -596,10 +596,7 @@ export default class Blossoms extends Top {
         return s;
 	}
 
-	/** Create a string version of the outer graph.
-	 *  @param if terse is true, don't show the links joining
-	 *  non-trivial blossoms to their neighbors.
-	 */
+	/** Create a string version of the outer graph.  */
 	outerGraph2string(terse=0) {
 		let og = new Graph(this.n, this.g.edgeRange);
 		for (let e = this.g.first(); e; e = this.g.next(e)) {
@@ -608,14 +605,7 @@ export default class Blossoms extends Top {
 			if (U != V && !og.findEdge(U,V)) og.join(U,V);
 		}
 		return og.toString(0,
-					(e,u) => {
-						let s = this.x2s(og.mate(u,e))
-						if (!terse &&
-							(u > this.g.n || og.mate(u,e) > this.g.n)) {
-							s += og.e2s(e);
-						} 
-						return s;
-					},
+					(e,u) => this.x2s(og.mate(u,e)),
 					u => this.x2s(u));
 	}
 	
