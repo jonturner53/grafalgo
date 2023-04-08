@@ -17,7 +17,7 @@ let g;            // shared copy of graph
 let match;        // match is a Matching object
 let link;         // link[u] is parent edge of u in matching forest
 let q;            // q is list of edges to be processed
-let blossoms;     // MergeSets object partitioning graph into blossoms
+let outer;        // MergeSets object partitioning graph into blossoms
 let apath;        // ReverseLists object used to build augmenting paths
 let base;         // base[b] is the base of an outermost blossom b
 let bridge;       // bridge[x] is pair [e,u] where e is bridge in x's blossom
@@ -44,7 +44,7 @@ export default function matchEG(mg, traceFlag=false) {
 	match = new Matching(g); // match is returned
 	link = new Int32Array(g.n+1);
 	q = new List(g.edgeRange);
-	blossoms = new MergeSets(g.n);
+	outer = new MergeSets(g.n);
 	apath = new ReverseLists(g.edgeRange);
 	base = new Int32Array(g.n+1);
 	bridge = new Array(g.n);
@@ -67,57 +67,52 @@ export default function matchEG(mg, traceFlag=false) {
 		traceString += `${g.toString(1)}` +
 					   `initial matching: ${match.toString()}\n`;
 
-	let e = findpath();
-	while (e) {
-		augment(e); e = findpath(); paths++;
+	newPhase();
+	while (!q.empty()) {
+		steps++;
+		let e = q.deq(); let u = g.left(e); let U = bid(u);
+		if (state[U] != +1) { u = g.right(e); U = bid(u); }
+		let v = g.mate(u,e); let V = bid(v);
+		if (U == V || state[V] < 0) continue;
+			// skip edges internal to a blossom and edges to odd vertices
+
+		if (state[V] == 0) {
+			addBranch(u,e);
+		} else {
+			// U and V are both even
+			let A = nca(U,V);
+			if (A != 0) {
+				addBlossom(e, A);
+			} else {
+				// U, V are in different trees - augment and start new phase
+				let r1 = root(U); let r2 = root(V);
+				let ee = apath.join(apath.reverse(path(u, r1)), e);
+				augment(apath.join(ee, path(v, r2)));
+				newPhase();
+			}
+		}
 	}
 
 	if (trace)
 		traceString += `final matching: ${match.toString()}\n`;
 		
-	steps += blossoms.getStats().steps;
-	link = q = blossoms = apath = base = bridge = state = mark = null;
+	steps += outer.getStats().steps;
+	link = q = outer = apath = base = bridge = state = mark = null;
     return [match, traceString,
 			{'size': match.size(), 'paths': paths,
 			 'blossoms': bcount, 'steps': steps }];
 }
 
-/** Search for an augmenting path.
- *  @return an unmatched edge on the augmenting path or 0 if
- *  no augmenting path is found; on success, the list in the apath data
- *  structure that includes the returned edge defines the augmenting path.
- */
-function findpath() {
-	blossoms.clear(); q.clear(); link.fill(0); state.fill(0);
+/** Prepare for a new phase */
+function newPhase() {
+	outer.clear(); q.clear(); link.fill(0); state.fill(0);
 	for (let u = 1; u <= g.n; u++) {
 		steps++;
 		base[u] = u;
 		if (!match.at(u)) {
-			state[u] = 1; // u is an even vertex
-			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-				if (!q.contains(e)) q.enq(e);
-				steps++;
-			}
+			state[u] = 1; add2q(u);
 		}
 	}
-
-	while (!q.empty()) {
-		steps++;
-		let e = q.deq(); let u = g.left(e); let ru = rep(u);
-		if (state[ru] != +1) { u = g.right(e); ru = rep(u); }
-		let v = g.mate(u,e); let rv = rep(v);
-		if (ru == rv || state[rv] < 0) continue;
-			// skip edges internal to a blossom and edges to odd vertices
-		if (state[rv] == 0) { addBranch(u,e); continue; }
-		// ru and rv are both even
-		let a = nca(ru,rv);
-		if (a != 0) { addBlossom(e, a); continue; }
-		// ru, rv are in different trees - construct path & return
-		let ur = root(ru); let vr = root(rv);
-		let ee = apath.join(apath.reverse(path(u, ur)), e);
-		return apath.join(ee, path(v, vr));
-	}
-	return 0;
 }
 
 /** Extend tree at an even vertex.
@@ -130,7 +125,7 @@ function addBranch(u, e) {
 	let w = g.mate(v,ee); state[w] = +1; link[w] = ee;
 	add2q(w);
 	if (trace)
-		traceString += `add branch: ${g.x2s(u)}--${g.x2s(v)}--${g.x2s(w)}\n`
+		traceString += `branch: ${g.x2s(u)}--${g.x2s(v)}--${g.x2s(w)}\n`
 	return;
 }
 
@@ -146,34 +141,40 @@ function add2q(u) {
 
 /** Add new blossom defined by edge.
  *  @param e is an edge joining two even vertices in same tree
- *  @param a is the nearest common ancestor of e's endpoints
+ *  @param A is the nearest common ancestor of e's endpoints
  */
-function addBlossom(e, a) {
+function addBlossom(e, A) {
 	bcount++;
-	let u = g.left(e);  let ru = rep(u);
-	let v = g.right(e); let rv = rep(v);
-	let x = ru;
-	while (x != a) {
-		base[blossoms.merge(blossoms.find(x), blossoms.find(a))] = a;
+	let u = g.left(e);  let U = bid(u);
+	let v = g.right(e); let V = bid(v);
+	let x = U; let s = '';
+	while (x != A) {
+		if (trace) s = `${g.x2s(x)}${s ? ' ' : ''}` + s;
+		base[outer.merge(outer.find(x), outer.find(A))] = A;
 		x = g.mate(x,link[x]); // x now odd
-		base[blossoms.merge(x, blossoms.find(a))] = a;
+		if (trace) s = `${g.x2s(x)} ` + s;
+		base[outer.merge(x, outer.find(A))] = A;
 		bridge[x] = [e,u];
 		add2q(x);
-		x = rep(g.mate(x,link[x]));
+		x = bid(g.mate(x,link[x]));
 		steps++;
 	}
-	x = rv;
-	while (x != a) {
-		base[blossoms.merge(blossoms.find(x), blossoms.find(a))] = a;
+	if (trace) s = `${g.x2s(A)}${s ? ' ' : ''}` + s;
+	x = V;
+	while (x != A) {
+		if (trace) s += ` ${g.x2s(x)}`;
+		base[outer.merge(outer.find(x), outer.find(A))] = A;
 		x = g.mate(x,link[x]); // x now odd
-		base[blossoms.merge(x,blossoms.find(a))] = a;
+		if (trace) s += ` ${g.x2s(x)}`;
+		base[outer.merge(x,outer.find(A))] = A;
 		bridge[x] = [e,v];
 		add2q(x);
-		x = rep(g.mate(x,link[x]));
+		x = bid(g.mate(x,link[x]));
 		steps++;
 	}
 	if (trace)
-		traceString += `add blossom: ${g.e2s(e)} ${g.x2s(a)} ${blossoms.toString()}\n`;
+		traceString += `blossom: ${g.e2s(e)} ${g.x2s(A)} [${s}]\n` +
+					   `    ${outer.toString()}\n`;
 }
 
 /** Augment the matching.
@@ -183,34 +184,34 @@ function augment(e) {
 	if (trace) traceString += 'augment:';
 	while (true) {
 		steps++;
-		if (trace) traceString += ' ' + g.e2s(e);
+		if (trace) traceString += ' ' + g.e2s(e,0,1);
 		match.add(e);
 		if (apath.isLast(e)) break;
 		e = apath.pop(e); match.drop(e);
-		if (trace) traceString += ' ' + g.e2s(e);
+		if (trace) traceString += ' ' + g.e2s(e,0,1);
 		e = apath.pop(e);
 		steps++;
 	}
 	if (trace)
-		traceString += `\n         ${match.toString()}\n`;
+		traceString += `\n    ${match.toString()}\n`;
 }
 
-/** Get the representative of a vertex in current graph.
+/** Get identifier of outer blossom of a vertex.
  *  @param u is some vertex
- *  @return u's representative in the current graph; specifically,
- *  the base of the blossom containing u (or u, if u is external).
+ *  @return u's the identifier of the outer blossom containing u;
+ *  specifically, the base of the outer blossom u (or u, if u is outer).
  */
-function rep(u) {
-    return base[blossoms.find(u)];
+function bid(u) {
+    return base[outer.find(u)];
 }
 
 /** Find the root of a tree.
- *  @param rv is the representative for a vertex in current graph
+ *  @param rv is the id for a vertex in current graph
  *  @return the root of the tree containing rv
  */
 function root(rv) {
 	while (link[rv] != 0) {
-		rv = rep(g.mate(rv,link[rv])); steps++;
+		rv = bid(g.mate(rv,link[rv])); steps++;
 	}
 	return rv;
 }
@@ -237,24 +238,24 @@ function nca(u, v) {
 		if (link[x] != 0) {
 			mark[x] = true;
 			x = g.mate(x,link[x]);
-			x = rep(g.mate(x,link[x]));
+			x = bid(g.mate(x,link[x]));
 		}
 		if (link[y] != 0) {
 			mark[y] = true;
 			y = g.mate(y,link[y]);
-			y = rep(g.mate(y,link[y]));
+			y = bid(g.mate(y,link[y]));
 		}
 		steps++;
 	}
 	// second pass to clear mark bits
 	x = u;
 	while (mark[x]) {
-		mark[x] = false; x = g.mate(x,link[x]); x = rep(g.mate(x,link[x]));
+		mark[x] = false; x = g.mate(x,link[x]); x = bid(g.mate(x,link[x]));
 		steps++;
 	}
 	y = v;
 	while (mark[y]) {
-		mark[y] = false; y = g.mate(y,link[y]); y = rep(g.mate(y,link[y]));
+		mark[y] = false; y = g.mate(y,link[y]); y = bid(g.mate(y,link[y]));
 		steps++;
 	}
 	return result;

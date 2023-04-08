@@ -107,6 +107,10 @@ export default class Scanner extends Top {
 		return true;
 	}
 
+	nextchar() {
+		return (this.#i < this.#s.length ? this.#s[this.#i++] : 0);
+	}
+
 	/** Get an integer value from the scanned string.
 	 *  @return the integer value represented by the next non-space
 	 *  chunk of text in the scanned string; if that chunk of text does

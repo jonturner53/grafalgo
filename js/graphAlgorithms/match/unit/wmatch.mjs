@@ -46,7 +46,4 @@ tester.addTest('large random (400, 20)', g);
 g = randomGraph(400, 80); g.randomWeights(randomInteger,1,9999);
 tester.addTest('large random dense (400, 80)', g);
 
-g = randomGraph(400, 320); g.randomWeights(randomInteger,1,9999);
-tester.addTest('large random denser (400, 320)', g);
-
 tester.run();

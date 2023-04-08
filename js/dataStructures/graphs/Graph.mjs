@@ -177,7 +177,7 @@ export default class Graph extends Top {
 	 */
 	mate(v, e) {
 		fassert(this.validVertex(v) && this.validEdge(e) &&
-			   (v == this._left[e] || v == this._right[e]));
+			   (v == this._left[e] || v == this._right[e]),`xxx ${this.x2s(v)} ${this.e2s(e)}`);
 		return v == this._left[e] ? this._right[e] : this._left[e];
 	}
 	

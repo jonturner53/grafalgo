@@ -132,10 +132,10 @@ export default class Matching extends Top {
 			if (!show || show(e)) showList.enq(e);
 		}
 		let w = this.weight();
-		return (w != 0 ? '' + w + ' ' : '') +
-			   showList.toString(e =>
+		return showList.toString(e =>
 					(this.g.n <= 26 ?  this.g.e2s(e,0,1) : this.g.e2s(e))
-					+ (this.g.weight(e) ? ':' + this.g.weight(e) : ''));
+					+ (this.g.weight(e) ? ':' + this.g.weight(e) : ''))
+				+ (w != 0 ? ' ' + w : '');
 	}
 
 	/** Initialize this from a string representation.

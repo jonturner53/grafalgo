@@ -10,32 +10,38 @@ import Top from '../../dataStructures/Top.mjs';
 import { fassert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
+import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Forest from '../../dataStructures/trees/Forest.mjs';
 import BalancedForest from '../../dataStructures/trees/BalancedForest.mjs';
-
-const FAST = 0;		// flag used to enable faster outer computation
 
 /** Data structure representing a collection of blossoms for use in
  *  Edmonds algorithm for weighted matching.
  */
 export default class Blossoms extends Top {
-	g;             // reference to client's graph
-	match;         // reference to client's matching
+	g;              // reference to client's graph
+	match;          // reference to client's matching
 
 	#subs;          // hierarchy of blossoms and sub-blossoms
 
-	#state;         // state[b] is state of blossom b
-	#base;          // base[b] is endpoint of a b's external matching edge or 0
-	#link;          // link[b] is pair [v,e] where e is edge incident to b and v
-                    // is the endpoint of e in b; if undefined: [0,0]
+	#state;         // #state[b] is state of outer blossom b; for inner
+					// blossoms, #state[b] is undefined
+	#base;		    // if b is a matched blossom (or sub-blossom), #base[b]
+					// is the vertex v in b that terminates the matching
+					// edge incident to b; if b is unmatched, #base[b] is
+					// unique vertex in b that is unmatched
+	#link;          // #link[b] is pair [v,e] where e is an edge incident to
+					// b and v is the endpoint of e in b; if undefined: [0,0];
+					// for an external blossom b, e is the edge to b's
+					// tree parent; for an internal blossom, e is an edge to
+					// next internal blossom in the blossom cycle of b's parent
 
-	#outerMethod;	// method used to compute outer: 0 for simple, 1 for trees
-	#outer;			// reference to data structure used to compute outer
+	#outerMethod;   // method used to compute outer: 1 for simple, 2 for forest
+	#outer;         // reference to data structure used to compute outer
 
     #ids;           // list of available blossom ids (reduced by n)
 	#blist;         // temporary list used when forming new blossom
 
-	steps;			// number of steps
+	steps;          // number of steps
 	
 	/** Constructor for Blossoms object.
 	 *  @param g is the client's graph on which matching is computed
@@ -47,7 +53,6 @@ export default class Blossoms extends Top {
 		this.match = match;
 		this.#outerMethod = outerMethod;
 
-this.cnt = 0;
 		this.#subs = new Forest(this.n);
 
 		this.#base = new Int32Array(this.n+1);
@@ -81,32 +86,32 @@ this.cnt = 0;
 	}
 
 	/** Assign new value to this from another. 
-	 *  @paran bloss is a Blossoms object
+	 *  @param other is a Blossoms object
 	 */
-	assign(bloss) {
-		if (bloss == this) return;
-		if (bloss.g != this.g)
-			this.reset(bloss.g, bloss.match, bloss.link);
-		this.#subs.assign(bloss.subs);
-		this.#ids.assign(bloss.ids);
+	assign(other) {
+		if (other == this) return;
+		if (other.g != this.g)
+			this.reset(other.g, other.match, other.#outerMethod);
+		this.#subs.assign(other.subs);
+		this.#ids.assign(other.ids);
 		for (let b = 0; b <= this.n; b++) {
-			this.#base[b] = bloss.#base[b];
-			this.#state[b] = bloss.#state[b];
-			this.#link[b] = bloss.#link[b];
+			this.#base[b] = other.#base[b];
+			this.#state[b] = other.#state[b];
+			this.#link[b] = other.#link[b];
 		}
 	}
 
 	/** Assign a new value to this, by transferring contents of another list.
-	 *  @param bloss is another Blossom object
+	 *  @param other is another Blossoms object
 	 */
-	xfer(bloss) {
-		if (bloss == this) return;
-		this._n = bloss.n;
-		this.g = bloss.g; this.match = bloss.match;
-		this.#ids = bloss.ids;
-		this.#state = bloss.#state; this.#link = bloss.#link;
-		bloss.g = bloss.match = null;
-		bloss.subs = bloss.ids = bloss.#state = bloss.#link = null;
+	xfer(other) {
+		if (other == this) return;
+		this._n = other.n;
+		this.g = other.g; this.match = other.match;
+		this.#ids = other.ids;
+		this.#state = other.#state; this.#link = other.#link;
+		other.g = other.match = null;
+		other.subs = other.ids = other.#state = other.#link = null;
 	}
 	
 	/** Restore to initial state. */
@@ -115,8 +120,7 @@ this.cnt = 0;
 		this.#ids.clear();
 		for (let b = this.g.n+1; b <= this.n; b++) this.#ids.enq(b-this.g.n);
 		this.#base.fill(0);
-		for (let u = 0; u <= this.g.n; u++)
-			this.#base[u] = u;
+		for (let u = 0; u <= this.g.n; u++) this.#base[u] = u;
 		this.#state.fill(1);
 		for (let e = this.match.first(); e != 0; e = this.match.next(e)) {
 			this.#state[this.g.left(e)] = 0;
@@ -126,7 +130,8 @@ this.cnt = 0;
 		for (let u = 0; u <= this.n; u++) this.#link[u] = [0,0];
 	}
 
-	validBid(b) { return 0 <= b && b <= this.n && !this.#ids.contains(b); }
+	validBid(b) { return 0 <= b && b <= this.n &&
+				  !this.#ids.contains(b-this.g.n); }
 
 	/** Get/set the base of a blossom.
 	 *  @param b is the id of a blossom or sub-blossom
@@ -135,8 +140,21 @@ this.cnt = 0;
 	 */
 	base(b,u=-1) { if (u!=-1) this.#base[b] = u; return this.#base[b]; }
 
+	/** Get/set the state of a blossom.
+	 *  @param b is the id of a blossom or sub-blossom
+	 *  @param s is an optional state (-1 for odd, +1 for even, 0 for unbound);
+	 *  if present the base of b is set to s.
+	 *  @return the state state of b
+	 */
 	state(b,s=-3) { if (s!=-3) this.#state[b] = s; return this.#state[b]; }
 
+	/** Get/set the link of a blossom.
+	 *  @param b is the id of a blossom or sub-blossom
+	 *  @param p is a pair [v,e] where v is a vertex in b and e is an edge
+	 *  incident to v but external to be; if p is present, the link of b
+	 *  is set to p
+	 *  @return the link of b
+	 */
 	link(b,p=-1) { if (p!=-1) this.#link[b] = p; return this.#link[b]; }
 
 	/** Get the first outer blossom */
@@ -149,7 +167,10 @@ this.cnt = 0;
 		return 0; 
 	}
 
-	/** Get the next outer blossom */
+	/** Get the next outer blossom.
+	 *  @param b is an outer blossom
+	 *  @return the next outer blossom following b
+	 */
 	nextOuter(b) {
 		for (b++; b <= this.n; b++) {
 			if (this.parent(b)) continue;
@@ -159,7 +180,10 @@ this.cnt = 0;
 		return 0; 
 	}
 
-	/** Get the outer blossom containing a vertex or sub-blossom. */
+	/** Get the outer blossom containing a vertex or sub-blossom.
+	 *  @param b is a blossom
+	 *  @return the outer blossom containing b
+	 */
 	outer(b) {
 		if (this.#outerMethod == 0)
 			return this.#subs.root(b);
@@ -169,6 +193,11 @@ this.cnt = 0;
 			return this.#outer.bid[this.#outer.bf.root(b)];
 	}
 
+	/** Refresh the #outer array for the sub-blossoms of a
+	 *  specified blossom (helper method).
+	 *  @param b is an outer blossom; on return #outer[sb]=b for
+	 *  all sub-blossoms sb of b
+	 */
 	refreshOuter(b) {
 		for (let sb = this.#subs.first(b); sb; sb = this.#subs.next(sb)) {
 			this.#outer[sb] = b; this.steps++;
@@ -181,8 +210,17 @@ this.cnt = 0;
 	 */
 	firstIn(b) { return this.#subs.firstLeaf(b); }
 
+	/** Get the last vertex in an outer blossom.
+	 *  @param b is the id of an outer blossom
+	 *  @return the last vertex in b
+	 */
 	lastIn(b) { return this.#subs.lastLeaf(b); }
 
+	/** Get the next vertex in an outer blossom.
+	 *  @param b is the id of an outer blossom
+	 *  @param u is a vertex in b
+	 *  @return the first vertex in b
+	 */
 	nextIn(b,u) { return this.#subs.nextLeaf(u,b); }
 
 	/** Get the parent of a blossom in the blossom hierarchy.
@@ -208,104 +246,103 @@ this.cnt = 0;
 	nextSub(s) { return this.#subs.nextSibling(s); }
 
 	/** Add a branch to a matching tree.
-	 *  @param e is an equality edge
+	 *  @param e is a tight edge
 	 *  @param v is an endpoint of e in an unbound blossom
-	 *  @param bv (optional) is the blossom containing v
+	 *  @param V (optional) is the outer blossom containing v
 	 *  @return the even blossom added to the tree
 	 */
-	addBranch(e,v,bv=this.outer(v)) {
-		this.state(bv,-1); this.link(bv,[v,e]);
-		let bbv = this.base(bv);
-		let ee = this.match.at(bbv);
-		let w = this.g.mate(bbv,ee); let bw = this.outer(w);
-		this.state(bw,+1); this.link(bw,[w,ee]);
-		return bw;
+	addBranch(e,v,V=this.outer(v)) {
+		this.state(V,-1); this.link(V,[v,e]);
+		let bV = this.base(V);
+		let me = this.match.at(bV);
+		let w = this.g.mate(bV,me); let W = this.outer(w);
+		this.state(W,+1); this.link(W,[w,me]);
+		return W;
 	}
 	
 	/** Add a new outer blossom.
 	 *  @param e is an edge
-	 *  @param nca is outer blossom that is the nearest common ancestor
+	 *  @param A is outer blossom that is the nearest common ancestor
 	 *  of the outer blossoms containing e's endpoints
-	 *  @return tuple [b, subs, bu] where b is the id of the new blossom and
-	 *  subs is a List of the sub-blossoms in b and bu is the first sub-blossom
+	 *  @return tuple [B, subs, U] where B is the id of the new blossom and
+	 *  subs is a List of the sub-blossoms in B and U is the first sub-blossom
 	 *  in subs that contains an endpoint of e
 	 */
-	addBlossom(e, nca) {
+	addBlossom(e, A) {
 		// initialize
-		let u = this.g.left(e);  let bu = this.outer(u);
-		let v = this.g.right(e); let bv = this.outer(v);
-		let ncaLink = this.link(nca); // save for later use
+		let u = this.g.left(e);  let U = this.outer(u);
+		let v = this.g.right(e); let V = this.outer(v);
+		let Alink = this.link(A); // save for later use
 
 		// first, create ordered list of sub-blossoms of new blossom
 		// using link values
-		let blist = this.#blist; blist.clear();
-		let b = bu;
-		while (b != nca) {
-			blist.push(b);		// adds b to front of blist
-			let [x,ee] = this.link(b);
-			b = this.outer(this.g.mate(x,ee));
+		let subs = this.#blist; subs.clear();
+		let B = U;
+		while (B != A) {
+			subs.push(B);		// adds B to front of subs
+			let [x,ee] = this.link(B);
+			B = this.outer(this.g.mate(x,ee));
 			this.steps++;
 		}
-		blist.push(nca);
-		b = bv;
-		while (b != nca) {
-			blist.enq(b);		// adds b to end of blist
-			let [x,ee] = this.link(b);
-			b = this.outer(this.g.mate(x,ee));
+		subs.push(A);
+		B = V;
+		while (B != A) {
+			subs.enq(B);		// adds B to end of subs
+			let [x,ee] = this.link(B);
+			B = this.outer(this.g.mate(x,ee));
 		}
 
 		// now, re-direct the links for sub-blossoms on the "left sub-cycle";
 		// undefine sub-blossom state values while we're at it
 		let firstPart = true;
-		for (let b = blist.first(); b != 0; b = blist.next(b)) {
-			if (b == bu) {
-				this.link(b,[u,e]); firstPart = false;
+		for (let B = subs.first(); B; B = subs.next(B)) {
+			if (B == U) {
+				this.link(B,[u,e]); firstPart = false;
 			} else if (firstPart) {
 				// reverse direction of links in first part of cycle
-				let nextb = blist.next(b);
-				let [x,ee] = this.link(nextb);
-				this.link(b,[this.g.mate(x,ee),ee]);
+				let nextB = subs.next(B);
+				let [x,ee] = this.link(nextB);
+				this.link(B,[this.g.mate(x,ee),ee]);
 			}
-			this.state(b,-2);	// -2 means undefined
+			this.state(B,-2);	// -2 means undefined
 		}
 	
 		// finally, use the list of sub-blossoms to construct blossom
-		let nub = this.construct(blist);
-		this.state(nub, +1);
-		this.link(nub, ncaLink);
-		return [nub, blist, bu];
+		B = this.construct(subs);
+		this.state(B, +1);
+		this.link(B, Alink);
+		return [B, subs, U];
 	}
 
-	/** Construct a blossom from a list.
-	 *  @param blist is a list of outer blossoms
-	 *  @return a new blossom obtained by combinining the blossoms in blist
+	/** Construct a blossom from a list (helper method).
+	 *  @param subs is a list of outer blossoms
+	 *  @return a new blossom obtained by combinining the blossoms in subs
 	 */
-	construct(blist) {
-		let nub = this.g.n + this.#ids.deq();
-		this.base(nub, this.base(blist.first()));
-		for (let b = blist.first(); b; b = blist.next(b)) {
-			this.#subs.link(b,nub);
+	construct(subs) {
+		let B = this.g.n + this.#ids.deq();
+		this.base(B, this.base(subs.first()));
+		for (let b = subs.first(); b; b = subs.next(b)) {
+			this.#subs.link(b,B);
 		}
 
 		if (this.#outerMethod == 1) {
-			this.refreshOuter(nub);
+			this.refreshOuter(B);
 		} else if (this.#outerMethod == 2) {
 			let bf = this.#outer.bf;
 			let bid = this.#outer.bid;
 			let root = this.#outer.root;
 
-			bid[nub] = root[nub] = nub;
-			for (let b = blist.first(); b; b = blist.next(b)) {
-				root[nub] = bf.append(root[nub],root[b]);
-				bid[root[nub]] = nub;
+			bid[B] = root[B] = B;
+			for (let b = subs.first(); b; b = subs.next(b)) {
+				root[B] = bf.append(root[B],root[b]);
+				bid[root[B]] = B;
 			}
 		}
-
-		return nub;
+		return B;
 	}
 
 	/** Expand a non-trivial outer blossom.
-	 *  @param b is a blossom to be expanded; the
+	 *  @param b is an outer blossom to be expanded; the
 	 *  states of the new outer blossoms become unbound,
 	 *  with the possible exception of the first sub-blossom,
 	 *  which is assigned a state of even, if it is unmatched;
@@ -315,90 +352,89 @@ this.cnt = 0;
 	 *  modified by other method calls on this object, so it
 	 *  should be used with care
 	 */
-	expand(b) {
-		let [blist,bb] = this.deconstruct(b);
+	expand(B) {
+		let [subs,bBsub] = this.deconstruct(B);
 		// now set sub-blossom links to [0,0] and states to 0 or +1
-		for (let bi = blist.first(); bi; bi = blist.next(bi)) {
-			this.state(bi, bi == bb && this.match.at(this.base(bi)) ?
-							+1 : 0);
-			this.link(bi,[0,0]); this.steps++;
+		for (let b = subs.first(); b; b = subs.next(b)) {
+			this.state(b, this.match.at(this.base(b)) ?  0 : +1);
+			this.link(b,[0,0]); this.steps++;
 		}
-		return blist;
+		return subs;
 	}
 
 	/** Expand a non-trivial odd outer blossom, while preserving
 	 *  the positions of some of its sub-blossoms in the matching tree.
-	 *  @param b is an odd blossom to be expanded
+	 *  @param B is an odd blossom to be expanded
 	 *  @return a reference to a list of the new outer blossoms, resulting
-	 *  from the expansion and note, blist may be modified by other method
+	 *  from the expansion and note, this list may be modified by other method
 	 *  calls on this object, so it should be used with care
 	 */
-	expandOdd(b) {
-		fassert(b >= this.g.n && this.state(b) == '-1');
-		let [blist,bbsub] = this.deconstruct(b);
+	expandOdd(B) {
+		fassert(B >= this.g.n && this.state(B) == '-1');
+		let [subs,bBsub] = this.deconstruct(B);
+			// bBsub is sub-blossom in subs that contained base(B) before B
+			// B was deconstructed
 
-		let [v] = this.link(b); let bv = this.outer(v);
+		let [v] = this.link(B); let V = this.outer(v);
+			// V is outer blossom incident to edge linking
+			// to B's former tree parent
 
-		if (this.match.contains(this.link(bv)[1])) {
-			// reverse links on path from bbsub back to bv
-			let bi = bbsub; let sbi = -1;
-			while (bi != bv) {
-				let pbi = blist.prev(bi) ? blist.prev(bi) :
-										   blist.last();
-				let [x,e] = this.link(pbi);
-				this.link(bi,[this.g.mate(x,e),e]);
-				this.state(bi,sbi); sbi = -sbi;
-				bi = pbi;
+		// set states on even-length cycle segment from V to B and redirect
+		// links if necessary; make other sub-blossoms unbound
+		if (this.match.contains(this.link(V)[1])) {
+			// reverse links on path from bBsub back to V
+			let b = bBsub; let sb = -1;
+			while (b != V) { // even length segment
+				let pb = subs.prev(b) ? subs.prev(b) : subs.last();
+				let [x,e] = this.link(pb);
+				this.link(b,[this.g.mate(x,e),e]);
+				this.state(b,sb); sb = -sb;
+				b = pb;
 			}
-			bi = blist.prev(bi) ? blist.prev(bi) :
-                                      blist.last();
-			while (bi != bbsub) {
-				this.link(bi,[0,0]); this.state(bi,0);
-				bi = blist.prev(bi) ? blist.prev(bi) :
-									  blist.last();
+			b = subs.prev(b) ? subs.prev(b) : subs.last();
+			while (b != bBsub) { // odd length segment
+				this.link(b,[0,0]); this.state(b,0);
+				b = subs.prev(b) ? subs.prev(b) : subs.last();
 			}
 		} else {
-			let bi = bbsub; let sbi = -1;
-			while (bi != bv) {
-				this.state(bi,sbi); sbi = -sbi;
-				bi = blist.next(bi) ? blist.next(bi) :
-									  blist.first(bi);
+			let b = bBsub; let sb = -1;
+			while (b != V) { // even length segment
+				this.state(b,sb); sb = -sb;
+				b = subs.next(b) ? subs.next(b) : subs.first(b);
 			}
-			bi = blist.next(bi) ? blist.next(bi) :
-								  blist.first(bi);
-			while (bi != bbsub) {
-				this.link(bi,[0,0]); this.state(bi,0);
-				bi = blist.next(bi) ? blist.next(bi) :
-									  blist.first(bi);
+			b = subs.next(b) ? subs.next(b) : subs.first(b);
+			while (b != bBsub) { // odd length segment
+				this.link(b,[0,0]); this.state(b,0);
+				b = subs.next(b) ? subs.next(b) : subs.first(b);
 			}
 		}
-		this.link(bv,this.link(b)); this.state(bv,-1);
-		return blist;
+		this.link(V,this.link(B)); this.state(V,-1);
+		return subs;
 	}
 
-	/** Deconstruct an outer blossom.
-	 *  @param b is blossom to be deconstructed; sub-blossoms of b become
-	 *  outer blossoms and blossom id for b is recycled; the sub-blossoms
-	 *  of b are placed in #blist as a side effect
-	 *  @return a pair [blist,bbsub] where blist is a reference to a list
-	 *  of the new outer blossoms, resulting from the expansion and
-	 *  base is the new outer blossom containing the original base of b;
+	/** Deconstruct an outer blossom (helper method).
+	 *  @param B is blossom to be deconstructed; sub-blossoms of B become
+	 *  outer blossoms and blossom id for B is recycled; matching edges in B
+	 *  are adjusted to be consistent with outer graph
+	 *  @return a pair [subs,bBsub] where subs is a reference to a list
+	 *  of the former sub-blossoms of B and bBsub is the new outer blossom
+	 *  containing the original base of B;
 	 */
-	deconstruct(b) {
-		let bb = this.base(b);
-		let blist = this.#blist; blist.clear();
+	deconstruct(B) {
+		let bB = this.base(B);
+		let subs = this.#blist; subs.clear();
 
-		let sb0 = this.firstSub(b);
-		while (sb0 != 0) {
-			blist.enq(sb0);
-			this.#subs.cut(sb0);	// remove sb0 from b's list of sub-blossoms
-			sb0 = this.firstSub(b);
+		let b0 = this.firstSub(B);
+		while (b0) {
+			subs.enq(b0);
+			this.#subs.cut(b0);		// remove b0 from B's list of sub-blossoms
+			b0 = this.firstSub(B);
 			this.steps++;
 		}
-		this.#ids.enq(b-this.g.n); // return b to list of available ids
+		this.#ids.enq(B-this.g.n); // return B to list of available ids
 
 		if (this.#outerMethod == 1) {
-			for (let b = blist.first(); b; b = blist.next(b)) {
+			for (let b = subs.first(); b; b = subs.next(b)) {
 				this.refreshOuter(b); this.steps++;
 			}
 		} else if (this.#outerMethod == 2) {
@@ -407,8 +443,8 @@ this.cnt = 0;
 			let root = this.#outer.root;
 
 			let next;
-			for (let b = blist.first(); b; b = next) {
-				next = blist.next(b);
+			for (let b = subs.first(); b; b = next) {
+				next = subs.next(b);
 				if (next) {
 					let [t1,t2] = bf.split(next);			
 					root[b] = t1; bid[t1] = b;
@@ -420,26 +456,27 @@ this.cnt = 0;
 			}
 		}
 
-		let bbsub = this.outer(bb); this.base(bbsub, bb)
-		this.extendMatching(blist, bbsub);
+		let bBsub = this.outer(bB); this.base(bBsub, bB);
+		this.extendMatching(subs, bBsub);
 
-		return [blist, bbsub];
+		return [subs, bBsub];
 	}
 
-	/** Extend a matching to a blossom.
-	 *  @param blist is a List of sub-blossoms of some blossom; matching
-	 *  status is determined for edges in blist by starting at the
-	 *  sub-blossom containing the blossom's base and alternating around
-	 *  the blossom cycle; the base values of the sub-blossoms are also
-	 *  updated to be consistent with the matching edges.
-	 *  @param bbsub is the sub-blossom of b that contains the base of b
+	/** Extend a matching to new outer blossoms formed when a
+	 *  blossom is expanded (helper method).
+	 *  @param subs is a List of new outer blossoms formed when a former
+	 *  blossom B is expanded
+	 *  @param bBsub is the former sub-blossom of B that contains its base;
+	 *  the matching status of tree edges incident to blossoms in subs is
+	 *  determined by starting at bBsub and alternating around the former
+	 *  blossom cycle; the base values of the blossoms in subs are also
+	 *  updated to be consistent with the new matching edges.
 	 */
-	extendMatching(blist, bbsub) {
-		let sub = bbsub; let even = true; let first = true;
-		while (first || sub != bbsub) {
+	extendMatching(subs, bBsub) {
+		let sub = bBsub; let even = true; let first = true;
+		while (first || sub != bBsub) {
 			if (first) first = false;
-			let next = (blist.next(sub) ? blist.next(sub) :
-										  blist.first());
+			let next = (subs.next(sub) ? subs.next(sub) : subs.first());
 			let [v,e] = this.link(sub);
 			if (this.match.contains(e))
 				this.match.drop(e);
@@ -449,150 +486,103 @@ this.cnt = 0;
 				this.base(next, this.g.mate(v,e));
 			}
 			even = !even; sub = next;
-			sub = next;
 		}
 	}
 
-	/** Extend matching to a blossom or sub-blossom.
-	 *  This is used at the end of execution to facilitate
-	 *  verification of termination condition.
-	 *  @param b is a non-trivial blossom
-	extendMatchingRecursive(b) {
-		let bb = this.base(b);
-		let bbsub = bb;
-		while (this.parent(bbsub) != b) bbsub = this.parent(bbsub);
-		// so now, bbsub is the sub-blossom of b containing the base
-		let sub = bbsub; let even = true; let first = true;
-		while (first || sub != bbsub) {
-			if (first) first = false;
-			let next = (this.nextSub(sub) ? this.nextSub(sub) :
-										    this.firstSub(b));
-			let [v,e] = this.link(sub);
-			if (this.match.contains(e))
-				this.match.drop(e);
-			if (!even) {
-				this.match.add(e);
-				this.base(sub, v);
-				this.base(next, this.g.mate(v,e));
-				extendMatchingRecursive(sub);
-				extendMatchingRecursive(next);
-			}
-			even = !even; sub = next;
-			sub = next;
-		}
-	}
+	/** Determine if two Blossoms objects are equal.
 	 */
-
-	/** Determine if two Blossom objects are equal.
-	 */
-	equals(bloss) {
-		if (bloss === this) return true;
-		if (typeof bloss == 'string') {
-			let s = bloss;
-			bloss = new Blossoms(this.g, this.match); bloss.fromString(s); 
+	equals(other) {
+		if (other === this) return true;
+		if (typeof other == 'string') {
+			let s = other;
+			other = new Blossoms(this.g, this.match);
+			fassert(other.fromString(s), 
+					'Blossoms.fromString cannot parse ' + s); 
+			if (!other.fromString(s)) return s == this.toString();
 		}
-        if (!(bloss instanceof Blossoms)) return false;
-		if (bloss.n != this.n) return false;
-		if (this.#ids.length != bloss.#ids.length) return false;
+        if (!(other instanceof Blossoms)) return false;
+		if (other.n != this.n) return false;
+		if (this.#ids.length != other.#ids.length) return false;
 
-		if (!this.g.equals(bloss.g)) return false;
-		if (!this.match.equals(bloss.match)) return false;
+		if (!this.g.equals(other.g)) return false;
+		if (!this.match.equals(other.match)) return false;
 
-		// establish mapping between blossom ids in this and bloss
-		let bidmap = new Int32Array(this.n);
+		// establish mapping between blossom ids in this and other
+		let bidmap = new Int32Array(this.n+1);
 		let q = new List(this.n);
 		for (let b = 1; b <= this.g.n; b++) {
 			bidmap[b] = b; let pb = this.parent(b);
 			if (pb && !bidmap[pb] && !q.contains(pb)) {
-				bidmap[pb] = bloss.parent(b); q.enq(pb);
+				bidmap[pb] = other.parent(b); q.enq(pb);
 			}
 		}
 		// q now contains super-blossoms for which bidmap has been initialized
 		while (!q.empty()) {
 			let b = q.deq(); let pb = this.parent(b);
 			if (pb && !bidmap[pb] && !q.contains(pb)) {
-				bidmap[pb] = bloss.parent(bidmap[b]); q.enq(pb);
+				bidmap[pb] = other.parent(bidmap[b]); q.enq(pb);
 			}
 		}
 		// now verify that all blossoms have matching parents
 		for (let b = 1; b <= this.g.n; b++) {
 			if (b > this.g.n && this.#ids.contains(b-this.g.n)) continue;
-			if (bidmap[this.parent(b)] != this.parent(bidmap[b]))
+			if (bidmap[this.parent(b)] != other.parent(bidmap[b]))
 				return false;
 		}
-			
 
 		for (let b = 1; b <= this.n; b++) {
 			if (b > this.g.n && this.#ids.contains(b-this.g.n)) continue;
 			let bb = bidmap[b];
-			if (this.base(b)  != bloss.base(bb) ||
-				this.state(b) != bloss.state(bb)) {
+			if (this.base(b)  != other.base(bb) ||
+				this.state(b) != other.state(bb)) {
 				return false;
 			}
-			let [v1,e1] = this.link(b); let [v2,e2] = bloss.link(bb);
+			let [v1,e1] = this.link(b); let [v2,e2] = other.link(bb);
 			if (v1 != v2) return false;
 			if (v1 && v2) {
 				let g = this.g;
 				if (!(((g.left(e1) == g.left(e2)) &&
 						(g.right(e1) == g.right(e2))) ||
 					 ((g.left(e1) == g.right(e2)) &&
-						(g.right(e1) == g.left(e2)))))
+						(g.right(e1) == g.left(e2))))) {
 					return false;
+				}
 			}
 		}
 		return true;
 	}
 
-	/** Create a string representation of Blossoms object.
-	 *  Shows all non-trivial blossoms plus blossoms in the matching forest.
-	 *  @param fmt is an integer with low order bits specifying format optons
-	 *    001 specifies a newline between succesive outer blossoms
-	 *  @param label is an optional function that returns a text label
-	 *  for an item
-	 *  @return the string representation of the list
+	/** Return a string representation of a Blossoms object.
+	 *  The string includes a representation of the non-trivial outer blossoms
+	 *  and a representation of the non-trivial alternating path trees.
 	 */
-	toString(fmt=0) {
-		// first determine which outer blossoms to include in string
-		// show all non-trivial blossoms, plus vertices in a blossom tree
-		let showme = new Int8Array(this.n);
-		for (let b = this.firstOuter(); b != 0; b = this.nextOuter(b)) {
-			if (this.firstSub(b) > 0) showme[b] = true;
-			let [v,e] = this.link(b);
-			if (v) {
-				showme[b] = true;
-				let p = this.g.mate(v,e);
-				let bp = this.outer(p);
-				showme[bp] = true;
-			}
-		}
+	toString() {
+		return `{${this.blossoms2string()} ${this.trees2string()}}`;
+	}
 
-		let s = '';
-		for (let b = this.firstOuter(); b != 0; b = this.nextOuter(b)) {
-			if (!showme[b]) continue;
-			if (fmt) s += '    ';
-			else if (s.length > 0) s += ' ';
-			s += (this.state(b) < 0 ? '-' : (this.state(b) > 0 ? '+' : '.'));
-			s += this.#subs.tree2string(b, fmt,
-					bb => this.x2s(bb) + (b > this.g.n && bb == this.base(b) ? '*' : '') +
-						  this.link2string(bb));
-			if (fmt) s += '\n'; // one outer blossom per line
-		}
-		s = (fmt ? s : '{' + s + '}');
+	/** Return a string representation of a blossom.
+	 *  Non-trivial blossoms are represented by upper-case letters when possible.
+	 */
+	x2s(b) {
+		return (b <= this.g.n ? this.g.x2s(b) : 
+				(this.g.n > 26 ? ''+b :
+						'-ABCDEFGHIJKLMNOPQRSTUVWXYZ'[b-this.g.n]));
+	}
 
-		if (this.#outerMethod == 1) {
-			s += 'outer map\n'
-			for (let b = 1; b <= this.n; b++) {
-				if (this.validBid(b))
-					s += ` ${this.x2s(b)}:${this.x2s(this.#outer[b])}`;
-			}
-			s += '\n';
-		} else if (this.#outerMethod == 2) {
-			s += 'outer trees: '
-			s += this.#outer.bf.toString(0, b => this.x2s(b));
+	/** Create a string representation of one blossom.
+	 *  @param b is a blossom
+	 *  @param label is an optional function that returns a vertex label
+	 *  @return a string that represents the tree
+	 */
+	bloss2string(b, label=0) {
+		let s = label(b);
+		if (this.#subs.firstChild(b) == 0) return s;
+		s += '[';
+		for (let c = this.#subs.firstChild(b); c; c = this.#subs.nextSibling(c)) {
+			if (c != this.#subs.firstChild(b)) s += ' ';
+			s += this.bloss2string(c,label);
 		}
-		s += '\n';
-
-		return s;
+		return s + ']';
 	}
 
 	/** Return a string representation of a link. */
@@ -606,83 +596,260 @@ this.cnt = 0;
         return s;
 	}
 
-	/** Initialize object from string. */
-	fromString(s) {
-		let sc = new Scanner(s);
-		this.clear();
-		if (!sc.verify('{')) return false;
-		while (true) {
-			if (sc.verify('+')) {
-				let b = this.nextBlossom(sc,0);
-				if (!b) return false;
-				this.state(b,+1);
-			} else if (sc.verify('-')) {
-				let b = this.nextBlossom(sc,0);
-				if (!b) return false;
-				this.state(b,-1);
-			} else if (sc.verify('.')) {
-				let b = this.nextBlossom(sc,0);
-				if (!b) return false;
-				this.state(b,0);
-			} else {
-				break;
-			}
+	/** Create a string version of the outer graph.
+	 *  @param if terse is true, don't show the links joining
+	 *  non-trivial blossoms to their neighbors.
+	 */
+	outerGraph2string(terse=0) {
+		let og = new Graph(this.n, this.g.edgeRange);
+		for (let e = this.g.first(); e; e = this.g.next(e)) {
+			let [u,v] = [this.g.left(e),this.g.right(e)];
+			let [U,V] = [this.outer(u),this.outer(v)];
+			if (U != V && !og.findEdge(U,V)) og.join(U,V);
 		}
-		if (!sc.verify('}')) return false;
-		return true;
+		return og.toString(0,
+					(e,u) => {
+						let s = this.x2s(og.mate(u,e))
+						if (!terse &&
+							(u > this.g.n || og.mate(u,e) > this.g.n)) {
+							s += og.e2s(e);
+						} 
+						return s;
+					},
+					u => this.x2s(u));
 	}
 	
-	/** Scan for a blossom.
-	 *  @param sc is a Scanner object
-	 *  @param parent is the parent of the blossom to be scanned.
-	 *  @return the index of the scanned blossom or 0 if sc's
-	 *  string does not start with a valid blossom representation.
+	/** Return a string representation of the outer trees.
+	 *  @param if terse is true, don't show the links joining
+	 *  non-trivial blossoms to their tree neighbors.
+	 */
+	trees2string(terse=0) {
+		let tt = new Forest(this.n);
+		for (let B = this.firstOuter(); B; B = this.nextOuter(B)) {
+			if (!this.state(B)) continue;
+			let [v,e] = this.link(B);
+			if (v) {
+				let w = this.g.mate(v,e); let W = this.outer(w);
+				tt.link(B,W);
+			}
+		}
+		return tt.toString(4,
+					b => {
+						let s = this.x2s(b);
+						if (!terse) {
+							let pb = tt.p(b);
+							let [v,e] = this.link(b);
+							if (v && (b > this.g.n || pb > this.g.n))
+								s += `{${this.x2s(v)},${this.x2s(this.g.mate(v,e))}}`;
+						}
+						return s;
+					});
+	}
+
+	/** Return a string representation of the non-trivial blossoms.
+	 *  @param if terse is true, don't show the links joining
+	 *  non-trivial blossoms to their neighboring sub-blossoms.
+	 */
+	blossoms2string(terse=0) {
+		return this.#subs.toString(4,
+					b => {
+						let s = '';
+						let pb = this.parent(b);
+						if (pb) {
+							if (this.in(this.base(pb),b))
+								s += '!';
+						}
+						s += this.x2s(b);
+						if (pb && !terse) {
+							let next = this.nextSub(b) ? this.nextSub(b) :
+													     this.firstSub(pb);
+							if (b > this.g.n || next > this.g.n) {
+								let [v,e] = this.link(b);
+								let w = this.g.mate(v,e);
+								s += `{${this.x2s(v)},${this.x2s(w)}}`;
+							}
+						}
+						return s;
+					});
+	}
+
+	/** Determine if a vertex is in a blossom */
+	in(u, b) {
+		let sb = u;
+		while (sb) {
+			if (sb == b) return true;
+			sb = this.parent(sb);
+		}
+		return false;
+	}
+
+	/** Initialize object from string. */
+	fromString(s) {
+		this.clear();
+		let sc = new Scanner(s);
+		if (!sc.verify('{')) return false;
+		// scan blossom structure forest
+		if (!sc.verify('{')) return false;
+		while (!sc.verify('}')) {
+			if (!sc.verify('[')) return false;
+			if (!this.nextBlossom(sc,0)) return false;
+			if (!sc.verify(']')) return false;
+		}
+		// scan alternating path forest
+		if (!sc.verify('{')) return false;
+		while (!sc.verify('}')) {
+			if (!sc.verify('[')) return false;
+			if (!this.nextTree(sc,0,true)) return false;
+			if (!sc.verify(']')) return false;
+		}
+		return true;
+	}
+
+	/** Scan for next blossom (including sub-blossoms).
+	 *  @param sc is a scanner
+	 *  @param parent is the parent in the blossom structure tree of the
+	 *  blossom about to be scanned.
+	 *  @return the blossom scanned when successful, else 0
 	 */
 	nextBlossom(sc, parent) {
-		let b = sc.nextIndex();
+		let b = this.nextIndex(sc);
 		if (Number.isNaN(b) || !this.valid(b) || b == 0) return 0;
 		if (b > this.g.n) {
-			if (this.#ids.contains(b-this.g.n))
-				this.#ids.delete(b-this.g.n);
+			if (!this.#ids.contains(b-this.g.n)) return 0;
+			this.#ids.delete(b-this.g.n);
 		}
-		if (this.parent(b) != 0) return 0;
+		this.state(b,-2); // undefined
 		if (parent) {
 			this.#subs.link(b, parent);
-			this.state(b,-2);
+			let lnk = this.nextLink(sc,parent);
+			if (lnk == null) return 0;
+			this.link(b,lnk);
 		}
-		this.link(b, this.nextLink(sc,parent));
-		if (!sc.verify('[')) {
-			if (parent && b == this.firstSub(parent))
-				this.base(parent, this.base(b));
+		if (!sc.verify('('))
 			return b <= this.g.n ? b : 0;
+
+		// recursive calls on children of b
+		let cnt = 0; let markedChild = 0;
+		while (!sc.verify(')')) {
+			if (sc.verify('!')) {
+				if (markedChild != 0) return 0;
+				markedChild = -1;
+			}
+			let cb = this.nextBlossom(sc, b);
+			if (!cb) return 0;
+			if (markedChild < 0) markedChild = cb;
+			cnt++;
 		}
-		while (this.nextBlossom(sc, b)) {}
-		if (!sc.verify(']')) return 0;
-		if (parent && b == this.firstSub(parent))
-			this.base(parent, this.base(b));
+		if (cnt < 3 || !(cnt&1) || !markedChild) return 0;
+
+		// complete links and identify base of parent
+		this.base(b,0);
+		for (let cb = this.firstSub(b); cb; cb = this.nextSub(cb)) {
+			let next = this.nextSub(cb) ? this.nextSub(cb) :
+										  this.firstSub(b);
+			let [v,e] = this.link(cb);
+			if (v != 0) {
+				if (!this.in(v,cb) || !this.in(this.g.mate(v,e), next))
+					return 0;
+			} else if (cb > this.g.n || next > this.g.n) {
+				return 0
+			} else {
+				let e = this.g.findEdge(cb,next);
+				if (!e) return 0;
+				this.link(cb,[cb,e]);
+			}
+			if (cb != markedChild) continue;
+			let unmatched = 0;
+			for (let u = this.firstIn(cb); u; u = this.nextIn(cb,u)) {
+				let e = this.match.at(u);
+				if (!e) { unmatched = u; continue; }
+				if (!this.in(this.g.mate(u,e),b)) {
+					this.base(b,u); break;
+				}
+			}
+			if (!this.base(b)) this.base(b,unmatched);
+			if (!this.base(b)) return 0;
+		}
 		return b;
 	}
 
+
+	/** Scan for next tree (including sub-trees).
+	 *  @param sc is a scanner
+	 *  @param parent is the parent in the alternating path tree of the
+	 *  blossom/vertex about to be scanned.
+	 *  @param is true if the blossom about to be scanned is an even distance
+	 *  from the root of its tree
+	 *  @return the tree scanned when successful, else 0
+	 */
+	nextTree(sc, parent, even) {
+		let b = this.nextIndex(sc);
+		if (Number.isNaN(b) || !this.valid(b) || b == 0) return 0;
+		if (b > this.g.n) {
+			if (this.#ids.contains(b-this.g.n)) return 0;
+		}
+		this.state(b,even ? +1 : -1);
+		let lnk = this.nextLink(sc,parent);
+		if (lnk == null) return 0;
+		let [v,e] = lnk;
+		if (v && !parent) return 0;
+		if (parent) {
+			if (b > this.g.n || parent > this.g.n) {
+				if (!v) return 0;
+				if (!this.in(v,b) || !this.in(this.g.mate(v,e),parent))
+					return 0;
+				this.link(b,[v,e]);
+			} else {
+				let ee = this.g.findEdge(b,parent);
+				if (v) {
+					if (v != b || e != ee) return 0;
+				} else {
+					this.link(b,[b,ee]);
+				}
+			}
+		}
+		if (!sc.verify('(')) return b;
+		// recursive calls on childrent of b
+		while (!sc.verify(')')) {
+			if (!this.nextTree(sc, b, !even)) return 0;
+		}
+		return b;
+	}
+
+	/** Read an index value.
+	 *  Upper-case letters are interpreted as blossom identifiers.
+	 *  @param sc is a Scanner object
+	 */
+	nextIndex(sc) {
+		sc.verify('*'); // ignore optional asterisk
+		sc.skipspace();
+		let c = sc.nextchar();
+		if (!c) return 0;
+		if (c == '-') {
+			return 0
+		} else if (sc.islower(c)) {
+			return c.charCodeAt(0) - ('a'.charCodeAt(0) - 1);
+		} else if (sc.isupper(c)) {
+			return c.charCodeAt(0) + this.g.n - ('A'.charCodeAt(0) - 1);
+		} 
+		sc.reset(-1);
+		let u = sc.nextInt();
+		if (Number.isNaN(u)) return -1;
+		return u;
+	}
+
+	/** Return the next link, if there is one present. */
 	nextLink(sc, parent) {
-		if (!sc.verify('(')) return null;
+		if (!sc.verify('{')) return [0,0];
 		let v = sc.nextIndex();
 		if (Number.isNaN(v) || !this.g.validVertex(v)) return null;
 		if (!sc.verify(',')) return null;
 		let w = sc.nextIndex();
 		if (Number.isNaN(v) || !this.g.validVertex(w)) return null;
-		if (!sc.verify(')')) return null;
+		if (!sc.verify('}')) return null;
 		let e = this.g.findEdge(v,w);
 		if (!e) return null;
-		if (!parent) {
-			let bw = sc.nextIndex();
-			if (Number.isNaN(bw) || !this.valid(bw)) return null;
-			if (bw <= this.g.n && bw != w) return null;
-		}
 		return [v,e];
-	}
-
-	x2s(b) {
-		return (b <= this.g.n ? this.g.x2s(b) : ''+b);
 	}
 
 	/** Verify that object is consistent. */
@@ -695,16 +862,16 @@ this.cnt = 0;
 		// base of its incident blossoms
 		for (let e = this.match.first(); e; e = this.match.next(e)) {
 			let [u,v] = [this.g.left(e),this.g.right(e)];
-			let [bu,bv] = [this.outer(u),this.outer(v)];
-			if (bu == bv) continue;
-			if (this.base(bu) != u) {
-				return `base ${this.x2s(this.base(bu))} of outer blossom ` +
-					   `${this.x2s(bu)} does not match endpoint ` +
+			let [U,V] = [this.outer(u),this.outer(v)];
+			if (U == V) continue;
+			if (this.base(U) != u) {
+				return `base ${this.x2s(this.base(U))} of outer blossom ` +
+					   `${this.x2s(U)} does not match endpoint ` +
 					   `${this.x2s(u)} of its matching edge ${this.g.e2s(e)}`;
 			}
-			if (this.base(bv) != v) {
-				return `base ${this.x2s(this.base(bv))} of outer blossom ` +
-					   `${this.x2s(bv)} does not match endpoint ` +
+			if (this.base(V) != v) {
+				return `base ${this.x2s(this.base(V))} of outer blossom ` +
+					   `${this.x2s(V)} does not match endpoint ` +
 					   `${this.x2s(v)} of its matching edge ${this.g.e2s(e)}`;
 			}
 		}
@@ -762,11 +929,11 @@ this.cnt = 0;
 			if (bv != b)
 				return `link [${this.x2s(v)},${this.g.e2s(e)}] of ` +
 					   `blossom ${this.x2s(b)} is incorrect.`
-			let w = this.g.mate(v,e); let bw = this.outer(w);
-			if (this.state(bw) == 0 || this.state(bw) == this.state(b))
+			let w = this.g.mate(v,e); let W = this.outer(w);
+			if (this.state(W) == 0 || this.state(W) == this.state(b))
 				return `state of blossom ${this.x2s(b)}'s tree parent ` +
-					   `${this.x2s(bw)} is not consistent. ` +
-					   `(${this.state(b)},${this.state(bw)})`;
+					   `${this.x2s(W)} is not consistent. ` +
+					   `(${this.state(b)},${this.state(W)})`;
 		}
 		return '';
 	}
