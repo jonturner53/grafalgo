@@ -41,8 +41,6 @@ let relabels;   // number of relabeling operations
 let deblossoms; // number of odd blossoms expanded
 let steps;	  // total number of steps
 
-let cnt=0;
-
 /** Compute a maximum weighted matching in a graph using a simplified
  *  version of Galil, Micali and Gabows' implementation of Edmonds's
  *  weighted matching algorithm.
@@ -51,9 +49,9 @@ let cnt=0;
  *  @return a triple [match, ts, stats] where match is an array
  *  matching a vertex u to its matched edge match[u] or 0 if u
  *  is unmatched; ts is a possibly empty trace string
- *  and stats is a statistics object
+ *  and stats is a statistics object xx
  */
-export default function wmatchGMG(mg, traceFlag=false, subsets=null) {
+export default function wmatchGMG(mg, traceFlag=false) {
 	g = mg;
 	match = new Matching(g);
 	bloss = new Blossoms(g, match, 2);

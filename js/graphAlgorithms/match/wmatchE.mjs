@@ -172,11 +172,10 @@ function augment(e) {
 		} else {
 			match.add(ee); bloss.base(X,y);
 		}
-		//bloss.state(X,0); bloss.link(X,[0,0]);
 		if (trace) ts = `${g.e2s(ee,0,1)}-${bloss.x2s(X)}-${ts}`
 		x = g.mate(y,ee); X = bloss.outer(x); [y,ee] = bloss.link(X);
 	}
-	bloss.base(X,x); //bloss.state(X,0);
+	bloss.base(X,x);
 	if (trace) ts = `${bloss.x2s(X)}-${ts}${g.e2s(e,0,1)}!-`
 
 	x = g.right(e); X = bloss.outer(x); [y,ee] = bloss.link(X);
@@ -188,10 +187,9 @@ function augment(e) {
 			match.add(ee); bloss.base(X,y);
 		}
 		if (trace) { ts += `${bloss.x2s(X)}-${g.e2s(ee,0,1)}-`; }
-		//bloss.state(X,0); bloss.link(X,[0,0]);
 		x = g.mate(y,ee); X = bloss.outer(x); [y,ee] = bloss.link(X);
 	}
-	bloss.base(X,x); //bloss.state(X,0);
+	bloss.base(X,x);
 	if (trace) {
 		let [u,v] = [g.left(e),g.right(e)];
 		let [U,V] = [bloss.outer(u),bloss.outer(v)];
