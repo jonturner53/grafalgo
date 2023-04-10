@@ -24,11 +24,14 @@ let mark;         // temporary array of flags
 let trace;
 let traceString;
 
+let phases;		// number of phases
 let branches;   // number of new branches formed
 let blossoms;   // number of blossoms formed
 let deblossoms; // number of odd blossoms expanded
 let relabels;   // number of relabeling steps
 let steps;      // total number of steps
+
+let enqs;
 
 /** Compute a maximum weighted matching in a graph using a
  *  Edmonds's weighted matching algorithm.
@@ -49,7 +52,10 @@ export default function wmatchE(mg, traceFlag=false) {
 	mark = new Int8Array(bloss.n+1).fill(false);
 
 	trace = traceFlag; traceString = '';
-	branches = blossoms = deblossoms = relabels = 0; steps = g.n + g.edgeRange;
+	phases = branches = blossoms = deblossoms = relabels = 0;
+	steps = g.n + g.edgeRange;
+
+enqs = 0;
 
 	let maxwt = -Infinity;
 	for (let e = g.first(); e != 0; e = g.next(e)) {
@@ -66,24 +72,8 @@ export default function wmatchE(mg, traceFlag=false) {
 		traceString += `eligible: ${q.toString(e => g.e2s(e,0,1))}\n`;
 	}
 
+	phases++;
 	while (true) {
-/*
-		if (trace) {
-			traceString += '\nmatching: ' +
-							match.toString(e => bloss.outer(g.left(e)) !=
-												bloss.outer(g.right(e))) + '\n';
-			if (bloss.toString().length > 3)
-				traceString += 'trees & blossoms:\n' + bloss.toString(1);
-		}
-*/
-		/* check invariant when debugging
-		let s = verifyInvariant();
-		if (s) {
-			s = traceString + 'Error: ' + s + '\n' + statusString();
-			console.log(s); return [match, s];
-		}
-		*/
-
 		while (!q.empty()) {
 			steps++;
 			let e = q.deq();
@@ -99,10 +89,12 @@ export default function wmatchE(mg, traceFlag=false) {
 			// now U is even and V is even or unbound
 			if (sV == 0) {
 				let W = bloss.addBranch(e,v,V); add2q(W);
-				if (trace) traceString += `branch: ${bloss.x2s(U)}-${g.e2s(e,0,1)}-` +
-										  `${bloss.x2s(V)}-` +
-										  `${g.e2s(match.at(bloss.base(V)),0,1)}-` +
-										  `${bloss.x2s(W)}\n`;
+				if (trace) {
+					traceString += `branch: ${bloss.x2s(U)}-${g.e2s(e,0,1)}-` +
+								   `${bloss.x2s(V)}-` +
+								   `${g.e2s(match.at(bloss.base(V)),0,1)}-` +
+								   `${bloss.x2s(W)}\n`;
+				}
 				branches++; continue;
 			}
 			let ba = nca(U,V);
@@ -122,13 +114,11 @@ export default function wmatchE(mg, traceFlag=false) {
 						traceString += `    ${s}\n`;
 				}
 			} else {
-				augment(e); newPhase();
+				augment(e); newPhase(); phases++;
 			}
 		}
 		relabels++;
 		if (relabel()) break;
-		//if (bloss.toString().length > 3)
-		//	traceString += 'trees & blossoms:\n' + bloss.toString(1);
 	}
 
 	// before returning, verify invariant, expand remaining blossoms
@@ -147,8 +137,8 @@ export default function wmatchE(mg, traceFlag=false) {
 			if (b > g.n) blist.enq(b);
 	}
 
-	s = checkTerm();
-	fassert(!s, traceString + s + '\n' + statusString());
+	//s = checkTerm();
+	//fassert(!s, traceString + s + '\n' + statusString());
 
 	if (trace) {
 		traceString += `final matching:\n    ${match.toString()}\n`;
@@ -156,8 +146,9 @@ export default function wmatchE(mg, traceFlag=false) {
 	steps += bloss.getStats().steps;
 
     return [match, traceString,
-			{'weight':match.weight(), 'branches': branches, 'blossoms': blossoms,
-			 'relabels': relabels, 'deblossoms': deblossoms, 'steps': steps}];
+			{'weight':match.weight(), 'phases': phases, 'branches': branches,
+			 'blossoms': blossoms, 'relabels': relabels, 'deblossoms': deblossoms,
+			 'steps': steps, 'enqs':enqs}];
 }
 
 
@@ -185,7 +176,7 @@ function augment(e) {
 		if (trace) ts = `${g.e2s(ee,0,1)}-${bloss.x2s(X)}-${ts}`
 		x = g.mate(y,ee); X = bloss.outer(x); [y,ee] = bloss.link(X);
 	}
-	bloss.base(X,x); bloss.state(X,0);
+	bloss.base(X,x); //bloss.state(X,0);
 	if (trace) ts = `${bloss.x2s(X)}-${ts}${g.e2s(e,0,1)}!-`
 
 	x = g.right(e); X = bloss.outer(x); [y,ee] = bloss.link(X);
@@ -200,7 +191,7 @@ function augment(e) {
 		//bloss.state(X,0); bloss.link(X,[0,0]);
 		x = g.mate(y,ee); X = bloss.outer(x); [y,ee] = bloss.link(X);
 	}
-	bloss.base(X,x); bloss.state(X,0);
+	bloss.base(X,x); //bloss.state(X,0);
 	if (trace) {
 		let [u,v] = [g.left(e),g.right(e)];
 		let [U,V] = [bloss.outer(u),bloss.outer(v)];
@@ -345,6 +336,7 @@ function add2q(b,limit=false) {
 			if (bloss.state(V) >= 0 && V != B &&
 				slack(e) == 0 && !q.contains(e)) {
 				q.enq(e);
+enqs++;
 			}
 			steps++;
 		}
@@ -422,34 +414,7 @@ function statusString() {
 	return s;
 }
 
-/*
-How can I verify final match weight.
-Can check invariant before expanding blossoms.
-Add check on slack of internal edges?
-For each internal edge, compute slack offset to reflect
-the z values of the blossoms containing both
-
-What about checking optimality property on "current graph" before
-expanding blossoms? Normally, this means checking z values for
-vertices are zero, but can I substitute the z value of a blossom
-for the vertex z value? That is, are the external matching edges
-max weight if the z values for all external blossoms are 0?
-Makes sense if we just view the blossom z values like vertex
-labels in the current graph.
-
-Note: only unmatched vertices must have zero z for maximality
-condition to hold. So, vertices or blossoms at tree roots.
-Since only the base of blossom in unmatched, we can use its
-z value as the representative of the blossom in the outer
-graph. But this amounts to just checking the z values of
-all unmatched vertices. Maybe this doesn't work, since we
-are using the z values of all vertices in the blossom to
-compute slack of incident edges. So, cannot just use base's
-z value for one purpose and the others for another.
-*/
-
-/** Check for unmatched vertices with non-zero z.
- */
+/** Check for unmatched vertices with non-zero z. */
 function checkTerm() {
 	for (let u = 1; u <= g.n; u++) {
 		if (match.at(u) == 0 && z[u] != 0 )

@@ -246,7 +246,7 @@ export default class Blossoms extends Top {
 	nextSub(s) { return this.#subs.nextSibling(s); }
 
 	/** Add a branch to a matching tree.
-	 *  @param e is a tight edge
+	 *  @param e is an outer edge
 	 *  @param v is an endpoint of e in an unbound blossom
 	 *  @param V (optional) is the outer blossom containing v
 	 *  @return the even blossom added to the tree
@@ -370,7 +370,7 @@ export default class Blossoms extends Top {
 	 *  calls on this object, so it should be used with care
 	 */
 	expandOdd(B) {
-		fassert(B >= this.g.n && this.state(B) == '-1');
+		fassert(B > this.g.n && this.state(B) == '-1');
 		let [subs,bBsub] = this.deconstruct(B);
 			// bBsub is sub-blossom in subs that contained base(B) before B
 			// B was deconstructed

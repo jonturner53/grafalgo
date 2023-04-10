@@ -114,7 +114,7 @@ export default class GroupHeap extends Top {
 	}
 
 	/** Get the key of an item.
-	 *  @param i is an item in some heap
+	 *  @param i is an item in some group
 	 *  @param g is the group that i belongs to
 	 *  @return the key of i
 	 */
@@ -260,12 +260,8 @@ export default class GroupHeap extends Top {
 					if (!lab) continue;
 					if (first) first = false;
 					else s += ' ';
-					if (g == this.active.findmin() && 
-						i == this.groups.findmin(h)) {
-						s += '*';
-					}
-					s += lab + ':' + 
-					  (this.key(i,g) == Infinity ? 'I' : this.key(i,g));
+					s += lab + (this.key(i,g) == Infinity ? ':I' : 
+					   			(this.key(i,g) ? ':' + this.key(i,g) : ''));
 				}
 			}
 			s += ']';

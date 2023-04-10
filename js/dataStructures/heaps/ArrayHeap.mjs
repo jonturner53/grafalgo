@@ -265,8 +265,10 @@ export default class ArrayHeap extends Top {
 		if (!label) label = (u => this.x2s(u) + ':' + this.key(u));
 		if (!showTree || this.m <= 1) {
 			let s = '[';
-			for (let i = 1; i <= this.m; i++)
-				s += (i > 1 ? ' ' : '') + label(this.itemAt(i));
+			for (let i = 1; i <= this.m; i++) {
+				let lab = label(this.itemAt(i));
+				s += (i > 1 && lab ? ' ' : '') + lab;
+			}
 			return s + ']';
 		}
 		if (this.m == 1) return '[' + label(this.itemAt(1)) + ']';
