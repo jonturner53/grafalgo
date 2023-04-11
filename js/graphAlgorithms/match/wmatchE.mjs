@@ -31,8 +31,6 @@ let deblossoms; // number of odd blossoms expanded
 let relabels;   // number of relabeling steps
 let steps;      // total number of steps
 
-let enqs;
-
 /** Compute a maximum weighted matching in a graph using a
  *  Edmonds's weighted matching algorithm.
  *  @param g is an undirected graph with weights
@@ -54,8 +52,6 @@ export default function wmatchE(mg, traceFlag=false) {
 	trace = traceFlag; traceString = '';
 	phases = branches = blossoms = deblossoms = relabels = 0;
 	steps = g.n + g.edgeRange;
-
-enqs = 0;
 
 	let maxwt = -Infinity;
 	for (let e = g.first(); e != 0; e = g.next(e)) {
@@ -97,17 +93,18 @@ enqs = 0;
 				}
 				branches++; continue;
 			}
-			let ba = nca(U,V);
-			if (ba) {
+			let A = nca(U,V);
+			if (A) {
 				blossoms++;
-				let [B,subs,sb] = bloss.addBlossom(e,ba); z[B] = 0;
+				let [B,subs,sb] = bloss.addBlossom(e,A); z[B] = 0;
 				let state = +1;
 				for (let b = subs.first(); b; b = subs.next(b)) {
 					if (state == -1) add2q(b);
 					state = (b == sb ? +1 : -state);
 				}
 				if (trace) {
-					traceString += `blossom: ${bloss.x2s(B)}` +
+					traceString += `blossom: ${g.e2s(e)} ${bloss.x2s(A)} ` +
+								   `${bloss.x2s(B)}` +
 								   `${subs.toString(x => bloss.x2s(x))}\n`;
 					let s = bloss.trees2string(1);
 					if (s.length > 2)
@@ -147,8 +144,8 @@ enqs = 0;
 
     return [match, traceString,
 			{'weight':match.weight(), 'phases': phases, 'branches': branches,
-			 'blossoms': blossoms, 'relabels': relabels, 'deblossoms': deblossoms,
-			 'steps': steps, 'enqs':enqs}];
+			 'blossoms': blossoms, 'relabels': relabels,
+			 'deblossoms': deblossoms, 'steps': steps}];
 }
 
 
@@ -215,12 +212,14 @@ function newPhase() {
 	q.clear(); blist.clear();
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
 		if (z[b] == 0 && b > g.n) blist.enq(b);
+		steps++;
 	}
 	while (!blist.empty()) {
 		let b = blist.deq();
 		let subs = bloss.expand(b); 
 		for (let sb = subs.first(); sb; sb = subs.next(sb)) {
 			if (z[sb] == 0 && sb > g.n) blist.enq(sb);
+			steps++;
 		}
 	}
 
@@ -230,6 +229,7 @@ function newPhase() {
 		bloss.state(b, match.at(bloss.base(b)) ? 0 : +1);
 		bloss.link(b,[0,0])
 		if (bloss.state(b) == +1) add2q(b);
+		steps++;
 	}
 	if (trace) {
 		let s = bloss.blossoms2string(1);
@@ -252,9 +252,9 @@ function relabel() {
 	let d2 = Infinity; let d3 = Infinity; let d4 = Infinity;
 	let smallOddBloss = 0; // odd blossom with smallest z[b]
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
-		steps++;
 		if (bloss.state(b) == +1) {
 			for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
+				steps++;
 				for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 					let v = g.mate(u,e); let V = bloss.outer(v);
 					if (V == b) continue;
@@ -267,6 +267,7 @@ function relabel() {
 			if (z[b]/2 < d4) {
 				d4 = z[b]/2; smallOddBloss = b;
 			}
+			steps++;
 		}
 	}
 
@@ -306,6 +307,7 @@ function relabel() {
 		let subs = bloss.expandOdd(smallOddBloss); deblossoms++;
 		for (let b = subs.first(); b; b = subs.next(b)) {
 			if (bloss.state(b) == +1) add2q(b);
+			steps++;
 		}
 		if (trace) {
 			traceString += ` ${bloss.x2s(smallOddBloss)}` +
@@ -334,7 +336,6 @@ function add2q(b,limit=false) {
 			if (bloss.state(V) >= 0 && V != B &&
 				slack(e) == 0 && !q.contains(e)) {
 				q.enq(e);
-enqs++;
 			}
 			steps++;
 		}

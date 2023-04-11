@@ -39,7 +39,7 @@ let branches;   // number of new branches formed
 let blossoms;   // number of blossoms formed
 let relabels;   // number of relabeling operations
 let deblossoms; // number of odd blossoms expanded
-let steps;	  // total number of steps
+let steps;      // total number of steps
 
 /** Compute a maximum weighted matching in a graph using a simplified
  *  version of Galil, Micali and Gabows' implementation of Edmonds's
@@ -103,39 +103,40 @@ export default function wmatchGMG(mg, traceFlag=false) {
 				let [u,v] = [g.left(ee),g.right(ee)];
 				let [U,V] = [bloss.outer(u),bloss.outer(v)];
 				if (U == V) continue;
-				let ba = nca(U,V);
-				if (ba == 0) {
+				let A = nca(U,V);
+				if (A == 0) {
 					// augment matching and prepare for next phase
 					augment(ee); newPhase();
 					continue;
 				}
 
 				// add new blossom
-				let [b,subs] = bloss.addBlossom(ee,ba);
-				z[b] = 0; ebh.insert(b,0);
-				firstVertex[b] = firstVertex[subs.first()];
+				let [B,subs] = bloss.addBlossom(ee,A);
+				z[B] = 0; ebh.insert(B,0);
+				firstVertex[B] = firstVertex[subs.first()];
 
 				// now update heaps for former outer blossoms
-				for (let sb = subs.first(); sb; sb = subs.next(sb)) {
-					if (sb >= g.n && ebh.contains(sb)) {
-						// sb no longer an outer blossom, but its vertices
+				for (let b = subs.first(); b; b = subs.next(b)) {
+					if (b > g.n && ebh.contains(b)) {
+						// b no longer an outer blossom, but its vertices
 						// are still even
-						z[sb] = 2*ebh.key(sb); ebh.delete(sb);
-					} if (sb >  g.n && obh.contains(sb) ||
-						  sb <= g.n && ovh.contains(sb)) {
-						if (sb > g.n) {
-							z[sb] = 2*obh.key(sb); obh.delete(sb);
+						z[b] = 2*ebh.key(b); ebh.delete(b);
+					} if (b >  g.n && obh.contains(b) ||
+						  b <= g.n && ovh.contains(b)) {
+						if (b > g.n) {
+							z[b] = 2*obh.key(b); obh.delete(b);
 						}
-						for (let u = bloss.firstIn(sb); u;
-									 u = bloss.nextIn(sb,u)) {
+						for (let u = bloss.firstIn(b); u;
+									 u = bloss.nextIn(b,u)) {
 							z[u] = ovh.key(u); ovh.delete(u);
 							evh.insert(u, z[u]);
 						}
-						exh.clear(sb); addEXedges(sb)
+						exh.clear(b); addEXedges(b)
 					}
 				}
 				if (trace) {
-					traceString += `blossom: ${bloss.x2s(b)} ` +
+					traceString += `blossom: ${g.e2s(ee)} ${bloss.x2s(A)} ` +
+								   `${bloss.x2s(B)}` +
 								   `${subs.toString(x => bloss.x2s(x))}\n`;
 					let s = bloss.trees2string(1);
 					if (s.length > 2)
@@ -206,7 +207,7 @@ export default function wmatchGMG(mg, traceFlag=false) {
 	steps += bloss.getStats().steps; +
 			 obh.getStats().steps + ebh.getStats().steps +
 			 ovh.getStats().steps + evh.getStats().steps +
-			 exh.getStats().steps + exh.getStats().steps;
+			 exh.getStats().steps + eeh.getStats().steps;
 
 	return [match, traceString,
 			{'weight': match.weight(), 'branches': branches,
@@ -342,7 +343,7 @@ function newPhase() {
 					if (V != b && bloss.state(V) == +1 && !eeh.contains(e))
 						eeh.insert(e, slack(e)/2);
 				}
-
+				steps++;
 			}
 		} else {
 			// build subheaps for unbound blossoms in exh
@@ -359,10 +360,10 @@ function newPhase() {
 						exh.insertAfter(e, b, slack(e), laste); laste = e;
 					}
 				}
+				steps++;
 			}
 			exh.activate(b);
 		}
-		steps++;
 	}
 	if (trace) {
 		let s = bloss.blossoms2string(1);
@@ -466,6 +467,7 @@ function addEXedges(b) {
 	let bb = bloss.outer(b);
 	for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
+			steps++;
 			let v = g.mate(u,e); let V = bloss.outer(v);
 			if (V == bb) continue;
 			if (bloss.state(V) == +1)
@@ -473,7 +475,6 @@ function addEXedges(b) {
 			else {// V is odd or unbound
 				exh.insertAfter(e, V, slack(e), v+g.edgeRange);
 			}
-			steps++;
 		}
 	}
 }

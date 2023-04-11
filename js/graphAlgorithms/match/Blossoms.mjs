@@ -21,7 +21,7 @@ export default class Blossoms extends Top {
 	g;              // reference to client's graph
 	match;          // reference to client's matching
 
-	#subs;          // hierarchy of blossoms and sub-blossoms
+	#bsf;           // hierarchy of blossoms and sub-blossoms
 
 	#state;         // #state[b] is state of outer blossom b; for inner
 					// blossoms, #state[b] is undefined
@@ -53,7 +53,7 @@ export default class Blossoms extends Top {
 		this.match = match;
 		this.#outerMethod = outerMethod;
 
-		this.#subs = new Forest(this.n);
+		this.#bsf = new Forest(this.n);
 
 		this.#base = new Int32Array(this.n+1);
 		for (let i = 0; i <= this.g.n; i++) this.#base[i] = i;
@@ -92,7 +92,7 @@ export default class Blossoms extends Top {
 		if (other == this) return;
 		if (other.g != this.g)
 			this.reset(other.g, other.match, other.#outerMethod);
-		this.#subs.assign(other.subs);
+		this.#bsf.assign(other.subs);
 		this.#ids.assign(other.ids);
 		for (let b = 0; b <= this.n; b++) {
 			this.#base[b] = other.#base[b];
@@ -116,7 +116,7 @@ export default class Blossoms extends Top {
 	
 	/** Restore to initial state. */
 	clear() {
-		this.#subs.clear();
+		this.#bsf.clear();
 		this.#ids.clear();
 		for (let b = this.g.n+1; b <= this.n; b++) this.#ids.enq(b-this.g.n);
 		this.#base.fill(0);
@@ -186,7 +186,7 @@ export default class Blossoms extends Top {
 	 */
 	outer(b) {
 		if (this.#outerMethod == 0)
-			return this.#subs.root(b);
+			return this.#bsf.root(b);
 		else if (this.#outerMethod == 1)
 			return this.#outer[b];
 		else
@@ -199,7 +199,7 @@ export default class Blossoms extends Top {
 	 *  all sub-blossoms sb of b
 	 */
 	refreshOuter(b) {
-		for (let sb = this.#subs.first(b); sb; sb = this.#subs.next(sb)) {
+		for (let sb = this.#bsf.first(b); sb; sb = this.#bsf.next(sb)) {
 			this.#outer[sb] = b; this.steps++;
 		}
 	}
@@ -208,27 +208,27 @@ export default class Blossoms extends Top {
 	 *  @param b is the id of an outer blossom
 	 *  @return the first vertex in b
 	 */
-	firstIn(b) { return this.#subs.firstLeaf(b); }
+	firstIn(b) { return this.#bsf.firstLeaf(b); }
 
 	/** Get the last vertex in an outer blossom.
 	 *  @param b is the id of an outer blossom
 	 *  @return the last vertex in b
 	 */
-	lastIn(b) { return this.#subs.lastLeaf(b); }
+	lastIn(b) { return this.#bsf.lastLeaf(b); }
 
 	/** Get the next vertex in an outer blossom.
 	 *  @param b is the id of an outer blossom
 	 *  @param u is a vertex in b
 	 *  @return the first vertex in b
 	 */
-	nextIn(b,u) { return this.#subs.nextLeaf(u,b); }
+	nextIn(b,u) { return this.#bsf.nextLeaf(u,b); }
 
 	/** Get the parent of a blossom in the blossom hierarchy.
 	 *  @param b is a blossom id
 	 *  @return the parent blossom of b in the blossom hierarchy, or 0
 	 *  if b is an outer blossom
 	 */
-	parent(b) { return this.#subs.p(b); }
+	parent(b) { return this.#bsf.p(b); }
 
 	/** Get the first sub-blossom of a given blossom.
 	 *  @param b is a (possibly trivial) blossom
@@ -236,14 +236,14 @@ export default class Blossoms extends Top {
 	 */
 	firstSub(b) { 
 		if (this.#ids.contains(b-this.g.n)) return 0;
-		return this.#subs.firstChild(b);
+		return this.#bsf.firstChild(b);
 	}
 
 	/** Get the next sub-blossom.
 	 *  @param s is a sub-blossom
 	 *  @return the next sub-blossom of the parent blossom
 	 */
-	nextSub(s) { return this.#subs.nextSibling(s); }
+	nextSub(s) { return this.#bsf.nextSibling(s); }
 
 	/** Add a branch to a matching tree.
 	 *  @param e is an outer edge
@@ -322,7 +322,7 @@ export default class Blossoms extends Top {
 		let B = this.g.n + this.#ids.deq();
 		this.base(B, this.base(subs.first()));
 		for (let b = subs.first(); b; b = subs.next(b)) {
-			this.#subs.link(b,B);
+			this.#bsf.link(b,B);
 		}
 
 		if (this.#outerMethod == 1) {
@@ -427,7 +427,7 @@ export default class Blossoms extends Top {
 		let b0 = this.firstSub(B);
 		while (b0) {
 			subs.enq(b0);
-			this.#subs.cut(b0);		// remove b0 from B's list of sub-blossoms
+			this.#bsf.cut(b0);		// remove b0 from B's list of sub-blossoms
 			b0 = this.firstSub(B);
 			this.steps++;
 		}
@@ -576,10 +576,10 @@ export default class Blossoms extends Top {
 	 */
 	bloss2string(b, label=0) {
 		let s = label(b);
-		if (this.#subs.firstChild(b) == 0) return s;
+		if (this.#bsf.firstChild(b) == 0) return s;
 		s += '[';
-		for (let c = this.#subs.firstChild(b); c; c = this.#subs.nextSibling(c)) {
-			if (c != this.#subs.firstChild(b)) s += ' ';
+		for (let c = this.#bsf.firstChild(b); c; c = this.#bsf.nextSibling(c)) {
+			if (c != this.#bsf.firstChild(b)) s += ' ';
 			s += this.bloss2string(c,label);
 		}
 		return s + ']';
@@ -641,7 +641,7 @@ export default class Blossoms extends Top {
 	 *  non-trivial blossoms to their neighboring sub-blossoms.
 	 */
 	blossoms2string(terse=0) {
-		return this.#subs.toString(4,
+		return this.#bsf.toString(4,
 					b => {
 						let s = '';
 						let pb = this.parent(b);
@@ -710,7 +710,7 @@ export default class Blossoms extends Top {
 		}
 		this.state(b,-2); // undefined
 		if (parent) {
-			this.#subs.link(b, parent);
+			this.#bsf.link(b, parent);
 			let lnk = this.nextLink(sc,parent);
 			if (lnk == null) return 0;
 			this.link(b,lnk);
@@ -929,7 +929,7 @@ export default class Blossoms extends Top {
 	}
 
 	getStats() {
-		this.steps += this.#subs.getStats().steps;
+		this.steps += this.#bsf.getStats().steps;
 		return { 'steps': this.steps };
 	}
 }
