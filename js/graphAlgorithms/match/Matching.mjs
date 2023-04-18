@@ -49,7 +49,11 @@ export default class Matching extends Top {
 	}
 	
 	/** Restore to initial state. */
-	clear() { this.#elist.clear(); this.#map.fill(0); }
+	clear() {
+		for (let e = this.first(); e; e = this.next(e))
+			this.#map[g.left(e)] = this.#map[g.right(e)] = 0;
+		this.#elist.clear();
+	}
 
 	/** Get the matching edge incident to a vertex */
 	at(u) { return this.#map[u]; }

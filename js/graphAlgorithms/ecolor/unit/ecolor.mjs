@@ -11,7 +11,7 @@ import ecolorV from '../ecolorV.mjs';
 import ecolorG from '../ecolorG.mjs';
 import ecolorVerify from '../ecolorVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
-import { randomRegularBigraph } from '../../misc/RandomGraph.mjs';
+import { randomBigraph,randomRegularBigraph } from '../../misc/RandomGraph.mjs';
 
 let algomap = {
 	'V' : ecolorV,
@@ -25,11 +25,21 @@ let g = new Graph();
 g.fromString('{a[f g j] b[g h i] c[f i j] d[f h j] e[h i]}');
 tester.addTest('small graph', g);
 
-g = randomRegularBigraph(7, 3); tester.addTest('small random', g);
-g = randomRegularBigraph(100, 10); tester.addTest('medium random', g);
-g = randomRegularBigraph(200, 63); tester.addTest('large random', g);
-g = randomRegularBigraph(200, 64); tester.addTest('large even random', g);
-g = randomRegularBigraph(400, 255); tester.addTest('larger random', g);
-g = randomRegularBigraph(400, 256); tester.addTest('larger even random', g);
+g = randomRegularBigraph(7, 3); tester.addTest('small random (14,3)', g);
+g = randomRegularBigraph(13, 3); tester.addTest('smallish random (26,3)', g);
+g = randomRegularBigraph(100, 63);
+	tester.addTest('medium random (100,63)', g);
+g = randomRegularBigraph(200, 127);
+	tester.addTest('large random (200,127)', g);
+g = randomRegularBigraph(400, 255);
+	tester.addTest('larger random (400,255)', g);
+g = randomRegularBigraph(100, 64);
+	tester.addTest('medium random even (100,64)', g);
+g = randomRegularBigraph(200, 128);
+	tester.addTest('large random even (200,128)', g);
+g = randomRegularBigraph(400, 256);
+	tester.addTest('larger random even (400,256)', g);
+g = randomBigraph(400, 256);
+	tester.addTest('larger random irregular (400,256)', g);
 
 tester.run();

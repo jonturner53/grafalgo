@@ -6,10 +6,11 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Top from '../Top.mjs';
 import BalancedForest from '../trees/BalancedForest.mjs';
+//import { fassert } from '../../common/Errors.mjs';
+let fassert = (()=>1);
 
 /** This class implements a key set: a collection of disjoint sets with
  *  each set element having an associated key. It supports an efficient

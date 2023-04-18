@@ -11,84 +11,94 @@ import List from '../../dataStructures/basic/List.mjs';
 import findSplit from '../misc/findSplit.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
 
+let g;         // shared reference to graph
+let avail;     // avail[u] is a List of available colors at u
+let emap;      // emap[u][c] is the edge that is colored c at u
+
+let trace;
+let traceString;
+
+let recolors;  // number of recoloring operations
+let rsteps;    // number of steps in recolor operations
+let steps;     // total number of steps
+
 /** Compute a coloring of a bipartite graph using the augmenting
  *  path algorithm from the proof of Vizing's theorem.
- *  @param g is an undirected bipartite graph
- *  @param trace causes a trace string to be returned when true
+ *  @param cg is an undirected bipartite graph
+ *  @param traceFlag causes a trace string to be returned when true
  *  @return a pair [ts, stats] where ts is a possibly
  *  empty trace string and stats is a statistics object;
- *  the coloring is returned as integer edge weights in g
+ *  the coloring is returned as integer edge colors in g
  */
-export default function ecolorV(g, trace=false) {
+export default function ecolorV(cg, traceFlag=false) {
+	g = cg; trace = traceFlag;
 	let Delta = g.maxDegree();
-	let color = new Int32Array(g.edgeRange+1);
-	let ts = '';
-	g.addWeights();
 
-	let paths = 0; let steps = 0; let psteps = 0;
+	traceString = '';
+	recolors = rsteps = steps = 0;
 
-	// avail[u] is a sorted list of available colors at u
-	// emap[u][c] is the edge that is colored c at u
-	let avail = new Array(); avail.push(null);
-	let emap = new Array(); emap.push(null);
+	avail = new Array(); avail.push(null);
+	emap = new Array(); emap.push(null);
 	for (let u = 1; u <= g.n; u++) {
-		steps;
 		avail.push(new List(Delta));
 		emap.push(new Int32Array(Delta+1));
 		for (let c = 1; c <= Delta; c++) {
-			avail[u].enq(c); emap[u][c] = 0;
+			avail[u].enq(c); emap[u][c] = 0; steps++;
 		}
 	}
 
-	if (trace) ts += 'colors to flip and augmenting path\n'
 	// color each edge in turn
+	let ecnt = 0;
 	for (let e = g.first(); e != 0; e = g.next(e)) {
-		// first look for a color that is available at both endpoints
-		let u = g.left(e); let v = g.right(e); steps++;
-		let cu = 0; let cv = 0;
-		for (cu = avail[u].first(); cu != 0; cu = avail[u].next(cu)) {
-			steps++;
-			if (avail[v].contains(cu)) { cv = cu; break; }
-		}
-		if (cu != 0) {
-			// cu == cv
-			g.weight(e,cu);
-			if (trace) ts += g.edge2string(e) + '\n';
-			avail[u].delete(cu); avail[v].delete(cu);
-			emap[u][cu] = e; emap[v][cu] = e;
+		let [u,v] = [g.left(e),g.right(e)];
+		let c = avail[u].common(avail[v]);
+			// returns first color in avail[u] that's also in avail[v];
+		if (c) {
+			g.color(e,c);	// color is an alias for weight
+			if (trace) traceString += `${g.e2s(e,0,1)}:${c} `;
+			avail[u].delete(c); avail[v].delete(c);
+			emap[u][c] = emap[v][c] = e;
+			if (trace && (ecnt++)%12 == 11) traceString += '\n';
 			continue;
 		}
-		// follow alternating (cu,cv) path and flip its colors
-		// depends on graph being bipartite
-		paths++;
-		cu = avail[u].first(); cv = avail[v].first();
-		let w = v; let c = cu; let f = e;
-		while (emap[w][c] != 0) {
-			// f is next edge on path to be colored
-			// w is the "leading endpoint of f"
-			// c is the color to use for f
-			steps++; psteps++;
-			let ff = emap[w][c];	// next edge in the path
-			g.weight(f,c);
-			if (trace) ts += (w == v ? '' : ' ') + g.edge2string(f);
-			emap[g.left(f)][c] = f; emap[g.right(f)][c] = f;
-			c = (c == cu ? cv : cu);
-			w = g.mate(w,ff);
-			f = ff;
+		if (traceString && ecnt%12 != 0) {
+			traceString += '\n'; ecnt = 0;
 		}
-		// color the last edge and update the avail sets at endpoints
-		g.weight(f,c);
-		if (trace) ts += ' ' + g.edge2string(f) + '\n';
-		emap[g.left(f)][c] = f; emap[g.right(f)][c] = f;
-		avail[u].delete(cu); avail[v].delete(cv);
-
-		// update available colors at last vertex on path
-		avail[w].delete(c);
-		c = (c == cu ? cv : cu);
-		emap[w][c] = 0;
-		avail[w].push(c);
+		recolor(e);
 	}
-	if (trace) ts += g.toString(1);
-	return [ts, { 'paths': paths, 'avg path length': ~~(psteps/paths),
-				  'steps': steps }];
+
+	if (trace) traceString += '\n' + g.toString(1);
+	return [traceString, { 'recolors': recolors,
+						   'avg path length': ~~(rsteps/recolors),
+	 					   'steps': steps }];
+}
+
+/** Color an edge by reversing colors on an alternating color path.
+ *  @param e is an edge for which no color is available at both endpoints.
+ */
+function recolor(e) {
+	recolors++;
+	let [u,v] = [g.left(e),g.right(e)];
+	let cu = avail[u].first(); let cv = avail[v].first();
+	let f = e; let w = v; let c = cu;
+	if (trace) traceString += '[';
+	while (emap[w][c] != 0) {
+		// f is next edge on path to be colored
+		// w is the "leading endpoint" of f
+		// c is the color to use for f
+		steps++; rsteps++;
+		let ff = emap[w][c];	// next edge in the path
+		g.color(f,c); emap[g.left(f)][c] = emap[g.right(f)][c] = f;
+		if (trace) traceString += `${g.e2s(f,0,1)}:${c} `;
+		f = ff; w = g.mate(w,ff); c = (c == cu ? cv : cu);
+	}
+	// color the last edge and update the avail sets at endpoints
+	g.color(f,c); emap[g.left(f)][c] = emap[g.right(f)][c] = f;
+	avail[u].delete(cu); avail[v].delete(cv);
+	if (trace) traceString += `${g.e2s(f,0,1)}:${c}]\n`;
+
+	// update available colors at last vertex on path
+	avail[w].delete(c);
+	c = (c == cu ? cv : cu);
+	emap[w][c] = 0; avail[w].push(c);
 }

@@ -63,7 +63,7 @@ export default class List extends Top {
 	/** Determine if this object includes item values. */
 	get hasValues() { return this.#value ? true : false; }
 
-	/** Get the value of an item.
+	/** Get/set the value of an item.
 	 *  @param i is an integer
 	 *  @param val is an optional value to be assigned to i
 	 *  @return the value of i or null if i is not a valid item or no
@@ -260,6 +260,16 @@ export default class List extends Top {
 	 *  @return the item removed, or 0
 	 */
 	deq() { return this.pop(); }
+
+	/** Find an item in common between two lists.
+	 *  @param other is a second List object
+	 *  @return an item that is common to both lists or 0.
+	 */
+	common(other) {
+		for (let i = this.first(); i; i = this.next(i))
+			if (other.contains(i)) return i;
+		return 0;
+	}
 
 	/** Compare two lists for equality.
 	 *  @param other is the list to be compared to this one or a string

@@ -14,8 +14,8 @@ import ListPair from '../basic/ListPair.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
-import { fassert } from '../../common/Errors.mjs'
-//let fassert = (()=>1);
+//import { fassert } from '../../common/Errors.mjs'
+let fassert = (()=>1);
 
 /** Data structure for undirected graph.
  *
@@ -56,13 +56,15 @@ export default class Graph extends Top {
 	get hasWeights() { return (this._weight ? true : false); }
 	get hasLengths() { return this.hasWeights; }
 	get hasCosts() { return this.hasWeights; }
+	get hasColors() { return this.hasWeights; }
 
 	addWeights() {
 		if (!this.hasWeights)
 			this._weight = new Float32Array(this.edgeRange+1);
 	}
-	get addLengths() { this.addWeights(); }
-	get addCosts() { this.addCosts(); }
+	addLengths() { this.addWeights(); }
+	addCosts() { this.addWeights(); }
+	addColors() { this.addWeights(); }
 
 	/** Expand the vertex range and/or edge range of this object.
 	 *  @param n is the desired new vertex range
@@ -169,6 +171,7 @@ export default class Graph extends Top {
 	}
 	length(e,l) { return this.weight(e,l); }
 	cost(e,c) { return this.weight(e,c); }
+	color(e,c) { return this.weight(e,c); }
 	
 	/** Get the other endpoint of an edge.
 	 *  @param v is a vertex
@@ -177,7 +180,7 @@ export default class Graph extends Top {
 	 */
 	mate(v, e) {
 		fassert(this.validVertex(v) && this.validEdge(e) &&
-			   (v == this._left[e] || v == this._right[e]),`xxx ${this.x2s(v)} ${this.e2s(e)}`);
+			   (v == this._left[e] || v == this._right[e]));
 		return v == this._left[e] ? this._right[e] : this._left[e];
 	}
 	
