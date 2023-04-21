@@ -7,14 +7,14 @@
  */
 
 import Tester from '../../../common/Tester.mjs';
-import ecolorV from '../ecolorV.mjs';
+import ecolorR from '../ecolorR.mjs';
 import ecolorG from '../ecolorG.mjs';
 import ecolorVerify from '../ecolorVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomBigraph,randomRegularBigraph } from '../../misc/RandomGraph.mjs';
 
 let algomap = {
-	'V' : ecolorV,
+	'R' : ecolorR,
 	'G' : ecolorG
 }
 
@@ -25,8 +25,8 @@ let g = new Graph();
 g.fromString('{a[f g j] b[g h i] c[f i j] d[f h j] e[h i]}');
 tester.addTest('small graph', g);
 
-g = randomRegularBigraph(7, 3); tester.addTest('small random (14,3)', g);
-g = randomRegularBigraph(13, 3); tester.addTest('smallish random (26,3)', g);
+g = randomRegularBigraph(7, 5); tester.addTest('small random (7,5)', g);
+g = randomRegularBigraph(13, 3); tester.addTest('smallish random (13,3)', g);
 g = randomRegularBigraph(100, 63);
 	tester.addTest('medium random (100,63)', g);
 g = randomRegularBigraph(200, 127);

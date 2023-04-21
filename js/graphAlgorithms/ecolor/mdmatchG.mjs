@@ -100,10 +100,10 @@ export default function mdmatchG(g, trace=0) {
 		}
 	}
 	while (xmatch1.size()) {
-		let e = xmatch1.first(); match.add(e); xmatch1.drop(e);
+		let e = xmatch1.first(); match.add(e); xmatch1.drop(e); steps++;
 	}
 	while (xmatch2.size()) {
-		let e = xmatch2.first(); match.add(e); xmatch2.drop(e);
+		let e = xmatch2.first(); match.add(e); xmatch2.drop(e); steps++;
 	}
 
 	if (trace)
@@ -121,12 +121,14 @@ function selectStart(e, g, xmatch1, xmatch2, degree, Delta) {
 	// find first endpoint
 	let [u,v] = [g.left(e),g.right(e)];
 	while (true) {
+		steps++;
 		let ee = xmatch2.at(v); if (!ee) break; v = g.mate(v,ee);
 		if (v == u) return u; // component is a cycle
 			ee = xmatch1.at(v); if (!ee) break; v = g.mate(v,ee);
 	}
 	// component is a path and v is its "rightmost" endpoint
 	while (true) {
+		steps++;
 		let ee = xmatch2.at(u); if (!ee) break; u = g.mate(u,ee);
 			ee = xmatch1.at(u); if (!ee) break; u = g.mate(u,ee);
 	}

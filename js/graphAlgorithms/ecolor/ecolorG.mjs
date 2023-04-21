@@ -50,7 +50,7 @@ export default function ecolorG(cg, traceFlag=false) {
 	subsets = findSplit(g);
 
 	traceString = '';
-	if (trace) traceString += 'euler partitions and color sets\n'
+	if (trace) traceString += 'color sets\n'
 	steps = matches = 0;
 
 	nextColor = 1;
@@ -70,7 +70,7 @@ export default function ecolorG(cg, traceFlag=false) {
 function rcolor(Delta) {
 	// if wg is a matching, color its edges in g and remove them from wg
 	if (Delta == 1) {
-		if (trace) traceString += 'aa ' + nextColor;
+		if (trace) traceString += nextColor + ':';
 		for (let e = wg.first(); e; e = wg.first()) {
 			g.color(e,nextColor); dropEdge(e);
 			if (trace) traceString += ' ' + g.e2s(e,0,1);
@@ -89,17 +89,19 @@ function rcolor(Delta) {
 		let u = 1;
 		for (let v = active.first(); v; v = active.next(v)) {
 			active.value(v,u++); // use value to map wg's vertices to cg's
+			steps++;
 		}
 		for (let e = wg.first(); e; e = wg.next(e)) {
 			let [u,v] = [wg.left(e),wg.right(e)];
 			let [uu,vv] = [active.value(u), active.value(v)];
 			let ee = cg.join(uu,vv); emap[ee] = e;
+			steps++;
 		}
 
 		// get max degree matching of cg
 		let [match,,stats] = mdmatchG(cg);
 		matches++; steps += stats.steps;
-		if (trace) traceString += 'bb ' + nextColor;
+		if (trace) traceString += nextColor + ':';
 		for (let e = match.first(); e; e = match.next(e)) {
 			let ee = emap[e]; g.color(ee,nextColor); dropEdge(ee);
 			if (trace) traceString += ` ${g.e2s(ee,0,1)}`;
@@ -111,10 +113,20 @@ function rcolor(Delta) {
 
 	// wg now has even maximum degree
 	let [part1,part2] = eulerPartition();
+	if (trace) {
+		traceString += `${Delta/2} [`;
+		for (let i = 0; i < part1.length; i++)
+			traceString += `${i>0 ? ' ' : ''}${g.e2s(part1[i],0,1)}`;
+		traceString += ']\n  [';
+		for (let i = 0; i < part2.length; i++)
+			traceString += `${i>0 ? ' ' : ''}${g.e2s(part2[i],0,1)}`;
+		traceString += ']\n';
+	}
 	for (let i = 0; i < part1.length; i++) addEdge(part1[i]);
 	rcolor(Delta/2);
 	for (let i = 0; i < part2.length; i++) addEdge(part2[i]);
 	rcolor(Delta/2);
+	// wg is now empty
 }
 
 /** Add an edge to working graph.
