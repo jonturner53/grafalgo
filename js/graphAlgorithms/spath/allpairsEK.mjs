@@ -50,8 +50,8 @@ export default function allpairsEK(g, trace) {
 		stats.stepsD += statsD.steps;
         for (let v = 1; v <= g.n; v++) dist[u][v] -= (d[u]-d[v]);
 		if (trace) {
-			ts += g.x2s(u) + '\n' +
-				  g.elist2string(link[u], null, true) + '\n' +
+			ts += g.x2s(u) + '\n  ' +
+				  g.elist2string(link[u], null, true) + '\n  ' +
 				  g.nlist2string(dist[u]) + '\n';
 		}
     }

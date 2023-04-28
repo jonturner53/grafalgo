@@ -50,7 +50,7 @@ export default function ecolorG(cg, traceFlag=false) {
 	subsets = findSplit(g);
 
 	traceString = '';
-	if (trace) traceString += 'color sets\n'
+	if (trace) traceString += 'euler partitions and color sets\n'
 	steps = matches = 0;
 
 	nextColor = 1;

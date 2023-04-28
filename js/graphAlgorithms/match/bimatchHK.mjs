@@ -13,7 +13,7 @@ import findSplit from '../misc/findSplit.mjs';
 
 let g;            // shared copy of graph
 let match;        // Matching object
-let link = null;  // link[u] is parent edge of u in augmenting path
+let link;         // link[u] is parent edge of u in augmenting path
 let free;         // free contains unmatched vertices in first subset
 let level;        // level[u] is distance to u from a free vertex
 let nextedge;     // nextedge[u] is next edge at u to be processed
@@ -36,18 +36,15 @@ let steps;       // total number of steps
  *  @exceptions throws an exception if graph is not bipartite
  */
 export default function bimatchHK(bg, traceFlag=false, subsets=null) {
-	g = bg; trace = traceFlag; traceString = '';
-	match = new Int32Array(g.n+1); // match is returned
-	if (link == null || link.length != g.n+1) {
-		// avoid rebuilding data structures when possible
-		link = new Int32Array(g.n+1);
-		level = new Int32Array(g.n+1);
-		nextedge = new Int32Array(g.n+1);
-		free = new List(g.n); free.addPrev();
-		q = new List(g.n);
-	} else {
-		free.clear();
-	}
+	g = bg;
+	match = new Int32Array(g.n+1);
+	link = new Int32Array(g.n+1);
+	level = new Int32Array(g.n+1);
+	nextedge = new Int32Array(g.n+1);
+	free = new List(g.n); free.addPrev();
+	q = new List(g.n);
+
+	trace = traceFlag; traceString = '';
 	phases = paths = 0; steps = g.n;
 
 	// divide vertices into two independent sets

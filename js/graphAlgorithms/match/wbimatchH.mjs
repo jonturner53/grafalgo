@@ -15,7 +15,7 @@ import findSplit from '../misc/findSplit.mjs';
 let g;            // shared copy of graph
 let match;        // match is a Matching object
 let lab;          // lab[u] is vertex label at u
-let link = null;  // link[u] is edge to parent of u in shortest path forest
+let link;         // link[u] is edge to parent of u in shortest path forest
 let free;         // list containing free vertices in first subset
 let leaves;       // heap containing leaves in forest
 let cost;         // cost[u]=cost of shortest path to u in forest
@@ -37,18 +37,14 @@ let steps;       // total number of steps
  */
 export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 	g = bg; match = new Matching(g);
+	link = new Int32Array(g.n+1);
+	lab = new Int32Array(g.n+1);
+	free = new List(g.n); free.addPrev();
+	leaves = new ArrayHeap(g.n,4);
+	cost = new Float32Array(g.n+1);
+
 	trace = traceFlag; traceString = '';
 	paths = steps = 0;
-	if (link == null || link.length < g.n+1) {
-		link = new Int32Array(g.n+1);
-		lab = new Int32Array(g.n+1);
-		free = new List(g.n); free.addPrev();
-		leaves = new ArrayHeap(g.n,4);
-		cost = new Float32Array(g.n+1);
-	} else {
-		free.clear(); leaves.clear();
-	}
-	steps += g.n;
 
 	// divide vertices into two independent sets
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
@@ -103,7 +99,7 @@ function initLabels(subsets) {
  *  @returns the sink vertex of the path found, or 0 if no such path
  */
 function findpath() {
-	link.fill(0); cost.fill(Infinity); leaves.clear();
+	link.fill(0); cost.fill(Infinity); leaves.clear(); leaves.clearStats();
 	for (let u = free.first(); u != 0; u = free.next(u)) {
 		cost[u] = 0; leaves.insert(u,0); steps++;
 	}
