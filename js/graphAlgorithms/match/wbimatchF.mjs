@@ -22,14 +22,14 @@ import Matching from './Matching.mjs';
  *  @param subsets is an optional ListPair that defines the bipartite
  *  vertex subsets.
  *  @param dmin is an array mapping vertices to degree lower bounds
- *  in a generalized matching; if omitted a bound of 0 is used
+ *  in a b-matching; if omitted a bound of 0 is used
  *  @param dmax is an array mapping vertices to degree upper bounds
- *  in a generalized matching; if omitted a bound of 1 is used
+ *  in a b-matching; if omitted a bound of 1 is used
  *  @return a triple [match, ts, stats] where match is a Matching
  *  object, in the case of an ordinary matching and a Graph object
- *  in the case of a generalized matcing; ts is a possibly empty trace string
+ *  in the case of a b-matcing; ts is a possibly empty trace string
  *  and stats is a statistics object, both from Dinic's algorithm;
- *  if dmin>0, the returned (generalized) matching will satisfy the
+ *  if dmin>0, the returned (b-)matching will satisfy the
  *  specified minimum degree if it is possible to do so
  *  @return a triple [match, ts, stats] where match is a Matching object,
  *  ts is a possibly empty trace string
@@ -77,7 +77,7 @@ export default function wbimatchF(g, trace=false, subsets=null,
 			if (first) first = false;
 			else if (trace) ts += ' ';
 			if (trace) ts += g.e2s(e);
-			if (dmax) { // generalized matching
+			if (dmax) { // b-matching
 				match.join(g.left(e), g.right(e), e);
 			} else {
 				match.add(e);
