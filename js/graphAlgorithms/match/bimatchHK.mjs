@@ -89,8 +89,8 @@ export default function bimatchHK(bg, subsets=0, traceFlag=0) {
 	if (trace)
 		traceString += `final matching: ${match.toString()}\n`;
 		
-    return [match, traceString,
-			{'phases': phases, 'paths': paths, 'steps': steps}];
+    return [match, traceString, {'size': match.size(), 'phases': phases,
+								 'paths': paths, 'steps': steps}];
 }
 
 /** Prepare for new phase. 
