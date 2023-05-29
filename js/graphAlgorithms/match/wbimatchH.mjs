@@ -35,7 +35,7 @@ let steps;       // total number of steps
  *  ts is a possibly empty trace string and stats is a statistics object
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function wbimatchH(bg, traceFlag=false, subsets=null) {
+export default function wbimatchH(bg, subsets=0, traceFlag=0) {
 	g = bg; match = new Matching(g);
 	link = new Int32Array(g.n+1);
 	lab = new Int32Array(g.n+1);
@@ -71,7 +71,8 @@ export default function wbimatchH(bg, traceFlag=false, subsets=null) {
 	if (trace) {
 		traceString += 'matching: ' + match.toString() + '\n';
 	}
-	return [match, traceString, { 'paths': paths, 'steps': steps }];
+	return [match, traceString, {'weight': match.weight(), 'paths': paths,
+								 'steps': steps }];
 }
 
 /** Compute values for labels that give non-negative transformed costs.
@@ -141,20 +142,20 @@ function findpath() {
 
 	// determine true weight of path
 	let u = bestSink; let e = link[u]; let pathCost = 0;
-	let ts; if (trace) ts = g.index2string(u);
+	let ts; if (trace) ts = g.x2s(u);
 	while (e != 0) {
 		pathCost += g.weight(e);
-		if (trace) ts = `${g.edge2string(e)} ${ts}`
+		if (trace) ts = `${g.e2s(e)} ${ts}`
 		u = g.mate(u,e); e = link[u];
 		if (e == 0) break;
-		if (trace) ts = `${g.edge2string(e)} ${ts}`
+		if (trace) ts = `${g.e2s(e)} ${ts}`
 		pathCost -= g.weight(e);
 		u = g.mate(u,e); e = link[u];
 		steps++;
 	}
 	if (pathCost <= 0) return 0;
 	if (trace)
-		traceString += `${g.index2string(u)} ${ts} ${pathCost}\n`
+		traceString += `${g.x2s(u)} ${ts} ${pathCost}\n`
 	return bestSink;
 }
 

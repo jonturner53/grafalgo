@@ -10,13 +10,15 @@ import { assert, AssertError} from '../../../common/Errors.mjs';
 import Tester from '../../../common/Tester.mjs';
 import bimatchF from '../bimatchF.mjs';
 import bimatchHK from '../bimatchHK.mjs';
+import matchEG from '../matchEG.mjs';
 import matchVerify from '../matchVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomBigraph } from '../../misc/RandomGraph.mjs';
 
 let algomap = {
-	'F' : bimatchF,
-	'HK' : bimatchHK
+	'F' : (g,trace) => bimatchF(g,0,0,0,trace),
+	'HK' : (g,trace) => bimatchHK(g,0,trace),
+	'EG' : (g,trace) => matchEG(g,trace) 
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));

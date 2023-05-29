@@ -18,7 +18,6 @@ import Matching from './Matching.mjs';
 /** Compute a maximum matching in a bipartite graph by reducing it to a
  *  max flow problem and applying Dinic's algorithm.
  *  @param g is an undirected bipartite graph
- *  @param trace causes a trace string to be returned when true
  *  @param subsets is an optional ListPair that defines the bipartite
  *  vertex subsets
  *  @param dmin is an array mapping vertices to degree lower bounds
@@ -31,10 +30,11 @@ import Matching from './Matching.mjs';
  *  and stats is a statistics object, both from Dinic's algorithm;
  *  if dmin>0, the returned (generalized) matching will satisfy the
  *  specified minimum degree if it is possible to do so
+ *  @param trace causes a trace string to be returned when true
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function bimatchF(g, trace=false, subsets=null,
-								  dmin=null, dmax=null) {
+export default function bimatchF(g, subsets=null, dmin=null, dmax=null,
+									trace=false) {
 	// divide vertices into two independent sets
 	let steps = 0;
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
@@ -57,7 +57,7 @@ export default function bimatchF(g, trace=false, subsets=null,
 	for (let u = subsets.first2(); u != 0; u = subsets.next2(u)) {
 		steps++;
 		let e = fg.join(u,fg.sink);
-		fg.cap(e, (dmax!=null ? dmax[u] : 1));
+		fg.cap(e, (dmax ? dmax[u] : 1));
 		if (dmin) fg.floor(e,dmin[u]);
 	}
 

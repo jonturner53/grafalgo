@@ -10,16 +10,20 @@ import { assert, AssertError} from '../../../common/Errors.mjs';
 import Tester from '../../../common/Tester.mjs';
 import wbimatchF from '../wbimatchF.mjs';
 import wbimatchH from '../wbimatchH.mjs';
-//import wbimatchEGMG from '../wbimatchEGMG.mjs';
+import wbimatchGMG from '../wbimatchGMG.mjs';
+import wmatchE from '../wmatchE.mjs';
+import wmatchGMG from '../wmatchGMG.mjs';
 import matchVerify from '../matchVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomBigraph } from '../../misc/RandomGraph.mjs';
 import { randomInteger } from '../../../common/Random.mjs';
 
 let algomap = {
-	'F' : wbimatchF,
-	'H' : wbimatchH
-	//'EGMG' : wbimatchEGMG
+	'H' : (g,trace) => wbimatchH(g,0,trace),
+	'F' : (g,trace) => wbimatchF(g,0,0,0,trace),
+	'GMG' : (g,trace) => wbimatchGMG(g,0,trace),
+	'gGMG' : wmatchGMG,
+	'E' : wmatchE
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));

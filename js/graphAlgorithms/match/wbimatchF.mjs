@@ -11,6 +11,7 @@ import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import findSplit from '../misc/findSplit.mjs';
 import mcflowJEK from '../mcflow/mcflowJEK.mjs';
+import flowfloor from '../maxflow/flowfloor.mjs';
 import Matching from './Matching.mjs';
 
 /** Compute a maximum weighted matching in a bipartite graph by reducing
@@ -36,8 +37,7 @@ import Matching from './Matching.mjs';
  *  and stats is a statistics object; both from Dinic's algorithm
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function wbimatchF(g, trace=false, subsets=null,
-								  dmin=null, dmax=null) {
+export default function wbimatchF(g, subsets=0, dmin=0, dmax=0, trace=0) {
 	let paths = 0; let steps = 0;
 	// divide vertices into two independent sets
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
@@ -85,5 +85,6 @@ export default function wbimatchF(g, trace=false, subsets=null,
 		}
 	}
 	if (trace) ts += ']\n';
-	return [match, ts, {'paths': paths, 'steps' : steps}];
+	return [match, ts, {'weight': match.weight(),
+						'paths': paths, 'steps' : steps}];
 }
