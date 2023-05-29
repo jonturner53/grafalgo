@@ -35,7 +35,7 @@ let steps;       // total number of steps
  *  and stats is a statistics object
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function bimatchHK(bg, subsets=null, traceFlag=false) {
+export default function bimatchHK(bg, subsets=0, traceFlag=0) {
 	g = bg;
 	match = new Matching(g);
 	link = new Int32Array(g.n+1);
@@ -52,10 +52,19 @@ export default function bimatchHK(bg, subsets=null, traceFlag=false) {
 	assert(subsets, "bimatchHK: graph not bipartite");
 
 	// add edges to match, yielding maximal (not maximum) matching
+/*
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (!match.at(g.left(e)) && !match.at(g.right(e)))
 			match.add(e);
 	}
+*/
+    for (let u = 1; u <= g.n; u++) {
+        if (match.at(u)) continue;
+        for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+            let v = g.mate(u,e);
+            if (!match.at(v)) { match.add(e); break; }
+        }
+    }
 	steps += g.m;
 
 	if (trace) {
