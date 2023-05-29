@@ -52,12 +52,6 @@ export default function bimatchHK(bg, subsets=0, traceFlag=0) {
 	assert(subsets, "bimatchHK: graph not bipartite");
 
 	// add edges to match, yielding maximal (not maximum) matching
-/*
-	for (let e = g.first(); e; e = g.next(e)) {
-		if (!match.at(g.left(e)) && !match.at(g.right(e)))
-			match.add(e);
-	}
-*/
     for (let u = 1; u <= g.n; u++) {
         if (match.at(u)) continue;
         for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {

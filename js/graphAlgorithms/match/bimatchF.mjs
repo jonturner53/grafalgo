@@ -33,12 +33,11 @@ import Matching from './Matching.mjs';
  *  @param trace causes a trace string to be returned when true
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function bimatchF(g, subsets=null, dmin=null, dmax=null,
-									trace=false) {
+export default function bimatchF(g, subsets=0, dmin=0, dmax=0, trace=0) {
 	// divide vertices into two independent sets
 	let steps = 0;
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
-	assert(subsets != null, "bimatchF: graph not bipartite");
+	assert(subsets, "bimatchF: graph not bipartite");
 
 	// create flow graph, taking care to maintain edge numbers
 	let fg = new Flograph(g.n+2, g.n+g.edgeRange);
@@ -77,7 +76,7 @@ export default function bimatchF(g, subsets=null, dmin=null, dmax=null,
 		if (fg.f(e) != 0) {
 			if (first) first = false;
 			else if (trace) ts += ' ';
-			if (trace) ts += g.edge2string(e);
+			if (trace) ts += g.e2s(e);
 			if (dmax) { // generalized matching
 				match.join(g.left(e),g.right(e),e);
 			} else {
@@ -86,5 +85,5 @@ export default function bimatchF(g, subsets=null, dmin=null, dmax=null,
 		}
 	}
 	if (trace) ts += ']\n';
-	return [match, ts, { 'steps': steps}];
+	return [match, ts, { 'size': match.size(), 'steps': steps}];
 }
