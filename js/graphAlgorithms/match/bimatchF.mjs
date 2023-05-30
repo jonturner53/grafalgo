@@ -85,5 +85,6 @@ export default function bimatchF(g, subsets=0, dmin=0, dmax=0, trace=0) {
 		}
 	}
 	if (trace) ts += ']\n';
+	let size = dmax ? match.m : match.size();
 	return [match, ts, { 'size': match.size(), 'steps': steps}];
 }
