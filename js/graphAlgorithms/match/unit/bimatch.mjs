@@ -26,18 +26,11 @@ let tester = new Tester(args, 'bimatch', algomap, matchVerify);
 
 let g = new Graph();
 g.fromString('{a[f g j] b[g h i] c[f i j] d[f h j] e[h i j]}');
-//tester.addTest('small graph', g);
-
-g = randomBigraph(1000, 3); tester.addTest(`random (${g.n},${g.m})`, g);
-g = randomBigraph(2000, 3); tester.addTest(`random (${g.n},${g.m})`, g);
-g = randomBigraph(4000, 3); tester.addTest(`random (${g.n},${g.m})`, g);
-g = randomBigraph(8000, 3); tester.addTest(`random (${g.n},${g.m})`, g);
-g = randomBigraph(16000, 3); tester.addTest(`random (${g.n},${g.m})`, g);
-g = randomBigraph(32000, 3); tester.addTest(`random (${g.n},${g.m})`, g);
-tester.run();
+tester.addTest('small graph', g);
 
 g = randomBigraph(8, 3); tester.addTest('small random', g);
 g = randomBigraph(1000, 3); tester.addTest('medium random', g);
 g = randomBigraph(5000, 3); tester.addTest('large random', g);
 g = randomBigraph(5000, 200); tester.addTest('large, dense random', g);
 
+tester.run();

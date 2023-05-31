@@ -180,9 +180,9 @@ export default class ListPair extends Top {
 	swap(i, j=-1) {
 		if (j < 0) j = this.in1(i) ? this.last2() : this.last1();
 
-		fassert(this.valid(i) && i != 0 && this.valid(j));
-		fassert((this.in1(i)  && (j == 0 || this.in2(j))) ||
-			   (this.in2(i) && (j == 0 || this.in1(j))));
+		fassert(this.valid(i) && i && this.valid(j));
+		fassert((this.in1(i)  && (!j || this.in2(j))) ||
+			   (this.in2(i) && (!j || this.in1(j))));
 
 		if (this.in1(i)) {
 			// first remove i from list 1

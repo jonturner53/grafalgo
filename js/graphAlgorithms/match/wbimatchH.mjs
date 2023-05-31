@@ -55,7 +55,7 @@ export default function wbimatchH(bg, subsets=0, traceFlag=0) {
 	}
 
 	// add unmatched vertices from first subset to free
-	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
+	for (let u = subsets.first1(); u; u = subsets.next1(u)) {
 		if (g.firstAt(u)) free.enq(u);
 		steps++;
 	}
