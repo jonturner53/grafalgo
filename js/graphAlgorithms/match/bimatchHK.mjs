@@ -52,6 +52,7 @@ export default function bimatchHK(bg, subsets=0, traceFlag=0) {
 	assert(subsets, "bimatchHK: graph not bipartite");
 
 	// add edges to match, yielding maximal (not maximum) matching
+/*
     for (let u = 1; u <= g.n; u++) {
         if (match.at(u)) continue;
         for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
@@ -60,6 +61,7 @@ export default function bimatchHK(bg, subsets=0, traceFlag=0) {
         }
     }
 	steps += g.m;
+*/
 
 	if (trace) {
 		traceString += g.toString(1) +

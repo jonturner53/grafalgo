@@ -38,6 +38,7 @@ export default class List extends Top {
 	 */
 	constructor(n=10) {
 		super(n);
+this.insertTime = 0;
 		this.#next = new Int32Array(this.n+1).fill(-1);
 		this.#next[0] = this.#first = this.#last = this.#length = 0;
 		this.#prev = this.#value = null;

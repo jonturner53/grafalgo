@@ -23,7 +23,7 @@ export default class Matching extends Top {
 	constructor(g) {
 		super(g.n);
 		this.g = g;
-		this.#elist = new List(this.g.edgeCapacity);
+		this.#elist = new List(this.g.edgeRange);
 		this.#elist.addPrev();
 		this.#map = new Int32Array(this.g.n+1);
 	}

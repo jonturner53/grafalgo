@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { assert, fassert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
@@ -43,17 +43,17 @@ export default function bimatchF(g, subsets=0, dmin=0, dmax=0, trace=0) {
 	let fg = new Flograph(g.n+2, g.n+g.edgeRange);
 	if (dmin) fg.addFloors();
 	fg.setSource(g.n+1); fg.setSink(g.n+2);
-	for (let e = g.first(); e != 0; e = g.next(e)) {
+	for (let e = g.first(); e; e = g.next(e)) {
 		steps++;
 		let u = (subsets.in1(g.left(e)) ? g.left(e) : g.right(e));
 		fg.join(u,g.mate(u,e),e); fg.cap(e,1);
 	}
-	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
+	for (let u = subsets.first1(); u; u = subsets.next1(u)) {
 		steps++;
 		let e = fg.join(fg.source,u); fg.cap(e, (dmax ? dmax[u] : 1));
 		if (dmin) fg.floor(e,dmin[u]);
 	}
-	for (let u = subsets.first2(); u != 0; u = subsets.next2(u)) {
+	for (let u = subsets.first2(); u; u = subsets.next2(u)) {
 		steps++;
 		let e = fg.join(u,fg.sink);
 		fg.cap(e, (dmax ? dmax[u] : 1));
@@ -71,9 +71,9 @@ export default function bimatchF(g, subsets=0, dmin=0, dmax=0, trace=0) {
 	// construct matching from flow
 	let match = (dmax ? new Graph(g.n,g.edgeRange) : new Matching(g));
 	if (trace) ts += '['; let first = true;
-	for (let e = g.first(); e != 0; e = g.next(e)) {
+	for (let e = g.first(); e; e = g.next(e)) {
 		steps++;
-		if (fg.f(e) != 0) {
+		if (fg.f(e)) {
 			if (first) first = false;
 			else if (trace) ts += ' ';
 			if (trace) ts += g.e2s(e);
@@ -86,5 +86,5 @@ export default function bimatchF(g, subsets=0, dmin=0, dmax=0, trace=0) {
 	}
 	if (trace) ts += ']\n';
 	let size = dmax ? match.m : match.size();
-	return [match, ts, { 'size': size, 'steps': steps}];
+	return [match, ts, { 'size': size, 'phases': stats.phases, 'paths':stats.paths, 'steps': steps}];
 }

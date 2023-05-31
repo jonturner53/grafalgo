@@ -65,7 +65,7 @@ export default class Top {
 	/** Expand the index range of an object. */
 	expand(n) {
 		fassert(n > this.n, 'Top: expand must increase range');
-		let nu = new this.constructor(n);
+		let nu = new this.constructor(Math.max(n, 1.25*this.n));
 		nu.assign(this,true); this.xfer(nu);
 	}
 

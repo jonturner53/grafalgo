@@ -197,8 +197,8 @@ export default class Flograph extends Digraph {
 				cutsize++; cutcap += this.cap(e);
 			}
 		}
-		return { 'totalFlow': f, 'numReachable': reachable.length-1,
-				 'cutSize': cutsize, 'cutCapacity': cutcap };
+		return { 'totalFlow': f, 'reachable': reachable.length-1,
+				 'cutsize': cutsize, 'cutcap': cutcap };
 	}
 
 	/** Return the current flow cost (sum of flow*cost for all edges). */
