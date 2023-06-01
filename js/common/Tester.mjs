@@ -64,7 +64,9 @@ export default class Tester {
 	}
 
 	run() {
-		this.log('running tests');
+		let namelist = ''
+		for (let algo of this.algorithms) namelist += ' ' + algo.name;
+		this.log('testing' + namelist);
 		for (let tcase of this.testcases) {
 			let small = tcase.name.startsWith('small');
 			for (let algo of this.algorithms) {
@@ -75,7 +77,8 @@ export default class Tester {
 					results = algo.code(...tcase.args, this.trace && small);
 					t1 = Date.now();
 				} catch(e) {
-					this.log(`${tag} ${e.message}`);
+					if (this.trace || this.stats) 
+						this.log(`${tag} ${e.message}`);
 					if (e instanceof AssertError) continue;
 					throw(e);
 				}
@@ -94,6 +97,5 @@ export default class Tester {
 				}
 			}
 		}
-		this.log('tests completed');
 	}
 }

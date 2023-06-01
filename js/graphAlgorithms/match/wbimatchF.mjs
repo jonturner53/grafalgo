@@ -47,16 +47,16 @@ export default function wbimatchF(g, subsets=0, dmin=0, dmax=0, trace=0) {
 	let fg = new Flograph(g.n+2, g.n+g.m);
 	fg.setSource(g.n+1); fg.setSink(g.n+2);
 	for (let e = g.first(); e != 0; e = g.next(e)) {
-		let u = (subsets.in1(g.left(e)) ? g.left(e) : g.right(e));
+		let u = (subsets.in(g.left(e),1) ? g.left(e) : g.right(e));
 		fg.join(u,g.mate(u,e),e); fg.cap(e,1);
 		fg.cost(e, -g.weight(e)); steps++;
 	}
-	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
+	for (let u = subsets.first(1); u; u = subsets.next(u)) {
 		let e = fg.join(fg.source,u); fg.cost(e, 0); steps++;
 		fg.cap(e, (dmax ? dmax[u] : 1));
         if (dmin) fg.floor(e,dmin[u]);
 	}
-	for (let u = subsets.first2(); u != 0; u = subsets.next2(u)) {
+	for (let u = subsets.first(2); u; u = subsets.next(u)) {
 		let e = fg.join(u,fg.sink); fg.cost(e, 0); steps++;
 		fg.cap(e, (dmax ? dmax[u] : 1));
         if (dmin) fg.floor(e,dmin[u]);

@@ -45,15 +45,15 @@ export default function bimatchF(g, subsets=0, dmin=0, dmax=0, trace=0) {
 	fg.setSource(g.n+1); fg.setSink(g.n+2);
 	for (let e = g.first(); e; e = g.next(e)) {
 		steps++;
-		let u = (subsets.in1(g.left(e)) ? g.left(e) : g.right(e));
+		let u = (subsets.in(g.left(e),1) ? g.left(e) : g.right(e));
 		fg.join(u,g.mate(u,e),e); fg.cap(e,1);
 	}
-	for (let u = subsets.first1(); u; u = subsets.next1(u)) {
+	for (let u = subsets.first(1); u; u = subsets.next(u)) {
 		steps++;
 		let e = fg.join(fg.source,u); fg.cap(e, (dmax ? dmax[u] : 1));
 		if (dmin) fg.floor(e,dmin[u]);
 	}
-	for (let u = subsets.first2(); u; u = subsets.next2(u)) {
+	for (let u = subsets.first(2); u; u = subsets.next(u)) {
 		steps++;
 		let e = fg.join(u,fg.sink);
 		fg.cap(e, (dmax ? dmax[u] : 1));

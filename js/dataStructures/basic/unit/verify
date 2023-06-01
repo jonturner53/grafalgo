@@ -1,0 +1,7 @@
+echo `pwd`
+node list.mjs
+node listPair.mjs
+node listSet.mjs
+node mergeSets.mjs
+node reverseLists.mjs
+node scanner.mjs

@@ -1,4 +1,4 @@
-/** \file leftistHeaps.java
+/** \file lazyHeaps.java
  *
  *  @author Jon Turner
  *  @date 2021
@@ -11,7 +11,7 @@ import List from '../../basic/List.mjs';
 import LazyHeaps from '../LazyHeaps.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing LazyHeaps');
 
 	let n = 20;
 	let lh = new LazyHeaps(n);
@@ -55,7 +55,6 @@ try {
 		'{[(d:4:1 c:3:2 (f:6:1 e:5:1 -)) *a:1:2 b:2:1] ' +
 		'[g:7:1] [h:8:1] [i:9:1] [j:10:1]}', 'a10');
 
-	console.log('passed tests');
 } catch(e) {
 	if (e instanceof AssertError)
 		if (e.message.length > 0)

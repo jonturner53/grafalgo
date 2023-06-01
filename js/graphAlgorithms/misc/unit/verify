@@ -1,0 +1,7 @@
+echo `pwd`
+node testBfs.mjs
+node testDfs.mjs
+node testComponents.mjs
+node testFindSplit.mjs
+node testNca.mjs
+node testTopoSort.mjs

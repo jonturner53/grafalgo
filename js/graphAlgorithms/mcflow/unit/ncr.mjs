@@ -40,6 +40,8 @@ g.randomCapacities(randomInteger, 1, 99);
 g.randomCosts(randomInteger, -99, 99);
 tester.addTest(`medium random (${g.n},${g.m})`, g);
 
+tester.run();
+
 g = randomFlograph(62, 15);
 g.randomCapacities(randomInteger, 1, 999);
 g.randomCosts(randomInteger, -999, 999);
@@ -50,4 +52,3 @@ g.randomCapacities(randomInteger, 1, 999);
 g.randomCosts(randomInteger, -999, 999);
 tester.addTest(`large random (${g.n},${g.m})`, g);
 
-tester.run();

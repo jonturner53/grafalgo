@@ -10,7 +10,7 @@ import { assert, AssertError } from '../../../common/Errors.mjs';
 import Graph from '../Graph.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing Flograph');
 
 	let g = new Graph(8, 30);
 
@@ -55,7 +55,6 @@ try {
 	assert(g.toString(0,0,(u) => g.x2s(u) + ':' + u),
 		   '{a:1[d:1 b:2] b:2[a:2 c:3] c:3[b:3 d:4] d:4[a:1 c:4]}', 'c3');
 
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError) {
 		if (e.message.length != 0)

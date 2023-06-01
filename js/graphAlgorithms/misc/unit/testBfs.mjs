@@ -11,7 +11,7 @@ import bfs from '../bfs.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 
 try {
-	console.log("running basic tests");
+	console.log("testing bfs");
 
 	let n = 6; let g = new Graph(n);
 	g.fromString("{a[b d e] b[a c f] c[b d f] d[a c e] e[a d] f[b c]}");
@@ -23,7 +23,6 @@ try {
 	vlist = bfs(g, 6);
 	assert(g.ilist2string(vlist), '[f b c a d e]', 'a3');
 
-	console.log('passed tests');
 } catch (e) {
 	if (e instanceof AssertError)
 		if (e.message.length > 0)

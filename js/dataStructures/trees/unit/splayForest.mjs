@@ -11,8 +11,7 @@ import List from '../../basic/List.mjs';
 import SplayForest from '../SplayForest.mjs';
 
 try {
-	console.log('running basic tests');
-
+	console.log('testing SplayForest');
 	let sf = new SplayForest();
 	assert(sf.fromString('{[b a d c] [h g j i f]}'), 'a0');
 	assert(sf, '{[b a *d c] [h g j *i f]}', 'a1');
@@ -55,7 +54,6 @@ try {
 	sf.insertByKey(4, 3, key, compare);
 	assert(sf.toString(4),'{[((a b -) c -) *d -]}','f5');
 
-	console.log('passed tests');
 } catch(e) {
 	if (e instanceof AssertError)
 		if (e.message.length > 0)

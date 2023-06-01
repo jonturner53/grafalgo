@@ -1,0 +1,8 @@
+#!bash
+echo "testing graph algorithms"
+pushd misc/unit >/dev/null;    verify; popd >/dev/null
+pushd mst/unit >/dev/null;     verify; popd >/dev/null
+pushd spath/unit >/dev/null;   verify; popd >/dev/null
+pushd maxflow/unit >/dev/null; verify; popd >/dev/null
+pushd mcflow/unit >/dev/null;  verify; popd >/dev/null
+pushd match/unit >/dev/null;   verify; popd >/dev/null

@@ -91,7 +91,7 @@ export default class Graph extends Top {
 		if (other.hasWeights && !this.hasWeights) this.addWeights();
 		if (!other.hasWeights && this.hasWeights) this._weight = null;
 		for (let e = other.first(); e != 0; e = other.next(e)) {
-			let ee = this._edges.in2(e) ?
+			let ee = this._edges.in(e,2) ?
 						this.join(other.left(e), other.right(e), e) :
 						this.join(other.left(e), other.right(e));
 				// preserve edge numbers when possible; consider dropping that
@@ -123,12 +123,12 @@ export default class Graph extends Top {
 	/** Get the number of edges.
 	 *  @return the number of edges in the graph.
 	 */
-	get m() { return this._edges.n1(); }
+	get m() { return this._edges.length(1); }
 
 	/** Get the largest edge number that is currently in use. */
 	get M() {
 		for (e = edgeRange; e > 0; e--)
-			if (this._edges.in1(e)) return e;
+			if (this._edges.in(e,1)) return e;
 	}
 	
 	validVertex(u) { return u == ~~u && 1 <= u && u <= this.n; }
@@ -137,7 +137,7 @@ export default class Graph extends Top {
 	 *  @param e is the edge number to be verified
 	 *  @return true if e is a valid edge number, else false.
 	 */
-	validEdge(e) { return e == ~~e && this._edges.in1(e); }
+	validEdge(e) { return e == ~~e && this._edges.in(e,1); }
 	
 	/** Get the left endpoint of an edge.
 	 *  @param e is the edge of interest
@@ -187,14 +187,14 @@ export default class Graph extends Top {
 	/** Get the first edge in the overall list of edges.
 	 *  @return the first edge in the list
 	 */
-	first() { return this._edges.first1(); }
+	first() { return this._edges.first(1); }
 	
 	/** Get the next edge in the overall list of edges.
 	 *  @param e is the edge whose successor is requested
 	 *  @return the next edge in the list, or 0 if e is not in the list
 	 *  or it has no successor
 	 */
-	next(e) { return this._edges.next1(e); }
+	next(e) { return this._edges.next(e); }
 	
 	/** Get the first edge incident to a vertex.
 	 *  @param v is the vertex of interest
@@ -226,14 +226,14 @@ export default class Graph extends Top {
 	 *  @return the edge number for the new edge or 0
 	 *  on failure
 	 */
-	join(u, v, e=this._edges.first2()) {
+	join(u, v, e=this._edges.first(2)) {
 		fassert(u != v && u > 0 && v > 0 &&
-			   (e > 0 || this._edges.first2() == 0) &&
-			   !this._edges.in1(e));
-		if (u > this.n || v > this.n || this._edges.n2() == 0) {
+			   (e > 0 || this._edges.first(2) == 0) &&
+			   !this._edges.in(e,1));
+		if (u > this.n || v > this.n || this._edges.length(2) == 0) {
 			this.expand(Math.max(this.n, u, v),
 						Math.max(e, this._edges.n+1));
-			if (e == 0) e = this._edges.first2();
+			if (e == 0) e = this._edges.first(2);
 		}
 		this._edges.swap(e);
 

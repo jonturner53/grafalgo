@@ -10,7 +10,7 @@ import { assert, AssertError } from '../../../common/Errors.mjs';
 import BalancedForest from '../BalancedForest.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing BalancedForest');
 
 	let f = new BalancedForest();
 
@@ -73,7 +73,6 @@ try {
 	f.insertByKey(4, 2, key, compare);
 	assert(f.toString(4,u => `${f.x2s(u)}:${key[u]}`),
 		   '{[a:abc *b:bcd (- c:cde d:def)]}','f5');
-	console.log('passed tests');
 
 } catch(e) {
     if (e instanceof AssertError) {

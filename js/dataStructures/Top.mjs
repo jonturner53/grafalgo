@@ -62,10 +62,13 @@ export default class Top {
 	 */
 	set _n(n) { this.#n = n; }
 
-	/** Expand the index range of an object. */
+	/** Expand the index range of an object.
+	 *  Since index range is often semantically significant,
+	 *  cannot over-expand.
+	 */
 	expand(n) {
 		fassert(n > this.n, 'Top: expand must increase range');
-		let nu = new this.constructor(Math.max(n, 1.25*this.n));
+		let nu = new this.constructor(n);
 		nu.assign(this,true); this.xfer(nu);
 	}
 
@@ -94,17 +97,17 @@ export default class Top {
 	 */
 	equals(other) {
 		if (this === other) return true;
-        fassert(this.constructor.name == other.constructor.name,
-				'Top:equals: mismatched types');
         if (typeof other == 'string') {
 			if (!('fromString' in this)) 
 				return this.toString() == other.toString();
             let s = other;
 			other = new this.constructor();
-			if (!other.hasOwnProperty(fromString)) return s == this.toString();
+			if (typeof other.fromString !== 'function')
+				return s == this.toString();
 			fassert(other.fromString(s),
 					other.constructor.name + ':equals: fromString cannot parse ' + s);
 			if (other.n > this.n) return false;
+			if (other.n < this.n) other.expand(this.n);
 			if (other.n < this.n) other.expand(this.n);
         } else if (other.constructor.name != this.constructor.name ||
 		    other.n != this.n) {

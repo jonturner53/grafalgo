@@ -12,7 +12,7 @@ import toposort from '../toposort.mjs';
 import { randomDag } from '../RandomGraph.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing toposort');
 
 	let g = new Digraph(6);
 	g.fromString('{a[b f] b[c e] c[] d[a c] e[c f] f[]}');
@@ -23,7 +23,6 @@ try {
 	vlist = toposort(g);
 	assert(vlist.length, g.n, 'a2');
 	
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError)
 		if (e.message.length > 0)

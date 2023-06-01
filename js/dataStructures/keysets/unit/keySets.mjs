@@ -11,7 +11,7 @@ import List from '../../basic/List.mjs';
 import KeySets from '../KeySets.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing KeySets');
 
 	let ks = new KeySets();
 	ks.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}');
@@ -37,7 +37,6 @@ try {
 							'[e:"ee"]}', 'b2');
 	assert(ks.lookup('c c',1), 4, 'b3');
 
-	console.log('passed tests');
 } catch(e) {
 	if (e instanceof AssertError)
 		if (e.message.length > 0)

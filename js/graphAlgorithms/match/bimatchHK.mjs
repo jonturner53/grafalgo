@@ -68,7 +68,7 @@ export default function bimatchHK(bg, subsets=0, traceFlag=0) {
 	}
 
 	// add unmatched vertices from first subset to roots
-	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
+	for (let u = subsets.first(1); u; u = subsets.next(u)) {
 		if (!match.at(u) && g.firstAt(u) != 0) roots.enq(u);
 		steps++;
 	}

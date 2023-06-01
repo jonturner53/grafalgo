@@ -10,7 +10,7 @@ import { assert, AssertError } from '../../../common/Errors.mjs';
 import Forest from '../Forest.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing Forest');
 
 	let f = new Forest();
 	assert(f.fromString('{[a(b(c d) e)] [f(g h i(j k))]}'), 'a0');
@@ -45,7 +45,6 @@ try {
 	assert(prop[5], 5, 'd5'); assert(prop[6], 6, 'd6');
 	assert(f, '{[a(b(c d) e)] [f]}', 'd7');
 
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError) {
         console.error(`${e.name}: ${e.message}`);

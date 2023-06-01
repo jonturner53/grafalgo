@@ -39,7 +39,7 @@ export default function sptDf(g, s, trace=0) {
 		let u; [u, root] = h.deletemin(root);
 		inheap[u] = false; heapsize--;
 		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
-			if (g.length(e) < 0) assert(0, `Error: negative edge ${g.e2s(e)}`);
+			if (g.length(e) < 0) assert(0, `negative edge ${g.e2s(e)}`);
 			let v = g.head(e);
 			if (dist[v] > dist[u] + g.length(e)) {
 				dist[v] = dist[u] + g.length(e); link[v] = e;

@@ -12,7 +12,7 @@ import { assert, AssertError } from '../../../common/Errors.mjs';
 import Scanner from '../Scanner.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing Scanner');
 
 	let s = new Scanner("  123  45.5abc_2C.  a  23 \n xx");
 	assert(s.nextInt(), 123, 'a1');
@@ -55,7 +55,6 @@ try {
 	assert(l[0],1,'d2'); assert(l[1],2,'d3'); assert(l[2], 3,'d4');
 	assert(pvec[1],1,'d5'); assert(pvec[2],0,'d6'); assert(pvec[3],3,'d7');
 
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError)
         console.log(e.name + ': ' + e.message);

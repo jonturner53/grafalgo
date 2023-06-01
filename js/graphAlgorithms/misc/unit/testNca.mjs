@@ -11,7 +11,7 @@ import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { assert, AssertError } from '../../../common/Errors.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing nca');
 
 	let t = new Graph(12);
 	t.fromString('{a[b c d] b[a e f] c[a g] d[a h i] e[b] f[b k l] ' +
@@ -24,7 +24,6 @@ try {
 	ncav = nca(t, 2, [[4, 6], [5, 12], [9, 10]]);
 	assert(t.ilist2string(ncav), '[b b d]', 'a3');
 	
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError)
 		if (e.message.length > 0)

@@ -1,0 +1,4 @@
+echo `pwd`
+node keySets.mjs
+node dualKeySets.mjs
+node map.mjs

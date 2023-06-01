@@ -11,7 +11,7 @@ import List from '../../basic/List.mjs';
 import LeftistHeaps from '../LeftistHeaps.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing LeftistHeaps');
 
 	let n = 10;
 	let lh = new LeftistHeaps(n);
@@ -35,7 +35,6 @@ try {
 	lh.meld(1, 6);
 	assert(lh, '{[b:2 a:1 d:4 c:3 h:8 g:7 j:10 i:9 f:6] [e:5]}', 'a7');
 
-	console.log('passed tests');
 } catch(e) {
 	if (e instanceof AssertError)
 		if (e.message.length > 0)

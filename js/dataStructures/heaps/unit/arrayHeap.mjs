@@ -12,7 +12,7 @@ import Scanner from '../../basic/Scanner.mjs';
 import ArrayHeap from '../ArrayHeap.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing ArrayHeap');
 
 	let n1 = 10; let h1 = new ArrayHeap(n1);
 	
@@ -44,7 +44,6 @@ try {
 	h3.delete(11); assert(h3, '[f:2 c:5 d:2 h:7 m:4]', 'f5');
 	h3.delete(13); assert(h3, '[f:2 c:5 d:2 h:7]', 'f6');
 
-	console.log('passed tests');
 } catch(e) {
 	if (e instanceof AssertError)
 		if (e.message.length > 0)

@@ -10,7 +10,7 @@ import { assert, AssertError } from '../../../common/Errors.mjs';
 import BinaryForest from '../BinaryForest.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing BinaryForest');
 
 	let f = new BinaryForest();
 	assert(f.fromString('{[a *b (c d e)] ' +
@@ -112,7 +112,6 @@ try {
 	f.insertByKey(4, 3, key, compare);
 	assert(f.toString(4),'{[- *a (- b (- c d))]}','f5');
 
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError) {
 		if (e.message.length != 0)

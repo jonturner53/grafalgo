@@ -11,7 +11,7 @@ import Scanner from '../Scanner.mjs';
 import { assert, AssertError } from '../../../common/Errors.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing List');
 
 	let l = new List(10);
 	assert(l.n, 10, 'a1');
@@ -57,8 +57,6 @@ try {
 	l.fromString('[a:1 b:2 e:5 d:4]', prop);
 	assert(l,'[a b e d]', 'd1');
 	assert(pvec[4], 4, 'd2');
-
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError)
 		if (e.message.length > 0)

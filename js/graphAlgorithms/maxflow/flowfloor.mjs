@@ -61,7 +61,7 @@ export default function flowfloor(g, trace=false) {
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		g.flow(e, g1.f(e) + g.floor(e)); steps++;
 	}
-	return [g1.totalFlow() == totalFloor, ts,
-			{'flow': g.flowStats().totalFlow,
-			 'paths': stats.paths, 'steps': steps}];
+	assert(g1.totalFlow() == totalFloor, 'unable to satisfy min flow specs');
+	return [ts, {'flow': g.flowStats().totalFlow,
+				 'paths': stats.paths, 'steps': steps}];
 }

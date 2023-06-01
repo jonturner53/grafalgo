@@ -11,7 +11,7 @@ import findSplit from '../findSplit.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 
 try {
-	console.log("running basic tests");
+	console.log("testing findSplit");
 
 	let n = 10; let g = new Graph(n);
 	g.fromString('{a[f h j] b[g i] c[i j] d[g i j] e[f i]' +
@@ -26,7 +26,6 @@ try {
 	g.join(8, 10);
 	assert(findSplit(g) == null, 'a3');
 
-	console.log('passed tests');
 } catch (e) {
 	if (e instanceof AssertError)
 		if (e.message.length > 0)

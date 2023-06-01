@@ -11,7 +11,7 @@ import { assert, AssertError } from '../../../common/Errors.mjs';
 import MergeSets from '../MergeSets.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing MergeSets');
 	let ds = new MergeSets(10);
 	assert(ds, '{[j]}', 'a1');
 	ds.merge(1, 3);
@@ -35,7 +35,6 @@ try {
 	assert(r, 1, 'a12');
 
 	assert(ds.fromString('{[a c] [d b e] [f g] [h i j]}'), 'a10');
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError)
 		if (e.message.length > 0)

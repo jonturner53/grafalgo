@@ -30,7 +30,7 @@ function getArgs() {
 
 function basicTests(trace=false) {
 	try {
-		console.log('running basic tests');
+		console.log('testing components');
 	
 		let g = new Graph(10);
 		g.fromString('{a[b d e] b[a c f] c[b d f] d[a c e] e[a d] f[b c] ' +
@@ -40,8 +40,6 @@ function basicTests(trace=false) {
 		assert(k, 2, 'a1');
 		assert(ls, '{[a b c d e f] [g h i]}', 'a2');
 		if (trace) console.log(ts);
-	
-		console.log('passed tests');
 	} catch (e) {
 		if (e instanceof AssertError)
 			if (e.message.length > 0)

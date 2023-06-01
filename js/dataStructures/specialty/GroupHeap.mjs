@@ -298,8 +298,13 @@ export default class GroupHeap extends Top {
 								if (!sc.verify(':')) {
 									key[u] = 0; return true;
 								}
-								let p = sc.nextNumber();
-								if (Number.isNaN(p)) return false;
+								let p;
+								if (sc.verify('I')) {
+									p = Infinity;
+								} else {
+									p = sc.nextNumber();
+									if (Number.isNaN(p)) return false;
+								}
 								key[u] = p;
 								return true
 								};

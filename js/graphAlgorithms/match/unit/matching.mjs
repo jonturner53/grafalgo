@@ -12,7 +12,7 @@ import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import Matching from '../Matching.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing Matching');
 
 	let g = new Graph(26); g.addWeights();
 	g.fromString('{a[n:6] b[f:6 v:1] c[d:9 u:8] d[c:9 m:8 t:7 w:8] e[] ' +
@@ -36,7 +36,6 @@ try {
 	m.drop(g.findEdge(3,4));
 	assert(m,'[{a,n} {b,f} {g,y} {h,k} {i,j} {m,z}]','a7');
 
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError)
 		if (e.message.length > 0)

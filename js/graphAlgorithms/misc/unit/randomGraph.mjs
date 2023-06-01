@@ -13,7 +13,7 @@ import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../../dataStructures/graphs/Digraph.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing RandomGraph');
 
 	let g = randomGraph(10, 3);
 	console.log('sparse undirected graph\n', g.toString(1));
@@ -41,8 +41,6 @@ try {
 
 	g = randomFlograph(10, 3, 3, 1);
 	console.log('flow graph\n', g.toString(1));
-
-	console.log('passed tests');
 } catch(e) {
 	if (e instanceof AssertError)
 		if (e.message.length > 0)

@@ -10,7 +10,7 @@ import PathSet from '../PathSet.mjs';
 import { assert, AssertError } from '../../../common/Errors.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing PathSet');
 
 	let ps = new PathSet();
 
@@ -45,7 +45,6 @@ try {
 			'[d:2:0:0 *g:3:2:1 -]}', 'a13');
 	assert(ps.cost(1), 5, 'a14'); assert(ps.mincost(1), 5, 'a15');
 
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError)
 		if (e.message.length > 0)

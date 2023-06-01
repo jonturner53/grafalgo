@@ -11,7 +11,7 @@ import List from '../../basic/List.mjs';
 import OrderedHeaps from '../OrderedHeaps.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing OrderedHeaps');
 
 	let sh = new OrderedHeaps(10);
 	assert(sh.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}'),
@@ -57,7 +57,6 @@ try {
 	assert(sh,'{[c:7 *f:1 b:6 h:8 a:5] [j:13 *e:2] [d:8 *i:9 g:10]}', 'b8');
 	assert(!sh.verify(), 'b9' +sh.verify());
 
-	console.log('passed tests');
 } catch(e) {
 	if (e instanceof AssertError)
 		if (e.message.length > 0)

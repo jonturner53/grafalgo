@@ -10,7 +10,7 @@ import { assert, AssertError } from '../../../common/Errors.mjs';
 import DualKeySets from '../DualKeySets.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing DualKeySets');
 
 	let dk = new DualKeySets();
 	dk.fromString('{[b:2:21 a:1:23 d:4:20 c:3:27] ' +
@@ -35,7 +35,6 @@ try {
 			   '[g:7:30] [h:8:20 j:10:31] [i:7:27]}', 'a7');
 	assert(!dk.verify(), 'a8 ' + dk.verify());
 
-	console.log('passed tests');
 } catch(e) {
 	if (e instanceof AssertError)
 		if (e.message.length > 0)

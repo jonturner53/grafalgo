@@ -11,7 +11,7 @@ import Flograph from '../Flograph.mjs';
 import {randomFlograph} from '../../../graphAlgorithms/misc/RandomGraph.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing Digraph');
 
 	let g = new Flograph(6, 20);
 	assert(g.fromString('{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f[]}'),
@@ -35,8 +35,6 @@ try {
 						'd[f:2-4/2] e[f:3] ->f[]}'), 'a9');
 	assert(g,	'{a->[b:4@5/1 c:3/2] b[c:3@7 d:1-4@3/2] c[e:4] ' +
 				'd[f:2-4/2] e[f:3] ->f[]}', 'a10');
-
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError) {
 		if (e.message.length != 0)

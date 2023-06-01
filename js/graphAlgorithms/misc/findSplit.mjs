@@ -28,10 +28,10 @@ export default function findSplit(g) {
 			for (let e = g.firstAt(v); e != 0; e = g.nextAt(v,e)) {
 				let w = g.mate(v,e);
 				if (unreached[w]) {
-					if (split.in2(v)) split.swap(w);
+					if (split.in(v,2)) split.swap(w);
 					q.enq(w); unreached[w] = false;
-				} else if ( (split.in1(v) && split.in1(w)) ||
-					   		(split.in2(v) && split.in2(w))) {
+				} else if ( (split.in(v,1) && split.in(w,1)) ||
+					   		(split.in(v,2) && split.in(w,2))) {
 					return null;
 				}
 			}

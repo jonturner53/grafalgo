@@ -12,7 +12,7 @@ import Scanner from '../../basic/Scanner.mjs';
 import FibHeaps from '../FibHeaps.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing FibHeaps');
 
 	let fh = new FibHeaps(10);
 	for (let i = 1; i <= fh.n; i += 2) {
@@ -49,7 +49,6 @@ try {
 		   'c:3:2(j:10:0 h:8:0!) d:4:0]}', 'a8');
 	assert(!fh.verify(), 'v4 ' + fh.verify());
 
-	console.log('passed tests');
 } catch(e) {
 	if (e instanceof AssertError)
 		if (e.message.length > 0)

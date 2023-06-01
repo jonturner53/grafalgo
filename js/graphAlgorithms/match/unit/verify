@@ -1,0 +1,9 @@
+echo `pwd`
+node matching.mjs
+node blossoms.mjs
+node bimatch.mjs all
+node wbimatch.mjs all
+node match.mjs all
+node wmatch.mjs all
+node pmatch.mjs all
+node pbimatch.mjs all

@@ -11,7 +11,7 @@ import Digraph from '../Digraph.mjs';
 import {randomInteger} from '../../../common/Random.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing Graph');
 
 	let n = 8; let ecap = 30;
 	let g = new Digraph(n, ecap);
@@ -54,7 +54,6 @@ try {
 	g.fromString('{a[d:1 b:2] b[c:3] c[d:4] d[b:5 a:6] e[d:7 b:8 a:9]}');
 	assert(g, '{a[b:2 d:1] b[c:3] c[d:4] d[b:5 a:6] e[d:7 b:8 a:9]}', 'c3');
 
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError) {
 		if (e.message.length != 0)

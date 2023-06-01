@@ -1,0 +1,4 @@
+echo `pwd`
+node graph.mjs
+node digraph.mjs
+node flograph.mjs

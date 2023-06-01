@@ -13,7 +13,7 @@ import Matching from '../Matching.mjs';
 import Blossoms from '../Blossoms.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing Blossoms');
 
 	let g = new Graph(16); g.addWeights();
 	g.fromString(
@@ -48,11 +48,8 @@ try {
 	assert(bloss,'{{[A(!n p o)] [C(!B{g,k}(!e g f) k j{j,g})]} ' +
 				 ' {[a(b(c(d(C{e,d}) h(i))))] [l(m(A{n,m}))]}}', 'a6');
 	assert(bloss.outerGraph2string(),
-				'{a[b] b[a c] c[b d h] d[c C{d,s}] h[c i] i[C{s,i} h] l[m] ' +
-				'm[l A{m,q}] A[C{s,q} m{m,q}] C[d{d,s} i{s,i} A{s,q}]}', 'a6a');
-	assert(bloss.outerGraph2string(1),
 				'{a[b] b[a c] c[b d h] d[c C] h[c i] i[C h] l[m] ' +
-				'm[l A] A[C m] C[d i A]}', 'a6b');
+				'm[l A] A[C m] C[d i A]}', 'a6');
 	bloss.addBlossom(g.findEdge(7,9), 3);
 
 	assert(bloss,'{{[A(!n p o)] ' +
@@ -76,7 +73,6 @@ try {
 	assert(bloss,'{{[A(!a b c)]} {[A(d{d,c}(g(h(i))))]}', 'b4');
 	assert(bloss.verify(), '', 'b5');
 
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError)
 		if (e.message.length > 0)

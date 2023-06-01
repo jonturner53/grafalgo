@@ -109,8 +109,8 @@ function extendMatching(k, side) {
 	roots.clear();
 	for (let r = first[k]; r; r = plists.next(r)) {
 		if (!match.at(r) &&
-			(side == 1 && subsets.in1(r) ||
-			 side == 2 && subsets.in2(r) ? 1 : 0))
+			(side == 1 && subsets.in(r,1) ||
+			 side == 2 && subsets.in(r,2) ? 1 : 0))
 			roots.enq(r);
 		steps++;
 	}

@@ -597,7 +597,7 @@ export default class Blossoms extends Top {
 	}
 
 	/** Create a string version of the outer graph.  */
-	outerGraph2string(terse=0) {
+	outerGraph2string() {
 		let og = new Graph(this.n, this.g.edgeRange);
 		for (let e = this.g.first(); e; e = this.g.next(e)) {
 			let [u,v] = [this.g.left(e),this.g.right(e)];

@@ -10,7 +10,7 @@ import ReverseLists from '../ReverseLists.mjs';
 import { assert, AssertError } from '../../../common/Errors.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('testing ReverseLists');
 
 	let dl = new ReverseLists(8);
 
@@ -39,7 +39,6 @@ try {
 	dl.join(6, 11);
 	assert(dl, "{[e a c], [g b l], [f j k h i d]}", "c4");
 
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError)
 		if (e.message.length > 0)

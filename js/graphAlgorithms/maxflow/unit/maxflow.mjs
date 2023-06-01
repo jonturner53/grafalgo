@@ -43,11 +43,6 @@ let g = new Flograph(); g.fromString(
 			'h[f:3 i:4 j:5] i[g:5 j:6] ->j[]}');
 tester.addTest('small graph', g);
 
-tester.addTest('hardcase(2,10)', maxflowHardcase(2, 10));
-tester.addTest('hardcase(4,20)', maxflowHardcase(4, 20));
-tester.addTest('hardcase(8,40)', maxflowHardcase(8, 40));
-tester.addTest('hardcase(16,80)', maxflowHardcase(16, 80));
-
 g = randomFlograph(14, 5, 3, 1, 1); g.randomCapacities(randomInteger, 5, 15);
 tester.addTest('small random', g);
 
@@ -58,4 +53,9 @@ g = randomFlograph(152, 20, 20, 2, 2); g.randomCapacities(randomInteger, 1, 99);
 tester.addTest('large random', g);
 
 tester.run();
+
+tester.addTest('hardcase(2,10)', maxflowHardcase(2, 10));
+tester.addTest('hardcase(4,20)', maxflowHardcase(4, 20));
+tester.addTest('hardcase(8,40)', maxflowHardcase(8, 40));
+tester.addTest('hardcase(16,80)', maxflowHardcase(16, 80));
 

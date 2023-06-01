@@ -55,7 +55,7 @@ export default function wbimatchH(bg, subsets=0, traceFlag=0) {
 	}
 
 	// add unmatched vertices from first subset to free
-	for (let u = subsets.first1(); u; u = subsets.next1(u)) {
+	for (let u = subsets.first(1); u; u = subsets.next(u)) {
 		if (g.firstAt(u)) free.enq(u);
 		steps++;
 	}
@@ -82,7 +82,7 @@ export default function wbimatchH(bg, subsets=0, traceFlag=0) {
  */
 function initLabels(subsets) {
 	lab.fill(0);
-	for (let u = subsets.first1(); u != 0; u = subsets.next1(u)) {
+	for (let u = subsets.first(1); u != 0; u = subsets.next(u)) {
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			let v = g.mate(u,e);
 			if (lab[v] > lab[u] - g.weight(e))

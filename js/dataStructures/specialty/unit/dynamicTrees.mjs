@@ -10,7 +10,7 @@ import DynamicTrees from '../DynamicTrees.mjs';
 import { assert, AssertError } from '../../../common/Errors.mjs';
 
 try {
-	console.log('running basic tests');
+	console.log('Dynamic Trees');
 
 	let dt = new DynamicTrees();
 
@@ -41,7 +41,6 @@ try {
 			'{f[a:5:5:0] f[b:1:1:0] [(d:5:0:0 g:6:0:1 -) *e:7:5:2 -] ' +
 			'[(h:2:0:0 i:3:0:1 -) *f:2:2:0 c:4:2:0]}', 'a16');
 
-	console.log('passed tests');
 } catch(e) {
     if (e instanceof AssertError)
 		if (e.message.length > 0)

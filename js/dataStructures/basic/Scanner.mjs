@@ -139,6 +139,7 @@ export default class Scanner extends Top {
 	nextNumber() {
 		let s = this.#s; let n = s.length;
 		let i = this.firstNonSpace();
+		if (s.startsWith('Infinity',i)) return Infinity;
 		let value = parseFloat(s.slice(i, i+30));
 		if (Number.isNaN(value)) return NaN;
 		if (s[i] == '-' || s[i] == '+') {

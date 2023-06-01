@@ -1,0 +1,5 @@
+echo `pwd`
+node Forest.mjs
+node BinaryForest.mjs
+node BalancedForest.mjs
+node SplayForest.mjs
