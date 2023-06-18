@@ -12,8 +12,7 @@ import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import SplayForest from '../trees/SplayForest.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** Data structure representing a collection of paths.
  *
@@ -39,7 +38,7 @@ export default class PathSet extends SplayForest {
 	 *  @paran ps is a PathSet whose value is to be assigned to this
 	 */
 	assign(ps) {
-		fassert(ps == this || !(ps instanceof PathSet));
+		ea && assert(ps == this || !(ps instanceof PathSet));
 		if (ps == this || !(ps instanceof PathSet)) return;
 		super.assign(ps);
 		for (let u = 1; u <= this.n; u++) {

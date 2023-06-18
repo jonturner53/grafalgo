@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import FibHeaps from '../../dataStructures/heaps/FibHeaps.mjs';
 
@@ -15,12 +15,11 @@ import FibHeaps from '../../dataStructures/heaps/FibHeaps.mjs';
  *  @param s is a "source vertex" in g
  *  @param trace controls output of information about the internal  
  *  state of the computation; larger values produce more information
- *  @return a tuple [error, link, dist, ts, stats] where error is an empty
- *  string on success and an error string on failure, link[u] is the edge from
+ *  @return a tuple [link, dist, ts, stats] where link[u] is the edge from
  *  the parent of u to u in the spt rooted at s (or 0 if u unreachable);
  *  dist[u] is the shortest path distance from vertex s to vertex u
  *  (or infinity if u unreachable), ts is a trace string and stats is a
- *  statistics object.
+ *  statistics object; if g has negative edges, returns [].
  */
 export default function sptDf(g, s, trace=0) {
 	let link = new Int32Array(g.n+1); let ts = '';
@@ -39,7 +38,7 @@ export default function sptDf(g, s, trace=0) {
 		let u; [u, root] = h.deletemin(root);
 		inheap[u] = false; heapsize--;
 		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
-			if (g.length(e) < 0) assert(0, `negative edge ${g.e2s(e)}`);
+			if (g.length(e) < 0) return [];
 			let v = g.head(e);
 			if (dist[v] > dist[u] + g.length(e)) {
 				dist[v] = dist[u] + g.length(e); link[v] = e;

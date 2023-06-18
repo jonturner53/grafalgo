@@ -6,9 +6,10 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
+import Forest from '../../dataStructures/trees/Forest.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import components from '../misc/components.mjs';
 import nca from '../misc/nca.mjs';
@@ -25,7 +26,7 @@ let t;			// t of g (represented as graph)
  *  not connected), otherwise return an error message
  */
 export default function mstVerify(G, elist) {
-	// first initialize shared references to G and graph version of T
+	// first initialize shared references to G and graph version of mst
 	g = G;
 	t = new Graph(g.n, g.n-1);
 	for (let i = 0; i < elist.length; i++) {
@@ -71,23 +72,27 @@ function checkWeight(u=1, pu=u) {
 	if (pu == u) {
 		// define supporting data structures
 		// first, compute nca for all edges of g wrt subree rooted at u
-		let pairs = []; let enumber = []; let maxe = 0;
-		for (let e = g.first(); e != 0; e = g.next(e)) {
-			pairs.push([g.left(e), g.right(e)]); enumber.push(e);
-			maxe = Math.max(e, maxe);
+		// to do this, we first need to convert t to a Forest
+		let f = new Forest(t.n);
+		let q = new List(t.n); q.enq(u);
+		while (!q.empty()) {
+			let x = q.deq();
+			for (let e = t.firstAt(x); e; e = t.nextAt(x,e)) {
+				let y = t.mate(x,e);
+				if (!f.p(y)) { f.link(y,x); q.enq(y); }
+			}
 		}
-		let ncav = nca(t, u, pairs);
+		let ncav = nca(f, g);
 		// now use ncav to initialize edgeLists and firstEdge
-		edgeLists = new ListSet(maxe); firstEdge = new Int32Array(t.n+1);
-		for (let p = 0; p < pairs.length; p++) {
-			let w = ncav[p]; let e = enumber[p];  // w is nca of e's endpoints
-			firstEdge[w] = edgeLists.join(firstEdge[w], e);
+		edgeLists = new ListSet(g.edgeRange); firstEdge = new Int32Array(t.n+1);
+		for (let e = g.first(); e; e = g.next(e)) {
+			let w = ncav[e]; firstEdge[w] = edgeLists.join(firstEdge[w], e);
 		}
 		a = new Int32Array(g.n+1);
 		mw = new Int32Array(g.n+1);
 	}
 	// tree traversal
-	for (let e = t.firstAt(u); e != 0; e = t.nextAt(u, e)) {
+	for (let e = t.firstAt(u); e; e = t.nextAt(u, e)) {
 		let v = t.mate(u, e); if (v == pu) continue;
 		a[v] = u; mw[v] = t.weight(e);
 		let s = checkWeight(v, u);
@@ -96,12 +101,12 @@ function checkWeight(u=1, pu=u) {
 
 	// now check edges joining vertices in different subtrees of u,
 	// or that join a subtree to u
-	for (let e = firstEdge[u]; e != 0; e = edgeLists.next(e)) {
+	for (let e = firstEdge[u]; e; e = edgeLists.next(e)) {
 		let m = Math.max( max_wt(g.left(e), u, a, mw),
 			 			  max_wt(g.right(e), u, a, mw) );
 		// m is the max weight on the tree path joining endpoints of e
 		if (m > g.weight(e)) {
-			return `mstVerify: cheap cross-edge ${e}=${g.edge2string(e)} in g`
+			return `mstVerify: cheap cross-edge ${e}=${g.e2s(e)} in g`
 		}
 	}
 	return ''; // all edges joining vertices in u's subtree are more

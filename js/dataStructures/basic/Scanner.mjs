@@ -8,8 +8,7 @@
 
 import Top from '../Top.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** The Scanner class provides methods to parse a string incrementally.
  */

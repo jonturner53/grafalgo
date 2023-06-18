@@ -7,29 +7,34 @@
  */
 
 import nca from '../Nca.mjs';
+import Forest from '../../../dataStructures/trees/Forest.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
-import { assert, AssertError } from '../../../common/Errors.mjs';
+import { AssertFail } from '../../../common/Assert.mjs';
+import { matches, Mismatch } from '../../../common/Testing.mjs';
 
 try {
 	console.log('testing nca');
 
-	let t = new Graph(12);
-	t.fromString('{a[b c d] b[a e f] c[a g] d[a h i] e[b] f[b k l] ' +
-				 'g[c] h[d j] i[d] j[h] k[f] l[f]}');
+	let f = new Forest();
+	f.fromString('{[a(b(c d) e)] [f(g h i(j k))]}');
+	let g = new Graph();
+	g.fromString('{b[d e j] c[d e f] g[h j] h[k] j[k]}');
+	let ncav = nca(f,g);
 
-	let ncav = nca(t, 1, [[4, 6], [5, 12], [9, 10]]);
-	assert(t.ilist2string(ncav), '[a b d]', 'a1');
-	ncav = nca(t, 10, [[4, 6], [5, 12], [9, 10]]);
-	assert(t.ilist2string(ncav), '[d b j]', 'a2');
-	ncav = nca(t, 2, [[4, 6], [5, 12], [9, 10]]);
-	assert(t.ilist2string(ncav), '[b b d]', 'a3');
-	
+	let e = g.findEdge(2,4);   matches(ncav[e], 2, 'a1');
+		e = g.findEdge(2,5);   matches(ncav[e], 1, 'a2');
+		e = g.findEdge(2,10);  matches(ncav[e], 0, 'a3');
+		e = g.findEdge(3,4);   matches(ncav[e], 2, 'a4');
+		e = g.findEdge(3,5);   matches(ncav[e], 1, 'a5');
+		e = g.findEdge(7,10);  matches(ncav[e], 6, 'a6');
+		e = g.findEdge(10,11); matches(ncav[e], 9, 'a7');
 } catch(e) {
-    if (e instanceof AssertError)
-		if (e.message.length > 0)
-        	console.log(e.name + ': ' + e.message);
-		else
-			console.error(e.stack);
-    else
+	if (e instanceof Mismatch) {
+        console.log(e.name + ': ' + e.message);
+    } else if (e instanceof AssertFail) {
+        console.error(e.stack);
+    } else {
         throw(e);
+    }
 }
+

@@ -6,27 +6,28 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError } from '../../../common/Errors.mjs';
+import { AssertFail } from '../../../common/Assert.mjs';
+import { matches, Mismatch } from '../../../common/Testing.mjs';
 import Forest from '../Forest.mjs';
 
 try {
 	console.log('testing Forest');
 
 	let f = new Forest();
-	assert(f.fromString('{[a(b(c d) e)] [f(g h i(j k))]}'), 'a0');
-	assert(f, '{[a(b(c d) e)] [f(g h i(j k))]}', 'a1');
-	assert(f.firstChild(2), 3, 'a2');
-	assert(f.firstChild(3), 0, 'a3');
-	assert(f.nextSibling(2), 5, 'a4');
+	matches(f.fromString('{[a(b(c d) e)] [f(g h i(j k))]}'), true, 'a0');
+	matches(f, '{[a(b(c d) e)] [f(g h i(j k))]}', 'a1');
+	matches(f.firstChild(2), 3, 'a2');
+	matches(f.firstChild(3), 0, 'a3');
+	matches(f.nextSibling(2), 5, 'a4');
 	f.cut(2); f.link(2,8);
-	assert(f, '{[a(e)] [f(g h(b(c d)) i(j k))]}', 'a5');
+	matches(f, '{[a(e)] [f(g h(b(c d)) i(j k))]}', 'a5');
 	f.rotate(7,8);
-	assert(f, '{[a(e)] [f(h(b(c d)) i(j k) g)]}', 'a6');
+	matches(f, '{[a(e)] [f(h(b(c d)) i(j k) g)]}', 'a6');
 	f.expand(14);
 	f.link(13,14);
-	assert(f, '{[a(e)] [f(h(b(c d)) i(j k) g)] [n(m)]}', 'a7');
+	matches(f, '{[a(e)] [f(h(b(c d)) i(j k) g)] [n(m)]}', 'a7');
 	f.joinGroups(1,14); f.joinGroups(1,12);
-	assert(f, '{[a(e) n(m) l] [f(h(b(c d)) i(j k) g)]}', 'a8');
+	matches(f, '{[a(e) n(m) l] [f(h(b(c d)) i(j k) g)]}', 'a8');
 
 	f.clear();
 	let prop = new Array(7);
@@ -40,18 +41,17 @@ try {
 							prop[u] = p;
 							return true;
 						});
-	assert(prop[1], 1, 'd1'); assert(prop[2], 2, 'd2');
-	assert(prop[3], 3, 'd3'); assert(prop[4], 4, 'd4');
-	assert(prop[5], 5, 'd5'); assert(prop[6], 6, 'd6');
-	assert(f, '{[a(b(c d) e)] [f]}', 'd7');
+	matches(prop[1], 1, 'd1'); matches(prop[2], 2, 'd2');
+	matches(prop[3], 3, 'd3'); matches(prop[4], 4, 'd4');
+	matches(prop[5], 5, 'd5'); matches(prop[6], 6, 'd6');
+	matches(f, '{[a(b(c d) e)] [f]}', 'd7');
 
 } catch(e) {
-    if (e instanceof AssertError) {
-        console.error(`${e.name}: ${e.message}`);
-		if (e.message.length == 0 || e.message.startsWith('fatal:'))
-			console.error(e.stack);
-    } else {
-        console.error(`${e.message}`);
+    if (e instanceof Mismatch) {
+        console.log(e.name + ': ' + e.message);
+	} else if (e instanceof AssertFail) {
 		console.error(e.stack);
+	} else {
+        throw(e);
 	}
 }

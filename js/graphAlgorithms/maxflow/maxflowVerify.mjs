@@ -15,7 +15,7 @@ import augment from './augment.mjs';
  *  @return the empty string if the flow on g is a maximum flow,
  *  or an error message, if it is not.
  */
-export default function maxflowVerify(g) {
+export function maxflowVerify(g) {
 	for (let u = 1; u <= g.n; u++) {
 		if (u == g.source || u == g.sink) continue;
 		let s = 0;

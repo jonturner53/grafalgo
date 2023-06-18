@@ -7,12 +7,13 @@
  */
 
 import Top from '../../dataStructures/Top.mjs';
-import { fassert } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Forest from '../../dataStructures/trees/Forest.mjs';
 import BalancedForest from '../../dataStructures/trees/BalancedForest.mjs';
+import nca from '../misc/nca.mjs';
 
 /** Data structure representing a collection of blossoms for use in
  *  Edmonds algorithm for weighted matching.
@@ -54,6 +55,8 @@ export default class Blossoms extends Top {
 		this.#outerMethod = outerMethod;
 
 		this.#bsf = new Forest(this.n);
+
+this.cnt = 0;
 
 		this.#base = new Int32Array(this.n+1);
 		for (let i = 0; i <= this.g.n; i++) this.#base[i] = i;
@@ -245,6 +248,17 @@ export default class Blossoms extends Top {
 	 */
 	nextSub(s) { return this.#bsf.nextSibling(s); }
 
+	/** Get the size of a blossom.
+	 *  @param B is a blossom
+	 *  @return the number of vertices within B
+	 */
+	blossomSize(B) {
+		let k = 0;
+		for (let u = this.firstIn(B); u; u = this.nextIn(B,u))
+			k++;
+		return k;
+	}
+
 	/** Add a branch to a matching tree.
 	 *  @param e is an outer edge
 	 *  @param v is an endpoint of e in an unbound blossom
@@ -370,7 +384,7 @@ export default class Blossoms extends Top {
 	 *  calls on this object, so it should be used with care
 	 */
 	expandOdd(B) {
-		fassert(B > this.g.n && this.state(B) == '-1');
+		ea && assert(B > this.g.n && this.state(B) == '-1');
 		let [subs,bBsub] = this.deconstruct(B);
 			// bBsub is sub-blossom in subs that contained base(B) before B
 			// B was deconstructed
@@ -476,7 +490,8 @@ export default class Blossoms extends Top {
 		let sub = bBsub; let even = true; let first = true;
 		while (first || sub != bBsub) {
 			if (first) first = false;
-			let next = (subs.next(sub) ? subs.next(sub) : subs.first());
+			let next = (subs.next(sub) ? subs.next(sub) :
+										 subs.first());
 			let [v,e] = this.link(sub);
 			if (this.match.contains(e))
 				this.match.drop(e);
@@ -489,6 +504,58 @@ export default class Blossoms extends Top {
 		}
 	}
 
+	/** Revise the matching within a blossom to make it consistent
+ 	 *  with outer graph or parent blossom.
+	 *  @param b is a blossom; on return, the matching edges within
+	 *  b are consistent with base(b)
+	 */
+	rematch(b) {
+		if (b <= this.g.n) return;
+		let bb = this.base(b);
+		while (this.parent(bb) != b) bb = this.parent(bb);
+			// note: may be inefficient in worst case,
+			// but ok if use of rematch is suitably limited
+		let firstSub = this.firstSub(b);
+		let first = true; let even = true; let next;
+		for (let sub = bb; first || sub != bb; sub = next) {
+			next = this.nextSub(sub) ? this.nextSub(sub) :
+									   firstSub;
+			if (first) first = false;
+			let [u,e] = this.link(sub);
+			if (even && this.match.contains(e)) {
+				this.match.drop(e);
+			}
+			if (!even) {
+				if (this.match.contains(e)) this.match.drop(e);
+					// this needed to ensure consistency of match
+				this.match.add(e);
+				this.base(sub,u); this.rematch(sub);
+				let v = this.g.mate(u,e);
+				this.base(next,v); this.rematch(next);
+			}
+			even = !even;
+		}
+		this.base(bb,this.base(b)); this.rematch(bb);
+	}
+
+	/** Apply rematch to all outer blossoms */
+	rematchAll() {
+    	for (let B = this.firstOuter(); B; B = this.nextOuter(B)) {
+       		this.rematch(B);
+		}
+	}
+
+	/** Compute the nearest common blossom ancestor.
+	 *  @return array ncba mapping each edge e in g to  ncba[e={u,v}],
+	 *  which is the nearest common ancestor of u and v in the blossom
+	 *  structure forest.
+	 */
+	ncba() {
+		let ncba = new Int32Array(this.n+1);
+		ncba = nca(this.#bsf, this.g);
+		return ncba;
+	}
+
 	/** Determine if two Blossoms objects are equal.
 	 */
 	equals(other) {
@@ -496,7 +563,7 @@ export default class Blossoms extends Top {
 		if (typeof other == 'string') {
 			let s = other;
 			other = new Blossoms(this.g, this.match);
-			fassert(other.fromString(s), 
+			ea && assert(other.fromString(s), 
 					'Blossoms.fromString cannot parse ' + s); 
 			if (!other.fromString(s)) return s == this.toString();
 		}

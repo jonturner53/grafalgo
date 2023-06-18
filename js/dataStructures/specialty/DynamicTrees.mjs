@@ -10,8 +10,7 @@ import Top from '../Top.mjs';
 import Forest from '../trees/Forest.mjs';
 import PathSet from './PathSet.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 let spliceTime;
 
@@ -39,7 +38,7 @@ this.spliceTime = 0;
 	 *  a single path.
 	 */
 	expose(u) {
-		//fassert(this.valid(u));
+		ea && assert(this.valid(u));
 		this.exposes++;
 		let [p,s] = [0,u];
 		while (s != 0) {
@@ -71,7 +70,7 @@ this.spliceTime = 0;
 	 *  @return the root of the tree containing u
 	 */
 	findroot(u) {
-		//fassert(this.valid(u));
+		ea && assert(this.valid(u));
 		let p = this.expose(u);
 		let x = this.findtail(p);
 		this.succ(x, 0); // works because x is now both tail and path id
@@ -96,7 +95,7 @@ this.spliceTime = 0;
 	 *  path from u to the tree root
 	 */
 	addcost(u, c) {
-		//fassert(this.valid(u));
+		ea && assert(this.valid(u));
 		this.addpathcost(this.expose(u), c);
 	}
 	
@@ -107,7 +106,7 @@ this.spliceTime = 0;
 	 *  a subtree of u
 	 */
 	graft(t, u) {
-		//fassert(this.valid(t) && this.valid(u));
+		ea && assert(this.valid(t) && this.valid(u));
 		let p = this.expose(u); // id of path from u to tree root
 		let sp = this.succ(p);
 		this.succ(this.join(0, this.expose(t), p), sp);
@@ -118,7 +117,7 @@ this.spliceTime = 0;
 	 *  The operation removes the edge from u to its parent.
 	 */
 	prune(u) {
-		//fassert(this.valid(u));
+		ea && assert(this.valid(u));
 		let v = this.succ(this.findpath(u));
 		let [p,q] = this.split(u);
 		if (p != 0) this.succ(p, u);

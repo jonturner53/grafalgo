@@ -12,15 +12,15 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 /** Compute min spanning tree of a graph using Prim's algorithm.
  *  @param g is weighted graph
- *  @param trace controls the amount of trace output produced, larger
- *  values produce more output
  *  @param d is an optional argument that specfies the base of the border
  *  heap; the default value is 2+floor(g.m/g.n)
+ *  @param trace controls the amount of trace output produced, larger
+ *  values produce more output
  *  @return a tuple [treeEdges, traceString, stats] where treeEdges is an array
  *  listing the edges in the mst (or forest), traceString is a trace string
  *  and stats is a statistics object
  */
-export default function mstP(g, trace=0, d=2+Math.floor(g.m/g.n)) {
+export default function mstP(g, d=2+Math.floor(g.m/g.n), trace) {
 	let traceString = '';
 	if (trace) {
 		traceString += g.toString(1) + '\n' +

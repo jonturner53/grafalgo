@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
+import { assert } from '../../common/Assert.mjs';
 import findSplit from '../misc/findSplit.mjs';
 import Matching from '../match/Matching.mjs';
 import bimatchHK from '../match/bimatchHK.mjs';
@@ -31,6 +31,7 @@ export default function mdmatchG(g, trace=0) {
 	// initialize supporting data structures
 	let degree = new Int32Array(g.n+1);
 	let subsets = findSplit(g);
+	if (!subsets) return [];
 	let steps = g.n + g.m;
 	let Delta = 0;
 	for (let u = 1; u <= g.n; u++) {
@@ -41,31 +42,32 @@ export default function mdmatchG(g, trace=0) {
 
 	let traceString = '';
 
-	let xg = new Graph(g.n,g.m); // scratch graph
+	let xg1 = new Graph(g.n,g.edgeRange); // scratch graph
 	if (trace) 
 		traceString += `graph: ${g.toString()}\n`;
 
-	// compute subgraph xg that includes all edges incident to max degree
+	// compute subgraph xg1 that includes all edges incident to max degree
 	// vertices in first subset of bipartition; then get its matching
 	for (let e = g.first(); e; e = g.next(e)) {
 		let [u,v] = [g.left(e),g.right(e)];
-		if (degree[subsets.in1(u) ? u : v] != Delta) continue;
-		xg.join(u,v,e); steps++;
+		if (degree[subsets.in(u,1) ? u : v] != Delta) continue;
+		//xg1.join(u,v,e); steps++;
+		xg1.join(u,v,e); steps++;
 	}
 		
-	let [xmatch1,,stats1] = bimatchHK(xg,0,subsets);
+	let [xmatch1,,stats1] = bimatchHK(xg1,subsets);
 	steps += stats1.steps;
 	if (trace)
 		traceString += `first matching: ${xmatch1.toString()}\n`;
 
-	// repeat xg for xmatch2;
-	xg.clear();
+	// repeat xmatch2;
+	let xg2 = new Graph(g.n,g.edgeRange); // scratch graph
 	for (let e = g.first(); e; e = g.next(e)) {
 		let [u,v] = [g.left(e),g.right(e)];
-		if (degree[subsets.in2(u) ? u : v] != Delta) continue;
-		xg.join(u,v,e); steps++;
+		if (degree[subsets.in(u,2) ? u : v] != Delta) continue;
+		xg2.join(u,v,e); steps++;
 	}
-	let [xmatch2,,stats2] = bimatchHK(xg,0,subsets);
+	let [xmatch2,,stats2] = bimatchHK(xg2,subsets);
 	steps += stats2.steps;
 	if (trace)
 		traceString += `second matching: ${xmatch2.toString()}\n`;
@@ -108,7 +110,7 @@ export default function mdmatchG(g, trace=0) {
 
 	if (trace)
 		traceString += `final matching: ${match.toString()}\n`;
-	return [match,traceString,{'steps': steps}];
+	return [match,traceString,{'size': match.size(), 'steps': steps}];
 }
 
 /** Select the "start" vertex of a component of xmatch1 xor xmatch2.

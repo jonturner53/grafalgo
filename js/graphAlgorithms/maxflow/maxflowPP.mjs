@@ -8,7 +8,7 @@
 
 import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import { fassert } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** Common code shared by various instances of the preflow-push
  *  algorithm of Goldman and Tarjan.
@@ -159,7 +159,7 @@ export function relabelAll() {
 		}
 	}
 
-	fassert(d[g.source] >= g.n, 'relabelAll: source-to-sink path present');
+	ea && assert(d[g.source] >= g.n, 'relabelAll: source-to-sink path present');
 
 	// compute distance labels for remaining vertices
 	q.enq(g.source); d[g.source] = g.n;

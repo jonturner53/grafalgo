@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, fassert } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import Matching from './Matching.mjs';
 import bimatchHK from './bimatchHK.mjs';
 import List from '../../dataStructures/basic/List.mjs';
@@ -40,20 +40,12 @@ let steps;       // total number of steps
  *  object; ts is a possibly empty trace string
  *  and stats is a statistics object
  *  @exceptions throws an exception if graph is not bipartite
-
-Possible refinement.
-Instead of Dinic, use preflow-push with a relabeling threshold of m.
-This might reduce the total number of batch relabelings to sqrt(n) total,
-as opposed to sqrt(n) per priority class. Possible issue. We need to
-alternate direction for each priority class. Can we maintain level
-function for both directions?
-
  */
-export default function priorityBimatchHK(g0, priority0, traceFlag=false,
-										  subsets0=null) {
-	g = g0;
-	priority = priority0;
-	subsets = subsets0;
+export default function priorityBimatchHK(g0, priority0, subsets0=null,
+										  traceFlag=false) {
+	g = g0; priority = priority0; subsets = subsets0;
+
+	match = new Matching(g);
 	link = new Int32Array(g.n+1);
 	level = new Int32Array(g.n+1);
 	nextedge = new Int32Array(g.n+1);
@@ -65,18 +57,12 @@ export default function priorityBimatchHK(g0, priority0, traceFlag=false,
 
 	// divide vertices into two independent sets
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
-	assert(subsets != null, "bimatchHK: graph not bipartite");
+	if (!subsets) return [];
 
 	// find max size matching
-	let stats0;
-	[match,,stats0] = bimatchHK(g, false, subsets);
-	steps += stats0.steps;
-
-	if (trace) {
-		traceString += g.toString(1,0,u => g.x2s(u) + ':' + priority[u]) +
-					   `initial matching: ${match.toString()}\n` +
-					   `augmenting paths\n`;
-	}
+	//let stats0;
+	//[match,,stats0] = bimatchHK(g, subsets, false);
+	//steps += stats0.steps;
 
 	// Create separate list for each priority class.
 	plists = new ListSet(g.n);
@@ -88,6 +74,28 @@ export default function priorityBimatchHK(g0, priority0, traceFlag=false,
 	}
 	steps += g.n;
 
+	// build initial matching with pretty good priority score
+	for (let k = pmax; k; k--) {
+		steps++;
+		if (!first[k]) continue;
+		for (let u = first[k]; u; u = plists.next(u)) {
+			steps++;
+			if (match.at(u)) continue;
+			for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
+				steps++;
+				if (!match.at(g.mate(u,e))) {
+					match.add(e); break;
+				}
+			}
+		}
+	}
+
+	if (trace) {
+		traceString += g.toString(1,0,u => g.x2s(u) + ':' + priority[u]) +
+					   `initial matching: ${match.toString()}\n` +
+					   `augmenting paths\n`;
+	}
+
 	for (let k = pmax; k; k--) {
 		if (!first[k]) continue;
 		extendMatching(k, 1); extendMatching(k, 2);
@@ -96,8 +104,12 @@ export default function priorityBimatchHK(g0, priority0, traceFlag=false,
 	if (trace)
 		traceString += `final matching: ${match.toString()}\n`;
 		
+	let psum = 0;
+	for (let u = 1; u <= g.n; u++) 
+		if (match.at(u)) psum += priority[u];
     return [match, traceString,
-			{'phases': phases, 'paths': paths, 'steps': steps}];
+				{ 'size': match.size(), 'psum': psum,
+		  		  'phases': phases, 'paths': paths, 'steps': steps}];
 }
 
 /** Extend the matching for specified priority and direction.
@@ -110,7 +122,7 @@ function extendMatching(k, side) {
 	for (let r = first[k]; r; r = plists.next(r)) {
 		if (!match.at(r) &&
 			(side == 1 && subsets.in(r,1) ||
-			 side == 2 && subsets.in(r,2) ? 1 : 0))
+			 side == 2 && subsets.in(r,2)))
 			roots.enq(r);
 		steps++;
 	}
@@ -120,11 +132,11 @@ function extendMatching(k, side) {
 		let r = roots.first();
 		while (r) {
 			link[r] = 0;
-			let u = findpath(r,k);
-			if (u == 0) {
+			let [u,e] = findpath(r,k);
+			if (!u) {
 				r = roots.next(r);
 			} else {
-				augment(u); r = roots.delete(r); paths++;
+				augment(u,e); r = roots.delete(r); paths++;
 			}
 			steps++;
 		}
@@ -137,75 +149,92 @@ function extendMatching(k, side) {
  */
 function newPhase(k) {
 	for (let u = 1; u <= g.n; u++) {
-		level[u] = g.n; nextedge[u] = g.firstAt(u); steps++;
+		level[u] = g.n+1; nextedge[u] = g.firstAt(u); steps++;
 	}
 	q.clear();
 	for (let u = roots.first(); u; u = roots.next(u)) {
 		level[u] = 0; q.enq(u); steps++;
 	}
-	let stopLevel = g.n; // used to terminate early
+	let stopLevel = g.n+1; // used to terminate early
 	// label each vertex with its distance from the nearest root
 	// in matching forest
 	while (!q.empty()) {
-		let u = q.deq(); // u is a root
+		let u = q.deq(); // u is in root subset
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			steps++;
 			if (e == match.at(u)) continue;
 			let v = g.mate(u,e); // v in "non-root" subset
-			if (level[v] != g.n) continue;
+			if (level[v] != g.n+1) continue;
 			// first time we've seen v
 			level[v] = level[u] + 1; 
-			let ee = match.at(v);  fassert(ee,g.e2s(ee));
+			let ee = match.at(v);
+			if (!ee) {
+				// there's an augmenting path from v back to a root
+				if (stopLevel == g.n+1) stopLevel = level[v] + 1;
+				continue;
+			}
+			// ee in matching
 			let w = g.mate(v,ee);
 			level[w] = level[v] + 1;
 			if (priority[w] < k) stopLevel = level[w];
 			if (level[w] != stopLevel) q.enq(w);
 		}
 	}
-	return (stopLevel != g.n);
+	return (stopLevel <= g.n);
 }
 
-/** Find an augmenting path from specified vertex.
+/** Find an augmenting or priority-incresing path from a
+ *  specified vertex.
  *  @param u is a vertex in the first subset
- *  @return an unmatched vertex in the second subset, or 0 if there is no
- *  admissible path to such a vertex in the current phase;
- *  on successful return, the link array defines
- *  the augmenting path from the returned vertex back to u
+ *  @return the endpoint of of an augmenting or priority-increasing
+ *  path or 0 if there is no admissible path to such a vertex in
+ *  the graph defined by the level values;  on successful return,
+ *  the link array defines the path from the returned vertex back to u
  */
 function findpath(u,k) {
 	for (let e = nextedge[u]; e; e = g.nextAt(u,e)) {
 		steps++;
 		let v = g.mate(u,e);
 		if (level[v] != level[u] + 1) continue;
-		let ee = match.at(v); fassert(ee,g.e2s(ee));
+		link[v] = e;
+		let ee = match.at(v);
+		if (!ee) {
+			// there's an augmenting path to v
+			nextedge[u] = e; link[v] = e; return [v,e];
+		}
+		// ee is in matching
 		let w = g.mate(v,ee);
 		if (level[w] != level[v] + 1) continue;
 		if (priority[w] < k) {
-			nextedge[u] = e; link[v] = e; link[w] = ee; return w;
+			nextedge[u] = e; link[v] = e; link[w] = ee; return [w,ee];
 		}
-		let x = findpath(w,k);
+		let [x,elast] = findpath(w,k);
 		if (x) {
-			nextedge[u] = e; link[v] = e; link[w] = ee; return x;
+			nextedge[u] = e; link[v] = e; link[w] = ee; return [x,elast];
 		}
 	}
-	nextedge[u] = 0; return 0;
+	nextedge[u] = 0; return [];
 }
 
-/** Flip the edges along an augmenting path
- *  @param u is an endpoint of an augmenting path; the edges in
- *  the path can be found using the link pointers
+/** Flip the edges along an augmenting or priority-increasing path
+ *  @param u is last endpoint of a path found by findpath
+ *  @param e is the last edge on the path.
  */
-function augment(u) {
+function augment(u,e) {
 	let ts = '';
-	if (trace) ts += g.x2s(u);
+	if (!match.contains(e)) {
+		// extra step for augmenting path
+		if (trace) ts += `${g.e2s(e)} ${g.x2s(u)}`
+		match.add(e); u = g.mate(u,e);
+	} else if (trace) {
+		ts += g.x2s(u);
+	}
 	while (link[u]) {
 		steps++;
-		let e = link[u];
-		let v = g.mate(u,e); match.drop(e);
+		e = link[u]; u = g.mate(u,e); match.drop(e);
 		if (trace) ts = `${g.e2s(e)} ${ts}`;
-		let ee = link[v]; match.add(ee);
-		u = g.mate(v,ee);
-		if (trace) ts = `${g.e2s(ee)} ${ts}`;
+		e = link[u]; u = g.mate(u,e); match.add(e);
+		if (trace) ts = `${g.e2s(e)} ${ts}`;
 	}
 	if (trace) traceString += `[${ts}]\n`;
 }

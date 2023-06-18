@@ -11,8 +11,7 @@ import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** This class implements a generic binary tree class.
  *  It partitions the index set into multiple trees.
@@ -111,8 +110,8 @@ export default class BinaryForest extends Top {
 	 * @return the property of t
 	 */
 	property(t, p=-1) {
-		fassert(this.isroot(t)
-				/*, `BinaryForest.property: ${this.x2s(t)} ${this.#p[t]}`*/);
+		ea && assert(this.isroot(t),
+					 `BinaryForest.property: ${this.x2s(t)} ${this.#p[t]}`);
 		if (p >= 0) this.#p[t] = -p;
 		return -this.#p[t]
 	}
@@ -237,7 +236,7 @@ export default class BinaryForest extends Top {
 	 *  -1 means left, +1 means right and 0 means don't care
 	 */
 	link(u,v,side=0) {
-		fassert(v != 0);
+		ea && assert(v != 0);
 		if (u) this.p(u,v);
 		if (side < 0) {
 			this.left(v,u);
@@ -266,8 +265,8 @@ export default class BinaryForest extends Top {
 	 *  @return the root of the resuling tree
 	 */
 	insertAfter(u, t=this.root(v), v, refresh=0) {
-		fassert(v || t /*, 'BinaryForest:insertAfter: either v or t must ' +
-					    'be defined'*/);
+		ea && assert(v || t, 
+					 'BinaryForest:insertAfter: either v or t must be defined');
 		if (t == u) return u;
 		if (!v)
 			this.link(u, this.first(t), -1);
@@ -371,7 +370,7 @@ export default class BinaryForest extends Top {
 	 *  the left of u and t2 has the nodes that were to the right of u
 	 */
 	split(u, refresh=0) {
-		fassert(this.valid(u));
+		ea && assert(this.valid(u));
 		let v = u; let p = this.p(v);
 		let [l,r] = [this.left(v), this.right(v)];
 		while (p > 0) {

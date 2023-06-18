@@ -12,8 +12,7 @@ import ListSet from '../basic/ListSet.mjs';
 import BinaryForest from '../trees/BinaryForest.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** This class implements a data structure consisting of a disjoint
  *  set of leftist heaps.
@@ -115,8 +114,8 @@ export default class LeftistHeaps extends BinaryForest {
 	 */
 	insert(i, h, k) {
 		this.insertCount++;
-		fassert(this.valid(i) && this.valid(h));
-		fassert(this.left(i) == 0 && this.right(i) == 0 && this.rank(i) == 1);
+		ea && assert(this.valid(i) && this.valid(h));
+		ea && assert(this.left(i) == 0 && this.right(i) == 0 && this.rank(i) == 1);
 		this.key(i, k);
 		return this.meld(i, h);
 	}

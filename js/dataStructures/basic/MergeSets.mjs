@@ -11,8 +11,7 @@ import ListSet from './ListSet.mjs';
 import Scanner from './Scanner.mjs';
 import Forest from '../trees/Forest.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** Sets data structure maintains a collection of disjoint
  *  sets over the integers 1..N for some positive integer N. Allows
@@ -50,7 +49,7 @@ export default class MergeSets extends Top {
 	 *  @param other is a ListSets object.
 	 */
 	importFrom(other) {
-		fassert(other.constructor.name == 'ListSet');
+		ea && assert(other.constructor.name == 'ListSet');
 		if (this.n != other.n) this.reset(other.n);
 		else this.clear();
 		for (let i = 0; i <= this.n; i++) {
@@ -93,7 +92,7 @@ export default class MergeSets extends Top {
 	 */
 	find(i) {
 		this.finds++;
-		fassert(this.valid(i));
+		ea && assert(this.valid(i));
 		let root;
 		for (root = i; this.p(root) != root; root = this.p(root)) {
 			this.steps++;
@@ -110,7 +109,7 @@ export default class MergeSets extends Top {
 	 */
 	merge(i, j) {
 		this.merges++;
-		fassert(this.valid(i) && this.valid(j) &&
+		ea && assert(this.valid(i) && this.valid(j) &&
 			   this.p(i) == i && this.p(j) == j && i != j);
 		if (this.rank(i) < this.rank(j)) {
 			let t = i; i = j; j = t;
@@ -126,7 +125,7 @@ export default class MergeSets extends Top {
 	 *  @return the canonical element of the set containing i
 	 */
 	findroot(i) {
-		fassert(this.valid(i));
+		ea && assert(this.valid(i));
 		if (i == this.p(i)) return(i);
 		else return this.findroot(this.p(i));
 	}

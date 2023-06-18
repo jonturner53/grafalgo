@@ -7,7 +7,6 @@
  */
 
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import { assert } from '../../common/Errors.mjs';
 
 /** Compute maximum flow in graph with positive minimum flow requirements.
  *  @param g is Flograph with lower bounds, possibly with some initial flow.

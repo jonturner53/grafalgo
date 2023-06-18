@@ -6,7 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError} from '../../../common/Errors.mjs';
+import { AssertFail } from '../../../common/Assert.mjs';
+import { matches, Mismatch } from '../../../common/Testing.mjs';
 import Scanner from '../../../dataStructures/basic/Scanner.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import Matching from '../Matching.mjs';
@@ -24,38 +25,38 @@ try {
 
 	let match = new Matching(g);
 	match.fromString('[{b,c} {d,e} {f,g} {j,k} {h,i} {m,n} {o,p}]');
-	assert(match,'[{b,c,1} {d,e,8} {f,g,7} {j,k,3} {h,i,4} {m,n,3} {o,p,2}]',
+	matches(match,'[{b,c,1} {d,e,8} {f,g,7} {j,k,3} {h,i,4} {m,n,3} {o,p,2}]',
 				 'a1');
 	let bloss = new Blossoms(g,match);
 	bloss.fromString('{{} {[l(m(n(o(p))))]}}');
-	assert(bloss,'{{} {[l(m(n(o(p))))]}}', 'a1');
+	matches(bloss,'{{} {[l(m(n(o(p))))]}}', 'a1');
 	bloss.addBlossom(g.findEdge(14,16), 14);
-	assert(bloss,'{{[A(!n p o)]} {[l(m(A{n,m}))]}}', 'a2');
+	matches(bloss,'{{[A(!n p o)]} {[l(m(A{n,m}))]}}', 'a2');
 	bloss.addBranch(g.findEdge(1,2),2);
 	bloss.addBranch(g.findEdge(3,4),4);
 	bloss.addBranch(g.findEdge(5,6),6);
-	assert(bloss,'{{[A(!n p o)]} {[a(b(c(d(e(f(g))))))] [l(m(A{n,m}))]}}',
+	matches(bloss,'{{[A(!n p o)]} {[a(b(c(d(e(f(g))))))] [l(m(A{n,m}))]}}',
 				 'a3');
 	bloss.addBlossom(g.findEdge(5,7), 5);
-	assert(bloss, '{{[B(!e g f)] [A(!n p o)]} ' +
+	matches(bloss, '{{[B(!e g f)] [A(!n p o)]} ' +
 				  ' {[a(b(c(d(B{e,d}))))] [l(m(A{n,m}))]}', 'a4');
 	bloss.addBranch(g.findEdge(3,8),8);
 	bloss.addBranch(g.findEdge(7,10),10);
-	assert(bloss,'{{[A(!n p o)] [B(!e g f)]} ' +
+	matches(bloss,'{{[A(!n p o)] [B(!e g f)]} ' +
 				 ' {[a(b(c(d(B{e,d}(j{j,g}(k))) h(i))))] [l(m(A{n,m}))]}',
 				 'a5');
 	bloss.addBlossom(g.findEdge(7,11), 18);
-	assert(bloss,'{{[A(!n p o)] [C(!B{g,k}(!e g f) k j{j,g})]} ' +
+	matches(bloss,'{{[A(!n p o)] [C(!B{g,k}(!e g f) k j{j,g})]} ' +
 				 ' {[a(b(c(d(C{e,d}) h(i))))] [l(m(A{n,m}))]}}', 'a6');
-	assert(bloss.outerGraph2string(),
+	matches(bloss.outerGraph2string(),
 				'{a[b] b[a c] c[b d h] d[c C] h[c i] i[C h] l[m] ' +
 				'm[l A] A[C m] C[d i A]}', 'a6');
 	bloss.addBlossom(g.findEdge(7,9), 3);
 
-	assert(bloss,'{{[A(!n p o)] ' +
+	matches(bloss,'{{[A(!n p o)] ' +
 				 '  [D(!c d{d,e} C{g,i}(!B{g,k}(!e g f) k j{j,g}) i h)]} ' +
 				 ' {[a(b(D{c,b}))] [l(m(A{n,m}))]}}', 'a7');
-	assert(bloss.verify(), '', 'a9');
+	matches(bloss.verify(), '', 'a9');
 
 	g = new Graph(9);
 	g.fromString('{a[b:6 c:2] b[c:1 e:3] c[d:2] d[e:2 g:8] ' +
@@ -64,21 +65,21 @@ try {
 	match.fromString('[{b,c} {d,g} {e,f} {h,i}]');
 	bloss = new Blossoms(g,match);
 	bloss.fromString('{{[A(!a b c)]} {}}');
-	assert(bloss,'{{[A(!a b c)]} {}}', 'b1');
+	matches(bloss,'{{[A(!a b c)]} {}}', 'b1');
 	bloss.expand(10);
-	assert(bloss,'{{} {}}', 'b2');
+	matches(bloss,'{{} {}}', 'b2');
 	bloss.fromString('{{[A(!a b c)] [B(!h g d e f)]} {[A(B{d,c}(i{i,h}))]}');
 	bloss.expandOdd(11);
-	assert(bloss.verify(), '', 'b3');
-	assert(bloss,'{{[A(!a b c)]} {[A(d{d,c}(g(h(i))))]}', 'b4');
-	assert(bloss.verify(), '', 'b5');
+	matches(bloss.verify(), '', 'b3');
+	matches(bloss,'{{[A(!a b c)]} {[A(d{d,c}(g(h(i))))]}', 'b4');
+	matches(bloss.verify(), '', 'b5');
 
 } catch(e) {
-    if (e instanceof AssertError)
-		if (e.message.length > 0)
-        	console.log(e.name + ': ' + e.message);
-		else
-			console.error(e.stack);
-    else
+    if (e instanceof Mismatch) {
+        console.log(e.name + ': ' + e.message);
+	} else if (e instanceof AssertFail) {
+		console.error(e.stack);
+	} else {
         throw(e);
+	}
 }

@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, fassert } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import Matching from './Matching.mjs';
 import Blossoms from './Blossoms.mjs';
 import List from '../../dataStructures/basic/List.mjs';
@@ -91,13 +91,14 @@ export default function wmatchGMG(mg, traceFlag=false) {
 
 	let finished = false;
 	while (!finished) {
+		ea && assert(!verifyInvariant(), verifyInvariant());
+
 		// process eligible edges with an even endpoint
 		while (true) {
 			steps++;
 
 			let ee = eeh.findmin();
 			let eu = exh.findmin();
-
 			if (ee && eeh.key(ee) == 0) {
 				eeh.delete(ee)
 				let [u,v] = [g.left(ee),g.right(ee)];
@@ -180,29 +181,18 @@ export default function wmatchGMG(mg, traceFlag=false) {
 		relabels++; finished = relabel();
 	}
 
-	// before returning, verify invariant, expand remaining blossoms
-	// to complete matching and finally verify termination condition
-	let s = verifyInvariant();
-	fassert(!s, traceString + s + '\n' + statusString());
-	
-	bq.clear();
-	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
-		if (b > g.n) bq.enq(b);
+	// verify solution when assertion checking is enabled
+	if (ea) {
+		bloss.rematchAll();
+		let s = verifyInvariant(true);
+		assert(!s, `${s}\n${traceString}${match.toString()}\n` +
+				   `${bloss.toString()}\n${statusString()}`);
 	}
-	while (!bq.empty()) {
-		let b = bq.deq();
-		let subs = bloss.expand(b);
-		for (let bb = subs.first(); bb; bb = subs.next(bb))
-			if (bb > g.n) bq.enq(bb);
-	}
-
-	s = checkTerm();
-	fassert(!s, traceString + s + '\n' + statusString());
 
 	if (trace) {
 		traceString += `final matching: ` +
-							match.toString(e => bloss.outer(g.left(e)) !=
-												bloss.outer(g.right(e))) + '\n';
+						match.toString(e => bloss.outer(g.left(e)) !=
+											bloss.outer(g.right(e))) + '\n';
 	}
 	steps += bloss.getStats().steps; +
 			 obh.getStats().steps + ebh.getStats().steps +
@@ -215,11 +205,19 @@ export default function wmatchGMG(mg, traceFlag=false) {
 			 'deblossoms': deblossoms, 'steps': steps}];
 }
 
-/** Return the slack of an "outer edge".
- *  @param e is an edge joining vertices in different outer blossoms
+
+/** Return the slack of an edge.
+ *  @param e is an edge in the graph
+ *  @param zsum is an array that maps a blossom b to the sum of
+ *  the z values for b and its ancestors in the blossom forest;
+ *  if z is omitted, e is assumed to be an external edge.
+ *  @param ncba is an array mapping an edge to the nearest common
+ *  ancestor of its endpoints in the blossom forest
+ *  @return the slack of e
  */
-function slack(e) {
-	return zz(g.left(e)) + zz(g.right(e)) - g.weight(e);
+function slack(e,zsum=0,ncba=0) {
+	let s = zz(g.left(e)) + zz(g.right(e)) - g.weight(e);
+	return !zsum ? s : s + zsum[ncba[e]];
 }
 
 /** Get the corrected z value of a blossom.
@@ -522,48 +520,33 @@ function nca(U, V) {
 	return result;
 }
 
+/** Verify that current primal and dual solutions are feasible.
+ *  @param final is a boolean that enables verification of the
+ *  algrithm's termination conditions, in addition to the invariants
+ *  that must hold throughout execution.
+ *  @return the empty string if the verification is successful,
+ *  an error string if it is not.
+ */
+function verifyInvariant(final=false) {
+	let outer = (final ? 0 : e => bloss.outer(g.left(e)) != bloss.outer(g.right(e)));
+	let s = match.verify(outer); if (s) return s;
+	s = bloss.verify(); if (s) return s;
 
-/** Check for unmatched vertices with non-zero z. */
-function checkTerm() {
-	for (let u = 1; u <= g.n; u++) {
-		if (match.at(u) == 0 && zz(u) != 0 )
-			return `unmatched vertex ${g.x2s(u)} has non-zero z=${zz(u)}`;
-	}
-}
-
-function verifyInvariant() {
-	//let mv = match.verify(); if (mv) return mv;
+	// verify odd/unreached group heap
 	let exhv = exh.groups.verify(); if (exhv) return exhv;
-	let V = bloss.verify(); if (V) return V;
-	for (let b = 1; b <= bloss.n; b++) {
-		if (b <= g.n && zz(b) < 0)
-			return `vertex ${bloss.x2s(b)} has negative z=${zz(b)}`;
-		else if (b > g.n && bloss.validBid(b) && zz(b) < 0)
-			return `blossom ${bloss.x2s(b)} has negative z=${zz(b)}`;
-	}
-	for (let e = g.first(); e; e = g.next(e)) {
-		let u = g.left(e); let v = g.right(e);
-		if (bloss.outer(u) == bloss.outer(v)) continue;
-		if (slack(e) < 0)
-			return `edge ${g.e2s(e)} has negative slack=${slack(e)} ` +
-				   `outer=[${bloss.outer(u)},${bloss.outer(v)}] ` +
-				   `states=[${bloss.state(bloss.outer(u))},` +
-				   `${bloss.state(bloss.outer(v))}] z=[${zz(u)},${zz(v)}]`;
-		if (match.contains(e) && slack(e) > 0) {
-			return `matched edge ${g.e2s(e)} has non-zero slack=${slack(e)}` +
-				   ` states=[${bloss.state(bloss.outer(u))},` +
-				   `${bloss.state(bloss.outer(v))}] z=[${zz(u)},${zz(v)}]`;
-		}
-	}
-	for (let u = 1; u <= g.n; u++)
+
+	// verify that no vertex is in a blossom heap
+	for (let u = 1; u <= g.n; u++) {
 		if (ebh.contains(u) || obh.contains(u))
 				return `vertex ${g.x2s(u)} in blossom heap`;
+	}
+
 	// check that state of each outer blossom and vertex matches the
 	// heap that it's in
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
 		let bstate = bloss.state(b);
 		if (b <= g.n && (ebh.contains(b) || obh.contains(b)))
-				return `vertex ${g.x2s(b)} in blossom heap`;
+			return `vertex ${g.x2s(b)} in blossom heap`;
 		if (b > g.n) {
 			if (ebh.contains(b) && bstate != +1)
 				return `blossom ${b} in ebh has state ${bstate}`;
@@ -585,6 +568,7 @@ function verifyInvariant() {
 				return `odd vertex ${g.x2s(u)} is not in ovh`;
 		}
 	}
+
 	// check that the endpoint states of each edge match its edge heap
 	for (let e = g.first(); e; e = g.next(e)) {
 		let [u,v] = [g.left(e),g.right(e)];
@@ -615,6 +599,69 @@ function verifyInvariant() {
 			return `eeh.key(${g.e2s(e)})=${eeh.key(e)} != ` +
 				   `slack(${g.e2s(e)})/2=${slack(e)/2}`;
 	}
+
+	// verify dual constraints for external edges
+	for (let e = g.first(); e; e = g.next(e)) {
+		let [u,v] = [g.left(e),g.right(e)];
+		if (bloss.outer(u) == bloss.outer(v)) continue;
+		let s = slack(e);
+		if (s < 0) return `edge ${g.e2s(e)} has negative slack=${s} `;
+		if (match.contains(e) && s > 0) {
+			return `matched edge ${g.e2s(e)} has non-zero slack=${s}`;
+		}
+	}
+	if (!final) return;
+
+	// for non-trivial blossoms b, compute
+	// zsum[b] = sum of z values for b and its blossom ancestors
+	let zsum = new Int32Array(bloss.n+1);
+	let q = new List(bloss.n);
+	for (let B = bloss.firstOuter(); B; B = bloss.nextOuter(B)) {
+		if (B <= g.n) continue;
+		zsum[B] = zz(B);
+		q.enq(B);
+		while (!q.empty()) {
+			let b = q.deq();
+			for (let bb = bloss.firstSub(b); bb; bb = bloss.nextSub(bb)) {
+				if (bb <= g.n) continue;
+				zsum[bb] = zz(bb) + zsum[b];
+				q.enq(bb);
+			}
+		}
+	}
+
+	// Compute nearest common blossom ancestors for all edges
+	let ncba = bloss.ncba();
+
+	// now verify dual constraints for all internal edges
+	for (let e = g.first(); e; e = g.next(e)) {
+		let [u,v] = [g.left(e),g.right(e)];
+		if (bloss.outer(u) != bloss.outer(v)) continue;
+		let s = slack(e,zsum,ncba);
+		if (s < 0) {
+			return `edge ${g.e2s(e)} has negative slack=${s} `;
+		}
+		if (match.contains(e) && s > 0) {
+			return `matched edge ${g.e2s(e)} has non-zero slack=${s}`;
+		}
+	}
+
+	// finally, verify termination condition
+	let dualObj = 0;
+	for (let u = 1; u <= g.n; u++) dualObj += zz(u);
+	for (let B = g.n+1; B <= bloss.n; B++) {
+		if (bloss.validBid(B))
+			dualObj += zz(B) * (bloss.blossomSize(B)-1)/2;
+	}
+	if (dualObj != match.weight()) {
+		return `dual objective = ${dualObj} does not equal ` +
+			   `matching weight = ${match.weight()}`;
+	}
+	for (let u = 1; u <= g.n; u++) {
+		if (match.at(u) == 0 && zz(u) != 0 )
+			return `unmatched vertex with z[${g.x2s(u)}] = ${zz(u)}`;
+	}
+
 	return '';
 }
 

@@ -9,8 +9,7 @@
 import Top from '../Top.mjs';
 import Scanner from './Scanner.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** Data structure representing a list of unique integers.
  *
@@ -38,7 +37,6 @@ export default class List extends Top {
 	 */
 	constructor(n=10) {
 		super(n);
-this.insertTime = 0;
 		this.#next = new Int32Array(this.n+1).fill(-1);
 		this.#next[0] = this.#first = this.#last = this.#length = 0;
 		this.#prev = this.#value = null;
@@ -58,7 +56,7 @@ this.insertTime = 0;
 	/** Add a value for each list item */
 	addValues() {
 		if (this.hasValues) return;
-		this.#value = new Array(this.#next.length).fill(null);
+		this.#value = new Array(this.#next.length).fill(undefined);
 	}
 
 	/** Determine if this object includes item values. */
@@ -70,12 +68,12 @@ this.insertTime = 0;
 	 *  @return the value of i or null if i is not a valid item or no
 	 *  value has been assigned to i
 	 */
-	value(i, val=null) {
-		if (val != null) {
+	value(i, val=undefined) {
+		if (val != undefined) {
 			if (!this.hasValues) this.addValues();
 			this.#value[i] = val;
 		}
-		return (this.valid(i) && this.hasValues ? this.#value[i] : null);
+		return (this.valid(i) && this.hasValues ? this.#value[i] : undefined);
 	}
 
 	/** Assign new value to list from another. 
@@ -179,12 +177,12 @@ this.insertTime = 0;
 	 *  @param value is optional value for inserted item
 	 *  if zero, i is inserted at the front of the list
 	 */
-	insert(i, j, value=null) {
+	insert(i, j, value=undefined) {
 		if (i > this.n) this.expand(i);
-		fassert(this.valid(i) && i != 0 && !this.contains(i) &&
-					   (j == 0 || this.contains(j)));
-		//		`List.enq: ${this.x2s(i)} ${this.x2s(j)} ${this.toString()}`);
-		if (value != null) this.value(i, value);
+		ea && assert(this.valid(i) && i != 0 && !this.contains(i) &&
+					 (j == 0 || this.contains(j)),
+					 `List.enq: ${this.x2s(i)} ${this.x2s(j)} ${''+this}`);
+		if (value != undefined) this.value(i, value);
 		if (j == 0) {
 			if (this.empty()) this.#last = i;
 			this.#next[i] = this.#first; this.#first = i; this.#length++;
@@ -205,7 +203,7 @@ this.insertTime = 0;
 	 *  @return the item that follows the deleted item
 	 */
 	deleteNext(i) {
-		fassert(i == 0 || this.contains(i));
+		ea && assert(i == 0 || this.contains(i));
 		if (i == this.last()) return 0;
 		let j;
 		if (i == 0) { j = this.#first;   this.#first = this.#next[j]; }
@@ -219,7 +217,7 @@ this.insertTime = 0;
 				this.#prev[this.next(i)] = i;
 			this.#prev[j] = 0;
 		}
-		if (this.hasValues) this.value(j,null);
+		if (this.hasValues) this.value(j,undefined);
 		return (i == 0 ? this.first() : this.next(i));
 	}
 
@@ -228,7 +226,7 @@ this.insertTime = 0;
 	 *  @return item that follows i
 	 */
 	delete(i) {
-		fassert(this.valid(i));
+		ea && assert(this.valid(i), `invalid list item ${i}`);
 		if (!this.contains(i)) return;
 		return (i == this.first() ? this.deleteNext(0) :
 									this.deleteNext(this.prev(i)));
@@ -281,7 +279,7 @@ this.insertTime = 0;
 		let l = super.equals(other); 
 		if (typeof l == 'boolean') return l;
 		let j = l.first();
-		for (let i = this.first(); i != 0; i = this.next(i)) {
+		for (let i = this.first(); i; i = this.next(i)) {
 			if (i != j) return false;
 			if (this.value(i) != l.value(j)) return false;
 			j = l.next(j);
@@ -311,7 +309,8 @@ this.insertTime = 0;
 	toString(label=0) {
 		if (!label) {
 			label = (u => this.x2s(u) +
-					 (this.#value ? ':' + this.value(u) : ''));
+					 (this.hasValues && this.value(u) ?
+					  ':' + this.value(u) : ''));
 		}
 		let s = '';
 		for (let i = this.first(); i != 0; i = this.next(i)) {
@@ -327,6 +326,16 @@ this.insertTime = 0;
 	 */
 	fromString(s,prop=0) {
 		let sc = new Scanner(s);
+		let pvec = [];
+		if (!prop) {
+			prop = (u,sc) => {
+						if (!sc.verify(':')) return true;
+						let p = sc.nextNumber();
+						if (Number.isNaN(p)) return false;
+						pvec[u] = p;
+						return true;
+					};
+		}
 		let l = sc.nextIndexList('[', ']',prop);
 		if (l == null) return false;
 		let n = 0; let items = new Set();
@@ -337,7 +346,10 @@ this.insertTime = 0;
 		}
 		if (n != this.n) this.reset(n);
 		else this.clear();
-		for (let i of l) this.enq(i);
+		for (let i of l) {
+			if (pvec.length == 0) this.enq(i);
+			else this.enq(i, pvec[i] ? pvec[i] : 0);
+		}
 		return true;
 	}
 }

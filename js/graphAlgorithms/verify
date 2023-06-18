@@ -1,8 +1,14 @@
 #!bash
 echo "testing graph algorithms"
-pushd misc/unit >/dev/null;    verify; popd >/dev/null
-pushd mst/unit >/dev/null;     verify; popd >/dev/null
-pushd spath/unit >/dev/null;   verify; popd >/dev/null
-pushd maxflow/unit >/dev/null; verify; popd >/dev/null
-pushd mcflow/unit >/dev/null;  verify; popd >/dev/null
-pushd match/unit >/dev/null;   verify; popd >/dev/null
+echo "misc: "; pushd misc/unit >/dev/null; verify; popd >/dev/null
+
+echo -n "mst: "; node mst/unit/mst.mjs all
+echo -n "spath: "; node spath/unit/spath.mjs all
+echo -n "maxflow: "; node maxflow/unit/maxflow.mjs all
+echo -n "mcflow: "; node mcflow/unit/mcflow.mjs all
+echo "match: ";
+	node match/unit/matching.mjs all
+	node match/unit/blossoms.mjs all
+	node match/unit/match.mjs all
+	node match/unit/pmatch.mjs all
+

@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import toposort from '../misc/toposort.mjs';
 
@@ -15,16 +15,15 @@ import toposort from '../misc/toposort.mjs';
  *  @param s is a "source vertex" in g
  *  @param trace controls output of information about the internal  
  *  state of the computation; larger values produce more information
- *  @return a tuple [error, link, dist, ts, stats] where error is an empty
- *  string on success and an error string on failure, link[u] is the edge from
+ *  @return a tuple [link, dist, ts, stats] where link[u] is the edge from
  *  the parent of u to u in the spt rooted at s (or 0 if u unreachable);
  *  dist[u] is the shortest path distance from vertex s to vertex u
  *  (or infinity if u unreachable), ts is a trace string and stats is a
- *  statistics object.
+ *  statistics object; if g is not acyclic, [] is returned
  */
 export default function sptDag(g, s, trace=0) {
 	let topo = toposort(g); // sorted list of vertices
-	if (!topo) assert(0, 'graph is not acyclic');
+	if (!topo) return [];
 
 	let link = new Int32Array(g.n+1);
 	let dist = new Array(g.n+1).fill(Infinity);
@@ -49,8 +48,8 @@ export default function sptDag(g, s, trace=0) {
 			}
 		}
 		if (trace) {
-			ts += g.index2string(u) + ' ' +
-				  (dist[u] != Number.POSITVE_INFINITY ? dist[u] : '-') + ' ' +
+			ts += g.x2s(u) + ' ' +
+				  (dist[u] != Infinity ? dist[u] : '-') + ' ' +
 				  (link[u] != 0 ? g.edge2string(link[u]) : '-') + '\n';
 		}
 	}

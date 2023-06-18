@@ -10,8 +10,7 @@ import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import Forest from '../trees/Forest.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** This class implements a heap data structure.
  *  The heap elements are identified by indexes in 1..n where n
@@ -153,8 +152,8 @@ export default class ArrayHeap extends Top {
 	 *  @param key is the key value under which i is to be inserted
 	 */
 	insert(i, key) {
-		fassert(i > 0 && this.valid(i)
-				/*, `ArrayHeap.insert: invalid item ${i}`*/ );
+		ea && assert(i > 0 && this.valid(i),
+					 `ArrayHeap.insert: invalid item ${i}`);
 		if (this.contains(i)) { this.changekey(i,key); return; }
 		if (i > this.n) this.expand(i);
 		this.#key[i] = key - this.#offset; this.#m++; this.siftup(i, this.m);
@@ -164,7 +163,7 @@ export default class ArrayHeap extends Top {
 	 *  @param i is an index in the heap
 	 */
 	delete(i) {
-		fassert(i > 0);
+		ea && assert(i > 0);
 		if (!this.contains(i)) return;
 		let j = this.itemAt(this.#m--);
 		if (i != j) {

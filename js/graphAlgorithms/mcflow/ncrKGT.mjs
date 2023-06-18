@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
@@ -112,7 +112,7 @@ function findCycle() {
 		}
 		mark[v] = i-1; u = v; i--;
 	}
-	fassert(false, 'findpath: program error');
+	ea && assert(false, 'findpath: program error');
 }
 
 /** Add flow to a negative-cost cycle.

@@ -9,8 +9,7 @@
 import Top from '../Top.mjs';
 import Scanner from './Scanner.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** Data structure that represents a pair of complementary index lists.
  *  The index values have a limited range 1..n and each index is
@@ -76,15 +75,15 @@ export default class ListPair extends Top {
 		this.#length[0] = other.#length[0]; this.#length[1] = other.#length[1];
 	}
 	
-	/** Determine if an item belongs in a specied list.
+	/** Determine if an item belongs in a specified list.
 	 *  @param i is valid index
 	 *  @param k is 1 or 2
 	 *  @param return true if i is a member of list k, else false.
 	 */
 	in(i,k) {
-		fassert(this.valid(i) && 1 <= k && k <= 2);
-		return (i == this.first(k) || (k == 1 && this.#prev[i] > 0) ||
-									  (k == 2 && this.#prev[i] < 0));
+		ea && assert(1 <= k && k <= 2);
+		return this.valid(i) && (i == this.first(k) ||
+				(k == 1 && this.#prev[i] > 0) || (k == 2 && this.#prev[i] < 0));
 	}
 	
 	/** Get the number of elements in a list.  */
@@ -124,8 +123,8 @@ export default class ListPair extends Top {
 	swap(i, j=-1) {
 		if (j < 0) j = this.in(i,1) ? this.last(2) : this.last(1);
 
-		fassert(this.valid(i) && i && this.valid(j));
-		fassert((this.in(i,1) && (!j || this.in(j,2))) ||
+		ea && assert(this.valid(i) && i && this.valid(j));
+		ea && assert((this.in(i,1) && (!j || this.in(j,2))) ||
 			    (this.in(i,2) && (!j || this.in(j,1))));
 
 		if (this.in(i,1)) {

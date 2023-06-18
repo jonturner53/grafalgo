@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 
@@ -43,17 +43,17 @@ export default function allpairsF(g, trace=false) {
     // compute distances
 	let updates = 0;
     for (let s = 1; s <= g.n; s++) {
-        if (dist[s][s] < 0) assert(0, 'negative cycle');
+		if (dist[s][s] < 0) return [];
 		if (trace)
-			ts += g.index2string(s) + ': ';
+			ts += g.x2s(s) + ': ';
         for (let v = 1; v <= g.n; v++) {
             for (let w = 1; w <= g.n; w++) {
                 if (dist[v][w] > dist[v][s] + dist[s][w]) {
                     dist[v][w] = dist[v][s] + dist[s][w]; 
                     link[v][w] = link[s][w];  
 					if (trace)
-						ts += g.index2string(v) + ':' + dist[v][w] + 
-							  g.edge2string(link[v][w]) + ' ';
+						ts += g.x2s(v) + ':' + dist[v][w] + 
+							  g.e2s(link[v][w]) + ' ';
 					updates++;
                 }   
             }   

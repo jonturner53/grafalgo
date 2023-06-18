@@ -6,8 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError } from '../../../common/Errors.mjs';
-import Tester from '../../../common/Tester.mjs';
+import { EnableAssert as ea } from '../../../common/Assert.mjs';
+import { Tester } from '../../../common/Testing.mjs';
 import mstP from '../mstP.mjs';
 import mstPf from '../mstPf.mjs';
 import mstK from '../mstK.mjs';
@@ -19,13 +19,13 @@ import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomConnectedGraph } from '../../misc/RandomGraph.mjs';
 
 let algomap = {
-	'P' : mstP,
-	'Pf' : mstPf,
-	'K' : mstK,
-	'CT' : mstCT
-}
+	'P' : ['mstP',(g,trace) => mstP(g,4,trace), mstVerify],
+	'Pf' : ['mstPf', mstPf, mstVerify],
+	'K' : ['mstK', mstK, mstVerify],
+	'CT' : ['mstCT', mstCT, mstVerify]
+};
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
-let tester = new Tester(args,'spt', algomap, mstVerify);
+let tester = new Tester(args, algomap);
 
 let g = new Graph(); g.fromString(
 		'{a[b:3 d:2] b[a:3 c:7] c[b:7 d:1] d[a:2 c:1] ' +
@@ -35,13 +35,16 @@ tester.addTest('small 3 component graph', g);
 g = randomConnectedGraph(10, 3); g.randomWeights(randomInteger, 0, 9);
 tester.addTest('small random graph (10,15)', g);
 
+g = randomGraph(100, 10); g.randomWeights(randomInteger, 0, 99);
+tester.addTest('medium random graph', g);
+
 g = randomGraph(1000, 20); g.randomWeights(randomInteger, 0, 99);
-tester.addTest('large random graph', g);
+!ea && tester.addTest('large random graph', g);
 
 g = hardcaseP(1000);
-tester.addTest('large hard case (100, 4950)', g);
+!ea && tester.addTest('large hard case (100, 4950)', g);
 
 g = hardcaseP(2000);
-tester.addTest('larger hard case (200,19800)', g);
+!ea && tester.addTest('larger hard case (200,19800)', g);
 
 tester.run();

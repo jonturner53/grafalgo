@@ -1,4 +1,4 @@
-/** \file TestGraph.mjs
+/** \file digraph.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -11,7 +11,7 @@ import Digraph from '../Digraph.mjs';
 import {randomInteger} from '../../../common/Random.mjs';
 
 try {
-	console.log('testing Graph');
+	console.log('testing Digraph');
 
 	let n = 8; let ecap = 30;
 	let g = new Digraph(n, ecap);

@@ -6,7 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError} from '../../../common/Errors.mjs';
+import { AssertFail } from '../../../common/Assert.mjs';
+import { matches, Mismatch } from '../../../common/Testing.mjs';
 import Scanner from '../../../dataStructures/basic/Scanner.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import Matching from '../Matching.mjs';
@@ -26,22 +27,22 @@ try {
 				 'y[f:2 g:6 u:9] z[m:2]}'); 
 	let m = new Matching(g);
 	m.fromString('[{a,n} {b,f} {c,d} {g,y} {h,k} {i,j}]');
-	assert(m.size(),6,'a1');
-	assert(m.weight(),40,'a2');
-	assert(m,'[{a,n} {b,f} {c,d} {g,y} {h,k} {i,j}]','a3');
-	assert(m.contains(g.findEdge(3,4)),'a4');
-	assert(!m.contains(g.findEdge(13,4)),'a5');
+	matches(m.size(),6,'a1');
+	matches(m.weight(),40,'a2');
+	matches(m,'[{a,n} {b,f} {c,d} {g,y} {h,k} {i,j}]','a3');
+	matches(m.contains(g.findEdge(3,4)), true, 'a4');
+	matches(m.contains(g.findEdge(13,4)), false, 'a5');
 	m.add(g.findEdge(13,26));
-	assert(m,'[{a,n} {b,f} {c,d} {g,y} {h,k} {i,j} {m,z}]','a6');
+	matches(m,'[{a,n} {b,f} {c,d} {g,y} {h,k} {i,j} {m,z}]','a6');
 	m.drop(g.findEdge(3,4));
-	assert(m,'[{a,n} {b,f} {g,y} {h,k} {i,j} {m,z}]','a7');
+	matches(m,'[{a,n} {b,f} {g,y} {h,k} {i,j} {m,z}]','a7');
 
 } catch(e) {
-    if (e instanceof AssertError)
-		if (e.message.length > 0)
-        	console.log(e.name + ': ' + e.message);
-		else
-			console.error(e.stack);
-    else
+    if (e instanceof Mismatch) {
+        console.log(e.name + ': ' + e.message);
+	} else if (e instanceof AssertFail) {
+		console.error(e.stack);
+	} else {
         throw(e);
+	}
 }

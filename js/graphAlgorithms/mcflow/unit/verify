@@ -1,3 +1,2 @@
 echo `pwd`
 node mcflow.mjs all
-node ncr.mjs all

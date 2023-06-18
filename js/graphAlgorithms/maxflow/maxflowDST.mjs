@@ -10,8 +10,6 @@ import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import DynamicTrees from '../../dataStructures/specialty/DynamicTrees.mjs';
 
-import maxflowVerify from './maxflowVerify.mjs';
-
 let g;           // shared reference to flow graph
 let level;       // level[u] is distance from source to u in residual graph
 let nextEdge;    // nextEdge[u] is the next edge to be processed at u

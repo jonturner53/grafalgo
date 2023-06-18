@@ -11,8 +11,7 @@ import List from '../basic/List.mjs'
 import Scanner from '../basic/Scanner.mjs'
 import KeySets from './KeySets.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** Map class implements a set of key-value pairs, each identified by
  *  an integer index. Keys and values may be either number or strings.
@@ -53,7 +52,7 @@ export default class Map extends Top {
 	 *  @param other is another Map object
 	 */
 	assign(other, relaxed) {
-        fassert(other != this &&
+        ea && assert(other != this &&
                 this.constructor.name == other.constructor.name);
         if (this.n == other.n || relaxed && this.n > other.n) this.clear();
         else this.reset(other.n, this.#stringKey, this.#stringValue);
@@ -78,7 +77,7 @@ export default class Map extends Top {
 
 	/** Expand the max size of this Map and possibly. */
 	expand(n) {
-		fassert(n > this.n);
+		ea && assert(n > this.n);
 		let nu = new this.constructor(n, this.#stringKey, this.#stringValue);
 		nu.assign(this,true);
 		this.xfer(nu);

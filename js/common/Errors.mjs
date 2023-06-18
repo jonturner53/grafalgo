@@ -4,7 +4,22 @@
  *  @date 2021
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
+
+Rethink this.
+
+Better to reserve assert for inline code testing, with separate
+label for confirming results of test cases. Perhaps the latter
+belongs with the Tester module.
+
+For assertion checking can we find a way to disable assertions
+that blocks evaluation of expressions. Perhaps put expressions
+in strings and use eval with caller's context?
+
  */
+
+export function fassert(condition, description='') {
+	if (!condition) throw new Fatal(description);
+}
 
 export function warning(msg) {
 	console.error(`Warning: ${msg}`);
@@ -70,8 +85,4 @@ export function assert() {
 		}
 		throw new AssertError("invalid arguments " + s);
 	}
-}
-
-export function fassert(condition, description='') {
-	if (!condition) throw new Fatal(description);
 }

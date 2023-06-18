@@ -12,8 +12,7 @@ import ListSet from '../basic/ListSet.mjs';
 import BalancedForest from '../trees/BalancedForest.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** This class implements a data structure consisting of a disjoint
  *  set of heaps, with an efficient add2keys operation and an efficient
@@ -150,7 +149,7 @@ export default class OrderedHeaps extends BalancedForest {
 	 *  @return the id of the modified heap
 	 */
 	insertAfter(i, h, k, j) {
-		fassert(this.valid(i) && this.valid(j) && this.valid(h));
+		ea && assert(this.valid(i) && this.valid(j) && this.valid(h));
 		if (h == 0) {
 			this.#key[i] = this.#minkey[i] = k; return i;
 		}
@@ -239,8 +238,8 @@ export default class OrderedHeaps extends BalancedForest {
 			i = (l && this.#minkey[l] == k ? l : r);
 			this.steps++;
 		}
-		fassert(false
-				/*, `program error in OrderedHeaps.findmin(${this.x2s(h)})`*/ );
+		ea && assert(false,
+					 `program error in OrderedHeaps.findmin(${this.x2s(h)})`);
 	}
 
 	/** Remove a miniminum key item from from the heap and return it.

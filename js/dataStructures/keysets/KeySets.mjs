@@ -9,8 +9,8 @@
 import ListSet from '../basic/ListSet.mjs';
 import Top from '../Top.mjs';
 import BalancedForest from '../trees/BalancedForest.mjs';
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** This class implements a key set: a collection of disjoint sets with
  *  each set element having an associated key. It supports an efficient
@@ -38,7 +38,7 @@ export default class KeySets extends BalancedForest {
 
 	/** Expand this object. */
 	expand(n) {
-		fassert(n > this.n);
+		ea && assert(n > this.n);
 		let nu = new KeySets(n, this.#stringKey);
 		nu.assign(this,true); this.xfer(nu);
 	}

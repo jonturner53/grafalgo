@@ -1,3 +1,2 @@
 echo `pwd`
-node spt.mjs all
-node allpairs.mjs all
+node spath.mjs all

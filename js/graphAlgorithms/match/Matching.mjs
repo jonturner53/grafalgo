@@ -93,11 +93,10 @@ export default class Matching extends Top {
 	 */
 	size() { return this.#elist.length; }
 	
-	/** Return the weight of a matching.
-	 */
+	/** Return the weight of a matching.  */
 	weight() {
 		let w = 0;
-		for (let e = this.first(); e != 0; e = this.next(e))
+		for (let e = this.first(); e; e = this.next(e))
 			w += this.g.weight(e);
 		return w;
 	}
@@ -173,14 +172,22 @@ export default class Matching extends Top {
 		return true;
 	}
 
-	verify() {
+	/** Verify that matching is consistent.
+	 *  @param valid is a function that tests if an edge should be
+	 *  checked for consistency in the matching; if omitted, all edges
+	 *  are checked
+	 */
+	verify(valid=0) {
 		for (let e = this.first(); e != 0; e = this.next(e)) {
+			if (valid && !valid(e)) continue;
 			if (this.at(this.g.left(e)) != e)
 				return `left endpoint of matching edge ${this.g.e2s(e)} ` +
-					   `does not match its defined matching edge.`;
+					   `does not match its defined matching edge ` +
+					   `${this.g.e2s(this.at(this.g.left(e)))}`
 			if (this.at(this.g.right(e)) != e)
 				return `right endpoint of matching edge ${this.g.e2s(e)} ` +
-					   `does not match its defined matching edge.`;
+					   `does not match its defined matching edge ` +
+					   `${this.g.e2s(this.at(this.g.right(e)))}.`;
 		}
 	}
 }

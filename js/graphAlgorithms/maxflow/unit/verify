@@ -1,3 +1,2 @@
 echo `pwd`
 node maxflow.mjs all
-node flowfloorTest.mjs all

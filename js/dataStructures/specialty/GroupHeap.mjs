@@ -12,8 +12,7 @@ import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import ArrayHeap from '../heaps/ArrayHeap.mjs';
 import OrderedHeaps from './OrderedHeaps.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** Data structure representing a group heap.
  *  The collection of items is divided into "groups", where each
@@ -56,7 +55,7 @@ export default class GroupHeap extends Top {
 	 *  @param other is a GroupHeap object
 	 */
 	assign(other) {
-		fassert(other instanceof GroupHeap);
+		ea && assert(other instanceof GroupHeap);
 		if (other == this) return;
 		if (other.n != this.n || other.gn != this.gn)
 			this.reset(other.n, other.gn);
@@ -71,7 +70,7 @@ export default class GroupHeap extends Top {
 	 *  @param other is another GroupHeap object
 	 */
 	xfer(other) {
-		fassert(other instanceof GroupHeap);
+		ea && assert(other instanceof GroupHeap);
 		if (other == this) return;
 		this._n = other.n; this.gn = other.gn;
 		this.groups = other.groups; this.top = other.top;
@@ -137,7 +136,7 @@ export default class GroupHeap extends Top {
 	/** Activate a group */
 	activate(g) {
 		let h = this.top[g];
-		fassert(h /*, 'GroupHeap.activate requires a non-empty heap'*/);
+		ea && assert(h /*, 'GroupHeap.activate requires a non-empty heap'*/);
 		this.active.insert(g, h ? this.key(this.groups.findmin(h),g) :
 										   Infinity);
 		this.lastOffset[g] = this.active.offset;
@@ -331,7 +330,7 @@ export default class GroupHeap extends Top {
 		}
 		if (n != this.n || gn != this.gn) this.reset(n,gn);
 		else this.clear();
-		for (let [g,active,l] of lists) {
+		for (let [g, active, l] of lists) {
 			let previ = 0;
 			for (let i of l) {
 				this.insertAfter(i, g, key[i], previ);

@@ -1,4 +1,4 @@
-/** @file ncrJEK.mjs
+/** @file ncrJEKc.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -30,7 +30,7 @@ let steps;      // number of steps in findpath method
  *  algorithm with the Edmonds/Karp cost transform.
  *  @param fg is a flow graph, possibly with a non-zero initial flow.
  */
-export default function ncrJEK(fg, traceFlag=false) {
+export default function ncrJEKc(fg, traceFlag=false) {
 	g = fg; trace = traceFlag; traceString = '';
 
 	link = new Int32Array(g.n+1);

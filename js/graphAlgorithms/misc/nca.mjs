@@ -6,13 +6,13 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import MergeSets from '../../dataStructures/basic/MergeSets.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 // Nearest common ancestor computation.
-// Algorithm uses depth-first search in tree. A vertex u is considered
+// Algorithm uses depth-first search in forest. A vertex u is considered
 // "open" if the processing at u is not yet complete.
 // After that point, u is considered closed. Once a subtree of u has been
 // visited, it becomes their "nearest open ancestor" (noa). The nca of
@@ -20,56 +20,49 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 // nca(u,v) is then noa(v).
 //
 // data structures used by algorithm
-let g;			// graph with edges corresponding to nca pairs pairs
+let f;			// forest defining hierarchy
+let g;			// edges define pairs for which nca is computed
 let noa;		// noa[u] is the nearest open ancestor of u
 let noaSets;	// divides vertices into sets that share the same noa
-let mark;		// used to mark pair after their first vertex is visited
-let ncav;		// on return ncav[p] is nearest common ancestor of pair[p]
+let mark;		// used to mark edge after its first vertex is visited
+let ncav;		// on return ncav[e] is nearest common ancestor of edge e
 
 /** Compute the nearest common ancestors of vertex pairs.
- *  @param T is an undirected graph object that defines a tree
- *  @param root is the vertex that is considered the root of T.
- *  @param pairs is a vector of vertex pairs in T
- *  @param u is a vertex in t; this parameter is used in recursive
- *  invocations used to search the tree
- *  @param pu is the parent of u in the depth-first-search, or u
- *  if u is the root.
- *  @return a vector ncav where ncav[p] is the nearest common ancestor in T
- *  of the vertices in pairs[p]
+ *  @param F is a Forest object
+ *  @param g is a graph with g.n <= F.n
+ *  @return a vector ncav where ncav[e] is the nearest common ancestor in F
+ *  of the endpoints of edge e in g.
  */
-export default function nca(t, root, pairs, u=root, pu=u) {
-	// first initialize shared references to G and graph version of T
+export default function nca(F, G) {
+	f = F; g = G;
+	noa = new Int32Array(f.n+1);	
+	noaSets = new MergeSets(f.n);
+	mark = new Int8Array(g.edgeRange+1);
+	ncav = new Int32Array(g.edgeRange+1);
 
-	if (u == root) { // top-level invocation, so initialize data structures
-		g = new Graph(t.n, pairs.length);
-		noa = new Int32Array(g.n+1);	
-		noaSets = new MergeSets(t.n);
-		mark = new Int8Array(pairs.length).fill(false);
-		ncav = new Array(pairs.length);
-
-		for (let w = 1; w <= t.n; w++) {
-			noa[w] = w;  // changes once w is closed
-		}
-		for (let p = 0; p < pairs.length; p++) {
-			g.join(pairs[p][0], pairs[p][1], p+1);
+	for (let w = 1; w <= f.n; w++) {
+		noa[w] = 0;  // changes once w is closed
+	}
+	for (let u = 1; u <= f.n; u++) {
+    	if (!f.p(u)) {
+			helper(u); noa[noaSets.find(u)] = 0;
 		}
 	}
+	return ncav;
+}
 
-	// traverse neighbors in t
-	for (let e = t.firstAt(u); e != 0; e = t.nextAt(u, e)) {
-		let v = t.mate(u, e);
-		if (v == pu) continue;
-		nca(t, root, pairs, v, u);
-		noaSets.merge(noaSets.find(u), noaSets.find(v));
+/** Recursive helper function. */
+function helper(u) {
+	noa[u] = u;
+	for (let c = f.firstChild(u); c; c = f.nextSibling(c)) {
+		helper(c);
+		noa[noaSets.merge(noaSets.find(u), noaSets.find(c))] = u;
 		noa[noaSets.find(u)] = u;
 	}
-
-	// now, compute nca of pairs that join u to closed neighbors
-	// note: this is where the graph representation of pairs is used
-	for (let e = g.firstAt(u); e != 0; e = g.nextAt(u, e)) {
-		if (!mark[e-1]) mark[e-1] = true;
-		else 			ncav[e-1] = noa[noaSets.find(g.mate(u,e))];
+	if (!g.validVertex(u)) return;
+	for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
+		if (!mark[e]) mark[e] = true;
+		else          ncav[e] = noa[noaSets.find(g.mate(u,e))];
 	}
-
-	if (u == root) return ncav;
 }
+

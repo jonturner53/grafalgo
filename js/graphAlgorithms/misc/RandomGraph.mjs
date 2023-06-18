@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert, fatal } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import { randomInteger, scramble } from '../../common/Random.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
@@ -108,8 +108,8 @@ export function randomFlograph(n, d, ssd=d, ncuts=1, lookback=1) {
 	let q = ~~((n-2)/p); // size of vertex groups (may reduce vertex count) 
 	let k = lookback;
 	let mc = ~~(.25 * d*ssd/(1+Math.min(k, ssd/q)));
-	fassert(p>1 && q>1 && 1<d && d*q <= q*(q-1)+mc,
-			`randomFlograph: ${n} ${d} ${ssd} ${ncuts} ${lookback}`);
+	ea && assert(p>1 && q>1 && 1<d && d*q <= q*(q-1)+mc,
+				 `randomFlograph: ${n} ${d} ${ssd} ${ncuts} ${lookback}`);
 
 	n = 2 + p*q; let m = ~~(ssd + d*(n-2));
 	let g = new Flograph(n, m);
@@ -319,7 +319,7 @@ Sample a pair from vector and swap selected vertices to the end.
 
  */
 export function randomRegularGraph(n, d) {
-	fassert(n > d);
+	ea && assert(n > d);
 	if ((n & 1) && (d & 1)) n++;
 
 	let m = ~~(n*d/2); let g = new Graph(n, m);
@@ -412,7 +412,7 @@ export function randomRegularBigraph(n, d) {
 
 /*
 export function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
-	fassert(n1 > 0 && d1 > 0 && n2 >= d1);
+	ea && assert(n1 > 0 && d1 > 0 && n2 >= d1);
 	if ((n1 & 1) && (d1 & 1)) n1++;
 	let d2 = Math.ceil(n1*d1/n2);
 	let m = d1*n1;	// # of edges

@@ -14,8 +14,7 @@ import ListPair from '../basic/ListPair.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
-//import { fassert } from '../../common/Errors.mjs'
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** Data structure for undirected graph.
  *
@@ -41,7 +40,7 @@ export default class Graph extends Top {
 	 *  @param erange is the initial range for edge values (defaults to n)
 	 */
 	constructor(n=10, erange=n) {
-		fassert(n > 0 && erange > 0);
+		ea && assert(n > 0 && erange > 0);
 		super(n);
 		this._firstEp = new Int32Array(this.n+1);
 		this._left = new Int32Array(erange+1);
@@ -71,7 +70,7 @@ export default class Graph extends Top {
 	 *  @param erange is the desired new edge range
 	 */
 	expand(n, erange) {
-		fassert(n > this.n || erange > this.edgeRange);
+		ea && assert(n > this.n || erange > this.edgeRange);
 		let nu = new this.constructor(n, erange);
 		nu.assign(this,true); this.xfer(nu);
 	}
@@ -80,7 +79,7 @@ export default class Graph extends Top {
 	 *  @param other is another graph that is to replace this one.
 	 */
 	assign(other, relaxed=false) {
-		fassert(other != this &&
+		ea && assert(other != this &&
 				this.constructor.name == other.constructor.name);
 		if ((this.n == other.n || relaxed && this.n > other.n) &&
 			this.edgeRange >= other.m)
@@ -90,7 +89,7 @@ export default class Graph extends Top {
 
 		if (other.hasWeights && !this.hasWeights) this.addWeights();
 		if (!other.hasWeights && this.hasWeights) this._weight = null;
-		for (let e = other.first(); e != 0; e = other.next(e)) {
+		for (let e = other.first(); e; e = other.next(e)) {
 			let ee = this._edges.in(e,2) ?
 						this.join(other.left(e), other.right(e), e) :
 						this.join(other.left(e), other.right(e));
@@ -144,7 +143,7 @@ export default class Graph extends Top {
 	 *  @return the left endpoint of e, or 0 if e is not a valid edge.
 	 */
 	left(e) {
-		fassert(this.validEdge(e)); // `Graph.left: invalid edge number: ${e}`);
+		ea && assert(this.validEdge(e), `Graph.left: invalid edge number: ${e}`);
 		return this._left[e];
 	}
 	
@@ -153,7 +152,7 @@ export default class Graph extends Top {
 	 *  @return the right endpoint of e, or 0 if e is not a valid edge.
 	 */
 	right(e) {
-		fassert(e == 0 || this.validEdge(e));
+		ea && assert(this.validEdge(e), `Graph.right: invalid edge number: ${e}`);
 		return this._right[e];
 	}
 
@@ -179,7 +178,7 @@ export default class Graph extends Top {
 	 *  @return the other vertex incident to e
 	 */
 	mate(v, e) {
-		fassert(this.validVertex(v) && this.validEdge(e) &&
+		ea && assert(this.validVertex(v) && this.validEdge(e) &&
 			   (v == this._left[e] || v == this._right[e]));
 		return v == this._left[e] ? this._right[e] : this._left[e];
 	}
@@ -201,7 +200,7 @@ export default class Graph extends Top {
 	 *  @return the first edge incident to v
 	 */
 	firstAt(v) { 
-		fassert(this.validVertex(v));
+		ea && assert(this.validVertex(v));
 		return Math.trunc(this._firstEp[v]/2);
 	}
 	
@@ -212,7 +211,7 @@ export default class Graph extends Top {
 	 *  or 0 if e is not incident to v or is the last edge on the list
 	 */
 	nextAt(v, e) {
-		fassert(this.validVertex(v) && this.validEdge(e));
+		ea && assert(this.validVertex(v) && this.validEdge(e));
 		if (v != this._left[e] && v != this._right[e]) return 0;
 		let ep = (v == this._left[e] ? 2*e : 2*e+1);
 		return Math.trunc(this._epLists.next(ep)/2);
@@ -227,7 +226,7 @@ export default class Graph extends Top {
 	 *  on failure
 	 */
 	join(u, v, e=this._edges.first(2)) {
-		fassert(u != v && u > 0 && v > 0 &&
+		ea && assert(u != v && u > 0 && v > 0 &&
 			   (e > 0 || this._edges.first(2) == 0) &&
 			   !this._edges.in(e,1));
 		if (u > this.n || v > this.n || this._edges.length(2) == 0) {
@@ -253,7 +252,7 @@ export default class Graph extends Top {
 	 *  @return true on success, false on failure
 	 */
 	delete(e) {
-		fassert(this.validEdge(e));
+		ea && assert(this.validEdge(e));
 		this._edges.swap(e);
 		let u = this._left[e]; let v = this._right[e];
 		this._firstEp[u] = this._epLists.delete(2*e,   this._firstEp[u]);
@@ -267,7 +266,7 @@ export default class Graph extends Top {
 	 *  Return  0 if u's mate in e1 is equal to its mate in e2.
 	 */
 	ecmp(e1, e2, u) {
-		fassert(this.validVertex(u) &&
+		ea && assert(this.validVertex(u) &&
 					   this.validEdge(e1) && this.validEdge(e2));
 		let v1 = this.mate(u, e1); let v2 = this.mate(u, e2);
 		return (v1 != v2 ? v1 - v2 : this.weight(e1) - this.weight(e2));
@@ -277,7 +276,7 @@ export default class Graph extends Top {
 	 *  @param u is the vertex whose adjacency list is to be sorted.
 	 */
 	sortEplist(u) {
-		fassert(u != 0 && this.validVertex(u));
+		ea && assert(u != 0 && this.validVertex(u));
 		if (this._firstEp[u] == 0) return; // empty list
 
 		// if already sorted, skip sorting step
@@ -357,7 +356,7 @@ export default class Graph extends Top {
 	 *  is no such edge; if edges is present, restrict search to edges
 	 */
 	findEdge(u, v, edges) {
-		fassert(this.validVertex(u) && this.validVertex(v));
+		ea && assert(this.validVertex(u) && this.validVertex(v));
 		if (!edges) {
 			for (let e = this.firstAt(u); e != 0; e = this.nextAt(u, e))
 				if (v == this.mate(u, e)) return e;
@@ -427,9 +426,9 @@ export default class Graph extends Top {
 	e2s(e,label,terse) { return this.edge2string(e,label,terse); }
 	
 	/** Create a string representation of an edge list.
-	 *  @param elist is an array of edge numbers (possibly with some zeros)
-	 *  @param label is an optional function used to label the vertices
+	 *  @param elist is an array of edge numbers (possibly with some
 	 *  invalid values mixed in; these are ignored)
+	 *  @param label is an optional function that maps an edge to text
 	 *  @param showAll is a flag that causes invalid edges in elist to
 	 *  be displayed as dashes.
 	 *  @param terse specifies terse edge strings
@@ -589,7 +588,7 @@ export default class Graph extends Top {
 	 *  @return the number of edges incident to u
 	 */
 	degree(u) {
-		fassert(this.validVertex(u));
+		ea && assert(this.validVertex(u));
 		let d = 0;
 		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e)) d++;
 		return d;

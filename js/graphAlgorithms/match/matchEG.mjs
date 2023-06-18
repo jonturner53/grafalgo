@@ -6,7 +6,6 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Errors.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ReverseLists from '../../dataStructures/basic/ReverseLists.mjs';
 import MergeSets from '../../dataStructures/basic/MergeSets.mjs';

@@ -10,7 +10,7 @@ import { assert, AssertError } from '../../../common/Errors.mjs';
 import Graph from '../Graph.mjs';
 
 try {
-	console.log('testing Flograph');
+	console.log('testing Graph');
 
 	let g = new Graph(8, 30);
 

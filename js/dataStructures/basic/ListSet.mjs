@@ -10,8 +10,7 @@ import Top from '../Top.mjs';
 import List from './List.mjs';
 import Scanner from './Scanner.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** The ListSet class maintains a collection of disjoint lists defined
  *  over a set of integers 1..n. Each list in the collection is identified
@@ -53,7 +52,7 @@ export default class ListSet extends Top {
 	}
 
 	isfirst(i) {
-		fassert(this.valid(i));
+		ea && assert(this.valid(i));
 		return this.#next[this.#prev[i]] == 0;
 	}
 	
@@ -62,7 +61,7 @@ export default class ListSet extends Top {
 	 *  @return the last item in the list
 	 */
 	last(f) {
-		fassert(this.isfirst(f));
+		ea && assert(this.isfirst(f));
 		return this.#prev[f];
 	}
 
@@ -71,7 +70,7 @@ export default class ListSet extends Top {
 	 *  @return the item that follows i in its list
 	 */
 	next(i) {
-		fassert(this.valid(i));
+		ea && assert(this.valid(i));
 		return this.#next[i];
 	}
 	
@@ -94,7 +93,7 @@ export default class ListSet extends Top {
 	 *  @return true if it is the only item in its list, else false
 	 */
 	singleton(i) {
-		fassert(this.valid(i));
+		ea && assert(this.valid(i));
 		return this.#prev[i] == i;
 	}
 	
@@ -103,7 +102,7 @@ export default class ListSet extends Top {
 	 *  @return the first item on the list
 	 */
 	findList(i) {
-		fassert(this.valid(i));
+		ea && assert(this.valid(i));
 		while (this.prev(i) != 0) i = this.prev(i);
 		return i;
 	}
@@ -128,7 +127,7 @@ export default class ListSet extends Top {
 	 *  @return the first item of the modified list, or 0 if f was a singleton
 	 */
 	delete(i, f) {
-		fassert(this.valid(i) && this.valid(f) && this.isfirst(f));
+		ea && assert(this.valid(i) && this.valid(f) && this.isfirst(f));
 		if (this.singleton(f)) return 0;
 		let l = this.last(f); let nf = this.next(f);
 		let pi = this.prev(i); let ni = this.next(i);
@@ -150,7 +149,7 @@ export default class ListSet extends Top {
 	 *  defined to be f1, for non-zero f1
 	 */
 	join(f1, f2) {
-		fassert(this.valid(f1) && this.valid(f2));
+		ea && assert(this.valid(f1) && this.valid(f2));
 		if (f2 == 0 || f1 == f2) return f1;
 		if (f1 == 0) return f2;
 		let l1 = this.last(f1); let l2 = this.last(f2);
@@ -162,7 +161,7 @@ export default class ListSet extends Top {
 
 	/** Split a list at an item. */
 	split(f, i) {
-		fassert (this.valid(f) && this.valid(i) && this.isfirst(f));
+		ea && assert (this.valid(f) && this.valid(i) && this.isfirst(f));
 		if (i == 0 || i == f) return;
 		let p = this.prev(i); let s = this.next(i);
 		this.#next[p] = s; this.#prev[s] = p;
@@ -259,6 +258,10 @@ export default class ListSet extends Top {
 
 	/** Initialize this from a string representation.
 	 *  @param s is a string, such as produced by toString().
+	 *  @param prop is an optional function that is used to scan
+	 *  for a property of a list item; it is called after each
+	 *  list item is successfully called; its arguments are the
+	 *  list item and a Scanner object
 	 *  @return true on success, else false
 	 */
 	fromString(s,prop=0) {

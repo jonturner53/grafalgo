@@ -6,12 +6,11 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
-import mcflowVerify from './mcflowVerify.mjs';
 
 let g;        // shared reference to flow graph
 let link;     // link[u] is parent edge of u
@@ -77,7 +76,7 @@ function findpath() {
 			}
 		}
 		if (u == last) {
-			fassert(pass < g.n, 'mcflowJ: negative cost cycle detected');
+			ea && assert(pass < g.n, 'mcflowJ: negative cost cycle detected');
 			pass++; last = q.last();
 		}
 	}

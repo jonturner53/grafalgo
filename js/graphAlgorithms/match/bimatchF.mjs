@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, fassert } from '../../common/Errors.mjs';
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
@@ -37,7 +37,7 @@ export default function bimatchF(g, subsets=0, dmin=0, dmax=0, trace=0) {
 	// divide vertices into two independent sets
 	let steps = 0;
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
-	assert(subsets, "bimatchF: graph not bipartite");
+	if (!subsets) return [];
 
 	// create flow graph, taking care to maintain edge numbers
 	let fg = new Flograph(g.n+2, g.n+g.edgeRange);

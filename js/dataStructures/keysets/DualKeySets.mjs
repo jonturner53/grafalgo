@@ -10,8 +10,7 @@ import Top from '../Top.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import KeySets from './KeySets.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** This class implements a key set with two keys.
  *  The primary key is the usual one. The data structure supports

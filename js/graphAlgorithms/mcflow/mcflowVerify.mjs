@@ -15,7 +15,7 @@ import sptBM from '../spath/sptBM.mjs';
  *  @return the empty string if the flow on g is a min cost flow,
  *  or an error message, if it is not.
  */
-export default function mcflowVerify(g) {
+export function mcflowVerify(g) {
 	// create residual graph of g
 	let rg = new Digraph(g.n,2*g.m);
 	for (let e = g.first(); e != 0; e = g.next(e)) {

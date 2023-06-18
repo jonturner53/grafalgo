@@ -1,4 +1,3 @@
-echo `pwd`
 node testBfs.mjs
 node testDfs.mjs
 node testComponents.mjs

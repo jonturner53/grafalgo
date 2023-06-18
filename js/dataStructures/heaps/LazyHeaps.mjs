@@ -12,8 +12,7 @@ import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import LeftistHeaps from './LeftistHeaps.mjs';
 
-//import { fassert } from '../../common/Errors.mjs';
-let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** This class implements a data structure consisting of a disjoint
  *  set of leftist heaps.
@@ -48,7 +47,7 @@ export default class LazyHeaps extends LeftistHeaps {
 	}
 
 	expand(n) {
-		fassert(false /*, 'LazyHeaps: expand not implemented'*/);
+		ea && assert(false, 'LazyHeaps: expand not implemented');
 	}
 
 	/** Assign a new value by copying from another heap.
@@ -162,7 +161,7 @@ export default class LazyHeaps extends LeftistHeaps {
 	#purge(h) {
 		if (h == 0) return;
 		this.purgesteps++;
-		fassert(this.valid(h));
+		ea && assert(this.valid(h));
 		if (this.isactive(h)) {
 			this.#plist.enq(h);
 		} else {
@@ -179,8 +178,8 @@ export default class LazyHeaps extends LeftistHeaps {
 	lazyMeld(h1, h2) {
 		if (h1 == 0) return h2;
 		if (h2 == 0) return h1;
-		fassert(this.valid(h1));
-		fassert(this.valid(h1) && this.valid(h2) && this.#dummy);
+		ea && assert(this.valid(h1));
+		ea && assert(this.valid(h1) && this.valid(h2) && this.#dummy);
 		if (this.rank(h1) < this.rank(h2)) {
 			let h = h1; h1 = h2; h2 = h;
 		}
