@@ -162,8 +162,8 @@ function serverRequest(path, args=[]) {
 	});
 }
 
-import { assert, AssertError } from './common/Errors.mjs';
-import Tester from './common/Tester.mjs';
+import { assert, AssertError, EnableAssert as ea } from './common/Errors.mjs';
+import { Tester, Proceed} from './common/Testing.mjs';
 import { range, shuffle, scramble, randomFraction, randomInteger, randomExp,
 		 randomGeometric, randomTruncatedGeometric, randomPareto,
 		 randomFill, randomPermutation
@@ -239,7 +239,7 @@ import maxflowHardcase from './graphAlgorithms/maxflow/maxflowHardcase.mjs';
 
 import ncrK from './graphAlgorithms/mcflow/ncrK.mjs';
 import ncrKGT from './graphAlgorithms/mcflow/ncrKGT.mjs';
-import ncrJEK from './graphAlgorithms/mcflow/ncrJEK.mjs';
+import ncrJEKc from './graphAlgorithms/mcflow/ncrJEKc.mjs';
 import mcflowJ from './graphAlgorithms/mcflow/mcflowJ.mjs';
 import mcflowJEK from './graphAlgorithms/mcflow/mcflowJEK.mjs';
 import mcflowO from './graphAlgorithms/mcflow/mcflowO.mjs';
@@ -255,11 +255,12 @@ import matchEG from './graphAlgorithms/match/matchEG.mjs';
 import wmatchE from './graphAlgorithms/match/wmatchE.mjs';
 import priorityMatchO from './graphAlgorithms/match/priorityMatchO.mjs';
 import priorityBimatchHK from './graphAlgorithms/match/priorityBimatchHK.mjs';
+import mdmatchG from './graphAlgorithms/match/mdmatchG.mjs';
 import matchVerify from './graphAlgorithms/match/matchVerify.mjs';
+import wmatchVerify from './graphAlgorithms/match/wmatchVerify.mjs';
 
 import ecolorG from './graphAlgorithms/ecolor/ecolorG.mjs';
 import ecolorR from './graphAlgorithms/ecolor/ecolorR.mjs';
-import mdmatchG from './graphAlgorithms/ecolor/mdmatchG.mjs';
 import ecolorVerify from './graphAlgorithms/ecolor/ecolorVerify.mjs';
 
 let codeArea = document.getElementById("codeArea");
