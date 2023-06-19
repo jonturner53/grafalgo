@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { AssertError } from '../../common/Errors.mjs';
+import { AssertFail } from '../../common/Assert.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import sptBM from '../spath/sptBM.mjs';
 
@@ -15,7 +15,7 @@ import sptBM from '../spath/sptBM.mjs';
  *  @return the empty string if the flow on g is a min cost flow,
  *  or an error message, if it is not.
  */
-export function mcflowVerify(g) {
+export default function mcflowVerify(g) {
 	// create residual graph of g
 	let rg = new Digraph(g.n,2*g.m);
 	for (let e = g.first(); e != 0; e = g.next(e)) {
@@ -27,15 +27,9 @@ export function mcflowVerify(g) {
 			let ee = rg.join(v,u); rg.length(ee, g.costFrom(e,v));
 		}
 	}
-	try {
-		sptBM(rg, 0);
-	} catch (e) {
-		if (e instanceof AssertError && 
-            e.message.indexOf('negative cycle') >= 0)
-			return 'Error: negative cycle in flow costs';
-		else
-			throw(e);
-	}
+	[spt] = sptBM(rg, 0);
+	if (!spt)
+		return 'Error: negative cycle on edges with positive residual capacity';
 
 	for (let u = 1; u <= g.n; u++) {
 		if (u == g.source || u == g.sink) continue;

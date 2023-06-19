@@ -162,7 +162,7 @@ function serverRequest(path, args=[]) {
 	});
 }
 
-import { assert, AssertError, EnableAssert as ea } from './common/Errors.mjs';
+import { assert, AssertFail, EnableAssert as ea } from './common/Assert.mjs';
 import { Tester, Proceed} from './common/Testing.mjs';
 import { range, shuffle, scramble, randomFraction, randomInteger, randomExp,
 		 randomGeometric, randomTruncatedGeometric, randomPareto,

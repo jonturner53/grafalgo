@@ -6,8 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { fassert } from '../common/Errors.mjs';
-//let fassert = (()=>1);
+import { assert, EnableAssert as ea } from '../common/Assert.mjs';
 
 /** The Top class is the super-class from which other classes
  *  in grafalgo are derived.
@@ -37,17 +36,17 @@ export default class Top {
 	}
 
     assign(other, relaxed=false) {
-        fassert(other != this &&
-                this.constructor.name == other.constructor.name,
-				'Top:assign: self-assignment or mismatched types');
+        ea && assert(other != this &&
+                	 this.constructor.name == other.constructor.name,
+					 'Top:assign: self-assignment or mismatched types');
         if (this.n == other.n || relaxed && this.n > other.n) this.clear();
         else this.reset(other.n);
 	}
 
 	xfer(other) {
-        fassert(other != this &&
-                this.constructor.name == other.constructor.name,
-				'Top:xfer: self-assignment or mismatched types');
+        ea && assert(other != this &&
+                	 this.constructor.name == other.constructor.name,
+					 'Top:xfer: self-assignment or mismatched types');
 		this.#n = other.#n;
 	}
 
@@ -67,7 +66,7 @@ export default class Top {
 	 *  cannot over-expand.
 	 */
 	expand(n) {
-		fassert(n > this.n, 'Top: expand must increase range');
+		ea && assert(n > this.n, 'Top: expand must increase range');
 		let nu = new this.constructor(n);
 		nu.assign(this,true); this.xfer(nu);
 	}
@@ -104,8 +103,8 @@ export default class Top {
 			other = new this.constructor();
 			if (typeof other.fromString !== 'function')
 				return s == this.toString();
-			fassert(other.fromString(s),
-					other.constructor.name + ':equals: fromString cannot parse ' + s);
+			ea && assert(other.fromString(s), other.constructor.name +
+						 ':equals: fromString cannot parse ' + s);
 			if (other.n > this.n) return false;
 			if (other.n < this.n) other.expand(this.n);
 			if (other.n < this.n) other.expand(this.n);
