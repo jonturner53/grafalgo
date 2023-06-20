@@ -6,7 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError} from '../../../common/Errors.mjs';
+import { assert, AssertFail } from '../../../common/Assert.mjs';
+import { matches, Mismatch } from '../../../common/Testing.mjs';
 import bfs from '../bfs.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 
@@ -17,18 +18,18 @@ try {
 	g.fromString("{a[b d e] b[a c f] c[b d f] d[a c e] e[a d] f[b c]}");
 
 	let vlist = bfs(g, 1);
-	assert(g.ilist2string(vlist), '[a b d e c f]', 'a1');
+	matches(g.ilist2string(vlist), '[a b d e c f]', 'a1');
 	vlist = bfs(g, 4);
-	assert(g.ilist2string(vlist), '[d a c e b f]', 'a2');
+	matches(g.ilist2string(vlist), '[d a c e b f]', 'a2');
 	vlist = bfs(g, 6);
-	assert(g.ilist2string(vlist), '[f b c a d e]', 'a3');
+	matches(g.ilist2string(vlist), '[f b c a d e]', 'a3');
 
 } catch (e) {
-	if (e instanceof AssertError)
-		if (e.message.length > 0)
-			console.log(e.name + ': ' + e.message);
-		else
-			console.error(e.stack);
-	else
-		throw(e);
+    if (e instanceof Mismatch) {
+        console.log(e.name + ': ' + e.message);
+	} else if (e instanceof AssertFail) {
+		console.error(e.stack);
+	} else {
+        throw(e);
+	}
 }

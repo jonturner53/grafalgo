@@ -27,7 +27,7 @@ export default function mcflowVerify(g) {
 			let ee = rg.join(v,u); rg.length(ee, g.costFrom(e,v));
 		}
 	}
-	[spt] = sptBM(rg, 0);
+	let [spt] = sptBM(rg, 0);
 	if (!spt)
 		return 'Error: negative cycle on edges with positive residual capacity';
 

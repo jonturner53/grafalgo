@@ -17,7 +17,7 @@ import maxflowFFcs from '../maxflowFFcs.mjs';
 import maxflowPPf from '../maxflowPPf.mjs';
 import maxflowPPhl from '../maxflowPPhl.mjs';
 import flowfloor from '../flowfloor.mjs';
-import { maxflowVerify as verify } from '../maxflowVerify.mjs';
+import maxflowVerify from '../maxflowVerify.mjs';
 import List from '../../../dataStructures/basic/List.mjs';
 import Flograph from '../../../dataStructures/graphs/Flograph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
@@ -45,14 +45,14 @@ function verifyFloors(g) {
 }
 
 let algomap = {
-	'FFsp' : ['maxflowFFsp', (g,trace)=>run(g,trace,maxflowFFsp), verify],
-	'D' :    ['maxflowD',    (g,trace)=>run(g,trace,maxflowD),    verify],
-	'DST' :  ['maxflowDST',  (g,trace)=>run(g,trace,maxflowDST),  verify],
-	'FFmc' : ['maxflowFFmc', (g,trace)=>run(g,trace,maxflowFFmc), verify],
-	'FFcs' : ['maxflowFFcs', (g,trace)=>run(g,trace,maxflowFFcs), verify],
-	'PPf' :  ['maxflowPPf',  (g,trace)=>run(g,trace,maxflowPPf),  verify],
-	'PPhl' : ['maxflowPPhl', (g,trace)=>run(g,trace,maxflowPPhl), verify],
-	'floor': ['flowfloor',   (g,trace)=>ff(g,trace), verifyFloors]
+	'FFsp': ['maxflowFFsp', (g,trace)=>run(g,trace,maxflowFFsp), maxflowVerify],
+	'D':    ['maxflowD',    (g,trace)=>run(g,trace,maxflowD),    maxflowVerify],
+	'DST':  ['maxflowDST',  (g,trace)=>run(g,trace,maxflowDST),  maxflowVerify],
+	'FFmc': ['maxflowFFmc', (g,trace)=>run(g,trace,maxflowFFmc), maxflowVerify],
+	'FFcs': ['maxflowFFcs', (g,trace)=>run(g,trace,maxflowFFcs), maxflowVerify],
+	'PPf':  ['maxflowPPf',  (g,trace)=>run(g,trace,maxflowPPf),  maxflowVerify],
+	'PPhl': ['maxflowPPhl', (g,trace)=>run(g,trace,maxflowPPhl), maxflowVerify],
+	'floor':['flowfloor',   (g,trace)=>ff(g,trace), verifyFloors]
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));

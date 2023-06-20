@@ -6,7 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError } from '../../../common/Errors.mjs';
+import { assert, AssertFail } from '../../../common/Assert.mjs';
+import { matches, Mismatch } from '../../../common/Testing.mjs';
 import Digraph from '../../../dataStructures/graphs/Digraph.mjs';
 import toposort from '../toposort.mjs';
 import { randomDag } from '../RandomGraph.mjs';
@@ -17,18 +18,18 @@ try {
 	let g = new Digraph(6);
 	g.fromString('{a[b f] b[c e] c[] d[a c] e[c f] f[]}');
 	let vlist = toposort(g);
-	assert(g.ilist2string(vlist), '[d a b e c f]', 'a1');
+	matches(g.ilist2string(vlist), '[d a b e c f]', 'a1');
 
 	g = randomDag(100, 1000); g.scramble();
 	vlist = toposort(g);
-	assert(vlist.length, g.n, 'a2');
+	matches(vlist.length, g.n, 'a2');
 	
 } catch(e) {
-    if (e instanceof AssertError)
-		if (e.message.length > 0)
-        	console.log(e.name + ': ' + e.message);
-		else
-			console.error(e.stack);
-    else
+    if (e instanceof Mismatch) {
+        console.log(e.name + ': ' + e.message);
+	} else if (e instanceof AssertFail) {
+		console.error(e.stack);
+	} else {
         throw(e);
+	}
 }

@@ -6,7 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError} from '../../../common/Errors.mjs';
+import { assert, AssertFail } from '../../../common/Assert.mjs';
+import { matches, Mismatch } from '../../../common/Testing.mjs';
 import components from '../components.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 
@@ -37,17 +38,17 @@ function basicTests(trace=false) {
 					 'g[h] h[g i] i[h]}');
 	
 		let [k, ls, ts] = components(g, trace);
-		assert(k, 2, 'a1');
-		assert(ls, '{[a b c d e f] [g h i]}', 'a2');
+		matches(k, 2, 'a1');
+		matches(ls, '{[a b c d e f] [g h i]}', 'a2');
 		if (trace) console.log(ts);
 	} catch (e) {
-		if (e instanceof AssertError)
-			if (e.message.length > 0)
-				console.log(e.name + ': ' + e.message);
-			else
-				console.error(e.stack);
-		else
-			throw(e);
+	    if (e instanceof Mismatch) {
+	        console.log(e.name + ': ' + e.message);
+		} else if (e instanceof AssertFail) {
+			console.error(e.stack);
+		} else {
+	        throw(e);
+		}
 	}
 }
 main();
