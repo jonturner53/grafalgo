@@ -182,7 +182,6 @@ function addBlossom(e, A) {
 function augment(e) {
 	if (trace) traceString += 'augment:';
 	while (true) {
-		steps++;
 		if (trace) traceString += ' ' + g.e2s(e,0,1);
 		match.add(e);
 		if (apath.isLast(e)) break;
@@ -193,6 +192,7 @@ function augment(e) {
 	}
 	if (trace)
 		traceString += `\n    ${match.toString()}\n`;
+	paths++;
 }
 
 /** Get identifier of outer blossom of a vertex.
