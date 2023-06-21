@@ -82,8 +82,28 @@ export default function wmatchE(mg, traceFlag=false) {
 				[u,v] = [v,u]; [U,V] = [V,U]; [sU,sV] = [sV,sU];
 			}
 
-			// now U is even and V is even or unbound
-			if (sV == 0) {
+			// now e is tight, U is even and V is even or unbound
+			if (sV == +1) {
+				let A = nca(U,V);
+				if (A == 0) {
+					augment(e); newPhase(); phases++;
+				} else {
+					blossoms++;
+					let [B,subs,sb] = bloss.addBlossom(e,A); z[B] = 0;
+					let state = +1;
+					for (let b = subs.first(); b; b = subs.next(b)) {
+						if (state == -1) add2q(b);
+						state = (b == sb ? +1 : -state);
+					}
+					if (trace) {
+						traceString += `blossom: ${g.e2s(e)} ${bloss.x2s(A)} ` +
+									   `${bloss.x2s(B)}` +
+									   `${subs.toString(x => bloss.x2s(x))}\n`;
+						let s = bloss.trees2string(1);
+						if (s.length > 2) traceString += `    ${s}\n`;
+					}
+				}
+			} else if (sV == 0) {
 				let W = bloss.addBranch(e,v,V); add2q(W);
 				if (trace) {
 					traceString += `branch: ${bloss.x2s(U)}-${g.e2s(e,0,1)}-` +
@@ -91,27 +111,7 @@ export default function wmatchE(mg, traceFlag=false) {
 								   `${g.e2s(match.at(bloss.base(V)),0,1)}-` +
 								   `${bloss.x2s(W)}\n`;
 				}
-				branches++; continue;
-			}
-			let A = nca(U,V);
-			if (A) {
-				blossoms++;
-				let [B,subs,sb] = bloss.addBlossom(e,A); z[B] = 0;
-				let state = +1;
-				for (let b = subs.first(); b; b = subs.next(b)) {
-					if (state == -1) add2q(b);
-					state = (b == sb ? +1 : -state);
-				}
-				if (trace) {
-					traceString += `blossom: ${g.e2s(e)} ${bloss.x2s(A)} ` +
-								   `${bloss.x2s(B)}` +
-								   `${subs.toString(x => bloss.x2s(x))}\n`;
-					let s = bloss.trees2string(1);
-					if (s.length > 2)
-						traceString += `    ${s}\n`;
-				}
-			} else {
-				augment(e); newPhase(); phases++;
+				branches++;
 			}
 		}
 		relabels++;

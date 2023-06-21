@@ -192,9 +192,7 @@ export default function wmatchGMG(mg, traceFlag=false) {
 	}
 
 	if (trace) {
-		traceString += `final matching: ` +
-						match.toString(e => bloss.outer(g.left(e)) !=
-											bloss.outer(g.right(e))) + '\n';
+		traceString += `final matching: ${match.toString()}\n`;
 	}
 	steps += bloss.getStats().steps; +
 			 obh.getStats().steps + ebh.getStats().steps +
