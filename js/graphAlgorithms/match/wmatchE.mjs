@@ -68,7 +68,6 @@ export default function wmatchE(mg, traceFlag=false) {
 		traceString += `eligible: ${q.toString(e => g.e2s(e,0,1))}\n`;
 	}
 
-	phases++;
 	while (true) {
 		ea && assert(!verifyInvariant(), verifyInvariant() + traceString);
 		while (!q.empty()) {
@@ -119,9 +118,10 @@ export default function wmatchE(mg, traceFlag=false) {
 		if (relabel()) break;
 	}
 
+	bloss.rematchAll(); // make matching consistent
+
 	// verify solution when assertion checking is enabled
 	if (ea) {
-		bloss.rematchAll();
 		let s = verifyInvariant(true);
 		assert(!s, `${s}\n${traceString}${match.toString()}\n` +
 				   `${bloss.toString()}\n${statusString()}`);

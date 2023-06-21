@@ -35,6 +35,7 @@ let firstVertex;  // firstVertex[b] is first vertex in blossom b
 let trace;
 let traceString;
 
+let phases;     // number of phases
 let branches;   // number of new branches formed
 let blossoms;   // number of blossoms formed
 let relabels;   // number of relabeling operations
@@ -69,7 +70,7 @@ export default function wmatchGMG(mg, traceFlag=false) {
 
 	trace = traceFlag; traceString = '';
 
-	branches = blossoms = deblossoms = relabels = 0;
+	phases = branches = blossoms = deblossoms = relabels = 0;
 	steps = g.n + g.edgeRange;
 
 	let maxwt = -Infinity;
@@ -181,9 +182,10 @@ export default function wmatchGMG(mg, traceFlag=false) {
 		relabels++; finished = relabel();
 	}
 
+	bloss.rematchAll(); // make matching consistent
+
 	// verify solution when assertion checking is enabled
 	if (ea) {
-		bloss.rematchAll();
 		let s = verifyInvariant(true);
 		assert(!s, `${s}\n${traceString}${match.toString()}\n` +
 				   `${bloss.toString()}\n${statusString()}`);
@@ -200,7 +202,7 @@ export default function wmatchGMG(mg, traceFlag=false) {
 			 exh.getStats().steps + eeh.getStats().steps;
 
 	return [match, traceString,
-			{'weight': match.weight(), 'branches': branches,
+			{'weight': match.weight(), 'phases': phases, 'branches': branches,
 			 'blossoms': blossoms, 'relabels': relabels,
 			 'deblossoms': deblossoms, 'steps': steps}];
 }
@@ -294,6 +296,7 @@ function augment(e) {
  */
 function newPhase() {
 	// expand outer blossoms with z == 0 (note: these are even)
+	phases++;
 	bq.clear();
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
 		if (zz(b) == 0) bq.enq(b);  // note: b must be even

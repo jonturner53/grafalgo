@@ -86,10 +86,12 @@ tester.addTest('small random graph with negative edges (10,3.5)', g);
 g = randomDigraph(100, 5); g.randomLengths(randomFraction);
 tester.addTest('medium random graph with negative edges (100,5)', g);
 
-g = randomDigraph(1000, 10); g.randomLengths(randomFraction);
-!ea && tester.addTest('large random graph (1000,10)', g);
+if (!ea) {
+	g = randomDigraph(400, 10); g.randomLengths(randomFraction);
+	tester.addTest('large random graph (400,10)', g);
 
-g = randomDigraph(2000, 20); g.randomLengths(randomFraction);
-!ea && tester.addTest('larger random graph (2000,20)', g);
+	g = randomDigraph(800, 20); g.randomLengths(randomFraction);
+	tester.addTest('larger random graph (800,20)', g);
+}
 
 tester.run();

@@ -103,8 +103,9 @@ export default class Top {
 			other = new this.constructor();
 			if (typeof other.fromString !== 'function')
 				return s == this.toString();
-			ea && assert(other.fromString(s), other.constructor.name +
+			assert(other.fromString(s), other.constructor.name +
 						 ':equals: fromString cannot parse ' + s);
+				// note: this assert must always be enabled
 			if (other.n > this.n) return false;
 			if (other.n < this.n) other.expand(this.n);
 			if (other.n < this.n) other.expand(this.n);

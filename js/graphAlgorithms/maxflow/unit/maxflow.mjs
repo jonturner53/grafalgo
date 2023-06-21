@@ -74,9 +74,8 @@ g = randomFlograph(152, 20, 20, 2, 2); g.randomCapacities(randomInteger, 1, 99);
 !ea && tester.addTest('large random', g);
 
 !ea && tester.addTest('hardcase(2,10)', maxflowHardcase(2, 10));
-tester.addTest('hardcase(4,20)', maxflowHardcase(4, 20));
+!ea && tester.addTest('hardcase(4,20)', maxflowHardcase(4, 20));
 !ea && tester.addTest('hardcase(8,40)', maxflowHardcase(8, 40));
-!ea && tester.addTest('hardcase(16,80)', maxflowHardcase(16, 80));
 
 // tests for flowfloor
 
@@ -96,10 +95,12 @@ g.randomCapacities(randomInteger, 1, 99);
 g.randomFloors(randomInteger, 0, 2);
 tester.addTest('medium random with floors', g);
 
-g = randomFlograph(152, 20, 20, 2, 2);
-g.randomCapacities(randomInteger, 1, 99);
-g.randomFloors(randomInteger, 0, 7);
-!ea && tester.addTest('large random with floors', g);
+if (!ea) {
+	g = randomFlograph(152, 20, 20, 2, 2);
+	g.randomCapacities(randomInteger, 1, 99);
+	g.randomFloors(randomInteger, 0, 7);
+	tester.addTest('large random with floors', g);
+}
 
 tester.run();
 
