@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-export const EnableAssert = true;
+export const EnableAssert = false;
 	// for use in client code with expensive assert arguments
 	// write: EnableAssertions && assert(...) to avoid
 	// evaluation of arguments to assert when assertion

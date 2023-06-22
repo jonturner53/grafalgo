@@ -101,6 +101,8 @@ export default function wmatchGMG(mg, traceFlag=false) {
 			let ee = eeh.findmin();
 			let eu = exh.findmin();
 			if (ee && eeh.key(ee) == 0) {
+//if (trace)
+//traceString += `enext ${g.e2s(ee)}\n`;
 				eeh.delete(ee)
 				let [u,v] = [g.left(ee),g.right(ee)];
 				let [U,V] = [bloss.outer(u),bloss.outer(v)];
@@ -146,6 +148,8 @@ export default function wmatchGMG(mg, traceFlag=false) {
 				}
 				blossoms++;
 			} else if (eu && eu <= g.edgeRange) {
+//if (trace)
+//traceString += `enext ${g.e2s(eu)}\n`;
 				let [u,v] = [g.left(eu),g.right(eu)];
 				let [U,V] = [bloss.outer(u),bloss.outer(v)];
 				if (bloss.state(U) != +1) [u,v,U,V] = [v,u,V,U];
@@ -280,9 +284,9 @@ function augment(e) {
 			traceString += `augment: ${g.e2s(e)} ${ts}${bloss.x2s(X)}\n`;
 		} else {
 			traceString += `augment: ${g.e2s(e)}\n`;
-			if (trees.length > 2) traceString += `	${trees}\n`;
-			traceString += `	${ts}${bloss.x2s(X)}\n`;
-			traceString += `	${match.toString(
+			if (trees.length > 2) traceString += `    ${trees}\n`;
+			traceString += `    ${ts}${bloss.x2s(X)}\n`;
+			traceString += `    ${match.toString(
 				e => bloss.outer(g.left(e)) != bloss.outer(g.right(e)))}\n`
 		}
 	}
@@ -431,11 +435,11 @@ function relabel() {
 
 	if (trace) {
 		let s = eligibleEdgeString();
-		if (s.length > 2) traceString += `\n  ${s}\n`;
+		if (s.length > 2) traceString += `\n    ${s}\n`;
 		s = bloss.trees2string(1);
-		if (s.length > 2 && delta == d4) traceString += `  ${s}\n`;
+		if (s.length > 2 && delta == d4) traceString += `    ${s}\n`;
 		s = bloss.blossoms2string(1);
-		if (s.length > 2 && delta == d4) traceString += `  ${s}\n`;
+		if (s.length > 2 && delta == d4) traceString += `    ${s}\n`;
 	}
 
 	return false;

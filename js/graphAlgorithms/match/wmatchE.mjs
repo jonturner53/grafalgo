@@ -82,6 +82,8 @@ export default function wmatchE(mg, traceFlag=false) {
 				[u,v] = [v,u]; [U,V] = [V,U]; [sU,sV] = [sV,sU];
 			}
 
+//if (trace)
+//traceString += `enext ${g.e2s(e)}\n`
 			// now e is tight, U is even and V is even or unbound
 			if (sV == +1) {
 				let A = nca(U,V);
@@ -213,14 +215,15 @@ function newPhase() {
 		}
 	}
 
-	// set state and link for remaining blossoms and add their
-	// eligible edges to q
+	// set state and link for remaining blossoms 
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
 		bloss.state(b, match.at(bloss.base(b)) ? 0 : +1);
 		bloss.link(b,[0,0])
-		if (bloss.state(b) == +1) add2q(b);
 		steps++;
 	}
+	// and add eligible edges to q
+	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b))
+		if (bloss.state(b) == +1) add2q(b);
 	if (trace) {
 		let s = bloss.blossoms2string(1);
 		if (s.length > 2) traceString += `    ${s}\n`;
@@ -290,12 +293,6 @@ function relabel() {
 			if (bloss.state(b) == +1) add2q(b)
 			steps++;
 		}
-if (trace) {
-	traceString += '\n    ';
-	for (let e = q.first(); e; e = q.next(e))
-		traceString += `${g.e2s(e,0,1)}(${z[g.left(e)]},${z[g.right(e)]},${g.weight(e)}) `;
-	traceString += q.length;
-}
 	}
 
 	if (delta == d4) {
@@ -329,12 +326,15 @@ function add2q(b,limit=false) {
 	for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			let v = g.mate(u,e); let V = bloss.outer(v);
-			if (bloss.state(V) >= 0 && V != B &&
-				slack(e) == 0 && !q.contains(e)) {
-if (trace  && g.left(e) == 10 && g.right(e) ==26)
-//if (trace  && g.e2s(e,0,1) == 'jz')
-traceString += `\n***** adding jz z[j]=${z[10]} z[z]=${z[26]} weight=${g.weight(e)} slack=${slack(e)}\n`;
-				q.enq(e);
+			if (bloss.state(V) >= 0 && V != B && slack(e) == 0) {
+				if (bloss.state(V) == 0 && !q.contains(e))
+					q.enq(e);
+				if (bloss.state(V) == +1) {
+					if (q.contains(e)) q.delete(e);
+					q.push(e);
+					// put ee edges at front of queue
+					// eu edges at back
+				}
 			}
 			steps++;
 		}
