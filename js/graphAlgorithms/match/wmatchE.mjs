@@ -12,7 +12,7 @@ import Blossoms from './Blossoms.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 
-let g=null;       // shared copy of graph
+let g             // shared copy of graph
 let match;        // Matching object representing matching for graph
 let bloss;        // Blossoms0 object representing blossoms and matching trees
 
@@ -38,7 +38,8 @@ let steps;      // total number of steps
  *  @return a triple [match, ts, stats] where match is an array
  *  matching a vertex u to its matched edge match[u] or 0 if u
  *  is unmatched; ts is a possibly empty trace string
- *  and stats is a statistics object
+ *  and stats is a statistics object; if assertion-checking is enabled,
+ *  the correctness of the solution is verified before returning
  */
 export default function wmatchE(mg, traceFlag=false) {
 	g = mg;
@@ -82,8 +83,6 @@ export default function wmatchE(mg, traceFlag=false) {
 				[u,v] = [v,u]; [U,V] = [V,U]; [sU,sV] = [sV,sU];
 			}
 
-//if (trace)
-//traceString += `enext ${g.e2s(e)}\n`
 			// now e is tight, U is even and V is even or unbound
 			if (sV == +1) {
 				let A = nca(U,V);
@@ -120,7 +119,10 @@ export default function wmatchE(mg, traceFlag=false) {
 		if (relabel()) break;
 	}
 
-	bloss.rematchAll(); // make matching consistent
+	bloss.rematchAll();
+		// make matching consistent without expanding remaining blossoms
+		// this allows the correctness of the solution to be fully verified
+		// before returning
 
 	// verify solution when assertion checking is enabled
 	if (ea) {

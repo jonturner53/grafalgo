@@ -56,8 +56,6 @@ export default class Blossoms extends Top {
 
 		this.#bsf = new Forest(this.n);
 
-this.cnt = 0;
-
 		this.#base = new Int32Array(this.n+1);
 		for (let i = 0; i <= this.g.n; i++) this.#base[i] = i;
 		this.#state = new Int32Array(this.n+1).fill(1);

@@ -13,7 +13,7 @@ import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import GroupHeap from '../../dataStructures/specialty/GroupHeap.mjs';
 
-let g=null;       // shared copy of graph
+let g             // shared copy of graph
 let match;        // Matching object representing matching for graph
 let bloss;        // Blossoms object representing blossoms and matching trees
 
@@ -50,7 +50,8 @@ let steps;      // total number of steps
  *  @return a triple [match, ts, stats] where match is an array
  *  matching a vertex u to its matched edge match[u] or 0 if u
  *  is unmatched; ts is a possibly empty trace string
- *  and stats is a statistics object xx
+ *  and stats is a statistics object; if assertion checking is enabled,
+ *  the correctness of the solution is verified before returning
  */
 export default function wmatchGMG(mg, traceFlag=false) {
 	g = mg;
