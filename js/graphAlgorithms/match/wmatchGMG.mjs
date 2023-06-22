@@ -101,8 +101,6 @@ export default function wmatchGMG(mg, traceFlag=false) {
 			let ee = eeh.findmin();
 			let eu = exh.findmin();
 			if (ee && eeh.key(ee) == 0) {
-//if (trace)
-//traceString += `enext ${g.e2s(ee)}\n`;
 				eeh.delete(ee)
 				let [u,v] = [g.left(ee),g.right(ee)];
 				let [U,V] = [bloss.outer(u),bloss.outer(v)];
@@ -148,8 +146,6 @@ export default function wmatchGMG(mg, traceFlag=false) {
 				}
 				blossoms++;
 			} else if (eu && eu <= g.edgeRange) {
-//if (trace)
-//traceString += `enext ${g.e2s(eu)}\n`;
 				let [u,v] = [g.left(eu),g.right(eu)];
 				let [U,V] = [bloss.outer(u),bloss.outer(v)];
 				if (bloss.state(U) != +1) [u,v,U,V] = [v,u,V,U];
