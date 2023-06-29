@@ -1,4 +1,4 @@
-/** @file priorityMatchVerify.mjs
+/** @file pmatchVerify.mjs
  *
  *  @author Jon Turner
  *  @date 2023
@@ -22,7 +22,7 @@ let mark;      // mark bits used by nca
  *  @return a string which is empty if match is a maximum priority matching,
  *  otherwise it describes an error
  */
-export default function priorityMatchVerify(g0, prio, match) {
+export default function pmatchVerify(g0, prio, match) {
 	g = g0;
 	blossoms = new MergeSets(g.n);
 	origin = new Int32Array(g.n+1);
@@ -71,7 +71,7 @@ export default function priorityMatchVerify(g0, prio, match) {
 			state[w] = even; link[w] = match.at(v);
 			if (prio[w] < prio[r]) {
 				return `higher priority by flipping ` +
-					   `alt path from ${g.x2s(w)} to ${g.x2s(r)}`;
+					   `alt path from ${g.x2s(r)} to ${g.x2s(w)}`;
 			}
 			root[v] = root[w] = r;
 			for (let ee = g.firstAt(w); ee != 0; ee = g.nextAt(w,ee)) {
@@ -83,8 +83,7 @@ export default function priorityMatchVerify(g0, prio, match) {
 		// U and V are both even
 		let a = nca(U,V);
 		if (a == 0) {
-			return  `can extend matching thru ${g.e2s(e)} ` +
-					`(${prio[u]},${prio[v]})`;
+			return  `can augment matching thru ${g.e2s(e)} `;
 			continue;
 		}
 
@@ -94,8 +93,8 @@ export default function priorityMatchVerify(g0, prio, match) {
 			origin[blossoms.merge(blossoms.find(x), blossoms.find(a))] = a;
 			x = g.mate(x,link[x]); // x now odd
 			if (prio[x] < prio[r]) {
-				return `priority score can be improved by flipping ` +
-					   `alternating path from ${g.x2s(x)} to ${g.x2s(r)}`;
+				return `can improve matching by flipping ` +
+					   `path from ${g.x2s(r)} to ${g.x2s(x)}`;
 			}
 			origin[blossoms.merge(x,blossoms.find(a))] = a;
 			for (let ee = g.firstAt(x); ee != 0; ee = g.nextAt(x,ee)) {
@@ -110,7 +109,7 @@ export default function priorityMatchVerify(g0, prio, match) {
 			x = g.mate(x,link[x]); // x now odd
 			if (prio[x] < prio[r]) {
 				return `higher priority by flipping ` +
-					   `alt path from ${g.x2s(w)} to ${g.x2s(r)}`;
+					   `alt path from ${g.x2s(r)} to ${g.x2s(w)}`;
 			}
 			origin[blossoms.merge(x,blossoms.find(a))] = a;
 			for (let ee = g.firstAt(x); ee != 0; ee = g.nextAt(x,ee)) {

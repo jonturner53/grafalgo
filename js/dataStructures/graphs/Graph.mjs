@@ -275,26 +275,31 @@ export default class Graph extends Top {
 	/** Sort an endpoint list for a specified vertex using ecmp().
 	 *  @param u is the vertex whose adjacency list is to be sorted.
 	 */
-	sortEplist(u) {
+	sortEplist(u,ecmp) {
 		ea && assert(u != 0 && this.validVertex(u));
 		if (this._firstEp[u] == 0) return; // empty list
 
 		// if already sorted, skip sorting step
-		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u, e)) {
-			if (this.nextAt(u, e) == 0) return; // already sorted
-			if (this.ecmp(e, this.nextAt(u,e), u) > 0) 
-				break; // edge out of order
+		if (!ecmp) {
+			for (let e = this.firstAt(u); e; e = this.nextAt(u, e)) {
+				if (this.nextAt(u, e) == 0) return; // already sorted
+				if (this.ecmp(e, this.nextAt(u,e), u) > 0) 
+					break; // edge out of order
+			}
 		}
 
 		// copy endpoints in endpoint list for u into an array
 		// and remove them from endpoint list
 		let epl = [];
-		for (let first = this._firstEp[u]; first!=0; first = this._firstEp[u]) {
+		for (let first = this._firstEp[u]; first; first = this._firstEp[u]) {
 			epl.push(first);
 			this._firstEp[u] = this._epLists.delete(first, first);
 		}
 
-		epl.sort((e1, e2) => this.ecmp(Math.trunc(e1/2), Math.trunc(e2/2), u));
+		if (ecmp)
+			epl.sort((e1, e2) => ecmp(~~(e1/2), ~~(e2/2), u));
+		else
+			epl.sort((e1, e2) => this.ecmp(~~(e1/2), ~~(e2/2), u));
 	
 		// now rebuild endpoint list at u
 		for (let j = 1; j < epl.length; j++) {
@@ -303,9 +308,9 @@ export default class Graph extends Top {
 		this._firstEp[u] = epl[0];
 	}
 	
-	/** Sort adjacency lists for all vertices by "other endpoinnt". */
-	sortAllEplists() {
-		for (let u = 1; u <= this.n; u++) this.sortEplist(u);
+	/** Sort adjacency lists for all vertices by "other endpoint". */
+	sortAllEplists(ecmp) {
+		for (let u = 1; u <= this.n; u++) this.sortEplist(u,ecmp);
 	}
 
 	/** Compute a list of edge numbers sorted by endpoints and weights.

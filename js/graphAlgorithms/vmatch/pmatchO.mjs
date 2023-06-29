@@ -1,4 +1,4 @@
-/** @file priorityMatchO.mjs
+/** @file pmatchO.mjs
  *
  *  @author Jon Turner
  *  @date 2023
@@ -12,7 +12,7 @@ import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import findSplit from '../misc/findSplit.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
 import flowfloor from '../maxflow/flowfloor.mjs';
-import Matching from './Matching.mjs';
+import Matching from '../match/Matching.mjs';
 
 /** Compute a maximum priority matching in a graph by reducing it to a
  *  weighted matching problem and applying a specified algorithm.
@@ -25,15 +25,15 @@ import Matching from './Matching.mjs';
  *  @param trace causes a trace string to be returned when true
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function priorityMatchO(g0, priority, algo, trace=false) {
+export default function pmatchO(g0, prio, algo, trace=false) {
 	let g = new Graph(g0.n, g0.edgeRange); g.assign(g0);
 	for (let e = g.first(); e; e = g.next(e)) {
 		let [u,v] = [g.left(e),g.right(e)];
-		g.weight(e, priority[u] + priority[v]);
+		g.weight(e, prio[u] + prio[v]);
 	}
 	let ts = '';
 	if (trace) {
-		ts += g0.toString(1,0,u => g0.x2s(u) + ':' + priority[u]);
+		ts += g0.toString(1,0,u => g0.x2s(u) + ':' + prio[u]);
 	}
 	let [match0,,stats0] = algo(g);
 	if (!match0) return [];
@@ -44,7 +44,7 @@ export default function priorityMatchO(g0, priority, algo, trace=false) {
 		ts += `matching: ${match.toString()}\n`;
 	let psum = 0;
 	for (let u = 1; u <= g.n; u++) 
-		if (match.at(u)) psum += priority[u];
+		if (match.at(u)) psum += prio[u];
 	let stats = { 'size': match.size(), 'psum': psum,
 				  'steps': stats0.steps + g.n };
 	return [match, ts, stats];

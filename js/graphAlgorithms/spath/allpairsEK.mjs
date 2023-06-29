@@ -6,6 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { assert } from '../../common/Assert.mjs';
 import sptBM from './sptBM.mjs';
 import sptD from './sptD.mjs';
 
@@ -29,14 +30,16 @@ export default function allpairsEK(g, trace) {
 	let link = []; link.push(null);
     
     // compute distances in augmented graph
-	let [d,,statsBM] = sptBM(g, 0);
+	let [,d,,statsBM] = sptBM(g, 0);
 	if (!d) return [];
 	let stats = { 'stepsBM' : statsBM.stepCount };
 
 	let ts = '';
-	if (trace) ts += g.toString(1);
+	if (trace)
+		ts += 'original graph with distances from pseudo-source' +
+			  g.toString(1,0,u=>`${g.x2s(u)}:${d[u]}`);
     // transform edge lengths
-    for (let e = g.first(); e != 0; e = g.next(e)) {
+    for (let e = g.first(); e; e = g.next(e)) {
         g.length(e, g.length(e) + (d[g.tail(e)] - d[g.head(e)]));
     }
 	if (trace)
@@ -47,7 +50,7 @@ export default function allpairsEK(g, trace) {
 	stats.stepsD = 0;
     for (let u = 1; u <= g.n; u++) {
         let [ulink,udist,,statsD] = sptD(g, u);
-		if (!ulink) return [];
+		assert(ulink, 'program error: negative edges in transformed graph\n' + ts);
 		link.push(ulink); dist.push(udist);
 		stats.stepsD += statsD.steps;
         for (let v = 1; v <= g.n; v++) dist[u][v] -= (d[u]-d[v]);
