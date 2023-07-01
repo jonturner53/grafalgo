@@ -80,6 +80,22 @@ if (bipartite) {
 		if (g.degree(u) == md) prio[u] = 1;
 	tester.addTest(`small random bigraph max degree (${g.n},${g.m})`, g, prio);
 	
+	g = randomBigraph(100,3);
+	let d = new Int32Array(g.n+1);
+	for (let u = 1; u <= g.n; u++) d[u] = g.degree(u);
+	g.sortAllEplists((e1,e2,v) => d[g.mate(v,e2)] - d[g.mate(v,e1)]);
+	for (let u = 1; u <= g.n; u++) {
+		while (d[u] > 4) { 
+			let e = g.firstAt(u); d[u]--; d[g.mate(u,e)]--; g.delete(e);
+		}
+	}
+	prio = new Int32Array(g.n+1);
+	md = g.maxDegree(); 
+	for (let u = 1; u <= g.n; u++) {
+		if (g.degree(u) == md) prio[u] = 1;
+	}
+	tester.addTest(`medium random bigraph max degree (${g.n},${g.m})`, g, prio);
+	
 	g = randomBigraph(8,4,16);
 	prio = new Int32Array(g.n+1); randomFill(prio, p => randomInteger(0,~~(g.n**.5)));
 	tester.addTest(`small random bigraph (${g.n},${g.m},2)`, g, prio);
