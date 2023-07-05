@@ -128,11 +128,11 @@ if (bipartite) {
 		if (g.degree(u) == md) prio[u] = 1;
 	tester.addTest('small graph max degree', g, prio);
 	
-	g = randomGraph(25,3);
+	g = randomGraph(25,5);
 	prio = new Int32Array(g.n+1); randomFill(prio, p => randomInteger(0,~~(g.n**.5)));
 	tester.addTest('small random graph', g, prio);
 	
-	g = randomGraph(100,20);
+	g = randomGraph(100,10);
 	prio = new Int32Array(g.n+1); randomFill(prio, p => randomInteger(0,~~(g.n**.5)));
 	tester.addTest(`medium random graph (${g.n},${g.m})`, g, prio);
 	

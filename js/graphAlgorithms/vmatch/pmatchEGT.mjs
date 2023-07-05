@@ -116,30 +116,28 @@ export default function pmatchEGT(g0, prio0, traceFlag=false) {
 			// skip edges internal to a blossom and edges to odd vertices
 
 		if (state[V] == 0) {
-			let w = addBranch(u,e);
-			if (prio[w] < prio[r]) {
-				let ee = apath.reverse(path(w, r));
-				augment(ee);
-				r = newPhase();
+			let ee = addBranch(u,e,r);
+			if (ee) {
+				// found priority-improving path
+				augment(ee); r = newPhase();
 			}
 		} else {
 			// U and V are both even
 			let A = nca(U,V);
-			if (A != 0) {
-				let w = addBlossom(e, A, prio[r]);
-				if (w) {
-					let ee = apath.reverse(path(w,r));
+			if (A) {
+				let ee = addBlossom(e,A,r);
+				if (ee) {
+					// found priority-improving path
 					augment(ee); r = newPhase();
 				}
 			} else {
 				// U, V are in different trees - augment and start new phase
 				let r1 = root(U); let r2 = root(V);
-				let ee = apath.join(apath.reverse(path(u, r1)), e);
-				augment(apath.join(ee, path(v, r2)));
+				let ee = apath.join(apath.reverse(path(u,r1)),e);
+				augment(apath.join(ee, path(v,r2)));
 				r = newPhase();
 			}
 		}
-
 	}
 
 	if (trace)
@@ -183,17 +181,25 @@ function newPhase() {
 /** Extend tree at an even vertex.
  *  @param u is an even matched vertex that is not in a blossom.
  *  @param e is an edge connecting u to an unreached vertex v
+ *  @param r is the root of the tree containing u
+ *  @return a priority-improving path, if there is one, else 0;
+ *  more specifically, set path in apath and return its first edge
  */
-function addBranch(u, e) {
+function addBranch(u, e, r) {
 	let v = g.mate(u,e);  state[v] = -1; link[v] = e;
 	let ee = match.at(v);
 	let w = g.mate(v,ee); state[w] = +1; link[w] = ee;
+	if (prio[w] < prio[r]) {
+		if (trace)
+			traceString += `branch: found ${g.x2s(r)}-${g.x2s(w)} path\n`;
+		return apath.reverse(path(w,r));
+	}
 	add2q(w);
 	if (trace) {
 		traceString += `branch: ${g.x2s(u)}--${g.x2s(v)}`;
 		traceString += w ? `--${g.x2s(w)}\n` : '\n';
 	}
-	return w;
+	return 0;
 }
 
 /** Add edges incident to a new even vertex to q.
@@ -206,26 +212,52 @@ function add2q(u) {
 	}
 }
 
-/** Add new blossom defined by edge.
+/** Add new blossom defined by edge or a priority-improving path.
  *  @param e is an edge joining two even vertices in same tree
  *  @param A is the nearest common ancestor of e's endpoints
- *  @param p is the priority of the tree root
+ *  @param r is the tree root
  *  @return an odd vertex on the blossom cycle with priority <p,
  *  or 0 if there is no such vertex
  */
-function addBlossom(e, A, p) {
+function addBlossom(e, A, r) {
 	bcount++;
 	let u = g.left(e);  let U = bid(u);
 	let v = g.right(e); let V = bid(v);
-	let x = U; let s = '';
-	let lowPriorityVertex = 0;
+
+	// check for presence of priority-improving path
+	let x = U;
+	while (x != A) {
+		x = g.mate(x,link[x]); // x now odd
+		if (prio[x] < prio[r]) {
+			if (trace)
+				traceString += `blossom: found ${g.x2s(r)}-${g.x2s(x)} path\n`;
+			let ee = apath.reverse(path(v,r));
+			return apath.join(apath.join(ee,e),path(u,x));
+		}
+		x = bid(g.mate(x,link[x]));
+		steps++;
+	}
+
+	x = V;
+	while (x != A) {
+		x = g.mate(x,link[x]); // x now odd
+		if (prio[x] < prio[r]) {
+			if (trace)
+				traceString += `blossom: found ${g.x2s(r)}-${g.x2s(x)} path\n`;
+			let ee = apath.reverse(path(u,r));
+			return apath.join(apath.join(ee,e),path(v,x));
+		}
+		x = bid(g.mate(x,link[x]));
+		steps++;
+	}
+
+	// proceed to forming new blossom
+	x = U; let s = '';
 	while (x != A) {
 		if (trace) s = `${g.x2s(x)}${s ? ' ' : ''}` + s;
 		base[outer.merge(outer.find(x), outer.find(A))] = A;
 		x = g.mate(x,link[x]); // x now odd
-		let xmark = (prio[x] < p && !lowPriorityVertex);
-		if (trace) s = `${g.x2s(x)}${xmark?'!':''} ${s}`;
-		if (xmark) lowPriorityVertex = x;
+		if (trace) s = `${g.x2s(x)} ${s}`;
 		base[outer.merge(x, outer.find(A))] = A;
 		bridge[x] = [e,u];
 		add2q(x);
@@ -239,9 +271,6 @@ function addBlossom(e, A, p) {
 		base[outer.merge(outer.find(x), outer.find(A))] = A;
 		x = g.mate(x,link[x]); // x now odd
 		if (trace) s += ` ${g.x2s(x)}`;
-		if (prio[x] < p && !lowPriorityVertex) {
-			lowPriorityVertex = x; s += '!';
-		}
 		base[outer.merge(x,outer.find(A))] = A;
 		bridge[x] = [e,v];
 		add2q(x);
@@ -250,16 +279,12 @@ function addBlossom(e, A, p) {
 	}
 	if (trace)
 		traceString += `blossom: ${g.e2s(e)} ${g.x2s(A)} [${s}]\n` +
-					   `    ${outer.toString()}\n`;
-	return lowPriorityVertex;
+					   `	${outer.toString()}\n`;
+	return 0;
 }
 
-/** Augment the matching.
- *  @param e is the first edge in the path.
- */
-
-
-/** Flip the edges along an augmenting or priority-increasing path
+/** Flip the edges along an augmenting or priority-increasing path.
+ *  On return, the apath object is back in its original state.
  *  @param u is last endpoint of a path found by findpath
  *  @param e is the last edge on the path.
  */
