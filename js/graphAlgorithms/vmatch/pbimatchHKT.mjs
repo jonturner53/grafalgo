@@ -217,7 +217,7 @@ function newPhase(strict) {
 /** Find an augmenting or priority-incresing path from a
  *  specified vertex.
  *  @param u is a vertex in the first subset
- *  @param k is the priority of the root of the tree being searched
+ *  @param r is the root of the tree being searched
  *  @return the endpoint of of an augmenting or priority-increasing
  *  path or 0 if there is no admissible path to such a vertex in
  *  the graph defined by the level values;  on successful return,

@@ -13,7 +13,6 @@ import pmatchEGT from '../pmatchEGT.mjs';
 import pbimatchHKT from '../pbimatchHKT.mjs';
 import mdmatchG from '../mdmatchG.mjs';
 import pmatchVerify from '../pmatchVerify.mjs';
-import wmatchE from '../../match/wmatchE.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomInteger, randomFill, randomGeometric }
 	from '../../../common/Random.mjs';
@@ -43,8 +42,7 @@ let algomap = {
 				return [match,ts,stats];
 			},
 			pmatchVerify],
-	'O' : ['pmatchO', (g,prio,trace) => pmatchO(g,prio,wmatchE,trace),
-			pmatchVerify],
+	'O' : ['pmatchO', (g,prio,trace) => pmatchO(g,prio,trace), pmatchVerify],
 	'EGT' : ['pmatchEGT', (g,prio,trace) => pmatchEGT(g,prio,trace),
 			 pmatchVerify]
 }
