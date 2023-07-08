@@ -30,7 +30,7 @@ export default function pmatchO(g0, prio, trace=false) {
 	}
 	let ts = '';
 	if (trace) {
-		ts += g0.toString(1,0,u => g0.x2s(u) + ':' + prio[u]);
+		ts += g0.toString(3,0,u => g0.x2s(u) + ':' + prio[u]);
 	}
 
 	let subsets = findSplit(g);
