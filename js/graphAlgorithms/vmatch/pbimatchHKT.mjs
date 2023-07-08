@@ -98,7 +98,7 @@ export default function pbimatchHKT(g0, prio0, strict=false, subsets0=null,
 	if (trace) {
 		traceString += g.toString(3,0,u => g.x2s(u) + ':' + prio[u]) +
 					   `initial matching: ${match.toString()}\n` +
-					   `augmenting paths\n`;
+					   `paths\n`;
 	}
 
 	for (let rp = pmax; rp; rp--) {
@@ -259,6 +259,7 @@ function augment(u,e) {
 		if (trace) ts += `${g.e2s(e,0,1)}`
 		match.add(e); u = g.mate(u,e);
 	}
+	let nonTrivial = link[u];
 	while (link[u]) {
 		steps++;
 		e = link[u]; u = g.mate(u,e); match.drop(e);
@@ -266,5 +267,9 @@ function augment(u,e) {
 		e = link[u]; u = g.mate(u,e); match.add(e);
 		if (trace) ts = `${g.e2s(e,0,1)} ${ts}`;
 	}
-	if (trace) traceString += `[${ts}]\n`;
+	if (trace) {
+		traceString += `${prio[u]} [${ts}]\n`;
+		if (nonTrivial)
+			traceString += `    ${match.toString()}\n`;
+	}
 }

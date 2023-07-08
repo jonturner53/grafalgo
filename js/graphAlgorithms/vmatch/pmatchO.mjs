@@ -33,7 +33,7 @@ export default function pmatchO(g0, prio, algo, trace=false) {
 	}
 	let ts = '';
 	if (trace) {
-		ts += g0.toString(1,0,u => g0.x2s(u) + ':' + prio[u]);
+		ts += g0.toString(3,0,u => g0.x2s(u) + ':' + prio[u]);
 	}
 	let [match0,,stats0] = algo(g);
 	if (!match0) return [];

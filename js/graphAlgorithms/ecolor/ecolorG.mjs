@@ -10,7 +10,7 @@ import List from '../../dataStructures/basic/List.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import findSplit from '../misc/findSplit.mjs';
-import mdmatchG from '../match/mdmatchG.mjs';
+import mdmatchG from '../vmatch/mdmatchG.mjs';
 
 let g;			// shared reference to input graph
 let wg;			// current working subgraph
