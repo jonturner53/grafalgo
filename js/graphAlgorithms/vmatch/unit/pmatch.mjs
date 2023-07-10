@@ -11,7 +11,6 @@ import { Tester, Proceed } from '../../../common/Testing.mjs';
 import pmatchO from '../pmatchO.mjs';
 import pmatchEGT from '../pmatchEGT.mjs';
 import pbimatchHKT from '../pbimatchHKT.mjs';
-import mdmatchG from '../mdmatchG.mjs';
 import pmatchVerify from '../pmatchVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomInteger, randomFill, randomGeometric }
@@ -21,13 +20,6 @@ import { randomGraph, randomBigraph } from '../../misc/RandomGraph.mjs';
 import findSplit from '../../misc/findSplit.mjs';
 
 let algomap = {
-	'G' : ['mdmatchG',
-			(g,prio,trace) => {
-				let [match,ts,stats] = mdmatchG(g,trace);
-				if (!match) throw new Proceed('not a bipartite graph');
-				return [match,ts,stats];
-			},
-			(g,prio,match) => mdmatchVerify(g,match)],
 	'HKT' : ['pbimatchHKT',
 			  (g,prio,trace) => {
 				let [match,ts,stats] = pbimatchHKT(g,prio,0,0,trace);
@@ -47,16 +39,6 @@ let algomap = {
 			 pmatchVerify]
 }
 
-function mdmatchVerify(g,match) {
-	let s = match.verify(); if (s) return s;
-	let Delta = g.maxDegree();
-	for (let u = 1; u <= g.n; u++) {
-		if (g.degree(u) == Delta && !match.at(u))
-			return `max degree vertex ${g.x2s(u)} not matched`;
-	}
-	return '';
-}
-
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let bipartite = (args.indexOf('bipartite') >= 0);
 let tester = new Tester(args, algomap);
@@ -64,35 +46,9 @@ let tester = new Tester(args, algomap);
 if (bipartite) {
 	console.log('bipartite graphs');
 	let g = new Graph();
-	g.fromString('{a[f g h] b[e g] c[e h] d[e f h]}');
-	let prio = new Int32Array(g.n+1);
-	let md = g.maxDegree();
-	for (let u = 1; u <= g.n; u++)
-		if (g.degree(u) == md) prio[u] = 1;
-	tester.addTest('small bigraph max degree', g, prio);
-	
-	g = randomBigraph(13,4);
-	prio = new Int32Array(g.n+1);
-	md = g.maxDegree();
-	for (let u = 1; u <= g.n; u++)
-		if (g.degree(u) == md) prio[u] = 1;
-	tester.addTest(`small random bigraph max degree (${g.n},${g.m})`, g, prio);
-	
-	g = randomBigraph(100,3);
-	let d = new Int32Array(g.n+1);
-	for (let u = 1; u <= g.n; u++) d[u] = g.degree(u);
-	g.sortAllEplists((e1,e2,v) => d[g.mate(v,e2)] - d[g.mate(v,e1)]);
-	for (let u = 1; u <= g.n; u++) {
-		while (d[u] > 4) { 
-			let e = g.firstAt(u); d[u]--; d[g.mate(u,e)]--; g.delete(e);
-		}
-	}
-	prio = new Int32Array(g.n+1);
-	md = g.maxDegree(); 
-	for (let u = 1; u <= g.n; u++) {
-		if (g.degree(u) == md) prio[u] = 1;
-	}
-	tester.addTest(`medium random bigraph max degree (${g.n},${g.m})`, g, prio);
+	g.fromString('{a[f g h] b[e g] c[e g h] d[e f h]}');
+	let prio = [0,1,3,0,3,2,3,0,0,1,2];
+	tester.addTest('small bigraph (8,11)', g, prio);
 	
 	g = randomBigraph(8,4,16);
 	prio = new Int32Array(g.n+1); randomFill(prio, p => randomInteger(0,~~(g.n**.5)));
@@ -120,11 +76,8 @@ if (bipartite) {
 	let g = new Graph();
 	g.fromString('{a[b d f] b[a g] c[e h] d[a f] e[c f g] f[a d e] ' +
 				 'g[b e h] h[c g]}');
-	let md = g.maxDegree();
-	let prio = new Int32Array(g.n+1);
-	for (let u = 1; u <= g.n; u++)
-		if (g.degree(u) == md) prio[u] = 1;
-	tester.addTest('small graph max degree', g, prio);
+	let prio = [0,1,2,0,3,0,3,0,2,0,2];
+	tester.addTest('small graph', g, prio);
 	
 	g = randomGraph(25,5);
 	prio = new Int32Array(g.n+1); randomFill(prio, p => randomInteger(0,~~(g.n**.5)));

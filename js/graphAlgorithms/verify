@@ -10,6 +10,8 @@ echo "match: ";
 	node match/unit/matching.mjs all
 	node match/unit/blossoms.mjs all
 	node match/unit/match.mjs all
-	node match/unit/pmatch.mjs all
+echo "pmatch: ";
+	node vmatch/unit/pmatch.mjs all bipartite
+	node vmatch/unit/pmatch.mjs pmatchO pmatchEGT
 echo -n "ecolor: "; node ecolor/unit/ecolor.mjs all
 
