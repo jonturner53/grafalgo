@@ -12,7 +12,7 @@ import Matching from '../match/Matching.mjs';
  *  the Gale-Shapley algorithm.
  *  @param g is an undirected bipartite graph
  *  @param pref is an array of arrays, where pref[u][i] is the
- *  i-th edge in u's preference list (i starting from 0)
+ *  i-th edge in u's preference list (i starting from 1)
  *  @param subsets is a ListPair object that defines the bipartition
  *  on the vertices
  *  @param traceFlag causes a trace string to be returned when true
@@ -20,7 +20,7 @@ import Matching from '../match/Matching.mjs';
  *  object; ts is a possibly empty trace string
  *  and stats is a statistics object
  */
-export default function smatchGS(g, pref, subsets=null, trace=false) {
+export default function smatchGS(g, pref, subsets, trace=false) {
 	let match = new Matching(g);
 
 	let updates = 0;     // number of times an update occurs
@@ -30,10 +30,11 @@ export default function smatchGS(g, pref, subsets=null, trace=false) {
 	if (trace) {
 		traceString = '{\n';
 		for (let u = 1; u <= g.n; u++) {
-			traceString += '${g.x2s(u)}[';
-			for (let i = 0; i < pref[u].length; i++) {
-				if (i > 0) traceString += ' ';
-				traceString += g.e2s(g.mate(u,pref[u][i]),,1);
+			traceString += `${g.x2s(u)}[`;
+			for (let i = 1; i < pref[u].length; i++) {
+				if (i > 1) traceString += ' ';
+				let e = pref[u][i];
+				traceString += g.x2s(g.mate(u,e));
 			}
 			traceString += ']\n';
 		}
@@ -44,28 +45,34 @@ export default function smatchGS(g, pref, subsets=null, trace=false) {
 	// the position of e in y's preference list
 	let rank = new Int32Array(g.edgeRange+1);
 	for (let y = subsets.first(2); y; y = subsets.next(y,2)) {
-		for (let i = 0; i < pref[y].length; i++)
-			rank[pref[i]] = i;
+		for (let i = 1; i < pref[y].length; i++)
+			rank[pref[y][i]] = i;
 	}
 	steps += g.m;
 
 	// next[x] is x's current position in its preference list
-	let next = new Int32Array(g.n+1);
+	let next = new Int32Array(g.n+1).fill(1);
 
-	for (let pass = 1; pass <= g.n; pass++) {
-		let done = true;
+	let progress = true;
+	for (let pass = 1; progress; pass++) {
+		progress = false;
+		if (trace) traceString += `${pass}:`;
 		for (let x = subsets.first(1); x; x = subsets.next(x,1)) {
 			while (!match.at(x) && next[x] < pref[x].length) {
-				let e = pref[x][next[x]];
+				let e = pref[x][next[x]]; let y = g.mate(x,e);
 				if (!match.at(y)) {
-					match.add(e);
+					match.add(e); progress = true;
+					if (trace) traceString += ` ${g.e2s(e,0,1)}`;
+					updates++;
 				} else if (rank[e] < rank[match.at(y)]) {
-					match.drop(match.at(y)); match.add(e);
+					match.drop(match.at(y)); match.add(e); progress = true;
+					if (trace) traceString += ` ${g.e2s(e,0,1)}`;
+					updates++;
 				}
 				next[x]++; steps++;
 			}
-			if (next[x] < pref[x].length) done = false;
 		}
+		if (trace) traceString += '\n';
 	}
 					
 	if (trace) {
@@ -73,5 +80,5 @@ export default function smatchGS(g, pref, subsets=null, trace=false) {
 	}
 		
     return [match, traceString,
-			{'size': match.size(), 'passes': passes, 'steps': steps}];
+			{'size': match.size(), 'updates': updates, 'steps': steps}];
 }

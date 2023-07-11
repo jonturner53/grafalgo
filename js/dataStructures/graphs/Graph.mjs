@@ -413,7 +413,6 @@ export default class Graph extends Top {
 	
 	/** Create a string representation of an edge.
 	 *  @param e is an edge number
-	 *  @param u is one of the endponts of e;
 	 *  @param label is an optional function used to label the vertices
 	 *  @param terse causes edges that can be represented as letters to be
 	 *  shown as letter pairs with no space or other decoration

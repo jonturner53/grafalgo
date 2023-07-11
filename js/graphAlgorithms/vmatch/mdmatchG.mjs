@@ -44,7 +44,7 @@ export default function mdmatchG(g, trace=0) {
 
 	let xg1 = new Graph(g.n,g.edgeRange); // scratch graph
 	if (trace) 
-		traceString += `graph: ${g.toString()}\n`;
+		traceString += `graph: ${g.toString(1)}\n`;
 
 	// compute subgraph xg1 that includes all edges incident to max degree
 	// vertices in first subset of bipartition; then get its matching
