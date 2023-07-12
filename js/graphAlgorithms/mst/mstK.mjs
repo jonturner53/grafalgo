@@ -18,9 +18,15 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  */
 export default function mstK(g, trace=0) {
 	// first make a sorted list of the edges in g
-	let edges = [];
-	for (let e = g.first(); e != 0; e = g.next(e)) edges.push(e);
-	edges.sort((e1, e2) => g.weight(e1) - g.weight(e2));
+	let edges = []; let steps = 0;
+	for (let e = g.first(); e != 0; e = g.next(e)) {
+		edges.push(e); steps++;
+	}
+	edges.sort((e1, e2) => {
+					steps++;
+					return g.weight(e1) - g.weight(e2);
+				});
+							
 	let traceString = '';
 	if (trace) {
 		traceString += g.toString(1) + 'sorted edge list\n' +
@@ -37,9 +43,10 @@ export default function mstK(g, trace=0) {
 		if (cu != cv) {
 			treeEdges.push(e); subtrees.merge(cu, cv);
 			if (trace) {
-				traceString += g.edge2string(e) + ' ' + subtrees + '\n';
+				traceString += g.e2s(e) + ' ' + subtrees + '\n';
 			}
 		}
 	}
-	return [treeEdges, traceString, subtrees.getStats()];
+	return [treeEdges, traceString,
+			{'steps': steps + subtrees.getStats().steps}];
 }
