@@ -15,9 +15,9 @@ import maxflowPP from './maxflowPP.mjs';
  *  @param g is Flograph, possibly with some initial flow already present.
  *  @return the total flow added to g
  */
-export default function maxflowPPf(g, trace=false, relabThresh=g.m) {
+export default function maxflowPPf(g, relabThresh=g.m, trace=false) {
 	let unbal = new List(g.n);
 	function putUnbal(u) { if (!unbal.contains(u)) unbal.enq(u); }
 	function getUnbal(u) { return unbal.deq(); }
-	return maxflowPP(g, getUnbal, putUnbal, trace, relabThresh);
+	return maxflowPP(g, getUnbal, putUnbal, relabThresh, trace);
 }

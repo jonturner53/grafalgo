@@ -36,8 +36,8 @@ let traceString;
  *  @param relabThresh is number of steps in incremental relabeling
  *  operations before switching to batch mode
  */
-export default function maxflowPP(fg, getUbal, putUbal, trace=false,
-								  relabThresh=fg.m) {
+export default function maxflowPP(fg, getUbal, putUbal, relabThresh=fg.m,
+								  trace=false) {
 	g = fg;
 	excess = new Int32Array(g.n+1); 
 	nextedge = new Int32Array(g.n+1);

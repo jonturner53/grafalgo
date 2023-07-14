@@ -15,7 +15,7 @@ import maxflowPP from './maxflowPP.mjs';
  *  @param g is Flograph, possibly with some initial flow already present.
  *  @return the total flow added to g
  */
-export default function maxflowPPf(g, trace=false, relabThresh=g.m) {
+export default function maxflowPPf(g, relabThresh=g.m, trace=false) {
 	let unbal = new ListSet(g.n);
 	let ubvec = new Int32Array(2*g.n+1);
 	let top = 0;
@@ -29,5 +29,5 @@ export default function maxflowPPf(g, trace=false, relabThresh=g.m) {
 		while (top > 0 && ubvec[top] == 0) top--;
 		return u;
 	}
-	return maxflowPP(g, getUnbal, putUnbal, trace, relabThresh);
+	return maxflowPP(g, getUnbal, putUnbal, relabThresh, trace);
 }
