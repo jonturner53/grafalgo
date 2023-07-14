@@ -78,6 +78,8 @@ export default function smatchGS(g, pref, subsets, trace=false) {
 	if (trace) {
 		traceString += `final matching: ${match.toString()}\n`;
 	}
+
+[match] = bimatchHK(g,subsets);
 		
     return [match, traceString,
 			{'size': match.size(), 'updates': updates, 'steps': steps}];

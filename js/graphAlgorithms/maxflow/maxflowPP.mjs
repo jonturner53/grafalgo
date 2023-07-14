@@ -20,6 +20,7 @@ let nextedge;	// nextedge[u] is next edge to process at u
 let d;			// d[u] is distance label at u
 let getUnbal;	// reference to function that gets next unbalanced vertex
 let putUnbal;	// reference to function that adds a vertex to unbalanced set
+let incrRelabSteps;	// # of relabel steps since last batch relabel
 
 let relabelCount;	// number of relabel operations
 let relabelSteps;	// number of steps spent on relabeling
@@ -33,10 +34,10 @@ let traceString;
  *  @param trace is a flag that enables execution tracing
  *  @param getUbal is function that returns next unbalanced vertex
  *  @param putUbal is function that adds vertex to unbalanced set
- *  @param relabThresh is number of steps in incremental relabeling
+ *  @param incrRelabThresh is number of steps in incremental relabeling
  *  operations before switching to batch mode
  */
-export default function maxflowPP(fg, getUbal, putUbal, relabThresh=fg.m,
+export default function maxflowPP(fg, getUbal, putUbal, incrRelabThresh=fg.m,
 								  trace=false) {
 	g = fg;
 	excess = new Int32Array(g.n+1); 
@@ -56,25 +57,25 @@ export default function maxflowPP(fg, getUbal, putUbal, relabThresh=fg.m,
 	}
 	relabelAll();
 	nextedge[g.source] = nextedge[g.sink] = -1; // dummy non-zero value
-	let trigger = relabelSteps + relabThresh;
-	let batch = (relabThresh == 0);
+	incrRelabSteps = 0;
+	let batch = (incrRelabThresh == 0);
 
 	traceString = '';
 	if (trace)
-		traceString +=  'unbalanced vertex, distance label, ' +
-						'excess, push edges\n';
+		traceString +=  'unbalanced vertex, distance label, excess, ' +
+						'relabel steps, push edges\n';
 
 	let u = getUnbal();
-	while (u != 0) {
+	while (u) {
 		if (trace) {
-			traceString += `${g.index2string(u)} ${d[u]} ${excess[u]}`;
+			traceString += `${g.x2s(u)} ${d[u]} ${excess[u]} ${incrRelabSteps}`;
 		}
 		if (batch) {
 			balance(u, trace); u = getUnbal();
 			if (u == 0) {
 				relabelAll(); u = getUnbal();
-				trigger = relabelSteps + relabThresh;
-				batch = (relabThresh == 0);
+				incrRelabSteps = 0;
+				batch = (incrRelabThresh == 0);
 				if (trace) traceString += ' **\n';
 			} else if (trace) traceString += '\n';
 		} else {
@@ -83,7 +84,8 @@ export default function maxflowPP(fg, getUbal, putUbal, relabThresh=fg.m,
 				d[u] = 1 + minlabel(u);
 				nextedge[u] = g.firstAt(u);
 				putUnbal(u, d[u]);
-				if (relabelSteps > trigger) batch = true;
+				if (incrRelabSteps > incrRelabThresh)
+					batch = true;
 				if (trace) traceString += ' *\n';
 			} else if (trace) traceString += '\n';
 			u = getUnbal();
@@ -104,8 +106,8 @@ export default function maxflowPP(fg, getUbal, putUbal, relabThresh=fg.m,
  */
 export function minlabel(u) {
 	let small = 2*g.n;
-	for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-		relabelSteps++;
+	for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
+		relabelSteps++; incrRelabSteps++;
 		if (g.res(e,u) > 0)
 			small = Math.min(small, d[g.mate(u,e)]);
 	}
