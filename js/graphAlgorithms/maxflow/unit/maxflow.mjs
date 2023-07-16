@@ -79,9 +79,14 @@ g = randomFlograph(502, 100, 100, 2, 2); g.randomCapacities(randomInteger, 1, 99
 !ea && tester.addTest('large random', g);
 
 console.log('tests for hard cases');
-!ea && tester.addTest('hardcase(2,10)', maxflowHardcase(2, 10));
-!ea && tester.addTest('hardcase(4,20)', maxflowHardcase(4, 20));
-!ea && tester.addTest('hardcase(8,40)', maxflowHardcase(8, 40));
+g = maxflowHardcase(2, 10);
+!ea && tester.addTest(`hardcase(2,10) n=${g.n} m=${g.m}`, g);
+g = maxflowHardcase(4, 20);
+!ea && tester.addTest(`hardcase(4,20) n=${g.n} m=${g.m}`, g);
+g = maxflowHardcase(8, 40);
+!ea && tester.addTest(`hardcase(8,40) n=${g.n} m=${g.m}`, g);
+g = maxflowHardcase(16, 80);
+!ea && tester.addTest(`hardcase(16,80) n=${g.n} m=${g.m}`, g);
 
 console.log('tests with flow floor');
 g = new Flograph(); g.fromString(

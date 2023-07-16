@@ -32,6 +32,7 @@ export default class BinaryForest extends Top {
 		this.#left = new Int32Array(this.n+1);
 		this.#right = new Int32Array(this.n+1);
 		this.#p = new Int32Array(this.n+1);
+this._left = this.#left; this._right = this.#right; this._p = this.#p;
 		this.clearStats();
 	}
 
@@ -55,6 +56,7 @@ export default class BinaryForest extends Top {
 		super.xfer(other);
 		this.#left = other.#left; this.#right = other.#right;
 		this.#p = other.#p;
+this._left = this.#left; this._right = this.#right; this._p = this.#p;
 		other.#left = other.#right = other.#p = null;
 		this.clearStats();
 	}
@@ -356,6 +358,12 @@ export default class BinaryForest extends Top {
 	 *  and t2 the right subtree
 	 */
 	join(t1, u, t2, refresh=0) {
+//this.link(t1,u,-1);
+//this.left(u,t1); if (t1) this.p(t1,0);
+//this.link(t2,u,+1);
+//this.right(u,t2); if (t2) this.p(t2,0);
+//this.p(u,0);
+
 		this.link(t1,u,-1); this.link(t2,u,+1); this.p(u,0);
 		if (refresh) refresh(u);
 		return u;
@@ -455,7 +463,7 @@ export default class BinaryForest extends Top {
 	 */
 	rotate(x) {
 		this.steps++; this.rotations++;
-		let p = this.#p; let left= this.#left; let right = this.#right;
+		let p = this.#p; let left = this.#left; let right = this.#right;
 		let y = p[x]; if (!y) return;
 		p[x] = p[y];
 		     if (y == left[p[y]])  left[p[x]] = x;

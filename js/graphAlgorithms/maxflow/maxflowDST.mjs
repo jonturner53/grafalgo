@@ -66,7 +66,7 @@ export default function maxflowDST(fg, trace=false) {
 	let treeStats = trees.getStats();
 	steps += treeStats.steps;
 	return [ts, {'flow': g.flowStats().totalFlow, 'phases': phases,
-                 'paths': paths, 'steps': steps}];
+                 'paths': paths, 'steps': steps }];
 }
 
 /** Find an augmenting path from specified vertex to sink in residual graph.
@@ -81,7 +81,7 @@ function findpath() {
 			if (u == g.sink) return true;
 			if (e == 0) { nextEdge[u] = 0; break; }
 			let v = g.mate(u,e);
-			if (g.res(e,u) > 0 && level[v]==level[u] + 1 && nextEdge[v] != 0) {
+			if (g.res(e,u) > 0 && level[v]==level[u] + 1 && nextEdge[v]) {
 				extend(u, e);
 				u = trees.findroot(g.source); e = nextEdge[u];
 			} else {
@@ -89,7 +89,7 @@ function findpath() {
 			}
 		}
 		// no path found, prune dead-end
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			steps++;
 			let v = g.mate(u,e);
 			if (e == upEdge[v])  {

@@ -94,8 +94,8 @@ export default class Forest extends Top {
 	 *  @return the tree root
 	 */
 	root(u) {
-		while (this.p(u) != 0)  {
-			u = this.p(u); this.steps++;
+		while (this.#p[u] != 0)  {
+			u = this.#p[u]; this.steps++;
 		}
 		return u;
 	}
@@ -123,7 +123,7 @@ export default class Forest extends Top {
 		do {
 			this.steps++;
 			if (this.nextSibling(u)) return this.nextSibling(u);
-			u = this.p(u);
+			u = this.#p[u];
 		} while (u != root);
 		return 0;
 	}
@@ -139,7 +139,7 @@ export default class Forest extends Top {
 			this.steps++;
 			if (this.nextSibling(u))
 				return this.firstLeaf(this.nextSibling(u));
-			u = this.p(u);
+			u = this.#p[u];
 		}
 		return 0;
 	}
@@ -158,7 +158,7 @@ export default class Forest extends Top {
 	 *  @param v is a node in some other tree
 	 */
 	link(u, v) {
-		ea && assert(u > 0 && this.p(u) == 0 && v > 0,
+		ea && assert(u > 0 && this.#p[u] == 0 && v > 0,
 					 `Forest.link: bad arguments ${u} ${v}`);
 		if (u > this.n || v > this.n) {
 			this.expand(Math.max(u, v));
@@ -171,7 +171,7 @@ export default class Forest extends Top {
 	 *  @param u is a node in a tree; on return it is a tree root
 	 */
 	cut(u) {
-		if (this.p(u) == 0) return;
+		if (this.#p[u] == 0) return;
 		let p = this.#p[u]; let firstSib = this.firstChild(p);
 		this.#c[p] = this.#sibs.delete(u, firstSib);
 		this.#p[u] = 0;
@@ -200,7 +200,7 @@ export default class Forest extends Top {
 	 */
 	rotate(f, c) {
 		this.#sibs.rotate(f, c); 
-		if (this.p(c)) this.#c[this.p(c)] = c;
+		if (this.#p[c]) this.#c[this.#p[c]] = c;
 		return c;
 	}
 	
@@ -216,22 +216,22 @@ export default class Forest extends Top {
 		// identify the first tree root in each group in this
 		let firstRoot1 = new Int32Array(this.n+1);
 		for (let u = 1; u <= this.n; u++) {
-			if (this.p(u) || !this.#sibs.isfirst(u)) continue;
+			if (this.#p[u] || !this.#sibs.isfirst(u)) continue;
 			for (let t = u; t; t = this.nextSibling(t))
 				firstRoot1[t] = u;
 		}
 		// likewise in f
 		let firstRoot2 = new Int32Array(this.n+1);
 		for (let u = 1; u <= this.n; u++) {
-			if (other.p(u) || !other.#sibs.isfirst(u)) continue;
+			if (other.#p[u] || !other.#sibs.isfirst(u)) continue;
 			for (let t = u; t; t = other.nextSibling(t)) {
 				firstRoot2[t] = u;
 			}
 		}
 
 		for (let u = 1; u <= this.n; u++) {
-			if (this.p(u) != other.p(u)) return false;
-			if (!this.p(u) && firstRoot1[u] != firstRoot2[u])
+			if (this.#p[u] != other.#p[u]) return false;
+			if (!this.#p[u] && firstRoot1[u] != firstRoot2[u])
 				return false;
 		}
 		return other;
@@ -247,7 +247,7 @@ export default class Forest extends Top {
 		// f is an object that can be compared to this
 		let l = new List(this.n);
 		for (let r = 1; r <= this.n; r++) {
-			if (this.p(r)) continue;
+			if (this.#p[r]) continue;
 			l.clear();
 			for (let u = this.first(r); u; u = this.next(u)) l.enq(u);
 			let len = 0;
@@ -272,7 +272,7 @@ export default class Forest extends Top {
 		if (typeof f == 'boolean') return f;
 		// f is an object that can be compared to this
 		for (let r1 = 1; r1 <= this.n; r1++) {
-			if (this.p(r1)) continue;
+			if (this.#p[r1]) continue;
 			let r2 = f.root(r1);
 			let v1 = this.first(r1); let v2 = f.first(r2);
 			while (v1 == v2 && v1 != 0) {
@@ -301,7 +301,7 @@ export default class Forest extends Top {
 
 		let s = ''; let first = true;
 		for (let u = 1; u <= this.n; u++) {
-			if (this.p(u) || !this.#sibs.isfirst(u)) continue;
+			if (this.#p[u] || !this.#sibs.isfirst(u)) continue;
 			if (!singletons && !this.firstChild(u) && !this.nextSibling(u))
 				continue;
 			if (selectGroup && u != selectGroup) continue;
@@ -406,11 +406,11 @@ export default class Forest extends Top {
 	verify() {
 		for (let u = 1; u <= this.n; u++) {
 			let sib = this.nextSibling(u);
-			if (sib && this.p(sib) != this.p(u))
+			if (sib && this.#p[sib] != this.#p[u])
 				return `siblings ${this.x2s(u)} and ${this.x2s(sib)} ` +
 					   `have different parents`;
 			if (this.firstChild(u)) {
-				if (this.p(this.firstChild(u)) != u)
+				if (this.#p[this.firstChild(u)] != u)
 					return `first child ${this.x2s(this.firstChild(u))} of ` +
 						   `${this.x2s(u)} has different parent`;
 			}

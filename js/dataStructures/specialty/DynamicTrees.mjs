@@ -12,7 +12,6 @@ import PathSet from './PathSet.mjs';
 
 import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
-let spliceTime;
 
 /** Data structure representing a collection of paths.
  *
@@ -28,7 +27,6 @@ export default class DynamicTrees extends PathSet {
 	 */
 	constructor(n=10) {
 		super(n); this.exposes = this.splices = 0;
-this.spliceTime = 0;
 	}
 
 	/** Expose a path in a tree.
@@ -41,7 +39,7 @@ this.spliceTime = 0;
 		ea && assert(this.valid(u));
 		this.exposes++;
 		let [p,s] = [0,u];
-		while (s != 0) {
+		while (s) {
 			[p,s] = this.#splice([p,s]);
 		}
 		this.succ(p, 0);

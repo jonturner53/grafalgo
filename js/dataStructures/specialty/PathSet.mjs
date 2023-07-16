@@ -127,19 +127,20 @@ export default class PathSet extends SplayForest {
 		super.rotate(x);
 	
 		// update dmin, dcost values
-		let dmx = this.dmin(x);
-		let dma = this.dmin(a); let dmb = this.dmin(b); let dmc = this.dmin(c);
+		let dmin = this.#dmin; let dcost = this.#dcost;
+		let dmx = dmin[x];
+		let dma = dmin[a]; let dmb = dmin[b]; let dmc = dmin[c];
 			// note: if a=0, dma = Infinity; same for b,c
 
-		this.dcost(x, this.dcost(x) + dmx);
-		this.dmin(x, this.dmin(y));
+		dcost[x] += dmx;
+		dmin[x] = dmin[y];
 
-		this.dmin(y, Math.min(this.dcost(y), dmb+dmx, dmc));
-		this.dcost(y, this.dcost(y) - this.dmin(y))
+		dmin[y] = Math.min(dcost[y], dmb+dmx, dmc);
+		dcost[y] -= dmin[y];
 
-		this.dmin(a, dma + dmx);
-		this.dmin(b, dmb + dmx - this.dmin(y));
-		this.dmin(c, dmc       - this.dmin(y));
+		dmin[a] = dma + dmx;
+		dmin[b] = dmb + dmx - dmin[y];
+		dmin[c] = dmc       - dmin[y];
 	}
 	
 	/** Return the id of the path containing a specified node.
@@ -171,15 +172,15 @@ export default class PathSet extends SplayForest {
 	 */
 	findpathcost(q) {
 		while (true) {
-			if (this.right(q) != 0 && this.dmin(this.right(q)) == 0)
-				q = this.right(q);
-			else if (this.dcost(q) > 0)
-				q = this.left(q);
+			if (this._right[q] && this.#dmin[this._right[q]] == 0)
+				q = this._right[q];
+			else if (this.#dcost[q] > 0)
+				q = this._left[q];
 			else
 				break;
 		}
 		q = this.splay(q);
-		return [q, this.dmin(q)];
+		return [q, this.#dmin[q]];
 	}
 	
 	/** Join two paths at a node.
@@ -191,23 +192,24 @@ export default class PathSet extends SplayForest {
 	 *  the original paths; note: the new path inherits its successor from q
 	 */
 	join(r, u, q) {
-		let dmin_u = this.dmin(u);
+		let dmin = this.#dmin; let dcost = this.#dcost;
+		let dmin_u = dmin[u];
 		let sq = (q ? this.property(q) : 0);
 		super.join(r,u,q);
 		if (r == 0 && q == 0) {
 			; // do nothing
 		} else if (r == 0) {
-			this.dmin(u, Math.min(this.dmin(u), this.dmin(q)));
-			this.dmin(q, this.dmin(q) - this.dmin(u));
+			dmin[u] = Math.min(dmin[u], dmin[q]);
+			dmin[q] -= dmin[u];
 		} else if (q == 0) {
-			this.dmin(u, Math.min(this.dmin(u), this.dmin(r)));
-			this.dmin(r, this.dmin(r) - this.dmin(u));
+			dmin[u] = Math.min(dmin[u], dmin[r]);
+			dmin[r] -= dmin[u];
 		} else {
-			this.dmin(u, Math.min(this.dmin(r), this.dmin(u), this.dmin(q)));
-			this.dmin(r, this.dmin(r) - this.dmin(u));
-			this.dmin(q, this.dmin(q) - this.dmin(u));
+			dmin[u] = Math.min(dmin[r], dmin[u], dmin[q]);
+			dmin[r] -= dmin[u];
+			dmin[q] -= dmin[u];
 		}
-		this.dcost(u, dmin_u - this.dmin(u)); this.property(u, sq);
+		dcost[u] = dmin_u - dmin[u]; this.property(u, sq);
 		return u;
 	}
 	
@@ -281,18 +283,6 @@ export default class PathSet extends SplayForest {
 				':' + (mc[u]+this.dcost(u)) +
 				((fmt&0x8) ? `:${this.dmin(u)}:${this.dcost(u)}` : ''));
 		return super.toString(fmt,xlabel,v => this.x2s(this.property(v)));
-/*
-		let s = ''; let first = true;
-		for (let u = 1; u <= this.n; u++) {
-			if (this.p(u)) continue;
-			if (this.singleton(u) && !(fmt&0x2)) continue;
-			if (first) first = false;
-			else s += (fmt&0x1 ? '\n' : ' ');
-			s += this.tree2string(u,fmt,xlabel,
-								  (v => this.x2s(this.property(v))));
-		}
-		return fmt&0x1 ? '{\n' + s + '\n}' : '{' + s + '}';
-*/
 	}
 
 	/** Initialize this PathSets object from a string.
@@ -322,45 +312,6 @@ export default class PathSet extends SplayForest {
 			this.docosts1(u,cost); this.docosts2(u);
 		}
 		return true;
-/*
-		if (!sc.verify('{')) return false;
-		let n = 0; let paths = []; let items = new Set();
-		let cost = [];
-		let nodeProp = (u,sc) => {
-						if (!sc.verify(':')) {
-							cost[u] = 0; return true;
-						}
-						let p = sc.nextNumber();
-						if (Number.isNaN(p)) return false;
-						cost[u] = p;
-						return true
-					};
-		for (let l = sc.nextIndexList('[',']',nodeProp); l;
-				 l = sc.nextIndexList('[',']',nodeProp)) {
-			for (let i of l) {
-				n = Math.max(n,i);
-				if (items.has(i)) return false;
-				items.add(i);
-			}
-			paths.push([l]);
-		}
-		if (!sc.verify('}')) return false;
-		if (n != this.n) this.reset(n);
-		else this.clear();
-		for (let [l,pprop] of paths) {
-			let p = l[0];
-			this.dcost(p,0); this.dmin(p,cost[p]);
-			for (let i of l) {
-				if (i == p) continue;
-				this.dcost(i,0); this.dmin(i,cost[i]);
-				p = this.findtail(p);
-				let [t1,] = this.split(p);
-				p = this.join(t1,p,i);
-			}
-			this.pprop(p,pprop);
-		}
-		return true;
-*/
 	}
 
 	/** First phase of differential cost computation for a tree.
