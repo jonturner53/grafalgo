@@ -63,7 +63,7 @@ export default function flowfloor(g, trace=false) {
 	let e = g1.join(g.sink, g.source); g1.cap(e, totalCap);
 
 	// Now, find max flow in g1 and check that floor values are all satisfied
-	let [ts,stats] = maxflowPPf(g1,trace);
+	let [ts,stats] = maxflowPPf(g1);
 	paths += stats.paths; steps += stats.steps;
 
 	// Now transfer computed flow back into g
@@ -72,7 +72,8 @@ export default function flowfloor(g, trace=false) {
 	}
 	let success = (g1.totalFlow() == totalFloor);
 	if (trace) {
-		ts += g.toString(1);
+		ts += 'flow on constructed flow graph\n' + g1.toString(1);
+		ts += 'computed flow in original graph\n' + g.toString(1);
 		if (!success) ts += '*** infeasible min flow specs\n';
 	}
 	return [success, ts, {'flow': g.flowStats().totalFlow,
