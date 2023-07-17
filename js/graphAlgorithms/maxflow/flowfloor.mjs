@@ -8,7 +8,7 @@
 
 import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import maxflowD from './maxflowD.mjs';
+import maxflowPPf from './maxflowPPf.mjs';
 import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** Compute a feasible flow in a graph with specified flow floors.
@@ -63,7 +63,7 @@ export default function flowfloor(g, trace=false) {
 	let e = g1.join(g.sink, g.source); g1.cap(e, totalCap);
 
 	// Now, find max flow in g1 and check that floor values are all satisfied
-	let [ts,stats] = maxflowD(g1,trace);
+	let [ts,stats] = maxflowPPf(g1,trace);
 	paths += stats.paths; steps += stats.steps;
 
 	// Now transfer computed flow back into g

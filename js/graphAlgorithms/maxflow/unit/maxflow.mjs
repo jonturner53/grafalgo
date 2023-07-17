@@ -78,17 +78,11 @@ tester.addTest('medium random', g);
 g = randomFlograph(502, 100, 100, 2, 2); g.randomCapacities(randomInteger, 1, 99);
 !ea && tester.addTest('large random', g);
 
-console.log('tests for hard cases');
-g = maxflowHardcase(2, 10);
-!ea && tester.addTest(`hardcase(2,10) n=${g.n} m=${g.m}`, g);
-g = maxflowHardcase(4, 20);
-!ea && tester.addTest(`hardcase(4,20) n=${g.n} m=${g.m}`, g);
-g = maxflowHardcase(8, 40);
-!ea && tester.addTest(`hardcase(8,40) n=${g.n} m=${g.m}`, g);
-g = maxflowHardcase(16, 80);
-!ea && tester.addTest(`hardcase(16,80) n=${g.n} m=${g.m}`, g);
+g = maxflowHardcase(15, 15);
+!ea && tester.addTest(`hardcase(15,15) n=${g.n} m=${g.m}`, g);
+g = maxflowHardcase(30, 30);
+!ea && tester.addTest(`hardcase(30,30) n=${g.n} m=${g.m}`, g);
 
-console.log('tests with flow floor');
 g = new Flograph(); g.fromString(
 	'{a->[b:3 d:2] b[c:3 d:2-7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
 	'e[f:1 g:3 h:1-4] f[e:1 g:2 h:3] g[e:3 f:2-7 h:1] ' +
@@ -100,13 +94,13 @@ g.randomCapacities(randomInteger, 1, 19);
 g.randomFloors(randomInteger, 0, 1);
 tester.addTest('small random with floors', g);
 
-g = randomFlograph(62, 10, 10, 2, 2);
+g = randomFlograph(202, 20, 20, 2, 2);
 g.randomCapacities(randomInteger, 1, 99);
 g.randomFloors(randomInteger, 0, 2);
 tester.addTest('medium random with floors', g);
 
 if (!ea) {
-	g = randomFlograph(152, 20, 20, 2, 2);
+	g = randomFlograph(1002, 100, 100, 2, 2);
 	g.randomCapacities(randomInteger, 1, 99);
 	g.randomFloors(randomInteger, 0, 7);
 	tester.addTest('large random with floors', g);
