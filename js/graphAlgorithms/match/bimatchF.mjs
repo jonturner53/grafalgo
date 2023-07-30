@@ -10,10 +10,10 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
+import Matching from './Matching.mjs';
 import findSplit from '../misc/findSplit.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
 import flowfloor from '../maxflow/flowfloor.mjs';
-import Matching from './Matching.mjs';
 
 /** Compute a maximum matching in a bipartite graph by reducing it to a
  *  max flow problem and applying Dinic's algorithm.

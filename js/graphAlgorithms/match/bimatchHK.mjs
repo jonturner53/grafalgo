@@ -8,6 +8,7 @@
 
 import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import Matching from './Matching.mjs';
+import initialMatch from './initialMatch.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import findSplit from '../misc/findSplit.mjs';
 
@@ -28,16 +29,19 @@ let steps;       // total number of steps
 
 /** Compute a maximum matching in a bipartite graph using the
  *  Hopcroft-Karp algorithm.
- *  @param g is an undirected bipartite graph
+ *  @param g0 is an undirected bipartite graph
  *  @param trace causes a trace string to be returned when true
+ *  @param match0 is an optional initial matching; if supplied, it is
+ *  extended to produce a maximum matching
+ *  @param subsets is an optional ListPair that defines the bipartion
  *  @return a triple [match, ts, stats] where match is a Matching
  *  object; ts is a possibly empty trace string
  *  and stats is a statistics object
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function bimatchHK(bg, subsets=0, traceFlag=0) {
-	g = bg;
-	match = new Matching(g);
+export default function bimatchHK(g0, match0=0, subsets=0, traceFlag=0) {
+	g = g0;
+	match = initialMatch(g0,match0);
 	link = new Int32Array(g.n+1);
 	level = new Int32Array(g.n+1);
 	nextedge = new Int32Array(g.n+1);
@@ -45,21 +49,11 @@ export default function bimatchHK(bg, subsets=0, traceFlag=0) {
 	q = new List(g.n);
 
 	trace = traceFlag; traceString = '';
-	phases = paths = 0; steps = g.n;
+	phases = paths = 0; steps = g.n + g.m;
 
 	// divide vertices into two independent sets
 	if (!subsets) { subsets = findSplit(g); steps += g.m; }
 	if (!subsets) return [];
-
-	// add edges to match, yielding maximal (not maximum) matching
-    for (let u = 1; u <= g.n; u++) {
-        if (match.at(u)) continue;
-        for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-            let v = g.mate(u,e);
-            if (!match.at(v)) { match.add(e); break; }
-        }
-    }
-	steps += g.m;
 
 	if (trace) {
 		traceString += g.toString(1) +

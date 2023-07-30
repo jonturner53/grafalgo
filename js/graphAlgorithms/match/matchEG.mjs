@@ -7,6 +7,7 @@
  */
 
 import List from '../../dataStructures/basic/List.mjs';
+import initialMatch from './initialMatch.mjs';
 import ReverseLists from '../../dataStructures/basic/ReverseLists.mjs';
 import MergeSets from '../../dataStructures/basic/MergeSets.mjs';
 import findSplit from '../misc/findSplit.mjs';
@@ -33,14 +34,15 @@ let steps;       // total number of steps
 
 /** Compute a maximum matching in a graph using the Gabow's version of
  *  Edmond's algorithm.
- *  @param g is an undirected graph
+ *  @param g0 is an undirected graph
+ *  @param match0 is an optional initial matching; if supplied, it is
+ *  extended to produce a maximum matching
  *  @param traceFlag causes a trace string to be returned when true
  *  @return a triple [match, ts, stats] where match is a Matching object,
  *  ts is a possibly empty trace string and stats is a statistics object.
  */
-export default function matchEG(mg, traceFlag=false) {
-	g = mg;
-	match = new Matching(g); // match is returned
+export default function matchEG(g0, match0=0, traceFlag=false) {
+	g = g0; match = initialMatch(g0,match0);
 	link = new Int32Array(g.n+1);
 	q = new List(g.edgeRange);
 	outer = new MergeSets(g.n);

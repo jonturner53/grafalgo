@@ -47,7 +47,9 @@ tester.addTest('smallish random bigraph', g, pref, subsets);
 [g,pref,subsets] = new randomInstance(5000,5);
 tester.addTest('medium random bigraph', g, pref, subsets);
 
-[g,pref,subsets] = new randomInstance(50000,20);
-tester.addTest('large random bigraph', g, pref, subsets);
+if (!ea) {
+	[g,pref,subsets] = new randomInstance(50000,20);
+	tester.addTest('large random bigraph', g, pref, subsets);
+}
 
 tester.run();

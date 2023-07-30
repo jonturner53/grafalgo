@@ -55,7 +55,7 @@ export default class Graph extends Top {
 	get hasWeights() { return (this._weight ? true : false); }
 	get hasLengths() { return this.hasWeights; }
 	get hasCosts() { return this.hasWeights; }
-	get hasColors() { return this.hasWeights; }
+	get hasBounds() { return this.hasWeights; }
 
 	addWeights() {
 		if (!this.hasWeights)
@@ -63,7 +63,7 @@ export default class Graph extends Top {
 	}
 	addLengths() { this.addWeights(); }
 	addCosts() { this.addWeights(); }
-	addColors() { this.addWeights(); }
+	addBounds() { this.addWeights(); }
 
 	/** Expand the vertex range and/or edge range of this object.
 	 *  @param n is the desired new vertex range
@@ -170,7 +170,7 @@ export default class Graph extends Top {
 	}
 	length(e,l) { return this.weight(e,l); }
 	cost(e,c) { return this.weight(e,c); }
-	color(e,c) { return this.weight(e,c); }
+	bound(e,c) { return this.weight(e,c); }
 	
 	/** Get the other endpoint of an edge.
 	 *  @param v is a vertex
@@ -477,16 +477,18 @@ export default class Graph extends Top {
 	 *  @param vlab is a similar labeling function used to produce the
 	 *  string that represents the vertex that 'owns' an adjacency list;
 	 *  it has a single argument
+	 *  @param vmax is the largest vertex number for which the
+	 *  adjacency list is shown explicitly
 	 *  @return a reference to the string
 	 */
-	toString(fmt=0, elab=0, vlab=0) {
+	toString(fmt=0, elab=0, vlab=0, vmax=this.n) {
 		if (!elab) {
 			elab = (e,u) => this.x2s(this.mate(u,e)) +
 							(this.weight(e) ? (':' + this.weight(e)) : '');
 		}
 		if (!vlab) vlab = ((u) => this.x2s(u));
 		let s = '';
-		for (let u = 1; u <= this.n; u++) {
+		for (let u = 1; u <= vmax; u++) {
 			if (!(fmt&2) && !this.firstAt(u)) continue;
 			if (!(fmt&1) && s) s += ' ';
 			s += this.alist2string(u, elab, vlab);

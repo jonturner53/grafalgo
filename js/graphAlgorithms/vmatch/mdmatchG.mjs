@@ -55,7 +55,7 @@ export default function mdmatchG(g, trace=0) {
 		xg1.join(u,v,e); steps++;
 	}
 		
-	let [xmatch1,,stats1] = bimatchHK(xg1,subsets);
+	let [xmatch1,,stats1] = bimatchHK(xg1,0,subsets);
 	steps += stats1.steps;
 	if (trace)
 		traceString += `first matching: ${xmatch1.toString()}\n`;
@@ -67,7 +67,7 @@ export default function mdmatchG(g, trace=0) {
 		if (degree[subsets.in(u,2) ? u : v] != Delta) continue;
 		xg2.join(u,v,e); steps++;
 	}
-	let [xmatch2,,stats2] = bimatchHK(xg2,subsets);
+	let [xmatch2,,stats2] = bimatchHK(xg2,0,subsets);
 	steps += stats2.steps;
 	if (trace)
 		traceString += `second matching: ${xmatch2.toString()}\n`;

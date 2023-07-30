@@ -21,6 +21,7 @@ let subsets;	// vertex subsets that define bipartition
 let emap;		// temp array used to map edge numbers in rcolor
 
 let nextColor;  // next color to apply to edges
+let color;		/// color[e] is color of edge e
 
 let trace;
 let traceString;
@@ -44,6 +45,7 @@ export default function ecolorG(cg, traceFlag=false) {
 	degree = new Int32Array(g.n+1);
 	active = new List(g.n);
 	emap = new Int32Array(g.m+1);
+	color = new Int32Array(g.edgeRange+1);
 
 	for (let e = g.first(); e; e = g.next(e)) addEdge(e);
 	subsets = findSplit(g);
@@ -55,8 +57,9 @@ export default function ecolorG(cg, traceFlag=false) {
 	nextColor = 1;
 	rcolor(g.maxDegree());
 
-	if (trace) traceString += g.toString(1);
-	return [traceString, {'matches': matches, 'steps': steps }];
+	if (trace)
+		traceString += g.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:${color[e]}`);
+	return [color, traceString, {'matches': matches, 'steps': steps }];
 }
 
 /** Recursive helper function.
@@ -71,7 +74,7 @@ function rcolor(Delta) {
 	if (Delta == 1) {
 		if (trace) traceString += nextColor + ':';
 		for (let e = wg.first(); e; e = wg.first()) {
-			g.color(e,nextColor); dropEdge(e);
+			color[e] = nextColor; dropEdge(e);
 			if (trace) traceString += ' ' + g.e2s(e,0,1);
 			steps++;
 		}
@@ -102,7 +105,7 @@ function rcolor(Delta) {
 		matches++; steps += stats.steps;
 		if (trace) traceString += nextColor + ':';
 		for (let e = match.first(); e; e = match.next(e)) {
-			let ee = emap[e]; g.color(ee,nextColor); dropEdge(ee);
+			let ee = emap[e]; color[ee] = nextColor; dropEdge(ee);
 			if (trace) traceString += ` ${g.e2s(ee,0,1)}`;
 			steps++;
 		}

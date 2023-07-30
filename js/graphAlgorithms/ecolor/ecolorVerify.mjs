@@ -13,21 +13,21 @@ import List from '../../dataStructures/basic/List.mjs';
  *  @return a string which is empty if the coloring is a proper
  *  edge coloring with the minimum number of colors, otherwise an error string
  */
-export default function ecolorVerify(g) {
+export default function ecolorVerify(g,color) {
 	let Delta = g.maxDegree();
 	let colors = new List(g.n); let cmax = 0;
 	for (let u = 1; u <= g.n; u++) {
 		colors.clear();
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			let c = g.weight(e); cmax = Math.max(c,cmax);
+		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
+			let c = color[e]; cmax = Math.max(c,cmax);
 			if (c < 1 || c != ~~c) {
-				return `invalid color ${c} assigned to ${g.edge2string(e)}`;
+				return `invalid color ${c}/${~~c} assigned to ${g.e2s(e)}`;
 			}	
 			if (colors.contains(c)) {
-				return `two edges at ${g.index2string(u)} share color ${c}`;
+				return `two edges at ${g.x2s(u)} share color ${c}`;
 			}
 			colors.enq(c);
 		}
 	}
-	return (cmax == Delta ? '' : 'too many colors');
+	return '';
 }

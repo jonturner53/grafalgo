@@ -179,8 +179,8 @@ export default class List extends Top {
 	 */
 	insert(i, j, value=undefined) {
 		if (i > this.n) this.expand(i);
-		ea && assert(this.valid(i) && i != 0 && !this.contains(i) &&
-					 (j == 0 || this.contains(j)),
+		ea && assert(i && this.valid(i) && !this.contains(i) &&
+					 (j == 0 | this.contains(j)),
 					 `List.enq: ${this.x2s(i)} ${this.x2s(j)} ${''+this}`);
 		if (value != undefined) this.value(i, value);
 		if (j == 0) {
@@ -264,7 +264,7 @@ export default class List extends Top {
 	 *  @param other is a second List object
 	 *  @return an item that is common to both lists or 0.
 	 */
-	common(other) {
+	common2(other) {
 		for (let i = this.first(); i; i = this.next(i))
 			if (other.contains(i)) return i;
 		return 0;

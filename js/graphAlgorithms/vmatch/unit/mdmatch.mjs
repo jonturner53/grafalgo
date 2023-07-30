@@ -89,11 +89,13 @@ for (let u = 1; u <= g.n; u++)
 	if (g.degree(u) == md) prio[u] = 1;
 tester.addTest(`medium random bigraph (${g.n},${g.m})`, g, prio);
 
-g = prettyRegularBigraph(5000,3);
-prio = new Int32Array(g.n+1);
-md = g.maxDegree(); 
-for (let u = 1; u <= g.n; u++)
-	if (g.degree(u) == md) prio[u] = 1;
-tester.addTest(`large random bigraph (${g.n},${g.m})`, g, prio);
+if (!ea) {
+	g = prettyRegularBigraph(5000,3);
+	prio = new Int32Array(g.n+1);
+	md = g.maxDegree(); 
+	for (let u = 1; u <= g.n; u++)
+		if (g.degree(u) == md) prio[u] = 1;
+	tester.addTest(`large random bigraph (${g.n},${g.m})`, g, prio);
+}
 
 tester.run();

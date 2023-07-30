@@ -6,6 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { assert, EnableAssert as ea } from './Assert.mjs';
+
 /** Create range array.
  *  @param n is a positive integer
  *  @param hi >= lo is a second integer
@@ -97,6 +99,24 @@ export function randomFill(a, f) {
 export function randomPermutation(n) {
 	let a = range(n); scramble(a);
 	return a;
+}
+
+/** Create a random sample of an index range
+ *  @param n is an integer
+ *  @param k is a positive integer
+ *  @return an array with k distinct random samples from {1,...,n};
+ *  return sample in positions 1..k of the returned array
+ */
+export function randomSample(n,k) {
+	ea && assert(n >= k);
+	let a = range(n);
+	let sample = new Int32Array(k+1);
+	let j = a.length-1;
+	for (let i = 1; i <= k; i++) {
+		let s = randomInteger(1,j);
+		sample[i] = a[s]; a[s] = a[j--];
+	}
+	return sample;
 }
 
 /** Scramble an array, that is, permute the entries randomly.
