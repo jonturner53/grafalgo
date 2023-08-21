@@ -183,7 +183,7 @@ function serverRequest(path, args=[]) {
 }
 
 import { assert, AssertFail, EnableAssert as ea } from './common/Assert.mjs';
-import { Tester, Proceed} from './common/Testing.mjs';
+import { Tester, Mismatch, Proceed } from './common/Testing.mjs';
 import { range, shuffle, scramble, randomFraction, randomInteger, randomExp,
 		 randomGeometric, randomTruncatedGeometric, randomPareto,
 		 randomFill, randomPermutation

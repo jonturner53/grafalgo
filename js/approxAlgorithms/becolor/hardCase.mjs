@@ -11,20 +11,19 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 
 /** Generate a hard test case.
  *  @param n is the number of inputs
- *  @param if gap>1, the default bound for an edge e is multiplied by gap
- *  and rounded up to the next integer to get the bound for e
- *  (this emulates a speedup in switching applications).
+ *  @param speedup is used in applications to crossbar scheduling to specify
+ *  the speedup ratio of the switch relative to the external links
  *  @return a graph with bounds
  */
-export default function hardCase(n,gap=1) {
+export default function hardCase(n,speedup=1) {
 	let g = new Graph(3*n-1,n*n); g.addBounds();
 	for (let u = 1; u <= n; u++) {
 		for (let i = 1; i <= u; i++) {
 			let e = g.join(u, n+i);
-			g.bound(e, Math.ceil(1+(gap*(i-1))));
+			g.bound(e, Math.ceil(1+(speedup*(i-1))));
 		}
 		for (let i = u+1; i <= n; i++) {
-			let e = g.join(u, 2*n+u); g.bound(e, Math.ceil(1+(gap*(i-1))));
+			let e = g.join(u, 2*n+u); g.bound(e, Math.ceil(1+(speedup*(i-1))));
 		}
 	}
 	return g;
