@@ -81,7 +81,7 @@ export default function becolorSplit(g, trace=0) {
 	if (trace) {
 		ts += g.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
                               `${g.bound(e)}/${color[e]}` +
-							  (H.validEdge(e) ? '' : '.'));
+							  (H.validEdge(e) ? '.' : ''));
 		ts = ts.slice(0,-1);
 	}
 	return [color, ts, {'Cmax': bmax + (C-k)-1,
