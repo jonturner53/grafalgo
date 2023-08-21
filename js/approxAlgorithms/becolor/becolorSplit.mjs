@@ -15,11 +15,12 @@ import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 import ecolorG from '../../graphAlgorithms/ecolor/ecolorG.mjs';
 import degreeBound from './degreeBound.mjs';
 import matchBound from './matchBound.mjs';
+import flowBound from './flowBound.mjs';
 
 /** Find a bounded edge coloring using the max degree matching method.
  *  @param g is the graph to be colored with bounds; assumed to be bipartite
  *  @return a triple [color, ts, stats] where color is an array of edge colors,
- *  ts is a traceString and stats is a statistics object.
+ *  ts is a trace string and stats is a statistics object.
  */
 export default function becolorSplit(g, trace=0) {
 	let steps = 0;
@@ -85,6 +86,6 @@ export default function becolorSplit(g, trace=0) {
 		ts = ts.slice(0,-1);
 	}
 	return [color, ts, {'Cmax': bmax + (C-k)-1,
-						'bounds': [degreeBound(g), matchBound(g)]}
+						'bounds': [degreeBound(g), matchBound(g), flowBound(g)]}
 		   ];
 }
