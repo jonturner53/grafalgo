@@ -16,8 +16,6 @@ import matchBound from '../matchBound.mjs';
 import flowBound from '../flowBound.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomSample } from '../../../common/Random.mjs';
-import { randomBigraph,randomRegularBigraph }
-		from '../../../graphAlgorithms/misc/RandomGraph.mjs';
 
 let g = new Graph();
 g.fromString('{a[f:1 g:3 j:4] b[g:2 h:3 i:1] c[f:2 i:3 j:4] ' +
