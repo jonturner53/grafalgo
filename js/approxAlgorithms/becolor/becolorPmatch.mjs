@@ -33,7 +33,6 @@ export default function becolorPmatch(g, trace=0) {
 	let color = new Int32Array(g.edgeRange+1);
 	let gc = new Graph(g.n,g.edgeRange);
 		// subgraph of uncolored edges with bounds <= c
-	let steps = 0;
 	let ts = '';
 	if (trace) {
 		ts += g.toString(1, (e,u)=>`${g.x2s(g.mate(u,e))}:${g.bound(e)}`);
@@ -43,24 +42,17 @@ export default function becolorPmatch(g, trace=0) {
 	for (c = 1; count < g.m; c++) {
 		// add edges with bound of c to gc
 		for (let e = g.first(); e; e = g.next(e)) {
-			steps++;
 			if (c >= g.bound(e) && c < g.bound(e) + 1)
 				gc.join(g.left(e), g.right(e), e);
 		}
 		// find matching in gc that colors all vertices with max
 		// degree in uncolored subgraph; extend to max size matching
 		let [match,,mstats] = pbimatchHKT(gc,prio);
-		steps += mstats.steps;
-		if (trace) ts += `${c}:`;
+		if (trace) ts += `${c}: ${match.toString()}\n`;
 		for (let e = match.first(); e; e = match.next(e)) {
-			steps++;
 			color[e] = c; gc.delete(e); count++;
 			d[g.left(e)]--; d[g.right(e)]--;
-			if (trace) {
-				ts += ` ${g.e2s(e,0,1)}:${g.bound(e)}/${color[e]}`;
-			}
 		}
-		if (trace) ts += '\n';
 		// update priorities
 		maxd = Math.max(...d);
 		for (let u = 1; u <= g.n; u++) prio[u] = (d[u] == maxd ? 2 : 1);

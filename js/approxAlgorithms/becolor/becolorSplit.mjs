@@ -23,7 +23,6 @@ import flowBound from './flowBound.mjs';
  *  ts is a trace string and stats is a statistics object.
  */
 export default function becolorSplit(g, trace=0) {
-	let steps = 0;
 	let ts = '';
 
 	let subsets = findSplit(g);
