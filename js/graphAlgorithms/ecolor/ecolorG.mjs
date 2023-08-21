@@ -33,9 +33,8 @@ let matches;	// number of matchings found
 /** Compute a coloring of a bipartite graph using Gabow's algorithm.
  *  @param cg is an undirected bipartite graph to be colored
  *  @param trace causes a trace string to be returned when true
- *  @return a pair [ts, stats] where ts is a possibly
- *  empty trace string and stats is a statistics object;
- *  the coloring is returned as integer edge colors in g
+ *  @return a pair [color, ts, stats] where color is an array of
+ *  edge colors, ts is a trace string and stats is a statistics object
  */
 export default function ecolorG(cg, traceFlag=false) {
 	// initialize data structures
