@@ -104,6 +104,26 @@
 			</select>
 		</div>
 		<div style="width:100%; height:4%;"> </div>
+		approximations<br>
+		<div style="width:100%; height:7%; margin:.1% .1% .1% .1%;">
+			<button id="approxButton" class="smallButton;"
+				style="margin:1% 0 0 0; font-size:5%; vertical-align: top;
+					width:10%; height:70%;"></button>
+			<select id="algoMenu"
+				style="font-size:100%; top-margin:.1%; height:90%; width:80%;
+					vertical-align: top;">
+			</select>
+		</div>
+		<div style="width:100%; height:7%; margin:.1% .1% .1% .1%;">
+			<button id="testApproxButton" class="smallButton;"
+				style="margin:1% 0 0 0; font-size:5%; vertical-align: top;
+					width:10%; height:70%;"></button>
+			<select id="testApproxMenu"
+				style="font-size:100%; top-margin:.1%; height:90%; width:80%;
+					vertical-align: top;">
+			</select>
+		</div>
+		<div style="width:100%; height:4%;"> </div>
 		common<br>
 		<div style="width:100%; height:7%; margin:.1% .1% .1% .1%">
 			<button id="commonButton" class="smallButton;"
@@ -267,6 +287,13 @@ import smatchGS from './graphAlgorithms/vmatch/smatchGS.mjs';
 import ecolorG from './graphAlgorithms/ecolor/ecolorG.mjs';
 import ecolorR from './graphAlgorithms/ecolor/ecolorR.mjs';
 import ecolorVerify from './graphAlgorithms/ecolor/ecolorVerify.mjs';
+
+import becolorSplit from './approxAlgorithms/becolor/becolorSplit.mjs';
+import becolorPmatch from './approxAlgorithms/becolor/becolorPmatch.mjs';
+import becolorVerify from './approxAlgorithms/becolor/becolorVerify.mjs';
+import degreeBound from './approxAlgorithms/becolor/degreeBound.mjs';
+import matchBound from './approxAlgorithms/becolor/matchBound.mjs';
+import flowBound from './approxAlgorithms/becolor/flowBound.mjs';
 
 let codeArea = document.getElementById("codeArea");
 let outputArea = document.getElementById("outputArea");
@@ -432,6 +459,18 @@ let testAlgo = new Menu(
 		document.getElementById("testAlgoMenu"),
 		document.getElementById("testAlgoButton"),
 		'graphAlgorithms/', true
+);
+
+let approx = new Menu(
+		document.getElementById("approxMenu"),
+		document.getElementById("approxButton"),
+		'approxAlgorithms/', false
+);
+
+let testApprox = new Menu(
+		document.getElementById("testApproxMenu"),
+		document.getElementById("testApproxButton"),
+		'approxAlgorithms/', true
 );
 
 let common = new Menu(
