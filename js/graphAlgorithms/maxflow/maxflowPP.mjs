@@ -96,7 +96,8 @@ export default function maxflowPP(fg, getUbal, putUbal, incrRelabThresh=fg.m,
                  		  'relabelCount': relabelCount,
 						  'relabelSteps': relabelSteps,
 						  'balanceCount': balanceCount,
-						  'balanceSteps': balanceSteps} ];
+						  'balanceSteps': balanceSteps,
+						  'steps': relabelSteps+balanceSteps} ];
 }
 /** Find smallest label on an adjacent vertex through an edge with
  *  positive residual capacity.

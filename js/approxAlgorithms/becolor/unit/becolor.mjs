@@ -17,7 +17,6 @@ import degreeBound from '../degreeBound.mjs';
 import matchBound from '../matchBound.mjs';
 import flowBound from '../flowBound.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
-import { randomSample } from '../../../common/Random.mjs';
 
 let algomap = {
 	'pmatch' : ['becolorPmatch', becolorPmatch, becolorVerify ],
@@ -34,10 +33,10 @@ g.fromString('{a[f:1 g:3 j:4] b[g:2 h:3 i:1] c[f:2 i:3 j:4] ' +
 tester.addTest('small graph', g);
 
 g = randomCase(8,5);
-tester.addTest('small random (8,5,1,2)', g);
+tester.addTest('small random (8,5,7)', g);
 
 g = randomCase(100,20);
-tester.addTest('medium random (100,20,1,4)', g);
+tester.addTest('medium random (100,20,24)', g);
 
 g = hardCase(8);
 tester.addTest('small hard (8)', g);

@@ -41,7 +41,7 @@ export default function becolorSplit(g, trace=0) {
 	let dmin = new Int32Array(g.n+1);
 	let dmax = new Int32Array(g.n+1).fill(k);
 	let [lo,hi] = [degreeBound(g), bmax+g.maxDegree()-1];
-	steps += g.n + g.m * Math.log(g.m);
+	steps += g.n + g.m * Math.ceil(Math.log(g.m));
 	if (hi <= lo) hi = lo+1;
 	let H; let C; let mstats;
 	while (lo < hi) {
