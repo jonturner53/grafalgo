@@ -15,20 +15,13 @@ import becolorSplit from '../becolorSplit.mjs';
 import becolorVerify from '../becolorVerify.mjs';
 import degreeBound from '../degreeBound.mjs';
 import matchBound from '../matchBound.mjs';
+import flowBound from '../flowBound.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomSample } from '../../../common/Random.mjs';
 
 let algomap = {
-	'pmatch' : ['becolorPmatch',
-				(g,trace)=>becolorPmatch(g,trace),
-				(g,color) => {
-					return becolorVerify(g,color);
-				}],
-	'split' : ['becolorSplit',
-				(g,trace)=>becolorSplit(g,trace),
-				(g,color) => {
-					return becolorVerify(g,color);
-				}]
+	'pmatch' : ['becolorPmatch', becolorPmatch, becolorVerify ],
+	'split' : ['becolorSplit', becolorSplit, becolorVerify ]
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));

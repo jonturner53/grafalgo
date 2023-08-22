@@ -14,8 +14,6 @@ import bimatchF from '../../graphAlgorithms/match/bimatchF.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 import ecolorG from '../../graphAlgorithms/ecolor/ecolorG.mjs';
 import degreeBound from './degreeBound.mjs';
-import matchBound from './matchBound.mjs';
-import flowBound from './flowBound.mjs';
 
 /** Find a bounded edge coloring using the max degree matching method.
  *  @param g is the graph to be colored with bounds; assumed to be bipartite
@@ -23,7 +21,7 @@ import flowBound from './flowBound.mjs';
  *  ts is a trace string and stats is a statistics object.
  */
 export default function becolorSplit(g, trace=0) {
-	let ts = '';
+	let ts = ''; let steps = 0;
 
 	let subsets = findSplit(g);
 	if (!subsets) throw exception
@@ -36,24 +34,27 @@ export default function becolorSplit(g, trace=0) {
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (g.bound(e) <= k) gk.join(g.left(e),g.right(e),e);
 	}
+	steps += g.n + g.m;
 
 	let d = new Int32Array(g.n+1);
 	for (let u = 1; u <= g.n; u++) d[u] = g.degree(u);
 	let dmin = new Int32Array(g.n+1);
 	let dmax = new Int32Array(g.n+1).fill(k);
-	let [lo,hi] = [Math.max(degreeBound(g),matchBound(g))-1,
-				   bmax+g.maxDegree()-1];
+	let [lo,hi] = [degreeBound(g), bmax+g.maxDegree()-1];
+	steps += g.n + g.m * Math.log(g.m);
 	if (hi <= lo) hi = lo+1;
-	let H; let C;
+	let H; let C; let mstats;
 	while (lo < hi) {
 		// search for largest C for which G cannot be split into H and J
 		// cannot split on C=lo, can split on C=hi
 		C = ~~((lo + hi + 1)/2);
 		for (let u = 1; u <= gk.n; u++)
 			dmin[u] = Math.max(0, d[u] - (C-k));
-		[H] = bimatchF(gk, subsets, dmin, dmax);
+		[H,,mstats] = bimatchF(gk, subsets, dmin, dmax);
 			// H is a Graph object with edges defining subset of g
+		steps += mstats.steps;
 		for (let u = 1; u <= H.n; u++) {
+			steps++;
 			if (H.degree(u) < dmin[u]) {
 				lo = C; break;
 			} else if (u == H.n) {
@@ -65,7 +66,8 @@ export default function becolorSplit(g, trace=0) {
 	// compute H and J for final value of C
 	for (let u = 1; u <= gk.n; u++)
 		dmin[u] = Math.max(0, d[u] - (C-k));
-	[H] = bimatchF(gk, subsets, dmin, dmax);
+	[H,,mstats] = bimatchF(gk, subsets, dmin, dmax);
+	steps += mstats.steps;
 	let J = new Graph(g.n, g.edgeRange);
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (!H.validEdge(e)) J.join(g.left(e),g.right(e),e);
@@ -78,13 +80,12 @@ export default function becolorSplit(g, trace=0) {
 	let [colorJ] = ecolorG(J);
 	for (let e = J.first(); e; e = J.next(e)) 
 		color[e] = (bmax-1) + colorJ[e];
+	steps += g.n + g.m;
 	if (trace) {
 		ts += g.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
                               `${g.bound(e)}/${color[e]}` +
 							  (H.validEdge(e) ? '.' : ''));
 		ts = ts.slice(0,-1);
 	}
-	return [color, ts, {'Cmax': bmax + (C-k)-1,
-						'bounds': [degreeBound(g), matchBound(g), flowBound(g)]}
-		   ];
+	return [color, ts, { 'Cmax': Math.max(...color), 'steps': steps }];
 }
