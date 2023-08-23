@@ -108,15 +108,7 @@ export function randomPermutation(n) {
  *  return sample in positions 1..k of the returned array
  */
 export function randomSample(n,k) {
-	ea && assert(n >= k);
-	let a = range(n);
-	let sample = new Int32Array(k+1);
-	let j = a.length-1;
-	for (let i = 1; i <= k; i++) {
-		let s = randomInteger(1,j);
-		sample[i] = a[s]; a[s] = a[j--];
-	}
-	return sample;
+	return randomPermutation(n).slice(1,k+1);
 }
 
 /** Scramble an array, that is, permute the entries randomly.
