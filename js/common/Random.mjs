@@ -108,7 +108,7 @@ export function randomPermutation(n) {
  *  return sample in positions 1..k of the returned array
  */
 export function randomSample(n,k) {
-	return randomPermutation(n).slice(1,k+1);
+	return randomPermutation(n).slice(0,k+1);
 }
 
 /** Scramble an array, that is, permute the entries randomly.

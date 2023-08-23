@@ -24,8 +24,9 @@ export default function randomCase(n, d, maxBound=d, speedup=1) {
 	let g = randomRegularBigraph(n,d); g.addBounds();
 	for (let u = 1; u <= n; u++) {
 		let bu = randomSample(maxBound, d); let i = 1;
-		for (let e = g.firstAt(u); e; e = g.nextAt(u,e))
+		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			g.bound(e, Math.ceil(1+speedup*(bu[i++]-1)));
+		}
 	}
 	return g;
 }
