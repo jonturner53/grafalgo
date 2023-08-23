@@ -10,6 +10,7 @@ import { Tester } from '../../../common/Testing.mjs';
 import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
 import randomCase from '../randomCase.mjs';
 import hardCase from '../hardCase.mjs';
+import becolorMdmatch from '../becolorMdmatch.mjs';
 import becolorPmatch from '../becolorPmatch.mjs';
 import becolorSplit from '../becolorSplit.mjs';
 import becolorVerify from '../becolorVerify.mjs';
@@ -19,6 +20,7 @@ import flowBound from '../flowBound.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 
 let algomap = {
+	'mdmatch' : ['becolorMdmatch', becolorMdmatch, becolorVerify ],
 	'pmatch' : ['becolorPmatch', becolorPmatch, becolorVerify ],
 	'split' : ['becolorSplit', becolorSplit, becolorVerify ]
 }
