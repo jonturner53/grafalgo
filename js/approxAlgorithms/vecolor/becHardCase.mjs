@@ -1,4 +1,4 @@
-/** \file hardCase.mjs
+/** \file becHardCase.mjs
  *
  *  @author Jon Turner
  *  @date 2023
@@ -15,7 +15,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  *  the speedup ratio of the switch relative to the external links
  *  @return a graph with bounds
  */
-export default function hardCase(n,speedup=1) {
+export default function becHardCase(n,speedup=1) {
 	let g = new Graph(3*n-1,n*n); g.addBounds();
 	for (let u = 1; u <= n; u++) {
 		for (let i = 1; i <= u; i++) {

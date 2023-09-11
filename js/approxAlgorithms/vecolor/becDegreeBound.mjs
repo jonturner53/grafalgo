@@ -1,4 +1,4 @@
-/** @file degreeBound.mjs
+/** @file becDegreeBound.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -14,7 +14,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  *  @param g0 is a graph with color bounds.
  *  @return the lower bound.
  */
-export default function degreeBound(g0) {
+export default function becDegreeBound(g0) {
 	let g = new Graph(); g.assign(g0);
 	g.sortAllEplists((e1,e2) => g.bound(e1) - g.bound(e2));
 	let lb = 0;

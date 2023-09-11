@@ -1,4 +1,4 @@
-/** @file becolorPmatch.mjs
+/** @file becPmatch.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -18,7 +18,7 @@ import pbimatchHKT from '../../graphAlgorithms/vmatch/pbimatchHKT.mjs';
  *  @return a triple [color, ts, stats] where color is an array of edge colors,
  *  ts is a traceString and stats is a statistics object.
  */
-export default function becolorPmatch(g, trace=0) {
+export default function becPmatch(g, trace=0) {
 	let steps = 0;
 	// compute degrees in g and assign initial priorities
 	let d = new Int32Array(g.n+1);

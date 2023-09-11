@@ -97,17 +97,16 @@ export default class Top {
 	equals(other) {
 		if (this === other) return true;
         if (typeof other == 'string') {
-			if (!('fromString' in this)) 
-				return this.toString() == other.toString();
+			//if (!('fromString' in this)) 
+			//	return this.toString() == other;
             let s = other;
-			other = new this.constructor();
-			if (typeof other.fromString !== 'function')
+			if (typeof this.fromString !== 'function')
 				return s == this.toString();
+			other = new this.constructor();
 			assert(other.fromString(s), other.constructor.name +
 						 ':equals: fromString cannot parse ' + s);
 				// note: this assert must always be enabled
 			if (other.n > this.n) return false;
-			if (other.n < this.n) other.expand(this.n);
 			if (other.n < this.n) other.expand(this.n);
         } else if (other.constructor.name != this.constructor.name ||
 		    other.n != this.n) {

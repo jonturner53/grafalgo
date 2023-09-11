@@ -1,4 +1,4 @@
-/** @file flowBound.mjs
+/** @file becFlowBound.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -10,14 +10,14 @@ import {assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import findSplit from '../../graphAlgorithms/misc/findSplit.mjs';
 import flowfloor from '../../graphAlgorithms/maxflow/flowfloor.mjs';
-import degreeBound from './degreeBound.mjs';
-import matchBound from './matchBound.mjs';
+import degreeBound from './becDegreeBound.mjs';
+import matchBound from './becMatchBound.mjs';
 
 /** Compute the flow lower bound on the bounded chromatic index.
  *  @param g is a graph with edge bounds
  *  @return the lower bound
  */
-export default function flowBound(g) {
+export default function becFlowBound(g) {
 	let subsets = findSplit(g);
 	if (!subsets) return 0;
 	

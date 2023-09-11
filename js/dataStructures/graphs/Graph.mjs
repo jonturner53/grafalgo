@@ -228,7 +228,9 @@ export default class Graph extends Top {
 	join(u, v, e=this._edges.first(2)) {
 		ea && assert(u != v && u > 0 && v > 0 &&
 			   (e > 0 || this._edges.first(2) == 0) &&
-			   !this._edges.in(e,1));
+			   !this._edges.in(e,1),
+			   `graph.join(${this.x2s(u)},${this.x2s(v)},` +
+			   `${this._edges.in(e,2)}) ${e} ${this._edges.toString()}`);
 		if (u > this.n || v > this.n || this._edges.length(2) == 0) {
 			this.expand(Math.max(this.n, u, v),
 						Math.max(e, this._edges.n+1));
@@ -589,7 +591,7 @@ export default class Graph extends Top {
 		return true;
 	}
 
-	/** Compute the degree of a vertex.
+	/* Compute the degree of a vertex.
 	 *  @param u is a vertex
 	 *  @return the number of edges incident to u
 	 */

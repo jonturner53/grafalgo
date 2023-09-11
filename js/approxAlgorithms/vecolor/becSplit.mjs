@@ -1,4 +1,4 @@
-/** @file becolorSplit.mjs
+/** @file becSplit.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -13,14 +13,14 @@ import findSplit from '../../graphAlgorithms/misc/findSplit.mjs';
 import bimatchF from '../../graphAlgorithms/match/bimatchF.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 import ecolorG from '../../graphAlgorithms/ecolor/ecolorG.mjs';
-import degreeBound from './degreeBound.mjs';
+import becDegreeBound from './becDegreeBound.mjs';
 
 /** Find a bounded edge coloring using the max degree matching method.
  *  @param g is the graph to be colored with bounds; assumed to be bipartite
  *  @return a triple [color, ts, stats] where color is an array of edge colors,
  *  ts is a trace string and stats is a statistics object.
  */
-export default function becolorSplit(g, trace=0) {
+export default function becSplit(g, trace=0) {
 	let ts = ''; let steps = 0;
 
 	let subsets = findSplit(g);
@@ -40,7 +40,7 @@ export default function becolorSplit(g, trace=0) {
 	for (let u = 1; u <= g.n; u++) d[u] = g.degree(u);
 	let dmin = new Int32Array(g.n+1);
 	let dmax = new Int32Array(g.n+1).fill(k);
-	let [lo,hi] = [degreeBound(g), bmax+g.maxDegree()-1];
+	let [lo,hi] = [becDegreeBound(g), bmax+g.maxDegree()-1];
 	steps += g.n + g.m * Math.ceil(Math.log(g.m));
 	if (hi <= lo) hi = lo+1;
 	let H; let C; let mstats;

@@ -1,4 +1,4 @@
-/** @file matchBound.mjs
+/** @file becMatchBound.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -12,7 +12,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 
-export default function matchBound(g) {
+export default function becMatchBound(g) {
 	let gc = new Graph(g.n, g.edgeRange);
 	let total = 0; let c;
 	for (c = 1; total < g.m; c++) {

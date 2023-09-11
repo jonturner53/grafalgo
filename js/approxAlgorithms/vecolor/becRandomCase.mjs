@@ -1,4 +1,4 @@
-/** \file randomCase.mjs
+/** \file becRandomCase.mjs
  *
  *  @author Jon Turner
  *  @date 2023
@@ -20,7 +20,7 @@ import { randomRegularBigraph }
  *  times separated by intervals larger than 1
  *  @return a graph with random bounds
  */
-export default function randomCase(n, d, maxBound=d, speedup=1) {
+export default function becRandomCase(n, d, maxBound=d, speedup=1) {
 	let g = randomRegularBigraph(n,d); g.addBounds();
 	for (let u = 1; u <= n; u++) {
 		let bu = randomSample(maxBound, d); let i = 1;

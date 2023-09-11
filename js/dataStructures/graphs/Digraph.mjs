@@ -258,7 +258,7 @@ export default class Digraph extends Graph {
 			if (other.n < this.n)
 				other.expand(this.n,other.edgeRange);
         } else if (other.constructor.name != this.constructor.name ||
-		    other.n != this.n) {
+		    other.n != this.n || other.m != this.m) {
 			return false;
 		}
 		// now compare the edges using sorted edge lists

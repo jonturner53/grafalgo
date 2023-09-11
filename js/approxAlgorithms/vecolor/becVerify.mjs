@@ -1,4 +1,4 @@
-/** @file becolorVerify.mjs
+/** @file becVerify.mjs
  *
  *  @author Jon Turner
  *  @date 2023
@@ -14,7 +14,7 @@ import ecolorVerify from '../../graphAlgorithms/ecolor/ecolorVerify.mjs';
  *  @return a string which is empty if the coloring is a proper
  *  edge coloring with the minimum number of colors, otherwise an error string
  */
-export default function becolorVerify(g,color) {
+export default function becVerify(g,color) {
 	let s = ecolorVerify(g,color);
 	if (s) return s;
 	for (let e = g.first(); e; e = g.next(e)) {

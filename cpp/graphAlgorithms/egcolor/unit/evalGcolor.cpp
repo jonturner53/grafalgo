@@ -15,7 +15,7 @@
 #include "egcolor_mc.h"
 #include "egcolor_r.h"
 #include "egcolor_fc.h"
-#include "egColor_rm.h"
+#include "egcolor_rm.h"
 #include "egcolor_gm.h"
 #include "egcolor_menu.h"
 
