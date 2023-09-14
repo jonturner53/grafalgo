@@ -6,13 +6,16 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
-import { randomInteger, scramble } from '../../common/Random.mjs';
+import {assert, EnableAssert as ea} from '../../common/Assert.mjs';
+import {randomInteger, range, scramble, randomSample} from
+		'../../common/Random.mjs';
 import List from '../../dataStructures/basic/List.mjs';
+import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
+import EdgeGroupGraph from '../../approxAlgorithms/vecolor/EdgeGroupGraph.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
 import bimatchF from '../match/bimatchF.mjs';
 
@@ -76,20 +79,20 @@ export function randomDag(n, d) {
 }
 
 /** Generate a random bipartite graph.
- *  @param n1 specifies the number of vertices in the "left part"
- *  @param n2 specifies the number of vertices in the "right part"
- *  @param d1 is the average vertex degree in the left part
+ *  @param ni specifies the number of vertices in the "left part"
+ *  @param no specifies the number of vertices in the "right part"
+ *  @param di is the average vertex degree in the left part
  */
-export function randomBigraph(n1, d1, n2=n1) {
-	n1 = Math.max(1,n1); n2 = Math.max(1,n2); d1 = Math.min(d1, n2);
-	let m = ~~(d1*n1);
-	let g = new Graph(n1+n2, m);
-	let mm = n1*n2;
+export function randomBigraph(ni, di, no=ni) {
+	ni = Math.max(1,ni); no = Math.max(1,no); di = Math.min(di, no);
+	let m = ~~(di*ni);
+	let g = new Graph(ni+no, m);
+	let mm = ni*no;
 	add2graph(g, m, m > mm/3,
-					([u,v]) => (u == 0 ? [1, n1+1] :
-							   (v < n1+n2 ? [u, v+1] :
-								(u < n1 ? [u+1, n1+1] : null))),
-					() => [randomInteger(1,n1), randomInteger(n1+1,n1+n2)]);
+					([u,v]) => (u == 0 ? [1, ni+1] :
+							   (v < ni+no ? [u, v+1] :
+								(u < ni ? [u+1, ni+1] : null))),
+					() => [randomInteger(1,ni), randomInteger(ni+1,ni+no)]);
 	return g;
 }
 
@@ -309,14 +312,11 @@ export function randomConnectedGraph(n, d) {
  *  @param return a random d-regular graph with n vertices,
  *  or n+1 if both n and d are odd
 
-Suppose we create random perfect matchings with enough extra to
-ensure that there are not too many duplicate edges; then eliminate
-duplicates and then sample matchings from subgraph? Maybe find
-max degree matchings?
-
-Creating a random matching. Maintain a vector of unmatched vertices.
-Sample a pair from vector and swap selected vertices to the end.
-
+alternate approach:
+generate edges at successive vertices, avoiding duplicates during
+generation process and only generating enough new edges to make
+up shortages at each vertex; then find max size d-matching;
+need d-matching algorithm for general graphs.
  */
 export function randomRegularGraph(n, d) {
 	ea && assert(n > d);
@@ -372,122 +372,94 @@ export function randomRegularGraph(n, d) {
 
 /** Create a random simple, regular bipartite graph.
  *  @param g is an undirected graph object
- *  @param n1 is the # of vertices in the "left" partition of the bigraph
- *  @param d1 is the degree of the vertices in the "left" partition
- *  @param n2 is the # of vertices in the "right" partition
- *  @param noSelf excludes edges of the form (i, n2+i), when true
- *  if d2=n1*d1/n2 is an integer, then the right-hand vertices all
- *  have degree d2, otherwise they have degree floor(d2) or floor(d2)+1
-
-
-alternate approach
-1. create random bigraph with at least d edges per vertex
-   - say by making d extra large and just counting on randomness
-	 randomBigraph(n1,n2,2*(d1+Math.floor(Math.ln(n1+n2)));
-   - or by doing exactly d on the left, then augmenting vertices
-   - on the left with a deficit - may get repeats this way
-2. find perfect d-match in graph
-
-yet another approach
-1. for each left vertex, select d random neighbors, while tracking
-   vertex degrees of right vertices
-2. maintain vector of eligible vertices and sample from this vector,
-   swapping selected neighbors with last in vector; when a new neighbor
-   becomes ineligible, reduce the vector length by 1
-3. if d1 is left-hand degree and d2=n1*d1/n2, limit the number of neighbors
-   with degree=floor(d2)+1
-4. if k is the number of remaining left vertices and some right vertex has
-   d2-k neighbors, switch to sampling by flow graph; this should only happen
-   when k is fairly small, so should not be too expensive
+ *  @param ni is the # of input (left-side) vertices 
+ *  @param di is the degree of the inputs
+ *  @param no is the # of output (right-side) vertices
+ *  @param return Graph object with inputs 1..ni, outputs ni+1..ni+no
  */
+export function randomRegularBigraph(ni, di, no=ni) {
+	let do_ = ni*di/no;
+	ea && assert(do_ == ~~do_, 'randomRegularBigraph: out-degree not integer');
 
+	let dmax = new Int32Array(ni+no+1);
+	dmax.fill(di, 1, ni+1); dmax.fill(do_, ni+1);
+	let io = new ListPair(ni+no); for (let u = 1; u <= ni; u++) io.swap(u);
 
-export function randomRegularBigraph(n, d) {
-	let g = randomBigraph(n,d+2*Math.ceil(Math.log(n)));
-	let dmin = new Int32Array(2*n+1).fill(d);
-	let [match] = bimatchF(g,0,null,dmin,dmin);
-	g.reset(n,d*n); g.assign(match);
+	let count = 1;
+	let g = new Graph(ni+no, ~~(1.2*no*(do_+1)));
+		// over-allocate space to avoid dynamic expansion
+	let match;
+	let nabors = new List(g.n);
+	do {
+		// first add do_ random edges at each output
+		g.clear();
+		for (let v = ni+1; v <= g.n; v++) {
+			let inputs = randomSample(ni,do_+1);
+			for (let i = 1; i <= do_+1; i++) {
+				g.join(inputs[i],v);
+			}
+		}
+		// add random edges where needed at inputs to ensure at least di
+		for (let u = 1; u <= ni; u++) {
+			let d = g.degree(u);
+			if (d >= di+1) continue;
+			nabors.clear();
+			for (let e = g.firstAt(u); e; e = g.nextAt(u,e))
+				nabors.enq(g.mate(u,e));
+			while (d < di+1) {
+				let v = randomInteger(ni+1,g.n);
+				if (nabors.contains(v)) continue;
+				g.join(u,v); d++;
+			}
+		}
+		[match] = bimatchF(g,io,0,dmax);
+	} while (match.m != di*ni && ++count <= 3);
+	ea && assert(match.m == di*ni, 'randomRegularBigraph failure ' + match.m);
+	g.reset(ni+no, di*ni); g.assign(match);
 	return g;
 }
 
-/*
-export function randomRegularBigraph(n1, d1, n2=n1, noSelf=false) {
-	ea && assert(n1 > 0 && d1 > 0 && n2 >= d1);
-	if ((n1 & 1) && (d1 & 1)) n1++;
-	let d2 = Math.ceil(n1*d1/n2);
-	let m = d1*n1;	// # of edges
-	let dl = new Int32Array(n1+1); let dr = new Int32Array(n2+1);
-	let limitl = Math.max(10, Math.min(2*d1, n2));
-	let limitr = Math.max(10, Math.min(2*d2, n1));
-	let pairs = new Array(1 + Math.min(limitl*n1, limitr*n2));
-	let oopsCount = 0; let oopsLimit = 10;
-	while (oopsCount < oopsLimit) {
-		let nextPair = 1;
-		dl.fill(0); dr.fill(0);
-		if (n1 < 30 || n2 < 30 || m > n1*n2/3) {
-			// build list of all potential edges
-			for (let u = 1; u <= n1; u++) {
-				for (let v = n1+1; v <= n1+n2; v++) {
-					if (noSelf && v == n1+u) continue;
-					pairs[nextPair++] = [u, v]; dl[u]++; dr[v-n1]++;
-				}
-			}
-		} else {
-			// sample up to pairs.length edges
-			for (let i = 0; i < pairs.length; i++) {
-				let u = randomInteger(1, n1);
-				let v = n1 + randomInteger(1, n2);
-				if (noSelf && v == n1+u) continue;
-				if (dl[u] < limitl && dr[v-n1] < limitr) {
-					pairs[nextPair++] = [u, v]; dl[u]++; dr[v-n1]++;
-				}
-			}
-		}
-		pairs.length = nextPair;
+/** Generate a random edge group graph
+ *  @param ni is the number of input vertices
+ *  @param di is the degree of the inputs
+ *  @param no is the number of outputs
+ *  @param gd is the group degree at the inputs
+ *  @param k is an upper bound on the number of colors needed to
+ *  color the graph; must be at least as big as gd and do_
+ */
+export function randomEdgeGroupGraph(ni, di, no=ni, gd=~~(ni*di/no),
+									 k=Math.max(gd,~~(ni*di/no))+2) {
+	let do_ = ~~(ni*di/no);
+	ea && assert(gd <= di && gd <= k && do_ <= k && do_ <= no &&
+		   		 di <= no && di*ni == do_*no);
+	let g = randomRegularBigraph(ni, di, no);
 
-		// now, check for parallel edges and eliminate
-		pairs.sort((a,b) => (a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 :
-							(a[1] < b[1] ? -1 : (a[1] > b[1] ? 1 : 0)))));
-		let j = 1;
-		while (j < nextPair) {
-			let [u,v] = pairs[j];
-			if (j > 0 && u == pairs[j-1][0] && v == pairs[j-1][1]) {
-				pairs[j] = pairs[--nextPair];
-				if (--dl[u] < d1 || --dr[v-n1] < d2) break;
-			}
-			j++;
+	let egg = new EdgeGroupGraph(g.n, g.edgeRange, ni, k*ni);
+
+	// add edges to egg using groups consistent with a k-coloring
+	let colors = range(k);
+	for (let v = ni+1; v <= g.n; v++) {
+		let i = 1; scramble(colors);
+		for (let e = g.firstAt(v); e; e = g.nextAt(v,e)) {
+			let c = colors[i++];
+			let u = g.mate(v,e);
+			egg.join(u, v, (u-1)*k+c, e);
 		}
-		pairs.length = nextPair;
-		if (j == nextPair) break;
-		oopsCount++;	// rarely exceeds 1
 	}
-	let g = new Graph(1);
-	if (oopsCount == oopsLimit) return g; // empty graph if no good set of pairs
-	// Now pairs represents a valid set of edges, so build flowgraph,
-	// and use max flow to define edges of random graph
-	let fg = new Flograph(n1+n2+2, pairs.length + n1 + n2);
-	fg.setSource(n1+n2+1); fg.setSink(n1+n2+2);
-	scramble(pairs); // randomize order of edges in pairs
-	for (let i = 1; i < pairs.length; i++) {
-		let e = fg.join(pairs[i][0], pairs[i][1]);
-		fg.setCapacity(e, 1);
+
+	// merge groups at inputs so as to satisfy maximum group count
+	let gvec = new Int32Array(k);
+	for (let u = 1; u <= ni; u++) {
+		let i = 0;
+		for (let g = egg.firstGroupAt(u); g; g = egg.nextGroupAt(u,g))
+			gvec[i++] = g;
+		i--;
+		while (i >= gd) {
+			let j = randomInteger(0,i); let g2 = gvec[j];
+			gvec[j] = gvec[i--];
+			j = randomInteger(0,i); let g1 = gvec[j]; 
+			egg.merge(g1, g2); // g2 now gone from graph
+		}
 	}
-	for (let u = 1; u <= n1; u++) {
-		let e = fg.join(fg.source, u);
-		fg.setCapacity(e, d1);
-	}
-	let k = n2%d2;
-	for (let u = n1+1; u <= n1+n2; u++) {
-		let e = fg.join(u, fg.sink);
-		fg.setCapacity(e, (u <= n1+k ? d2+1 : d2));
-	}
-	let f = maxflowD(fg);
-	g.reset(n1+n2, d1*n1);
-	for (let e = fg.first(); e != 0; e = fg.next(e)) {
-		let u = fg.tail(e); let v = fg.head(e);
-		if (u != fg.source && v != fg.sink && fg.f(u, e) == 1)
-			g.join(u, v);
-	}
-	return g;
+	return egg;
 }
-*/

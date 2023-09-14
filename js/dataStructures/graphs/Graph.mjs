@@ -143,7 +143,8 @@ export default class Graph extends Top {
 	 *  @return the left endpoint of e, or 0 if e is not a valid edge.
 	 */
 	left(e) {
-		ea && assert(this.validEdge(e), `Graph.left: invalid edge number: ${e}`);
+		ea && assert(this.validEdge(e),
+					 `Graph.left: invalid edge number: ${e}`);
 		return this._left[e];
 	}
 	
@@ -152,7 +153,8 @@ export default class Graph extends Top {
 	 *  @return the right endpoint of e, or 0 if e is not a valid edge.
 	 */
 	right(e) {
-		ea && assert(this.validEdge(e), `Graph.right: invalid edge number: ${e}`);
+		ea && assert(this.validEdge(e),
+					 `Graph.right: invalid edge number: ${e}`);
 		return this._right[e];
 	}
 
@@ -225,12 +227,13 @@ export default class Graph extends Top {
 	 *  @return the edge number for the new edge or 0
 	 *  on failure
 	 */
+cnt = 0;
 	join(u, v, e=this._edges.first(2)) {
 		ea && assert(u != v && u > 0 && v > 0 &&
 			   (e > 0 || this._edges.first(2) == 0) &&
 			   !this._edges.in(e,1),
 			   `graph.join(${this.x2s(u)},${this.x2s(v)},` +
-			   `${this._edges.in(e,2)}) ${e} ${this._edges.toString()}`);
+			   `${this._edges.in(e,2)})`);
 		if (u > this.n || v > this.n || this._edges.length(2) == 0) {
 			this.expand(Math.max(this.n, u, v),
 						Math.max(e, this._edges.n+1));
@@ -619,14 +622,14 @@ export default class Graph extends Top {
 	randomEdge() {
 		let edges = this._edges;
 		if (edges.nIn == 0) return 0;
-		if (edges.n1() < this.edgeRange / 20) {
-			let i = randomInteger(1, edges.nIn);
-			for (let e = edges.first1(); e != 0; e = edges.next1(e)) 
+		if (edges.length(1) < this.edgeRange / 20) {
+			let i = randomInteger(1, edges.length(1));
+			for (let e = edges.first(1); e; e = edges.next(e,1)) 
 				if (--i == 0) return e;
 			return 0; // should never get here
 		}
 		let e = randomInteger(1, this.edgeRange);
-		while (edges.in2(e)) {
+		while (edges.in(e,2)) {
 			// avg number of tries should never exeed 20
 			// if used to sample from "almost full" graph, then fast
 			e = randomInteger(1, this.edgeRange);

@@ -127,32 +127,32 @@ export default class EdgeGroupGraph extends Graph {
 	output(e) { return this.right(e); }
 	group(e) { return this.gid[e]; };
 
-	degree(u) { return deg[u]; }
-	groupDegree(u) { return gdeg[u]; }
+	degree(u) { return this.deg[u]; }
+	groupDegree(u) { return this.gdeg[u]; }
 	fanout(g) { return this.fan[g]; }
 
-	maxDegree() { return Math.max(...deg); }
+	maxDegree() { return Math.max(...this.deg); }
 
-	maxGroupDegree() { return Math.max(...gdeg); }
+	maxGroupDegree() { return Math.max(...this.gdeg); }
 
 	maxDegreeIn() {
 		let d = 0;
 		for (let u = 1; u <= this.ni; u++)
-			d = Math.max(d, degree(u));
+			d = Math.max(d, this.degree(u));
 		return d;
 	}
 
 	maxDegreeOut() {
 		let d = 0;
 		for (let u = this.ni+1; u <= this.n; u++)
-			d = Math.max(d, degree(u));
+			d = Math.max(d, this.degree(u));
 		return d;
 	}
 
 	maxGroupDegree() {
 		let d = 0;
 		for (let u = 1; u <= this.ni; u++)
-			d = Math.max(d, groupDegree(u));
+			d = Math.max(d, this.groupDegree(u));
 		return d;
 	}
 
@@ -194,7 +194,7 @@ export default class EdgeGroupGraph extends Graph {
 			this.gdeg[u]++; this.fan[g] = 1;
 		} else {
 			ea && assert(this.firstInGroup(g) &&
-						 u == this.left(this.firstInGroup(g)))
+						 u == this.left(this.firstInGroup(g)));
 			this.fan[g]++;
 		}
 		this.gid[e] = g;
@@ -233,7 +233,7 @@ export default class EdgeGroupGraph extends Graph {
 	
 		// update gid of edges in g2, while checking for and removing
 		// potential parallel edges
-		this.vlist.clear;
+		this.vlist.clear();
 		for (let e = this.firstInGroup(g1); e; e = this.nextInGroup(g1,e))
 			this.vlist.enq(this.output(e));
 		let enext;
@@ -319,7 +319,7 @@ export default class EdgeGroupGraph extends Graph {
 	 *
 	 *    fmt&1 shows each input's groups on a separate line
 	 *    fmt&2 shows all inputs, including those with no edges
-	 *    fmt&4 causes group numbers to be shown
+	 *    fmt&4 causes group identifiers to be shown
 	 */
 	toString(fmt=0) {
 		let s = '';
@@ -351,7 +351,8 @@ export default class EdgeGroupGraph extends Graph {
 
 	/** Return index value for a group or an upper case letter. */
 	g2s(g) {
-		return (this.n <= 26 ? '-ABCDEFGHIJKLMNOPQRSTUVWXYZ'[g] : ''+g);
+		return (this.groupRange <= 26 ?
+				'-ABCDEFGHIJKLMNOPQRSTUVWXYZ'[g] : ''+g);
 	}
 
 	/** Initialize graph from a string representation.

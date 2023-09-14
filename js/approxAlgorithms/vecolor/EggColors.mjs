@@ -95,7 +95,16 @@ export default class EggColors extends Top {
 		other._usage = other._colorsInGroups = other.fc = null;
 	}
 
-	avail(c,u) { return this._usage[u][c] == 0; }
+	avail(c,e) {
+		let [u,v] = [this.gg.input(e),this.gg.output(e)]
+		if (this._usage[v][c]  > 0) return false;
+		if (this._usage[u][c] == 0) return true;
+		let g = this.gg.group(e);
+		for (let cg = this.firstColorIn(g); cg; cg = this.nextColorIn(g,cg)) {
+			if (cg == c) return true;
+		}
+		return false;
+	}
 
 	usage(c,u) { return this._usage[u][c]; }
 
@@ -142,18 +151,19 @@ export default class EggColors extends Top {
 					this.unused[u] =
 						this.colorsInGroups[u].join(this.unused[u], oc);
 				}
-				this._usage[u][oc]--;
+				this._usage[u][oc]--; this._usage[v][oc]--;
 			}
 			if (c != 0) {
+				ea && assert(this.avail(c,e));
 				this._color[e] = c;
 				this.fe[c] = this.edgesByColor.join(this.fe[c], e);
-				if (this.avail(c,u)) {
+				if (this.usage(c,u) == 0) {
 					this.unused[u] =
 						this.colorsInGroups[u].delete(c, this.unused[u]);
 					this.fc[g] = this.colorsInGroups[u].join(this.fc[g], c);
 					this._usage[u][c] = 0;
 				}
-				this._usage[u][c]++;
+				this._usage[u][c]++; this._usage[v][c]++;
 			}
 		}
 		return this._color[e];

@@ -6,11 +6,13 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertError} from '../../../common/Errors.mjs';
+import { assert, AssertFail } from '../../../common/Assert.mjs';
 import { randomGraph, randomBigraph, randomDigraph, randomDag, randomTree,
-		 randomConnectedGraph, randomFlograph } from '../RandomGraph.mjs';
+		 randomConnectedGraph, randomFlograph, randomRegularGraph,
+		 randomRegularBigraph, randomEdgeGroupGraph } from '../RandomGraph.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../../dataStructures/graphs/Digraph.mjs';
+import {randomSample} from '../../../common/Random.mjs';
 
 try {
 	console.log('testing RandomGraph');
@@ -41,12 +43,27 @@ try {
 
 	g = randomFlograph(10, 3, 3, 1);
 	console.log('flow graph\n', g.toString(1));
+
+	g = randomRegularGraph(10, 3);
+	console.log('regular graph\n', g.toString(1));
+
+	g = randomRegularBigraph(8,6,16);
+	console.log('regular bigraph (8,6,16)\n', g.toString(1));
+
+	g = randomEdgeGroupGraph(8,6,16);
+	console.log('regular edge group graph (8,6,16)\n', g.toString(5));
+
+	g = randomEdgeGroupGraph(5,9,15,3,4);
+	console.log('regular edge group graph (5,9,15,3,4)\n', g.toString(5));
+
 } catch(e) {
-	if (e instanceof AssertError)
+	if (e instanceof AssertFail) {
 		if (e.message.length > 0)
 			console.log(e.name + ': ' + e.message);
-		else
-			console.error(e.stack);
-	else
+	//	else
+	//		console.error(e.stack);
+	} else {
 		throw(e);
+	}
+		console.error(e.stack);
 }
