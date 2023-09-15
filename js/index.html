@@ -225,7 +225,7 @@ import findSplit from './graphAlgorithms/misc/findSplit.mjs';
 import nca from './graphAlgorithms/misc/nca.mjs';
 import { randomGraph, randomDigraph, randomDag, randomBigraph, randomTree,
  		 randomConnectedGraph, randomRegularGraph, randomRegularBigraph,
-		 randomFlograph, randomEdgeGroupGraph
+		 randomFlograph
 	   } from './graphAlgorithms/misc/RandomGraph.mjs';
 import toposort from './graphAlgorithms/misc/toposort.mjs';
 
@@ -298,10 +298,11 @@ import becFlowBound from './approxAlgorithms/vecolor/becFlowBound.mjs';
 import becHardCase from './approxAlgorithms/vecolor/becHardCase.mjs';
 import becRandomCase from './approxAlgorithms/vecolor/becRandomCase.mjs';
 
-import EdgeGroupGraph from './approxAlgorithms/vecolor/EdgeGroupGraph.mjs';
-import EggColors from './approxAlgorithms/vecolor/EggColors.mjs';
-import EggLayers from './approxAlgorithms/vecolor/EggLayers.mjs';
+import EdgeGroups from './approxAlgorithms/vecolor/EdgeGroups.mjs';
+import EdgeGroupColors from './approxAlgorithms/vecolor/EdgeGroupColors.mjs';
+import EdgeGroupLayers from './approxAlgorithms/vecolor/EdgeGroupLayers.mjs';
 import egcBasicLayer from './approxAlgorithms/vecolor/egcBasicLayer.mjs';
+import egcRandomCase from './approxAlgorithms/vecolor/egcRandomCase.mjs';
 import egcVerify from './approxAlgorithms/vecolor/egcVerify.mjs';
 
 let codeArea = document.getElementById("codeArea");
