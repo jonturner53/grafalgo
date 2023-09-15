@@ -9,35 +9,35 @@
 import List from '../../dataStructures/basic/List.mjs';
 
 /** Verify an edge coloring in a bipartite graphs.
- *  @param egg is an EdgeGroupGraph
- *  @param egc is a EggColors object representing a coloring of egg
+ *  @param eg is an EdgeGroups object
+ *  @param egc is a EggColors object representing a coloring of eg
  *  @return a string which is empty if the coloring is a proper
  *  edge coloring with the minimum number of colors, otherwise an error string
  */
-export default function egcVerify(egg, egc) {
+export default function egcVerify(eg, egc) {
 	let ucolors = new List(egc.nc);
-	for (let u = 1; u <= egg.n; u++) {
+	for (let u = 1; u <= eg.graph.n; u++) {
 		ucolors.clear();
-		if (u <= egg.ni) {
-			for (let g = egg.firstGroupAt(u); g; g = egg.nextGroupAt(u,g)) {
-				for (let e = egg.firstInGroup(g); e; e = egg.nextInGroup(g,e)) {
+		if (u <= eg.ni) {
+			for (let g = eg.firstGroupAt(u); g; g = eg.nextGroupAt(u,g)) {
+				for (let e = eg.firstInGroup(g); e; e = eg.nextInGroup(g,e)) {
 					let c = egc.color(e);
 					if (ucolors.contains(c))
-						return `color ${c} of edge ${egg.e2s(e)} in group ` +
-							   `${egg.g2s(g)} conflicts with another edge ` +
-							   `at input ${egg.x2s(u)}`;
+						return `color ${c} of edge ${eg.e2s(e)} in group ` +
+							   `${eg.g2s(g)} conflicts with another edge ` +
+							   `at input ${eg.x2s(u)}`;
 				}
-				for (let e = egg.firstInGroup(g); e; e = egg.nextInGroup(g,e)) {
+				for (let e = eg.firstInGroup(g); e; e = eg.nextInGroup(g,e)) {
 					if (!ucolors.contains(egc.color(e)))
 						ucolors.enq(egc.color(e));
 				}
 			}
 		} else {
-			for (let e = egg.firstAt(u); e; e = egg.nextAt(u,e)) {
+			for (let e = eg.graph.firstAt(u); e; e = eg.graph.nextAt(u,e)) {
 				let c = egc.color(e);
 				if (ucolors.contains(c)) {
-					return `color ${c} of edge ${egg.e2s(e)} conflicts with ` +
-						   `another edge at output ${egg.x2s(u)}`;
+					return `color ${c} of edge ${eg.e2s(e)} conflicts with ` +
+						   `another edge at output ${eg.x2s(u)}`;
 				}
 				ucolors.enq(c);
 			}

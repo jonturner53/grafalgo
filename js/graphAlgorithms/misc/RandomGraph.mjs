@@ -15,7 +15,6 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import EdgeGroupGraph from '../../approxAlgorithms/vecolor/EdgeGroupGraph.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
 import bimatchF from '../match/bimatchF.mjs';
 
@@ -417,49 +416,4 @@ export function randomRegularBigraph(ni, di, no=ni) {
 	ea && assert(match.m == di*ni, 'randomRegularBigraph failure ' + match.m);
 	g.reset(ni+no, di*ni); g.assign(match);
 	return g;
-}
-
-/** Generate a random edge group graph
- *  @param ni is the number of input vertices
- *  @param di is the degree of the inputs
- *  @param no is the number of outputs
- *  @param gd is the group degree at the inputs
- *  @param k is an upper bound on the number of colors needed to
- *  color the graph; must be at least as big as gd and do_
- */
-export function randomEdgeGroupGraph(ni, di, no=ni, gd=~~(ni*di/no),
-									 k=Math.max(gd,~~(ni*di/no))+2) {
-	let do_ = ~~(ni*di/no);
-	ea && assert(gd <= di && gd <= k && do_ <= k && do_ <= no &&
-		   		 di <= no && di*ni == do_*no);
-	let g = randomRegularBigraph(ni, di, no);
-
-	let egg = new EdgeGroupGraph(g.n, g.edgeRange, ni, k*ni);
-
-	// add edges to egg using groups consistent with a k-coloring
-	let colors = range(k);
-	for (let v = ni+1; v <= g.n; v++) {
-		let i = 1; scramble(colors);
-		for (let e = g.firstAt(v); e; e = g.nextAt(v,e)) {
-			let c = colors[i++];
-			let u = g.mate(v,e);
-			egg.join(u, v, (u-1)*k+c, e);
-		}
-	}
-
-	// merge groups at inputs so as to satisfy maximum group count
-	let gvec = new Int32Array(k);
-	for (let u = 1; u <= ni; u++) {
-		let i = 0;
-		for (let g = egg.firstGroupAt(u); g; g = egg.nextGroupAt(u,g))
-			gvec[i++] = g;
-		i--;
-		while (i >= gd) {
-			let j = randomInteger(0,i); let g2 = gvec[j];
-			gvec[j] = gvec[i--];
-			j = randomInteger(0,i); let g1 = gvec[j]; 
-			egg.merge(g1, g2); // g2 now gone from graph
-		}
-	}
-	return egg;
 }

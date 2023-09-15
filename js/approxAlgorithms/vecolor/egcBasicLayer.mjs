@@ -10,33 +10,40 @@ import {assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
-import EggColors from './EggColors.mjs';
-import EggLayers from './EggLayers.mjs';
+import EdgeGroupColors from './EdgeGroupColors.mjs';
+import EdgeGroupLayers from './EdgeGroupLayers.mjs';
 
 /** Find an edge group coloring using basic layer method.
  *  @param g is a group graph to be colored.
- *  @return a triple [color, ts, stats] where color is a eggColors object,
- *  ts is a traceString and stats is a statistics object.
+ *  @return a triple [color, ts, stats] where color is an EdgeGroupColors
+ *  object, ts is a traceString and stats is a statistics object.
  */
-export default function egcBasicLayer(egg, strict=false, trace=0) {
+export default function egcBasicLayer(eg, strict=false, trace=0) {
 	let ts = '';
 	if (trace) {
-		ts += 'graph: ' + egg.toString(5);
+		ts += 'graph: ' + eg.toString(5) + '\n';
 	}
-	let layers = new EggLayers(egg, egg.maxGroupDegree());
 
-	// assign groups to layers, just taking assigning one group
+	let D = 0;
+	for (let u = 1; u <= eg.ni; u++) {
+		let d = 0;
+		for (let g = eg.firstGroupAt(u); g; g = eg.nextGroupAt(u,g)) d++;
+		D = Math.max(D,d);
+	}
+	let layers = new EdgeGroupLayers(eg, D);
+
+	// assign groups to layers, just assigning one group
 	// from each input, proceeding in parallel down the input
 	// group lists
-	let nextAt = new Int32Array(egg.ni+1);
-	for (let u = 1; u <= egg.ni; u++)
-		nextAt[u] = egg.firstGroupAt(u);
+	let nextAt = new Int32Array(eg.ni+1);
+	for (let u = 1; u <= eg.ni; u++)
+		nextAt[u] = eg.firstGroupAt(u);
 	for (let l = 1; l <= layers.nl; l++) {
-		for (let u = 1; u <= egg.ni; u++) {
+		for (let u = 1; u <= eg.ni; u++) {
 			let g = nextAt[u];
 			if (g) {
 				layers.add(g,l);
-				nextAt[u] = egg.nextGroupAt(u,g);
+				nextAt[u] = eg.nextGroupAt(u,g);
 			}
 		}	
 	}
@@ -49,30 +56,27 @@ export default function egcBasicLayer(egg, strict=false, trace=0) {
 	}
 
 	if (trace) {
-		ts += 'layers: ' + layers.toString() + '\n';
+		ts += 'layers: ' + layers.toString() + '\n\n';
 	}
 
 	// create object to record colors in
-	let egc = new EggColors(egg, totalThickness);
+	let egc = new EdgeGroupColors(eg, totalThickness);
 
 	// for each layer, construct graph for layer and color it, then transfer
 	// colors to egc.
-	let lg = new Graph(egg.n,egg.edgeRange);	// layer graph
+	let lg = new Graph(eg.graph.n,eg.graph.edgeRange);	// layer graph
 	let lastColor = 0;
 	for (let l = 1; l <= layers.nl; l++) {
 		lg.clear();
 		for (let g = layers.firstInLayer(l); g; g = layers.nextInLayer(l,g)) {
-			for (let e = egg.firstInGroup(g); e; e = egg.nextInGroup(g,e)) {
-				lg.join(egg.input(e), egg.output(e), e);
+			for (let e = eg.firstInGroup(g); e; e = eg.nextInGroup(g,e)) {
+				lg.join(eg.input(e), eg.output(e), e);
 			}
 		}
-		for (let v = egg.ni+1; v <= egg.n; v++) {
+		for (let v = eg.ni+1; v <= eg.n; v++) {
 			let c = strict ? lastColor + 1 : 1;
 			for (let e = lg.firstAt(v); e; e = lg.nextAt(v,e)) {
-let cnt=0;
-				while (!egc.avail(c,e)) { c++;
-assert(cnt++ < 10,'oops2 ' + ts + '\n' + c + lg.e2s(e) + egc.toString());
-}
+				while (!egc.avail(c,e)) c++;
 				egc.color(e,c++);
 			}
 		}

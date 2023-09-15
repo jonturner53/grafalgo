@@ -130,13 +130,13 @@ export default class Graph extends Top {
 			if (this._edges.in(e,1)) return e;
 	}
 	
-	validVertex(u) { return u == ~~u && 1 <= u && u <= this.n; }
+	validVertex(u) { return 1 <= u && u <= this.n; }
 
 	/** Determine if an edge number corresponds to a valid edge.
 	 *  @param e is the edge number to be verified
 	 *  @return true if e is a valid edge number, else false.
 	 */
-	validEdge(e) { return e == ~~e && this._edges.in(e,1); }
+	validEdge(e) { return this._edges.in(e,1); }
 	
 	/** Get the left endpoint of an edge.
 	 *  @param e is the edge of interest

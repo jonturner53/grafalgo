@@ -50,12 +50,6 @@ try {
 	g = randomRegularBigraph(8,6,16);
 	console.log('regular bigraph (8,6,16)\n', g.toString(1));
 
-	g = randomEdgeGroupGraph(8,6,16);
-	console.log('regular edge group graph (8,6,16)\n', g.toString(5));
-
-	g = randomEdgeGroupGraph(5,9,15,3,4);
-	console.log('regular edge group graph (5,9,15,3,4)\n', g.toString(5));
-
 } catch(e) {
 	if (e instanceof AssertFail) {
 		if (e.message.length > 0)

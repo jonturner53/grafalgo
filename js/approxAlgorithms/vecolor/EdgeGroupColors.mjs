@@ -1,4 +1,4 @@
-/** @file EggColors.mjs
+/** @file EgcColors.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -16,8 +16,8 @@ import EdgeGroupGraph from './EdgeGroupGraph.mjs';
 /** This class implements a data structure used by edge-group coloring
  *  algorithms.
  */
-export default class EggColors extends Top {
-	gg;				/// edge group graph that colors are applied to
+export default class EgcColors extends Top {
+	eg;				/// EdgeGroups object that colors are applied to
 
 	_color;         // _color[e] is edge assigned to e or 0
 	edgesByColor;	// ListSet of edges partitioned by color
@@ -30,21 +30,21 @@ export default class EggColors extends Top {
 	unused;         // unused[u] is first unused color at u
     fc;             // fc[g] is first color used by group g;
 
-	constructor(gg, nc=1) {
+	constructor(eg, nc=1) {
 		super(nc);	// nc is number of colors in palette
-		this.gg = gg;
+		this.eg = eg;
 
-		this._color = new Int32Array(gg.edgeRange+1);
-		this.edgesByColor = new ListSet(gg.edgeRange);
+		this._color = new Int32Array(eg.graph.edgeRange+1);
+		this.edgesByColor = new ListSet(eg.graph.edgeRange);
 		this.fe = new Int32Array(this.nc+1);
 
-		this._usage = new Array(gg.n+1);
-		this.colorsInGroups = new Array(gg.ni+1);
-		this.unused = new Int32Array(gg.ni+1);
-		this.fc = new Int32Array(gg.groupRange+1);
-		for (let u = 1; u <= gg.n; u++)
+		this._usage = new Array(eg.graph.n+1);
+		this.colorsInGroups = new Array(eg.ni+1);
+		this.unused = new Int32Array(eg.ni+1);
+		this.fc = new Int32Array(eg.ng+1);
+		for (let u = 1; u <= eg.graph.n; u++)
 			this._usage[u] = new Int32Array(nc+1);
-		for (let u = 1; u <= gg.ni; u++) {
+		for (let u = 1; u <= eg.ni; u++) {
 			this.colorsInGroups[u] = new ListSet(nc);
 			for (let c = 1; c <= nc; c++)
 				this.unused[u] = this.colorsInGroups[u].join(this.unused[u],c);
@@ -56,7 +56,8 @@ export default class EggColors extends Top {
 	maxColor() { return Math.max(...this._color); }
 
 	clear() {
-		for (let e = this.gg.first(); e; e = this.gg.next(e)) this.color(e,0);
+		for (let e = this.eg.graph.first(); e; e = this.eg.graph.next(e))
+			this.color(e,0);
 	}
 
 	/** Assign one GroupColors object to another by copying its contents.
@@ -66,12 +67,12 @@ export default class EggColors extends Top {
         ea && assert(other != this &&
                 	 this.constructor.name == other.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
-		if (this.gg == other.gg && this.nc == other.nc)
+		if (this.eg == other.eg && this.nc == other.nc)
 			this.clear();
 		else
-			this.reset(this.gg, other.nc);
+			this.reset(other.eg, other.nc);
 
-		for (let e = gg.first(); e; e = gg.next(e))
+		for (let e = eg.graph.first(); e; e = eg.graph.next(e))
 			if (other.color(e)) this.color(e, other.color(e));
 	}
 	
@@ -83,7 +84,7 @@ export default class EggColors extends Top {
                 	 this.constructor.name == other.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
 		this._n = other.nc;
-		this.gg = other.gg;
+		this.eg = other.eg;
 		this._color = other._color;
 		this.edgesByColor = other.edgesByColor;
 		this.fe = other.fe;
@@ -91,15 +92,15 @@ export default class EggColors extends Top {
 		this.colorsInGroups = other.colorsInGroups;
 		this.fc = other.fc;
 
-		other.gg = other._color = other.edgesByColor = other.fe = null;
+		other.eg = other._color = other.edgesByColor = other.fe = null;
 		other._usage = other._colorsInGroups = other.fc = null;
 	}
 
 	avail(c,e) {
-		let [u,v] = [this.gg.input(e),this.gg.output(e)]
+		let [u,v] = [this.eg.input(e),this.eg.output(e)]
 		if (this._usage[v][c]  > 0) return false;
 		if (this._usage[u][c] == 0) return true;
-		let g = this.gg.group(e);
+		let g = this.eg.group(e);
 		for (let cg = this.firstColorIn(g); cg; cg = this.nextColorIn(g,cg)) {
 			if (cg == c) return true;
 		}
@@ -112,19 +113,19 @@ export default class EggColors extends Top {
 	nextEdgeWithColor(c,e) { return this.edgesByColor.next(e); }
 
 	/** Get the first color used by a group.
-	 *  @param g is a valid group defined by gg
+	 *  @param g is a valid group defined by this.eg
 	 *  @return the first color used by g (there must be one)
 	 */
 	firstColorIn(g) { return this.fc[g]; }
 
 	/** Get the next color used by a group.
-	 *  @param g is a valid group defined by gg
+	 *  @param g is a valid group defined by eg
 	 *  @param c is a color used by some edge in g
 	 *  @return the color that follows c in g's list of colors
 	 */
 	nextColorIn(g,c) {
-		ea && assert(this.gg.firstInGroup(g));
-		let u = this.gg.input(this.gg.firstInGroup(g));
+		ea && assert(this.eg.firstInGroup(g));
+		let u = this.eg.center(g);
 		return this.colorsInGroups[u].next(c);
 	}
 
@@ -136,11 +137,11 @@ export default class EggColors extends Top {
 	 *  @return the color of e
 	 */
 	color(e, c=-1) {
-		ea && assert(this.gg.validEdge(e) && c <= this.nc);
+		ea && assert(this.eg.graph.validEdge(e) && c <= this.nc);
 		if (c != -1) {
 			// set the edge color
-			let [u,v] = [this.gg.input(e),this.gg.output(e)];
-			let g = this.gg.group(e);
+			let [u,v] = [this.eg.input(e),this.eg.output(e)];
+			let g = this.eg.group(e);
 			let oc = this._color[e];  // old color
 			if (oc) {
 				this._color[e] = 0;
@@ -180,7 +181,7 @@ export default class EggColors extends Top {
 		if (this === other) return true;
         if (typeof other == 'string') {
             let s = other;
-			other = new this.constructor(this.gg,this.nc);
+			other = new this.constructor(this.eg,this.nc);
 			assert(other.fromString(s), other.constructor.name +
 						 ':equals: fromString cannot parse ' + s);
 				// note: this assert must always be enabled
@@ -190,11 +191,11 @@ export default class EggColors extends Top {
 		    other.nc != this.nc) {
 			return false;
 		}
-		if (!this.gg.equals(other.gg)) return false;
+		if (!this.eg.equals(other.eg)) return false;
 
 		// now make sure the colors in the groups match
 		let clist = new List(this.nc);
-		for (let g = this.gg.firstGroup(); g; g = this.gg.nextGroup(g)) {
+		for (let g = this.eg.firstGroup(); g; g = this.eg.nextGroup(g)) {
 			clist.clear(); let len1 = 0; let len2 = 0;
 			for (let c = this.firstColorIn(g); c; c = this.nextColorIn(g,c)) {
 				clist.enq(c); len1++;
@@ -211,29 +212,29 @@ export default class EggColors extends Top {
 	/** Construct a string representation of the GroupColors object.
 	 */
 	toString(showAllGroups=false) {
-		let s = '{\n'; let cgroups = new List(this.gg.groupRange);
+		let s = '{\n'; let cgroups = new List(this.eg.ng);
 		for (let c = 1; c <= this.nc; c++) {
 			if (!this.firstEdgeWithColor(c)) continue;
 			s += c + '[';
 			cgroups.clear();
 			for (let e = this.firstEdgeWithColor(c); e;
 					 e = this.nextEdgeWithColor(c,e)) {
-				let g = this.gg.group(e);
+				let g = this.eg.group(e);
 				if (!cgroups.contains(g)) cgroups.enq(g);
 			}
 			for (let g = cgroups.first(); g; g = cgroups.next(g)) {
 				if (g != cgroups.first()) s += ' ';
 				let ss = ''; let cnt = 0;
-				let e1 = this.gg.firstInGroup(g);
-				for (let e = e1; e; e = this.gg.nextInGroup(g,e)) {
+				let e1 = this.eg.firstInGroup(g);
+				for (let e = e1; e; e = this.eg.nextInGroup(g,e)) {
 					if (this.color(e) != c) continue
 					if (ss) ss += ' ';
-					ss += this.gg.x2s(this.gg.output(e));
+					ss += this.eg.x2s(this.eg.output(e));
 					cnt++;
 				}
-				s += this.gg.x2s(this.gg.input(e1)) + '(' + ss + ')';
-				if (showAllGroups || cnt != this.gg.fanout(g))
-					s += this.gg.g2s(g); 
+				s += this.eg.graph.x2s(this.eg.input(e1)) + '(' + ss + ')';
+				if (showAllGroups || cnt != this.eg.fanout(g))
+					s += this.eg.g2s(g);
 			}
 			s += ']\n';
 		}
@@ -248,7 +249,7 @@ export default class EggColors extends Top {
 	fromString(s) {
 		let nextVertex = (sc => {
 						let u = sc.nextIndex();
-						return u > 0 && u <= this.gg.n ? u : 0;
+						return u > 0 && u <= this.eg.graph.n ? u : 0;
 					});
 		// function to parse an edge group
 		let pairs = [];
@@ -257,16 +258,16 @@ export default class EggColors extends Top {
 						let i0 = pairs.length;
 						while (!sc.verify(')')) {
 							let v = nextVertex(sc);
-							if (v <= this.gg.ni) return false;
+							if (v <= this.eg.ni) return false;
 							pairs.push([v,c]);
 						}
 						let g = sc.nextIndexUpper();
-						if (g <= 0 || g > this.gg.groupRange) return false;
+						if (g <= 0 || g > this.eg.ng) return false;
 						// replace vertices just scanned with edge numbers
 						for (let i = i0; i < pairs.length; i++) {
 							let v = pairs[i][0];
-							let e = this.gg.findEdgeInGroup(v, g)
-							if (!e || this.gg.input(e) != u) return false;
+							let e = this.eg.findEdge(v, g)
+							if (!e || this.eg.input(e) != u) return false;
 							pairs[i][0] = e;
 						}
 						return true;
@@ -282,13 +283,13 @@ export default class EggColors extends Top {
 			if (!sc.verify('[')) return false;
 			while (!sc.verify(']')) {
 				let u = nextVertex(sc);
-				if (u > this.gg.ni) return false;
+				if (u > this.eg.ni) return false;
 				if (!nextGroup(u,c,sc)) return false;
 			}
 		}
 
 		if (cmax == this.nc) this.clear();
-		else this.reset(this.gg, this.nc);
+		else this.reset(this.eg, this.nc);
 
 		for (let i = 0; i < pairs.length; i++) {
 			let [e,c] = pairs[i]; this.color(e,c);

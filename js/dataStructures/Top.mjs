@@ -81,11 +81,14 @@ export default class Top {
 	}
 
 	/** Determine if a given index is valid.
-	 *  @param[in] i is an integer
+	 *  @param i is an integer
 	 *  @return true if i lies within the allowed range of index values,
 	 *  else false
 	 */
-	valid(i) { i = Math.floor(i); return 0 <= i && i <= this.#n; }
+	valid(i) {
+		ea && assert(i == ~~i);
+		return 0 <= i && i <= this.#n;
+	}
 
 	/** Determine if two objects are equal.
 	 *  Uses string comparison for objects that lack a fromString method.

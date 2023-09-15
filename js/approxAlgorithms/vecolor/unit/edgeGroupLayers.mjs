@@ -1,4 +1,4 @@
-/** \file eggLayers.mjs
+/** \file EdgeGroupLayers.mjs
  *
  *  @author Jon Turner
  *  @date 2023
@@ -8,25 +8,25 @@
 
 import { AssertFail } from '../../../common/Assert.mjs';
 import { matches, Mismatch } from '../../../common/Testing.mjs';
-import EdgeGroupGraph from '../EdgeGroupGraph.mjs';
-import EggLayers from '../EggLayers.mjs';
+import EdgeGroups from '../EdgeGroups.mjs';
+import EdgeGroupLayers from '../EdgeGroupLayers.mjs';
 
 try {
-	console.log('testing eggLayers');
+	console.log('testing EdgeGroupLayers');
 
-	let gg = new EdgeGroupGraph();
-	matches(gg.fromString('{a[(f i l)A (g k)B (e)C] ' +
+	let eg = new EdgeGroups();
+	matches(eg.fromString('{a[(f i l)A (g k)B (e)C] ' +
 						  'b[(i l)D (h j)E (g k)F] ' +
 						  'c[(f h j)G (e)H (g h)I] ' +
 						  'd[(f i)J (e j)K (k l)L]}'),
 						  true, 'a0');
 
-	let eggl = new EggLayers(gg, 3);
-	eggl.add(1,1); eggl.add(5,1); eggl.add(8,1); eggl.add(12,1);
-	eggl.add(2,2); eggl.add(4,2); eggl.add(9,2); eggl.add(11,2);
-	eggl.add(3,3); eggl.add(6,3); eggl.add(7,3); eggl.add(10,3);
-	matches(eggl,'{[A E H L] [B D I K] [C F G J]}', 'a1');
-	matches(eggl.toString(1),
+	let egl = new EdgeGroupLayers(eg, 3);
+	egl.add(1,1); egl.add(5,1); egl.add(8,1); egl.add(12,1);
+	egl.add(2,2); egl.add(4,2); egl.add(9,2); egl.add(11,2);
+	egl.add(3,3); egl.add(6,3); egl.add(7,3); egl.add(10,3);
+	matches(egl,'{[A E H L] [B D I K] [C F G J]}', 'a1');
+	matches(egl.toString(1),
 			'{[(f i l)A (h j)E (e)H (k l)L] ' +
 			'[(g k)B (i l)D (g h)I (e j)K] ' +
 			'[(e)C (g k)F (f h j)G (f i)J]}', 'a1');

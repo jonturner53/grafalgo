@@ -1,4 +1,4 @@
-/** @file EggLayers.mjs
+/** @file EdgeGroupLayers.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -16,15 +16,15 @@ import EdgeGroupGraph from './EdgeGroupGraph.mjs';
 /** This class implements a data structure used by some edge-group
  *  coloring algorithms.
  */
-export default class EggLayers extends Top {
-	gg;            // group graph that layers are defined on
+export default class EdgeGroupLayers extends Top {
+	eg;            // EdgeGroups object that layers are defined on
 	layers;        // ListSet that partitions groups into layers
 	fgl;           // fgl[l] is the first group in layer l
 
-	constructor(gg, nl) {
+	constructor(eg, nl) {
 		super(nl);
-		this.gg = gg;
-		this.layers = new ListSet(gg.groupRange);
+		this.eg = eg;
+		this.layers = new ListSet(eg.ng);
 		this.fgl = new Int32Array(nl+1);
 	}
 
@@ -32,17 +32,17 @@ export default class EggLayers extends Top {
 
 	clear() { layers.clear(); fgl.fill(0); }
 
-	/** Assign one EggLayers object to another by copying its contents.
+	/** Assign one object to another by copying its contents.
 	 *  @param other is another object whose contents is copied to this one
 	 */
 	assign(other) {
         ea && assert(other != this &&
                 	 this.constructor.name == other.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
-		if (this.gg == other.gg && this.nl == other.nl)
+		if (this.eg == other.eg && this.nl == other.nl)
 			this.clear();
 		else
-			this.reset(this.gg, other.nl);
+			this.reset(other.eg, other.nl);
 
 		for (let l = 1; l <= this.nl; l++) {
 			for (let g = other.firstInLayer(l); g; g = other.nextInLayer(l))
@@ -55,8 +55,8 @@ export default class EggLayers extends Top {
 	 */
 	xfer(other) {
 		super.xfer(other);
-		this.gg = other.gg; this.layers = other.layers; this.fgl = other.fgl;
-		other.gg = other.layers = other.fgl = null;
+		this.eg = other.eg; this.layers = other.layers; this.fgl = other.fgl;
+		other.eg = other.layers = other.fgl = null;
 	}
 
 	/** Get the first group in a layer.
@@ -97,28 +97,28 @@ export default class EggLayers extends Top {
 
 	/** Compute the thickness of a layer. */
 	thickness(l) {
-		let t = 0; let counts = new Int32Array(this.gg.n+1);
+		let t = 0; let counts = new Int32Array(this.eg.graph.n+1);
 		for (let g = this.firstInLayer(l); g; g = this.nextInLayer(l,g)) {
-			for (let e = this.gg.firstInGroup(g); e;
-					 e = this.gg.nextInGroup(g,e)) {
-				let v = this.gg.output(e); counts[v]++;
+			for (let e = this.eg.firstInGroup(g); e;
+					 e = this.eg.nextInGroup(g,e)) {
+				let v = this.eg.output(e); counts[v]++;
 				t = Math.max(t, counts[v]);
 			}
 		}
 		return t;
 	}
 
-	/** Construct a string representation of the EggLayers object.
+	/** Construct a string representation of the EdgeGroupLayers object.
 	 */
 	toString(details=false) {
-		let s = '{'; let cgroups = new List(this.gg.groupRange);
+		let s = '{'; let cgroups = new List(this.eg.ng);
 		for (let l = 1; l <= this.nl; l++) {
 			if (l > 1) s += ' ';
 			s += '[';
 			for (let g = this.firstInLayer(l); g; g = this.nextInLayer(l,g)) {
 				if (g != this.firstInLayer(l)) s += ' ';
-				if (details) s += this.gg.group2string(g);
-				s += this.gg.g2s(g);
+				if (details) s += this.eg.group2string(g);
+				s += this.eg.g2s(g);
 			}
 			s += ']';
 		}

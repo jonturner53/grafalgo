@@ -10,26 +10,25 @@ import { Tester } from '../../../common/Testing.mjs';
 import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
 import basicLayer from '../egcBasicLayer.mjs';
 import verify from '../egcVerify.mjs';
-import EdgeGroupGraph from '../EdgeGroupGraph.mjs';
-import {randomEdgeGroupGraph} 
-		from '../../../graphAlgorithms/misc/RandomGraph.mjs';
+import EdgeGroups from '../EdgeGroups.mjs';
+import { egcRandomCase } from '../egcRandomCase.mjs';
 
 let algomap = {
-	'basicLayerStrict' : ['basic layer (strict)',
-						  (egg,trace) => basicLayer(egg,1,trace), verify ],
-	'basicLayer' : ['basic layer',
-				    (egg,trace) => basicLayer(egg,0,trace), verify ]
+	'basicLayerStrict' : ['basic layer strict ',
+						  (eg,trace) => basicLayer(eg,1,trace), verify ],
+	'basicLayer' : ['basic layer ',
+				    (eg,trace) => basicLayer(eg,0,trace), verify ]
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
-let egg = new EdgeGroupGraph();
-egg.fromString('{a[(f i l)A (g k)B (e)C] b[(i l)D (h j)E (g k)F] ' +
+let eg = new EdgeGroups();
+eg.fromString('{a[(f i l)A (g k)B (e)C] b[(i l)D (h j)E (g k)F] ' +
 			   'c[(f h j)G (e)H (g h)I] d[(f i)J (e j)K (k l)L]}');
-tester.addTest('small graph', egg);
+tester.addTest('small graph', eg);
 
-egg = randomEdgeGroupGraph(5,9,15,3,4);
-tester.addTest('small random graph', egg);
+eg = egcRandomCase(5,9,15,3,4);
+tester.addTest('small random case (5,9,15,3,4)', eg);
 
 tester.run();
