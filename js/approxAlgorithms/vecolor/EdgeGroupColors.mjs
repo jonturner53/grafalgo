@@ -1,4 +1,4 @@
-/** @file EgcColors.mjs
+/** @file EdgeGroupColors.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -11,12 +11,11 @@ import List from '../../dataStructures/basic/List.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import Top from '../../dataStructures/Top.mjs';
-import EdgeGroupGraph from './EdgeGroupGraph.mjs';
 
 /** This class implements a data structure used by edge-group coloring
  *  algorithms.
  */
-export default class EgcColors extends Top {
+export default class EdgeGroupColors extends Top {
 	eg;				/// EdgeGroups object that colors are applied to
 
 	_color;         // _color[e] is edge assigned to e or 0

@@ -11,7 +11,6 @@ import List from '../../dataStructures/basic/List.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import Top from '../../dataStructures/Top.mjs';
-import EdgeGroupGraph from './EdgeGroupGraph.mjs';
 
 /** This class implements a data structure used by some edge-group
  *  coloring algorithms.
