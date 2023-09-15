@@ -20,8 +20,8 @@ import { randomRegularBigraph }
  *  @param k is an upper bound on the number of colors needed to
  *  color the graph; must be at least as big as gd and do_
  */
-export function egcRandomCase(ni, di, no=ni, gd=~~(ni*di/no),
-							  k=Math.max(gd,~~(ni*di/no))+2) {
+export default function egcRandomCase(ni, di, no=ni, gd=~~(ni*di/no),
+									  k=Math.max(gd,~~(ni*di/no))+2) {
 	let do_ = ~~(ni*di/no);
 	ea && assert(gd <= di && gd <= k && do_ <= k && do_ <= no &&
 		   		 di <= no && di*ni == do_*no);
