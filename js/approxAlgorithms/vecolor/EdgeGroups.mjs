@@ -21,7 +21,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  *  disjoint color sets.
  *
  *  To simplify representation, inputs are assigned smaller index values
- *  than outputs; with vertices 1..ni, pre-defined as inputs.
+ *  than outputs; with vertices 1..n_i, pre-defined as inputs.
  */
 export default class EdgeGroups extends Top {
 	gg;              // underlying "group graph"
@@ -44,25 +44,25 @@ export default class EdgeGroups extends Top {
 	 *  expected to define it by assignment or using fromString
 	 *  @param ng is the number of groups
 	 */
-	constructor(gg, ng) {
-		super(ng);
+	constructor(gg, n_g) {
+		super(n_g);
 		if (!gg) return;
 	
 		this.gg = gg;
-		let ni = 0;
+		let n_i = 0;
 		for (let e = gg.first(); e; e = gg.next(e)) {
-			ni = Math.max(ni,this.input(e));
+			n_i = Math.max(n_i,this.input(e));
 		}
-		this._ni = ni;
+		this._ni = n_i;
 
 		this.gid = new Int32Array(this.gg.edgeRange+1);
-		this.fan = new Int32Array(this.ng+1);
+		this.fan = new Int32Array(this.n_g+1);
 
-		this.groupIds = new ListPair(this.ng);
+		this.groupIds = new ListPair(this.n_g);
 		this.edgesInGroups = new ListSet(this.gg.edgeRange);
-		this.feg = new Int32Array(this.ng+1);
-		this.groupsAtInputs = new ListSet(this.ng);
-		this.fg = new Int32Array(this.ni+1);
+		this.feg = new Int32Array(this.n_g+1);
+		this.groupsAtInputs = new ListSet(this.n_g);
+		this.fg = new Int32Array(this.n_i+1);
 
 		this.vlist = new List(this.gg.n);
 	}
@@ -78,9 +78,9 @@ export default class EdgeGroups extends Top {
 		this.vlist.clear();
 	}
 
-	get ni() { return this._ni; }
+	get n_i() { return this._ni; }
 
-	get ng() { return this.n; }
+	get n_g() { return this.n; }
 
 	get graph() { return this.gg; }
 
@@ -93,10 +93,10 @@ export default class EdgeGroups extends Top {
                 	 this.constructor.name == other.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
 
-		if (this.ng == other.ng && this.gg == other.gg)
+		if (this.n_g == other.n_g && this.gg == other.gg)
 			this.clear();
 		else
-			this.reset(other.ng, other.gg);
+			this.reset(other.n_g, other.gg);
 
 		for (let e = other.gg.first(); e; e = other.gg.next(e)) {
 			this.add(e, other.group(e));
@@ -110,7 +110,7 @@ export default class EdgeGroups extends Top {
         ea && assert(other != this &&
                 	 this.constructor.name == other.constructor.name,
 					 'Top:xfer: self-assignment or mismatched types');
-		this.gg = other.gg; this._n = other.ng; this._ni = other._ni;
+		this.gg = other.gg; this._n = other.n_g; this._ni = other.n_i;
 
 		this.fan = other.fan;
 		this.gid = other.gid;
@@ -129,7 +129,7 @@ export default class EdgeGroups extends Top {
 	output(e) { return this.gg.right(e); }
 
 	fanout(g) { return this.fan[g]; }
-	center(g) {
+	hub(g) {
 		let e = this.feg[g];
 		return e ? this.input(e) : 0;
 	}
@@ -154,7 +154,8 @@ export default class EdgeGroups extends Top {
 		if (g == 0 || this.groupIds.in(g,2)) {
 			// allocate group and add edge to it
 			if (g == 0) g = this.groupIds.first(2);
-			ea && assert(this.gid[e] == 0 && this.feg[g] == 0);
+			ea && assert(this.gid[e] == 0 && this.feg[g] == 0,
+this.gid[e] + '.' + this.feg);
 			this.groupIds.swap(g);
 			this.gid[e] = g; this.fan[g] = 1; this.feg[g] = e;
 			let u = this.input(e);
@@ -162,7 +163,7 @@ export default class EdgeGroups extends Top {
 		} else {
 			// add edge to an existing group
 			ea && assert(this.firstInGroup(g));
-			let u = this.center(g);
+			let u = this.hub(g);
 			ea && assert(u == this.input(e));
 			this.gid[e] = g;
 			this.feg[g] = this.edgesInGroups.join(this.feg[g],e);
@@ -194,8 +195,8 @@ export default class EdgeGroups extends Top {
 	merge(g1, g2) {
 		if (g1 == g2 || g2 == 0) return g1;
 		if (g1 == 0) return g2;
-		let u = this.center(g1);
-		ea && assert(u == this.center(g2));
+		let u = this.hub(g1);
+		ea && assert(u == this.hub(g2));
 	
 		// update gid of edges in g2, while checking for and removing
 		// potential parallel edges
@@ -261,14 +262,14 @@ export default class EdgeGroups extends Top {
         other = super.equals(other);
         if (typeof other == 'boolean') return other;
 
-		if (!this.gg.equals(other.gg) || this.ng != other.ng ||
+		if (!this.gg.equals(other.gg) || this.n_g != other.n_g ||
 			this.groupIds.length(1) != other.groupIds.length(1))
 			 return false;
 
 		this.vlist.clear();
 		for (let g = this.firstGroup(); g; g = this.nextGroup(g)) {
 			if (other.groupIds.in(g,2) || this.fanout(g) != other.fanout(g) ||
-				this.center(g) != other.center(g)) {
+				this.hub(g) != other.hub(g)) {
 				return false;
 			}
 			this.vlist.clear();
@@ -289,7 +290,7 @@ export default class EdgeGroups extends Top {
 	 */
 	toString(fmt=0) {
 		let s = '';
-		for (let u = 1; u <= this.ni; u++) {
+		for (let u = 1; u <= this.n_i; u++) {
 			if (!(fmt&2) && !this.gg.firstAt(u)) continue;
 			if (!(fmt&1) && s) s += ' ';
 			s += this.x2s(u) + '[';
@@ -317,7 +318,7 @@ export default class EdgeGroups extends Top {
 
 	/** Return index value for a group or an upper case letter. */
 	g2s(g) {
-		return (this.ng <= 26 ?
+		return (this.n_g <= 26 ?
 				'-ABCDEFGHIJKLMNOPQRSTUVWXYZ'[g] : ''+g);
 	}
 
@@ -329,7 +330,7 @@ export default class EdgeGroups extends Top {
 	 *  @return true on success, else false
 	 */
 	fromString(s) {
-		let n = 1; let ni = 1;
+		let n = 1; let n_i = 1;
 		// function to parse a vertex
 		let nextVertex = (sc => {
 						let u = sc.nextIndex();
@@ -337,7 +338,7 @@ export default class EdgeGroups extends Top {
 						return u > 0 ? u : 0;
 					});
 		// function to parse an edge group
-		let triples = []; let gid = 0; let groupIds = new Set(); let ng = 0;
+		let triples = []; let gid = 0; let groupIds = new Set(); let n_g = 0;
 		let nextGroup = ((u,sc) => {
 						if (!sc.verify('(')) return false
 						while (groupIds.has(++gid)) {}
@@ -359,7 +360,7 @@ export default class EdgeGroups extends Top {
 							g = gid;
 						}
 						groupIds.add(g);
-						ng = Math.max(g,ng);
+						n_g = Math.max(g,n_g);
 						return true;
 					});
 
@@ -369,7 +370,7 @@ export default class EdgeGroups extends Top {
 		while (!sc.verify('}')) {
 			let u = nextVertex(sc);
 			if (!u) return false;
-			ni = Math.max(ni,u);
+			n_i = Math.max(n_i,u);
 			if (sc.verify('[')) {
 				while (!sc.verify(']')) {
 					if (!nextGroup(u,sc)) return false;
@@ -379,7 +380,7 @@ export default class EdgeGroups extends Top {
 
 		// check that inputs precede outputs
 		for (let [u,v,g] of triples)
-			if (v <= ni) return false;
+			if (v <= n_i) return false;
 
 		// configure graph
 		let erange = Math.max(1,triples.length);
@@ -394,13 +395,16 @@ export default class EdgeGroups extends Top {
 		let pairs = []
 		for (let [u,v,g] of triples) pairs.push([this.gg.join(u,v),g]);
 
-		if (ni == this.ni && ng == this.ng && this.gid.length == this.erange+1)
+		if (n_i == this.n_i && n_g == this.n_g &&
+			this.gid.length == this.erange+1)
 			this.clear();
 		else
-			this.reset(this.gg, ng);
+			this.reset(this.gg, n_g);
 
 		// add edges
-		for (let [e,g] of pairs) this.add(e,g);
+		for (let [e,g] of pairs) {
+			this.add(e,g);
+		}
 		return true;
 	}
 }

@@ -29,28 +29,28 @@ export default class EdgeGroupColors extends Top {
 	unused;         // unused[u] is first unused color at u
     fc;             // fc[g] is first color used by group g;
 
-	constructor(eg, nc=1) {
-		super(nc);	// nc is number of colors in palette
+	constructor(eg, n_c=1) {
+		super(n_c);	// n_c is number of colors in palette
 		this.eg = eg;
 
 		this._color = new Int32Array(eg.graph.edgeRange+1);
 		this.edgesByColor = new ListSet(eg.graph.edgeRange);
-		this.fe = new Int32Array(this.nc+1);
+		this.fe = new Int32Array(this.n_c+1);
 
 		this._usage = new Array(eg.graph.n+1);
-		this.colorsInGroups = new Array(eg.ni+1);
-		this.unused = new Int32Array(eg.ni+1);
-		this.fc = new Int32Array(eg.ng+1);
+		this.colorsInGroups = new Array(eg.n_i+1);
+		this.unused = new Int32Array(eg.n_i+1);
+		this.fc = new Int32Array(eg.n_g+1);
 		for (let u = 1; u <= eg.graph.n; u++)
-			this._usage[u] = new Int32Array(nc+1);
-		for (let u = 1; u <= eg.ni; u++) {
-			this.colorsInGroups[u] = new ListSet(nc);
-			for (let c = 1; c <= nc; c++)
+			this._usage[u] = new Int32Array(n_c+1);
+		for (let u = 1; u <= eg.n_i; u++) {
+			this.colorsInGroups[u] = new ListSet(n_c);
+			for (let c = 1; c <= n_c; c++)
 				this.unused[u] = this.colorsInGroups[u].join(this.unused[u],c);
 		}
 	}
 
-	get nc() { return this.n; }
+	get n_c() { return this.n; }
 
 	maxColor() { return Math.max(...this._color); }
 
@@ -66,10 +66,10 @@ export default class EdgeGroupColors extends Top {
         ea && assert(other != this &&
                 	 this.constructor.name == other.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
-		if (this.eg == other.eg && this.nc == other.nc)
+		if (this.eg == other.eg && this.n_c == other.n_c)
 			this.clear();
 		else
-			this.reset(other.eg, other.nc);
+			this.reset(other.eg, other.n_c);
 
 		for (let e = eg.graph.first(); e; e = eg.graph.next(e))
 			if (other.color(e)) this.color(e, other.color(e));
@@ -82,7 +82,7 @@ export default class EdgeGroupColors extends Top {
         ea && assert(other != this &&
                 	 this.constructor.name == other.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
-		this._n = other.nc;
+		this._n = other.n_c;
 		this.eg = other.eg;
 		this._color = other._color;
 		this.edgesByColor = other.edgesByColor;
@@ -124,7 +124,7 @@ export default class EdgeGroupColors extends Top {
 	 */
 	nextColorIn(g,c) {
 		ea && assert(this.eg.firstInGroup(g));
-		let u = this.eg.center(g);
+		let u = this.eg.hub(g);
 		return this.colorsInGroups[u].next(c);
 	}
 
@@ -136,7 +136,7 @@ export default class EdgeGroupColors extends Top {
 	 *  @return the color of e
 	 */
 	color(e, c=-1) {
-		ea && assert(this.eg.graph.validEdge(e) && c <= this.nc);
+		ea && assert(this.eg.graph.validEdge(e) && c <= this.n_c);
 		if (c != -1) {
 			// set the edge color
 			let [u,v] = [this.eg.input(e),this.eg.output(e)];
@@ -169,8 +169,8 @@ export default class EdgeGroupColors extends Top {
 		return this._color[e];
 	}
 	
-	/** Compare another GroupColoring to this one.
-	 *  @param other is a GroupColoring object or a string representing one.
+	/** Compare another object to this one.
+	 *  @param other is a EdgeGroupColors object or a string representing one.
 	 *  @return true if g is equal to this; that is, it has the same
 	 *  vertices, edges and edge weights
 	 *
@@ -180,20 +180,20 @@ export default class EdgeGroupColors extends Top {
 		if (this === other) return true;
         if (typeof other == 'string') {
             let s = other;
-			other = new this.constructor(this.eg,this.nc);
+			other = new this.constructor(this.eg,this.n_c);
 			assert(other.fromString(s), other.constructor.name +
 						 ':equals: fromString cannot parse ' + s);
 				// note: this assert must always be enabled
-			if (other.nc > this.nc) return false;
-			if (other.nc < this.nc) other.expand(this.nc);
+			if (other.n_c > this.n_c) return false;
+			if (other.n_c < this.n_c) other.expand(this.n_c);
         } else if (other.constructor.name != this.constructor.name ||
-		    other.nc != this.nc) {
+		    other.n_c != this.n_c) {
 			return false;
 		}
 		if (!this.eg.equals(other.eg)) return false;
 
 		// now make sure the colors in the groups match
-		let clist = new List(this.nc);
+		let clist = new List(this.n_c);
 		for (let g = this.eg.firstGroup(); g; g = this.eg.nextGroup(g)) {
 			clist.clear(); let len1 = 0; let len2 = 0;
 			for (let c = this.firstColorIn(g); c; c = this.nextColorIn(g,c)) {
@@ -211,8 +211,8 @@ export default class EdgeGroupColors extends Top {
 	/** Construct a string representation of the GroupColors object.
 	 */
 	toString(showAllGroups=false) {
-		let s = '{\n'; let cgroups = new List(this.eg.ng);
-		for (let c = 1; c <= this.nc; c++) {
+		let s = '{\n'; let cgroups = new List(this.eg.n_g);
+		for (let c = 1; c <= this.n_c; c++) {
 			if (!this.firstEdgeWithColor(c)) continue;
 			s += c + '[';
 			cgroups.clear();
@@ -257,11 +257,11 @@ export default class EdgeGroupColors extends Top {
 						let i0 = pairs.length;
 						while (!sc.verify(')')) {
 							let v = nextVertex(sc);
-							if (v <= this.eg.ni) return false;
+							if (v <= this.eg.n_i) return false;
 							pairs.push([v,c]);
 						}
 						let g = sc.nextIndexUpper();
-						if (g <= 0 || g > this.eg.ng) return false;
+						if (g <= 0 || g > this.eg.n_g) return false;
 						// replace vertices just scanned with edge numbers
 						for (let i = i0; i < pairs.length; i++) {
 							let v = pairs[i][0];
@@ -282,16 +282,17 @@ export default class EdgeGroupColors extends Top {
 			if (!sc.verify('[')) return false;
 			while (!sc.verify(']')) {
 				let u = nextVertex(sc);
-				if (u > this.eg.ni) return false;
+				if (u > this.eg.n_i) return false;
 				if (!nextGroup(u,c,sc)) return false;
 			}
 		}
 
-		if (cmax == this.nc) this.clear();
-		else this.reset(this.eg, this.nc);
+		if (cmax == this.n_c) this.clear();
+		else this.reset(this.eg, this.n_c);
 
 		for (let i = 0; i < pairs.length; i++) {
-			let [e,c] = pairs[i]; this.color(e,c);
+			let [e,c] = pairs[i];
+			this.color(e,c);
 		}
 		return true;
 	}

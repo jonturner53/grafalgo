@@ -18,7 +18,7 @@ export default function egcVerify(eg, egc) {
 	let ucolors = new List(egc.nc);
 	for (let u = 1; u <= eg.graph.n; u++) {
 		ucolors.clear();
-		if (u <= eg.ni) {
+		if (u <= eg.n_i) {
 			for (let g = eg.firstGroupAt(u); g; g = eg.nextGroupAt(u,g)) {
 				for (let e = eg.firstInGroup(g); e; e = eg.nextInGroup(g,e)) {
 					let c = egc.color(e);

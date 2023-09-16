@@ -25,7 +25,7 @@ export default function egcBasicLayer(eg, strict=false, trace=0) {
 	}
 
 	let D = 0;
-	for (let u = 1; u <= eg.ni; u++) {
+	for (let u = 1; u <= eg.n_i; u++) {
 		let d = 0;
 		for (let g = eg.firstGroupAt(u); g; g = eg.nextGroupAt(u,g)) d++;
 		D = Math.max(D,d);
@@ -35,11 +35,11 @@ export default function egcBasicLayer(eg, strict=false, trace=0) {
 	// assign groups to layers, just assigning one group
 	// from each input, proceeding in parallel down the input
 	// group lists
-	let nextAt = new Int32Array(eg.ni+1);
-	for (let u = 1; u <= eg.ni; u++)
+	let nextAt = new Int32Array(eg.n_i+1);
+	for (let u = 1; u <= eg.n_i; u++)
 		nextAt[u] = eg.firstGroupAt(u);
-	for (let l = 1; l <= layers.nl; l++) {
-		for (let u = 1; u <= eg.ni; u++) {
+	for (let l = 1; l <= layers.n_l; l++) {
+		for (let u = 1; u <= eg.n_i; u++) {
 			let g = nextAt[u];
 			if (g) {
 				layers.add(g,l);
@@ -48,9 +48,9 @@ export default function egcBasicLayer(eg, strict=false, trace=0) {
 		}	
 	}
 
-	let thickness = new Int32Array(layers.nl+1);
+	let thickness = new Int32Array(layers.n_l+1);
 	let totalThickness = 0;
-	for (let l = 1; l <= layers.nl; l++) {
+	for (let l = 1; l <= layers.n_l; l++) {
 		thickness[l] = layers.thickness(l);
 		totalThickness += thickness[l];
 	}
@@ -66,14 +66,14 @@ export default function egcBasicLayer(eg, strict=false, trace=0) {
 	// colors to egc.
 	let lg = new Graph(eg.graph.n,eg.graph.edgeRange);	// layer graph
 	let lastColor = 0;
-	for (let l = 1; l <= layers.nl; l++) {
+	for (let l = 1; l <= layers.n_l; l++) {
 		lg.clear();
 		for (let g = layers.firstInLayer(l); g; g = layers.nextInLayer(l,g)) {
 			for (let e = eg.firstInGroup(g); e; e = eg.nextInGroup(g,e)) {
 				lg.join(eg.input(e), eg.output(e), e);
 			}
 		}
-		for (let v = eg.ni+1; v <= eg.n; v++) {
+		for (let v = eg.n_i+1; v <= eg.graph.n; v++) {
 			let c = strict ? lastColor + 1 : 1;
 			for (let e = lg.firstAt(v); e; e = lg.nextAt(v,e)) {
 				while (!egc.avail(c,e)) c++;

@@ -20,14 +20,14 @@ export default class EdgeGroupLayers extends Top {
 	layers;        // ListSet that partitions groups into layers
 	fgl;           // fgl[l] is the first group in layer l
 
-	constructor(eg, nl) {
-		super(nl);
+	constructor(eg, n_l) {
+		super(n_l);
 		this.eg = eg;
-		this.layers = new ListSet(eg.ng);
-		this.fgl = new Int32Array(nl+1);
+		this.layers = new ListSet(eg.n_g);
+		this.fgl = new Int32Array(n_l+1);
 	}
 
-	get nl() { return this.n; }
+	get n_l() { return this.n; }
 
 	clear() { layers.clear(); fgl.fill(0); }
 
@@ -38,12 +38,12 @@ export default class EdgeGroupLayers extends Top {
         ea && assert(other != this &&
                 	 this.constructor.name == other.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
-		if (this.eg == other.eg && this.nl == other.nl)
+		if (this.eg == other.eg && this.n_l == other.n_l)
 			this.clear();
 		else
-			this.reset(other.eg, other.nl);
+			this.reset(other.eg, other.n_l);
 
-		for (let l = 1; l <= this.nl; l++) {
+		for (let l = 1; l <= this.n_l; l++) {
 			for (let g = other.firstInLayer(l); g; g = other.nextInLayer(l))
 				this.add(g,l);
 		}
@@ -110,8 +110,8 @@ export default class EdgeGroupLayers extends Top {
 	/** Construct a string representation of the EdgeGroupLayers object.
 	 */
 	toString(details=false) {
-		let s = '{'; let cgroups = new List(this.eg.ng);
-		for (let l = 1; l <= this.nl; l++) {
+		let s = '{'; let cgroups = new List(this.eg.n_g);
+		for (let l = 1; l <= this.n_l; l++) {
 			if (l > 1) s += ' ';
 			s += '[';
 			for (let g = this.firstInLayer(l); g; g = this.nextInLayer(l,g)) {
