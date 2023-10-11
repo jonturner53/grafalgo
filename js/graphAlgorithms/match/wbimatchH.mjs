@@ -13,11 +13,12 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import findSplit from '../misc/findSplit.mjs';
 
 let g;            // shared copy of graph
+let weight;       // copy of edge weights
 let match;        // match is a Matching object
 let lab;          // lab[u] is vertex label at u
 let link;         // link[u] is edge to parent of u in shortest path forest
 let free;         // list containing free vertices in first subset
-let leaves;       // heap containing leaves in forest
+let border;       // heap containing border in forest
 let cost;         // cost[u]=cost of shortest path to u in forest
 
 let trace;
@@ -35,33 +36,45 @@ let steps;       // total number of steps
  *  ts is a possibly empty trace string and stats is a statistics object
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function wbimatchH(bg, subsets=0, traceFlag=0) {
+export default function wbimatchH(bg, io=0, traceFlag=0) {
 	g = bg; match = new Matching(g);
+
+	// adjust weights to avoid numerical issues arising from
+	// small differences
+	weight = new Float32Array(g.edgeRange+1);
+	for (let e = g.first(); e; e = g.next(e)) {
+		weight[e] = g.weight(e);
+		if (Math.abs(weight[e]) < 1) {
+			let scale = 2**20;
+			weight[e] = Math.floor(weight[e]*scale) / scale;
+		}
+	}
+
 	link = new Int32Array(g.n+1);
-	lab = new Int32Array(g.n+1);
+	lab = new Float32Array(g.n+1);
 	free = new List(g.n); free.addPrev();
-	leaves = new ArrayHeap(g.n,4);
+	border = new ArrayHeap(g.n,4);
 	cost = new Float32Array(g.n+1);
 
 	trace = traceFlag; traceString = '';
 	paths = steps = 0;
 
 	// divide vertices into two independent sets
-	if (!subsets) { subsets = findSplit(g); steps += g.m; }
-	if (!subsets) return [];
+	if (!io) { io = findSplit(g); steps += g.m; }
+	if (!io) return [];
 
 	if (trace) {
 		traceString += `${g.toString(1)}augmenting path, path weight\n`;
 	}
 
 	// add unmatched vertices from first subset to free
-	for (let u = subsets.first(1); u; u = subsets.next(u)) {
+	for (let u = io.first(1); u; u = io.next(u)) {
 		if (g.firstAt(u)) free.enq(u);
 		steps++;
 	}
 
 	// initialize vertex labels
-	initLabels(subsets);
+	initLabels(io);
 
 	// augment the matching until no augmenting path remains
 	let u = findpath();
@@ -75,87 +88,92 @@ export default function wbimatchH(bg, subsets=0, traceFlag=0) {
 								 'steps': steps }];
 }
 
+/*
+function checkLabels() {
+	for (let e = g.first(); e; e = g.next(e)) {
+		let [u,v] = [g.left(e),g.right(e)];
+		if (match.contains(e)) {
+			if (io.in(u,1)) [u,v] = [v,u];
+			assert(weight[e] + (lab[u]-lab[v]) >= 0, 
+				   ''+lab[u]+' '+lab[v]+' '+(weight[e] + (lab[u]-lab[v])));
+		} else {
+			if (io.in(u,2)) [u,v] = [v,u];
+			assert(-weight[e] + (lab[u]-lab[v]) >= 0,
+					''+weight[e]+' '+(-weight[e] + (lab[u]-lab[v])));
+		}
+	}
+}
+*/
+
 /** Compute values for labels that give non-negative transformed costs.
  *  The labels are the least cost path distances from an imaginary
- *  vertex with a length 0 edge to every vertex in subsets's set1.
+ *  vertex with a length 0 edge to every vertex in io's set1.
  *  Edges are treated as directed from set1 to set2.
  */
-function initLabels(subsets) {
+function initLabels(io) {
 	lab.fill(0);
-	for (let u = subsets.first(1); u != 0; u = subsets.next(u)) {
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+	for (let u = io.first(1); u; u = io.next(u)) {
+		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			let v = g.mate(u,e);
-			if (lab[v] > lab[u] - g.weight(e))
-				lab[v] = lab[u] - g.weight(e);
+			if (lab[v] > lab[u] - weight[e]) {
+				lab[v] = lab[u] - weight[e];
+			}
 			steps++;
 		}
 	}
 }
 
 /** Find a least cost augmenting path.
- *  Unmatched edges are "directed" from subsets's set1 to its set2.
+ *  Unmatched edges are "directed" from io's set1 to its set2.
  *  Matched edges are "directed" from set2 to set1.
  *  The cost of a path is the weight of its matched edges minus the
  *  weight of its unmatched edges.
  *  @returns the sink vertex of the path found, or 0 if no such path
  */
 function findpath() {
-	link.fill(0); cost.fill(Infinity); leaves.clear(); leaves.clearStats();
-	for (let u = free.first(); u != 0; u = free.next(u)) {
-		cost[u] = 0; leaves.insert(u,0); steps++;
+	link.fill(0); cost.fill(Infinity); border.clear(); border.clearStats();
+	for (let u = free.first(); u; u = free.next(u)) {
+		cost[u] = 0; border.insert(u,0); steps++;
 	}
 
 	let bestSink = 0; let bestPathCost = Infinity;
 	let maxcost = -Infinity;
-	while (!leaves.empty()) {
-		let u = leaves.deletemin(); // u is in set1
+	while (!border.empty()) {
+		let u = border.deletemin(); // u is in set1
 		maxcost = Math.max(maxcost, cost[u]);
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			steps++;
 			if (e == match.at(u)) continue;
 			let v = g.mate(u,e);
-			if (cost[v] > (cost[u]-g.weight(e)) + (lab[u]-lab[v])) {
+			if (cost[v] > cost[u] + (-weight[e] + (lab[u]-lab[v]))) {
 				link[v] = e;
-				cost[v] = (cost[u]-g.weight(e)) + (lab[u]-lab[v]);
+				cost[v] = cost[u] + (-weight[e] + (lab[u]-lab[v]));
 				let ee = match.at(v);
 				if (ee == 0) {
+					// select best sink based on "true path cost"
 					if (cost[v] + lab[v] < bestPathCost) {
-						bestSink = v; bestPathCost = cost[v] + lab[v];
+						bestSink = v; bestPathCost = cost[v] + lab[v] ;
 					}
 					continue;
 				}
 				let x = g.mate(v,ee);
 				link[x] = ee;
-				cost[x] = cost[v]+g.weight(ee) + (lab[v]-lab[x]);
-				if (!leaves.contains(x)) leaves.insert(x,cost[x]);
-				else leaves.changekey(x,cost[x]);
+				cost[x] = cost[v] + weight[ee] + (lab[v]-lab[x]);
+				if (!border.contains(x)) border.insert(x,cost[x]);
+				else border.changekey(x,cost[x]);
 			}
 		}
 	}
-	steps += leaves.getStats().steps;
-	if (bestSink == 0) return 0;
+	steps += border.getStats().steps;
 
 	// update labels for next round
 	for (let u = 1; u <= g.n; u++) {
-		steps++; lab[u] += Math.min(cost[u],maxcost);
+		steps++;
+		lab[u] += (cost[u] == Infinity ? maxcost : cost[u]);
 	}
 
-	// determine true weight of path
-	let u = bestSink; let e = link[u]; let pathCost = 0;
-	let ts; if (trace) ts = g.x2s(u);
-	while (e != 0) {
-		pathCost += g.weight(e);
-		if (trace) ts = `${g.e2s(e)} ${ts}`
-		u = g.mate(u,e); e = link[u];
-		if (e == 0) break;
-		if (trace) ts = `${g.e2s(e)} ${ts}`
-		pathCost -= g.weight(e);
-		u = g.mate(u,e); e = link[u];
-		steps++;
-	}
-	if (pathCost <= 0) return 0;
-	if (trace)
-		traceString += `${g.x2s(u)} ${ts} ${pathCost}\n`
+	if (bestSink == 0 || bestPathCost >= 0) return 0;
+
 	return bestSink;
 }
 
@@ -165,11 +183,17 @@ function findpath() {
  */
 function augment(u) {
 	let e = link[u];
-	while (e != 0) {
+	let ts; if (trace) ts = g.x2s(u);
+	while (e) {
 		steps++;
+		if (trace) ts = `${g.e2s(e)} ${ts}`
 		match.add(e);  u = g.mate(u,e); e = link[u];
-		if (e == 0) break;
+		if (!e) break;
+		let ts; if (trace) ts = g.x2s(u);
 		match.drop(e); u = g.mate(u,e); e = link[u];
 	}
 	free.delete(u);
+	if (trace) {
+		traceString += `${g.x2s(u)} ${ts} ${pathCost}\n`
+	}
 }

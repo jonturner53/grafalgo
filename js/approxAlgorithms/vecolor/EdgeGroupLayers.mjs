@@ -19,12 +19,14 @@ export default class EdgeGroupLayers extends Top {
 	eg;            // EdgeGroups object that layers are defined on
 	layers;        // ListSet that partitions groups into layers
 	fgl;           // fgl[l] is the first group in layer l
+	gmap;          // gmap[g] is the layer containing g
 
 	constructor(eg, n_l) {
 		super(n_l);
 		this.eg = eg;
 		this.layers = new ListSet(eg.n_g);
 		this.fgl = new Int32Array(n_l+1);
+		this.gmap = new Int32Array(eg.n_g+1);
 	}
 
 	get n_l() { return this.n; }
@@ -55,8 +57,12 @@ export default class EdgeGroupLayers extends Top {
 	xfer(other) {
 		super.xfer(other);
 		this.eg = other.eg; this.layers = other.layers; this.fgl = other.fgl;
-		other.eg = other.layers = other.fgl = null;
+		this.gmap = other.gmap;
+		other.eg = other.layers = other.fgl = other.gmap = null;
 	}
+
+	/** Get the layer that a specified group belongs to. */
+	layer(g) { return this.gmap[g]; }
 
 	/** Get the first group in a layer.
 	 *  @param l is a layer number
@@ -76,6 +82,7 @@ export default class EdgeGroupLayers extends Top {
 	 */
 	add(g,l) {
 		this.fgl[l] = this.layers.join(this.fgl[l],g);
+		this.gmap[g] = l;
 	}
 
 	/** Remove a group from a layer.
@@ -84,18 +91,27 @@ export default class EdgeGroupLayers extends Top {
 	 */
 	delete(g,l) {
 		this.fgl[l] = this.layers.delete(g,this.fgl[l])
+		this.gmap[g] = 0;
 	}
 
-	/** Combine two layers.
+	/** Combine two layers segments.
 	 *  @param l1 is a layer
-	 *  @param l2 is another layer
+	 *  @param l2 is another layer that is assumed to contain groups
+	 *  with hubs that are distinct from those in l1
 	 */
 	join(l1,l2) {
+		for (let g = this.firstInLayer(l2); g; g = this.nextInLayer(l2,g))
+			this.gmap[g] = l1;
 		this.fgl[l1] = this.layers.join(this.fgl[l1], this.fgl[l2]);
 	}
 
-	/** Compute the thickness of a layer. */
-	thickness(l) {
+	/** Compute statistics for a layer.
+	 *  @param l is a layer number
+	 *  @return a pair [t,singles,muultis] where t is the layer thickness and
+	 *  singles is the number of outputs with a single edge in the layer,
+	 *  multis is the number of outputs with more than one edge in the layer
+	 */
+	layerStats(l) {
 		let t = 0; let counts = new Int32Array(this.eg.graph.n+1);
 		for (let g = this.firstInLayer(l); g; g = this.nextInLayer(l,g)) {
 			for (let e = this.eg.firstInGroup(g); e;
@@ -104,7 +120,13 @@ export default class EdgeGroupLayers extends Top {
 				t = Math.max(t, counts[v]);
 			}
 		}
-		return t;
+		let singles = 0; let multis = 0;
+		for (let v = 1; v < counts.length; v++) {
+			if (counts[v] == 1) singles++;
+			else if (counts[v] > 1) multis++;
+		}
+		
+		return [t, singles, multis];
 	}
 
 	/** Construct a string representation of the EdgeGroupLayers object.
@@ -113,6 +135,7 @@ export default class EdgeGroupLayers extends Top {
 		let s = '{'; let cgroups = new List(this.eg.n_g);
 		for (let l = 1; l <= this.n_l; l++) {
 			if (l > 1) s += ' ';
+			if (details) s += '\n';
 			s += '[';
 			for (let g = this.firstInLayer(l); g; g = this.nextInLayer(l,g)) {
 				if (g != this.firstInLayer(l)) s += ' ';

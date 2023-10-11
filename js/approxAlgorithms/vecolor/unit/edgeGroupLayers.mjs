@@ -29,7 +29,10 @@ try {
 	matches(egl.toString(1),
 			'{[(f i l)A (h j)E (e)H (k l)L] ' +
 			'[(g k)B (i l)D (g h)I (e j)K] ' +
-			'[(e)C (g k)F (f h j)G (f i)J]}', 'a1');
+			'[(e)C (g k)F (f h j)G (f i)J]}', 'a2');
+	matches(egl.layer(9), 2, 'a3');
+	egl.delete(9,2);
+	matches(egl.layer(9), 0, 'a4');
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

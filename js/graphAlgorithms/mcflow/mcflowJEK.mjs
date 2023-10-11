@@ -30,6 +30,8 @@ let steps;      // number of steps in findpath method
  *  algorithm with Dijkstra's algorithm using Edmonds/Karp edge cost transform.
  *  @param fg is a flow graph with a possibly non-zero initial flow with no
  *  unsaturated negative cycles
+ *  @param leastCost is a boolean; when true, returns the least-cost flow;
+ *  when false, returns the least-cost flow that also has maximum value
  *  @return [traceString,statsObject]
  */
 export default function mcflowJEK(fg, leastCost=false, traceFlag=false) {

@@ -44,6 +44,8 @@ try {
 	matches(l.equals(l2), false, 'c4');
 	l2.value(3, 22); l2.value(26, 5);
 	matches(!!l.equals(l2), true, 'c5');
+	l2.clear();
+	matches(l2,'[]','c6');
 
 	matches(l.fromString('[a:1 b e:5 d:4]'), true, 'd0');
 	matches(l,'[a:1 b:0 e:5 d:4]', 'd1');

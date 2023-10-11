@@ -27,6 +27,8 @@ try {
 	matches(lp, '[d b : a c e f g h]', 'b1');
 	lp.swap(6, 4); lp.swap(8, 0);
 	matches(lp, '[h d f b : a c e g]', 'b2');
+	matches(lp.prev(6), 4, 'b3');
+	matches(lp.prev(5), 3, 'b4');
 
 	matches(lp.fromString('[h g f : d b a c e]'), true, 'c0');
 	matches(lp, '[h g f : d b a c e]', 'c1');

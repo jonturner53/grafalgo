@@ -6,6 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import {assert} from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 
 /** Verify an edge coloring in a bipartite graphs.
@@ -16,6 +17,10 @@ import List from '../../dataStructures/basic/List.mjs';
  */
 export default function egcVerify(eg, egc) {
 	let ucolors = new List(egc.nc);
+	for (let e = eg.graph.first(); e; e = eg.graph.next(e)) {
+		if (!egc.color(e))
+			return `edge ${eg.graph.e2s(e)} is uncolored`;
+	}
 	for (let u = 1; u <= eg.graph.n; u++) {
 		ucolors.clear();
 		if (u <= eg.n_i) {
@@ -28,7 +33,7 @@ export default function egcVerify(eg, egc) {
 							   `at input ${eg.x2s(u)}`;
 				}
 				for (let e = eg.firstInGroup(g); e; e = eg.nextInGroup(g,e)) {
-					if (!ucolors.contains(egc.color(e)))
+					if (egc.color(e) && !ucolors.contains(egc.color(e)))
 						ucolors.enq(egc.color(e));
 				}
 			}

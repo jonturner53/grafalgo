@@ -41,14 +41,15 @@ export default class EdgeGroups extends Top {
 	/** Constructor for EdgeGroups object.
 	 *  @param gg is graph on which edge groups are defined; assumed bipartite
 	 *  with all inputs coming before outputs; if gg is omitted, user is
-	 *  expected to define it by assignment or using fromString
-	 *  @param ng is the number of groups
+	 *  expected to define it using fromString
+	 *  @param ng is the maximum number of groups that can be accommodated
 	 */
 	constructor(gg, n_g) {
 		super(n_g);
 		if (!gg) return;
 	
 		this.gg = gg;
+
 		let n_i = 0;
 		for (let e = gg.first(); e; e = gg.next(e)) {
 			n_i = Math.max(n_i,this.input(e));
@@ -134,6 +135,8 @@ export default class EdgeGroups extends Top {
 		return e ? this.input(e) : 0;
 	}
 
+	groupCount() { return this.groupIds.length(1); }
+
 	firstGroup() { return this.groupIds.first(1); }
 	nextGroup(g) { return this.groupIds.next(g,1); }
 
@@ -154,8 +157,7 @@ export default class EdgeGroups extends Top {
 		if (g == 0 || this.groupIds.in(g,2)) {
 			// allocate group and add edge to it
 			if (g == 0) g = this.groupIds.first(2);
-			ea && assert(this.gid[e] == 0 && this.feg[g] == 0,
-this.gid[e] + '.' + this.feg);
+			ea && assert(this.gid[e] == 0 && this.feg[g] == 0);
 			this.groupIds.swap(g);
 			this.gid[e] = g; this.fan[g] = 1; this.feg[g] = e;
 			let u = this.input(e);
@@ -172,7 +174,7 @@ this.gid[e] + '.' + this.feg);
 		return g;
 	}
 
-	/** Remove e from its group.
+	/** Delete an edge from its group.
 	 *  @param e is an edge in a group
 	 */
 	delete(e) {

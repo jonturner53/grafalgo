@@ -141,7 +141,7 @@ export class Tester {
 				if (this.trace && small)
 					this.log(`${tag}\n${traceString}`);
 
-				let statsString = JSON.stringify(results[results.length-1]);
+				let statsString = JSON.stringify(results[results.length-1],fmt);
 				if (this.stats)
 					this.log(`${algo.name}(${tcase.label}), ` +
 								`${t1-t0}ms, ${statsString}`);
@@ -153,4 +153,13 @@ export class Tester {
 			}
 		}
 	}
+}
+
+function fmt(key,value) {
+	if (typeof value === 'number' && !Number.isInteger(value)) {
+		let v = Math.abs(value);
+		let d = (v >= 100 ? 0 : (v >= 10 ? 1 : (v >= 1 ? 2 : 4)));
+		return value.toFixed(d);
+	}
+	return value;
 }

@@ -46,7 +46,13 @@ function computeMatch(g0) {
 	mark = new Int8Array(bloss.n+1).fill(false);
 
 	let maxwt = -Infinity;
-	for (let e = g.first(); e != 0; e = g.next(e)) {
+	for (let e = g.first(); e; e = g.next(e)) {
+		if (Math.abs(g.weight(e)) < 1) {
+			// reduce potential for numerical issues
+			let scale = 2**20;
+			let w = Math.floor(g.weight(e)*scale) / scale;
+			g.weight(e,w);
+		}
 		maxwt = Math.max(g.weight(e),maxwt);
 	}
 	z.fill(maxwt/2.0,1,g.n+1);

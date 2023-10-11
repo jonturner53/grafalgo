@@ -129,7 +129,15 @@ export default class List extends Top {
 		if (!this.#prev) this.addPrev();
 		return this.#prev[i];
 	}
-	
+
+dump() {
+	let s = '' + this.#first + ' ' + this.#last + ' ' + this.#length;// + '\n[';
+//	for (let i = 0; i < this.#next.length; i++)
+//			s += ' ' + this.#next[i];
+//	s += ']';
+	return s;
+}
+
 	/** Get first item on list.
 	 *  @return the first item on the list or 0 if the list is empty
 	 */
@@ -180,8 +188,8 @@ export default class List extends Top {
 	insert(i, j, value=undefined) {
 		if (i > this.n) this.expand(i);
 		ea && assert(i && this.valid(i) && !this.contains(i) &&
-					 (j == 0 | this.contains(j)),
-					 `List.enq: ${this.x2s(i)} ${this.x2s(j)} ${''+this}`);
+					 (j == 0 || this.contains(j)),
+					 `List.insert: ${this.x2s(i)} ${this.x2s(j)} ${''+this}`);
 		if (value != undefined) this.value(i, value);
 		if (j == 0) {
 			if (this.empty()) this.#last = i;
@@ -194,6 +202,7 @@ export default class List extends Top {
 			this.#prev[i] = j;
 			if (i != this.last()) this.#prev[this.next(i)] = i;
 		}
+assert(this.#last > 0 || this.#length == 0,'insert2 ' + this.dump());
 		return;
 	}
 	
@@ -218,6 +227,7 @@ export default class List extends Top {
 			this.#prev[j] = 0;
 		}
 		if (this.hasValues) this.value(j,undefined);
+assert(this.#last > 0 || this.#length == 0,'delete ' + this.dump());
 		return (i == 0 ? this.first() : this.next(i));
 	}
 

@@ -29,10 +29,10 @@ export default function sptD(g, s, trace=0) {
 	dist[s] = 0; border.insert(s, 0);
 	if (trace) ts += 'initial heap: ' + border + '\n\n' +
 					 'selected vertex, edge to parent, ' + 
-					 `distance from ${g.index2string(s)}, heap contents\n`;
+					 `distance from ${g.x2s(s)}, heap contents\n`;
 	while (!border.empty()) {
 		let u = border.deletemin();
-		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
+		for (let e = g.firstOut(u); e; e = g.nextOut(u, e)) {
 			if (g.length(e) < 0) return [];
 			let v = g.head(e);
 			if (dist[v] > dist[u] + g.length(e)) {
@@ -42,8 +42,7 @@ export default function sptD(g, s, trace=0) {
 			}
 		}
 		if (trace) {
-			ts += g.index2string(u) + ' ' +
-				  (link[u] > 0 ? g.e2s(link[u]) : '-') +
+			ts += g.x2s(u) + ' ' + (link[u] > 0 ? g.e2s(link[u]) : '-') +
 				   ' ' + dist[u] + ' ' + border + '\n';
 		}
 	}

@@ -23,9 +23,9 @@ export default class ListPair extends Top {
 	#first;     // #first[i-1] is first item in list i
 	#last;      // #last[i-1] is last item in list i
 	#next;      // #next[i] defines next item after i
-				// items in list 1 use positive #next values
-				// items in list 2 use negative #next values
 	#prev;      // #prev[i] defines item preceding i
+				// items in list 1 use positive #prev values
+				// items in list 2 use negative #prev values
 	
 	/** Constructor for list pair.
 	 *  @param n specifies the range of integer values
@@ -109,7 +109,7 @@ export default class ListPair extends Top {
 	 *  @param i is the index of a list item.
 	 *  @return the previous item on the list containing i
 	 */
-	prev(i) { return this.#prev[i]; }
+	prev(i) { return (this.#prev[i] >= 0 ? this.#prev[i] : -this.#prev[i]); }
 	
 	/** Remove all elements from list 1. */
 	clear() { while (this.first(1) != 0) this.swap(this.first(1)); }
