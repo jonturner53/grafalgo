@@ -21,9 +21,6 @@ import Matching from './Matching.mjs';
  *  @param g is an undirected weighted bipartite graph
  *  @param io is an optional ListPair that defines the bipartite
  *  vertex subsets (inputs and outputs).
- *  @param maxSize is a boolean; when true, the computed matching
- *  is a maximum size matching with the largest weight; may not have
- *  max weight overall
  *  @param dmin is an array mapping vertices to degree lower bounds
  *  in a b-matching; if omitted a bound of 0 is used
  *  @param dmax is an array mapping vertices to degree upper bounds
@@ -37,7 +34,7 @@ import Matching from './Matching.mjs';
  *  specified minimum degree if it is possible to do so
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function wbimatchF(g, io=0, maxSize=0, dmin=0, dmax=0, trace=0) {
+export default function wbimatchF(g, io=0, dmin=0, dmax=0, trace=0) {
 	let paths = 0; let steps = 0;
 	// divide vertices into two independent sets
 	if (!io) { io = findSplit(g); steps += g.m; }
@@ -66,7 +63,7 @@ export default function wbimatchF(g, io=0, maxSize=0, dmin=0, dmax=0, trace=0) {
         let [,ts,stats] = flowfloor(fg, trace);
         steps += stats.steps;
     }
-	let [ts, stats] = mcflowJEK(fg, !maxSize, trace); // solve least-cost flow problem
+	let [ts, stats] = mcflowJEK(fg, 1, trace); // solve least-cost flow problem
 	paths += stats.paths; steps += stats.steps;
 	// construct matching from flow
 	let match = (dmax ? new Graph(g.n,g.edgeRange) : new Matching(g));
