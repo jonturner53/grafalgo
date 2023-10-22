@@ -210,7 +210,7 @@ export default class EdgeGroupColors extends Top {
 
 	/** Construct a string representation of the GroupColors object.
 	 */
-	toString(showAllGroups=false) {
+	toString(showGroupIds=true) {
 		let s = '{\n'; let cgroups = new List(this.eg.n_g);
 		for (let c = 1; c <= this.n_c; c++) {
 			if (!this.firstEdgeWithColor(c)) continue;
@@ -223,17 +223,16 @@ export default class EdgeGroupColors extends Top {
 			}
 			for (let g = cgroups.first(); g; g = cgroups.next(g)) {
 				if (g != cgroups.first()) s += ' ';
-				let ss = ''; let cnt = 0;
+				let ss = '';
 				let e1 = this.eg.firstInGroup(g);
 				for (let e = e1; e; e = this.eg.nextInGroup(g,e)) {
-					if (this.color(e) != c) continue
+					if (showGroupIds && this.color(e) != c) continue;
 					if (ss) ss += ' ';
-					ss += this.eg.x2s(this.eg.output(e));
-					cnt++;
+					ss += this.color(e) == c ?
+								this.eg.graph.x2s(this.eg.output(e)) : '.';
 				}
 				s += this.eg.graph.x2s(this.eg.input(e1)) + '(' + ss + ')';
-				if (showAllGroups || cnt != this.eg.fanout(g))
-					s += this.eg.g2s(g);
+				if (showGroupIds) s += this.eg.g2s(g);
 			}
 			s += ']\n';
 		}

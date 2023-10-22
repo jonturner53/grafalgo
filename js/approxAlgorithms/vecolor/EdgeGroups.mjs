@@ -135,7 +135,13 @@ export default class EdgeGroups extends Top {
 		return e ? this.input(e) : 0;
 	}
 
-	groupCount() { return this.groupIds.length(1); }
+	groupCount(u=0) {
+		if (!u) return this.groupIds.length(1);
+		let cnt = 0;
+		for (let g = this.firstGroupAt(u); g; g = this.nextGroupAt(u,g))
+			cnt++;
+		return cnt;
+	}
 
 	firstGroup() { return this.groupIds.first(1); }
 	nextGroup(g) { return this.groupIds.next(g,1); }
@@ -229,16 +235,29 @@ export default class EdgeGroups extends Top {
 	 *  @param u is a vertex
 	 */
 	sortGroups(u) {
-		let vec = new Int32Array(this.groupDegree(u));
-		vec[0] = this.firstGroup(u);
-		let i = 1;
-		while (fg[u] != 0) {
-			vec[i++] = fg[u]; fg[u] = groupsAtInputs.delete(fg[u],fg[u]);
+		let vec = new Int32Array(this.groupCount(u));
+		let i = 0;
+		while (this.fg[u]) {
+			vec[i++] = this.fg[u];
+			this.fg[u] = this.groupsAtInputs.delete(this.fg[u],this.fg[u]);
 		}
-		sort(vec, (g1,g2) => this.fanout(g2) - this.fanout(g1));
-		fg[u] = vec[--i];
-		while (i > 0)
-			fg[u] = groupsAtInputs.join(vec[i--], fg[u]);
+		vec.sort((g1,g2) => this.fanout(g2) - this.fanout(g1));
+		while (i > 0) {
+			this.fg[u] = this.groupsAtInputs.join(vec[--i], this.fg[u]);
+		}
+	}
+	
+	/** Sort all groups by size (largest to smallest). */
+	sortAllGroups() {
+		let vec = new Int32Array(this.groupIds.length(1));
+		let i = 0;
+		for (let g = this.groupIds.first(1); g; g = this.groupIds.first(1)) {
+			vec[i++] = g; this.groupIds.swap(g);
+		}
+		vec.sort((g1,g2) => this.fanout(g2) - this.fanout(g1));
+		for (i = 0; i < vec.length; i++) {
+			this.groupIds.swap(vec[i]);
+		}
 	}
 
 	/** Find an edge in a group.
@@ -295,7 +314,7 @@ export default class EdgeGroups extends Top {
 		for (let u = 1; u <= this.n_i; u++) {
 			if (!(fmt&2) && !this.gg.firstAt(u)) continue;
 			if (!(fmt&1) && s) s += ' ';
-			s += this.x2s(u) + '[';
+			s += this.graph.x2s(u) + '[';
 			for (let g = this.firstGroupAt(u); g; g = this.nextGroupAt(u,g)) {
 				if (g != this.firstGroupAt(u)) s += ' ';
 				s += this.group2string(g);
@@ -312,7 +331,7 @@ export default class EdgeGroups extends Top {
 		let s = '('; 
 		for (let e = this.firstInGroup(g); e; e = this.nextInGroup(g,e)) {
 			if (e != this.firstInGroup(g)) s += ' ';
-			s += this.x2s(this.output(e));
+			s += this.graph.x2s(this.output(e));
 		}
 		s += ')';
 		return s;

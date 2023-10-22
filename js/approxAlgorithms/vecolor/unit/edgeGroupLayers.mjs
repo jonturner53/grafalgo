@@ -27,9 +27,9 @@ try {
 	egl.add(3,3); egl.add(6,3); egl.add(7,3); egl.add(10,3);
 	matches(egl,'{[A E H L] [B D I K] [C F G J]}', 'a1');
 	matches(egl.toString(1),
-			'{[(f i l)A (h j)E (e)H (k l)L] ' +
-			'[(g k)B (i l)D (g h)I (e j)K] ' +
-			'[(e)C (g k)F (f h j)G (f i)J]}', 'a2');
+			'{\n[a(f i l) b(h j) c(e) d(k l)]\n' +
+			'[a(g k) b(i l) c(g h) d(e j)]\n' +
+			'[a(e) b(g k) c(f h j) d(f i)]\n}\n', 'a2');
 	matches(egl.layer(9), 2, 'a3');
 	egl.delete(9,2);
 	matches(egl.layer(9), 0, 'a4');

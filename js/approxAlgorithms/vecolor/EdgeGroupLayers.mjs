@@ -86,10 +86,10 @@ export default class EdgeGroupLayers extends Top {
 	}
 
 	/** Remove a group from a layer.
-	 *  @param g is a group 
-	 *  @param l is a layer that includes g
+	 *  @param g is a group
 	 */
-	delete(g,l) {
+	delete(g) {
+		let l = this.layer(g);
 		this.fgl[l] = this.layers.delete(g,this.fgl[l])
 		this.gmap[g] = 0;
 	}
@@ -105,13 +105,11 @@ export default class EdgeGroupLayers extends Top {
 		this.fgl[l1] = this.layers.join(this.fgl[l1], this.fgl[l2]);
 	}
 
-	/** Compute statistics for a layer.
+	/** Compute the thickness of a layer.
 	 *  @param l is a layer number
-	 *  @return a pair [t,singles,muultis] where t is the layer thickness and
-	 *  singles is the number of outputs with a single edge in the layer,
-	 *  multis is the number of outputs with more than one edge in the layer
+	 *  @return the layer thickness
 	 */
-	layerStats(l) {
+	layerThickness(l) {
 		let t = 0; let counts = new Int32Array(this.eg.graph.n+1);
 		for (let g = this.firstInLayer(l); g; g = this.nextInLayer(l,g)) {
 			for (let e = this.eg.firstInGroup(g); e;
@@ -120,13 +118,34 @@ export default class EdgeGroupLayers extends Top {
 				t = Math.max(t, counts[v]);
 			}
 		}
-		let singles = 0; let multis = 0;
-		for (let v = 1; v < counts.length; v++) {
-			if (counts[v] == 1) singles++;
-			else if (counts[v] > 1) multis++;
+		return t;
+	}
+
+	/** Sort groups in layers.
+	 *  Rebuilds the layers so that groups are listed in a specific order.
+	 *  @param compare is a comparison function used to compare two groups
+	 *  in the same layer; it returns -1 if the first group should precede
+	 *  the second, +1 if the second group should precede the first and 0
+	 *  if either order is acceptable; if compare is omitted, groups are
+	 *  sorted in decreasing order of their fanouts
+	 */
+	sortLayers(compare=null) {
+		if (!compare)
+			compare = (g1,g2) => this.eg.fanout(g2) - this.eg.fanout(g1);
+		for (let l = 1; l <= this.n_l; l++) {
+			let layerSize = 0;
+			for (let g = this.firstInLayer(l); g; g = this.nextInLayer(l,g))
+				layerSize++;
+			let gvec = new Int32Array(layerSize);
+			let i = 0;
+			for (let g = this.firstInLayer(l); g; g = this.firstInLayer(l,g)) {
+				gvec[i++] = g; this.delete(g,l);
+			}
+			gvec.sort(compare);
+			for (i = 0; i < layerSize; i++) {
+				this.add(gvec[i],l);
+			}
 		}
-		
-		return [t, singles, multis];
 	}
 
 	/** Construct a string representation of the EdgeGroupLayers object.
@@ -134,17 +153,21 @@ export default class EdgeGroupLayers extends Top {
 	toString(details=false) {
 		let s = '{'; let cgroups = new List(this.eg.n_g);
 		for (let l = 1; l <= this.n_l; l++) {
-			if (l > 1) s += ' ';
 			if (details) s += '\n';
+			else if (l > 1) s += ' ';
 			s += '[';
 			for (let g = this.firstInLayer(l); g; g = this.nextInLayer(l,g)) {
 				if (g != this.firstInLayer(l)) s += ' ';
-				if (details) s += this.eg.group2string(g);
-				s += this.eg.g2s(g);
+				if (details)
+					s += this.eg.graph.x2s(this.eg.hub(g)) +
+						 this.eg.group2string(g);
+				else
+					s += this.eg.g2s(g);
 			}
 			s += ']';
 		}
-		s += '}';
+		if (details) s += '\n}\n';
+		else s += '}';
 		return s;
 	}
 }

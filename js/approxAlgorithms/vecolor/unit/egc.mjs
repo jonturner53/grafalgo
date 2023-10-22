@@ -14,7 +14,7 @@ import EdgeGroups from '../EdgeGroups.mjs';
 import egcRandomCase from '../egcRandomCase.mjs';
 
 let algomap = {
-	'layer' : ['layer ', (eg,trace) => layer(eg,2,0,trace), verify ],
+	'layer' : ['layer ', (eg,trace) => layer(eg,0,trace), verify ],
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
@@ -25,7 +25,7 @@ eg.fromString('{a[(f i l)A (g k)B (e)C] b[(i l)D (h j)E (g k)F] ' +
 			   'c[(f h j)G (e)H (g h)I] d[(f i)J (e j)K (k l)L]}');
 tester.addTest('small example', eg);
 
-eg = egcRandomCase(4,3,12,3,4);
+eg = egcRandomCase(4,3,12,3,3);
 tester.addTest('small random (4,3,12,3,4)', eg);
 
 eg = egcRandomCase(5,4,20,4,4);
@@ -50,5 +50,5 @@ if (!ea) {
 	eg = egcRandomCase(100,50,1000,50,55);
 	tester.addTest('larger random (100,50,1000,50,55)', eg);
 }
-tester.run();
 
+tester.run();

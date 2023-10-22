@@ -28,10 +28,10 @@ try {
      						'4[a(e)C b(k)F c(g h)I d(i)J]}'),
 						  	true, 'a1');
 
-	matches(egc.toString(),'{\n1[a(f i)A b(h j) c(e) d(k l)]\n' +
-     						  '2[a(g k) b(i l) c(h j)G d(f)J]\n' +
-     						  '3[a(l)A b(g)F c(f)G d(e j)]\n' +
-     						  '4[a(e) b(k)F c(g h) d(i)J]\n}\n', 'a2');
+	matches(egc.toString(0),'{\n1[a(f i .) b(h j) c(e) d(k l)]\n' +
+     						   '2[a(g k) b(i l) c(. h j) d(f .)]\n' +
+     						   '3[a(. . l) b(g .) c(f . .) d(e j)]\n' +
+     						   '4[a(e) b(. k) c(g h) d(. i)]\n}\n', 'a2');
 
 	matches(egc,'{1[a(f i)A b(h j)E c(e)H d(k l)L] ' +
     		     '2[a(g k)B b(i l)D c(h j)G d(f)J] ' +
