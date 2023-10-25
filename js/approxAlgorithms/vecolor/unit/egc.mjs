@@ -23,7 +23,9 @@ let tester = new Tester(args, algomap);
 let eg = new EdgeGroups();
 eg.fromString('{a[(f i l)A (g k)B (e)C] b[(i l)D (h j)E (g k)F] ' +
 			   'c[(f h j)G (e)H (g h)I] d[(f i)J (e j)K (k l)L]}');
+eg.fromString('{ a[(g k e m o) (i l n) (p)] b[(f g k) (h j l m) (n p)] c[(e) (f i k l) (h j m o)] d[(e f h n) (g j p) (i o)] }');
 tester.addTest('small example', eg);
+tester.run();
 
 eg = egcRandomCase(4,3,12,3,3);
 tester.addTest('small random (4,3,12,3,4)', eg);
@@ -51,4 +53,3 @@ if (!ea) {
 	tester.addTest('larger random (100,50,1000,50,55)', eg);
 }
 
-tester.run();
