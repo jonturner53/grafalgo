@@ -20,6 +20,7 @@ let algomap = {
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
+/* xxx */
 let eg = new EdgeGroups();
 eg.fromString('{a[(f i l)A (g k)B (e)C] b[(i l)D (h j)E (g k)F] ' +
 			   'c[(f h j)G (e)H (g h)I] d[(f i)J (e j)K (k l)L]}');
