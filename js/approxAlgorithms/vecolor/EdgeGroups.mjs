@@ -256,7 +256,7 @@ export default class EdgeGroups extends Top {
 		for (let g = this._groupIds.first(1); g; g = this._groupIds.first(1)) {
 			vec[i++] = g; this._groupIds.swap(g);
 		}
-		vec.sort((g1,g2) => this.fanout(g1) - this.fanout(g2));
+		vec.sort((g1,g2) => this.fanout(g2) - this.fanout(g1));
 		for (i = 0; i < vec.length; i++) {
 			this._groupIds.swap(vec[i]);
 		}

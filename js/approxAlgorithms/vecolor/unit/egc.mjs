@@ -31,8 +31,7 @@ let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
 let eg = new EdgeGroups();
-eg.fromString('{a[(f i l)A (g k)B (e)C] b[(i l)D (h j)E (g k)F] ' +
-			   'c[(f h j)G (e)H (g h)I] d[(f i)J (e j)K (k l)L]}');
+eg.fromString('{a[(e k o p) (f g j m) (l)] b[(e n o p) (h k) (m i l)] c[(f) (h k g j m) (i l n)] d[(e i o p) (f g h) (j n)]}');
 tester.addTest('small example', eg);
 
 eg = egcRandomCase(4,3,12,3,3);
