@@ -202,7 +202,6 @@ dump() {
 			this.#prev[i] = j;
 			if (i != this.last()) this.#prev[this.next(i)] = i;
 		}
-assert(this.#last > 0 || this.#length == 0,'insert2 ' + this.dump());
 		return;
 	}
 	
@@ -227,7 +226,6 @@ assert(this.#last > 0 || this.#length == 0,'insert2 ' + this.dump());
 			this.#prev[j] = 0;
 		}
 		if (this.hasValues) this.value(j,undefined);
-assert(this.#last > 0 || this.#length == 0,'delete ' + this.dump());
 		return (i == 0 ? this.first() : this.next(i));
 	}
 

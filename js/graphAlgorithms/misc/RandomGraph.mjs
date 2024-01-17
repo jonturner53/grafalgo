@@ -374,9 +374,11 @@ export function randomRegularGraph(n, d) {
  *  @param ni is the # of input (left-side) vertices 
  *  @param di is the degree of the inputs
  *  @param no is the # of output (right-side) vertices
+ *  @param repeats is a flag that enables multiple edges between a pair
+ *  of vertices
  *  @param return Graph object with inputs 1..ni, outputs ni+1..ni+no
  */
-export function randomRegularBigraph(ni, di, no=ni) {
+export function randomRegularBigraph(ni, di, no=ni, repeats=0) {
 	let do_ = ni*di/no;
 	ea && assert(do_ == ~~do_, 'randomRegularBigraph: out-degree not integer');
 
@@ -407,7 +409,7 @@ export function randomRegularBigraph(ni, di, no=ni) {
 				nabors.enq(g.mate(u,e));
 			while (d < di+1) {
 				let v = randomInteger(ni+1,g.n);
-				if (nabors.contains(v)) continue;
+				if (!repeats && nabors.contains(v)) continue;
 				g.join(u,v); d++;
 			}
 		}

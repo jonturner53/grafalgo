@@ -27,6 +27,9 @@ export default function egcVerify(eg, egc) {
 			for (let g = eg.firstGroupAt(u); g; g = eg.nextGroupAt(u,g)) {
 				for (let e = eg.firstInGroup(g); e; e = eg.nextInGroup(g,e)) {
 					let c = egc.color(e);
+					if (egc.owner(c,u) != g)
+						return `color ${c} of edge ${eg.graph.e2s(e)} in group ` +
+							   `${eg.g2s(g)} does not belong to ${eg.g2s(g)}`;
 					if (ucolors.contains(c))
 						return `color ${c} of edge ${eg.e2s(e)} in group ` +
 							   `${eg.g2s(g)} conflicts with another edge ` +
@@ -41,7 +44,7 @@ export default function egcVerify(eg, egc) {
 			for (let e = eg.graph.firstAt(u); e; e = eg.graph.nextAt(u,e)) {
 				let c = egc.color(e);
 				if (ucolors.contains(c)) {
-					return `color ${c} of edge ${eg.e2s(e)} conflicts with ` +
+					return `color ${c} of edge ${eg.graph.e2s(e)} conflicts with ` +
 						   `another edge at output ${eg.x2s(u)}`;
 				}
 				ucolors.enq(c);

@@ -7,10 +7,14 @@
  */
 
 import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import Top from '../../dataStructures/Top.mjs';
 import List from '../../dataStructures/basic/List.mjs';
+import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
-import Top from '../../dataStructures/Top.mjs';
+import Graph from '../../dataStructures/graphs/Graph.mjs';
+import {maxGroupCount, maxOutDegree} from './egcCommon.mjs';
+import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 
 /** This class implements a data structure used by edge-group coloring
  *  algorithms.
@@ -19,34 +23,45 @@ export default class EdgeGroupColors extends Top {
 	eg;				/// EdgeGroups object that colors are applied to
 
 	_color;         // _color[e] is edge assigned to e or 0
-	edgesByColor;	// ListSet of edges partitioned by color
-	fe;             // fe[c] is first edge of color c
+	_edgesByColor;	// ListSet of edges partitioned by color (including 0)
+	_firstEdge;     // _firstEdge[c] is first edge of color c
 
-    _usage;         // usage[u][c] is number of times c is used at u
-	colorsInGroups; // colorsInGroups[u] is ListSet of colors divided
-                    // among the groups that use them; unused colors are
-					// in a separate list
-	unused;         // unused[u] is first unused color at u
-    fc;             // fc[g] is first color used by group g;
+	_usage;         // usage[u][c] is number of times c is used at u
+
+	_palettes;      // _palettes[u] is ListSet that defines palettes at u
+	_unused;        // _unused[u] is first unused color in _palettes[u]
+	_firstColor;    // _firstColor[g] is first color in g's palette
+	_owner;         // _owner[u][c] is group at input u that owns color c
+	_paletteSize;   // _paletteSize[g] is number of colors in g's palette
 
 	constructor(eg, n_c=1) {
 		super(n_c);	// n_c is number of colors in palette
 		this.eg = eg;
 
 		this._color = new Int32Array(eg.graph.edgeRange+1);
-		this.edgesByColor = new ListSet(eg.graph.edgeRange);
-		this.fe = new Int32Array(this.n_c+1);
+		this._edgesByColor = new ListSet(eg.graph.edgeRange);
+		this._firstEdge = new Int32Array(this.n_c+1);
+		for (let e = eg.graph.first(); e; e = eg.graph.next(e)) {
+			this._firstEdge[0] = this._edgesByColor.join(this._firstEdge[0],e);
+		}
 
 		this._usage = new Array(eg.graph.n+1);
-		this.colorsInGroups = new Array(eg.n_i+1);
-		this.unused = new Int32Array(eg.n_i+1);
-		this.fc = new Int32Array(eg.n_g+1);
-		for (let u = 1; u <= eg.graph.n; u++)
+
+		this._palettes = new Array(eg.n_i+1);
+		this._unused = new Int32Array(eg.n_i+1);
+		this._firstColor = new Int32Array(eg.n_g+1);
+		this._owner = new Array(eg.n_i+1);
+		this._paletteSize = new Int32Array(eg.n_g+1);
+
+		for (let u = 1; u <= eg.graph.n; u++) {
 			this._usage[u] = new Int32Array(n_c+1);
+			this._usage[u][0] = eg.graph.degree(u);
+		}
 		for (let u = 1; u <= eg.n_i; u++) {
-			this.colorsInGroups[u] = new ListSet(n_c);
+			this._palettes[u] = new ListSet(n_c);
+			this._owner[u] = new Int32Array(n_c+1);
 			for (let c = 1; c <= n_c; c++)
-				this.unused[u] = this.colorsInGroups[u].join(this.unused[u],c);
+				this._unused[u] = this._palettes[u].join(this._unused[u],c);
 		}
 	}
 
@@ -57,6 +72,10 @@ export default class EdgeGroupColors extends Top {
 	clear() {
 		for (let e = this.eg.graph.first(); e; e = this.eg.graph.next(e))
 			this.color(e,0);
+		for (let g = this.eg.firstGroup(); g; g = this.eg.nextGroup(g)) {
+			for (let c = this.firstColor(g); c; c = this.firstColor(g))
+				this.release(c,g);
+		}
 	}
 
 	/** Assign one GroupColors object to another by copying its contents.
@@ -71,7 +90,7 @@ export default class EdgeGroupColors extends Top {
 		else
 			this.reset(other.eg, other.n_c);
 
-		for (let e = eg.graph.first(); e; e = eg.graph.next(e))
+		for (let e = this.eg.graph.first(); e; e = this.eg.graph.next(e))
 			if (other.color(e)) this.color(e, other.color(e));
 	}
 	
@@ -85,47 +104,81 @@ export default class EdgeGroupColors extends Top {
 		this._n = other.n_c;
 		this.eg = other.eg;
 		this._color = other._color;
-		this.edgesByColor = other.edgesByColor;
-		this.fe = other.fe;
+		this._edgesByColor = other._edgesByColor;
+		this._firstEdge = other._firstEdge;
 		this._usage = other._usage;
-		this.colorsInGroups = other.colorsInGroups;
-		this.fc = other.fc;
+		this._palettes = other._palettes;
+		this._firstColor = other._firstColor;
+		this._owner = other._owner;
+		this._paletteSize = other._paletteSize;
 
-		other.eg = other._color = other.edgesByColor = other.fe = null;
-		other._usage = other._colorsInGroups = other.fc = null;
+		other.eg = other._color = _other.edgesByColor = other._firstEdge = null;
+		other._usage = other._palettes = other._firstColor = null;
+		other._owner = other.paletteSize = null;
 	}
 
+	/** Determine if a color is available for use with a specified edge. */
 	avail(c,e) {
+		if (c == 0) return true;
 		let [u,v] = [this.eg.input(e),this.eg.output(e)]
-		if (this._usage[v][c]  > 0) return false;
-		if (this._usage[u][c] == 0) return true;
-		let g = this.eg.group(e);
-		for (let cg = this.firstColorIn(g); cg; cg = this.nextColorIn(g,cg)) {
-			if (cg == c) return true;
-		}
-		return false;
+		if (this._usage[v][c] > 0) return false;
+		return this._usage[v][c] == 0 && 
+			   (!this.owner(c,u) || this.owner(c,u) == this.eg.group(e));
 	}
 
 	usage(c,u) { return this._usage[u][c]; }
+	paletteSize(g) { return this._paletteSize[g]; }
 
-	firstEdgeWithColor(c) { return this.fe[c]; }
-	nextEdgeWithColor(c,e) { return this.edgesByColor.next(e); }
+	firstEdgeWithColor(c) { return this._firstEdge[c]; }
+	nextEdgeWithColor(c,e) { return this._edgesByColor.next(e); }
 
 	/** Get the first color used by a group.
 	 *  @param g is a valid group defined by this.eg
 	 *  @return the first color used by g (there must be one)
 	 */
-	firstColorIn(g) { return this.fc[g]; }
+	firstColor(g) { return this._firstColor[g]; };
 
 	/** Get the next color used by a group.
 	 *  @param g is a valid group defined by eg
 	 *  @param c is a color used by some edge in g
 	 *  @return the color that follows c in g's list of colors
 	 */
-	nextColorIn(g,c) {
-		ea && assert(this.eg.firstInGroup(g));
+	nextColor(g,c) { return this._palettes[this.eg.hub(g)].next(c); }
+
+	/** Get the group that owns a specified color at an input.
+	 *  @param c is a color
+	 *  @param u is an input
+	 *  @return the group with hub u that has c in its palette
+	 */
+	owner(c,u) { return this._owner[u][c]; }
+
+	/** Bind a color to a group.
+	 *  @param c is a color
+	 *  @param g is a group at input u, with c in its palette
+	 *  c is a color in g's palette
+	 */
+	bind(c,g) {
 		let u = this.eg.hub(g);
-		return this.colorsInGroups[u].next(c);
+		ea && assert(g && c && u && !this.owner(c,u) && !this.usage(c,u),
+					 g+' '+c+' '+u+' '+this.owner(c,u));
+		this._owner[u][c] = g;
+		this._unused[u] = this._palettes[u].delete(c, this._unused[u]);
+		this._firstColor[g] = this._palettes[u].join(this._firstColor[g],c);
+		this._paletteSize[g]++;
+	}
+
+	/** Release a color from a group.
+	 *  @param c is a color
+	 *  @param g is a group at input u, with c in its palette
+	 *  c is a color in g's palette
+	 */
+	release(c,g) {
+		let u = this.eg.hub(g);
+		ea && assert(g && c && u && this.owner(c,u) == g);
+		this._owner[u][c] = 0;
+		this._firstColor[g] = this._palettes[u].delete(c,this._firstColor[g]);
+		this._unused[u] = this._palettes[u].join(this._unused[u], c);
+		this._paletteSize[g]--;
 	}
 
 	/** Get/set an edge color.
@@ -138,35 +191,61 @@ export default class EdgeGroupColors extends Top {
 	color(e, c=-1) {
 		ea && assert(this.eg.graph.validEdge(e) && c <= this.n_c);
 		if (c != -1) {
-			// set the edge color
 			let [u,v] = [this.eg.input(e),this.eg.output(e)];
 			let g = this.eg.group(e);
-			let oc = this._color[e];  // old color
-			if (oc) {
-				this._color[e] = 0;
-				this.fe[oc] = this.edgesByColor.delete(e, this.fe[oc]);
-				// move oc to list of unused colors if necessary
-				if (this.usage(oc,u) == 1) {
-					this.fc[g] = this.colorsInGroups[u].delete(oc, this.fc[g])
-					this.unused[u] =
-						this.colorsInGroups[u].join(this.unused[u], oc);
-				}
-				this._usage[u][oc]--; this._usage[v][oc]--;
-			}
-			if (c != 0) {
-				ea && assert(this.avail(c,e));
-				this._color[e] = c;
-				this.fe[c] = this.edgesByColor.join(this.fe[c], e);
-				if (this.usage(c,u) == 0) {
-					this.unused[u] =
-						this.colorsInGroups[u].delete(c, this.unused[u]);
-					this.fc[g] = this.colorsInGroups[u].join(this.fc[g], c);
-					this._usage[u][c] = 0;
-				}
-				this._usage[u][c]++; this._usage[v][c]++;
-			}
+			ea && assert(g);
+
+			// free current color assigned to e
+			let cc = this._color[e];  // old color (possibly 0)
+			this._firstEdge[cc] =
+				this._edgesByColor.delete(e, this._firstEdge[cc]);
+			this._usage[u][cc]--; this._usage[v][cc]--;
+			// note: cc remains bound to group, even if usage now 0
+
+			// set the new color (possibly 0)
+			ea && assert(this.avail(c,e));
+			this._color[e] = c;
+			this._firstEdge[c] =
+				this._edgesByColor.join(this._firstEdge[c], e);
+			this._usage[u][c]++; this._usage[v][c]++;
+			if (c && !this.owner(c,u)) this.bind(c,g);
 		}
 		return this._color[e];
+	}
+
+	/** Color the edges in the graph using the palettes.
+	 *  Constructs palette graph for each output v, computes a maximum
+	 *  matching and then uses the matching to color v's edges.
+	 *  @param out is an optional argument that specifies a single
+	 *  output to be colored; if out is omitted, all are colored
+	 *  @return true if successful, else false
+	 */
+	colorFromPalettes(out=0) {
+		let Delta_o = maxOutDegree(this.eg);
+		let pg = new Graph(this.eg.n_g+this.n_c, Delta_o*this.n_c);
+		let io = new ListPair(this.eg.n_g + this.n_c);
+		for (let g = 1; g <= this.eg.n_g; g++) io.swap(g);
+
+		let egg = this.eg.graph;
+		let firstOut = out ? out : this.eg.n_i+1;
+		let  lastOut = out ? out : egg.n;
+		for (let v = firstOut; v <= lastOut; v++) {
+			pg.clear();
+			for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e)) {
+				let g = this.eg.group(e);
+				for (let c = this.firstColor(g); c; c = this.nextColor(g,c)) {
+					pg.join(g,this.eg.n_g+c);
+				}
+			}
+			let [match] = bimatchHK(pg,0,io);
+			for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e)) {
+				let g = this.eg.group(e);
+				let me = match.at(g);
+				if (!me) return false;
+				this.color(e, pg.mate(g,me)-this.eg.n_g);
+			}
+		}
+		return true;
 	}
 	
 	/** Compare another object to this one.
@@ -196,10 +275,10 @@ export default class EdgeGroupColors extends Top {
 		let clist = new List(this.n_c);
 		for (let g = this.eg.firstGroup(); g; g = this.eg.nextGroup(g)) {
 			clist.clear(); let len1 = 0; let len2 = 0;
-			for (let c = this.firstColorIn(g); c; c = this.nextColorIn(g,c)) {
+			for (let c = this.firstColor(g); c; c = this.nextColor(c)) {
 				clist.enq(c); len1++;
 			}
-			for (let c = other.firstColorIn(g); c; c = other.nextColorIn(g,c)) {
+			for (let c = other.firstColor(g); c; c = other.nextColor(c)) {
 				if (!clist.contains(c)) return false;
 				len2++;
 			}
@@ -208,8 +287,7 @@ export default class EdgeGroupColors extends Top {
 		return other;
 	}
 
-	/** Construct a string representation of the GroupColors object.
-	 */
+	/** Construct a string showing the edges by color. */
 	toString(showGroupIds=true) {
 		let s = '{\n'; let cgroups = new List(this.eg.n_g);
 		for (let c = 1; c <= this.n_c; c++) {
@@ -237,6 +315,15 @@ export default class EdgeGroupColors extends Top {
 			s += ']\n';
 		}
 		s += '}\n';
+		return s;
+	}
+
+	/** Return a string listing the colors in a group's palette. */
+	palette2string(g) {
+		let s = '{';
+		for (let c = this.firstColor(g); c; c = this.nextColor(g,c))
+			s += (c == this.firstColor(g) ? c : ' ' + c);
+		s += '}';
 		return s;
 	}
 

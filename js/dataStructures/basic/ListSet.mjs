@@ -33,7 +33,7 @@ export default class ListSet extends Top {
 	assign(other, relaxed=false) {
 		super.assign(other, relaxed);
 		for (let i = 1; i <= other.n; i++) {
-			this.#next[i] = ls.#next[i]; this.#prev[i] = ls.#prev[i];
+			this.#next[i] = other.#next[i]; this.#prev[i] = other.#prev[i];
 		}
 	}
 

@@ -26,7 +26,7 @@ export default function egcRandomCase(n_i, d_g, n_o=n_i, d_o=d_g,
 	ea && assert(d_g <= d_i && d_g <= k && d_o <= k && d_o <= n_i &&
 		   		 d_i <= n_o && d_i*n_i == d_o*n_o);
 
-	let gg = randomRegularBigraph(n_i, d_i, n_o);
+	let gg = randomRegularBigraph(n_i, d_i, n_o, 1);
 	let eg = new EdgeGroups(gg, k*n_i);
 
 	// add edges to eg using groups consistent with a k-coloring

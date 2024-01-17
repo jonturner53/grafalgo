@@ -55,7 +55,7 @@ export default class Flograph extends Digraph {
 		if (!other.hasFloors && this.hasFloors) this.#floor = null;
 		this.clear();
 		for (let e = other.first(); e; e = other.next(e)) {
-			let ee = this._edges.in2(e) ?
+			let ee = this._edges.in(e,2) ?
 					 	this.join(other.left(e), other.right(e), e) :
 						this.join(other.left(e), other.right(e));
 			this.cap(ee, other.cap(e)); this.flow(ee, 0);

@@ -8,13 +8,23 @@
 
 import { Tester } from '../../../common/Testing.mjs';
 import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
-import layer from '../egcLayer.mjs';
+import simple from '../egcSimple.mjs';
+import egcKKP1 from '../egcKKP1.mjs';
+import egcKKP2 from '../egcKKP2.mjs';
+import egcYM from '../egcYM.mjs';
+import egcT1 from '../egcT1.mjs';
+import egcT2 from '../egcT2.mjs';
 import verify from '../egcVerify.mjs';
 import EdgeGroups from '../EdgeGroups.mjs';
 import egcRandomCase from '../egcRandomCase.mjs';
 
 let algomap = {
-	'layer' : ['layer ', (eg,trace) => layer(eg,0,trace), verify ],
+	'simple' : ['simple ', simple, verify ],
+	'kkp1' : ['KKP1 ', egcKKP1, verify ],
+	'kkp2' : ['KKP2 ', egcKKP2, verify ],
+	'ym' : ['YM ', egcYM, verify],
+	't1' : ['T1 ', (eg,trace) => egcT1(eg,0,trace), verify ],
+	't2' : ['T2 ', egcT2, verify]
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
@@ -23,9 +33,7 @@ let tester = new Tester(args, algomap);
 let eg = new EdgeGroups();
 eg.fromString('{a[(f i l)A (g k)B (e)C] b[(i l)D (h j)E (g k)F] ' +
 			   'c[(f h j)G (e)H (g h)I] d[(f i)J (e j)K (k l)L]}');
-eg.fromString('{ a[(g k e m o) (i l n) (p)] b[(f g k) (h j l m) (n p)] c[(e) (f i k l) (h j m o)] d[(e f h n) (g j p) (i o)] }');
 tester.addTest('small example', eg);
-tester.run();
 
 eg = egcRandomCase(4,3,12,3,3);
 tester.addTest('small random (4,3,12,3,4)', eg);
@@ -43,7 +51,7 @@ eg = egcRandomCase(30,10,150,10,12);
 tester.addTest('medium random +2 (30,10,150,10,12)', eg);
 
 if (!ea) {
-	eg = egcRandomCase(60,20,300,20,22);
+	eg = egcRandomCase(60,20,1200,20,22);
 	tester.addTest('medium large random (60,20,300,20,22)', eg);
 	
 	eg = egcRandomCase(80,30,400,30,33);
@@ -53,3 +61,4 @@ if (!ea) {
 	tester.addTest('larger random (100,50,1000,50,55)', eg);
 }
 
+tester.run();
