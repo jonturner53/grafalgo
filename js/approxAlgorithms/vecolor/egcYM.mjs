@@ -12,7 +12,6 @@ import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
-import Flograph from '../../dataStructures/graphs/flograph.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import {wcUbound} from './egcCommon.mjs';
