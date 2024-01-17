@@ -249,7 +249,7 @@ export default class EdgeGroups extends Top {
 		}
 	}
 	
-	/** Sort all groups by size (largest to smallest). */
+	/** Sort all groups by fanout (largest to smallest). */
 	sortAllGroups() {
 		let vec = new Int32Array(this._groupIds.length(1));
 		let i = 0;
