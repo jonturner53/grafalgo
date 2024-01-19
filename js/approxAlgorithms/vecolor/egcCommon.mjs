@@ -48,7 +48,7 @@ export function lowerBound(Gamma_i, Delta_o) {
 export function randUbound(Gamma_i, Delta_o, n_o) {
 	let k = Math.ceil(2*Math.sqrt((Math.log(2*Delta_o*n_o) /
 								   Math.log(Math.log(2*Delta_o*n_o)))));
-	return Math.max(k*Gamma_i, Delta_o)
+	return k * Math.max(Gamma_i, Delta_o)
 }
 
 /** Compute worst-case upper bound on colors.

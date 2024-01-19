@@ -27,10 +27,10 @@ let eg;		// shared reference to EdgeGroups object
 export default function egcKKP1(eg0, trace=0) {
 	eg = eg0; let ts = '';
 
-	let D_i = maxGroupCount(eg);
+	let Gamma_i = maxGroupCount(eg);
 	let Delta_o = maxOutDegree(eg);
-	let Cmin = lowerBound(D_i, Delta_o);
-	let Cmax = Math.ceil(wcUbound(D_i, Delta_o, eg.n_o));
+	let Cmin = lowerBound(Gamma_i, Delta_o);
+	let Cmax = Math.ceil(wcUbound(Gamma_i, Delta_o, eg.n_o));
 
 	for (let u = 1; u <= eg.n_i; u++) eg.sortGroups(u);
 	
@@ -52,7 +52,8 @@ export default function egcKKP1(eg0, trace=0) {
 		ts += 'colors: ' + best.toString(0);
 	}
 
-	return [best, ts, {'Cmax': C, 'randUbound': randUbound(D_i,Delta_o,eg.n_o)}]
+	return [best, ts,
+			{'Cmax': C, 'randUbound': randUbound(Gamma_i,Delta_o,eg.n_o)}]
 }
 
 /** Construct random palettes for all groups and check for validity.
@@ -78,14 +79,4 @@ function findRandomPalette(C) {
 		if (egc.colorFromPalettes()) return egc;
 	}
 	return null;
-}
-
-function doPaletteGraph(v, coloring) {
-	paletteGraph.clear();
-	for (let e = eg.graph.firstAt(v); e; e = eg.graph.nextAt(v,e)) {
-		let g = eg.group(e); let u = eg.hub(g);
-		for (let c = coloring.firstColor(g); c; c = coloring.nextColor(g,c)) {
-			paletteGraph.join(g,eg.n_g+c);
-		}
-	}
 }
