@@ -17,6 +17,7 @@ import egcT2 from '../egcT2.mjs';
 import verify from '../egcVerify.mjs';
 import EdgeGroups from '../EdgeGroups.mjs';
 import egcRandomCase from '../egcRandomCase.mjs';
+import { randUbound } from '../egcCommon.mjs';
 
 let algomap = {
 	'simple' : ['simple ', simple, verify ],
@@ -29,6 +30,8 @@ let algomap = {
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
+
+console.log(randUbound(20,20,40));
 
 let eg = new EdgeGroups();
 eg.fromString('{a[(e k o p) (f g j m) (l)] b[(e n o p) (h k) (m i l)] c[(f) (h k g j m) (i l n)] d[(e i o p) (f g h) (j n)]}');

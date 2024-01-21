@@ -19,29 +19,15 @@ import {wcUbound} from './egcCommon.mjs';
 import EdgeGroupLayers from './EdgeGroupLayers.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
 
-let eg;		// shared reference to EdgeGroups object
-
-let D_i;          // max number of groups per input
-let Delta_o;      // max number of edges per output
-let Cmin;         // lower bound on # of colors required
-
-let paletteLists; // paletteLists[u] divides colors among palettes
-				  // of groups at u
-let firstColor;   // firstColor[g] is first color in g's palette
-
-let paletteGraph; // used to check that the edges at an output can
-                  // all be colored
-let io;           // io separates paletteGraph inputs from outputs
-
 /** Find an edge group coloring using random palette method.
  *  @param g is a group graph to be colored.
  *  @return a triple [color, ts, stats] where color is an EdgeGroupColors
  *  object, ts is a traceString and stats is a statistics object.
  */
-export default function egcKKP2(eg0, trace=0) {
-	eg = eg0; let ts = '';
+export default function egcKKP2(eg, trace=0) {
+	let ts = '';
 
-	D_i = 0;
+	let D_i = 0;
 	for (let u = 1; u <= eg.n_i; u++)
 		D_i = Math.max(D_i, eg.groupCount(u));
 	let Delta_o = 0;
@@ -51,10 +37,12 @@ export default function egcKKP2(eg0, trace=0) {
 	let Cmin = Math.max(D_i, Delta_o);
 	let ubound = wcUbound(D_i,Delta_o,eg.n_o);
 
+	// define a palette graph
 	let pg = new Graph(eg.n_g+ubound, Delta_o*ubound);
-	io = new ListPair(eg.n_g + ubound);
+	let io = new ListPair(eg.n_g + ubound);
 	for (let g = 1; g <= eg.n_g; g++) io.swap(g);
 
+	// define a palette expansion graph
 	let xg = new Flograph(eg.n_g+ubound+2, Delta_o*ubound + eg.n_g + ubound);
 	xg.setSource(xg.n-1); xg.setSink(xg.n);
 
@@ -104,9 +92,7 @@ export default function egcKKP2(eg0, trace=0) {
 					}
 				}
 			} else {
-				// remove colors in g's palette and add new color to it
-				//for (let c = egc.firstColor(g); c; c = egc.firstColor(g))
-				//	egc.release(c,g);
+				// add a new color to g's palette
 				egc.bind(++topColor,g);
 			}
 		}
