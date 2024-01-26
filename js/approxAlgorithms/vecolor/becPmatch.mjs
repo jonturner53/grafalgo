@@ -62,5 +62,5 @@ export default function becPmatch(g, trace=0) {
 		ts += g.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
 						   `${g.bound(e)}/${color[e]}`);
 	}
-	return [color, ts, {'Cmax': Math.max(...color), 'steps': steps }];
+	return [color, ts, {'C': Math.max(...color), 'steps': steps }];
 }

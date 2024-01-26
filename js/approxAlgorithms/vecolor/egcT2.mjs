@@ -12,9 +12,10 @@ import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
+import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
-import {wcUbound, maxOutDegree} from './egcCommon.mjs';
+import {lowerBound, maxGroupCount, maxOutDegree} from './egcCommon.mjs';
 import EdgeGroupLayers from './EdgeGroupLayers.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
 
@@ -29,55 +30,47 @@ let coloredGroupCount;   // coloredGroupCount[u] # of colored groups at u
  *  @return a triple [color, ts, stats] where color is an EdgeGroupColors
  *  object, ts is a traceString and stats is a statistics object.
  */
+
 export default function egcT2(eg0, trace=0) {
 	eg = eg0; eg.sortAllGroups();
 	let ts = '';
 
-	let Gamma_i = 0;
-	for (let u = 1; u <= eg.n_i; u++)
-		Gamma_i = Math.max(Gamma_i, eg.groupCount(u));
-	let Delta_o = 0;
-	for (let v = eg.n_i + 1; v <= eg.n_i + eg.n_o; v++)
-		Delta_o = Math.max(Delta_o, eg.graph.degree(v));
+	let Gamma_i = maxGroupCount(eg);
+	let Delta_o = maxOutDegree(eg);
+	let Cmin = lowerBound(Gamma_i, Delta_o);
 
-	// Yang and Masson bound
-	let k = 2;
-	let b0 = (Gamma_i-1)*k + (Delta_o-1)*(eg.n_o**(1/k)) + 1;
-	let b1 = (Gamma_i-1)*(k+1) + (Delta_o-1)*(eg.n_o**(1/(k+1))) + 1;
-	while (b0 > b1) {
-		k++;
-		b0 = b1;
-		b1 = (Gamma_i-1)*(k+1) + (Delta_o-1)*(eg.n_o**(1/(k+1))) + 1;
+	// identify viable range of values for binary search.
+	let lo = Cmin; let hi = lo;
+	while(1) {
+		egc = new EdgeGroupColors(eg, hi);
+		colorCount = new Int32Array(hi+1);
+		coloredGroupCount = new Int32Array(hi+1);
+		if (colorAllGroups(hi) || expandPalettes(hi, Delta_o))
+			break;
+		lo = hi+1; hi *= 2;
 	}
-	let ubound = Math.ceil(b0);
-
-	egc = new EdgeGroupColors(eg, ubound);
-	colorCount = new Int32Array(ubound+1);
-	coloredGroupCount = new Int32Array(ubound+1);
-
-	let lo = Math.max(Gamma_i, Delta_o); let hi = ubound;
-	let C; let best;
+	// now proceed with binary search
+	let C;
 	while (lo < hi) {
 		C = ~~((lo + hi)/2);
-		if (colorAll(C) || tryAgain(C)) {
-			best = egc; hi = C;
-		} else {
+		if (colorAllGroups(C) || expandPalettes(C, Delta_o))
+			hi = C;
+		else
 			lo = C+1;
-		}
 	}
 	C = hi;
 
-	colorAll(C) || tryAgain(C);
+	colorAllGroups(C) || expandPalettes(C, Delta_o);
 
 	if (trace) {
 		ts += '\ngraph with palletes ' +
 			  eg.toString(1,g=>egc.palette2string(g)) + '\n';
 		ts += 'colors: ' + egc.toString(0);
 	}
-	return [egc, ts, {'Cmax': C, 'ubound': ubound}]
+	return [egc, ts, {'C': C, 'R': (C/Cmin).toFixed(2)}]
 }
 
-function colorAll(C) {
+function colorAllGroups(C) {
 	egc.clear(); colorCount.fill(0); coloredGroupCount.fill(0);
 	let success = true;
 	for (let g = eg.firstGroup(); g; g = eg.nextGroup(g)) {
@@ -126,89 +119,59 @@ function colorGroup(g, C) {
 	return true;
 }
 
-function tryAgain(C) {
-	let egg = eg.graph;
-
-	// define palette extension graph
-	let Delta_o = maxOutDegree(eg);
-	let pxg = new Graph(eg.n_g+egc.n_c, Delta_o*egc.n_c);
-	let io = new ListPair(eg.n_g + egc.n_c);
+function expandPalettes(C, Delta_o) {
+	// define a palette graph
+	let pg = new Graph(eg.n_g+C, Delta_o*C);
+	let io = new ListPair(eg.n_g + C);
 	for (let g = 1; g <= eg.n_g; g++) io.swap(g);
 
-	let uncolored = new List(eg.graph.edgeRange);
-		// uncolored edges at current output
-	for (let v = eg.n_i+1; v <= egg.n; v++) {
-		uncolored.clear();
-		for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e)) {
-			if (!egc.color(e)) uncolored.enq(e);
-		}
-		if (uncolored.length == 0) continue;
-		recolor(v,uncolored);
-		while (uncolored.length > 0) {
-			// try to extend palettes of groups with uncolored edges at v
-			pxg.clear();
-			for (let e = uncolored.first(); e; e = uncolored.next(e)) {
-				let g = eg.group(e); let u = eg.hub(g);
-				for (let c = 1; c <= C; c++) {
-					if (!egc.owner(c,u) && egc.usage(c,v) == 0)
-						pxg.join(g, eg.n_g+c);
-				}
-			}
-			let [match] = bimatchHK(pxg,0,io);
-			if (match.size() == 0) {
-				// try to extend palettes of other groups at v
-				for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e)) {
-					if (uncolored.contains(e)) continue;
-					let g = eg.group(e); let u = eg.hub(g);
-					for (let c = 1; c <= C; c++) {
-						if (!egc.owner(c,u) && egc.usage(c,v) == 0)
-							pxg.join(g,eg.n_g+c);
-					}
-				}
-				[match] = bimatchHK(pxg,0,io);
-			}
-			if (match.size() == 0) return false;
-		
-			// add matched colors to palettes
-			for (let e = match.first(); e; e = match.next(e)) {
-				let [g,c] = [pxg.left(e),pxg.right(e)-eg.n_g];
-				egc.bind(c,g);
-			}
+	// define a palette expansion graph
+	let xg = new Flograph(eg.n_g+C+2, Delta_o*C + Delta_o + C);
+	xg.setSource(xg.n-1); xg.setSink(xg.n);
 
-			// and recolor with expanded palettes
-			recolor(v,uncolored);
+	for (let v = eg.n_i+1; v <= eg.n_i + eg.n_o; v++) {
+		let dv = eg.graph.degree(v);
+		// first, check to see if v's edges can be colored with current palettes
+		pg.clear();
+		for (let e = eg.graph.firstAt(v); e; e = eg.graph.nextAt(v,e)) {
+			egc.color(e,0);		// removes color but does not affect palette
+			let g = eg.group(e); let u = eg.hub(g);
+			for (let c = egc.firstColor(g); c; c = egc.nextColor(g,c)) {
+				pg.join(g, eg.n_g+c);
+			}
+		}
+		let [match] = bimatchHK(pg,0,io);
+		if (match.size() == dv) continue;
+
+		// Expand palette's for the groups with edges at v as needed.
+		// Do this by solving a mincost flow problem.
+		xg.clear(); let uncolored = 0;
+		for (let e = eg.graph.firstAt(v); e; e = eg.graph.nextAt(v,e)) {
+			if (!egc.color(e)) uncolored++;
+			let g = eg.group(e); let u = eg.hub(g);
+			let psize = egc.paletteSize(g);
+			let xe = xg.join(xg.source,g); xg.cap(xe,1);
+			for (let c = 1; c <= C; c++) {
+				if (egc.owner(c,u) && egc.owner(c,u) != g) continue;
+				let cv = eg.n_g+c;
+				xe = xg.join(g, cv); xg.cap(xe, 1);
+				xg.cost(xe, egc.owner(c,u) == g ? 0 : psize);
+				if (!xg.firstOut(cv)) {
+					xe = xg.join(cv,xg.sink); xg.cap(xe, 1);
+				}
+			}
+		}
+		if (uncolored == 0) continue;
+		mcflowJEK(xg);
+		if (xg.totalFlow() != eg.graph.degree(v)) return false;
+		for (let e = xg.firstOut(xg.source); e; e = xg.nextOut(xg.source,e)) {
+			let g = xg.mate(xg.source,e); let u = eg.hub(g);
+			for (let xe = xg.firstOut(g); xe; xe = xg.nextOut(g,xe)) {
+				let c = xg.mate(g,xe) - eg.n_g;
+				if (xg.f(xe) == 1 && !egc.owner(c,u)) egc.bind(c,g);
+			}
 		}
 	}
+	egc.colorFromPalettes();
 	return true;
-}
-
-function recolor(v,uncolored) {
-	let egg = eg.graph;
-
-	// construct palette graph for v and find matching
-	let Delta_o = maxOutDegree(eg);
-	let pg = new Graph(eg.n_g+egc.n_c, Delta_o*egc.n_c);
-	let io = new ListPair(eg.n_g + egc.n_c);
-	for (let g = 1; g <= eg.n_g; g++) io.swap(g);
-	for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e)) {
-		let g = eg.group(e);
-		for (let c = egc.firstColor(g); c; c = egc.nextColor(g,c)) {
-			pg.join(g,eg.n_g+c);
-		}
-	}
-	let [match] = bimatchHK(pg,0,io);
-
-	// color edges using matching
-	uncolored.clear();
-	for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e)) {
-		let g = eg.group(e); let u = eg.hub(g);
-		let me = match.at(g);
-		if (!me) { uncolored.enq(e); continue; }
-		let c = pg.mate(g,me) - eg.n_g;
-		let cc = egc.color(e);
-		if (c == cc) continue;
-		egc.color(e, c);
-		//if (egc.usage(cc,u) == 0) egc.release(cc,g);
-			// release redundant colors from their palettes
-	}
 }

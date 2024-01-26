@@ -120,10 +120,10 @@ export default class EdgeGroupColors extends Top {
 	/** Determine if a color is available for use with a specified edge. */
 	avail(c,e) {
 		if (c == 0) return true;
+		let g = this.eg.group(e);
 		let [u,v] = [this.eg.input(e),this.eg.output(e)]
-		if (this._usage[v][c] > 0) return false;
 		return this._usage[v][c] == 0 && 
-			   (!this.owner(c,u) || this.owner(c,u) == this.eg.group(e));
+			   (!this.owner(c,u) || this.owner(c,u) == g);
 	}
 
 	usage(c,u) { return this._usage[u][c]; }
@@ -132,13 +132,13 @@ export default class EdgeGroupColors extends Top {
 	firstEdgeWithColor(c) { return this._firstEdge[c]; }
 	nextEdgeWithColor(c,e) { return this._edgesByColor.next(e); }
 
-	/** Get the first color used by a group.
+	/** Get the first color in a group's palette.
 	 *  @param g is a valid group defined by this.eg
 	 *  @return the first color used by g (there must be one)
 	 */
 	firstColor(g) { return this._firstColor[g]; };
 
-	/** Get the next color used by a group.
+	/** Get the next color in a group's palette.
 	 *  @param g is a valid group defined by eg
 	 *  @param c is a color used by some edge in g
 	 *  @return the color that follows c in g's list of colors
@@ -160,7 +160,7 @@ export default class EdgeGroupColors extends Top {
 	bind(c,g) {
 		let u = this.eg.hub(g);
 		ea && assert(g && c && u && !this.owner(c,u) && !this.usage(c,u),
-					 g+' '+c+' '+u+' '+this.owner(c,u));
+					 g+' '+c+' '+u+' '+this.owner(c,u)+' '+this.usage(c,u));
 		this._owner[u][c] = g;
 		this._unused[u] = this._palettes[u].delete(c, this._unused[u]);
 		this._firstColor[g] = this._palettes[u].join(this._firstColor[g],c);
@@ -203,12 +203,13 @@ export default class EdgeGroupColors extends Top {
 			// note: cc remains bound to group, even if usage now 0
 
 			// set the new color (possibly 0)
-			ea && assert(this.avail(c,e));
+			ea && assert(this.avail(c,e),g+' '+
+					this.avail(c,e)+' '+ this.owner(c,u)+' '+ this.usage(c,u));
 			this._color[e] = c;
 			this._firstEdge[c] =
 				this._edgesByColor.join(this._firstEdge[c], e);
-			this._usage[u][c]++; this._usage[v][c]++;
 			if (c && !this.owner(c,u)) this.bind(c,g);
+			this._usage[u][c]++; this._usage[v][c]++;
 		}
 		return this._color[e];
 	}
@@ -239,10 +240,11 @@ export default class EdgeGroupColors extends Top {
 			}
 			let [match] = bimatchHK(pg,0,io);
 			for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e)) {
-				let g = this.eg.group(e);
+				let g = this.eg.group(e); let u = this.eg.hub(g);
 				let me = match.at(g);
 				if (!me) return false;
-				this.color(e, pg.mate(g,me)-this.eg.n_g);
+				let c = pg.mate(g,me) - this.eg.n_g
+				this.color(e, c);
 			}
 		}
 		return true;

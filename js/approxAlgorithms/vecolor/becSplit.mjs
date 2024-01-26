@@ -87,5 +87,5 @@ export default function becSplit(g, trace=0) {
 							  (H.validEdge(e) ? '.' : ''));
 		ts = ts.slice(0,-1);
 	}
-	return [color, ts, { 'Cmax': Math.max(...color), 'steps': steps }];
+	return [color, ts, { 'C': Math.max(...color), 'steps': steps }];
 }

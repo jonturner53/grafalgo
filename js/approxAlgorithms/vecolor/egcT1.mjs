@@ -12,6 +12,7 @@ import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
 import EdgeGroupLayers from './EdgeGroupLayers.mjs';
+import {lowerBound, maxGroupCount, maxOutDegree} from './egcCommon.mjs';
 
 let eg;		// shared reference to EdgeGroups object
 let egl;	// shared reference to EdgeGroupLayers object
@@ -31,12 +32,12 @@ export default function egcT1(eg0, strict=false, trace=0) {
 		ts += 'graph: ' + eg.toString(1) + '\n';
 	}
 
-	let Gamma_i = 0;
-	for (let u = 1; u <= eg.n_i; u++)
-		Gamma_i = Math.max(Gamma_i,eg.groupCount(u));
+	let Gamma_i = maxGroupCount(eg);
+	let Delta_o = maxOutDegree(eg);
+	let Cmin = lowerBound(Gamma_i, Delta_o);
 
 	egl = new EdgeGroupLayers(eg,Gamma_i);
-	doLayers(Gamma_i);
+	buildLayers(Gamma_i);
 
 	let thickness = new Int32Array(Gamma_i+1);
 	for (let l = 1; l <= egl.n_l; l++)
@@ -49,19 +50,19 @@ export default function egcT1(eg0, strict=false, trace=0) {
 	}
 
 	let egc = color(thickness, strict);
+	let C = egc.maxColor();
 
 	if (trace) {
 		ts += 'colors: ' + egc.toString(0);
 	}
-	return [egc, ts, {'thickness': totalThickness/Gamma_i, 'maxThickness': maxThickness,
-					  'Cmax': egc.maxColor() }];
+	return [egc, ts, {'C': C, 'R': (C/Cmin).toFixed(2), 'thickness': totalThickness }];
 }
 
 /** Assign groups to layers, while trying to minimize the maximum
  *  layer thickness.
  *  @param Gamma_i is the maximum groupCount of any vertex.
  */
-function doLayers(Gamma_i) {
+function buildLayers(Gamma_i) {
 	let ocount = new Array(Gamma_i+1);
 	let u = 1; while (eg.groupCount(u) < Gamma_i) u++;
 	let l = 1;

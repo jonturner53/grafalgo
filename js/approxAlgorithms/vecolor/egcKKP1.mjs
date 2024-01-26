@@ -17,7 +17,8 @@ import { maxGroupCount, maxOutDegree, lowerBound, randUbound, wcUbound }
 		from './egcCommon.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
 
-let eg;		// shared reference to EdgeGroups object
+let eg;     // shared reference to EdgeGroups object
+let egc;    // shared reference to EdgeGroupColors object
 
 /** Find an edge group coloring using random palette method.
  *  @param g is a group graph to be colored.
@@ -30,30 +31,33 @@ export default function egcKKP1(eg0, trace=0) {
 	let Gamma_i = maxGroupCount(eg);
 	let Delta_o = maxOutDegree(eg);
 	let Cmin = lowerBound(Gamma_i, Delta_o);
-	let Cmax = Math.ceil(wcUbound(Gamma_i, Delta_o, eg.n_o));
 
 	for (let u = 1; u <= eg.n_i; u++) eg.sortGroups(u);
-	
-	let lo = Cmin; let hi = Cmax; let C; let best;
+
+	// identify viable range of values for binary search.
+	let lo = Cmin; let hi = lo; let best;
+	while(1) {
+		egc = findRandomPalette(hi);
+		if (egc) { best = egc; break; }
+		lo = hi+1; hi *= 2;
+	}
+	// now proceed with binary search
+	let C;
 	while (lo < hi) {
 		C = ~~((lo + hi)/2);
-		let egc = findRandomPalette(C);
-		if (egc) {
-			best = egc; hi = C;
-		} else {
-			lo = C+1;
-		}
+		egc = findRandomPalette(C);
+		if (egc) { best = egc; hi = C; }
+		else lo = C+1;
 	}
 	C = hi;
-
+	
 	if (trace) {
 		ts += 'graph with palettes ' +
 			  eg.toString(1, g=>best.palette2string(g)) + '\n';
 		ts += 'colors: ' + best.toString(0);
 	}
 
-	return [best, ts,
-			{'Cmax': C, 'randUbound': randUbound(Gamma_i,Delta_o,eg.n_o)}]
+	return [best, ts, {'C': C, 'R': (C/Cmin).toFixed(2)}]
 }
 
 /** Construct random palettes for all groups and check for validity.
