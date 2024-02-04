@@ -17,6 +17,7 @@ import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
 import bimatchF from '../match/bimatchF.mjs';
+import matchEG from '../match/matchEG.mjs';
 
 /** Generate an undirected random graph. 
  *  @param n is the number of vertices in the random graph
@@ -310,63 +311,37 @@ export function randomConnectedGraph(n, d) {
  *  @param d is the number of edges incident to each vertex
  *  @param return a random d-regular graph with n vertices,
  *  or n+1 if both n and d are odd
-
-alternate approach:
-generate edges at successive vertices, avoiding duplicates during
-generation process and only generating enough new edges to make
-up shortages at each vertex; then find max size d-matching;
-need d-matching algorithm for general graphs.
+ *
+ *  Method
+ *  1. build oversize random graph
+ *  2. extract d perfect matchings and combine them to form sample graph
+ *  
+ *  As written, it is limited to graphs with an even number of vertices.
+ *  Can extend to n odd by generating d-regular graph with n+1 vertices
+ *  then eliminating one of its vertices; to do this, the eliminated vertex
+ *  must have d neighbors on which we can define a perfect matching in which
+ *  no edge in the matching repeats an edge already in the random graph.
+ *  May need to make multiple attempts to find such a vertex. No compelling
+ *  reason to bother with the added complication.
  */
+
 export function randomRegularGraph(n, d) {
-	ea && assert(n > d);
-	if ((n & 1) && (d & 1)) n++;
+	ea && assert(n > d && !(n&1));
+
+	let g0 = randomGraph(n, Math.min(d + Math.max(d, 20), n-1));
+	for (let u = 1; u <= n; u++)
+		ea && assert(g0.degree(u) >= d, 'randomRegularGraph failure(1)');
 
 	let m = ~~(n*d/2); let g = new Graph(n, m);
-	let deg = new Int32Array(n+1).fill(0); // deg[u] = degree of vertex u
-	let nabor = new Int32Array(n+1).fill(false);	
-		// nabor[v] is true if v is neighbor of "current vertex"
-
-	let totalGap = 0;
-	while (totalGap < m || totalGap < 100) {
-		let missCount = 0;
-		// add edges to graph while not exceeding degree limit
-		for (let u = 1; u <= g.n; u++) {
-			// mark neighbors of u in nabor array
-			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u, e))
-				nabor[g.mate(u, e)] = true;
-			// add random edges at u
-			while (deg[u] < d && missCount < 2*m) {
-				let v = randomInteger(1, n-1);
-				if (v >= u) v++;
-				if (!nabor[v] && deg[v] < d) {
-					g.join(u,v); nabor[v] = true; deg[u]++; deg[v]++;
-				} else {
-					missCount++;
-				}
-			}
-			// unmark neighbors of u to prepare for next iteration
-			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u, e))
-				nabor[g.mate(u, e)] = false;
+	for (let i = 1; i <= d; i++) {
+		let [match] = matchEG(g0);
+		assert(match.size() == ~~(n/2), 'randomRegularGraph failure (2)');
+		for (let e = match.first(); e; e = match.next(e)) {
+			let [u,v] = [g0.left(e),g0.right(e)];
+			g.join(u,v); g0.delete(e);
 		}
-		if (g.m < m) {
-			// remove some random edges from full vertices
-			// and try again
-//may be more efficient to generate a vector of random edges
-//all at once and then sample from the vector
-			let gap = m - g.m; let limit = 5;
-			while (g.m > .75*m && g.m > m - (gap+100)) {
-				let e = g.randomEdge();
-				if (e == 0) break;
-				let u = g.left(e); let v = g.right(e);
-				if (deg[u] == d && deg[v] == d || --limit == 0) {
-					g.delete(e); deg[u]--; deg[v]--; limit = 5;
-				}
-			}
-		}
-		if (g.m == m) return g;
-		totalGap += m - g.m;
 	}
-	g.clear(); return g;
+	return g;
 }
 
 /** Create a random simple, regular bipartite graph.
@@ -377,6 +352,11 @@ export function randomRegularGraph(n, d) {
  *  @param repeats is a flag that enables multiple edges between a pair
  *  of vertices
  *  @param return Graph object with inputs 1..ni, outputs ni+1..ni+no
+
+Method involves creating an oversize graph, then computing a d-matching.
+If no matching, try again.
+
+
  */
 export function randomRegularBigraph(ni, di, no=ni, repeats=0) {
 	let do_ = ni*di/no;

@@ -227,7 +227,6 @@ export default class Graph extends Top {
 	 *  @return the edge number for the new edge or 0
 	 *  on failure
 	 */
-cnt = 0;
 	join(u, v, e=this._edges.first(2)) {
 		ea && assert(u != v && u > 0 && v > 0 &&
 			   (e > 0 || this._edges.first(2) == 0) &&

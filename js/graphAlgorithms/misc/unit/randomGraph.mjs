@@ -9,7 +9,7 @@
 import { assert, AssertFail } from '../../../common/Assert.mjs';
 import { randomGraph, randomBigraph, randomDigraph, randomDag, randomTree,
 		 randomConnectedGraph, randomFlograph, randomRegularGraph,
-		 randomRegularBigraph, randomEdgeGroupGraph } from '../RandomGraph.mjs';
+		 randomRegularBigraph} from '../RandomGraph.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../../dataStructures/graphs/Digraph.mjs';
 import {randomSample} from '../../../common/Random.mjs';
