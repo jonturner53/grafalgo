@@ -256,7 +256,7 @@ this._left = this.#left; this._right = this.#right; this._p = this.#p;
 		}
 	}
 	
-	/** Insert a node immediately after another vertes in a tree.
+	/** Insert a node immediately after another vertex in a tree.
 	 *  @param u is a singleton
 	 *  @param t is the tree root; if omitted, the tree containing v is used
 	 *  @param v is a vertes in a tree which defines the point where u is

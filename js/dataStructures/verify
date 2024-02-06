@@ -3,5 +3,6 @@ echo "testing data structures"
 pushd basic/unit >/dev/null;     verify; popd >/dev/null
 pushd graphs/unit >/dev/null;    verify; popd >/dev/null
 pushd trees/unit >/dev/null;     verify; popd >/dev/null
+pushd heaps/unit >/dev/null;     verify; popd >/dev/null
 pushd keySets/unit >/dev/null;   verify; popd >/dev/null
 pushd specialty/unit >/dev/null; verify; popd >/dev/null
