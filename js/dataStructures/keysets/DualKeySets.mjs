@@ -19,16 +19,16 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  value less than or equal to a specified bound.
  */
 export default class DualKeySets extends KeySets {
-	#key2;		 // #key2[u] is second key value
-	#min2;		 // #min2[u] is the smallest key2 value in the subtree at u
+	Key2;		 // Key2[u] is second key value
+	Min2;		 // Min2[u] is the smallest key2 value in the subtree at u
 
 	/** Constructor for DualKeySets object.
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) {
 		super(n);
-		this.#key2 = new Array(this.n+1);
-		this.#min2 = new Array(this.n+1);
+		this.Key2 = new Array(this.n+1);
+		this.Min2 = new Array(this.n+1);
 	}
 
 	/** Assign a new value by copying from another DualKeySets.
@@ -49,8 +49,8 @@ export default class DualKeySets extends KeySets {
 		if (b == this) return;
 		if (!(b instanceof DualKeySets)) return;
 		super.xfer(b);
-		this.#key2 = b.#key2; b.#key2 = null;
-		this.#min2 = b.#min2; b.#min2 = null;
+		this.Key2 = b.Key2; b.Key2 = null;
+		this.Min2 = b.Min2; b.Min2 = null;
 	}
 	
 	clearStats() {
@@ -61,15 +61,15 @@ export default class DualKeySets extends KeySets {
 	key2(u, k=false) {
 		if (k !== false) {
 			// assumes u is a singleton
-			this.#key2[u] = k; this.#min2[u] = k;
+			this.Key2[u] = k; this.Min2[u] = k;
 		}
-		return this.#key2[u];
+		return this.Key2[u];
 	}
 
 	/* Get/set min2 value */
 	min2(u, k=false) {
-		if (k !== false) this.#min2[u] = k;
-		return this.#min2[u];
+		if (k !== false) this.Min2[u] = k;
+		return this.Min2[u];
 	}
 
 	/** Find node with smallest key2 value among those with bounded primary key.

@@ -16,7 +16,7 @@ import Blossoms from '../Blossoms.mjs';
 try {
 	console.log('testing Blossoms');
 
-	let g = new Graph(16); g.addWeights();
+	let g = new Graph(16); g.hasWeights = true;
 	g.fromString(
 			'{a[b:6] b[a:6 c:1] c[b:1 d:2 h:7] d[c:2 e:8] ' +
             'e[d:8 f:5 g:9] f[e:5 g:7] g[e:9 f:7 j:1 k:3 i:8] ' +

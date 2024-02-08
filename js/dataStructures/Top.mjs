@@ -26,9 +26,9 @@ import { assert, EnableAssert as ea } from '../common/Assert.mjs';
  *  for index lists and similar data structures.
  */
 export default class Top {
-	#n;		// index values in 0..n
+	N;		// index values in 1..N
 
-	constructor(n=5) { this.#n = n; }
+	constructor(n=5) { this.N = n; }
 
 	/** Reset the object, discarding value.  */
 	reset() {
@@ -47,19 +47,19 @@ export default class Top {
         ea && assert(other != this &&
                 	 this.constructor.name == other.constructor.name,
 					 'Top:xfer: self-assignment or mismatched types');
-		this.#n = other.#n;
+		this.N = other.N;
 	}
 
 	/** Get the index range for the object.
 	 *  @return the largest index value
 	 */
-	get n() { return this.#n; }
+	get n() { return this.N; }
 
 	/** Set the index range for the object.
 	 *  For use of subclasses only.
-	 *  @param n becomes the largest index value
+	 *  @param x becomes the largest index value
 	 */
-	set _n(n) { this.#n = n; }
+	set n(x) { this.N = x; }
 
 	/** Expand the index range of an object.
 	 *  Since index range is often semantically significant,
@@ -87,7 +87,7 @@ export default class Top {
 	 */
 	valid(i) {
 		ea && assert(i == ~~i);
-		return 0 <= i && i <= this.#n;
+		return 0 <= i && i <= this.N;
 	}
 
 	/** Determine if two objects are equal.

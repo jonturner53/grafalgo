@@ -116,7 +116,7 @@ export function randomFlograph(n, d, ssd=d, ncuts=1, lookback=1) {
 
 	n = 2 + p*q; let m = ~~(ssd + d*(n-2));
 	let g = new Flograph(n, m);
-	g.setSource(1); g.setSink(g.n);
+	g.source = 1; g.sink = g.n;
 	g._ssCapScale = 4 * (mc/ssd);
 
 	// add source edges

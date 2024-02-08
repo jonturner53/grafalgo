@@ -36,7 +36,7 @@ export default function flowfloor(g, trace=false) {
 	// Also, add new source/sink edges.
 	let g1 = new Flograph(g.n+2, g.edgeRange+2*g.n+1);
 	steps += g1.n + g1.edgeRange;
-	g1.setSource(g.n+1); g1.setSink(g.n+2);
+	g1.source = g.n+1; g1.sink = g.n+2;
 	for (let e = g.first(); e; e = g.next(e)) {
 		steps++;
 		g1.join(g.tail(e), g.head(e), e);

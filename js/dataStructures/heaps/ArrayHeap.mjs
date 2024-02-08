@@ -17,13 +17,13 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  is specified when a heap object is constructed.
  */
 export default class ArrayHeap extends Top {
-	#d;          // base of heap
-	#size;       // # of items in the heap set
+	D;          // base of heap
+	Size;       // # of items in the heap set
 
-	#item;       // {#item[1],...,#item[m]} is the items in the heap
-	#pos;        // #pos[i] gives position of i in #item
-	#key;        // #key[i] is key of item i
-	#offset;     // offset for key values, allowing all to shift at once
+	Item;       // {Item[1],...,Item[m]} is the items in the heap
+	Pos;        // Pos[i] gives position of i in Item
+	Key;        // Key[i] is key of item i
+	Offset;     // offset for key values, allowing all to shift at once
 
 	changekeys;  // calls to changekey
 	upsteps;     // steps taken by siftup
@@ -35,11 +35,11 @@ export default class ArrayHeap extends Top {
 	 */
 	constructor(n=10, d=4) {
 		super(n);
-		this.#item = new Int32Array(n+1);
-		this.#pos = new Int32Array(n+1);
-		this.#key = new Float32Array(n+1);
-		this.#item[0] = this.#size = 0; this.#d = d;
-		this.#offset = 0;
+		this.Item = new Int32Array(n+1);
+		this.Pos = new Int32Array(n+1);
+		this.Key = new Float32Array(n+1);
+		this.Item[0] = this.Size = 0; this.D = d;
+		this.Offset = 0;
 		this.clearStats();
 	}
 
@@ -49,10 +49,10 @@ export default class ArrayHeap extends Top {
 	assign(other, relaxed=false) {
 		super.assign(other, relaxed);
 
-		this.#size = other.size; this.#offset = other.#offset;
+		this.Size = other.size; this.Offset = other.Offset;
 		for (let p = 1; p <= other.size; p++) {
-			let x = other.#item[p];
-			this.#item[p] = x; this.#pos[x] = p; this.#key[x] = other.#key[x];
+			let x = other.Item[p];
+			this.Item[p] = x; this.Pos[x] = p; this.Key[x] = other.Key[x];
 		}
 		this.clearStats();
 	}
@@ -62,29 +62,29 @@ export default class ArrayHeap extends Top {
 	 */
 	xfer(other) {
 		if (other == this || !(other instanceof ArrayHeap)) return;
-		this._n = other.n;
-		this.#d = other.#d; this.#size = other.#size; this.#offset = other.#offset;
-		this.#item = other.#item; this.#pos = other.#pos;
-		this.#key = other.#key;
-		other.#item = other.#pos = other.#key = null;
+		this.n = other.n;
+		this.D = other.D; this.Size = other.Size; this.Offset = other.Offset;
+		this.Item = other.Item; this.Pos = other.Pos;
+		this.Key = other.Key;
+		other.Item = other.Pos = other.Key = null;
 		this.clearStats();
 	}
 	
 	/** Remove all elements from heap. */
 	clear() {
-		for (let x = 1; x <= this.#size; x++) this.#pos[this.#item[x]] = 0;
-		this.#size = 0; this.#offset = 0;
+		for (let x = 1; x <= this.Size; x++) this.Pos[this.Item[x]] = 0;
+		this.Size = 0; this.Offset = 0;
 	}
 
 	clearStats() {
 		this.changekeys = 0; this.upsteps = this.downsteps = 0;
 	}
 
-	get d() { return this.#d; }
+	get d() { return this.D; }
 
-	get size() { return this.#size; }
+	get size() { return this.Size; }
 
-	itemAt(pos) { return this.#item[pos]; };
+	itemAt(pos) { return this.Item[pos]; };
 
 	/** Return position of parent of a heap item.
 	 *  @param p is position of item in heap
@@ -107,8 +107,8 @@ export default class ArrayHeap extends Top {
 	first() { return this.size >= 1 ? this.itemAt(1) : 0; }
 
 	next(i) { 
-		let pi = this.#pos[i];
-		return (pi && pi < this.size ?  this.#item[pi+1] : 0);
+		let pi = this.Pos[i];
+		return (pi && pi < this.size ?  this.Item[pi+1] : 0);
 	}
 	
 	/** Find an item in the heap with the smallest key.
@@ -130,17 +130,17 @@ export default class ArrayHeap extends Top {
 	 *  @param i is an item in the heap
 	 *  @return the value of i's key
 	 */
-	key(i) { return this.#offset + this.#key[i]; }
+	key(i) { return this.Offset + this.Key[i]; }
 
-	get offset() { return this.#offset; }
+	get offset() { return this.Offset; }
 
-	add2keys(delta) { this.#offset += delta; }
+	add2keys(delta) { this.Offset += delta; }
 	
 	/** Determine if an item is in the heap.
 	 *  @param i is an item
 	 *  @return true if i is in the heap, else false
 	 */
-	contains(i) { return this.#pos[i] != 0; }
+	contains(i) { return this.Pos[i] != 0; }
 	
 	/** Determine if the heap is empty.
 	 *  @return true if heap is empty, else false
@@ -156,7 +156,7 @@ export default class ArrayHeap extends Top {
 					 `ArrayHeap.insert: invalid item ${i}`);
 		if (this.contains(i)) { this.changekey(i,key); return; }
 		if (i > this.n) this.expand(i);
-		this.#key[i] = key - this.#offset; this.#size++; this.siftup(i, this.size);
+		this.Key[i] = key - this.Offset; this.Size++; this.siftup(i, this.size);
 	}
 	
 	/** Remove an index from the heap.
@@ -165,14 +165,14 @@ export default class ArrayHeap extends Top {
 	delete(i) {
 		ea && assert(i > 0);
 		if (!this.contains(i)) return;
-		let j = this.itemAt(this.#size--);
+		let j = this.itemAt(this.Size--);
 		if (i != j) {
-			if (this.#key[j] <= this.#key[i])
-				this.siftup(j, this.#pos[i]);
+			if (this.Key[j] <= this.Key[i])
+				this.siftup(j, this.Pos[i]);
 			else
-				this.siftdown(j, this.#pos[i]);
+				this.siftdown(j, this.Pos[i]);
 		}
-		this.#pos[i] = 0;
+		this.Pos[i] = 0;
 	}
 	
 	/** Perform siftup operation to restore heap order.
@@ -183,12 +183,12 @@ export default class ArrayHeap extends Top {
 	siftup(i, x) {
 		this.upsteps++;
 		let px = this.p(x);
-		while (x > 1 && this.#key[i] < this.#key[this.itemAt(px)]) {
-			this.#item[x] = this.itemAt(px); this.#pos[this.itemAt(x)] = x;
+		while (x > 1 && this.Key[i] < this.Key[this.itemAt(px)]) {
+			this.Item[x] = this.itemAt(px); this.Pos[this.itemAt(x)] = x;
 			x = px; px = this.p(x);
 			this.upsteps++;
 		}
-		this.#item[x] = i; this.#pos[i] = x;
+		this.Item[x] = i; this.Pos[i] = x;
 	}
 	
 	/** Perform siftdown operation to restore heap order.
@@ -197,12 +197,12 @@ export default class ArrayHeap extends Top {
  	 *  @param x is a tentative position for i in the heap
  	 */
 	siftdown(i, x) {
-		let cx = this.#minchild(x);
-		while (cx != 0 && this.#key[this.#item[cx]] < this.#key[i]) {
-			this.#item[x] = this.#item[cx]; this.#pos[this.#item[x]] = x;
-			x = cx; cx = this.#minchild(x);
+		let cx = this.minchild(x);
+		while (cx != 0 && this.Key[this.Item[cx]] < this.Key[i]) {
+			this.Item[x] = this.Item[cx]; this.Pos[this.Item[x]] = x;
+			x = cx; cx = this.minchild(x);
 		}
-		this.#item[x] = i; this.#pos[i] = x;
+		this.Item[x] = i; this.Pos[i] = x;
 	}
 	
 	/** Find the position of the child with the smallest key.
@@ -211,13 +211,13 @@ export default class ArrayHeap extends Top {
 	 *  @return the position of the child of the item at x, that has
 	 *  the smallest key
 	 */
-	#minchild(x) {
+	minchild(x) {
 		this.downsteps++;
 		let minc = this.left(x);
 		if (minc > this.size) return 0;
 		for (let y = minc + 1; y <= this.right(x) && y <= this.size; y++) {
 			this.downsteps++;
-			if (this.#key[this.#item[y]] < this.#key[this.#item[minc]])
+			if (this.Key[this.Item[y]] < this.Key[this.Item[minc]])
 				minc = y;
 		}
 		return minc;
@@ -229,11 +229,11 @@ export default class ArrayHeap extends Top {
 	 */
 	changekey(i, k) {
 		this.changekeys++;
-		let ki = this.#key[i] + this.#offset;
-		//this.#key[i] += k - ki;
-		this.#key[i] = k - this.#offset;
-			 if (k < ki) this.siftup(i, this.#pos[i]);
-		else if (k > ki) this.siftdown(i, this.#pos[i]);
+		let ki = this.Key[i] + this.Offset;
+		//this.Key[i] += k - ki;
+		this.Key[i] = k - this.Offset;
+			 if (k < ki) this.siftup(i, this.Pos[i]);
+		else if (k > ki) this.siftdown(i, this.Pos[i]);
 	}
 
 	/** Determine if two heaps are equal.
@@ -247,9 +247,9 @@ export default class ArrayHeap extends Top {
 		if (typeof h == 'boolean') return h;
 		if (this.size != h.size) return false;
 		for (let i = 1; i <= this.size; i++) {
-			let x = this.#item[i];
+			let x = this.Item[i];
 			if (!h.contains(x) || this.key(x) != h.key(x)) return false;
-			let y = h.#item[i];
+			let y = h.Item[i];
 			if (!this.contains(y) || this.key(y) != h.key(y)) return false;
 		}
 		return h;
@@ -297,8 +297,9 @@ export default class ArrayHeap extends Top {
 			return false;
 		if (l.n > this.n) this.reset(l.n, this.d);
 		else this.clear();
-		for (let i = l.first(); i; i = l.next(i))
+		for (let i = l.first(); i; i = l.next(i)) {
 			this.insert(i, key[i]);
+}
 		return true;
 	}
 

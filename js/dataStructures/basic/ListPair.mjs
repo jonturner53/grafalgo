@@ -19,32 +19,32 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  Initially, all items are in the out list.
  */
 export default class ListPair extends Top {
-	#length;    // #length[i-1] is length of list i
-	#first;     // #first[i-1] is first item in list i
-	#last;      // #last[i-1] is last item in list i
-	#next;      // #next[i] defines next item after i
-	#prev;      // #prev[i] defines item preceding i
-				// items in list 1 use positive #prev values
-				// items in list 2 use negative #prev values
+	Length;    // Length[i-1] is length of list i
+	First;     // First[i-1] is first item in list i
+	Last;      // Last[i-1] is last item in list i
+	Next;      // Next[i] defines next item after i
+	Prev;      // Prev[i] defines item preceding i
+               // items in list 1 use positive Prev values
+               // items in list 2 use negative Prev values
 	
 	/** Constructor for list pair.
 	 *  @param n specifies the range of integer values
 	 */
 	constructor(n=10) {
 		super(n);
-		this.#length = new Int32Array(2);
-		this.#first = new Int32Array(2);
-		this.#last = new Int32Array(2);
-		this.#next = new Int32Array(this.n+1);
-		this.#prev = new Int32Array(this.n+1);
+		this.Length = new Int32Array(2);
+		this.First = new Int32Array(2);
+		this.Last = new Int32Array(2);
+		this.Next = new Int32Array(this.n+1);
+		this.Prev = new Int32Array(this.n+1);
 
-		this.#length[0] = 0; this.#length[1] = this.n;
-		this.#first[0] = this.#last[0] = 0;
-		this.#first[1] = 1; this.#last[1] = this.n;
+		this.Length[0] = 0; this.Length[1] = this.n;
+		this.First[0] = this.Last[0] = 0;
+		this.First[1] = 1; this.Last[1] = this.n;
 		for (let i = 1; i <= this.n; i++) {
-			this.#next[i] = i+1; this.#prev[i] = -(i-1);
+			this.Next[i] = i+1; this.Prev[i] = -(i-1);
 		}
-		this.#next[this.n] = this.#prev[1] = 0;
+		this.Next[this.n] = this.Prev[1] = 0;
 	}
 
 	/** Assign one ListPair to another by copying its contents.
@@ -68,11 +68,11 @@ export default class ListPair extends Top {
 	 */
 	xfer(other) {
 		super.xfer(other);
-		this.#next = other.#next; this.#prev = other.#prev;
-		other.#next = other.#prev = null;
-		this.#first[0] = other.#first[0]; this.#last[0] = other.#last[0];
-		this.#first[1] = other.#first[1]; this.#last[1] = other.#last[1];
-		this.#length[0] = other.#length[0]; this.#length[1] = other.#length[1];
+		this.Next = other.Next; this.Prev = other.Prev;
+		other.Next = other.Prev = null;
+		this.First[0] = other.First[0]; this.Last[0] = other.Last[0];
+		this.First[1] = other.First[1]; this.Last[1] = other.Last[1];
+		this.Length[0] = other.Length[0]; this.Length[1] = other.Length[1];
 	}
 	
 	/** Determine if an item belongs in a specified list.
@@ -83,33 +83,33 @@ export default class ListPair extends Top {
 	in(i,k) {
 		ea && assert(1 <= k && k <= 2);
 		return this.valid(i) && (i == this.first(k) ||
-				(k == 1 && this.#prev[i] > 0) || (k == 2 && this.#prev[i] < 0));
+				(k == 1 && this.Prev[i] > 0) || (k == 2 && this.Prev[i] < 0));
 	}
 	
 	/** Get the number of elements in a list.  */
-	length(k) { return this.#length[k-1]; }
+	length(k) { return this.Length[k-1]; }
 	
 	/** Get the first item in a list.
 	 *  @return the first value on list k or 0 if the list is empty.
 	 */
-	first(k) { return this.#first[k-1]; }
+	first(k) { return this.First[k-1]; }
 	
 	/** Get the last item in a list.
 	 *  @return the last value on list k or 0 if the list is empty.
 	 */
-	last(k) { return this.#last[k-1]; }
+	last(k) { return this.Last[k-1]; }
 	
 	/** Get the next item in a list.
 	 *  @param i is the index of a list item.
 	 *  @return the next item on the list containing i
 	 */
-	next(i) { return this.#next[i]; }
+	next(i) { return this.Next[i]; }
 	
 	/** Get the previous item in a list.
 	 *  @param i is the index of a list item.
 	 *  @return the previous item on the list containing i
 	 */
-	prev(i) { return (this.#prev[i] >= 0 ? this.#prev[i] : -this.#prev[i]); }
+	prev(i) { return (this.Prev[i] >= 0 ? this.Prev[i] : -this.Prev[i]); }
 	
 	/** Remove all elements from list 1. */
 	clear() { while (this.first(1) != 0) this.swap(this.first(1)); }
@@ -129,48 +129,48 @@ export default class ListPair extends Top {
 
 		if (this.in(i,1)) {
 			// first remove i from list 1
-			if (i == this.last(1)) this.#last[0] = this.#prev[i];
-			else this.#prev[this.#next[i]] = this.#prev[i];
-			if (i == this.first(1)) this.#first[0] = this.#next[i];
-			else this.#next[this.#prev[i]] = this.#next[i];
+			if (i == this.last(1)) this.Last[0] = this.Prev[i];
+			else this.Prev[this.Next[i]] = this.Prev[i];
+			if (i == this.first(1)) this.First[0] = this.Next[i];
+			else this.Next[this.Prev[i]] = this.Next[i];
 	
 			// now add i to list 2
 			if (this.length(2) == 0) {
-				this.#next[i] = this.#prev[i] = 0;
-				this.#first[1] = this.#last[1] = i;
+				this.Next[i] = this.Prev[i] = 0;
+				this.First[1] = this.Last[1] = i;
 			} else if (j == 0) {
-				this.#next[i] = this.#first[1]; this.#prev[i] = 0;
-				this.#prev[this.#first[1]] = -i; this.#first[1] = i;
+				this.Next[i] = this.First[1]; this.Prev[i] = 0;
+				this.Prev[this.First[1]] = -i; this.First[1] = i;
 			} else if (j == this.last(2)) {
-				this.#next[j] = i; this.#prev[i] = -j;
-				this.#next[i] = 0; this.#last[1] = i;
+				this.Next[j] = i; this.Prev[i] = -j;
+				this.Next[i] = 0; this.Last[1] = i;
 			} else {
-				this.#next[i] = this.#next[j]; this.#prev[i] = -j; 
-				this.#prev[this.#next[j]] = -i; this.#next[j] = i;
+				this.Next[i] = this.Next[j]; this.Prev[i] = -j; 
+				this.Prev[this.Next[j]] = -i; this.Next[j] = i;
 			}
-			this.#length[0]--; this.#length[1]++;
+			this.Length[0]--; this.Length[1]++;
 		} else {
 			// first remove i from list 2
-			if (i == this.last(2)) this.#last[1] = -this.#prev[i];
-			else this.#prev[this.#next[i]] = this.#prev[i];
-			if (i == this.first(2)) this.#first[1] = this.#next[i];
-			else this.#next[-this.#prev[i]] = this.#next[i];
+			if (i == this.last(2)) this.Last[1] = -this.Prev[i];
+			else this.Prev[this.Next[i]] = this.Prev[i];
+			if (i == this.first(2)) this.First[1] = this.Next[i];
+			else this.Next[-this.Prev[i]] = this.Next[i];
 	
 			// now add i to list 1
 			if (this.length(1) == 0) {
-				this.#next[i] = this.#prev[i] = 0;
-				this.#first[0] = this.#last[0] = i;
+				this.Next[i] = this.Prev[i] = 0;
+				this.First[0] = this.Last[0] = i;
 			} else if (j == 0) {
-				this.#next[i] = this.#first[0]; this.#prev[i] = 0;
-				this.#prev[this.#first[0]] = i; this.#first[0] = i;
+				this.Next[i] = this.First[0]; this.Prev[i] = 0;
+				this.Prev[this.First[0]] = i; this.First[0] = i;
 			} else if (j == this.last(1)) {
-				this.#next[j] = i; this.#prev[i] = j;
-				this.#next[i] = 0; this.#last[0] = i;
+				this.Next[j] = i; this.Prev[i] = j;
+				this.Next[i] = 0; this.Last[0] = i;
 			} else {
-				this.#next[i] = this.#next[j]; this.#prev[i] = j; 
-				this.#prev[this.#next[j]] = i; this.#next[j] = i;
+				this.Next[i] = this.Next[j]; this.Prev[i] = j; 
+				this.Prev[this.Next[j]] = i; this.Next[j] = i;
 			}
-			this.#length[0]++; this.#length[1]--;
+			this.Length[0]++; this.Length[1]--;
 		}
 		return;
 	}

@@ -14,8 +14,8 @@ import Scanner from '../../dataStructures/basic/Scanner.mjs';
  */
 export default class Matching extends Top {
 	g;			 // reference to graph
-	#elist;		 // list of edges in matching
-	#map;		 // array mapping vertex to matching edge
+	elist;		 // list of edges in matching
+	map;		 // array mapping vertex to matching edge
 	
 	/** Constructor for Matching.
 	 *  @param g is the graph for the matching
@@ -23,9 +23,9 @@ export default class Matching extends Top {
 	constructor(g) {
 		super(g.n);
 		this.g = g;
-		this.#elist = new List(this.g.edgeRange);
-		this.#elist.addPrev();
-		this.#map = new Int32Array(this.g.n+1);
+		this.elist = new List(this.g.edgeRange);
+		this.elist.hasReverse = true;
+		this.map = new Int32Array(this.g.n+1);
 	}
 
 	/** Assign new value to this from another. 
@@ -34,9 +34,9 @@ export default class Matching extends Top {
 	assign(match) {
 		if (match == this) return;
 		match.g = this.g; this._n = match.n
-		this.#elist.assign(match.#elist);
+		this.elist.assign(match.elist);
 		for (let u = 0; u <= this.g.n; u++)
-			this.#map[u] = match.#map[u];
+			this.map[u] = match.map[u];
 	}
 
 	/** Assign a new value to this, by transferring contents of another list.
@@ -45,27 +45,27 @@ export default class Matching extends Top {
 	xfer(match) {
 		if (match == this) return;
 		this.g = match.g; this._n = match.n;
-		this.#elist = match.elist; this.#map = match.map;
+		this.elist = match.elist; this.map = match.map;
 	}
 	
 	/** Restore to initial state. */
 	clear() {
 		for (let e = this.first(); e; e = this.next(e))
-			this.#map[g.left(e)] = this.#map[g.right(e)] = 0;
-		this.#elist.clear();
+			this.map[g.left(e)] = this.map[g.right(e)] = 0;
+		this.elist.clear();
 	}
 
 	/** Get the matching edge incident to a vertex */
-	at(u) { return this.#map[u]; }
+	at(u) { return this.map[u]; }
 
 	/** Get the first edge in matching. */
-	first() { return this.#elist.first(); }
+	first() { return this.elist.first(); }
 
 	/** Get the next edge in matching. */
-	next(e) { return this.#elist.next(e); }
+	next(e) { return this.elist.next(e); }
 
 	/** Determine if edge is in matching. */
-	contains(e) { return this.#elist.contains(e); }
+	contains(e) { return this.elist.contains(e); }
 
 	/** Add an edge to matching.
 	 *  This operation may make matching inconsistent
@@ -74,24 +74,24 @@ export default class Matching extends Top {
 	 *  consistency.
 	 */
 	add(e) {
-		if (this.#elist.contains(e)) return;
-		this.#elist.enq(e);
-		this.#map[this.g.left(e)] = e;
-		this.#map[this.g.right(e)] = e;
+		if (this.elist.contains(e)) return;
+		this.elist.enq(e);
+		this.map[this.g.left(e)] = e;
+		this.map[this.g.right(e)] = e;
 	}
 
 	/** Remove an edge from matching. */
 	drop(e) {
-		if (!this.#elist.contains(e)) return;
-		this.#elist.delete(e);
+		if (!this.elist.contains(e)) return;
+		this.elist.delete(e);
 		let u = this.g.left(e); let v = this.g.right(e);
-		if (e == this.#map[u]) this.#map[u] = 0;
-		if (e == this.#map[v]) this.#map[v] = 0;
+		if (e == this.map[u]) this.map[u] = 0;
+		if (e == this.map[v]) this.map[v] = 0;
 	}
 
 	/** Return the number of edges in a matching.
 	 */
-	size() { return this.#elist.length; }
+	size() { return this.elist.length; }
 	
 	/** Return the weight of a matching.  */
 	weight() {
@@ -119,7 +119,7 @@ export default class Matching extends Top {
 		    other.n != this.n) {
 			return false;
 		}
-		if (!this.#elist.setEquals(other.#elist)) return false;
+		if (!this.elist.setEquals(other.elist)) return false;
 		return other;
 	}
 
@@ -131,7 +131,7 @@ export default class Matching extends Top {
 	 */
 	toString(show=0) {
 		let showList = new List(this.g.edgeRange);
-		for (let e = this.#elist.first(); e; e = this.#elist.next(e)) {
+		for (let e = this.elist.first(); e; e = this.elist.next(e)) {
 			if (!show || show(e)) showList.enq(e);
 		}
 		let w = this.weight();

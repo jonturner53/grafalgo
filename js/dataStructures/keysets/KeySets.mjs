@@ -19,9 +19,9 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  It can support either numeric keys or strings.
  */
 export default class KeySets extends BalancedForest {
-	#key;        // #key[u] is the key of item u
-	#stringKey;  // true if the keys are strings
-	#compare;    // function used to compare two strings
+	Key;        // Key[u] is the key of item u
+	stringKey;  // true if the keys are strings
+	compare;    // function used to compare two strings
 
 	/** Constructor for KeySets object.
 	 *  @param n is index range for object
@@ -30,16 +30,16 @@ export default class KeySets extends BalancedForest {
 	 */
 	constructor(n=10, stringKey=false) {
 		super(n);
-		this.#stringKey = stringKey;
-		this.#compare = (stringKey ? (a,b) => a.localeCompare(b) :
+		this.stringKey = stringKey;
+		this.compare = (stringKey ? (a,b) => a.localeCompare(b) :
 									 (a,b) => a-b);
-		this.#key = new Array(this.n+1).fill(this.#stringKey ? '' : 0);
+		this.Key = new Array(this.n+1).fill(this.stringKey ? '' : 0);
 	}
 
 	/** Expand this object. */
 	expand(n) {
 		ea && assert(n > this.n);
-		let nu = new KeySets(n, this.#stringKey);
+		let nu = new KeySets(n, this.stringKey);
 		nu.assign(this,true); this.xfer(nu);
 	}
 
@@ -48,8 +48,8 @@ export default class KeySets extends BalancedForest {
 	 */
 	assign(other, relaxed=false) {
 		super.assign(other, relaxed);
-		this.#stringKey = other.#stringKey;
-		this.#compare = other.#compare;
+		this.stringKey = other.stringKey;
+		this.compare = other.compare;
 		for (let u = 1; u <= other.n; u++)
 			this.key(u, other.key(u));
 	}
@@ -59,20 +59,20 @@ export default class KeySets extends BalancedForest {
 	 */
 	xfer(other) {
 		super.xfer(other);
-		this.#key = other.#key; other.#key = null;
-		this.#stringKey = other.#stringKey; other.#stringKey = null;
-		this.#compare = other.#compare; other.#compare = null;
+		this.Key = other.Key; other.Key = null;
+		this.stringKey = other.stringKey; other.stringKey = null;
+		this.compare = other.compare; other.compare = null;
 	}
 
-	clear() { super.clear(); this.#key.fill(null); }
+	clear() { super.clear(); this.Key.fill(null); }
 
 	/** Find the set containing a given item. */
 	find(u) { return super.root(u); }
 	
 	/** Get or set the key value of an item. */
 	key(u, k=null) {
-		if (k != null) this.#key[u] = k;
-		return this.#key[u];
+		if (k != null) this.Key[u] = k;
+		return this.Key[u];
 	}
 	
 	/** Determine if a specified item is contained in a set.
@@ -88,7 +88,7 @@ export default class KeySets extends BalancedForest {
 	 *  @return an item with the key k or 0.
 	 */
 	lookup(k, s) {
-		return this.search(k, s, this.#key, (a,b) => this.#compare(a,b));
+		return this.search(k, s, this.Key, (a,b) => this.compare(a,b));
 	}
 	
 	/** Insert an item into a set.
@@ -100,8 +100,8 @@ export default class KeySets extends BalancedForest {
 	 */
 	insert(u, t, refresh=0) {
 		if (u > this.n) this.expand(u);
-		return super.insertByKey(u, t, this.#key,
-								 (a,b) => this.#compare(a,b), refresh);
+		return super.insertByKey(u, t, this.Key,
+								 (a,b) => this.compare(a,b), refresh);
 	}
 
 	/** Determine if two KeySets objects are equal.
@@ -116,7 +116,7 @@ export default class KeySets extends BalancedForest {
 		// has correct stringKey value
         if (typeof other == 'string') {
             let s = other;
-			other = new KeySets(this.n, this.#stringKey);
+			other = new KeySets(this.n, this.stringKey);
 			if (!other.fromString(s)) return s == this.toString();
 			if (other.n > this.n) return false;
 			if (other.n < this.n) other.expand(this.n);
@@ -144,7 +144,7 @@ export default class KeySets extends BalancedForest {
 	toString(fmt=0b010, label=0) {
 		if (!label) {
 			label = (x => this.x2s(x) + ':' +
-						  (this.#stringKey ? `"${this.key(x)}"` : this.key(x)) +
+						  (this.stringKey ? `"${this.key(x)}"` : this.key(x)) +
 					 (fmt&0x8 ? ':' + this.rank(x) : ''));
 		}
 		return super.toString(fmt,label);
@@ -159,7 +159,7 @@ export default class KeySets extends BalancedForest {
 		if (!ls.fromString(s, (u,sc) => {
 							if (!sc.verify(':')) return true;
 							let k;
-							if (this.#stringKey) {
+							if (this.stringKey) {
 								k = sc.nextString();
 								if (k == null) return false;
 							} else {
@@ -171,7 +171,7 @@ export default class KeySets extends BalancedForest {
 						}))
 			return false;
 
-		if (ls.n != this.n) this.reset(ls.n, this.#stringKey);
+		if (ls.n != this.n) this.reset(ls.n, this.stringKey);
 		else this.clear();
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;

@@ -17,9 +17,9 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  It partitions the index set into multiple trees.
  */
 export default class BinaryForest extends Top {
-	#left;		// #left[u] is left child of u
-	#right;		// #right[u] is right child of u
-	#p;			// #p[u] is parent of u
+	Left;		// Left[u] is left child of u
+	Right;		// Right[u] is right child of u
+	P;			// P[u] is parent of u
 
 	steps;      // total steps
 	rotations;	// number of rotation operations
@@ -29,10 +29,9 @@ export default class BinaryForest extends Top {
 	 */
 	constructor(n=10) {
 		super(n);
-		this.#left = new Int32Array(this.n+1);
-		this.#right = new Int32Array(this.n+1);
-		this.#p = new Int32Array(this.n+1);
-this._left = this.#left; this._right = this.#right; this._p = this.#p;
+		this.Left = new Int32Array(this.n+1);
+		this.Right = new Int32Array(this.n+1);
+		this.P = new Int32Array(this.n+1);
 		this.clearStats();
 	}
 
@@ -54,10 +53,9 @@ this._left = this.#left; this._right = this.#right; this._p = this.#p;
 	 */
 	xfer(other) {
 		super.xfer(other);
-		this.#left = other.#left; this.#right = other.#right;
-		this.#p = other.#p;
-this._left = this.#left; this._right = this.#right; this._p = this.#p;
-		other.#left = other.#right = other.#p = null;
+		this.Left = other.Left; this.Right = other.Right;
+		this.P = other.P;
+		other.Left = other.Right = other.P = null;
 		this.clearStats();
 	}
 	
@@ -69,7 +67,7 @@ this._left = this.#left; this._right = this.#right; this._p = this.#p;
 		if (r) {
 			this.clearHelper(r);
 		} else {
-			this.#left.fill(0); this.#right.fill(0); this.#p.fill(0);
+			this.Left.fill(0); this.Right.fill(0); this.P.fill(0);
 			this.steps += this.n;
 		}
 	}
@@ -89,20 +87,20 @@ this._left = this.#left; this._right = this.#right; this._p = this.#p;
 	 * @return the left child of u
 	 */
 	left(u, v=-1) {
-		if (v >= 0) this.#left[u] = v;
-		return this.#left[u];
+		if (v >= 0) this.Left[u] = v;
+		return this.Left[u];
 	}
 
 	/* Get or set the right child of a node. */
 	right(u, v=-1) {
-		if (v >= 0) this.#right[u] = v;
-		return this.#right[u];
+		if (v >= 0) this.Right[u] = v;
+		return this.Right[u];
 	}
 
 	/* Get or set the parent of a node. */
 	p(u, v=-1) {
-		if (v >= 0) this.#p[u] = v;
-		return this.isroot(u) ? 0 : this.#p[u];
+		if (v >= 0) this.P[u] = v;
+		return this.isroot(u) ? 0 : this.P[u];
 	}
 
 	/* Get or set a property of a tree.
@@ -113,13 +111,13 @@ this._left = this.#left; this._right = this.#right; this._p = this.#p;
 	 */
 	property(t, p=-1) {
 		ea && assert(this.isroot(t),
-					 `BinaryForest.property: ${this.x2s(t)} ${this.#p[t]}`);
-		if (p >= 0) this.#p[t] = -p;
-		return -this.#p[t]
+					 `BinaryForest.property: ${this.x2s(t)} ${this.P[t]}`);
+		if (p >= 0) this.P[t] = -p;
+		return -this.P[t]
 	}
 
 	/* Determine if a node is a tree root, */
-	isroot(r) { return r && this.#p[r] <= 0; }
+	isroot(r) { return r && this.P[r] <= 0; }
 
 	/* Get the sibling of a node. */
 	sibling(u) {
@@ -320,7 +318,7 @@ this._left = this.#left; this._right = this.#right; this._p = this.#p;
 		// save pointer fields for nodes u and v
 		let lu = this.left(u); let ru = this.right(u);
 		let lv = this.left(v); let rv = this.right(v);
-		let pu = this.#p[u]; let pv = this.#p[v];
+		let pu = this.P[u]; let pv = this.P[v];
 			// special handling of parent field to deal with tree property
 	
 		// fixup fields in u's neighbors
@@ -339,8 +337,8 @@ this._left = this.#left; this._right = this.#right; this._p = this.#p;
 		}
 	
 		// update fields in nodes u and v
-		this.left(u, lv); this.right(u, rv); this.#p[u] = pv;
-		this.left(v, lu); this.right(v, ru); this.#p[v] = pu;
+		this.left(u, lv); this.right(u, rv); this.P[u] = pv;
+		this.left(v, lu); this.right(v, ru); this.P[v] = pu;
 	
 		// final fixup for the case that u was originally the parent of v
 			 if (v == lu) { this.left(v, u); this.p(u, v); }
@@ -358,12 +356,6 @@ this._left = this.#left; this._right = this.#right; this._p = this.#p;
 	 *  and t2 the right subtree
 	 */
 	join(t1, u, t2, refresh=0) {
-//this.link(t1,u,-1);
-//this.left(u,t1); if (t1) this.p(t1,0);
-//this.link(t2,u,+1);
-//this.right(u,t2); if (t2) this.p(t2,0);
-//this.p(u,0);
-
 		this.link(t1,u,-1); this.link(t2,u,+1); this.p(u,0);
 		if (refresh) refresh(u);
 		return u;
@@ -463,7 +455,7 @@ this._left = this.#left; this._right = this.#right; this._p = this.#p;
 	 */
 	rotate(x) {
 		this.steps++; this.rotations++;
-		let p = this.#p; let left = this.#left; let right = this.#right;
+		let p = this.P; let left = this.Left; let right = this.Right;
 		let y = p[x]; if (!y) return;
 		p[x] = p[y];
 		     if (y == left[p[y]])  left[p[x]] = x;

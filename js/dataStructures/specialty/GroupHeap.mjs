@@ -72,7 +72,7 @@ export default class GroupHeap extends Top {
 	xfer(other) {
 		ea && assert(other instanceof GroupHeap);
 		if (other == this) return;
-		this._n = other.n; this.gn = other.gn;
+		this.n = other.n; this.gn = other.gn;
 		this.groups = other.groups; this.top = other.top;
 		this.active = other.active; this.lastOffset = other.lastOffset;
 		other.groups = other.top = other.active = other.lastOffset = null;

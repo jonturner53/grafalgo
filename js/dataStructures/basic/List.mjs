@@ -24,43 +24,53 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  popLast(), at(i) where i<0)
  */
 export default class List extends Top {
-	#first;		// first item in list
-	#last;		// last item in list
-	#length;	// number of items in list
-	#next;		// #next[i] is successor of i in list
-	#prev;		// #prev[i] is predecessor of i in list
-				// allocated dynamically as required
-	#value;		// allocated dynamically as required
+	First;      // first item in list
+	Last;       // last item in list
+	Length;     // number of items in list
+	Next;       // Next[i] is successor of i in list
+	Prev;       // Prev[i] is predecessor of i in list
+                // allocated dynamically as required
+	Value;      // allocated dynamically as required
 	
 	/** Constructor for List object.
 	 *  @param n is the range for the list
 	 */
 	constructor(n=10) {
 		super(n);
-		this.#next = new Int32Array(this.n+1).fill(-1);
-		this.#next[0] = this.#first = this.#last = this.#length = 0;
-		this.#prev = this.#value = null;
+		this.Next = new Int32Array(this.n+1).fill(-1);
+		this.Next[0] = this.First = this.Last = this.Length = 0;
+		this.Prev = this.Value = null;
 	}
 
-	/** Convert to a doubly-linked list. */
-	addPrev() {
-		if (this.hasPrev) return;
-		this.#prev = new Int32Array(this.n+1);
-		for (let i = this.first(); i; i = this.next(i))
-			if (this.next(i)) this.#prev[this.next(i)] = i;
-	}
+	/** Determine if this object has both forward and reverse links. */
+	get hasReverse() { return this.Prev ? true : false; }
 
-	/** Determine if this object is doubly-linked. */
-	get hasPrev() { return this.#prev ? true : false; }
-
-	/** Add a value for each list item */
-	addValues() {
-		if (this.hasValues) return;
-		this.#value = new Array(this.#next.length).fill(undefined);
+	/** Turn reverse links on or off.
+	 *  @param on is a boolean used to enable or disable the values feature
+	 */
+	set hasReverse(on) {
+		if (on && !this.Prev) {
+			this.Prev = new Array(this.Next.length).fill(undefined);
+			for (let i = this.first(); i; i = this.next(i))
+				if (this.next(i)) this.Prev[this.next(i)] = i;
+		} else if (!on && this.Prev) {
+			this.Prev = null;
+		}
 	}
 
 	/** Determine if this object includes item values. */
-	get hasValues() { return this.#value ? true : false; }
+	get hasValues() { return this.Value ? true : false; }
+
+	/** Turn item values feature on or off.
+	 *  @param on is a boolean used to enable or disable the values feature
+	 */
+	set hasValues(on) {
+		if (on && !this.Value) {
+			this.Value = new Array(this.Next.length).fill(undefined);
+		} else if (!on && this.Value) {
+			this.Value = null;
+		}
+	}
 
 	/** Get/set the value of an item.
 	 *  @param i is an integer
@@ -69,11 +79,12 @@ export default class List extends Top {
 	 *  value has been assigned to i
 	 */
 	value(i, val=undefined) {
+		ea && assert(this.valid(i));
 		if (val != undefined) {
-			if (!this.hasValues) this.addValues();
-			this.#value[i] = val;
+			if (!this.hasValues) this.hasValues = true;
+			this.Value[i] = val;
 		}
-		return (this.valid(i) && this.hasValues ? this.#value[i] : undefined);
+		return this.hasValues ? this.Value[i] : undefined;
 	}
 
 	/** Assign new value to list from another. 
@@ -86,8 +97,8 @@ export default class List extends Top {
 	assign(other, relaxed=false) {
 		super.assign(other, relaxed);
 
-		if (other.hasPrev && !this.hasPrev) this.addPrev();
-		if (other.hasValues && !this.hasValues) this.addValues();
+		if (other.hasReverse && !this.hasReverse) this.hasReverse = true;
+		if (other.hasValues && !this.hasValues) this.hasValues = true;
 		if (this.hasValues) {
 			for (let i = 0; i <= this.n; i++) this.value(i,other.value(i));
 		}
@@ -102,52 +113,44 @@ export default class List extends Top {
 	 */
 	xfer(other) {
 		super.xfer(other);
-		this.#first = other.first(); this.#last = other.last();
-		this.#length = other.length;
-		this.#next = other.#next; other.#next = null;
-		this.#prev = other.#prev; other.#prev = null;
-		this.#value = other.#value; other.#value = null;
+		this.First = other.first(); this.Last = other.last();
+		this.Length = other.length;
+		this.Next = other.Next; other.Next = null;
+		this.Prev = other.Prev; other.Prev = null;
+		this.Value = other.Value; other.Value = null;
 	}
 	
 	/** Remove all elements from list. */
 	clear() { while (!this.empty()) this.pop(); }
 
 	/** Get the number of items in the list. */
-	get length() { return this.#length; }
+	get length() { return this.Length; }
 
 	/** Get the next item in a list.
 	 *  @param i is an item on the list
 	 *  @return the item that follows i, or 0 if there is no next item
 	 */
-	next(i) { return this.#next[i]; }
+	next(i) { return this.Next[i]; }
 	
 	/** Get the previous item in a list.
 	 *  @param i is an item on the list
 	 *  @return the item that follows i, or 0 if there is no next item
 	 */
 	prev(i) {
-		if (!this.#prev) this.addPrev();
-		return this.#prev[i];
+		if (!this.Prev) this.hasReverse = true;
+		return this.Prev[i];
 	}
-
-dump() {
-	let s = '' + this.#first + ' ' + this.#last + ' ' + this.#length;// + '\n[';
-//	for (let i = 0; i < this.#next.length; i++)
-//			s += ' ' + this.#next[i];
-//	s += ']';
-	return s;
-}
 
 	/** Get first item on list.
 	 *  @return the first item on the list or 0 if the list is empty
 	 */
-	first() { return this.#first; }
-	top() { return this.#first; }
+	first() { return this.First; }
+	top() { return this.First; }
 	
 	/** Get the last item on list.
 	 *  @return the last item on the list or 0 if the list is empty
 	 */
-	last() { return this.#last; }
+	last() { return this.Last; }
 
 	/** Get an item based on its position in the list.
 	 *  @param i is position of index to be returned; negative
@@ -160,7 +163,7 @@ dump() {
 				if (--i == 0) return j;
 			}
 		} else if (i < 0) {
-			if (!this.#prev) this.addPrev();
+			if (!this.Prev) this.hasReverse = true;
         	for (let j = this.last(); j != 0; j = this.prev(j)) {
 				if (++i == 0) return j;
 			}
@@ -177,7 +180,7 @@ dump() {
 	 *  @param i is an item
 	 *  @return true if i is in the list, else false
 	 */
-	contains(i) { return this.valid(i) && i != 0 && this.#next[i] != -1; } 
+	contains(i) { return this.valid(i) && i != 0 && this.Next[i] != -1; } 
 
 	/** Insert an item into the list, relative to another. 
 	 *  @param i is item to insert
@@ -192,15 +195,15 @@ dump() {
 					 `List.insert: ${this.x2s(i)} ${this.x2s(j)} ${''+this}`);
 		if (value != undefined) this.value(i, value);
 		if (j == 0) {
-			if (this.empty()) this.#last = i;
-			this.#next[i] = this.#first; this.#first = i; this.#length++;
+			if (this.empty()) this.Last = i;
+			this.Next[i] = this.First; this.First = i; this.Length++;
 		} else {
-			this.#next[i] = this.#next[j]; this.#next[j] = i; this.#length++;
-			if (this.#last == j) this.#last = i;
+			this.Next[i] = this.Next[j]; this.Next[j] = i; this.Length++;
+			if (this.Last == j) this.Last = i;
 		}
-		if (this.#prev) {
-			this.#prev[i] = j;
-			if (i != this.last()) this.#prev[this.next(i)] = i;
+		if (this.Prev) {
+			this.Prev[i] = j;
+			if (i != this.last()) this.Prev[this.next(i)] = i;
 		}
 		return;
 	}
@@ -214,16 +217,16 @@ dump() {
 		ea && assert(i == 0 || this.contains(i));
 		if (i == this.last()) return 0;
 		let j;
-		if (i == 0) { j = this.#first;   this.#first = this.#next[j]; }
-		else	    { j = this.#next[i]; this.#next[i] = this.#next[j]; }
-		if (this.#last == j) this.#last = i;
-		this.#next[j] = -1; this.#length--;
-		if (this.#prev) {
+		if (i == 0) { j = this.First;   this.First = this.Next[j]; }
+		else	    { j = this.Next[i]; this.Next[i] = this.Next[j]; }
+		if (this.Last == j) this.Last = i;
+		this.Next[j] = -1; this.Length--;
+		if (this.Prev) {
 			if (i == 0)
-				this.#prev[this.first()] = 0;
+				this.Prev[this.first()] = 0;
 			else if (this.next(i) != 0)
-				this.#prev[this.next(i)] = i;
-			this.#prev[j] = 0;
+				this.Prev[this.next(i)] = i;
+			this.Prev[j] = 0;
 		}
 		if (this.hasValues) this.value(j,undefined);
 		return (i == 0 ? this.first() : this.next(i));

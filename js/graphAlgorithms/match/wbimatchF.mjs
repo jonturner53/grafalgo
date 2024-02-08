@@ -42,7 +42,7 @@ export default function wbimatchF(g, io=0, dmin=0, dmax=0, trace=0) {
 
 	// create flow graph, taking care to maintain edge numbers
 	let fg = new Flograph(g.n+2, g.n+g.edgeRange);
-	fg.setSource(g.n+1); fg.setSink(g.n+2);
+	fg.source = g.n+1; fg.sink = g.n+2;
 	for (let e = g.first(); e; e = g.next(e)) {
 		let u = (io.in(g.left(e),1) ? g.left(e) : g.right(e));
 		fg.join(u,g.mate(u,e),e); fg.cap(e,1);

@@ -18,16 +18,16 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  */
 
 export default class Map extends Top {
-	#keys;			// KeySet used to store keys
-	#top		    // id of the specific set in #keys used to represent map
-	#value;		    // #value[i] is value paired with key(i)
-	#size;          // number of key-value pairs
-	#free;			// list of unused pair ids
+	keys;      // KeySet used to store keys
+	top;       // id of the specific set in keys used to represent map
+	Value;     // Value[i] is value paired with key(i)
+	Size;      // number of key-value pairs
+	free;      // list of unused pair ids
 
-	#stringKey;
-	#stringValue;
+	stringKey;
+	stringValue;
 	
-	#compare;       // function comparing two keys
+	compare;       // function comparing two keys
 
 	/** Constructor for Map object.
 	 *  @param n is the initial index range for key-value pairs
@@ -37,15 +37,15 @@ export default class Map extends Top {
 	constructor(n=10, stringKey=false, stringValue=false) {
 		super(n);
 
-		this.#stringKey = stringKey;
-		this.#stringValue = stringValue;
-		this.#compare = (stringKey ? (a,b) => localeCompare : (a,b) => a-b);
+		this.stringKey = stringKey;
+		this.stringValue = stringValue;
+		this.compare = (stringKey ? (a,b) => localeCompare : (a,b) => a-b);
 
-		this.#keys = new KeySets(n, stringKey);
-		this.#top = 0; this.#size = 0;
-		this.#value = new Array(this.n+1).fill(stringKey ? '' : 0);
-		this.#free = new List(this.n+1);
-		for (let i = 1; i <= this.n; i++) this.#free.enq(i);
+		this.keys = new KeySets(n, stringKey);
+		this.top = 0; this.Size = 0;
+		this.Value = new Array(this.n+1).fill(stringKey ? '' : 0);
+		this.free = new List(this.n+1);
+		for (let i = 1; i <= this.n; i++) this.free.enq(i);
 	}
 
 	/** Assign a new value by copying from another Map object.
@@ -55,7 +55,7 @@ export default class Map extends Top {
         ea && assert(other != this &&
                 this.constructor.name == other.constructor.name);
         if (this.n == other.n || relaxed && this.n > other.n) this.clear();
-        else this.reset(other.n, this.#stringKey, this.#stringValue);
+        else this.reset(other.n, this.stringKey, this.stringValue);
 		for (let p = other.first(); p; p = other.next(p))
 			this.put(other.key(p), other.value(p));
 	}
@@ -64,47 +64,47 @@ export default class Map extends Top {
 	 *  @param other is another Map object.
 	 */
 	xfer(other) {
-		this._n = other.n;
-		this.#keys = other.#keys; other.#keys = null;
-		this.#value = other.#value; other.#value = null;
-		this.#free = other.#free; other.#free = null;
-		this.#top = other.#top; this.#size = other.#size;
+		this.n = other.n;
+		this.keys = other.keys; other.keys = null;
+		this.Value = other.Value; other.Value = null;
+		this.free = other.free; other.free = null;
+		this.top = other.top; this.Size = other.Size;
 
-		this.#stringKey = other.#stringKey;
-		this.#stringValue = other.#stringValue;
-		this.#compare = other.#compare;
+		this.stringKey = other.stringKey;
+		this.stringValue = other.stringValue;
+		this.compare = other.compare;
 	}
 
 	/** Expand the max size of this Map and possibly. */
 	expand(n) {
 		ea && assert(n > this.n);
-		let nu = new this.constructor(n, this.#stringKey, this.#stringValue);
+		let nu = new this.constructor(n, this.stringKey, this.stringValue);
 		nu.assign(this,true);
 		this.xfer(nu);
 	}
 
 	/** Remove all key-value pairs */
-	clear() { while (this.#top) this.deletePair(this.#top); }
+	clear() { while (this.top) this.deletePair(this.top); }
 
 	/** Return the number of key-value pairs. */
-	get size() { return this.#size; }
+	get size() { return this.Size; }
 
 	/** Return true if no key-value pairs. */
 	empty() { return this.size == 0; }
 
 	/** Return the first key-value pair. */
-	first() { return this.#keys.first(this.#top); }
+	first() { return this.keys.first(this.top); }
 
 	/** Return next key-value pair. */
-	next(p) { return this.#keys.next(p); }
+	next(p) { return this.keys.next(p); }
 
 	/** Get the key for a specified pair. */
-	key(p) { return this.#keys.key(p); }
+	key(p) { return this.keys.key(p); }
 
 	/** Get/set the value for a specified pair. */
 	value(p,v) {
-		if (v) this.#value[p] = v;
-		return this.#value[p];
+		if (v) this.Value[p] = v;
+		return this.Value[p];
 	}
 
 	/** Get the key-value pair for a specified key.
@@ -113,7 +113,7 @@ export default class Map extends Top {
 	 *  or 0 if there is none.
 	 */
 	getPair(k) {
-		return this.#keys.lookup(k, this.#top);
+		return this.keys.lookup(k, this.top);
 	}
 	
 	/** Get the value that a given key is mapped to.
@@ -122,7 +122,7 @@ export default class Map extends Top {
 	 */
 	get(k) {
 		let p = this.getPair(k);
-		return p ? this.#value[p] : undefined;
+		return p ? this.Value[p] : undefined;
 	}
 
 	/** Add/modify a key-value pair.
@@ -142,15 +142,15 @@ export default class Map extends Top {
 			this.value(p,v); return p;
 		}
 		if (v == undefined) return 0;
-		p = this.#free.deq();
+		p = this.free.deq();
 		if (!p) {
 			this.expand(Math.max(this.n+10, ~~(1.5*this.n)));
-			p = this.#free.deq();
+			p = this.free.deq();
 		}
-		this.#keys.key(p, k);
-		this.#top = this.#keys.insert(p, this.#top)
+		this.keys.key(p, k);
+		this.top = this.keys.insert(p, this.top)
 		this.value(p,v);
-		this.#size++;
+		this.Size++;
 		return p;
 	}
 
@@ -162,10 +162,10 @@ export default class Map extends Top {
 	 */
 	deletePair(p) {
 		if (!p || this.size == 0) return;
-		this.#top = (this.size > 1 ? this.#keys.delete(p, this.#top) : 0);
-		this.#free.enq(p);
+		this.top = (this.size > 1 ? this.keys.delete(p, this.top) : 0);
+		this.free.enq(p);
 		this.value(p,undefined);
-		this.#size--;
+		this.Size--;
 	}
 	
 	/** Determine if two Map objects are equal.
@@ -177,7 +177,7 @@ export default class Map extends Top {
         if (typeof other == 'string') {
             let s = other;
 			other = new this.constructor(this.n,
-						this.#stringKey, this.#stringValue);
+						this.stringKey, this.stringValue);
 			if (!other.fromString(s)) return s == this.toString();
         } else if (other.constructor.name != this.constructor.name) {
 			return false;
@@ -202,8 +202,8 @@ export default class Map extends Top {
 		for (let p = this.first(); p; p = this.next(p)) {
 			if (s) s += ' ';
 			if (fmt&1) s += label(p) + ':';
-			s += (this.#stringKey ? `"${this.key(p)}"` : ''+this.key(p)) + ':' +
-				 (this.#stringValue ? `"${this.value(p)}"` : ''+this.value(p));
+			s += (this.stringKey ? `"${this.key(p)}"` : ''+this.key(p)) + ':' +
+				 (this.stringValue ? `"${this.value(p)}"` : ''+this.value(p));
 		}
 		return '{' + s + '}';
 	}
@@ -229,14 +229,14 @@ export default class Map extends Top {
 					};
 
 		while (!sc.verify('}')) {
-			let k = next(this.#stringKey);
+			let k = next(this.stringKey);
 			if (k == null || !sc.verify(':')) return false;
-			let v = next(this.#stringValue);
+			let v = next(this.stringValue);
 			if (v == null) return false;
 			pairs.push([k,v]);
 			n++;
 		}
-		if (n > this.n) this.reset(n, this.#stringKey, this.#stringValue);
+		if (n > this.n) this.reset(n, this.stringKey, this.stringValue);
 		else this.clear();
 
 		for (let [k,v] of pairs) {

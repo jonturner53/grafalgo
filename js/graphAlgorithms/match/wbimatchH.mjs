@@ -52,7 +52,7 @@ export default function wbimatchH(bg, io=0, traceFlag=0) {
 
 	link = new Int32Array(g.n+1);
 	lab = new Float32Array(g.n+1);
-	free = new List(g.n); free.addPrev();
+	free = new List(g.n); free.hasReverse = true
 	border = new ArrayHeap(g.n,4);
 	cost = new Float32Array(g.n+1);
 

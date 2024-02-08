@@ -26,14 +26,14 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  or all edges incident to a specific vertex.
  */
 export default class Graph extends Top {
-	_firstEp;	// _firstEp[v] is first edge endpoint at v
-	_left;		// _left[e] is left endpoint of edge e
-	_right;		// _right[e] is right endpoint of edge e
-	_edges;		// sets of in-use and free edges
-	_epLists;	// lists of the edge endpoints at each vertex
-	_nabors;	// temporary list of neighbors used by fromString
+	firstEp;	// firstEp[v] is first edge endpoint at v
+	edges;		// sets of in-use and free edges
+	epLists;	// lists of the edge endpoints at each vertex
+	nabors;     // temporary list of neighbors used by fromString
 
-	_weight;	// _weight[e] is optional weight of edge e, initially unused
+	Left;		// Left[e] is left endpoint of edge e
+	Right;		// Right[e] is right endpoint of edge e
+	Weight;     // Weight[e] is optional weight of edge e, initially unused
 
 	/** Construct Graph with space for a specified # of vertices and edges.
 	 *  @param n is the number of vertices in the graph
@@ -42,28 +42,35 @@ export default class Graph extends Top {
 	constructor(n=10, erange=n) {
 		ea && assert(n > 0 && erange > 0);
 		super(n);
-		this._firstEp = new Int32Array(this.n+1);
-		this._left = new Int32Array(erange+1);
-		this._right = new Int32Array(erange+1);
-		this._edges = new ListPair(erange);
-		this._epLists = new ListSet(2*(erange+1));
-		this._weight = null;
+		this.firstEp = new Int32Array(this.n+1);
+		this.Left = new Int32Array(erange+1);
+		this.Right = new Int32Array(erange+1);
+		this.edges = new ListPair(erange);
+		this.epLists = new ListSet(2*(erange+1));
+		this.Weight = null;
 	}
 
-	get edgeRange() { return this._left.length-1; }
+	get edgeRange() { return this.Left.length-1; }
 
-	get hasWeights() { return (this._weight ? true : false); }
+	/** Determine if this object includes edge weights . */
+	get hasWeights() { return (this.Weight ? true : false); }
 	get hasLengths() { return this.hasWeights; }
-	get hasCosts() { return this.hasWeights; }
-	get hasBounds() { return this.hasWeights; }
+	get hasCosts()   { return this.hasWeights; }
+	get hasBounds()  { return this.hasWeights; }
 
-	addWeights() {
-		if (!this.hasWeights)
-			this._weight = new Float32Array(this.edgeRange+1);
+	/** Turn edge weights on or off.
+	 *  @param on is a boolean used to enable or disable edge weights
+	 */
+	set hasWeights(on) {
+		if (on && !this.Weight) {
+			this.Weight = new Float32Array(this.edgeRange+1);
+		} else if (!on && this.Weight) {
+			this.Weight = null;
+		}
 	}
-	addLengths() { this.addWeights(); }
-	addCosts() { this.addWeights(); }
-	addBounds() { this.addWeights(); }
+	set hasLengths(on) { this.hasWeights(on); }
+	set hasCosts(on)   { this.hasWeights(on); }
+	set hasBounds(on)  { this.hasWeights(on); }
 
 	/** Expand the vertex range and/or edge range of this object.
 	 *  @param n is the desired new vertex range
@@ -87,15 +94,15 @@ export default class Graph extends Top {
 		else
 			this.reset(other.n, other.m);
 
-		if (other.hasWeights && !this.hasWeights) this.addWeights();
-		if (!other.hasWeights && this.hasWeights) this._weight = null;
+		if ( other.hasWeights && !this.hasWeights) this.hasWeights = true;
+		if (!other.hasWeights &&  this.hasWeights) this.hasWeights = false;
 		for (let e = other.first(); e; e = other.next(e)) {
-			let ee = this._edges.in(e,2) ?
+			let ee = this.edges.in(e,2) ?
 						this.join(other.left(e), other.right(e), e) :
 						this.join(other.left(e), other.right(e));
 				// preserve edge numbers when possible; consider dropping that
 			if (other.hasWeights) {
-				this._weight[ee] = other.weight(e);
+				this.Weight[ee] = other.weight(e);
 			}
 		}
 	}
@@ -105,12 +112,12 @@ export default class Graph extends Top {
 	 */
 	xfer(other) {
 		super.xfer(other);
-		this._firstEp = other._firstEp;
-		this._left = other._left; this._right = other._right;
-		this._weight = other._weight;
-		this._edges = other._edges; this._epLists = other._epLists;
-		other._firstEp = other._left = other._right = other._weight = null;
-		other._edges = null; other._epLists = null;
+		this.firstEp = other.firstEp;
+		this.Left = other.Left; this.Right = other.Right;
+		this.Weight = other.Weight;
+		this.edges = other.edges; this.epLists = other.epLists;
+		other.firstEp = other.Left = other.Right = other.Weight = null;
+		other.edges = null; other.epLists = null;
 	}
 
 	/** Remove all the edges from a graph.  */
@@ -122,12 +129,12 @@ export default class Graph extends Top {
 	/** Get the number of edges.
 	 *  @return the number of edges in the graph.
 	 */
-	get m() { return this._edges.length(1); }
+	get m() { return this.edges.length(1); }
 
 	/** Get the largest edge number that is currently in use. */
-	get M() {
+	get emax() {
 		for (e = edgeRange; e > 0; e--)
-			if (this._edges.in(e,1)) return e;
+			if (this.edges.in(e,1)) return e;
 	}
 	
 	validVertex(u) { return 1 <= u && u <= this.n; }
@@ -136,7 +143,7 @@ export default class Graph extends Top {
 	 *  @param e is the edge number to be verified
 	 *  @return true if e is a valid edge number, else false.
 	 */
-	validEdge(e) { return this._edges.in(e,1); }
+	validEdge(e) { return this.edges.in(e,1); }
 	
 	/** Get the left endpoint of an edge.
 	 *  @param e is the edge of interest
@@ -145,7 +152,7 @@ export default class Graph extends Top {
 	left(e) {
 		ea && assert(this.validEdge(e),
 					 `Graph.left: invalid edge number: ${e}`);
-		return this._left[e];
+		return this.Left[e];
 	}
 	
 	/** Get the right endpoint of an edge.
@@ -155,7 +162,7 @@ export default class Graph extends Top {
 	right(e) {
 		ea && assert(this.validEdge(e),
 					 `Graph.right: invalid edge number: ${e}`);
-		return this._right[e];
+		return this.Right[e];
 	}
 
 	/** Get/set the weight of an edge.
@@ -165,10 +172,10 @@ export default class Graph extends Top {
 	 */
 	weight(e, w=null) {
 		if (w != null) {
-			if (!this.hasWeights) this.addWeights();
-			this._weight[e] = w;
+			if (!this.hasWeights) this.hasWeights = true;
+			this.Weight[e] = w;
 		}
-		return this.hasWeights ? this._weight[e] : 0;
+		return this.hasWeights ? this.Weight[e] : 0;
 	}
 	length(e,l) { return this.weight(e,l); }
 	cost(e,c) { return this.weight(e,c); }
@@ -181,21 +188,21 @@ export default class Graph extends Top {
 	 */
 	mate(v, e) {
 		ea && assert(this.validVertex(v) && this.validEdge(e) &&
-			   (v == this._left[e] || v == this._right[e]));
-		return v == this._left[e] ? this._right[e] : this._left[e];
+			   (v == this.Left[e] || v == this.Right[e]));
+		return v == this.Left[e] ? this.Right[e] : this.Left[e];
 	}
 	
 	/** Get the first edge in the overall list of edges.
 	 *  @return the first edge in the list
 	 */
-	first() { return this._edges.first(1); }
+	first() { return this.edges.first(1); }
 	
 	/** Get the next edge in the overall list of edges.
 	 *  @param e is the edge whose successor is requested
 	 *  @return the next edge in the list, or 0 if e is not in the list
 	 *  or it has no successor
 	 */
-	next(e) { return this._edges.next(e); }
+	next(e) { return this.edges.next(e); }
 	
 	/** Get the first edge incident to a vertex.
 	 *  @param v is the vertex of interest
@@ -203,7 +210,7 @@ export default class Graph extends Top {
 	 */
 	firstAt(v) { 
 		ea && assert(this.validVertex(v));
-		return Math.trunc(this._firstEp[v]/2);
+		return Math.trunc(this.firstEp[v]/2);
 	}
 	
 	/** Get the next edge in the adjacency list for a specific vertex.
@@ -214,9 +221,9 @@ export default class Graph extends Top {
 	 */
 	nextAt(v, e) {
 		ea && assert(this.validVertex(v) && this.validEdge(e));
-		if (v != this._left[e] && v != this._right[e]) return 0;
-		let ep = (v == this._left[e] ? 2*e : 2*e+1);
-		return Math.trunc(this._epLists.next(ep)/2);
+		if (v != this.Left[e] && v != this.Right[e]) return 0;
+		let ep = (v == this.Left[e] ? 2*e : 2*e+1);
+		return Math.trunc(this.epLists.next(ep)/2);
 	}
 
 	/** Join two vertices.
@@ -227,26 +234,26 @@ export default class Graph extends Top {
 	 *  @return the edge number for the new edge or 0
 	 *  on failure
 	 */
-	join(u, v, e=this._edges.first(2)) {
+	join(u, v, e=this.edges.first(2)) {
 		ea && assert(u != v && u > 0 && v > 0 &&
-			   (e > 0 || this._edges.first(2) == 0) &&
-			   !this._edges.in(e,1),
+			   (e > 0 || this.edges.first(2) == 0) &&
+			   !this.edges.in(e,1),
 			   `graph.join(${this.x2s(u)},${this.x2s(v)},` +
-			   `${this._edges.in(e,2)})`);
-		if (u > this.n || v > this.n || this._edges.length(2) == 0) {
+			   `${this.edges.in(e,2)})`);
+		if (u > this.n || v > this.n || this.edges.length(2) == 0) {
 			this.expand(Math.max(this.n, u, v),
-						Math.max(e, this._edges.n+1));
-			if (e == 0) e = this._edges.first(2);
+						Math.max(e, this.edges.n+1));
+			if (e == 0) e = this.edges.first(2);
 		}
-		this._edges.swap(e);
+		this.edges.swap(e);
 
 		// initialize edge information
-		this._left[e] = u; this._right[e] = v;
-		if (this.hasWeights) this._weight[e] = 0;
+		this.Left[e] = u; this.Right[e] = v;
+		if (this.hasWeights) this.Weight[e] = 0;
 	
 		// add edge to the endpoint lists
-		this._firstEp[u] = this._epLists.join(this._firstEp[u], 2*e);
-		this._firstEp[v] = this._epLists.join(this._firstEp[v], 2*e+1);
+		this.firstEp[u] = this.epLists.join(this.firstEp[u], 2*e);
+		this.firstEp[v] = this.epLists.join(this.firstEp[v], 2*e+1);
 	
 		return e;
 	}
@@ -257,10 +264,10 @@ export default class Graph extends Top {
 	 */
 	delete(e) {
 		ea && assert(this.validEdge(e));
-		this._edges.swap(e);
-		let u = this._left[e]; let v = this._right[e];
-		this._firstEp[u] = this._epLists.delete(2*e,   this._firstEp[u]);
-		this._firstEp[v] = this._epLists.delete(2*e+1, this._firstEp[v]);
+		this.edges.swap(e);
+		let u = this.Left[e]; let v = this.Right[e];
+		this.firstEp[u] = this.epLists.delete(2*e,   this.firstEp[u]);
+		this.firstEp[v] = this.epLists.delete(2*e+1, this.firstEp[v]);
 		return true;
 	}
 	
@@ -281,7 +288,7 @@ export default class Graph extends Top {
 	 */
 	sortEplist(u,ecmp) {
 		ea && assert(u != 0 && this.validVertex(u));
-		if (this._firstEp[u] == 0) return; // empty list
+		if (this.firstEp[u] == 0) return; // empty list
 
 		// if already sorted, skip sorting step
 		if (!ecmp) {
@@ -295,9 +302,9 @@ export default class Graph extends Top {
 		// copy endpoints in endpoint list for u into an array
 		// and remove them from endpoint list
 		let epl = [];
-		for (let first = this._firstEp[u]; first; first = this._firstEp[u]) {
+		for (let first = this.firstEp[u]; first; first = this.firstEp[u]) {
 			epl.push(first);
-			this._firstEp[u] = this._epLists.delete(first, first);
+			this.firstEp[u] = this.epLists.delete(first, first);
 		}
 
 		if (ecmp)
@@ -307,9 +314,9 @@ export default class Graph extends Top {
 	
 		// now rebuild endpoint list at u
 		for (let j = 1; j < epl.length; j++) {
-			this._epLists.join(epl[0], epl[j]);
+			this.epLists.join(epl[0], epl[j]);
 		}
-		this._firstEp[u] = epl[0];
+		this.firstEp[u] = epl[0];
 	}
 	
 	/** Sort adjacency lists for all vertices by "other endpoint". */
@@ -339,7 +346,7 @@ export default class Graph extends Top {
 			}
 		} else {
 			let i = 0; evec = new Array(this.m);
-			for (let e = this.first(); e != 0; e = this.next(e)) {
+			for (let e = this.first(); e; e = this.next(e)) {
 				if (this.left(e) < this.right(e)) {
 					evec[i] = [this.left(e), this.right(e), this.weight(e), e];
 				} else {
@@ -348,10 +355,9 @@ export default class Graph extends Top {
 				i++;
 			}
 		}
-		evec.sort((t1, t2) => (t1[0] < t2[0] ? -1 : (t1[0] > t2[0] ? 1 :
-							  	(t1[1] < t2[1] ? -1 : (t1[1] > t2[1] ? 1 :
-								  (t1[2] < t2[2] ? -1 : (t1[2] > t2[2] ? 1 : 0
-				  )))))));
+		evec.sort((t1, t2) => (t1[0] != t2[0] ? t1[0] - t2[0] :
+							   (t1[1] != t2[1] ? t1[1] - t2[1] :
+								(t1[2] != t2[2] ? t1[2] - t2[2] : 0))));
 		for (let i = 0; i < evec.length; i++) evec[i] = evec[i][3];
 		return evec;
 	}
@@ -619,7 +625,7 @@ export default class Graph extends Top {
 	 *  and sample the n array
 	 */
 	randomEdge() {
-		let edges = this._edges;
+		let edges = this.edges;
 		if (edges.nIn == 0) return 0;
 		if (edges.length(1) < this.edgeRange / 20) {
 			let i = randomInteger(1, edges.length(1));
@@ -642,21 +648,21 @@ export default class Graph extends Top {
 	scramble() {
 		let vp = randomPermutation(this.n);
 		let ep = randomPermutation(this.edgeRange);
-		let weight = this._weight; this._weight = null;
-		this._shuffle(vp, ep);
-		if (weight) { shuffle(weight, ep); this._weight = weight; }
+		let weight = this.Weight; this.Weight = null;
+		this.shuffle(vp, ep);
+		if (weight) { shuffle(weight, ep); this.Weight = weight; }
 
 		// finally scramble individual eplists
 		for (let u = 1; u <= this.n; u++) {
-			if (this._firstEp[u] == 0) continue;
-			let epl = [0]; let ee = this._firstEp[u];
+			if (this.firstEp[u] == 0) continue;
+			let epl = [0]; let ee = this.firstEp[u];
 			while (ee != 0) {
-				epl.push(ee); ee = this._epLists.delete(ee, ee);
+				epl.push(ee); ee = this.epLists.delete(ee, ee);
 			}
 			scramble(epl);
 			for (let i = 2; i < epl.length; i++)
-				this._epLists.join(epl[1], epl[i]);
-			this._firstEp[u] = epl[1];
+				this.epLists.join(epl[1], epl[i]);
+			this.firstEp[u] = epl[1];
 		}
 		return ep;
 	}
@@ -667,7 +673,7 @@ export default class Graph extends Top {
 	 *  @param ep is a permutation on the edge numbers (including unused ones)
 	 *  mapping edge e to ep[e-1]
 	 */
-	_shuffle(vp, ep) {
+	shuffle(vp, ep) {
 		let left = new Array(this.edgeRange).fill(0);
 		let right = new Array(this.edgeRange);
 		for (let e = this.first(); e != 0; e = this.next(e)) {
@@ -687,7 +693,7 @@ export default class Graph extends Top {
 	 *  will assign random integer weights in 1..10.
 	 */
 	randomWeights(f) {
-		if (!this.hasWeights) this.addWeights();
+		if (!this.hasWeights) this.hasWeights = true;
 		let fargs = [... arguments].slice(1);
 		for (let e = this.first(); e != 0; e = this.next(e)) {
 			let w = f(...fargs); this.weight(e, w);

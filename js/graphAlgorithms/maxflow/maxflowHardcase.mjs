@@ -42,7 +42,7 @@ export default function maxflowHardcase(k1, k2) {
 	let m = 20*k1 + k2*k2 + + 4*k2;	
 
 	let g = new Flograph(n,m);
-	g.setSource(1); g.setSink(n);
+	g.source = 1; g.sink = n;
 
 	// build short chain from source
 	let e;

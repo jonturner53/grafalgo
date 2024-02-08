@@ -19,29 +19,29 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  is specified when an FibHeaps object is constructed.
  */
 export default class FibHeaps extends Forest {
-	#key;        // #key[i] is key of item i
-	#rank;       // #rank[i] gives rank of item i
-	#mark;       // #mark[i] is true if item i is considered marked
+	Key;        // Key[i] is key of item i
+	Rank;       // Rank[i] gives rank of item i
+	Mark;       // Mark[i] is true if item i is considered marked
 
-	#rankVec;    // #rankVec is an auxiliary array used during restructuring
-	#tmpq;       // #tmpq is a List object used as a temporary queue 
+	rankVec;    // rankVec is an auxiliary array used during restructuring
+	tmpq;       // tmpq is a List object used as a temporary queue 
 
 	changekeys;
 	decreasekeySteps;
 	mergesteps;
 
-	#MAXRANK = 32;
+	MAXRANK = 32;
 
 	/** Constructor for FibHeaps object.
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) {
 		super(n);
-		this.#key = new Float32Array(this.n+1);
-		this.#rank = new Int32Array(this.n+1);
-		this.#mark = new Int8Array(this.n+1);
-		this.#rankVec = new Int32Array(this.#MAXRANK+1);
-		this.#tmpq = new List(this.n);
+		this.Key = new Float32Array(this.n+1);
+		this.Rank = new Int32Array(this.n+1);
+		this.Mark = new Int8Array(this.n+1);
+		this.rankVec = new Int32Array(this.MAXRANK+1);
+		this.tmpq = new List(this.n);
 
 		this.clearStats();
 	}
@@ -52,9 +52,9 @@ export default class FibHeaps extends Forest {
 	assign(other, relaxed=false) {
 		super.assign(fh, relaxed);
 		for (let i = 1; i < other.n; i++) {
-			this.#key[i] = other.#key[i];
-			this.#rank[i] = other.#rank[i];
-			this.#mark[i] = other.#mark[i];
+			this.Key[i] = other.Key[i];
+			this.Rank[i] = other.Rank[i];
+			this.Mark[i] = other.Mark[i];
 		}
 		this.clearStats();
 	}
@@ -64,9 +64,9 @@ export default class FibHeaps extends Forest {
 	 */
 	xfer(other) {
 		super.xfer(other);
-		this.#key = fh.#key; this.#rank = fh.#rank; this.#mark = fh.#mark;
-		this.#rankVec = fh.#rankVec; this.#tmpq = fh.#tmpq;
-		fh.#key = fh.#rank = fh.#mark = fh.#rankVec = fh.#tmpq = null;
+		this.Key = fh.Key; this.Rank = fh.Rank; this.Mark = fh.Mark;
+		this.rankVec = fh.rankVec; this.tmpq = fh.tmpq;
+		fh.Key = fh.Rank = fh.Mark = fh.rankVec = fh.tmpq = null;
 		this.clearStats();
 	}
 	
@@ -74,7 +74,7 @@ export default class FibHeaps extends Forest {
 	clear() {
 		super.clear();
 		for (let i = 0; i < this.n; i++) {
-			this.#key[i] = this.#rank[i] = 0; this.#mark[i] = false;
+			this.Key[i] = this.Rank[i] = 0; this.Mark[i] = false;
 		}
 	}
 
@@ -84,20 +84,20 @@ export default class FibHeaps extends Forest {
 
 	/** Get/set the key of a heap item. */
 	key(i, v=false) {
-		if (v !== false) this.#key[i] = v;
-		return this.#key[i];
+		if (v !== false) this.Key[i] = v;
+		return this.Key[i];
 	}
 
 	/** Get/set the rank of a heap item. */
 	rank(i, r=false) {
-		if (r !== false) this.#rank[i] = r;
-		return this.#rank[i];
+		if (r !== false) this.Rank[i] = r;
+		return this.Rank[i];
 	}
 
 	/** Return mark of a heap item. */
 	mark(i, m=-1) { 	
-		if (m != -1) this.#mark[i] = m;
-		return this.#mark[i];
+		if (m != -1) this.Mark[i] = m;
+		return this.Mark[i];
 	}
 
 	/** Return a child of a heap item. */
@@ -177,9 +177,9 @@ export default class FibHeaps extends Forest {
 	 *  @return the root of the the tree root with the smallest key,
 	 *  following the merging
 	 */
-	#mergeRoots(r0) {
-		let key = this.#key; let rank = this.#rank;
-		let tmpq = this.#tmpq; let rvec = this.#rankVec;
+	mergeRoots(r0) {
+		let key = this.Key; let rank = this.Rank;
+		let tmpq = this.tmpq; let rvec = this.rankVec;
 
 		// Build queue of roots and find root with smallest key
 		let minRoot = r0;
@@ -227,7 +227,7 @@ export default class FibHeaps extends Forest {
 		this.rank(h,0);
 		if (!this.nextSibling(h)) return [h,0];
 		let r = this.ungroup(h,h); // r is first root remaining in tree group
-		return [h, (r ? this.#mergeRoots(r) : 0)];
+		return [h, (r ? this.mergeRoots(r) : 0)];
 	}
 	
 	/** Delete an item from a heap.

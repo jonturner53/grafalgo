@@ -17,43 +17,43 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  by its first item.
  */
 export default class ListSet extends Top {
-	#next;		// #next[i] is next item on list or 0 for last item
-	#prev;		// #prev[i] is previous item on list or last for first item,
+	Next;		// Next[i] is next item on list or 0 for last item
+	Prev;		// Prev[i] is previous item on list or last for first item,
 				// where last is the last item on the list
 
 	constructor(n=10) {
 		super(n);
-		this.#next = new Int32Array(this.n+1);
-		this.#prev = new Int32Array(this.n+1);
+		this.Next = new Int32Array(this.n+1);
+		this.Prev = new Int32Array(this.n+1);
 		// initialize to singleton lists
-		this.#next.fill(0);
-		for (let i = 0; i <= this.n; i++) this.#prev[i] = i;
+		this.Next.fill(0);
+		for (let i = 0; i <= this.n; i++) this.Prev[i] = i;
 	}
 
 	assign(other, relaxed=false) {
 		super.assign(other, relaxed);
 		for (let i = 1; i <= other.n; i++) {
-			this.#next[i] = other.#next[i]; this.#prev[i] = other.#prev[i];
+			this.Next[i] = other.Next[i]; this.Prev[i] = other.Prev[i];
 		}
 	}
 
 	xfer(other) {
 		super.xfer(other);
-		this.#next = other.#next; this.#prev = other.#prev;
-		other.#next = other.#prev = null;
+		this.Next = other.Next; this.Prev = other.Prev;
+		other.Next = other.Prev = null;
 	}
 	
 	/** Clear the data structure, moving all items into single node lists.
 	*/
 	clear() {
 		for (let i = 1; i <= this.n; i++) {
-			this.#next[i] = 0; this.#prev[i] = i;
+			this.Next[i] = 0; this.Prev[i] = i;
 		}
 	}
 
 	isfirst(i) {
 		ea && assert(this.valid(i));
-		return this.#next[this.#prev[i]] == 0;
+		return this.Next[this.Prev[i]] == 0;
 	}
 	
 	/** Get the last item in a list.
@@ -62,7 +62,7 @@ export default class ListSet extends Top {
 	 */
 	last(f) {
 		ea && assert(this.isfirst(f));
-		return this.#prev[f];
+		return this.Prev[f];
 	}
 
 	/** Get the next list item.
@@ -71,7 +71,7 @@ export default class ListSet extends Top {
 	 */
 	next(i) {
 		ea && assert(this.valid(i));
-		return this.#next[i];
+		return this.Next[i];
 	}
 	
 	/** Get the previous list item.
@@ -79,7 +79,7 @@ export default class ListSet extends Top {
 	 *  @return the item that precedes i in its list
 	 */
 	prev(i) {
-		return (this.isfirst(i) ? 0 : this.#prev[i]);
+		return (this.isfirst(i) ? 0 : this.Prev[i]);
 	}
 
 	/** Find the first item in a list. */
@@ -94,7 +94,7 @@ export default class ListSet extends Top {
 	 */
 	singleton(i) {
 		ea && assert(this.valid(i));
-		return this.#prev[i] == i;
+		return this.Prev[i] == i;
 	}
 	
 	/** Find the start of a list.
@@ -114,9 +114,9 @@ export default class ListSet extends Top {
 	 */
 	rotate(f, i) {
 		if (i == f) return i;
-		this.#next[this.last(f)] = f;
-		this.#prev[f] = this.#prev[f];
-		this.#next[this.#prev[i]] = 0;
+		this.Next[this.last(f)] = f;
+		this.Prev[f] = this.Prev[f];
+		this.Next[this.Prev[i]] = 0;
 		return i;
 	}
 	
@@ -132,13 +132,13 @@ export default class ListSet extends Top {
 		let l = this.last(f); let nf = this.next(f);
 		let pi = this.prev(i); let ni = this.next(i);
 		if (i == f) {
-			this.#prev[nf] = this.#prev[f]; f = nf;
+			this.Prev[nf] = this.Prev[f]; f = nf;
 		} else if (i == l) {
-			this.#prev[f] = pi; this.#next[pi] = 0;
+			this.Prev[f] = pi; this.Next[pi] = 0;
 		} else {
-			this.#prev[ni] = pi; this.#next[pi] = ni;
+			this.Prev[ni] = pi; this.Next[pi] = ni;
 		}
-		this.#next[i] = 0; this.#prev[i] = i;
+		this.Next[i] = 0; this.Prev[i] = i;
 		return f;
 	}
 	
@@ -153,9 +153,9 @@ export default class ListSet extends Top {
 		if (f2 == 0 || f1 == f2) return f1;
 		if (f1 == 0) return f2;
 		let l1 = this.last(f1); let l2 = this.last(f2);
-		this.#next[l1] = f2;
-		this.#prev[f2] = l1;
-		this.#prev[f1] = l2
+		this.Next[l1] = f2;
+		this.Prev[f2] = l1;
+		this.Prev[f1] = l2
 		return f1;
 	}
 
@@ -164,8 +164,8 @@ export default class ListSet extends Top {
 		ea && assert (this.valid(f) && this.valid(i) && this.isfirst(f));
 		if (i == 0 || i == f) return;
 		let p = this.prev(i); let s = this.next(i);
-		this.#next[p] = s; this.#prev[s] = p;
-		this.#next[i] = 0; this.#prev[i] = i;
+		this.Next[p] = s; this.Prev[s] = p;
+		this.Next[i] = 0; this.Prev[i] = i;
 	}
 
 	/** Sort the lists in ascending order.

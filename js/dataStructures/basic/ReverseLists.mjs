@@ -17,46 +17,46 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  by swapping the role of the next/prev pointers.
  */
 export default class ReverseLists extends Top {
-	#nabor1;		// nabor1[i] is one of the neighbors of i in its list
-	#nabor2;		// nabor2[i] is the other neighbor of i in its list
+	nabor1;		// nabor1[i] is one of the neighbors of i in its list
+	nabor2;		// nabor2[i] is the other neighbor of i in its list
 
 	constructor(n=10) {
 		super(n);
-		this.#nabor1 = new Int32Array(this.n+1);
-		this.#nabor2 = new Int32Array(this.n+1);
+		this.nabor1 = new Int32Array(this.n+1);
+		this.nabor2 = new Int32Array(this.n+1);
 		// initialize to singleton lists
 		for (let i = 0; i <= this.n; i++) {
-			this.#nabor1[i] = 0; this.#nabor2[i] = -i;
+			this.nabor1[i] = 0; this.nabor2[i] = -i;
 		}
-		this.#nabor2[0] = 0;
+		this.nabor2[0] = 0;
 	}
 
 	assign(other, relaxed=false) {
 		super.assign(other, relaxed);
 		for (let i = 1; i <= other.n; i++) {
-			this.#nabor1[i] = other.#nabor1[i]; this.#nabor2[i] = other.#nabor2[i];
+			this.nabor1[i] = other.nabor1[i]; this.nabor2[i] = other.nabor2[i];
 		}
 	}
 
 	xfer(other) {
 		super.xfer(other);
 		if (other == this) return;
-		this._n = other.n;
-		this.#nabor1 = other.#nabor1; this.#nabor2 = other.#nabor2;
-		other.#nabor1 = other.#nabor2 = null;
+		this.n = other.n;
+		this.nabor1 = other.nabor1; this.nabor2 = other.nabor2;
+		other.nabor1 = other.nabor2 = null;
 	}
 	
 	/** Clear the data structure, moving all items into singletons.
 	*/
 	clear() {
 		for (let i = 1; i <= this.n; i++) {
-			this.#nabor1[i] = 0; this.#nabor2[i] = -i;
+			this.nabor1[i] = 0; this.nabor2[i] = -i;
 		}
 	}
 
-	isFirst(i) { return this.#nabor1[i] < 0 || this.#nabor2[i] < 0; }
+	isFirst(i) { return this.nabor1[i] < 0 || this.nabor2[i] < 0; }
 
-	isLast(i) { return this.#nabor1[i] == 0 || this.#nabor2[i] == 0; }
+	isLast(i) { return this.nabor1[i] == 0 || this.nabor2[i] == 0; }
 	
 	/** Get the last item in a list.
 	 *  @param f is the first item in a list
@@ -64,7 +64,7 @@ export default class ReverseLists extends Top {
 	 */
 	last(f) {
 		ea && assert(this.valid(f) && this.isFirst(f));
-		return this.#nabor1[f] < 0 ? -this.#nabor1[f] : -this.#nabor2[f];
+		return this.nabor1[f] < 0 ? -this.nabor1[f] : -this.nabor2[f];
 	}
 
 	/** Get the next list item.
@@ -74,7 +74,7 @@ export default class ReverseLists extends Top {
 	 */
 	next(i, j) {
 		ea && assert(this.valid(i) && i != 0 && this.valid(j));
-		let n1 = this.#nabor1[i]; let n2 = this.#nabor2[i];
+		let n1 = this.nabor1[i]; let n2 = this.nabor2[i];
 		return [j == 0 ? (n1 >= 0 ? n1 : n2) :
 			   			 (j == n1 ? n2 : n1), i];
 	}
@@ -88,7 +88,7 @@ export default class ReverseLists extends Top {
 	prev(i, j) {
 		ea && assert(this.valid(i));
 		if (this.isFirst(i)) return [0, i];
-		let n1 = this.#nabor1[i]; let n2 = this.#nabor2[i];
+		let n1 = this.nabor1[i]; let n2 = this.nabor2[i];
 		return [j == 0 ? (n1 != 0 ? n1 : n2) :
 					     (j == n1 ? n2 : n1), i];
 	}
@@ -99,7 +99,7 @@ export default class ReverseLists extends Top {
 	 */
 	singleton(i) {
 		ea && assert(this.valid(i));
-		return this.#nabor1[i] == -i || this.#nabor2[i] == -i;
+		return this.nabor1[i] == -i || this.nabor2[i] == -i;
 	}
 	
 	/** Remove the first item from a list.
@@ -110,16 +110,16 @@ export default class ReverseLists extends Top {
 		ea && assert(this.valid(f) && this.isFirst(f));
 		if (this.singleton(f)) return 0;
 		let s;
-		if (this.#nabor1[f] < 0) {
-			s = this.#nabor2[f];
-			if (f == this.#nabor1[s]) this.#nabor1[s] = this.#nabor1[f];
-			else this.#nabor2[s] = this.#nabor1[f];
-		} else { // this.#nabor2[f] < 0
-			s = this.#nabor1[f];
-			if (f == this.#nabor1[s]) this.#nabor1[s] = this.#nabor2[f];
-			else this.#nabor2[s] = this.#nabor2[f];
+		if (this.nabor1[f] < 0) {
+			s = this.nabor2[f];
+			if (f == this.nabor1[s]) this.nabor1[s] = this.nabor1[f];
+			else this.nabor2[s] = this.nabor1[f];
+		} else { // this.nabor2[f] < 0
+			s = this.nabor1[f];
+			if (f == this.nabor1[s]) this.nabor1[s] = this.nabor2[f];
+			else this.nabor2[s] = this.nabor2[f];
 		}
-		this.#nabor1[f] = 0; this.#nabor2[f] = -f;
+		this.nabor1[f] = 0; this.nabor2[f] = -f;
 		return s;
 	}
 	
@@ -134,12 +134,12 @@ export default class ReverseLists extends Top {
 		if (f1 == 0) return f2;
 		ea && assert(this.isFirst(f1) && this.isFirst(f2));
 		let l1 = this.last(f1); let l2 = this.last(f2);
-		if (this.#nabor1[f1] < 0)  this.#nabor1[f1] = -l2;
-		else 					   this.#nabor2[f1] = -l2;
-		if (this.#nabor1[f2] < 0)  this.#nabor1[f2] = l1;
-		else					   this.#nabor2[f2] = l1;
-		if (this.#nabor1[l1] == 0) this.#nabor1[l1] = f2;
-		else					   this.#nabor2[l1] = f2;
+		if (this.nabor1[f1] < 0)  this.nabor1[f1] = -l2;
+		else 					  this.nabor2[f1] = -l2;
+		if (this.nabor1[f2] < 0)  this.nabor1[f2] = l1;
+		else					  this.nabor2[f2] = l1;
+		if (this.nabor1[l1] == 0) this.nabor1[l1] = f2;
+		else					  this.nabor2[l1] = f2;
 		return f1;
 	}
 
@@ -150,10 +150,10 @@ export default class ReverseLists extends Top {
 	reverse(f) {
 		if (this.singleton(f)) return f;
 		let l = this.last(f);
-		if (this.#nabor1[f] < 0)  this.#nabor1[f] = 0;
-		else					  this.#nabor2[f] = 0;
-		if (this.#nabor1[l] == 0) this.#nabor1[l] = -f;
-		else					  this.#nabor2[l] = -f;
+		if (this.nabor1[f] < 0)  this.nabor1[f] = 0;
+		else					 this.nabor2[f] = 0;
+		if (this.nabor1[l] == 0) this.nabor1[l] = -f;
+		else					 this.nabor2[l] = -f;
 		return l
 	}
 

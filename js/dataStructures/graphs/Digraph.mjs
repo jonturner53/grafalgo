@@ -17,7 +17,7 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  in adjuacency lists.
  */
 export default class Digraph extends Graph {
-	_firstEpOut		// _firstEpOut[u] is endpoint of first outgoing edge
+	firstEpOut		// firstEpOut[u] is endpoint of first outgoing edge
 					// in u's adjacency list
 
 	/** Constructor for directed graph
@@ -26,7 +26,7 @@ export default class Digraph extends Graph {
 	 */
 	constructor(n, erange=n) {
 		super(n, erange);
-		this._firstEpOut = new Int32Array(this.n+1);
+		this.firstEpOut = new Int32Array(this.n+1);
 	} 
 
 	/** Assign one graph to another by copying its contents.
@@ -35,7 +35,7 @@ export default class Digraph extends Graph {
 	assign(other, relaxed=false) {
 		super.assign(other, relaxed);
 		for (let u = 1; u <= other.n; u++)
-			this._firstEpOut[u] = other._firstEpOut[u];
+			this.firstEpOut[u] = other.firstEpOut[u];
 	}
 	
 	/** Assign one graph to another by transferring its contents.
@@ -43,7 +43,7 @@ export default class Digraph extends Graph {
 	 */
 	xfer(other) {
 		super.xfer(other)
-		this._firstEpOut = other._firstEpOut; other._firstEpOut = null;
+		this.firstEpOut = other.firstEpOut; other.firstEpOut = null;
 	}
 
 	/** Get the tail of a directed edge.
@@ -84,7 +84,7 @@ export default class Digraph extends Graph {
 	 *  @return the first edge in the list of edges leaving u, or 0 if
 	 *  no such edge
 	 */ 
-	firstOut(u) { return Math.trunc(this._firstEpOut[u]/2); }
+	firstOut(u) { return Math.trunc(this.firstEpOut[u]/2); }
 
 	/** Get the next edge leaving u.
 	 *  @param u is a vertex
@@ -153,23 +153,23 @@ export default class Digraph extends Graph {
 	 *  @return the edge number for the new edge or 0
 	 *  on failure
 	 */
-	join(u, v, e=this._edges.first(2)) {
-		ea && assert(u > 0 && v > 0 && (e > 0 || this._edges.first(2) == 0) &&
-			   		 this._edges.length(2));
-		if (u > this.n || v > this.n || this._edges.length(2) == 0) {
-			this.expand(Math.max(this.n, u, v), Math.max(e, this._edges.n+1));
-			if (e == 0) e = this._edges.first(2);
+	join(u, v, e=this.edges.first(2)) {
+		ea && assert(u > 0 && v > 0 && (e > 0 || this.edges.first(2) == 0) &&
+			   		 this.edges.length(2));
+		if (u > this.n || v > this.n || this.edges.length(2) == 0) {
+			this.expand(Math.max(this.n, u, v), Math.max(e, this.edges.n+1));
+			if (e == 0) e = this.edges.first(2);
 		}
-		this._edges.swap(e);
+		this.edges.swap(e);
 
 		// initialize edge information
-		this._left[e] = u; this._right[e] = v;
+		this.Left[e] = u; this.Right[e] = v;
 	
 		// add edge to the endpoint lists
-		if (this._firstEpOut[u] == 0) this._firstEpOut[u] = 2*e;
-			// this._firstEpOut[u] changes only with first outgoing edge
-		this._firstEp[u] = this._epLists.join(this._firstEp[u], 2*e);
-		this._firstEp[v] = this._epLists.join(2*e+1, this._firstEp[v]);
+		if (this.firstEpOut[u] == 0) this.firstEpOut[u] = 2*e;
+			// this.firstEpOut[u] changes only with first outgoing edge
+		this.firstEp[u] = this.epLists.join(this.firstEp[u], 2*e);
+		this.firstEp[v] = this.epLists.join(2*e+1, this.firstEp[v]);
 			// incoming edges inserted at the front of the list,
 			// to keep them separate from outputs
 	
@@ -183,7 +183,7 @@ export default class Digraph extends Graph {
 		ea && assert(this.validEdge(e));
 		let u = this.left(e);
 		if (e == this.firstOut(u))
-			this._firstEpOut[u] = 2 * this.nextOut(u,e);
+			this.firstEpOut[u] = 2 * this.nextOut(u,e);
 		super.delete(e);
 	}
 
@@ -209,7 +209,7 @@ export default class Digraph extends Graph {
 		// now determine the firstEpOut value for re-ordered list
 		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e)) {
 				if (u == this.tail(e)) {
-				this._firstEpOut[u] = 2*e; break;
+				this.firstEpOut[u] = 2*e; break;
 			}
 		}
 	}
@@ -351,22 +351,22 @@ export default class Digraph extends Graph {
 		let ep = super.scramble();
 		// separate inputs/outputs in epLists
 		for (let u = 1; u <= this.n; u++) {
-			this._firstEpOut[u] = 0;
-			let ep = this._firstEp[u];
+			this.firstEpOut[u] = 0;
+			let ep = this.firstEp[u];
 			if (ep == 0) continue;
 			let epl = ep;
-			while (ep != 0 && ep != this._firstEpOut[u]) {
+			while (ep != 0 && ep != this.firstEpOut[u]) {
 				// if ep is an output, move it to end of eplist
-				let epNext = this._epLists.next(ep);
+				let epNext = this.epLists.next(ep);
 				if (ep%2 == 0) {
-					epl = this._epLists.delete(ep, epl);
-					epl = this._epLists.join(epl, ep);
-					if (this._firstEpOut[u] == 0)
-						this._firstEpOut[u] = ep;
+					epl = this.epLists.delete(ep, epl);
+					epl = this.epLists.join(epl, ep);
+					if (this.firstEpOut[u] == 0)
+						this.firstEpOut[u] = ep;
 				}
 				ep = epNext;
 			}
-			this._firstEp[u] = epl;
+			this.firstEp[u] = epl;
 		}
 		return ep;
 	}

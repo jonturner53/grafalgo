@@ -18,8 +18,8 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  set of leftist heaps.
  */
 export default class LeftistHeaps extends BinaryForest {
-	#key;    	// #key[i] is key of item i
-	#rank;	    // #rank[i] gives rank of item i
+	Key;    	// Key[i] is key of item i
+	Rank;	    // Rank[i] gives rank of item i
 
     meldsteps;         // steps in meld operations
 
@@ -32,8 +32,8 @@ export default class LeftistHeaps extends BinaryForest {
 	constructor(n=10) {
 		super(n);
 
-		this.#key = new Float32Array(this.n+1)
-		this.#rank = new Int32Array(this.n+1).fill(1,1);
+		this.Key = new Float32Array(this.n+1)
+		this.Rank = new Int32Array(this.n+1).fill(1,1);
 
 	    this.clearStats();
 	}
@@ -56,14 +56,14 @@ export default class LeftistHeaps extends BinaryForest {
 	 */
 	xfer(other) {
 		super.xfer(other);
-		this.#key = other.#key; this.#rank = other.#rank;
-		other.#key = other.#rank = null;
+		this.Key = other.Key; this.Rank = other.Rank;
+		other.Key = other.Rank = null;
 	}
 
 	/** Revert to initial state. */
 	clear() {
 		super.clear();
-		this.#key.fill(0); this.#rank.fill(1,1);
+		this.Key.fill(0); this.Rank.fill(1,1);
 	}
 
 	clearStats() {
@@ -72,14 +72,14 @@ export default class LeftistHeaps extends BinaryForest {
 
 	/** Return key of a heap item. */
 	key(i, k=false) {
-		if (k !== false) this.#key[i] = k;
-		return this.#key[i];
+		if (k !== false) this.Key[i] = k;
+		return this.Key[i];
 	}
 
 	/** Return rank of a heap item. */
 	rank(i, r=false) {
-		if (r !== false) this.#rank[i] = r;
-		return this.#rank[i];
+		if (r !== false) this.Rank[i] = r;
+		return this.Rank[i];
 	}
 
 	/** Meld two heaps.
@@ -136,7 +136,7 @@ export default class LeftistHeaps extends BinaryForest {
 		let lh = this.left(h); let rh = this.right(h);
 		if (lh) this.cut(lh); if (rh) this.cut(rh);
 		let hnew = this.meld(lh, rh);
-		this.#rank[h] = 1;
+		this.Rank[h] = 1;
 		return [h,hnew];
 	}
 

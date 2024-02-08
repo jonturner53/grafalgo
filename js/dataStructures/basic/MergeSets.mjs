@@ -19,8 +19,8 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  supports constant-time union of two sets.
  */
 export default class MergeSets extends Top {
-	#p;			// #p[i] is parent of i
-	#rank;	 	// #rank[i] is rank of i
+	P;			// P[i] is parent of i
+	Rank;	 	// Rank[i] is rank of i
 
 	merges;
 	finds;
@@ -28,9 +28,9 @@ export default class MergeSets extends Top {
 	
 	constructor(n=10) {
 		super(n);
-		this.#p = new Int32Array(this.n+1); 
-		this.#rank = new Int32Array(this.n+1);
-		this.clear();
+		this.P = new Int32Array(this.n+1); 
+		for (let i = 1; i <= this.n; i++) this.P[i] = i;
+		this.Rank = new Int32Array(this.n+1);
 	
 		this.merges = this.finds = this.steps = 0;
 	}
@@ -41,7 +41,7 @@ export default class MergeSets extends Top {
 	assign(ds, relaxed=false) {
 		super.assign(other, relaxed);
 		for (let i = 0; i <= other.n; i++) {
-			this.#p[i] = ds.#p[i]; this.#rank[i] = ds.#rank[i];
+			this.P[i] = ds.P[i]; this.Rank[i] = ds.Rank[i];
 		}
 	}
 
@@ -61,8 +61,8 @@ export default class MergeSets extends Top {
 
 	xfer(other) {
 		super.xfer(other);
-		this.#p = other.#p; this.#rank = other.#rank;
-		other.#p = other.#rank = null;
+		this.P = other.P; this.Rank = other.Rank;
+		other.P = other.Rank = null;
 	}
 	
 	/** Clear all items in a given range.
@@ -70,20 +70,20 @@ export default class MergeSets extends Top {
 	 *  @param hi is the high end of the range; all items <hi are cleared
 	 */
 	clear(lo=0, hi=this.n+1) {
-		for (let i = lo; i < hi; i++) { this.#p[i] = i; this.#rank[i] = 0; }
+		for (let i = lo; i < hi; i++) { this.P[i] = i; this.Rank[i] = 0; }
 	}
 
 	/** Return parent of a set element in the tree representation of the set.
 	 *  @param i index of a set element
 	 *  @return the parent of i
 	 */
-	p(i) { return this.#p[i]; }
+	p(i) { return this.P[i]; }
 
 	/** Return rank of a set element in the tree representation of the set.
 	 *  @param i index of a set element
 	 *  @return the parent of i
 	 */
-	rank(i) { return this.#rank[i]; }
+	rank(i) { return this.Rank[i]; }
 	
 	/** Find and return the canonical element of a set.
 	 *  Performs path compression as side-effect.
@@ -97,7 +97,7 @@ export default class MergeSets extends Top {
 		for (root = i; this.p(root) != root; root = this.p(root)) {
 			this.steps++;
 		}
-		while (i != root) { let pi = this.p(i); this.#p[i] = root; i = pi; }
+		while (i != root) { let pi = this.p(i); this.P[i] = root; i = pi; }
 		return root;
 	}
 	
@@ -114,9 +114,9 @@ export default class MergeSets extends Top {
 		if (this.rank(i) < this.rank(j)) {
 			let t = i; i = j; j = t;
 		} else if (this.rank(i) == this.rank(j)) {
-			this.#rank[i]++;
+			this.Rank[i]++;
 		}
-		this.#p[j] = i;
+		this.P[j] = i;
 		return i;
 	}
 	

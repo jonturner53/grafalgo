@@ -36,8 +36,8 @@ export default function ncrJEKc(fg, traceFlag=false) {
 	link = new Int32Array(g.n+1);
 	lambda = new Float32Array(g.n+1);
 	excess = new Int32Array(g.n+1);
-	sources = new List(g.n); sources.addPrev(); // doubly linked
-	sinks = new List(g.n); sinks.addPrev();
+	sources = new List(g.n); sources.hasReverse = true; // doubly linked
+	sinks = new List(g.n); sinks.hasReverse = true;
 	border = new ArrayHeap(g.n,2);
 	Cost = new Float32Array(g.n+1);
 

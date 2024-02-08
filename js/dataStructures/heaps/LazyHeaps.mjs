@@ -18,11 +18,11 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  set of leftist heaps.
  */
 export default class LazyHeaps extends LeftistHeaps {
-	nn;		 // largest valid index for a non-dummy node
-	#dummy;		// first node in list of free dummy nodes
-	#retired;	// #retired is either a user-supplied function
+	nn;         // largest valid index for a non-dummy node
+	dummy;      // first node in list of free dummy nodes
+	Retired;    // Retired is either a user-supplied function
 				// or an array of bits
-	#plist;		// temporary list used by purge
+	plist;     // temporary list used by purge
 
 	purgesteps;
 
@@ -35,13 +35,13 @@ export default class LazyHeaps extends LeftistHeaps {
 		super((n&1) ? n+1 : n); this.nn = this.n/2;
 
 		for (let i = this.nn+1; i <= this.n; i++) this.rank(i,-1);
-		this.#plist = new List(this.nn);
-		if (retired != null) this.#retired = retired;
-		else this.#retired = new Int8Array(this.n+1).fill(false);
+		this.plist = new List(this.nn);
+		if (retired != null) this.Retired = retired;
+		else this.Retired = new Int8Array(this.n+1).fill(false);
 
 		// implement list of dummy nodes as a tree
 		for (let i = this.nn+1; i < this.n; i++) this.link(i+1,i,1);
-		this.#dummy = this.nn+1;
+		this.dummy = this.nn+1;
 
 		this.clearStats();
 	}
@@ -56,8 +56,8 @@ export default class LazyHeaps extends LeftistHeaps {
 	assign(lh) {
 		if (lh == this || (!lh instanceof LazyHeaps)) return;
 		if (lh.n != this.n) {
-			this.reset(lh.n, typeof lh.#retired == 'function' ?
-							 lh.#retired : null);
+			this.reset(lh.n, typeof lh.Retired == 'function' ?
+							 lh.Retired : null);
 		} else {
 			this.clear();
 		}
@@ -78,7 +78,7 @@ export default class LazyHeaps extends LeftistHeaps {
 		if (lh == this || (!lh instanceof LazyHeaps)) return;
 		super.xfer(lh);
 		this.nn = lh.nn;
-		this.#retired = lh.#retired; lh.#retired = null;
+		this.Retired = lh.Retired; lh.Retired = null;
 	}
 
 	/** Revert to initial state. */
@@ -86,7 +86,7 @@ export default class LazyHeaps extends LeftistHeaps {
 		super.clear();
 		for (let i = this.nn+1; i <= this.n; i++) this.rank(i,-1);
 		for (let i = this.nn+1; i < this.n; i++) this.link(i+1,i,1);
-		this.#dummy = this.nn+1;
+		this.dummy = this.nn+1;
 	}
 
 	clearStats() { super.clearStats(); this.purgesteps = 0; }
@@ -115,8 +115,8 @@ export default class LazyHeaps extends LeftistHeaps {
 	 *  @param i is a heap item to be retired.
 	 */
 	retire(i) {
-		if (this.#retired.constructor != 'function')
-			this.#retired[i] = true;
+		if (this.Retired.constructor != 'function')
+			this.Retired[i] = true;
 	}
 
 	/** Determine if a heap item is retired.
@@ -126,8 +126,8 @@ export default class LazyHeaps extends LeftistHeaps {
 	 */
 	retired(i) {
 		return i <= this.nn &&
-						(typeof this.#retired == 'function' ?
-				   		 this.#retired(i) : this.#retired[i]);
+						(typeof this.Retired == 'function' ?
+				   		 this.Retired(i) : this.Retired[i]);
 	}
 
 	/** Return the item of minimum key in a heap.
@@ -135,8 +135,8 @@ export default class LazyHeaps extends LeftistHeaps {
 	 *  @return the item in h that has the smallest key
 	 */
 	findmin(h) {
-		this.#plist.clear(); this.#purge(h);
-		return this.heapify(this.#plist);
+		this.plist.clear(); this.purge(h);
+		return this.heapify(this.plist);
 	}
 
 	/** Remove the item with smallest key from a heap.
@@ -158,16 +158,16 @@ export default class LazyHeaps extends LeftistHeaps {
 	 *  of subheaps with non-deleted roots.
 	 *  @param h is a heap to be purged
 	 */
-	#purge(h) {
+	purge(h) {
 		if (h == 0) return;
 		this.purgesteps++;
 		ea && assert(this.valid(h));
 		if (this.isactive(h)) {
-			this.#plist.enq(h);
+			this.plist.enq(h);
 		} else {
-			this.#purge(this.left(h)); this.#purge(this.right(h));
+			this.purge(this.left(h)); this.purge(this.right(h));
 			if (this.isdummy(h)) {
-				this.link(this.#dummy, h, +1); this.#dummy = h;
+				this.link(this.dummy, h, +1); this.dummy = h;
 			}
 			this.rank(h,-1);
 		}
@@ -179,12 +179,12 @@ export default class LazyHeaps extends LeftistHeaps {
 		if (h1 == 0) return h2;
 		if (h2 == 0) return h1;
 		ea && assert(this.valid(h1));
-		ea && assert(this.valid(h1) && this.valid(h2) && this.#dummy);
+		ea && assert(this.valid(h1) && this.valid(h2) && this.dummy);
 		if (this.rank(h1) < this.rank(h2)) {
 			let h = h1; h1 = h2; h2 = h;
 		}
-		let d = this.#dummy; this.#dummy = this.right(d);
-		this.cut(this.#dummy);
+		let d = this.dummy; this.dummy = this.right(d);
+		this.cut(this.dummy);
 		this.join(h1,d,h2);
 		this.rank(d, this.rank(h2) + 1);
 		this.key(d, Number.NEGATIVE_INFINITY);
@@ -205,7 +205,7 @@ export default class LazyHeaps extends LeftistHeaps {
 			return false;
 		let l = new List(this.n);
 		for (let u = 1; u <= this.n; u++) {
-			if (this.p(u) || u == this.#dummy) continue;
+			if (this.p(u) || u == this.dummy) continue;
 			l.clear();
 			for (let v = this.first(u); v; v = this.next(v)) {
 				if (this.isactive(v)) l.enq(v);
@@ -250,7 +250,7 @@ export default class LazyHeaps extends LeftistHeaps {
 			if (this.p(u)) continue;
 			if (this.singleton(u) && !(fmt&0x2)) continue;
 			if (selectHeap && u != selectHeap) continue;
-			if (u == this.#dummy) continue;
+			if (u == this.dummy) continue;
 			if (!(fmt&0x01) && s) s += ' ';
 			if (fmt&0x4) {
 				s += `${super.tree2string(u,fmt,xlabel)}`;

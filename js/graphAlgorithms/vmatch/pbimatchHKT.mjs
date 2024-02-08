@@ -56,7 +56,7 @@ export default function pbimatchHKT(g0, prio0, strict=false, subsets0=null,
 	link = new Int32Array(g.n+1);
 	level = new Int32Array(g.n+1);
 	nextedge = new Int32Array(g.n+1);
-	roots = new List(g.n); roots.addPrev();
+	roots = new List(g.n); roots.hasReverse = true;
 	q = new List(g.n);
 
 	trace = traceFlag; traceString = '';

@@ -21,17 +21,17 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  in a path.
  */
 export default class PathSet extends SplayForest {
-	#dcost;		// #dcost[u] = cost(u)-mincost(u)
-	#dmin;		// #dmin[u] = mincost(u)-mincost(p(u)) 
+	Dcost;		// Dcost[u] = cost(u)-mincost(u)
+	Dmin;		// Dmin[u] = mincost(u)-mincost(p(u)) 
 
 	/** Constructor for List object.
 	 *  @param n is the range for the list
 	 */
 	constructor(n=10) {
 		super(n);
-		this.#dcost = new Float32Array(this.n+1).fill(0);
-		this.#dmin = new Float32Array(this.n+1).fill(0);
-		this.#dcost[0] = this.#dmin[0] = Infinity;
+		this.Dcost = new Float32Array(this.n+1).fill(0);
+		this.Dmin = new Float32Array(this.n+1).fill(0);
+		this.Dcost[0] = this.Dmin[0] = Infinity;
 	}
 
 	/** Assign new value to PathSet from another. 
@@ -42,8 +42,8 @@ export default class PathSet extends SplayForest {
 		if (ps == this || !(ps instanceof PathSet)) return;
 		super.assign(ps);
 		for (let u = 1; u <= this.n; u++) {
-			this.#dcost[u] = ps.#dcost[u];
-			this.#dmin[u] = ps.#dmin[u];
+			this.Dcost[u] = ps.Dcost[u];
+			this.Dmin[u] = ps.Dmin[u];
 		}
 	}
 
@@ -53,13 +53,13 @@ export default class PathSet extends SplayForest {
 	xfer(ps) {
 		if (ps == this || !(ps instanceof PathSet)) return;
 		super.xfer(ps);
-		this.#dcost = ps.#dcost; ps.#dcost = null;
-		this.#dmin = ps.#dmin; ps.#dmin = null;
+		this.Dcost = ps.Dcost; ps.Dcost = null;
+		this.Dmin = ps.Dmin; ps.Dmin = null;
 	}
 	
 	/** Return to initial state */
 	clear() {
-		super.clear(); this.#dcost.fill(0); this.#dmin.fill(0);
+		super.clear(); this.Dcost.fill(0); this.Dmin.fill(0);
 	}
 
 	/** Get/set the deltaCost of a node.
@@ -67,8 +67,8 @@ export default class PathSet extends SplayForest {
 	 *  @return the deltaCost of u in the tree representing the path
 	 */
 	dcost(u, c=-1) {
-		if (c != -1) this.#dcost[u] = c;
-		return this.#dcost[u];
+		if (c != -1) this.Dcost[u] = c;
+		return this.Dcost[u];
 	}
 	
 	/** Get/set the deltaMin of a node.
@@ -76,8 +76,8 @@ export default class PathSet extends SplayForest {
 	 *  @return the deltaMin of u in the tree representing the path
 	 */
 	dmin(u, c=-1) {
-		if (c != -1) this.#dmin[u] = c;
-		return this.#dmin[u];
+		if (c != -1) this.Dmin[u] = c;
+		return this.Dmin[u];
 	}
 	
 	/** Get/set the successor of a path.
@@ -127,7 +127,7 @@ export default class PathSet extends SplayForest {
 		super.rotate(x);
 	
 		// update dmin, dcost values
-		let dmin = this.#dmin; let dcost = this.#dcost;
+		let dmin = this.Dmin; let dcost = this.Dcost;
 		let dmx = dmin[x];
 		let dma = dmin[a]; let dmb = dmin[b]; let dmc = dmin[c];
 			// note: if a=0, dma = Infinity; same for b,c
@@ -172,15 +172,15 @@ export default class PathSet extends SplayForest {
 	 */
 	findpathcost(q) {
 		while (true) {
-			if (this._right[q] && this.#dmin[this._right[q]] == 0)
-				q = this._right[q];
-			else if (this.#dcost[q] > 0)
-				q = this._left[q];
+			if (this.right(q) && this.dmin(this.right(q)) == 0)
+				q = this.right(q);
+			else if (this.dcost(q) > 0)
+				q = this.left(q);
 			else
 				break;
 		}
 		q = this.splay(q);
-		return [q, this.#dmin[q]];
+		return [q, this.dmin(q)];
 	}
 	
 	/** Join two paths at a node.
@@ -192,7 +192,7 @@ export default class PathSet extends SplayForest {
 	 *  the original paths; note: the new path inherits its successor from q
 	 */
 	join(r, u, q) {
-		let dmin = this.#dmin; let dcost = this.#dcost;
+		let dmin = this.Dmin; let dcost = this.Dcost;
 		let dmin_u = dmin[u];
 		let sq = (q ? this.property(q) : 0);
 		super.join(r,u,q);
@@ -225,9 +225,9 @@ export default class PathSet extends SplayForest {
 	split(u) {
 		let [p,q] = super.split(u);
 		let su = this.succ(u);
-		if (p != 0) { this.#dmin[p] += this.dmin(u); this.p(p,0); }
-		if (q != 0) { this.#dmin[q] += this.dmin(u); this.property(q,su); }
-		this.#dmin[u] += this.dcost(u); this.#dcost[u] = 0;
+		if (p != 0) { this.Dmin[p] += this.dmin(u); this.p(p,0); }
+		if (q != 0) { this.Dmin[q] += this.dmin(u); this.property(q,su); }
+		this.Dmin[u] += this.dcost(u); this.Dcost[u] = 0;
 		return [p,q];
 	}
 	
@@ -260,7 +260,7 @@ export default class PathSet extends SplayForest {
 			while (!q.empty()) {
 				let u = q.deq();
 				mincost[u] = (this.p(u) ? mincost[this.p(u)] : 0)
-							 + this.#dmin[u];
+							 + this.Dmin[u];
 				if (this.left(u))  q.enq(this.left(u));
 				if (this.right(u)) q.enq(this.right(u));
 			}
@@ -323,14 +323,14 @@ export default class PathSet extends SplayForest {
 		let mc = cost[u];
 		if (l) {
 			this.docosts1(l,cost);
-			mc = Math.min(mc, this.#dmin[l]);
+			mc = Math.min(mc, this.Dmin[l]);
 		}
 		if (r) {
 			this.docosts1(r,cost);
-			mc = Math.min(mc, this.#dmin[r]);
+			mc = Math.min(mc, this.Dmin[r]);
 		}
-		this.#dcost[u] = cost[u] - mc;
-		this.#dmin[u] = mc;  // adjust this in second phase
+		this.Dcost[u] = cost[u] - mc;
+		this.Dmin[u] = mc;  // adjust this in second phase
 	}
 
 	/** Second phase of differential cost computation. */
@@ -339,6 +339,6 @@ export default class PathSet extends SplayForest {
 		if (this.left(u))  this.docosts2(this.left(u));
 		if (this.right(u)) this.docosts2(this.right(u));
 		if (this.p(u))
-			this.#dmin[u] -= this.#dmin[this.p(u)];
+			this.Dmin[u] -= this.Dmin[this.p(u)];
 	}
 }

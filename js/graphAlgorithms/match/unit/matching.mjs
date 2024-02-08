@@ -15,7 +15,7 @@ import Matching from '../Matching.mjs';
 try {
 	console.log('testing Matching');
 
-	let g = new Graph(26); g.addWeights();
+	let g = new Graph(26); g.hasWeights = true;
 	g.fromString('{a[n:6] b[f:6 v:1] c[d:9 u:8] d[c:9 m:8 t:7 w:8] e[] ' +
 				 'f[b:6 s:2 w:9 y:2] g[y:6] h[k:8 o:7 s:8] i[j:5 m:4] ' +
 				 'j[i:5 n:2] k[h:8] l[n:3 v:8] ' +

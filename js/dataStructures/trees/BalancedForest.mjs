@@ -15,14 +15,14 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** This class implements a balanced version of the binary tree class. */
 export default class BalancedForest extends BinaryForest {
-	#rank;		// #rank[u] is an optional field used to maintain tree balance
+	Rank;		// Rank[u] is an optional field used to maintain tree balance
 
 	/** Constructor for BinaryForest object.
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) {
 		super(n);
-		this.#rank = new Int8Array(this.n+1).fill(1,1);
+		this.Rank = new Int8Array(this.n+1).fill(1,1);
 	}
 
 	/** Assign a new value by copying from another BinaryForest.
@@ -40,7 +40,7 @@ export default class BalancedForest extends BinaryForest {
 		if (f == this) return;
 		if (!(f instanceof BalancedForest)) return;
 		super.xfer(f);
-		this.#rank = f.#rank; f.#rank = null;
+		this.Rank = f.Rank; f.Rank = null;
 	}
 	
 	/** Clear trees converting them to singletons.
@@ -52,7 +52,7 @@ export default class BalancedForest extends BinaryForest {
 			for (let u = this.first(r); u; u = this.next(u))
 				this.rank(r,1);
 		} else {
-			this.#rank.fill(1,1);
+			this.Rank.fill(1,1);
 		}
 		super.clear(r);
 	}
@@ -63,8 +63,8 @@ export default class BalancedForest extends BinaryForest {
 	 * @return the rank of u
 	 */
 	rank(u, r=-1) {
-		if (r >= 0) this.#rank[u] = r;
-		return this.#rank[u];
+		if (r >= 0) this.Rank[u] = r;
+		return this.Rank[u];
 	}
 	
 	/** Insert a singleton immediately after a node in a tree.
