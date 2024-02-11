@@ -123,8 +123,8 @@ export default class Flograph extends Digraph {
 	 *  @return the unused capacity of e, going from u to mate(u)
 	 */
 	res(e, u=this.tail(e)) {
-		return (u == this.tail(e) ? this.Cap[e] - this.F[e] :
-									this.F[e] - this.floor(e));
+		return (u == this.tail(e) ? this.cap(e) - this.f(e) :
+									this.f(e) - this.floor(e));
 	}
 
 	/** Get the flow on an edge.
@@ -142,8 +142,8 @@ export default class Flograph extends Digraph {
 	 *  @return the flow from the tail
 	 */ 
 	flow(e, f=-1) {
-		if (f >= 0) this.F[e] = Math.min(f, this.Cap[e]);
-		return this.F[e];
+		if (f >= 0) this.F[e] = Math.min(f, this.cap(e));
+		return this.f(e);
 	}
 	
 	/** Set the flow of every edge to zero. */
@@ -272,7 +272,7 @@ export default class Flograph extends Digraph {
 		else if (u == this.tail(e1) && u == this.head(e2)) return 1;
 		else {
 			let v1 = this.mate(u, e1); let v2 = this.mate(u, e2);
-			let cap1 = this.Cap[e1]; let cap2 = this.Cap[e2];
+			let cap1 = this.cap(e1); let cap2 = this.cap(e2);
 			return (v1 != v2 ? v1 - v2 :
 					(cap1 != cap2 ? cap1 - cap2 :
 					 this.cost(e1, v1) - this.cost(e2, v2)));

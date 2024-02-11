@@ -40,7 +40,7 @@ export default class DynamicTrees extends PathSet {
 		this.exposes++;
 		let [p,s] = [0,u];
 		while (s) {
-			[p,s] = this.#splice([p,s]);
+			[p,s] = this.splice([p,s]);
 		}
 		this.succ(p, 0);
 		return p;
@@ -54,7 +54,7 @@ export default class DynamicTrees extends PathSet {
 	 *  the last part of the path originally containing s, effectively
 	 *  extending p further up the tree.
 	 */ 
-	#splice([p,s]) {
+	splice([p,s]) {
 		this.splices++;
 		let next_s = this.succ(super.findpath(s));
 		let [p1,p2] = this.split(s);

@@ -188,8 +188,8 @@ export default class Graph extends Top {
 	 */
 	mate(v, e) {
 		ea && assert(this.validVertex(v) && this.validEdge(e) &&
-			   (v == this.Left[e] || v == this.Right[e]));
-		return v == this.Left[e] ? this.Right[e] : this.Left[e];
+			   (v == this.left(e) || v == this.right(e)));
+		return v == this.left(e) ? this.right(e) : this.left(e);
 	}
 	
 	/** Get the first edge in the overall list of edges.
@@ -221,8 +221,8 @@ export default class Graph extends Top {
 	 */
 	nextAt(v, e) {
 		ea && assert(this.validVertex(v) && this.validEdge(e));
-		if (v != this.Left[e] && v != this.Right[e]) return 0;
-		let ep = (v == this.Left[e] ? 2*e : 2*e+1);
+		if (v != this.left(e) && v != this.right(e)) return 0;
+		let ep = (v == this.left(e) ? 2*e : 2*e+1);
 		return Math.trunc(this.epLists.next(ep)/2);
 	}
 
@@ -265,7 +265,7 @@ export default class Graph extends Top {
 	delete(e) {
 		ea && assert(this.validEdge(e));
 		this.edges.swap(e);
-		let u = this.Left[e]; let v = this.Right[e];
+		let u = this.left(e); let v = this.right(e);
 		this.firstEp[u] = this.epLists.delete(2*e,   this.firstEp[u]);
 		this.firstEp[v] = this.epLists.delete(2*e+1, this.firstEp[v]);
 		return true;

@@ -80,21 +80,19 @@ export default class DualKeySets extends KeySets {
 	findmin(t, limit=Infinity) {
 		// first, find eligible subtrees on boundary and identify best one
 		let u = t; let best = 0; let bestMin = 0;
-		while (u != 0) {
+		while (u) {
 			let l = this.left(u); this.steps++;
 			if (this.key(u) > limit) {
 				u = l; continue;
 			}
-			// so, u defines a boundary subtree
-			if (best == 0 || this.key2(u) < bestMin ||
-				(l && this.min2(l) < bestMin)) {
-				best = u;
-				bestMin = this.key2(u) <= this.min2(l) ?
-								 		  this.key2(u) : this.min2(l);
+			// so, u and its left subtree are eligible
+			let b = (l ? Math.min(this.key2(u), this.min2(l)) : this.key2(u));
+			if (!best || b < bestMin) {
+				best = u; bestMin = b;
 			}
 			u = this.right(u); // right subtree may contain boundary subtrees
 		}
-		if (best == 0) return 0;
+		if (!best) return 0;
 		if (this.key2(best) == bestMin) return best;
 		// target is in left subtree of best
 		u = this.left(best);
@@ -156,7 +154,7 @@ export default class DualKeySets extends KeySets {
 	swap(u, v) {
 		super.swap(u, v);
 		let k2 = this.key2(u);
-		this.setkey2(u, this.key2(v)); this.setkey2(v, k2);
+		this.key2(u, this.key2(v)); this.key2(v, k2);
 	}
 
 	/** Extend join operation to maintain min2 field. */

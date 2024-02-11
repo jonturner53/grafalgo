@@ -24,8 +24,8 @@ export default class Map extends Top {
 	Size;      // number of key-value pairs
 	free;      // list of unused pair ids
 
-	stringKey;
-	stringValue;
+	stringKey;    // true if keys are strings
+	stringValue;  // true if values are strings
 	
 	compare;       // function comparing two keys
 

@@ -94,9 +94,7 @@ export default class Forest extends Top {
 	 *  @return the tree root
 	 */
 	root(u) {
-		while (this.P[u] != 0)  {
-			u = this.P[u]; this.steps++;
-		}
+		while (this.P[u])  { u = this.P[u]; this.steps++; }
 		return u;
 	}
 

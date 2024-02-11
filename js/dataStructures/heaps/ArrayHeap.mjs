@@ -20,8 +20,8 @@ export default class ArrayHeap extends Top {
 	D;          // base of heap
 	Size;       // # of items in the heap set
 
-	Item;       // {Item[1],...,Item[m]} is the items in the heap
-	Pos;        // Pos[i] gives position of i in Item
+	pos;        // pos[i] gives position of i in the heap
+	Item;       // Item[x]is the item at position x in the heap
 	Key;        // Key[i] is key of item i
 	Offset;     // offset for key values, allowing all to shift at once
 
@@ -107,7 +107,7 @@ export default class ArrayHeap extends Top {
 	first() { return this.size >= 1 ? this.itemAt(1) : 0; }
 
 	next(i) { 
-		let pi = this.Pos[i];
+		let pi = this.pos[i];
 		return (pi && pi < this.size ?  this.Item[pi+1] : 0);
 	}
 	
@@ -140,7 +140,7 @@ export default class ArrayHeap extends Top {
 	 *  @param i is an item
 	 *  @return true if i is in the heap, else false
 	 */
-	contains(i) { return this.Pos[i] != 0; }
+	contains(i) { return this.pos[i] != 0; }
 	
 	/** Determine if the heap is empty.
 	 *  @return true if heap is empty, else false
@@ -168,11 +168,11 @@ export default class ArrayHeap extends Top {
 		let j = this.itemAt(this.Size--);
 		if (i != j) {
 			if (this.Key[j] <= this.Key[i])
-				this.siftup(j, this.Pos[i]);
+				this.siftup(j, this.pos[i]);
 			else
-				this.siftdown(j, this.Pos[i]);
+				this.siftdown(j, this.pos[i]);
 		}
-		this.Pos[i] = 0;
+		this.pos[i] = 0;
 	}
 	
 	/** Perform siftup operation to restore heap order.
@@ -184,11 +184,11 @@ export default class ArrayHeap extends Top {
 		this.upsteps++;
 		let px = this.p(x);
 		while (x > 1 && this.Key[i] < this.Key[this.itemAt(px)]) {
-			this.Item[x] = this.itemAt(px); this.Pos[this.itemAt(x)] = x;
+			this.Item[x] = this.itemAt(px); this.pos[this.itemAt(x)] = x;
 			x = px; px = this.p(x);
 			this.upsteps++;
 		}
-		this.Item[x] = i; this.Pos[i] = x;
+		this.Item[x] = i; this.pos[i] = x;
 	}
 	
 	/** Perform siftdown operation to restore heap order.
@@ -199,10 +199,10 @@ export default class ArrayHeap extends Top {
 	siftdown(i, x) {
 		let cx = this.minchild(x);
 		while (cx != 0 && this.Key[this.Item[cx]] < this.Key[i]) {
-			this.Item[x] = this.Item[cx]; this.Pos[this.Item[x]] = x;
+			this.Item[x] = this.Item[cx]; this.pos[this.Item[x]] = x;
 			x = cx; cx = this.minchild(x);
 		}
-		this.Item[x] = i; this.Pos[i] = x;
+		this.Item[x] = i; this.pos[i] = x;
 	}
 	
 	/** Find the position of the child with the smallest key.
@@ -232,8 +232,8 @@ export default class ArrayHeap extends Top {
 		let ki = this.Key[i] + this.Offset;
 		//this.Key[i] += k - ki;
 		this.Key[i] = k - this.Offset;
-			 if (k < ki) this.siftup(i, this.Pos[i]);
-		else if (k > ki) this.siftdown(i, this.Pos[i]);
+			 if (k < ki) this.siftup(i, this.pos[i]);
+		else if (k > ki) this.siftdown(i, this.pos[i]);
 	}
 
 	/** Determine if two heaps are equal.

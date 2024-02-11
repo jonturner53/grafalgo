@@ -118,14 +118,14 @@ export default class GroupHeap extends Top {
 	 *  @return the key of i
 	 */
 	key(i, g) {
-		if (this.isactive(g)) this.#updateKeys(g);
+		if (this.isactive(g)) this.updateKeys(g);
 		return this.groups.key(i, this.top[g]);
 	}
 
 	/** Update the keys of an active group.
 	 *  @param g is an active group
 	 */
-	#updateKeys(g) {
+	updateKeys(g) {
 		if (this.top[g]) {
 			this.groups.add2keys(this.active.offset - this.lastOffset[g],
 					 			 this.top[g]);
@@ -143,13 +143,13 @@ export default class GroupHeap extends Top {
 	}
 
 	/** Deactivate a group */
-	deactivate(g) { this.#updateKeys(g); this.active.delete(g); }
+	deactivate(g) { this.updateKeys(g); this.active.delete(g); }
 
 	/** Find the active item with the smallest key.  */
 	findmin() {
 		let g = this.active.findmin();
 		if (!g) return 0;
-		this.#updateKeys(g);
+		this.updateKeys(g);
 		return this.groups.findmin(this.top[g]);
 	}
 
@@ -165,7 +165,7 @@ export default class GroupHeap extends Top {
 	 *  @param i0 is an item in the heap; i is inserted immediately after i0
 	 */
 	insertAfter(i, g, k, i0) {
-		if (this.isactive(g)) this.#updateKeys(g);
+		if (this.isactive(g)) this.updateKeys(g);
 		let h = this.top[g];
 		this.top[g] = this.groups.insertAfter(i, h, k, i0);
 		if (this.isactive(g) && k < this.active.key(g)) {
@@ -178,7 +178,7 @@ export default class GroupHeap extends Top {
 	 *  @param g is the id of the group containing i
 	 */
 	delete(i, g) {
-		if (this.isactive(g)) this.#updateKeys(g);
+		if (this.isactive(g)) this.updateKeys(g);
 		this.top[g] = this.groups.delete(i, this.top[g]);
 		if (this.isactive(g)) {
 			let h = this.top[g];
@@ -204,7 +204,7 @@ export default class GroupHeap extends Top {
 	 */
 	divide(g, i, g0) {
 		if (this.isactive(g)) {
-			this.#updateKeys(g); this.deactivate(g);
+			this.updateKeys(g); this.deactivate(g);
 		}
 		if (i == 0) {
 			this.top[g0] = this.top[g]; this.top[g] = 0;
@@ -253,7 +253,7 @@ export default class GroupHeap extends Top {
 			s += '['; let first = true;
 			for (let g = 1; g <= this.gn; g++) {
 				if (!this.top[g] || !this.isactive(g)) continue;
-				this.#updateKeys(g); let h = this.top[g];
+				this.updateKeys(g); let h = this.top[g];
 				for (let i = this.groups.first(h); i; i = this.groups.next(i)) {
 					let lab = itemLabel(i);
 					if (!lab) continue;
@@ -274,7 +274,7 @@ export default class GroupHeap extends Top {
 		}
 		for (let g = 1; g <= this.gn; g++) {
 			if (!this.top[g] && !this.isactive(g)) continue;
-			if (this.isactive(g)) this.#updateKeys(g);
+			if (this.isactive(g)) this.updateKeys(g);
 			let h = this.top[g];
 			if (!(fmt&0x1) && s) s += ' ';
 			s += heapLabel(g);
