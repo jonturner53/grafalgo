@@ -131,12 +131,6 @@ export default class Graph extends Top {
 	 */
 	get m() { return this.edges.length(1); }
 
-	/** Get the largest edge number that is currently in use. */
-	get emax() {
-		for (e = edgeRange; e > 0; e--)
-			if (this.edges.in(e,1)) return e;
-	}
-	
 	validVertex(u) { return 1 <= u && u <= this.n; }
 
 	/** Determine if an edge number corresponds to a valid edge.
@@ -264,8 +258,8 @@ export default class Graph extends Top {
 	 */
 	delete(e) {
 		ea && assert(this.validEdge(e));
-		this.edges.swap(e);
 		let u = this.left(e); let v = this.right(e);
+		this.edges.swap(e);
 		this.firstEp[u] = this.epLists.delete(2*e,   this.firstEp[u]);
 		this.firstEp[v] = this.epLists.delete(2*e+1, this.firstEp[v]);
 		return true;

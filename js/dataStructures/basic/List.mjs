@@ -99,9 +99,6 @@ export default class List extends Top {
 
 		if (other.hasReverse && !this.hasReverse) this.hasReverse = true;
 		if (other.hasValues && !this.hasValues) this.hasValues = true;
-		if (this.hasValues) {
-			for (let i = 0; i <= this.n; i++) this.value(i,other.value(i));
-		}
 		for (let i = other.first(); i; i = other.next(i)) {
 			if (this.hasValues) this.enq(i, other.value(i));
 			else this.enq(i);

@@ -36,7 +36,7 @@ export default class ArrayHeap extends Top {
 	constructor(n=10, d=4) {
 		super(n);
 		this.Item = new Int32Array(n+1);
-		this.Pos = new Int32Array(n+1);
+		this.pos = new Int32Array(n+1);
 		this.Key = new Float32Array(n+1);
 		this.Item[0] = this.Size = 0; this.D = d;
 		this.Offset = 0;
@@ -52,7 +52,7 @@ export default class ArrayHeap extends Top {
 		this.Size = other.size; this.Offset = other.Offset;
 		for (let p = 1; p <= other.size; p++) {
 			let x = other.Item[p];
-			this.Item[p] = x; this.Pos[x] = p; this.Key[x] = other.Key[x];
+			this.Item[p] = x; this.pos[x] = p; this.Key[x] = other.Key[x];
 		}
 		this.clearStats();
 	}
@@ -64,15 +64,15 @@ export default class ArrayHeap extends Top {
 		if (other == this || !(other instanceof ArrayHeap)) return;
 		this.n = other.n;
 		this.D = other.D; this.Size = other.Size; this.Offset = other.Offset;
-		this.Item = other.Item; this.Pos = other.Pos;
+		this.Item = other.Item; this.pos = other.pos;
 		this.Key = other.Key;
-		other.Item = other.Pos = other.Key = null;
+		other.Item = other.pos = other.Key = null;
 		this.clearStats();
 	}
 	
 	/** Remove all elements from heap. */
 	clear() {
-		for (let x = 1; x <= this.Size; x++) this.Pos[this.Item[x]] = 0;
+		for (let x = 1; x <= this.Size; x++) this.pos[this.Item[x]] = 0;
 		this.Size = 0; this.Offset = 0;
 	}
 
