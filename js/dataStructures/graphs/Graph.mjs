@@ -367,7 +367,7 @@ export default class Graph extends Top {
 	findEdge(u, v, edges) {
 		ea && assert(this.validVertex(u) && this.validVertex(v));
 		if (!edges) {
-			for (let e = this.firstAt(u); e != 0; e = this.nextAt(u, e))
+			for (let e = this.firstAt(u); e; e = this.nextAt(u, e))
 				if (v == this.mate(u, e)) return e;
 			return 0;
 		}
