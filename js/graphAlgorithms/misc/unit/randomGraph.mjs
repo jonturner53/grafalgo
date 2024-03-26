@@ -23,6 +23,9 @@ try {
 	g = randomGraph(10, 5);
 	console.log('dense undirected graph\n', g.toString(1));
 
+	g = randomGraph(10, 5, 6);
+	console.log('undirected graph with bounded degree\n', g.toString(1));
+
 	g = randomBigraph(8, 12, 5);
 	console.log('undirected bigraph\n', g.toString(1));
 

@@ -24,8 +24,9 @@ import matchEG from '../match/matchEG.mjs';
  *  @param d is the average vertex degree
  *  @return the generated graph
  */  
-export function randomGraph(n, d) {
+export function randomGraph(n, d, dmax=n-1) {
 	if (d > n-1) d = n-1;
+	assert(d <= dmax);
 	let m = ~~(d*n/2);
 	let g = new Graph(n, m);
 	let mm = n*(n-1)/2;
@@ -34,7 +35,8 @@ export function randomGraph(n, d) {
 						    	(u == 0 ? [1,2] :
 								 (v < n ? [u,v+1] : [u+1,u+2]))),
 					() => { let u = randomInteger(1,n-1);
-							return [u, randomInteger(u+1, n)]; }); 
+							return [u, randomInteger(u+1, n)]; },
+					dmax); 
 	return g;
 }
 
@@ -79,20 +81,22 @@ export function randomDag(n, d) {
 }
 
 /** Generate a random bipartite graph.
- *  @param ni specifies the number of vertices in the "left part"
- *  @param no specifies the number of vertices in the "right part"
- *  @param di is the average vertex degree in the left part
+ *  @param ni specifies the number of "input" vertices
+ *  @param no specifies the number of "output" vertices
+ *  @param id is the average degree of the inputs
+ *  @param dmax is optional upper bound on the  vertex degree
  */
-export function randomBigraph(ni, di, no=ni) {
-	ni = Math.max(1,ni); no = Math.max(1,no); di = Math.min(di, no);
-	let m = ~~(di*ni);
+export function randomBigraph(ni, id, no=ni, dmax=Math.max(ni,no)-1) {
+	ni = Math.max(1,ni); no = Math.max(1,no); id = Math.min(id, no);
+	let m = ~~(id*ni);
 	let g = new Graph(ni+no, m);
 	let mm = ni*no;
 	add2graph(g, m, m > mm/3,
 					([u,v]) => (u == 0 ? [1, ni+1] :
 							   (v < ni+no ? [u, v+1] :
 								(u < ni ? [u+1, ni+1] : null))),
-					() => [randomInteger(1,ni), randomInteger(ni+1,ni+no)]);
+					() => [randomInteger(1,ni), randomInteger(ni+1,ni+no)],
+					dmax);
 	return g;
 }
 
@@ -178,11 +182,11 @@ export function randomFlograph(n, d, ssd=d, ncuts=1, lookback=1) {
  *  @param randpair is a function that returns a random pair of vertices
  *  @param dense is a flag which indicates that the graph should be
  *  considered dense
- *  @param up is a flag; if true, add edges [u,v] with u<v;
- *  if false pairs are not constrained
+ *  @param dmax is an optional upper bound on the vertex degree
  */
-function add2graph(g, m, dense, nextpair, randpair) {
+function add2graph(g, m, dense, nextpair, randpair, dmax=g.n-1) {
 	if (m <= g.m) return;
+	assert(m <= dmax*g.n/2);
 
 	// generate vector of candidate edges to select new edges from
 	let pairs = [];
@@ -197,7 +201,7 @@ function add2graph(g, m, dense, nextpair, randpair) {
 	removeDuplicates(pairs, g);
 	if (pairs.length < m - g.m)
 		fatal("Rgraph: program error, too few candidate edges");
-	samplePairs(pairs, g, m);
+	samplePairs(pairs, g, m, dmax);
 	g.sortAllEplists();
 }
 
@@ -243,15 +247,26 @@ function removeDuplicates(pairs, g) {
 	pairs.length = i;
 }
 
-/** Add edges to graph by sampling array of pairs. */
-function samplePairs(pairs, g, m) {
-	// sample from remaining pairs
+/** Add edges to graph by sampling array of pairs.
+ *  @param pairs is an array that identifies candidate edges
+ *  @param g is a graph to which edges are to be added
+ *  @param m is the number of edges in the final graph
+ *  @param dmax is an upper bound on the vertex degree
+ *  @return true on success
+ */
+function samplePairs(pairs, g, m, dmax) {
+	let deg = new Int32Array(g.n+1);
+	for (let u = 1; u <= g.n; u++) deg[u] = g.degree(u);
 	let k = pairs.length - 1;
-	while (g.m < m) {
+	while (k >= 0 && g.m < m) {
 		let i = randomInteger(0,k);
-		g.join(pairs[i][0], pairs[i][1]);
+		let [u,v] = pairs[i];
+		if (deg[u] < dmax && deg[v] < dmax) {
+			g.join(u,v); deg[u]++; deg[v]++;
+		}
 		pairs[i] = pairs[k--];
 	}
+	return g.m == m;
 }
 
 /** Generate a random undirected tree. 
@@ -309,37 +324,53 @@ export function randomConnectedGraph(n, d) {
 /** Create a random simple, regular graph.
  *  @param n is the number of vertices in the graph
  *  @param d is the number of edges incident to each vertex
- *  @param return a random d-regular graph with n vertices,
- *  or n+1 if both n and d are odd
- *
- *  Method
- *  1. build oversize random graph
- *  2. extract d perfect matchings and combine them to form sample graph
- *  
- *  As written, it is limited to graphs with an even number of vertices.
- *  Can extend to n odd by generating d-regular graph with n+1 vertices
- *  then eliminating one of its vertices; to do this, the eliminated vertex
- *  must have d neighbors on which we can define a perfect matching in which
- *  no edge in the matching repeats an edge already in the random graph.
- *  May need to make multiple attempts to find such a vertex. No compelling
- *  reason to bother with the added complication.
+ *  @param return a random d-regular graph with n vertices
+ *  (note, d*n must be even)
  */
-
 export function randomRegularGraph(n, d) {
-	ea && assert(n > d && !(n&1));
+	let g = randomGraph(n,d,d+1);
+	assert(g.m == n*d/2);
 
-	let g0 = randomGraph(n, Math.min(d + Math.max(d, 20), n-1));
-	for (let u = 1; u <= n; u++)
-		ea && assert(g0.degree(u) >= d, 'randomRegularGraph failure(1)');
+	// create lists of vertices with too many and too few neighbors
+	let lo = new List(n); let hi = new List(n);
+	for (let u = 1; u <= g.n; u++) {
+		let du = g.degree(u);
+		if (du < d) lo.enq(u);
+		else if (du > d) hi.enq(u);
+	}
+	regularize(g,d,lo,hi);
+	return g;
+}
 
-	let m = ~~(n*d/2); let g = new Graph(n, m);
-	for (let i = 1; i <= d; i++) {
-		let [match] = matchEG(g0);
-		assert(match.size() == ~~(n/2), 'randomRegularGraph failure (2)');
-		for (let e = match.first(); e; e = match.next(e)) {
-			let [u,v] = [g0.left(e),g0.right(e)];
-			g.join(u,v); g0.delete(e);
-		}
+/** Helper function for regular graph generators. 
+ *  @param g is graph being generated
+ *  @param d is target vertex degree
+ *  @param lo is a List of vertices with degree <d
+ *  @param hi is a List of vertices with degree >d
+ */
+function regularize(g, d, lo, hi) {
+	while (lo.length > 0) {
+		let u = lo.first(); let v = hi.first();
+		// find a neighbor w of v that is not a neighbor of u,
+		// remove {v,w} and add {u,w}
+		for (let e = g.firstAt(v); e; e = g.nextAt(v,e)) {
+			let w = g.mate(v,e); if (w == u) continue;
+			if (!g.findEdge(u,w)) {
+				g.delete(e); g.join(u,w);
+				if (g.degree(u) == d) lo.deq();
+				if (g.degree(v) == d) hi.deq();
+				if (lo.contains(u) && hi.contains(v)) {
+					// rotate longer list to ensure different (u,v) pair
+					// on next iteration
+					if (lo.length > hi.length) {
+						lo.enq(lo.deq());
+					} else {
+						hi.enq(hi.deq());
+					}
+				}
+				break;
+			}
+		}	
 	}
 	return g;
 }
@@ -347,55 +378,34 @@ export function randomRegularGraph(n, d) {
 /** Create a random simple, regular bipartite graph.
  *  @param g is an undirected graph object
  *  @param ni is the # of input (left-side) vertices 
- *  @param di is the degree of the inputs
+ *  @param id is the degree of the inputs
  *  @param no is the # of output (right-side) vertices
- *  @param repeats is a flag that enables multiple edges between a pair
- *  of vertices
  *  @param return Graph object with inputs 1..ni, outputs ni+1..ni+no
-
-Method involves creating an oversize graph, then computing a d-matching.
-If no matching, try again.
-
-
  */
-export function randomRegularBigraph(ni, di, no=ni, repeats=0) {
-	let do_ = ni*di/no;
-	ea && assert(do_ == ~~do_, 'randomRegularBigraph: out-degree not integer');
+export function randomRegularBigraph(ni, id, no=ni) {
+	let od = ni*id/no;
+	ea && assert(od == ~~od, 'randomRegularBigraph: out-degree not integer');
 
-	let dmax = new Int32Array(ni+no+1);
-	dmax.fill(di, 1, ni+1); dmax.fill(do_, ni+1);
-	let io = new ListPair(ni+no); for (let u = 1; u <= ni; u++) io.swap(u);
+	let g = randomBigraph(ni,id,no,1+Math.max(id,od));
+	assert(g.m == ni*id);
 
-	let count = 1;
-	let g = new Graph(ni+no, ~~(1.2*no*(do_+1)));
-		// over-allocate space to avoid dynamic expansion
-	let match;
-	let nabors = new List(g.n);
-	do {
-		// first add do_ random edges at each output
-		g.clear();
-		for (let v = ni+1; v <= g.n; v++) {
-			let inputs = randomSample(ni,do_+1);
-			for (let i = 1; i <= do_+1; i++) {
-				g.join(inputs[i],v);
-			}
-		}
-		// add random edges where needed at inputs to ensure at least di
-		for (let u = 1; u <= ni; u++) {
-			let d = g.degree(u);
-			if (d >= di+1) continue;
-			nabors.clear();
-			for (let e = g.firstAt(u); e; e = g.nextAt(u,e))
-				nabors.enq(g.mate(u,e));
-			while (d < di+1) {
-				let v = randomInteger(ni+1,g.n);
-				if (!repeats && nabors.contains(v)) continue;
-				g.join(u,v); d++;
-			}
-		}
-		[match] = bimatchF(g,io,0,dmax);
-	} while (match.m != di*ni && ++count <= 3);
-	ea && assert(match.m == di*ni, 'randomRegularBigraph failure ' + match.m);
-	g.reset(ni+no, di*ni); g.assign(match);
+	// create lists of inputs with too many or too few neighbors
+	let lo = new List(g.n); let hi = new List(g.n);
+	for (let u = 1; u <= ni; u++) {
+		let du = g.degree(u);
+		if (du < id) lo.enq(u);
+		else if (du > id) hi.enq(u);
+	}
+	regularize(g, id, lo, hi);
+
+	// create lists of outputs with too many or too few neighbors
+	lo.clear(); hi.clear();
+	for (let u = ni+1; u <= ni+no; u++) {
+		let du = g.degree(u);
+		if (du < od) lo.enq(u);
+		else if (du > od) hi.enq(u);
+	}
+	regularize(g, od, lo, hi);
+
 	return g;
 }

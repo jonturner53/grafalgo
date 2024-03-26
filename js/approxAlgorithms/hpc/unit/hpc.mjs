@@ -22,8 +22,6 @@ let algomap = {
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
-let [s,t] = [0,0];
-
 let g = new Graph();
 g.fromString('{a[b e j] b[c g h] c[d f j] d[e g i j] e[f h] f[g i] g[h] h[i] i[j] j[]}');
 tester.addTest('small example - cycle', g, 0, 0);
@@ -37,7 +35,7 @@ g = hpcRandom(10,25);
 tester.addTest('small (10,25) random', g, 0, 0);
 
 g = hpcRandom(100,800);
-tester.addTest('mediuum (100,800) random', g, 0, 0);
+tester.addTest('medium (100,800) random', g, 0, 0);
 
 g = hpcRandom(1000,13000);
 tester.addTest('large (1000,13000) random', g, 0, 0);
