@@ -31,7 +31,8 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 	let traceString = '';
 	if (trace) {
 		traceString += `graph: ${g0.toString(1)}\n` +
-				  	   `partial paths from ${g0.x2s(u0)} with next edge\n`;
+				  	   `vertices on partial paths from ${g0.x2s(u0)} ` +
+					   `with next edge\n`;
 	}
 
 	let g = new Graph(g0.n,g0.edgeRange);
@@ -52,8 +53,8 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 		let i = randomInteger(1,g.degree(u));
 		while (i > 1) { i--; e = g.nextAt(u,e); }
 		let v = g.mate(u,e);
+		selectCount[e]++;
 		if (selectCount[e] == selectMax) g.delete(e);
-		else selectCount[e]++;
 		if (s && v == t || !s && v == u0) continue;
 
 		if (trace) {
