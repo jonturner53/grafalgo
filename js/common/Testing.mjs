@@ -71,7 +71,8 @@ export class Tester {
 	constructor(args, algomap) {
 		this.testcases = []; this.algorithms = [];
 
-		this.trace = (args.indexOf('trace') >= 0);
+		this.trace = 0;
+		for (let s of args) if (s == 'trace') this.trace++;
 		this.stats = (args.indexOf('stats') >= 0);
 		let all = (args.indexOf('all') >= 0);
 	
@@ -124,7 +125,7 @@ export class Tester {
 				let t0; let t1; let results;
 				try {
 					t0 = Date.now();
-					results = algo.func(...tcase.args, this.trace && small);
+					results = algo.func(...tcase.args, small ? this.trace : 0);
 					t1 = Date.now();
 				} catch(e) {
 					if (e instanceof Proceed) {

@@ -6,9 +6,9 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert} from '../../common/Assert.mjs';
+import {assert, EnableAssert as ea} from '../../common/Assert.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
-import { range, randomInteger, randomPermutation } from '../../common/Random.mjs';
+import { range, randomInteger} from '../../common/Random.mjs';
 
 /** Generate a sparse random graph with a hamiltonian cycle/path.
  *  @param n is the number of vertices in the graph
@@ -19,33 +19,24 @@ import { range, randomInteger, randomPermutation } from '../../common/Random.mjs
  *  otherwise it contains a hamiltonian path starting at s and ending at t,
  *  unless t == 0 in which case the endpoint is selected randomly
  */
-export default function hpcRandom(n, m, s=0, t=0) {
-	assert(s >= 0 && s <= n && t >= 0 && t <= n);
-	assert(s && n >= 2 || !s && n >= 3);
-	assert((s && m >= n-1 || !s && m >= n) && m <= 2*n*Math.log2(n));
-	let g = new Graph(n,m);
+export default function hpcRandom(n, d, s=0, t=0) {
+	ea && assert(s >= 0 && s <= n && t >= 0 && t <= n);
+	ea && assert(s && n >= 2 || !s && n >= 3);
+	ea && assert(d >= 2 && d <= 5*Math.log(n) && d <= n-1);
 
-	let p = randomPermutation(n);
-	if (s) { // hamiltonian path
-		// find s and move it to front
-		let i;
-		for (i = 1; i <= n; i++)
-			if (p[i] == s) break;
-		p[i] = p[1]; p[1] = s;
-		if (t) {
-			// find t and move it to end
-			for (i = 2; i <= n; i++)
-				if (p[i] == t) break;
-			p[i] = p[n]; p[n] = t;
-		}
+	let m = ~~(d*n/2); let g = new Graph(n,m);
+
+	for (let i = 1; i < n; i++) {
+		if (!(s == i && j == i+1 || s == i+1 && j == i))
+			g.join(i,i+1);
 	}
-	for (let i = 1; i < n; i++) g.join(p[i],p[i+1]);
-	if (!s) g.join(p[n],p[1]);
+	if (!(s == 1 && t == n || s == n && t == 1))
+		g.join(n,1);
 
 	while (g.m < m) {
 		let u = randomInteger(1,n);
-		let v = randomInteger(1,n-1);
-		if (v >= u) v++;
+		let v = randomInteger(1,n-1); if (v >= u) v++;
+		if (u == s && v == t || u == t && v == s) continue;
 		if (!g.findEdge(u,v)) g.join(u,v);
 	}
 

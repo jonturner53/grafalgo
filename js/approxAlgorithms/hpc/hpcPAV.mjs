@@ -11,7 +11,8 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { randomInteger } from '../../common/Random.mjs';
 
 /** Find a Hamiltonian path or cycle using Angluin and Valiant's algorithm.
- *  @param g0 is a graph to be colored.
+ *  @param g0 is a graph to be searched.
+ *  @param selectMax is maximum number of times an edge can be selected
  *  @param s is a starting vertex in the case of a hamiltonian path, else 0
  *  @param t is defined when s != 0 and is either a specific termination
  *  vertex or 0, in which case any termination vertex is acceptable
@@ -20,20 +21,22 @@ import { randomInteger } from '../../common/Random.mjs';
  *  non-zero; in a successful search for a path, all but the last are non-zero;
  *  unsuccessful searches leave additional zero entries at the end of the array
  */
-export default function hpcPAV(g0, s=0, t=0, trace=0) {
-	ea && assert(s >= 0 && s <= g0.n && t >= 0 && t <= g0.n);
+export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
+	assert(s >= 0 && s <= g0.n && t >= 0 && t <= g0.n);
+	assert(1 <= selectMax && selectMax <= 100);
 	if (s == 0) t = 0;
-
+	
 	let u0 = (s ? s : randomInteger(1,g0.n));
 
 	let traceString = '';
 	if (trace) {
-		traceString += 'graph: ' + g0.toString(1) + '\n\n' +
+		traceString += `graph: ${g0.toString(1)}\n` +
 				  	   `partial paths from ${g0.x2s(u0)} with next edge\n`;
 	}
 
 	let g = new Graph(g0.n,g0.edgeRange);
 	g.assign(g0);
+	let selectCount = new Int8Array(g.edgeRange+1);
 
 	let u = u0; let reversals = 0;
 	let path = new Int32Array(g.n); let k = 0;
@@ -48,9 +51,11 @@ export default function hpcPAV(g0, s=0, t=0, trace=0) {
 		let e = g.firstAt(u);
 		let i = randomInteger(1,g.degree(u));
 		while (i > 1) { i--; e = g.nextAt(u,e); }
-		let v = g.mate(u,e); g.delete(e);
+		let v = g.mate(u,e);
+		if (selectCount[e] == selectMax) g.delete(e);
+		else selectCount[e]++;
 		if (trace) {
-			traceString += `${g0.elist2string(path)} ${g0.e2s(e)}\n`;
+			traceString += `${g0.elist2string(path,0,0,1)} ${g0.e2s(e,0,1)}\n`;
 		}
 
 		if (s && v == t || !s && v == u0) continue;
@@ -77,6 +82,6 @@ export default function hpcPAV(g0, s=0, t=0, trace=0) {
 		}
 	}
 	if (trace)
-		traceString += `\nfinal path: ${g0.elist2string(path)}\n`;
+		traceString += `\nfinal path: ${g0.elist2string(path,0,0,1)}\n`;
 	return [path, traceString, {'reversals': reversals, 'length': k}];
 }

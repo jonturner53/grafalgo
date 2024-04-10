@@ -183,13 +183,16 @@ function findpath() {
  */
 function augment(u) {
 	let e = link[u];
-	let ts; if (trace) ts = g.x2s(u);
+	let ts = ''; let pathCost = 0;
+	if (trace) ts = g.x2s(u);
 	while (e) {
 		steps++;
 		if (trace) ts = `${g.e2s(e)} ${ts}`
+		pathCost += weight[e];
 		match.add(e);  u = g.mate(u,e); e = link[u];
 		if (!e) break;
-		let ts; if (trace) ts = g.x2s(u);
+		if (trace) ts = g.x2s(u);
+		pathCost -= weight[e];
 		match.drop(e); u = g.mate(u,e); e = link[u];
 	}
 	free.delete(u);

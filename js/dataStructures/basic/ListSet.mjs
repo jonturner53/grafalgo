@@ -159,7 +159,10 @@ export default class ListSet extends Top {
 		return f1;
 	}
 
-	/** Split a list at an item. */
+	/** Split a list at an item.
+This just removes i from its list. Not much use.
+Think we want to split into two lists, with second starting with i.
+	 */
 	split(f, i) {
 		ea && assert (this.valid(f) && this.valid(i) && this.isfirst(f));
 		if (i == 0 || i == f) return;

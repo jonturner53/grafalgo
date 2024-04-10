@@ -194,7 +194,7 @@ function add2graph(g, m, dense, nextpair, randpair, dmax=g.n-1) {
 		let p = nextpair([0,0]);
 		while (p) { pairs.push(p); p = nextpair(p); }
 	} else {
-		for (let i = 0; i < (m-g.m) + Math.max(200, (m-g.m)); i++)
+		for (let i = 0; i < m + Math.max(200, m); i++)
 			pairs.push(randpair());
 		sortReduce(pairs);
 	}
@@ -328,8 +328,11 @@ export function randomConnectedGraph(n, d) {
  *  (note, d*n must be even)
  */
 export function randomRegularGraph(n, d) {
-	let g = randomGraph(n,d,d+1);
-	assert(g.m == n*d/2);
+	// first find a nearly d-regular graph
+	let k = 2; let g = randomGraph(n,d,d+k);
+	while (g.m != n*d/2) {
+		k *= 2; g = randomGraph(n,d,Math.min(n-1,d+k));
+	}
 
 	// create lists of vertices with too many and too few neighbors
 	let lo = new List(n); let hi = new List(n);
@@ -386,8 +389,12 @@ export function randomRegularBigraph(ni, id, no=ni) {
 	let od = ni*id/no;
 	ea && assert(od == ~~od, 'randomRegularBigraph: out-degree not integer');
 
-	let g = randomBigraph(ni,id,no,1+Math.max(id,od));
-	assert(g.m == ni*id);
+	// first find a nearly d-regular graph
+	let d = Math.max(id,od);
+	let k = 2; let g = randomBigraph(ni,id,no,d+k);
+	while (g.m != ni*id) {
+		k *= 2; g = randomBigraph(ni,id,no,Math.min(d+k,Math.max(ni-1,no-1)));
+	}
 
 	// create lists of inputs with too many or too few neighbors
 	let lo = new List(g.n); let hi = new List(g.n);

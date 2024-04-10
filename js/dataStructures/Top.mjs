@@ -146,7 +146,7 @@ export default class Top {
 	}
 
 	/** Convert a list of numeric values to a string.
-	 *  @param nlist is an array of valid index values
+	 *  @param nlist is an array of numbers
 	 *  @return a string that represents the list.
 	 */
 	nlist2string(nlist) {
