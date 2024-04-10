@@ -54,11 +54,18 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 		let v = g.mate(u,e);
 		if (selectCount[e] == selectMax) g.delete(e);
 		else selectCount[e]++;
+		if (s && v == t || !s && v == u0) continue;
+
 		if (trace) {
-			traceString += `${g0.elist2string(path,0,0,1)} ${g0.e2s(e,0,1)}\n`;
+			traceString += '[' + g.x2s(u0);
+			let x = u0;
+			for (let i = 0; i < k; i++) {
+				x = g0.mate(x,path[i]);
+				traceString += ' ' + g.x2s(x);
+			}
+			traceString += `] ${g0.e2s(e,0,1)}\n`;
 		}
 
-		if (s && v == t || !s && v == u0) continue;
 		// find position of first edge in path containing v
 		let pv = 0;
 		while (pv < k) {

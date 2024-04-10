@@ -278,7 +278,7 @@ function splice(x,y,z=0) {
  *  @paren z is a vertex on the same cycle as u; this function
  *  reverses the direction of the pi and rpi mappings at every
  *  vertex from u to z (but not including z).
- *  
+ */  
 function reverseCycle(u,z=u) {
 	let v = u;
 	do {

@@ -17,7 +17,7 @@ import hpcPAV from '../hpcPAV.mjs';
 import hpcKT from '../hpcKT.mjs';
 
 let algomap = {
-	'pav' : ['pav ', (g,s,t,trace)=>hpcPAV(g,5,s,t,trace), hpcVerify],
+	'pav' : ['pav ', (g,s,t,trace)=>hpcPAV(g,1,s,t,trace), hpcVerify],
 	'kt' : ['kt ', (g,s,t,trace)=>hpcKT(g,2,s,t,trace), hpcVerify]
 }
 
