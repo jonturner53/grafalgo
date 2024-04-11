@@ -33,7 +33,6 @@ export default function hpcRandom(n, d, s=0, t=0) {
 	}
 	for (let i = 1; i < n; i++) g.join(p[i],p[i+1]);
 	if (!s) g.join(p[n],p[1]);
-console.log(g.ilist2string(p));
 
 	while (g.m < m) {
 		let u = randomInteger(1,n);
