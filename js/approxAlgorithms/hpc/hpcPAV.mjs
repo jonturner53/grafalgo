@@ -57,16 +57,6 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 		if (selectCount[e] == selectMax) g.delete(e);
 		if (s && v == t || !s && v == u0) continue;
 
-		if (trace) {
-			traceString += '[' + g.x2s(u0);
-			let x = u0;
-			for (let i = 0; i < k; i++) {
-				x = g0.mate(x,path[i]);
-				traceString += ' ' + g.x2s(x);
-			}
-			traceString += `] ${g0.e2s(e,0,1)}\n`;
-		}
-
 		// find position of first edge in path containing v
 		let pv = 0;
 		while (pv < k) {
@@ -79,17 +69,36 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 		} else {
 			// reverse tail end of path
 			reversals++;
+			if (trace) {
+				traceString += '[' + g0.x2s(u0);
+				let x = u0;
+				for (let i = 0; i < k; i++) {
+					x = g0.mate(x,path[i]);
+					traceString += ' ' + g0.x2s(x);
+				}
+				traceString += `] ${g0.e2s(e)}\n`;
+			}
+			u = g0.mate(v,path[pv+1]); // new free endpoint
 			path[pv+1] = e;
 			for (let j = 0; j < ~~((k-(pv+1))/2); j++) {
 				let ee = path[pv+2+j];
 				path[pv+2+j] = path[(k-1)-j];
 				path[(k-1)-j] = ee;
 			}
-			for (let j = pv+2; j < k; j++)
-				u = g0.mate(u,path[j]);
 		}
 	}
 	if (trace)
 		traceString += `\nfinal path: ${g0.elist2string(path,0,0,1)}\n`;
 	return [path, traceString, {'reversals': reversals, 'length': k}];
+}
+
+function path2string(path, u0, k, g0) {
+	let s = '[' + g0.x2s(u0);
+	let x = u0;
+	for (let i = 0; i < k; i++) {
+		x = g0.mate(x,path[i]);
+		s += ' ' + g0.x2s(x);
+	}
+	s += `]`;
+	return s;
 }
