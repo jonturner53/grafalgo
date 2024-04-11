@@ -27,7 +27,7 @@ export default function hpcRandom(n, d, s=0, t=0) {
 	let m = ~~(d*n/2); let g = new Graph(n,m);
 
 	for (let i = 1; i < n; i++) {
-		if (!(s == i && j == i+1 || s == i+1 && j == i))
+		if (!(s == i && t == i+1 || s == i+1 && t == i))
 			g.join(i,i+1);
 	}
 	if (!(s == 1 && t == n || s == n && t == 1))
