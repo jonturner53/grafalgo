@@ -35,7 +35,10 @@ g = randomRegularGraph(10,3);
 tester.addTest('small cubic (10,3)', g, 0, 0);
 
 g = hpcRandom(10,5);
-tester.addTest('small (10,5) random', g, 0, 0);
+tester.addTest('small (10,5) random - pinned path', g, 0, 0);
+
+g = hpcRandom(10,5,2,6);
+tester.addTest('small (10,5) random', g, 2, 6);
 
 g = hpcRandom(100,20);
 tester.addTest('medium (100,16) random', g, 0, 0);
