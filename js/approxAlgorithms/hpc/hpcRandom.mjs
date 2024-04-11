@@ -8,7 +8,7 @@
 
 import {assert, EnableAssert as ea} from '../../common/Assert.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
-import { randomPermutation, randomInteger} from '../../common/Random.mjs';
+import { range,randomPermutation, randomInteger} from '../../common/Random.mjs';
 
 /** Generate a sparse random graph with a hamiltonian cycle/path.
  *  @param n is the number of vertices in the graph
@@ -27,12 +27,13 @@ export default function hpcRandom(n, d, s=0, t=0) {
 	let m = ~~(d*n/2); let g = new Graph(n,m);
 
 	let p = randomPermutation(n);
-	for (let i = 1; i < n; i++) {
-		if (!(s == p[i] && t == p[i+1] || s == p[i+1] && t == p[i]))
-			g.join(p[i],p[i+1]);
+	for (let i = 1; i <= n; i++) {
+		if (p[i] == s) [p[1],p[i]] = [s,p[1]];
+		if (p[i] == t) [p[n],p[i]] = [t,p[n]];
 	}
-	if (!(s == p[1] && t == p[n] || s == p[n] && t == p[1]))
-		g.join(p[n],p[1]);
+	for (let i = 1; i < n; i++) g.join(p[i],p[i+1]);
+	if (!s) g.join(p[n],p[1]);
+console.log(g.ilist2string(p));
 
 	while (g.m < m) {
 		let u = randomInteger(1,n);
