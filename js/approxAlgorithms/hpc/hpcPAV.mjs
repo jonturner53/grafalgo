@@ -32,14 +32,14 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 	if (trace) {
 		traceString += `graph: ${g0.toString(1)}\n` +
 				  	   `vertices on partial paths from ${g0.x2s(u0)} ` +
-					   `with next edge\n`;
+					   `with selected edge\n`;
 	}
 
 	let g = new Graph(g0.n,g0.edgeRange);
 	g.assign(g0);
 	let selectCount = new Int8Array(g.edgeRange+1);
 
-	let u = u0; let reversals = 0;
+	let u = u0; let rotations = 0;
 	let path = new Int32Array(g.n); let k = 0;
 	while (g.firstAt(u)) {
 		//if (s && k == g.n-1) break;
@@ -68,7 +68,7 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 			path[k++] = e; u = v;
 		} else {
 			// reverse tail end of path
-			reversals++;
+			rotations++;
 			if (trace) {
 				traceString += '[' + g0.x2s(u0);
 				let x = u0;
@@ -90,7 +90,7 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 	if (trace)
 		traceString += `\nfinal ${s ? 'path' : 'cycle'}: ` +
 					   `${g0.elist2string(path,0,0,1)}\n`;
-	return [path, traceString, {'reversals': reversals, 'length': k}];
+	return [path, traceString, {'rotations': rotations, 'length': k}];
 }
 
 function path2string(path, u0, k, g0) {
