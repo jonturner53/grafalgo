@@ -93,11 +93,12 @@ export function randomFill(a, f) {
 
 /** Create random permutation.
  *  @param n is an integer
+ *  @param fp is an optional Set of fixed points
  *  @return an array containing a random permutation on 1..n in
  *  in positions 1..n
  */
-export function randomPermutation(n) {
-	let a = range(n); scramble(a);
+export function randomPermutation(n,fp) {
+	let a = range(n); scramble(a,fp);
 	return a;
 }
 
@@ -129,13 +130,17 @@ export function randomSample(n,k) {
 
 /** Scramble an array, that is, permute the entries randomly.
  *  @param a is an array of n+1 values
+ *  @param fp is an optional Set of fixed points
  *  @return a scrambled version of a in which the values in positions
  *  1..n are randomly permuted
  */
-export function scramble(a) {
+export function scramble(a, fp) {
 	for (let i = 1; i < a.length; i++) {
+		if (fp && fp.has(a[i])) continue;
 		let j = randomInteger(i, a.length-1);
-		//[a[i], a[j]] = [a[j], a[i]];
-		let k = a[i]; a[i] = a[j]; a[j] = k;
+		while (fp && fp.has(a[j]))
+			j = randomInteger(i, a.length-1);
+
+		[a[i], a[j]] = [a[j], a[i]];
 	}
 }

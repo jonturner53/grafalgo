@@ -637,10 +637,12 @@ export default class Graph extends Top {
 	}
 
 	/** Randomize the order of the vertices, edges and adjacency lists.
+	 *  @param fixedPoints is an optional Set of vertices that are
+	 *  not to be randomized
 	 *  @return the permutation used for the edges
 	 */
-	scramble() {
-		let vp = randomPermutation(this.n);
+	scramble(fixedPoints=null) {
+		let vp = randomPermutation(this.n,fixedPoints);
 		let ep = randomPermutation(this.edgeRange);
 		let weight = this.Weight; this.Weight = null;
 		this.shuffle(vp, ep);
