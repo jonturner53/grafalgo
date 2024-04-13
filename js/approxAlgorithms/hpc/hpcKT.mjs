@@ -140,7 +140,7 @@ function initialCycles() {
 	}
 	let io = new ListPair(2*g.n);
 	for (let i = 1; i <= g.n; i++) io.swap(i);
-	let [match] = (version ? wbimatchH(mg,io) : bimatchHK(mg,io));
+	let [match] = (version ? wbimatchH(mg,io) : bimatchHK(mg,0,io));
 	if (match.size() != g.n) [match] = bimatchHK(mg,match,io);
 	if (match.size() != g.n) return false;
 
