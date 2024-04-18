@@ -41,8 +41,8 @@ export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 	ea && assert(s >= 0 && s <= g.n && t >= 0 && t <= g.n);
 	if (s == 0) t = 0;
 
-	trace = traceFlag; 
-	if (trace == 1) traceString = `graph: ${g0.toString(1)}\n`;
+	trace = traceFlag; traceString = '';
+	if (trace == 1) traceString += `graph: ${g0.toString(1)}\n`;
 
 	g = g0; 
 	if (s) {
