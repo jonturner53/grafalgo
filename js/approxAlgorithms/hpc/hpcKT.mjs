@@ -19,11 +19,9 @@ import wmatchE from '../../graphAlgorithms/match/wmatchE.mjs';
 let g;
 let pi;          // permutation on 1..n that defines cycles in g
 let rpi;         // reverse of permutation pi
-let cmap;        // MergeSet with set for each cycle; find(u) is cycle id
 let clist;       // List of the current valid cycle ids
 let clen;        // clen[u] is length of cycle identified by u
 let link;        // link(u,v) is edge number of connecting edge or 0
-let version;     // specifies version of algorithm
 
 let trace;
 let traceString;
@@ -31,10 +29,6 @@ let traceString;
 /** Find a Hamiltonian path or cycle using Turner's adaptation of Karp's
  *  algorithm for TSP.
  *  @param g is a graph to be searched.
- *  @param version0 specifies which version of the algorithm to use;
- *  0 specifies simple version (using unweighted matchings), 1 specifies
- *  version with weighted matching, 2 is the same as 1 but with
- *  three point splices in addition to two point
  *  @param s is a starting vertex in the case of a hamiltonian path, else 0
  *  @param t is defined when s != 0 and is either a specific termination
  *  vertex or 0, in which case any termination vertex is acceptable
@@ -43,14 +37,14 @@ let traceString;
  *  non-zero; in a successful search for a path, all but the last are non-zero;
  *  unsuccessful searches leave additional zero entries at the end of the array
  */
-export default function hpcKT(g0, version0=2, s=0, t=0, traceFlag=0) {
+export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 	ea && assert(s >= 0 && s <= g.n && t >= 0 && t <= g.n);
 	if (s == 0) t = 0;
 
-	trace = traceFlag; traceString = '';
-	if (trace) traceString += `graph: ${g0.toString(1)}\n`;
+	trace = traceFlag; 
+	if (trace) traceString = `graph: ${g0.toString(1)}\n`;
 
-	g = g0; version = version0;
+	g = g0; 
 	if (s) {
 		// for hamiltonian paths, reduce to hamiltonian cycle problem
 		if (t) {
@@ -70,7 +64,6 @@ export default function hpcKT(g0, version0=2, s=0, t=0, traceFlag=0) {
 
 	pi  = new Int32Array(g.n+1);
 	rpi = new Int32Array(g.n+1);
-	cmap = new MergeSets(g.n);
 	clist = new List(g.n);
 	clen = new Int32Array(g.n+1);
 
@@ -86,7 +79,8 @@ export default function hpcKT(g0, version0=2, s=0, t=0, traceFlag=0) {
 
 	if (!initialCycles())
 		return [path, traceString, {'cycles': 0, 'length': 0}];
-	while (mergeCycles() && clist.length > 1) {}
+
+	while (clist.length > 1 && mergeCycles()) {}
 
 	// identify longest cycle
 	let lc = clist.first();
@@ -116,44 +110,63 @@ export default function hpcKT(g0, version0=2, s=0, t=0, traceFlag=0) {
 	return [path, traceString, {'cycles': clist.length, 'length': len}];
 }
 
-/** Construct initial collection of cycles.
- *  @return true if all vertices could be assigned to cycles.
- */
 function initialCycles() {
-	// construct bipartite matching graph with weights equal to the
-	// "splice potential" and find max weight matching
-	let mg = new Graph(2*g.n, 2*g.edgeRange+1);
+	// partition graph into cycles by finding a perfect matching on
+	// a "matching graph"; the matching graph has a cluster for every
+	// vertex and an edge joining each cluster for each original edge;
+	// the inter-cluster edges have same edge number as the original edge
+
+	// preliminaries
+	let n = 0; let m = g.m;
+	let d = new Int32Array(g.n+1);    // d[u]=degree(u)
+	let base = new Int32Array(g.n+1); // base[u]=first vertex in u's cluster
+	let b = 1;
+	for (let u = 1; u <= g.n; u++) {
+		d[u] = g.degree(u); if (d[u] < 2) return false;
+		base[u] = b; let nu = 2*d[u]-2; b += nu;
+		n += nu; m += d[u]*(d[u]-2);
+	}
+
+	let mg = new Graph(n, m >= g.edgeRange ? m : g.edgeRange);
+	// define inter-custer edges
+	let offset = new Int32Array(g.n+1);
+		// offset[u] determines position of next edge in u's cluster
 	for (let e = g.first(); e; e = g.next(e)) {
 		let [u,v] = [g.left(e),g.right(e)];
-		let w = 0;
-		for (let eu = g.firstAt(u); eu; eu = g.nextAt(u,eu)) {
-			if (eu == e) continue;
-			let nu = g.mate(u,eu);
-			for (let ev = g.firstAt(v); ev; ev = g.nextAt(v,ev)) {
-				if (ev == e) continue;
-				let nv = g.mate(v,ev);
-				if (nu != nv && link[nu][nv]) w++;
+		mg.join(base[u] + offset[u]++, base[v] + offset[v]++, e); 
+	}
+	// define intra-cluster edges
+	for (let u = 1; u <= g.n; u++) {
+		for (let i = 0; i < d[u]; i++) {
+			for (let j = 0; j < d[u]-2; j++) {
+				let me = mg.join(base[u]+i, base[u]+d[u]+j);
 			}
 		}
-		mg.join(u,g.n+v,2*e);  mg.join(v,g.n+u,2*e+1);
-		if (version) { mg.weight(2*e,w); mg.weight(2*e+1,w); }
 	}
-	let io = new ListPair(2*g.n);
-	for (let i = 1; i <= g.n; i++) io.swap(i);
-	let [match] = (version ? wbimatchH(mg,io) : bimatchHK(mg,0,io));
-	if (match.size() != g.n) [match] = bimatchHK(mg,match,io);
-	if (match.size() != g.n) return false;
 
-	for (let u = 1; u <= g.n; u++) {
-		if (pi[u]) continue;
+	let [match] = matchEG(mg);
+	if (match.size() != mg.n/2) return false;
+
+	let cycleEdges = new List(g.edgeRange);
+	for (let e = match.first(); e; e = match.next(e)) {
+		if (g.validEdge(e)) cycleEdges.enq(e);
+	}
+	// every vertex is incident to two edges in cycleEdges
+
+	pi.fill(0); rpi.fill(0);
+	while (!cycleEdges.empty()) {
+		let e = cycleEdges.first();
+		let u = g.left(e);
 		let v = u; let c;
 		do {
-			let e = ~~(match.at(v)/2);
 			pi[v] = g.mate(v,e); rpi[g.mate(v,e)] = v;
-			c = cmap.merge(cmap.find(u),cmap.find(v));
-			clen[u]++; v = pi[v];
+			cycleEdges.delete(e);
+			clen[u]++;
+			v = pi[v];
+			for (e = g.firstAt(v); e; e = g.nextAt(v,e))
+				if (cycleEdges.contains(e)) break;
 		} while (v != u);
-		clist.enq(c);
+		clist.enq(u);
 	}
 	return true;
 }
@@ -165,30 +178,25 @@ function mergeCycles() {
 	if (trace == 1) traceString += traceCycles() + '\n';
 	else if (trace) traceString += cycleLengths() + '\n';
 	ea && assert(!verifyPi(), traceString + verifyPi());
-	let mm = clist.length*(clist.length-1)/2;
-	let mg = new Graph(g.n,mm);
-	let emap = new Array(mm+1);
+
+	let mg = new Graph(g.n, clist.length*(clist.length-1)/2);
+
 	for (let u = clist.first(); u; u = clist.next(u)) {
 		for (let v = clist.next(u); v; v = clist.next(v)) {
-			let [x,y,z] = compatible(u,v);
-			if (!x) continue;
-			let e = mg.join(u,v); emap[e] = [x,y,z];
-			if (version) mg.weight(e,clen[u]*clen[v]);
+			if (!compatible(u,v)) continue;
+			let e = mg.join(u,v);
 			break;
 		}
 	}
 
-	let [match] = (version ? wmatchE(mg) : matchEG(mg));
+	if (clist.length > mg.m+1) return false;
+	let [match] = matchEG(mg);
 	if (match.size() == 0) return false;
+
 	for (let e = match.first(); e; e = match.next(e)) {
 		let [u,v] = [mg.left(e),mg.right(e)];
-		let [uu,vv,ww] = emap[e];
-		splice(uu,vv,ww);
+		splice(compatible(u,v));
 		clen[u] += clen[v]; clist.delete(v);
-		let c = cmap.merge(u,v);
-		if (c != u) {
-			clen[c] = clen[u]; clist.delete(u); clist.enq(c);
-		}
 	}
 
 	return true;
@@ -197,16 +205,11 @@ function mergeCycles() {
 /** Determine if two cycles are compatible.
  *  @param c1 is a cycle
  *  @param c2 is a different cycle
- *  @return true if the cycles can be spliced together;
- *  if version<2, only two point splices are considered,
- *  if version==2, three point splices are also considered;
+ *  @return a vertex pair [x,y], one from each cycle that can be
+ *  used to splice the cycles together; or null on failure
  */
 function compatible(c1,c2) {
 	let x = c1;
-	// comparison for two-point splice
-	// if c1 and c2 contain vertices x and y, where x is adjacent to
-	// one of y's chums and y is adjacent to one of x's chums,
-	// then they can be spliced
 	do {
 		let y = c2;
 		do {
@@ -218,74 +221,29 @@ function compatible(c1,c2) {
 		x = pi[x];
 	} while (x != c1);
 
-	if (version < 2) return [0,0,0];
-
-	// comparison for three-point splice
-	// if c1 contains vertex x and c2 contains adjacent vertices y and z
-	// where z is not a chum y, then c1 and c2 can be spliced if x is
-	// adjacent to one of y's chum's and the matching chum of z
-	// is adjacent to one of x's chums
-	x = c1;
-	do {
-		let y = c2;
-		do {
-			for (let e = g.firstAt(y); e; e = g.nextAt(y,e)) {
-				let z = g.mate(y,e);
-				if (cmap.find(z) != c2 || pi[y] == z || pi[z] == y)
-					continue;
-				// {y,z} defines a chord in cycle c2
-				if ((link[x][pi[y]] &&
-						(link[pi[z]][pi[x]] || link[pi[z]][rpi[x]])) ||
-					(link[x][rpi[y]] &&
-						(link[rpi[z]][pi[x]] || link[rpi[z]][rpi[x]])))
-					return [x,y,z];
-			}
-			y = pi[y];
-		} while (y != c2);
-		x = pi[x];
-	} while (x != c1);
-
-	return [0,0,0];
+	return null;
 }
 
 /** Splice two cycles at a specified pair of vertices.
  *  @param x is a vertex in a cycle
- *  @param v is a vertex in a different cycle
+ *  @param y is a vertex in a different cycle
  */
-function splice(x,y,z=0) {
-	if (!z) {
-		if (!link[x][pi[y]]) reverseCycle(y);
-		if (!link[y][pi[x]]) reverseCycle(x);
-		let  px =  pi[x]; let  py =  pi[y];
-		[pi[x], pi[y], rpi[py], rpi[px]] = [py, px, x, y];
-		return;
-	}
-
-	if (!(link[x][pi[y]] && (link[pi[z]][pi[x]] || link[pi[z]][rpi[x]])))
-		reverseCycle(y);
-	if (!link[pi[x]][pi[z]]) reverseCycle(x);
-
-	reverseCycle(pi[z],y); 
-
-	let px = pi[x]; let py = pi[y]; let pz = pi[z];
-
-	pi[x] = py; rpi[py] = x;
-	pi[z] = y; pi[y] = rpi[y]; rpi[y] = z;
-	pi[pz] = px; rpi[px] = pz;
+function splice([x,y]) {
+	if (!link[x][pi[y]]) reverseCycle(y);
+	if (!link[y][pi[x]]) reverseCycle(x);
+	let  px =  pi[x]; let  py =  pi[y];
+	[pi[x], pi[y], rpi[py], rpi[px]] = [py, px, x, y];
 }
 
 /** Reverse a cycle or a portion of the cycle.
  *  @paren u is a vertex.
- *  @paren z is a vertex on the same cycle as u; this function
- *  reverses the direction of the pi and rpi mappings at every
- *  vertex from u to z (but not including z).
  */  
-function reverseCycle(u,z=u) {
+function reverseCycle(u) {
 	let v = u;
 	do {
 		let pv = pi[v]; let rpv = rpi[v];
 		pi[v] = rpv; rpi[v] = pv; v = pv;
-	} while (v != z);
+	} while (v != u);
 }
 
 /** Check consistency of pi and rpi arrays. */
@@ -314,6 +272,7 @@ function traceCycles() {
 			s += g.x2s(v);
 			v = pi[v];
 		} while (v != u);
+		if (pi[u] == rpi[u]) sp /= 2;
 		s += ']';
 	}
 	s += '}';

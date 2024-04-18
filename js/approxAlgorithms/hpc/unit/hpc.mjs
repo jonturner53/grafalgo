@@ -15,10 +15,12 @@ import hpcVerify from '../hpcVerify.mjs';
 import hpcRandom from '../hpcRandom.mjs';
 import hpcPAV from '../hpcPAV.mjs';
 import hpcKT from '../hpcKT.mjs';
+import hpcKT0 from '../hpcKT0.mjs';
 
 let algomap = {
 	'pav' : ['pav ', (g,s,t,trace)=>hpcPAV(g,1,s,t,trace), hpcVerify],
-	'kt' : ['kt ', (g,s,t,trace)=>hpcKT(g,2,s,t,trace), hpcVerify]
+	'pav10' : ['pav10 ', (g,s,t,trace)=>hpcPAV(g,10,s,t,trace), hpcVerify],
+	'kt' : ['kt ', hpcKT, hpcVerify]
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
@@ -40,10 +42,10 @@ tester.addTest('small (10,4) random', g, 0, 0);
 g = hpcRandom(10,4,2,6);
 tester.addTest('small (10,4) random - pinned path', g, 2, 6);
 
-g = hpcRandom(100,20);
-tester.addTest('medium (100,16) random', g, 0, 0);
+g = hpcRandom(100,6);
+tester.addTest('medium (100,6) random', g, 0, 0);
 
-g = hpcRandom(1000,25);
-tester.addTest('large (1000,25) random', g, 0, 0);
+g = hpcRandom(1000,10);
+tester.addTest('large (1000,10) random', g, 0, 0);
 
 tester.run();

@@ -647,8 +647,28 @@ export default class Graph extends Top {
 		let weight = this.Weight; this.Weight = null;
 		this.shuffle(vp, ep);
 		if (weight) { shuffle(weight, ep); this.Weight = weight; }
+		this.scrambleEplists();
+		return ep;
+	}
 
-		// finally scramble individual eplists
+	/** Randomize order of edges.
+	 *  Does not renumber vertices or edges.
+	 */
+	scrambleEdges() {
+		// first re-order the edges object
+		let el = new Int32Array(this.m+1);
+		let i = 1;
+		for (let e = this.first(); e; e = this.next(e)) el[i++] = e;
+		scramble(el);
+		for (i = 1; i <= this.m; i++) {
+			this.edges.swap(el[i]); this.edges.swap(el[i]);
+		}
+	}
+
+	/** Randomize order of endpoint lists.
+	 *  Does not renumber vertices or edges.
+	 */
+	scrambleEplists() {
 		for (let u = 1; u <= this.n; u++) {
 			if (this.firstEp[u] == 0) continue;
 			let epl = [0]; let ee = this.firstEp[u];
@@ -660,7 +680,6 @@ export default class Graph extends Top {
 				this.epLists.join(epl[1], epl[i]);
 			this.firstEp[u] = epl[1];
 		}
-		return ep;
 	}
 
 	/** Shuffle the vertices and edges according to the given permutations.
