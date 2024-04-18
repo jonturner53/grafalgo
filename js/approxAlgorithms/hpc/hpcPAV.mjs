@@ -89,7 +89,7 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 	}
 	if (trace)
 		traceString += `\nfinal ${s ? 'path' : 'cycle'}: ` +
-					   `${g0.elist2string(path,0,0,1)}\n`;
+					   `${g0.elist2string(path,0,0,1)} ${k}\n`;
 	return [path, traceString, {'rotations': rotations, 'length': k}];
 }
 

@@ -42,7 +42,7 @@ export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 	if (s == 0) t = 0;
 
 	trace = traceFlag; 
-	if (trace) traceString = `graph: ${g0.toString(1)}\n`;
+	if (trace == 1) traceString = `graph: ${g0.toString(1)}\n`;
 
 	g = g0; 
 	if (s) {
@@ -102,9 +102,9 @@ export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 			[path[i],path[(g0.n-2)-i]] = [path[(g0.n-2)-i],path[i]]
 	}
 
-	if (trace) {
+	if (trace == 1) {
 		traceString += `\nfinal ${s ? 'path' : 'cycle'}: ` +
-					   `${g0.elist2string(path,0,0,1)}\n`;
+					   `${g0.elist2string(path,0,0,1)} ${len}\n`;
 	}
 	
 	return [path, traceString, {'cycles': clist.length, 'length': len}];
