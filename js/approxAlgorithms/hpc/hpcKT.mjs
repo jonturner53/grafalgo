@@ -105,6 +105,8 @@ export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 	if (trace == 1) {
 		traceString += `\nfinal ${s ? 'path' : 'cycle'}: ` +
 					   `${g0.elist2string(path,0,0,1)} ${len}\n`;
+	} else if (trace) {
+		traceString += cycleLengths() + '\n';
 	}
 	
 	return [path, traceString, {'cycles': clist.length, 'length': len}];
