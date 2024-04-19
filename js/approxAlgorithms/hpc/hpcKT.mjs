@@ -187,7 +187,6 @@ function mergeCycles() {
 		for (let v = clist.next(u); v; v = clist.next(v)) {
 			if (!compatible(u,v)) continue;
 			let e = mg.join(u,v);
-			break;
 		}
 	}
 
