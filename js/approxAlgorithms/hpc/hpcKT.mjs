@@ -21,7 +21,7 @@ let pi;          // permutation on 1..n that defines cycles in g
 let rpi;         // reverse of permutation pi
 let clist;       // List of the current valid cycle ids
 let clen;        // clen[u] is length of cycle identified by u
-let link;        // link(u,v) is edge number of connecting edge or 0
+let link;        // link[u][v] is edge number of connecting edge or 0
 
 let trace;
 let traceString;
@@ -80,7 +80,12 @@ export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 	if (!initialCycles())
 		return [path, traceString, {'cycles': 0, 'length': 0}];
 
-	while (clist.length > 1 && mergeCycles()) {}
+	while (clist.length > 1) {
+		let cp = compatiblePair();
+		if (!cp) break;
+		let [c1,c2,u,v] = cp;
+		splice(u,v); clen[c1] += clen[c2]; clist.delete(c2);
+	}
 
 	// identify longest cycle
 	let lc = clist.first();
@@ -173,34 +178,22 @@ function initialCycles() {
 	return true;
 }
 
-/** Merge cycles in current set by solving a matching problem.
- *  @return true if at least one pair of cycles was matched
+/** Search for a compatible pair in clist.
+ *  @return a tuple [c1,c2,u,v] on success, or null on failure;
+ *  c1 and c2 are a pair of compatible cycles; u and v are vertices
+ *  at which the cycles can be spliced.
  */
-function mergeCycles() {
-	if (trace == 1) traceString += traceCycles() + '\n';
-	else if (trace) traceString += cycleLengths() + '\n';
-	ea && assert(!verifyPi(), traceString + verifyPi());
-
-	let mg = new Graph(g.n, clist.length*(clist.length-1)/2);
-
-	for (let u = clist.first(); u; u = clist.next(u)) {
-		for (let v = clist.next(u); v; v = clist.next(v)) {
-			if (!compatible(u,v)) continue;
-			let e = mg.join(u,v);
+function compatiblePair() {
+	for (let c1 = clist.first(); c1; c1 = clist.next(c1)) {
+		for (let c2 = clist.next(c1); c2; c2 = clist.next(c2)) {
+			let pair = compatible(c1,c2);
+			if (pair) {
+				let [u,v] = pair;
+				return [c1,c2,u,v];
+			}
 		}
 	}
-
-	if (clist.length > mg.m+1) return false;
-	let [match] = matchEG(mg);
-	if (match.size() == 0) return false;
-
-	for (let e = match.first(); e; e = match.next(e)) {
-		let [u,v] = [mg.left(e),mg.right(e)];
-		splice(compatible(u,v));
-		clen[u] += clen[v]; clist.delete(v);
-	}
-
-	return true;
+	return null;
 }
 
 /** Determine if two cycles are compatible.
@@ -226,18 +219,18 @@ function compatible(c1,c2) {
 }
 
 /** Splice two cycles at a specified pair of vertices.
- *  @param x is a vertex in a cycle
- *  @param y is a vertex in a different cycle
+ *  @param u is a vertex in a cycle
+ *  @param v is a vertex in a different cycle
  */
-function splice([x,y]) {
-	if (!link[x][pi[y]]) reverseCycle(y);
-	if (!link[y][pi[x]]) reverseCycle(x);
-	let  px =  pi[x]; let  py =  pi[y];
-	[pi[x], pi[y], rpi[py], rpi[px]] = [py, px, x, y];
+function splice(u,v) {
+	if (!link[u][pi[v]]) reverseCycle(v);
+	if (!link[v][pi[u]]) reverseCycle(u);
+	let  pu =  pi[u]; let  pv =  pi[v];
+	[pi[u], pi[v], rpi[pv], rpi[pu]] = [pv, pu, u, v];
 }
 
 /** Reverse a cycle or a portion of the cycle.
- *  @paren u is a vertex.
+ *  @paren u is a vertex on some cycle.
  */  
 function reverseCycle(u) {
 	let v = u;
