@@ -81,6 +81,8 @@ export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 		return [path, traceString, {'cycles': 0, 'length': 0}];
 
 	while (clist.length > 1) {
+		if (trace == 1) traceString +=  traceCycles() + '\n';
+		else if (trace) traceString += cycleLengths() + '\n';
 		let cp = compatiblePair();
 		if (!cp) break;
 		let [c1,c2,u,v] = cp;
