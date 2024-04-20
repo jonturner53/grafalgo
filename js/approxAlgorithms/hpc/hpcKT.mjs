@@ -91,11 +91,11 @@ export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 
 	// identify longest cycle
 	let lc = clist.first();
-	for (let u = clist.first(); u; u = clist.next(u))
+	for (let u = clist.next(lc); u; u = clist.next(u))
 		if (clen[u] > clen[lc]) lc = u;
 
 	// create array of edges in path/cycle, skipping added edges
-	let v0 = s ? s : lc; let v = v0; let i = 0; let len = 0;
+	let v0 = (s ? s : lc); let v = v0; let i = 0; let len = 0;
 	do {
 		let e = link[v][pi[v]];
 		if (g0.validEdge(e)) { path[i++] = e; len++; }
@@ -166,7 +166,7 @@ function initialCycles() {
 	while (!cycleEdges.empty()) {
 		let e = cycleEdges.first();
 		let u = g.left(e);
-		let v = u; let c;
+		let v = u;
 		do {
 			pi[v] = g.mate(v,e); rpi[g.mate(v,e)] = v;
 			cycleEdges.delete(e);
@@ -205,17 +205,17 @@ function compatiblePair() {
  *  used to splice the cycles together; or null on failure
  */
 function compatible(c1,c2) {
-	let x = c1;
+	let u = c1;
 	do {
-		let y = c2;
+		let v = c2;
 		do {
-			if ((link[x][pi[y]] || link[x][rpi[y]]) &&
-				(link[y][pi[x]] || link[y][rpi[x]]))
-				return [x,y];
-			y = pi[y];
-		} while (y != c2);
-		x = pi[x];
-	} while (x != c1);
+			if ((link[u][pi[v]] || link[u][rpi[v]]) &&
+				(link[v][pi[u]] || link[v][rpi[u]]))
+				return [u,v];
+			v = pi[v];
+		} while (v != c2);
+		u = pi[u];
+	} while (u != c1);
 
 	return null;
 }
@@ -231,7 +231,7 @@ function splice(u,v) {
 	[pi[u], pi[v], rpi[pv], rpi[pu]] = [pv, pu, u, v];
 }
 
-/** Reverse a cycle or a portion of the cycle.
+/** Reverse a cycle.
  *  @paren u is a vertex on some cycle.
  */  
 function reverseCycle(u) {

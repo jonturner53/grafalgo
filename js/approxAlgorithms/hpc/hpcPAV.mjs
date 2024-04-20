@@ -51,18 +51,17 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 		}
 		let e = g.firstAt(u);
 		let i = randomInteger(1,g.degree(u));
-		while (i > 1) { i--; e = g.nextAt(u,e); }
+		while (i-- > 1) e = g.nextAt(u,e);
 		let v = g.mate(u,e);
 		selectCount[e]++;
 		if (selectCount[e] == selectMax) g.delete(e);
 		if (v == u0 || v == t) continue;
 
 		// find position of first edge in path containing v
-		let pv = 0;
-		while (pv < k) {
+		let pv;
+		for (pv = 0; pv < k; pv++) {
 			if (g0.left(path[pv]) == v || g0.right(path[pv]) == v)
 				break;
-			pv++;
 		}
 		if (pv == k) { // v not on path
 			path[k++] = e; u = v;

@@ -43,6 +43,7 @@ let steps;       // total number of steps
  */
 export default function matchEG(g0, match0=0, traceFlag=false) {
 	g = g0; match = initialMatch(g0,match0);
+
 	link = new Int32Array(g.n+1);
 	q = new List(g.edgeRange);
 	outer = new MergeSets(g.n);
@@ -54,15 +55,6 @@ export default function matchEG(g0, match0=0, traceFlag=false) {
 
 	trace = traceFlag; traceString = '';
 	paths = bcount = 0; steps = g.n + g.edgeRange;
-
-	// add edges to match, yielding maximal (not maximum) matching
-	for (let u = 1; u <= g.n; u++) {
-		if (match.at(u)) continue;
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
-			steps++;
-			if (!match.at(g.mate(u,e))) { match.add(e); break; }
-		}
-	}
 
 	if (trace)
 		traceString += `${g.toString(1)}` +
