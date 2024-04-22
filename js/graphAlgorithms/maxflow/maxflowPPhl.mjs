@@ -1,4 +1,4 @@
-/** @file maxflowPPf.mjs
+/** @file maxflowPPhl.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -15,7 +15,7 @@ import maxflowPP from './maxflowPP.mjs';
  *  @param g is Flograph, possibly with some initial flow already present.
  *  @return the total flow added to g
  */
-export default function maxflowPPf(g, relabThresh=g.m, trace=false) {
+export default function maxflowPPhl(g, relabThresh=g.m, trace=false) {
 	let unbal = new ListSet(g.n);
 	let ubvec = new Int32Array(2*g.n+1);
 	let top = 0;

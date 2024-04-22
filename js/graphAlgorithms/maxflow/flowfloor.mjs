@@ -25,10 +25,10 @@ export default function flowfloor(g, trace=false) {
 	let paths = 0; let steps = 0;
 	// First determine total capacity, number
 	// of edges with non-zero floors and the sum of min flows
-	let floorCount = 0; let totalCap = 0; let totalFloor = 0;
+	let floorCount = 0; let totalFloor = 0;
 	for (let e = g.first(); e; e = g.next(e)) {
 		steps++;
-		totalCap += g.cap(e); totalFloor += g.floor(e);
+		totalFloor += g.floor(e);
 		if (g.floor(e) > 0) floorCount++;
 	}
 	// Next copy edges to new flow graph being careful to maintain same
@@ -60,9 +60,9 @@ export default function flowfloor(g, trace=false) {
 		}
 	}
 	// Finally, add high capacity edge from original sink to original source
-	let e = g1.join(g.sink, g.source); g1.cap(e, totalCap);
+	let e = g1.join(g.sink, g.source); g1.cap(e, totalFloor);
 
-	// Now, find max flow in g1 and check that floor values are all satisfied
+	// Now, find max flow in g1
 	let [ts,stats] = maxflowPPf(g1);
 	paths += stats.paths; steps += stats.steps;
 

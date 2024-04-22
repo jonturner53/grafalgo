@@ -54,7 +54,7 @@ let algomap = {
 	'PPf':  ['maxflowPPf',  
 			 (g,trace)=>run(g,trace,(g,trace)=>maxflowPPf(g,g.m,trace)),
 			 maxflowVerify],
-	'PPhl': ['maxflowPPf',  
+	'PPhl': ['maxflowPPhl',  
 			 (g,trace)=>run(g,trace,(g,trace)=>maxflowPPhl(g,g.m,trace)),
 			 maxflowVerify],
 	'floor':['flowfloor',   (g,trace)=>ff(g,trace), verifyFloors]
@@ -69,13 +69,16 @@ let g = new Flograph(); g.fromString(
 			'h[f:3 i:4 j:5] i[g:5 j:6] ->j[]}');
 tester.addTest('small graph', g);
 
-g = randomFlograph(14, 5, 3, 1, 1); g.randomCapacities(randomInteger, 5, 15);
+g = randomFlograph(14, 5, 3, 1, 1);
+g.randomCapacities(randomInteger, 5, 15);
 tester.addTest('small random', g);
 
-g = randomFlograph(102, 20, 20, 2, 2); g.randomCapacities(randomInteger, 1, 999);
+g = randomFlograph(102, 20, 20, 2, 2);
+g.randomCapacities(randomInteger, 1, 999);
 tester.addTest('medium random', g);
 
-g = randomFlograph(502, 100, 100, 2, 2); g.randomCapacities(randomInteger, 1, 99);
+g = randomFlograph(502, 100, 100, 2, 2);
+g.randomCapacities(randomInteger, 1, 99);
 !ea && tester.addTest('large random', g);
 
 g = maxflowHardcase(15, 15);
@@ -90,13 +93,11 @@ g = new Flograph(); g.fromString(
 tester.addTest('small graph with floors', g);
 
 g = randomFlograph(14, 5, 3, 1, 1);
-g.randomCapacities(randomInteger, 1, 19);
-g.randomFloors(randomInteger, 0, 1);
+g.randomCapacities(randomInteger, 1, 19); g.randomFloors(randomInteger, 0, 1);
 tester.addTest('small random with floors', g);
 
 g = randomFlograph(202, 20, 20, 2, 2);
-g.randomCapacities(randomInteger, 1, 99);
-g.randomFloors(randomInteger, 0, 2);
+g.randomCapacities(randomInteger, 1, 99); g.randomFloors(randomInteger, 0, 2);
 tester.addTest('medium random with floors', g);
 
 if (!ea) {
@@ -107,4 +108,3 @@ if (!ea) {
 }
 
 tester.run();
-

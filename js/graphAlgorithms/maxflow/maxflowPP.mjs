@@ -49,7 +49,7 @@ export default function maxflowPP(fg, getUbal, putUbal, incrRelabThresh=fg.m,
 	balanceCount = 0; balanceSteps = 0;
 
 	let s = g.source;
-	for (let e = g.firstOut(s); e != 0; e = g.nextAt(s,e)) {
+	for (let e = g.firstOut(s); e; e = g.nextAt(s,e)) {
 		let f = g.res(e,s); if (f == 0) continue;
 		g.addFlow(e, s, f);
 		let v = g.head(e);
@@ -62,17 +62,18 @@ export default function maxflowPP(fg, getUbal, putUbal, incrRelabThresh=fg.m,
 
 	traceString = '';
 	if (trace)
-		traceString +=  'unbalanced vertex, distance label, excess, ' +
+		traceString +=  'mode, unbalanced vertex, distance label, excess, ' +
 						'relabel steps, push edges\n';
 
 	let u = getUnbal();
 	while (u) {
 		if (trace) {
-			traceString += `${g.x2s(u)} ${d[u]} ${excess[u]} ${incrRelabSteps}`;
+			traceString += `${batch ? 'B' : 'I'} ${g.x2s(u)} ${d[u]} ` +
+						   `${excess[u]} ${incrRelabSteps}`;
 		}
 		if (batch) {
 			balance(u, trace); u = getUnbal();
-			if (u == 0) {
+			if (!u) {
 				relabelAll(); u = getUnbal();
 				incrRelabSteps = 0;
 				batch = (incrRelabThresh == 0);
@@ -122,10 +123,10 @@ export function minlabel(u) {
 export function balance(u, trace) {
 	balanceCount++;
 	if (excess[u] <= 0) return true;
-	for (let e = nextedge[u]; e != 0; e = nextedge[u]) {
+	for (let e = nextedge[u]; e; e = nextedge[u]) {
 		balanceSteps++;
 		let v = g.mate(u,e);
-		if (g.res(e,u) > 0 && d[u] == d[v]+1 && nextedge[v] != 0) {
+		if (g.res(e,u) > 0 && d[u] == d[v]+1 && nextedge[v]) {
 			let x = Math.min(excess[u],g.res(e,u));
 			g.addFlow(e,u,x); excess[u] -= x; excess[v] += x;
 			if (v != g.source && v != g.sink) putUnbal(v, d[v]);
@@ -149,7 +150,7 @@ export function relabelAll() {
 	q.enq(g.sink); d[g.sink] = 0;
 	while (!q.empty()) {
 		let u = q.deq();
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			relabelSteps++;
 			let v = g.mate(u,e);
 			if (g.res(e,v) > 0 && d[v] > d[u] + 1) {
@@ -168,7 +169,7 @@ export function relabelAll() {
 	q.enq(g.source); d[g.source] = g.n;
 	while (!q.empty()) {
 		let u = q.deq();
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			relabelSteps++;
 			let v = g.mate(u,e);
 			if (g.res(e,v) > 0 && d[v] > d[u] + 1) {
