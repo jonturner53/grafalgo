@@ -51,7 +51,7 @@ export default function ncrK(fg, traceFlag=false) {
 	}
 	if (trace) traceString += '\n' + g.toString(1);
 	g = Cost = link = q = cycleIds = null;
-	return [ traceString, { 'cycles': cycles, 'passes': passes, 'steps': steps} ];
+	return [ traceString, { 'cycles':cycles, 'passes':passes, 'steps':steps} ];
 }
 
 /** Find a negative cost cycle in the residual graph.

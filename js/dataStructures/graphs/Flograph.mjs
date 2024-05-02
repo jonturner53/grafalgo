@@ -148,14 +148,14 @@ export default class Flograph extends Digraph {
 	
 	/** Set the flow of every edge to zero. */
 	clearFlow() {
-		for (let e = this.first(); e != 0; e = this.next(e))
+		for (let e = this.first(); e; e = this.next(e))
 			this.flow(e, 0);
 	}
 
 	/** Return the current flow magnitude (total flow leaving source). */
 	totalFlow() {
 		let flow = 0; let src = this.source;
-		for (let e = this.firstOut(src); e != 0; e = this.nextOut(src, e)) {
+		for (let e = this.firstOutof(src); e; e = this.nextOutof(src, e)) {
 			flow += this.f(e);
 		}
 		return flow;
@@ -169,7 +169,7 @@ export default class Flograph extends Digraph {
 		q.enq(1); reached.enq(1);
 		while (!q.empty()) {
 			let u = q.deq();
-			for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e)) {
+			for (let e = this.firstAt(u); e; e = this.nextAt(u,e)) {
 				let v = this.mate(u,e);
 				if (!reached.contains(v) && !q.contains(v) &&
 					this.res(e,u) > 0) {
@@ -192,7 +192,7 @@ export default class Flograph extends Digraph {
 		let reachable = this.reachable();
 		let cutsize = 0; let cutcap = 0;
 		for (let u = reachable.first(); u != 0; u = reachable.next(u)) {
-			for (let e = this.firstOut(u); e != 0; e = this.nextOut(u, e)) {
+			for (let e = this.firstOutof(u); e; e = this.nextOutof(u, e)) {
 				if (reachable.contains(this.head(e))) continue;
 				cutsize++; cutcap += this.cap(e);
 			}
@@ -204,7 +204,7 @@ export default class Flograph extends Digraph {
 	/** Return the current flow cost (sum of flow*cost for all edges). */
 	totalCost() {
 		let cost = 0;
-		for (let e = this.first(); e != 0; e = this.next(e)) {
+		for (let e = this.first(); e; e = this.next(e)) {
 			cost += this.f(e) * this.cost(e);
 		}
 		return cost;
@@ -294,13 +294,18 @@ export default class Flograph extends Digraph {
 	}
 
 	/** Construct a string representation of the Flograph object.
+	 *  @param fmt is an integer; its low order bits specify format options
+	 *		0b0001 causes the adjacency lists to be shown on separate lines
+	 *		0b0010 causes empty lists to be shown explicitly
+	 *		0b0100 omits edges from the list of the "larger" endpoint
+	 *      0b1000 omits edges with zero flow
 	 *  Uses elab and vlab  to modify the behavior of the Graph.toString()
 	 *  method.
 	 */
 	toString(fmt=0, elab=0, vlab=0) {
 		if (!elab) {
 			elab = (e,u) => 
-					(u == this.head(e) ? '' :
+					(u == this.head(e) || (fmt&0x8 && this.flow(e) == 0) ? '' :
 					 (this.x2s(this.mate(u,e)) + ':' +
 					  (this.floor(e)>0 ? this.floor(e) + '-' : '') +
 				   	  this.cap(e) +
@@ -408,7 +413,7 @@ export default class Flograph extends Digraph {
 	randomCapacities(f) {
 		let fargs = [...arguments].slice(1);
 		let s = this.source; let t = this.sink;
-		for (let e = this.first(); e != 0; e = this.next(e)) {
+		for (let e = this.first(); e; e = this.next(e)) {
 			let c = f(...fargs);
 			if (this.tail(e) == s || this.head(e) == t) c *= this.ssCapScale;
 			this.cap(e, Math.max(c, this.floor(e)));
@@ -432,7 +437,7 @@ export default class Flograph extends Digraph {
 	randomFloors(f) {
 		if (!this.hasFloors) this.hasFloors = true;
 		let fargs = [... arguments].slice(1);
-		for (let e = this.first(); e != 0; e = this.next(e)) {
+		for (let e = this.first(); e; e = this.next(e)) {
 			let w = f(...fargs); this.floor(e, Math.min(w, this.cap(e)));
 		}
 	}

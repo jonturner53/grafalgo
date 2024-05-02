@@ -52,7 +52,10 @@ export default function maxflowDST(fg, trace=false) {
 	steps += g.n;
 
 	let ts = '';
-	if (trace) ts += 'augmenting paths with residual capacities\n';
+	if (trace) {
+		ts += g.toString(1) +
+			  '\naugmenting paths with residual capacities\n';
+	}
 
 	while (newphase()) {
 		phases++; 
@@ -62,7 +65,7 @@ export default function maxflowDST(fg, trace=false) {
 			if (trace) ts += s + '\n';
 		}
 	}
-	if (trace) ts += g.toString(1);
+	if (trace) ts += '\nflow: ' + g.toString(9);
 	let treeStats = trees.getStats();
 	steps += treeStats.steps;
 	return [ts, {'flow': g.flowStats().totalFlow, 'phases': phases,

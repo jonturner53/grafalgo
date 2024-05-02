@@ -29,6 +29,7 @@ export default class Graph extends Top {
 	firstEp;	// firstEp[v] is first edge endpoint at v
 	edges;		// sets of in-use and free edges
 	epLists;	// lists of the edge endpoints at each vertex
+	io;			// optional ListPair defining bipartition
 	nabors;     // temporary list of neighbors used by fromString
 
 	Left;		// Left[e] is left endpoint of edge e
@@ -96,6 +97,9 @@ export default class Graph extends Top {
 
 		if ( other.hasWeights && !this.hasWeights) this.hasWeights = true;
 		if (!other.hasWeights &&  this.hasWeights) this.hasWeights = false;
+		if (other.io) {
+			this.io = new ListPair(this.n); this.io.assign(other.io);
+		}
 		for (let e = other.first(); e; e = other.next(e)) {
 			let ee = this.edges.in(e,2) ?
 						this.join(other.left(e), other.right(e), e) :
@@ -219,6 +223,57 @@ export default class Graph extends Top {
 		let ep = (v == this.left(e) ? 2*e : 2*e+1);
 		return Math.trunc(this.epLists.next(ep)/2);
 	}
+
+	/** Define a bipartition on the graph.
+	 *  @param io is an optional ListPair that divides the vertices into
+	 *  "inputs" and "outputs" and defines an bipartition; if not supplied,
+	 *  a bipartition is computed.
+	 *  @return true if the graph is bipartite; if io is supplied, the graph
+	 *  is assumed to be bipartite.
+	 */	
+	split(io=0) {
+		if (io) { this.io = io; return true; }
+
+		io = new ListPair(this.n);
+		let unreached = new Int8Array(this.n+1).fill(true);
+		let q = new List(this.n);
+	
+		for (let u = 1; u <= this.n; u++) {
+			if (!unreached[u]) continue;
+			unreached[u] = false; io.swap(u); q.enq(u);
+			while (!q.empty()) {
+				let v = q.deq();
+				for (let e = this.firstAt(v); e; e = this.nextAt(v,e)) {
+					let w = this.mate(v,e);
+					if (unreached[w]) {
+						if (io.in(v,2)) io.swap(w);
+						unreached[w] = false; q.enq(w);
+					} else if ( (io.in(v,1) && io.in(w,1)) ||
+						   		(io.in(v,2) && io.in(w,2))) {
+						return false;
+					}
+				}
+			}
+		}
+		this.io = io; return true;
+	}
+
+	get bipartite() { return this.io || this.split(); }
+
+	isInput(u) { return this.io.in(u,1); }
+	isOutput(u) { return this.io.in(u,2); }
+
+	/** Return first input defined by bipartition io. */
+	firstInput() { return this.io.first(1); }
+
+	/** Return first output defined by bipartition io. */
+	nextInput(u) { return this.io.next(u); }
+
+	/** Return first output defined by bipartition io. */
+	firstOutput() { return this.io.first(2); }
+
+	/** Return first output defined by bipartition io. */
+	nextOutput(u) { return this.io.next(u); }
 
 	/** Join two vertices.
 	 *  @param u is the left endpoint for the new edge
@@ -472,47 +527,52 @@ export default class Graph extends Top {
 	 *  Returned string shows the adjacency lists of the vertices.
 	 *  @param fmt is an integer; its low order bits specify format options
 	 *		0b001 causes the adjacency lists to be shown on separate lines
-	 *		0b010 causes isolated vertices to be shown explicitly
+	 *		0b010 causes empty lists to be shown explicitly
+	 *		0b100 omits edges from the list of the "larger" endpoint
 	 *  @param elab is an optional labeling function used to produce the
 	 *  string that represents an edge in an adjacency list; by default,
 	 *  this is just the 'other endpoint' of the edge, but it can be
 	 *  used to produce other strings, or show properties of the edge;
-	 *  it has two arguments, and edge e and the 'near' endpoint of e
+	 *  it has two arguments, an edge e and the 'near' endpoint of e
 	 *  @param vlab is a similar labeling function used to produce the
 	 *  string that represents the vertex that 'owns' an adjacency list;
 	 *  it has a single argument
-	 *  @param vmax is the largest vertex number for which the
 	 *  adjacency list is shown explicitly
 	 *  @return a reference to the string
 	 */
-	toString(fmt=0, elab=0, vlab=0, vmax=this.n) {
+	toString(fmt=0, elab=0, vlab=0) {
 		if (!elab) {
 			elab = (e,u) => this.x2s(this.mate(u,e)) +
 							(this.weight(e) ? (':' + this.weight(e)) : '');
 		}
 		if (!vlab) vlab = ((u) => this.x2s(u));
 		let s = '';
-		for (let u = 1; u <= vmax; u++) {
-			if (!(fmt&2) && !this.firstAt(u)) continue;
+		for (let u = 1; u <= this.n; u++) {
 			if (!(fmt&1) && s) s += ' ';
-			s += this.alist2string(u, elab, vlab);
-			if (fmt&1) s += '\n';
+			let ss = this.alist2string(u, elab, fmt&4);
+			if (fmt&2 || ss) {
+				s += vlab(u) + ss;
+				if (fmt&1) s += '\n';
+			}
 		}
 		return (fmt&1 ? '{\n' + s + '}\n': '{' + s + '}');
 	}
 
 	/** Create a string representation of an adjacency list.
 	 *  @param u is a vertex number
+	 *  @param elab is edge labelling function as defined in toString()
+	 *  @param skip is a flag that omits edges from list of larger endpoint
 	 *  @return a string representing the list
 	 */
-	alist2string(u, elab=0, vlab=0) {
+	alist2string(u, elab=0, skip) {
 		let s = '';
-		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u, e)) {
+		for (let e = this.firstAt(u); e; e = this.nextAt(u, e)) {
+			if (skip && this.mate(u,e) < u) continue;
 			let ns = elab(e,u);
 			if (s.length > 0 && ns.length > 0) s += ' ';
 			s += ns;
 		}
-		return vlab(u) + (s ? `[${s}]` : '');
+		return (s ? `[${s}]` : '');
 	}
 
 	/** Get the next vertex (from the start of an alist) from a scanner.

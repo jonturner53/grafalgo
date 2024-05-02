@@ -49,7 +49,7 @@ export default function maxflowPP(fg, getUbal, putUbal, incrRelabThresh=fg.m,
 	balanceCount = 0; balanceSteps = 0;
 
 	let s = g.source;
-	for (let e = g.firstOut(s); e; e = g.nextAt(s,e)) {
+	for (let e = g.firstOutof(s); e; e = g.nextOutof(s,e)) {
 		let f = g.res(e,s); if (f == 0) continue;
 		g.addFlow(e, s, f);
 		let v = g.head(e);
@@ -62,7 +62,8 @@ export default function maxflowPP(fg, getUbal, putUbal, incrRelabThresh=fg.m,
 
 	traceString = '';
 	if (trace)
-		traceString +=  'mode, unbalanced vertex, distance label, excess, ' +
+		traceString +=  g.toString(1) + '\n' +
+						'mode, unbalanced vertex, distance label, excess, ' +
 						'relabel steps, push edges\n';
 
 	let u = getUnbal();
@@ -92,7 +93,7 @@ export default function maxflowPP(fg, getUbal, putUbal, incrRelabThresh=fg.m,
 			u = getUnbal();
 		}
 	}
-	if (trace) traceString += '\n' + g.toString(1);
+	if (trace) traceString += '\nflow: ' + g.toString(9);
 	return [traceString, {'flow': g.flowStats().totalFlow,
                  		  'relabelCount': relabelCount,
 						  'relabelSteps': relabelSteps,

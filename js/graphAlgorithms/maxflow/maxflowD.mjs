@@ -31,8 +31,10 @@ export default function maxflowD(fg, trace=false) {
 	link = new Int32Array(g.n+1);
 
 	let ts = '';
-	if (trace)
-		ts += 'augmenting paths with residual capacities\n';
+	if (trace) {
+		ts += g.toString(1);
+		ts += '\naugmenting paths with residual capacities\n';
+	}
 
 	phases = paths = steps = 0;
 	while (newphase()) {
@@ -44,7 +46,7 @@ export default function maxflowD(fg, trace=false) {
 			steps += augsteps;
 		}
 	}
-	if (trace) ts += '\n' + g.toString(1);
+	if (trace) ts += '\nflow: ' + g.toString(9);
 	return [ts, {'flow': g.flowStats().totalFlow,
                  'phases': phases, 'paths': paths, 'steps': steps} ];
 }

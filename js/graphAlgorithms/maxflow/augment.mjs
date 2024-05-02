@@ -18,13 +18,15 @@ import Flograph from '../../dataStructures/graphs/Flograph.mjs';
  *  ts is a trace string and steps is the number of steps executed
  */
 export default function augment(g, link, trace=false) {
-	let f = Infinity; let ts = g.index2string(g.sink);
+	let f = Infinity; let ts = '';
 	let v = g.sink; let e = link[v]; let steps = 0;
 	while (v != g.source) {
 		steps++;
 		let u = g.mate(v, e);
-		if (trace)
-			ts = `${g.index2string(u)}:${g.res(e, u)} ${ts}`;
+		if (trace) {
+			ts = `${g.x2s(g.tail(e))}${g.x2s(g.head(e))}:${g.res(e, u)}` +
+				 (ts ? ' ' + ts : '');
+		}
 		f = Math.min(f, g.res(e, u));
 		v = u; e = link[v];
 	}

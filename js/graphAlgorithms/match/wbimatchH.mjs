@@ -36,7 +36,7 @@ let steps;       // total number of steps
  *  ts is a possibly empty trace string and stats is a statistics object
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function wbimatchH(bg, io=0, traceFlag=0) {
+export default function wbimatchH(bg, traceFlag=0) {
 	g = bg; match = new Matching(g);
 
 	// adjust weights to avoid numerical issues arising from
@@ -59,22 +59,18 @@ export default function wbimatchH(bg, io=0, traceFlag=0) {
 	trace = traceFlag; traceString = '';
 	paths = steps = 0;
 
-	// divide vertices into two independent sets
-	if (!io) { io = findSplit(g); steps += g.m; }
-	if (!io) return [];
-
 	if (trace) {
-		traceString += `${g.toString(1)}augmenting path, path weight\n`;
+		traceString += `${g.toString(1)}\naugmenting path, path weight\n`;
 	}
 
 	// add unmatched vertices from first subset to free
-	for (let u = io.first(1); u; u = io.next(u)) {
+	for (let u = g.firstInput(); u; u = g.nextInput(u)) {
 		if (g.firstAt(u)) free.enq(u);
 		steps++;
 	}
 
 	// initialize vertex labels
-	initLabels(io);
+	initLabels();
 
 	// augment the matching until no augmenting path remains
 	let u = findpath();
@@ -82,7 +78,7 @@ export default function wbimatchH(bg, io=0, traceFlag=0) {
 		augment(u); u = findpath(); paths++;
 	}
 	if (trace) {
-		traceString += 'matching: ' + match.toString() + '\n';
+		traceString += '\nmatching: ' + match.toString() + '\n';
 	}
 	return [match, traceString, {'weight': match.weight(), 'paths': paths,
 								 'steps': steps }];
@@ -93,11 +89,11 @@ function checkLabels() {
 	for (let e = g.first(); e; e = g.next(e)) {
 		let [u,v] = [g.left(e),g.right(e)];
 		if (match.contains(e)) {
-			if (io.in(u,1)) [u,v] = [v,u];
+			if (g.isInput(u)) [u,v] = [v,u];
 			assert(weight[e] + (lab[u]-lab[v]) >= 0, 
 				   ''+lab[u]+' '+lab[v]+' '+(weight[e] + (lab[u]-lab[v])));
 		} else {
-			if (io.in(u,2)) [u,v] = [v,u];
+			if (g.isOutput(u)) [u,v] = [v,u];
 			assert(-weight[e] + (lab[u]-lab[v]) >= 0,
 					''+weight[e]+' '+(-weight[e] + (lab[u]-lab[v])));
 		}
@@ -107,12 +103,12 @@ function checkLabels() {
 
 /** Compute values for labels that give non-negative transformed costs.
  *  The labels are the least cost path distances from an imaginary
- *  vertex with a length 0 edge to every vertex in io's set1.
- *  Edges are treated as directed from set1 to set2.
+ *  vertex with a length 0 edge to every input vertex in g.
+ *  Edges are treated as directed from inputs to outputs.
  */
-function initLabels(io) {
+function initLabels() {
 	lab.fill(0);
-	for (let u = io.first(1); u; u = io.next(u)) {
+	for (let u = g.firstInput(); u; u = g.nextInput(u)) {
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			let v = g.mate(u,e);
 			if (lab[v] > lab[u] - weight[e]) {
@@ -184,19 +180,19 @@ function findpath() {
 function augment(u) {
 	let e = link[u];
 	let ts = ''; let pathCost = 0;
-	if (trace) ts = g.x2s(u);
+	if (trace) ts = '';
 	while (e) {
 		steps++;
-		if (trace) ts = `${g.e2s(e)} ${ts}`
+		if (trace) ts = `${g.e2s(e,0,1)}` + (ts ? ' ' + ts : '');
 		pathCost += weight[e];
 		match.add(e);  u = g.mate(u,e); e = link[u];
 		if (!e) break;
-		if (trace) ts = g.x2s(u);
+		if (trace) ts = g.e2s(e,0,1) + ' ' + ts;
 		pathCost -= weight[e];
 		match.drop(e); u = g.mate(u,e); e = link[u];
 	}
 	free.delete(u);
 	if (trace) {
-		traceString += `${g.x2s(u)} ${ts} ${pathCost}\n`
+		traceString += `${ts} ${pathCost}\n`
 	}
 }

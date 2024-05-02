@@ -63,7 +63,7 @@ export default class Digraph extends Graph {
 	 *  @return the first edge in the list of edges entering u, or 0 if
 	 *  no such edge
 	 */ 
-	firstIn(u) {
+	firstInto(u) {
 		let e = this.firstAt(u);
 		return (u == this.tail(e) ? 0 : e);
 	}
@@ -74,7 +74,7 @@ export default class Digraph extends Graph {
 	 *  @return the next edge in the list of edges entering u, or 0 if
 	 *  no such edge
 	 */ 
-	nextIn(u, e) {
+	nextInto(u, e) {
 		e = this.nextAt(u, e);
 		return (e == 0 || u == this.tail(e) ? 0 : e);
 	}
@@ -84,7 +84,7 @@ export default class Digraph extends Graph {
 	 *  @return the first edge in the list of edges leaving u, or 0 if
 	 *  no such edge
 	 */ 
-	firstOut(u) { return Math.trunc(this.firstEpOut[u]/2); }
+	firstOutof(u) { return Math.trunc(this.firstEpOut[u]/2); }
 
 	/** Get the next edge leaving u.
 	 *  @param u is a vertex
@@ -92,7 +92,7 @@ export default class Digraph extends Graph {
 	 *  @return the next edge in the list of edges leaving u, or 0 if
 	 *  no such edge
 	 */ 
-	nextOut(u, e) { return this.nextAt(u, e); }
+	nextOutof(u, e) { return this.nextAt(u, e); }
 
 	/** Compute the in-degree of a vertex.
 	 *  @param u is a vertex
@@ -101,7 +101,7 @@ export default class Digraph extends Graph {
 	inDegree(u) {
 		ea && assert(this.validVertex(u));
 		let d = 0;
-		for (let e = this.firstIn(u); e != 0; e = this.nextIn(u,e)) {
+		for (let e = this.firstInto(u); e; e = this.nextInto(u,e)) {
 			 d++;
 		}
 		return d;
@@ -114,7 +114,7 @@ export default class Digraph extends Graph {
 	outDegree(u) {
 		ea && assert(this.validVertex(u));
 		let d = 0;
-		for (let e = this.firstOut(u); e != 0; e = this.nextOut(u,e)) d++;
+		for (let e = this.firstOutof(u); e; e = this.nextOutof(u,e)) d++;
 		return d;
 	}
 
@@ -126,7 +126,7 @@ export default class Digraph extends Graph {
 	findEdge(u, v, edges) {
 		ea && assert(this.validVertex(u) && this.validVertex(v));
 		if (!edges) {
-			for (let e = this.firstOut(u); e != 0; e = this.nextOut(u, e)) {
+			for (let e = this.firstOutof(u); e; e = this.nextOutof(u, e)) {
 				if (v == this.mate(u, e)) return e;
 			}
 			return 0;
@@ -182,8 +182,8 @@ export default class Digraph extends Graph {
 	delete(e) {
 		ea && assert(this.validEdge(e));
 		let u = this.left(e);
-		if (e == this.firstOut(u))
-			this.firstEpOut[u] = 2 * this.nextOut(u,e);
+		if (e == this.firstOutof(u))
+			this.firstEpOut[u] = 2 * this.nextOutof(u,e);
 		super.delete(e);
 	}
 
@@ -207,7 +207,7 @@ export default class Digraph extends Graph {
 	sortEplist(u) {
 		super.sortEplist(u);
 		// now determine the firstEpOut value for re-ordered list
-		for (let e = this.firstAt(u); e != 0; e = this.nextAt(u,e)) {
+		for (let e = this.firstAt(u); e; e = this.nextAt(u,e)) {
 				if (u == this.tail(e)) {
 				this.firstEpOut[u] = 2*e; break;
 			}
@@ -231,7 +231,7 @@ export default class Digraph extends Graph {
             }
 		} else {
 			let i = 0; evec = new Array(this.m);
-			for (let e = this.first(); e != 0; e = this.next(e)) {
+			for (let e = this.first(); e; e = this.next(e)) {
 				evec[i++] = [this.tail(e), this.head(e), this.length(e), e];
 			}
 		}

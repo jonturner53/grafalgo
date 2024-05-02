@@ -27,7 +27,7 @@ export default function maxflowFFmc(fg, trace=false) {
 	g = fg; link = new Int32Array(g.n+1);
 	let ts = '';
 	if (trace)
-		ts += 'augmenting paths with residual capacities\n';
+		ts += g.toString(1) + '\naugmenting paths with residual capacities\n';
 	paths = steps = 0;
 
 	// initialize scale factor to largest power of 2
@@ -42,7 +42,7 @@ export default function maxflowFFmc(fg, trace=false) {
 		let [,s] = augment(g, link, trace);
 		if (trace) ts += s + '\n';
 	}
-	if (trace) ts += '\n' + g.toString(1);
+	if (trace) ts += '\nflow: ' + g.toString(9);
 	return [ts, {'flow': g.flowStats().totalFlow,
                  'paths': paths, 'steps': steps}];
 }

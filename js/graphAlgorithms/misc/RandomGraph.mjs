@@ -97,6 +97,9 @@ export function randomBigraph(ni, id, no=ni, dmax=Math.max(ni,no)-1) {
 								(u < ni ? [u+1, ni+1] : null))),
 					() => [randomInteger(1,ni), randomInteger(ni+1,ni+no)],
 					dmax);
+	let io = new ListPair(g.n);
+	for (let u = 1; u <= ni; u++) io.swap(u);
+	g.split(io);
 	return g;
 }
 
@@ -329,6 +332,7 @@ export function randomConnectedGraph(n, d) {
  */
 export function randomRegularGraph(n, d) {
 	// first find a nearly d-regular graph
+	assert(!(n&1) || !(d&1));
 	let k = 2; let g = randomGraph(n,d,d+k);
 	while (g.m != n*d/2) {
 		k *= 2; g = randomGraph(n,d,Math.min(n-1,d+k));
@@ -413,6 +417,10 @@ export function randomRegularBigraph(ni, id, no=ni) {
 		else if (du > od) hi.enq(u);
 	}
 	regularize(g, od, lo, hi);
+
+	let io = new ListPair(g.n);
+	for (let u = 1; u <= ni; u++) io.swap(u);
+	g.split(io);
 
 	return g;
 }

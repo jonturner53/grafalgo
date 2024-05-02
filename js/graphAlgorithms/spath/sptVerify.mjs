@@ -25,7 +25,7 @@ export default function sptVerify(g, s, link, dist) {
 		return `sptVerify: dist length (${dist.length}) does not match g`;
 
 	// verify all distances in dist
-	for (let e = g.first(); e != 0; e = g.next(e)) {
+	for (let e = g.first(); e; e = g.next(e)) {
 		let u = g.tail(e); let v = g.head(e);
 		if (dist[u] + g.length(e) < dist[v]) 
 			return `sptVerify: ${g.edge2string(e)} violates distance ` +
@@ -41,7 +41,7 @@ export default function sptVerify(g, s, link, dist) {
 		if (!mark[u] && link[u] != 0) {
 			mark[u] = true;
 			let v = u;
-			for (let e = link[v]; e != 0; e = link[v]) {
+			for (let e = link[v]; e; e = link[v]) {
 				if (!g.validEdge(e))
 					return `sptVerify: invalid edge number ${e} in link`;
 				if (v != g.head(e))
@@ -70,7 +70,7 @@ export default function sptVerify(g, s, link, dist) {
 		if (!mark[u])
 			return `sptVerify: reachable vertex ${g.index2string(u)} not ` +
 					`in tree`;
-		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
+		for (let e = g.firstOutof(u); e; e = g.nextOutof(u, e)) {
 			let v = g.head(e);
 			if (!mark2[v]) {
 				q.enq(v); mark2[v] = true;

@@ -41,7 +41,7 @@ export default function sptDag(g, s, trace=0) {
 	for (let i = 0; i < g.n; i++) {
 		let u = topo[i];
 		if (!reached[u]) continue;
-		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
+		for (let e = g.firstOutof(u); e; e = g.nextOutof(u, e)) {
 			let v = g.mate(u, e); reached[v] = true;
 			if (dist[v] > dist[u] + g.length(e)) {
 				link[v] = e; dist[v] = dist[u] + g.length(e);

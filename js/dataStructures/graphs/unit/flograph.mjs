@@ -15,7 +15,8 @@ try {
 	console.log('testing Flograph');
 
 	let g = new Flograph(6, 20);
-	matches(g.fromString('{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f[]}'),
+	matches(g.fromString('{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ' +
+						 '->f[]}'),
 		   true,'a00');
 	matches(g.toString(),
 		   '{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}', 'a0');

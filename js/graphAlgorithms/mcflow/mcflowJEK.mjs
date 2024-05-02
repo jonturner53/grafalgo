@@ -58,7 +58,7 @@ export default function mcflowJEK(fg, leastCost=false, traceFlag=false) {
 		augment(rcap); paths++;
 	}
 
-	if (trace) traceString += '\n' + g.toString(1);
+	if (trace) traceString += '\nresulting flow ' + g.toString(9);
 	steps += border.getStats().steps;
 	let stats = { 'flow': g.totalFlow(), 'cost': g.totalCost(),
                   'paths': paths, 'steps': steps };
@@ -72,7 +72,7 @@ function initLabels() {
 
 	// put all vertices in queue, effectively searching from pseudo-source
 	for (let u = 1; u <= g.n; u++) q.enq(u);
-	let pass = 0; let last = q.last;
+	let pass = 0; let last = q.last();
 	while (!q.empty()) {
 		let u = q.deq();
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
@@ -85,7 +85,7 @@ function initLabels() {
 		}
 		if (u == last) {
 			assert(pass < g.n, 'mcflowJEK: negative cost cycle detected');
-			pass++; last = q.last;
+			pass++; last = q.last();
 		}
 			
 	}

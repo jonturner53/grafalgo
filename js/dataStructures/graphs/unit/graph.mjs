@@ -10,6 +10,9 @@ import { AssertFail, EnableAssert as ea } from '../../../common/Assert.mjs';
 import { matches, Mismatch } from '../../../common/Testing.mjs';
 import Graph from '../Graph.mjs';
 
+
+import {randomBigraph} from '../../../graphAlgorithms/misc/RandomGraph.mjs';
+
 try {
 	console.log('testing Graph');
 
@@ -55,6 +58,14 @@ try {
 	matches(g, '{a[b:2 d:1] b[a:2 c:3] c[b:3 d:4] d[a:1 c:4]}', 'c2');
 	matches(g.toString(0,0,(u) => g.x2s(u) + ':' + u),
 		   '{a:1[d:1 b:2] b:2[a:2 c:3] c:3[b:3 d:4] d:4[a:1 c:4]}', 'c3');
+
+	//g = new randomBigraph(8,3);
+	g.fromString('{a[l n] b[i] c[i k l m n p] d[i j l o p] e[k o] ' +
+				 'f[j m] g[o] h[j k l o p]}');
+	matches(g.split(), true, 'd1');
+	matches(g.firstInput(), 1, 'd2');
+	matches(g.nextInput(3), 4, 'd3');
+	matches(g.nextOutput(10), 11, 'd4');
 
 } catch(e) {
     if (e instanceof Mismatch) {

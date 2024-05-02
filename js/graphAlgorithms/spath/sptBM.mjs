@@ -41,7 +41,7 @@ export default function sptBM(g, s, trace=0) {
 	}
 	while (!q.empty()) {
 		let u = q.deq();
-		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u,e)) {
+		for (let e = g.firstOutof(u); e; e = g.nextOutof(u,e)) {
 			let v = g.head(e); steps++;
 			if (dist[v] > dist[u] + g.length(e)) {
 				dist[v] = dist[u] + g.length(e); link[v] = e;

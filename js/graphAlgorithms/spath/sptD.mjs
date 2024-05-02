@@ -32,7 +32,7 @@ export default function sptD(g, s, trace=0) {
 					 `distance from ${g.x2s(s)}, heap contents\n`;
 	while (!border.empty()) {
 		let u = border.deletemin();
-		for (let e = g.firstOut(u); e; e = g.nextOut(u, e)) {
+		for (let e = g.firstOutof(u); e; e = g.nextOutof(u, e)) {
 			if (g.length(e) < 0) return [];
 			let v = g.head(e);
 			if (dist[v] > dist[u] + g.length(e)) {

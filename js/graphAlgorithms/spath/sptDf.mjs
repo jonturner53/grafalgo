@@ -37,7 +37,7 @@ export default function sptDf(g, s, trace=0) {
 	while (heapsize > 0) {
 		let u; [u, root] = h.deletemin(root);
 		inheap[u] = false; heapsize--;
-		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u, e)) {
+		for (let e = g.firstOutof(u); e; e = g.nextOutof(u, e)) {
 			if (g.length(e) < 0) return [];
 			let v = g.head(e);
 			if (dist[v] > dist[u] + g.length(e)) {

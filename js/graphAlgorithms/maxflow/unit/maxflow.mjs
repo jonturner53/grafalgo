@@ -28,13 +28,11 @@ function run(g, trace, f) {
 	g.clearFlow(); return f(g,trace);
 }
 
-
 function ff(g, trace) {
 	if (!g.hasFloors) throw new Proceed();
 	g.clearFlow();
 	let [success, ts, stats] = flowfloor(g, trace);
-	if (!success)
-		throw new Proceed('infeasible floor spec');
+	if (!success) throw new Proceed('cannot satisfy min flow requirements');
 	return [ts, stats];
 }
 
@@ -91,6 +89,12 @@ g = new Flograph(); g.fromString(
 	'e[f:1 g:3 h:1-4] f[e:1 g:2 h:3] g[e:3 f:2-7 h:1] ' +
 	'h[f:3 i:4 j:2] i[g:2-5 j:6] ->j[]}');
 tester.addTest('small graph with floors', g);
+
+g = new Flograph(); g.fromString(
+	'{a->[b:3 d:2] b[c:3 d:2-7@2 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
+	'e[f:1 g:3 h:1-4@-1] f[e:1 g:2@-3 h:3] g[e:3 f:2-7@4 h:1] ' +
+	'h[f:3 i:4@1 j:2] i[g:2-5 j:6] ->j[]}');
+tester.addTest('small graph with floors and costs', g);
 
 g = randomFlograph(14, 5, 3, 1, 1);
 g.randomCapacities(randomInteger, 1, 19); g.randomFloors(randomInteger, 0, 1);

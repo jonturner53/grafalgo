@@ -32,14 +32,14 @@ export default function maxflowFFmc(fg, trace=false) {
 
 	let ts = '';
 	if (trace)
-		ts += 'augmenting paths with residual capacities\n';
+		ts += g.toString(1) + '\naugmenting paths with residual capacities\n';
 	paths = steps = 0;
 	while (findpath(g.source)) {
 		paths++;
 		let [,s] = augment(g, link, trace);
 		if (trace) ts += s + '\n';
 	}
-	if (trace) ts += '\n' + g.toString(1);
+	if (trace) ts += '\nflow: ' + g.toString(9);
 	return [ts, {'flow': g.flowStats().totalFlow,
 				 'paths': paths, 'steps': steps + border.getStats().steps }];
 }
