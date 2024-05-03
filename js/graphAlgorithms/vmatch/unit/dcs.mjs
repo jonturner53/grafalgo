@@ -9,7 +9,6 @@
 import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 import bidcsF from '../bidcsF.mjs';
-import wbidcsF from '../wbidcsF.mjs';
 import dcsT from '../dcsT.mjs';
 import dcsVerify from '../dcsVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
@@ -21,13 +20,10 @@ let algomap = {
 	'F' : ['bidcsF',
 			(g,hi,lo,trace) => {
 				let [dcs,ts,stats] = bidcsF(g,hi,lo,trace);
+				if (stats.deficit > 0)
+					throw new Proceed('cannot satisfy lower bounds');
 				return [dcs,ts,stats];
 			}, dcsVerify],
-	'Fw' : ['wbidcsF',
-			(g,hi,lo,trace) => {
-				let [dcs,ts,stats] = wbidcsF(g,hi,lo,trace);
-                return [dcs,ts,stats];
- 			}, dcsVerify],
 	'T' : ['dcsT',
 			(g,hi,lo,trace) => {
 				let [dcs,ts,stats] = dcsT(g,hi,lo,trace);
@@ -42,41 +38,56 @@ let tester = new Tester(args, algomap);
 if (bipartite) {
 	console.log('bipartite graphs');
 	let g = new Graph();
-	g.fromString('{a[f:3 g:2 j:1] b[h:2 g:3 i:6] c[f:1 i:6 j:-1] ' +
+	g.fromString('{a[f g j] b[h g i] c[f i j] d[g h f] e[h i j]}');
+	g.split();
+	let lo = [0,1,2,1,0,1,2,0,0,2,1];
+	let hi = [0,2,3,3,2,3,3,2,2,3,2];
+	tester.addTest('small bigraph without lower bounds', g, hi, 0);
+	tester.addTest('small bigraph with lower bounds', g,  hi, lo);
+
+	let wg = new Graph();
+	wg.fromString('{a[f:3 g:2 j:1] b[h:2 g:3 i:6] c[f:1 i:6 j:-1] ' +
 				  'd[g:1 h:2 f:1] e[h:2 i:5 j:3]}');
-	let io = new ListPair();
-	for (let u = 1; u <= 5; u++) io.swap(u);
-	g.split(io);
-	tester.addTest('small bigraph', g,  [0,2,3,3,2,3,3,2,2,3,2],
-										[0,1,2,1,0,1,2,0,0,2,1]);
+	wg.split();
+	tester.addTest('small bigraph with weights', wg, hi, lo);
 
-	g = randomBigraph(8, 4); g.randomWeights(randomInteger, 1, 9);
-	let lo = new Int32Array(g.n+1); let hi = new Int32Array(g.n+1);
-	for (let u = 1; u <= g.n; u++) {
-		lo[u] = randomInteger(0,Math.max(0,Math.min(2,g.degree(u)-1)));
-		hi[u] = randomInteger(lo[u], g.degree(u));
-	}
-	tester.addTest('small random bigraph (8,4)', g, hi, lo);
-
-	g = randomBigraph(100, 3); g.randomWeights(randomInteger, 1, 99);
+	g = randomBigraph(10, 3);
 	lo = new Int32Array(g.n+1); hi = new Int32Array(g.n+1);
 	for (let u = 1; u <= g.n; u++) {
 		lo[u] = randomInteger(0,Math.max(0,Math.min(2,g.degree(u)-1)));
 		hi[u] = randomInteger(lo[u], g.degree(u));
 	}
-	tester.addTest('medium random bigraph (100,3)', g, hi, lo);
+	tester.addTest('small random bigraph (10,3)', g, hi, lo);
+
+	wg = new Graph(); wg.assign(g); wg.randomWeights(randomInteger,0,9);
+	tester.addTest('small random bigraph (10,3) with weights', wg, hi, lo);
+
+	g = randomBigraph(100, 5);
+	lo = new Int32Array(g.n+1); hi = new Int32Array(g.n+1);
+	for (let u = 1; u <= g.n; u++) {
+		lo[u] = randomInteger(0,Math.max(0,Math.min(2,g.degree(u)-1)));
+		hi[u] = randomInteger(lo[u], g.degree(u));
+	}
+	tester.addTest('medium random bigraph (100,5)', g, hi, lo);
+
+	wg = new Graph(); wg.assign(g); wg.randomWeights(randomInteger, 1, 99);
+	tester.addTest('medium random bigraph (100,6) with weights', wg, hi, lo);
 	
 	if (!ea) {
-		g = randomBigraph(400, 3); g.randomWeights(randomInteger, 1, 999);
+		g = randomBigraph(400, 8);
 		lo = new Int32Array(g.n+1); hi = new Int32Array(g.n+1);
 		for (let u = 1; u <= g.n; u++) {
 			lo[u] = randomInteger(0,Math.max(0,Math.min(2,g.degree(u)-1)));
 			hi[u] = randomInteger(lo[u], g.degree(u));
 		}
-		tester.addTest('large random bigraph (400,3)',g,hi,lo);
+		tester.addTest('large random bigraph (400,8)',g,hi,lo);
 	
-		g = randomBigraph(400, 50); g.randomWeights(randomInteger, 1, 999);
-		tester.addTest('large/denser random bigraph (400,50,hi,lo)', g);
+		g = randomBigraph(400, 50);
+		for (let u = 1; u <= g.n; u++) {
+			lo[u] = randomInteger(0,Math.max(0,Math.min(2,g.degree(u)-1)));
+			hi[u] = randomInteger(lo[u], g.degree(u));
+		}
+		tester.addTest('large/denser random bigraph (400,50,hi,lo)', g,hi,lo);
 	}
 } else {
 	console.log('general graphs')

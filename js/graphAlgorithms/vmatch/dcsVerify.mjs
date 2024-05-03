@@ -17,18 +17,16 @@ let link;      // edge to parent in tree
 let mark;      // mark bits used by nca
 
 /** Verify a degree-constrained subgraph.
- *  @param g0 is an undirected graph
+ *  @param g is an undirected graph
  *  @param hi is a vector of degree upper bounds
  *  @param lo is a vector of degree lower bounds
  *  @param dcs is a Graph object that defines the subgraph
  *  @return a string which is empty if dcs is a subgraph that respects
  *  the bounds, else it describes an error
  */
-export default function matchVerify(g0, hi, lo, dcs) {
-	g = g0;
-
+export default function matchVerify(g, hi, lo, dcs) {
 	if (dcs.n != g.n)
-		return 'subgraph vertex count does match the graph';
+		return 'subgraph vertex count does match the graph' + ` (${dcs.n},${g.n})`;
 
 	for (let u = 1; u <= dcs.n; u++) {
 		for (let e = dcs.firstAt(u); e; e = dcs.nextAt(u)) {
