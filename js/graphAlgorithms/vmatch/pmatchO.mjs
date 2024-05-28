@@ -56,4 +56,3 @@ export default function pmatchO(g0, prio, trace=false) {
 	if (g0.hasWeights) stats.weight = match.weight();
 	return [match, ts, stats];
 }
-

@@ -626,12 +626,28 @@ export default class Blossoms extends Top {
 	}
 
 	/** Return a string representation of a blossom.
-	 *  Non-trivial blossoms are represented by upper-case letters when possible.
+	 *  Non-trivial blossoms shown as upper-case letters when possible.
 	 */
 	x2s(b) {
 		return (b <= this.g.n ? this.g.x2s(b) : 
 				(this.g.n > 26 ? ''+b :
 						'-ABCDEFGHIJKLMNOPQRSTUVWXYZ'[b-this.g.n]));
+	}
+
+	/** Create a string representing an item on a path.
+	 *  @param x is "left attachment point" of B when B is non-trivial
+	 *  @param B is a blossom identifier
+	 *  @param y is "right attachment point" of B when B is non-trivial
+	 *  @return a string denoting B for use in a larger "path string";
+	 *  nontrivial blossoms shown as 'x.B.y' where B is the blossom id,
+	 *  x and y are its attachment points
+	 */
+	pathItem2string(x,B,y) {
+		let ts = '';
+		if (B > this.g.n && x) ts += this.x2s(x) + '.';
+		ts += this.x2s(B);
+		if (B > this.g.n && y) ts += '.' + this.x2s(y);
+		return ts;
 	}
 
 	/** Create a string representation of one blossom.
@@ -695,7 +711,8 @@ export default class Blossoms extends Top {
 							let pb = tt.p(b);
 							let [v,e] = this.link(b);
 							if (v && (b > this.g.n || pb > this.g.n))
-								s += `{${this.x2s(v)},${this.x2s(this.g.mate(v,e))}}`;
+								s += `{${this.x2s(v)},` +
+									 `${this.x2s(this.g.mate(v,e))}}`;
 						}
 						return s;
 					});

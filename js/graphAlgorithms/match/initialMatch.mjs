@@ -13,6 +13,7 @@ import Matching from './Matching.mjs';
  */
 export default function initialMatch(g,match=0) {
 	if (!match) match = new Matching(g);
+return match;
 
 	// add edges to match, yielding maximal (not maximum) matching
     for (let u = 1; u <= g.n; u++) {

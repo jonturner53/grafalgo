@@ -1,23 +1,23 @@
-/** @file wmatchE.mjs
+/** @file wperfectE.mjs
  *
  *  @author Jon Turner
- *  @date 2022
+ *  @date 2024
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
 import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
-import Matching from './Matching.mjs';
-import Blossoms from './Blossoms.mjs';
+import Matching from '../match/Matching.mjs';
+import Blossoms from '../match/Blossoms.mjs';
 import List from '../../dataStructures/basic/List.mjs';
-import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
+import matchEG from '../match/matchEG.mjs';
 
 let g             // shared copy of graph
 let match;        // Matching object representing matching for graph
-let bloss;        // Blossoms0 object representing blossoms and matching trees
+let bloss;        // Blossoms object representing blossoms and matching trees
 
 let z;            // z[b] is dual variable for blossom (or vertex) b
-let slack;        // slack[e] is slack of dual constraint for edge e
+let slack;        // slack[e] is slack in dual constraint for e
 let q;            // list of tight edges with an even endpoint
 let blist;        // temporary list of blossoms
 let mark;         // temporary array of flags
@@ -32,18 +32,18 @@ let deblossoms; // number of odd blossoms expanded
 let relabels;   // number of relabeling steps
 let steps;      // total number of steps
 
-/** Compute a maximum weighted matching in a graph using a
- *  Edmonds's weighted matching algorithm.
- *  @param g is an undirected graph with weights
+/** Compute a minimum weight perfect matching in a graph using a
+ *  Edmonds's perfect matching algorithm. This is based on a different LP
+ *  than the one used for max weight matching.
+ *  @param g0 is an undirected graph with weights
  *  @param trace causes a trace string to be returned when true
- *  @return a triple [match, ts, stats] where match is an array
- *  matching a vertex u to its matched edge match[u] or 0 if u
- *  is unmatched; ts is a possibly empty trace string
- *  and stats is a statistics object; if assertion-checking is enabled,
- *  the correctness of the solution is verified before returning
+ *  @return a triple [match, ts, stats] where match is a Matching object;
+ *  ts is a possibly empty trace string and stats is a statistics object;
+ *  if assertion-checking is enabled, the correctness of the solution is
+ *  verified before returning
  */
-export default function wmatchE(mg, traceFlag=false) {
-	g = mg;
+export default function wperfectE(g0, traceFlag=false) {
+	g = g0;
 	match = new Matching(g);
 	bloss = new Blossoms(g, match, 1);
 	z = new Float32Array(bloss.n+1);
@@ -56,14 +56,8 @@ export default function wmatchE(mg, traceFlag=false) {
 	phases = branches = blossoms = deblossoms = relabels = 0;
 	steps = g.n + g.edgeRange;
 
-	let maxwt = -Infinity;
-	for (let e = g.first(); e != 0; e = g.next(e)) {
-		maxwt = Math.max(g.weight(e),maxwt);
-	}
-	z.fill(maxwt/2.0,1,g.n+1);
-
 	for (let e = g.first(); e; e = g.next(e)) {
-		slack[e] = maxwt - g.weight(e);
+		slack[e] = g.weight(e);
 		if (slack[e] == 0) q.enq(e);
 	}
 
@@ -74,7 +68,7 @@ export default function wmatchE(mg, traceFlag=false) {
 
 	while (true) {
 		ea && assert(!verifyInvariant(), verifyInvariant() + traceString);
-		while (!q.empty()) {
+		while (match.size() < g.n && !q.empty()) {
 			steps++;
 			let e = q.deq();
 			let [u,v] = [g.left(e),g.right(e)];
@@ -94,7 +88,8 @@ export default function wmatchE(mg, traceFlag=false) {
 				} else {
 					blossoms++;
 					let [B,subs,sb] = bloss.addBlossom(e,A); z[B] = 0;
-					let state = +1;
+					let state = +1; // add edges to q that are incident to
+									// formerly odd blossoms used to form b
 					for (let b = subs.first(); b; b = subs.next(b)) {
 						if (state == -1) add2q(b);
 						state = (b == sb ? +1 : -state);
@@ -118,8 +113,9 @@ export default function wmatchE(mg, traceFlag=false) {
 				branches++;
 			}
 		}
+		if (match.size() == g.n/2) break;
 		relabels++;
-		if (relabel()) break;
+		if (!relabel()) break;
 	}
 
 	bloss.rematchAll();
@@ -154,9 +150,9 @@ export default function wmatchE(mg, traceFlag=false) {
 function augment(e) {
 	let ts = ''; let trees = '';
 	if (trace) trees = bloss.trees2string(1);
+	match.add(e);
 
 	// trace paths up to tree roots and update matching
-	match.add(e);
 	let x = g.left(e); let X = bloss.outer(x);
 	let [y,ee] = bloss.link(X);
 	while (y) {
@@ -242,14 +238,8 @@ function newPhase() {
  *  @return tuple true if we have a max weight matching, else false
  */
 function relabel() {
-	let d1 = Infinity;
-	for (let u = 1; u <= g.n; u++) {
-		if (bloss.state(bloss.outer(u)) == +1) d1 = Math.min(d1, z[u]);
-	}
-	if (d1 == Infinity) d1 = 0;
-
-	let d2 = Infinity; let d3 = Infinity; let d4 = Infinity;
-	let smallOddBloss = 0; // odd blossom with smallest z[b]
+	let d1 = Infinity; let d2 = Infinity; let d3 = Infinity;
+	let smallOddBloss = 0; // odd n.t. outer blossom with smallest z[b]
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
 		if (bloss.state(b) == +1) {
 			for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
@@ -258,36 +248,30 @@ function relabel() {
 					let v = g.mate(u,e); let V = bloss.outer(v);
 					if (V == b) continue;
 					let sV = bloss.state(V);
-						 if (sV == 0) d2 = Math.min(d2, slack[e]);
-					else if (sV == 1) d3 = Math.min(d3, slack[e]/2);
+						 if (sV == 0) d1 = Math.min(d1, slack[e]);
+					else if (sV == 1) d2 = Math.min(d2, slack[e]/2);
 				}
 			}
-		} else if (b > g.n && bloss.state(b) == -1) {
-			if (z[b]/2 < d4) {
-				d4 = z[b]/2; smallOddBloss = b;
+		} else if (bloss.state(b) == -1) {
+			if (b > g.n && z[b] < d3) {
+				d3 = z[b]; smallOddBloss = b;
 			}
 			steps++;
 		}
 	}
 
-	let delta = Math.min(d1,d2,d3,d4);
+	let delta = Math.min(d1,d2,d3);
 
-	if (trace) traceString += `relab(${d1} ${d2} ${d3} ${d4})`;
-	
-	// adjust the dual variables for vertices
-	for (let u = 1; u <= g.n; u++) {
-		steps++;
-		if (bloss.state(bloss.outer(u)) == +1) z[u] -= delta;
-		if (bloss.state(bloss.outer(u)) == -1) z[u] += delta;
+	if (trace) traceString += `relab(${d1} ${d2} ${d3})`;
+	if (delta == Infinity || delta == 0 && !smallOddBloss) {
+		if (trace) traceString += '\n';
+		return false;
 	}
-
-	// adjust dual variables for outer blossoms and
-	// slacks of outer edge constraints (slacks for inner edges don't change)
+	
+	// adjust the z values for outer blossoms and slack values of outer edges
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
-		if (b > g.n) {
-			if (bloss.state(b) == +1) z[b] += 2*delta;
-			if (bloss.state(b) == -1) z[b] -= 2*delta;
-		}
+		if (bloss.state(b) == +1) z[b] += delta;
+		if (bloss.state(b) == -1) z[b] -= delta;
 		for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
 			for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 				steps++;
@@ -302,20 +286,7 @@ function relabel() {
 		}
 	}
 
-	if (delta == d1) {
-		if (trace) traceString += ' and finished\n';
-		return true; // we have max weight matching
-	}
-
-	// now, add new even edges to q
-	if (delta == d2 || delta == d3) {
-		for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
-			if (bloss.state(b) == +1) add2q(b)
-			steps++;
-		}
-	}
-
-	if (delta == d4) {
+	if (delta == d3 && smallOddBloss) {
 		// expand an odd blossom with zero z
 		let subs = bloss.expandOdd(smallOddBloss); deblossoms++;
 		for (let b = subs.first(); b; b = subs.next(b)) {
@@ -330,18 +301,17 @@ function relabel() {
 	if (trace) {
 		traceString += `\n    ${q.toString(e => g.e2s(e,0,1))}\n`;
 		let s = bloss.trees2string(1);
-		if (s.length > 2 && delta == d4) traceString += `    ${s}\n`;
+		if (s.length > 2 && delta == d3) traceString += `    ${s}\n`;
 		s = bloss.blossoms2string(1);
-		if (s.length > 2 && delta == d4) traceString += `    ${s}\n`;
+		if (s.length > 2 && delta == d3) traceString += `    ${s}\n`;
 	}
-
-	return false;
+	return true;
 }
 
 /** Add edges incident to an even blossom to q.
  *  @param b is an even blossom or sub-blossom.
  */
-function add2q(b,limit=false) {
+function add2q(b) {
 	let B = bloss.outer(b);
 	for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
@@ -365,12 +335,12 @@ function add2q(b,limit=false) {
  *  @param e is an edge in the graph
  *  @param zsum is an array that maps a blossom b to the sum of
  *  the z values for b and its ancestors in the blossom forest;
- *  if z is omitted, e is assumed to be an external edge.
+ *  if zsum is omitted, e is assumed to be an external edge.
  *  @param ncba is an array mapping an edge to the nearest common
  *  ancestor of its endpoints in the blossom forest
  *  @return the slack of e
 function slack(e,zsum=0,ncba=0) {
-	let s = z[g.left(e)] + z[g.right(e)] - g.weight(e);
+	let s = g.weight(e) - (z[g.left(e)] + z[g.right(e)]);
 	return !zsum ? s : s + zsum[ncba[e]];
 }
  */
@@ -438,39 +408,20 @@ function statusString() {
 	return s;
 }
 
-/** Check termination conditions. */
-function checkTerm() {
-	let dualObj = 0;
-	for (let u = 1; u <= g.n; u++) dualObj += z[u];
-	for (let B = g.n+1; B <= bloss.n; B++) {
-		if (bloss.validBid(B))
-			dualObj += z[B] * (bloss.blossomSize(B)-1)/2;
-	}
-	if (dualObj != match.weight()) {
-		return `dual objective = ${dualObj} does not equal ` +
-			   `matching weight = ${match.weight()}`;
-	}
-	for (let u = 1; u <= g.n; u++) {
-		if (match.at(u) == 0 && z[u] != 0 )
-			return `unmatched vertex with z[${g.x2s(u)}] = ${z[u]}`;
-	}
-}
-
 /** Verify that current primal and dual solutions are feasible.
- *  @param outer is a function that returns true if an edge e is outer;
- *  used to limit edges that are checked for matching consistency;
- *  since algorithm does not propagate matching changes to inner edges,
- *  this is needed to prevent spurious errors
+ *  @param final is a flag that causes the entire matching to be checked;
+ *  otherwise, only the matching in the outer graph is checked.
  */
 function verifyInvariant(final=false) {
-	let outer = (final ? 0 : e => bloss.outer(g.left(e)) != bloss.outer(g.right(e)));
-	let s = match.verify(outer);
-	if (s) return s;
-	s = bloss.verify(); if (s) return s;
+	let outer = (final ?
+					0 : e => bloss.outer(g.left(e)) != bloss.outer(g.right(e))
+				);
+	let s = match.verify(outer); if (s) return s;
+	s = bloss.verify();			 if (s) return s;
 
-	// verify that dual variables are non-negative
-	for (let b = 1; b <= bloss.n; b++) {
-		if (z[b] < 0 && (b <= g.n || bloss.validBid(b)))
+	// verify that dual variables of non-trivial blossoms are non-negative
+	for (let b = g.n+1; b <= bloss.n; b++) {
+		if (bloss.validBid(b) && z[b] < 0)
 			return `z[${bloss.x2s(b)}]=${z[b]} < 0`;
 	}
 
@@ -486,54 +437,21 @@ function verifyInvariant(final=false) {
 	}
 	if (!final) return;
 
-	// for non-trivial blossoms b, compute
-	// zsum[b] = sum of z values for b and its blossom ancestors
-	let zsum = new Int32Array(bloss.n+1);
-	let q = new List(bloss.n);
-	for (let B = bloss.firstOuter(); B; B = bloss.nextOuter(B)) {
-		if (B <= g.n) continue;
-		zsum[B] = z[B];
-		q.enq(B);
-		while (!q.empty()) {
-			let b = q.deq();
-			for (let bb = bloss.firstSub(b); bb; bb = bloss.nextSub(bb)) {
-				if (bb <= g.n) continue;
-				zsum[bb] = z[bb] + zsum[b];
-				q.enq(bb);
-			}
-		}
-	}
-	let ncba = bloss.ncba();
-
-	// now verify dual constraints for all internal edges
-	for (let e = g.first(); e; e = g.next(e)) {
-		let [u,v] = [g.left(e),g.right(e)];
-		if (bloss.outer(u) != bloss.outer(v)) continue;
-		let s = slack[e];
-		if (s < 0) {
-			return `edge ${g.e2s(e)} has negative slack=${s} `;
-		}
-		if (match.contains(e) && s > 0) {
-			return `matched edge ${g.e2s(e)} has non-zero slack=${s}` +
-				   ` z[left]=${z[g.left(e)]} z[right]=${z[g.right(e)]}` +
-				   ` ncba[e]=${ncba[e]} + ${bloss.toString()}`;
-		}
-	}
-
 	// finally, verify termination condition
+	for (let u = 1; u <= g.n; u++) {
+		if (!match.at(u)) {
+			return `unmatched vertex ${g.x2s(u)}`;
+		}
+	}
+
 	let dualObj = 0;
 	for (let u = 1; u <= g.n; u++) dualObj += z[u];
 	for (let B = g.n+1; B <= bloss.n; B++) {
-		if (bloss.validBid(B))
-			dualObj += z[B] * (bloss.blossomSize(B)-1)/2;
+		if (bloss.validBid(B)) dualObj += z[B]
 	}
 	if (dualObj != match.weight()) {
 		return `dual objective = ${dualObj} does not equal ` +
 			   `matching weight = ${match.weight()}`;
-	}
-	for (let u = 1; u <= g.n; u++) {
-		if (match.at(u) == 0 && z[u] != 0 )
-			return `unmatched vertex with z[${g.x2s(u)}] = ${z[u]}`;
 	}
 
 	return '';

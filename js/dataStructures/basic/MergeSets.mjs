@@ -84,6 +84,9 @@ export default class MergeSets extends Top {
 	 *  @return the parent of i
 	 */
 	rank(i) { return this.Rank[i]; }
+
+	/** Determine if an item is in a singleton set. */
+	singleton(i) { return this.p(i) == i && this.rank(i) == 0; }
 	
 	/** Find and return the canonical element of a set.
 	 *  Performs path compression as side-effect.

@@ -145,16 +145,17 @@ function findpath(u) {
  */
 function augment(u) {
 	let ts = '';
+	if (trace) ts = g.x2s(u);
 	while (true) {
 		steps++;
 		let e = link[u];
 		if (!e) break;
 		let v = g.mate(u,e); match.add(e);
-		if (trace) ts = g.e2s(e,0,1) + (ts ? ' ' + ts : '');
+		if (trace) ts = g.x2s(v) + ' ' + ts;
 		let ee = link[v];
 		if (!ee) break;
 		u = g.mate(v,ee); match.drop(ee);
-		if (trace) ts = `${g.e2s(ee,0,1)} ${ts}`;
+		if (trace) ts = `${g.x2s(u)} ${ts}`;
 	}
 	if (trace) traceString += `[${ts}]\n`;
 }

@@ -131,14 +131,16 @@ export default class Matching extends Top {
 	 */
 	toString(show=0) {
 		let showList = new List(this.g.edgeRange);
+		let size = 0; let weight = 0;
 		for (let e = this.elist.first(); e; e = this.elist.next(e)) {
-			if (!show || show(e)) showList.enq(e);
+			if (!show || show(e)) {
+				showList.enq(e); size++; weight += this.g.weight(e);
+			}
 		}
-		let w = this.weight();
 		return showList.toString(e =>
 					(this.g.n <= 26 ?  this.g.e2s(e,0,1) : this.g.e2s(e))
 					+ (this.g.weight(e) ? ':' + this.g.weight(e) : ''))
-					+ (this.g.hasWeights ? ' ' + w : '');
+					+ ' ' + size + (this.g.hasWeights ? ' ' + weight : '');
 	}
 
 	/** Initialize this from a string representation.

@@ -62,17 +62,17 @@ export default function dcsT(g, hi, lo=0, trace=0) {
 	let prio = (lo0 ? new Int32Array(mg.n+1) : 0);
 	for (let u = 1; u <= g.n; u++) {
 		let nu = (u < g.n ? base[u+1] : mg.n+1) - base[u];
-		for (let i = 0; i < d[u]; i++) {
+		for (let i = 0; i < d[u]; i++) { // i identifies external vertex
 			if (lo0) prio[base[u]+i] = 1;
-			for (let j = d[u]; j < nu; j++) {
+			for (let j = d[u]; j < nu; j++) { // j identifies internal vertex
 				let me = mg.join(base[u]+i, base[u]+j);
 				if (g.hasWeights) mg.weight(me, 1);
 				steps++;
 			}
 		}
 		if (lo0) {
-			for (let i = d[u]; i < 2*d[u]-hi[u]; i++) {
-				prio[base[u]+i] = 2; steps++;
+			for (let j = d[u]; j < 2*d[u]-hi[u]; j++) {
+				prio[base[u]+j] = 2; steps++;
 			}
 		}
 	}

@@ -6,6 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { assert } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import initialMatch from './initialMatch.mjs';
 import ReverseLists from '../../dataStructures/basic/ReverseLists.mjs';
@@ -80,7 +81,7 @@ export default function matchEG(g0, match0=0, traceFlag=false) {
 				// U, V are in different trees - augment and start new phase
 				let r1 = root(U); let r2 = root(V);
 				let ee = apath.join(apath.reverse(path(u, r1)), e);
-				augment(apath.join(ee, path(v, r2)));
+				augment(r1, apath.join(ee, path(v, r2)));
 				newPhase();
 			}
 		}
@@ -118,7 +119,7 @@ function addBranch(u, e) {
 	let w = g.mate(v,ee); state[w] = +1; link[w] = ee;
 	add2q(w);
 	if (trace)
-		traceString += `branch: ${g.x2s(u)}--${g.x2s(v)}--${g.x2s(w)}\n`
+		traceString += `branch: ${g.x2s(u)} ${g.x2s(v)} ${g.x2s(w)}\n`
 	return;
 }
 
@@ -140,52 +141,90 @@ function addBlossom(e, A) {
 	bcount++;
 	let u = g.left(e);  let U = bid(u);
 	let v = g.right(e); let V = bid(v);
-	let x = U; let s = '';
+	if (trace) {
+		let x = U; let xb = u; let sU = '';
+		while (x != A) {
+			sU = pathItem2string(x,x,xb) + (sU ? ' '+sU : '');
+			x = g.mate(x,link[x]);
+			sU = g.x2s(x) + ' ' + sU;
+			xb = g.mate(x,link[x]); x = bid(xb);
+		}
+		let a1 = xb;
+		x = V; xb = v; let sV = '';
+		while (x != A) {
+			sV += (sV ? ' ' : '') + pathItem2string(xb,x,x);
+			x = g.mate(x,link[x]);
+			sV += ' ' + g.x2s(x);
+			xb = g.mate(x,link[x]); x = bid(xb);
+		}
+		let a0 = xb;
+		traceString += `blossom: ${g.e2s(e)} ${g.x2s(A)} [` +
+					   `${pathItem2string(a0,A,a1)}${sU?' ':''}${sU}--${sV}]\n`;
+	}
+	let x = U; let xb = u;
 	while (x != A) {
-		if (trace) s = `${g.x2s(x)}${s ? ' ' : ''}` + s;
 		base[outer.merge(outer.find(x), outer.find(A))] = A;
 		x = g.mate(x,link[x]); // x now odd
-		if (trace) s = `${g.x2s(x)} ` + s;
 		base[outer.merge(x, outer.find(A))] = A;
 		bridge[x] = [e,u];
 		add2q(x);
 		x = bid(g.mate(x,link[x]));
 		steps++;
 	}
-	if (trace) s = `${g.x2s(A)}${s ? ' ' : ''}` + s;
-	x = V;
+	x = V; xb = u;
 	while (x != A) {
-		if (trace) s += ` ${g.x2s(x)}`;
 		base[outer.merge(outer.find(x), outer.find(A))] = A;
 		x = g.mate(x,link[x]); // x now odd
-		if (trace) s += ` ${g.x2s(x)}`;
 		base[outer.merge(x,outer.find(A))] = A;
 		bridge[x] = [e,v];
 		add2q(x);
 		x = bid(g.mate(x,link[x]));
 		steps++;
 	}
-	if (trace)
-		traceString += `blossom: ${g.e2s(e)} ${g.x2s(A)} [${s}]\n` +
-					   `    ${outer.toString()}\n`;
+}
+
+/** Return string representing a vertex or blossom */
+function b2s(b) {
+	if (outer.singleton(b)) return g.x2s(b);
+	b = base[outer.findroot(b)];
+	if (b <= 26) return '-ABCDEFGHIJKLMNOPQRSTUVWXYZ'[b];
+	else return 'B' + b;
+}
+
+/** Create a string representing an item on a path.
+ *  @param x is "left attachment point" of B when B is non-trivial
+ *  @param B is the base of a blossom
+ *  @param y is "right attachment point" of B when B is non-trivial
+ *  @return a string denoting B for use in a larger "path string";
+ *  nontrivial blossoms shown as 'x.B.y' where B is the blossom id,
+ *  x and y are its attachment points
+ */
+function pathItem2string(x,B,y) {
+	if (outer.singleton(B))
+		return g.x2s(B);
+	else
+		return (x ? g.x2s(x)+'.' : '') + b2s(B) + (y ? '.'+g.x2s(y) : '');
 }
 
 /** Augment the matching.
+ *  @param u is the first vertex in the path.
  *  @param e is the first edge in the path.
  */
-function augment(e) {
-	if (trace) traceString += 'augment:';
+function augment(u, e) {
+	if (trace) traceString += 'augment: [' + g.x2s(u);
 	while (true) {
-		if (trace) traceString += ' ' + g.e2s(e,0,1);
+		if (trace) { u = g.mate(u,e); traceString += ' ' + g.x2s(u); }
+		//if (trace) traceString += ' ' + g.e2s(e,0,1);
 		match.add(e);
 		if (apath.isLast(e)) break;
 		e = apath.pop(e); match.drop(e);
-		if (trace) traceString += ' ' + g.e2s(e,0,1);
+		if (trace) { u = g.mate(u,e); traceString += ' ' + g.x2s(u); }
+		//if (trace) traceString += ' ' + g.e2s(e,0,1);
 		e = apath.pop(e);
 		steps++;
 	}
 	if (trace)
-		traceString += `\n    ${match.toString()}\n`;
+		traceString += `]\n    ${match.toString()}\n`;
 	paths++;
 }
 
