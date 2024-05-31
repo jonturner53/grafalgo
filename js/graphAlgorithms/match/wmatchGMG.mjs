@@ -78,6 +78,8 @@ export default function wmatchGMG(mg, traceFlag=false) {
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		maxwt = Math.max(g.weight(e),maxwt);
 	}
+	if (maxwt == 0)
+		return [match, trace ? 'no positive weights\n' : '', {'weight':0}];
 	z.fill(maxwt/2.0,1,g.n+1);
 
 	for (let u = 1; u <= g.n; u++) {
@@ -137,13 +139,21 @@ export default function wmatchGMG(mg, traceFlag=false) {
 						exh.clear(b); addEXedges(b)
 					}
 				}
+
 				if (trace) {
 					traceString += `blossom: ${g.e2s(ee)} ${bloss.x2s(A)} ` +
-								   `${bloss.x2s(B)}` +
-								   `${subs.toString(x => bloss.x2s(x))}\n`;
+								   `${bloss.x2s(B)}[`
+					let [lv,e] = bloss.link(subs.last());
+					lv = g.mate(lv,e);
+					for (let sb = subs.first(); sb; sb = subs.next(sb)) {
+						let [rv,e] = bloss.link(sb);
+						traceString += (sb == subs.first() ? '' : ' ') +
+										bloss.pathItem2string(lv,sb,rv);
+						[lv,e] = bloss.link(sb); lv = g.mate(lv,e);
+					}
+					traceString += ']\n';
 					let s = bloss.trees2string(1);
-					if (s.length > 2)
-						traceString += `	${s}\n`;
+					if (s.length > 2) traceString += `    ${s}\n`;
 				}
 				blossoms++;
 			} else if (eu && eu <= g.edgeRange) {
@@ -167,11 +177,10 @@ export default function wmatchGMG(mg, traceFlag=false) {
 				branches++;
 
 				if (trace) {
-					traceString +=
-						`branch: ${bloss.x2s(U)}-${g.e2s(eu,0,1)}-` +
-								`${bloss.x2s(V)}-` +
-								`${g.e2s(match.at(bloss.base(V)),0,1)}-` +
-								`${bloss.x2s(W)}\n`;
+					traceString += `branch: ${bloss.pathItem2string(0,U,u)} `;
+					traceString += bloss.pathItem2string(v,V,bloss.base(V));
+					let bW = bloss.base(W);
+					traceString += ` ${bloss.pathItem2string(bW,W,0)}\n`;
 				}
 			} else {
 				break;
@@ -256,11 +265,11 @@ function augment(e) {
 		} else {
 			match.add(ee); bloss.base(X,y);
 		}
-		if (trace) ts = `${g.e2s(ee,0,1)}-${bloss.x2s(X)}-${ts}`
+		if (trace) ts = `${bloss.pathItem2string(x,X,y)}${(ts?' ':'') + ts}`;
 		x = g.mate(y,ee); X = bloss.outer(x); [y,ee] = bloss.link(X);
 	}
 	bloss.base(X,x);
-	if (trace) ts = `${bloss.x2s(X)}-${ts}${g.e2s(e,0,1)}!-`
+	if (trace) ts = `${bloss.pathItem2string(0,X,x)}${(ts?' ':'') + ts}--`;
 
 	x = g.right(e); X = bloss.outer(x); [y,ee] = bloss.link(X);
 	while (y) {
@@ -270,7 +279,7 @@ function augment(e) {
 		} else {
 			match.add(ee); bloss.base(X,y);
 		}
-		if (trace) { ts += `${bloss.x2s(X)}-${g.e2s(ee,0,1)}-`; }
+		if (trace) ts += `${bloss.pathItem2string(x,X,y)} `;
 		x = g.mate(y,ee); X = bloss.outer(x); [y,ee] = bloss.link(X);
 	}
 	bloss.base(X,x);
@@ -278,11 +287,12 @@ function augment(e) {
 		let [u,v] = [g.left(e),g.right(e)];
 		let [U,V] = [bloss.outer(u),bloss.outer(v)];
 		if (!bloss.link(U)[0] && !bloss.link(V)[0]) {
-			traceString += `augment: ${g.e2s(e)} ${ts}${bloss.x2s(X)}\n`;
+			traceString += `augment: ${g.e2s(e)} ${ts}` +
+						   `${bloss.pathItem2string(x,X,0)}\n`;
 		} else {
 			traceString += `augment: ${g.e2s(e)}\n`;
 			if (trees.length > 2) traceString += `    ${trees}\n`;
-			traceString += `    ${ts}${bloss.x2s(X)}\n`;
+			traceString += `    ${ts}${bloss.pathItem2string(x,X,0)}\n`;
 			traceString += `    ${match.toString(
 				e => bloss.outer(g.left(e)) != bloss.outer(g.right(e)))}\n`
 		}
@@ -298,7 +308,7 @@ function newPhase() {
 	phases++;
 	bq.clear();
 	for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
-		if (zz(b) == 0) bq.enq(b);  // note: b must be even
+		if (b > g.n && zz(b) == 0) bq.enq(b);  // note: b must be even
 		steps++;
 	}
 	while (!bq.empty()) {

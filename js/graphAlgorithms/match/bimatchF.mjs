@@ -52,7 +52,7 @@ export default function bimatchF(g, trace=0) {
 		steps++;
 	}
 	if (trace) ts += '\nmatching: ' + match.toString() + '\n';
+	if (g.hasWeights) stats.weight = match.weight();
 
-	return [match, ts, {'size': match.size(), 'weight': match.weight(),
-						'paths': paths, 'steps' : steps}];
+	return [match, ts, stats];
 }

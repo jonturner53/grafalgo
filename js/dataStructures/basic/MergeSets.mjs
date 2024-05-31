@@ -128,7 +128,7 @@ export default class MergeSets extends Top {
 	 *  @return the canonical element of the set containing i
 	 */
 	findroot(i) {
-		ea && assert(this.valid(i));
+		ea && assert(this.valid(i),'xx'+i);
 		if (i == this.p(i)) return(i);
 		else return this.findroot(this.p(i));
 	}

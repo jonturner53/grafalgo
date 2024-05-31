@@ -152,7 +152,7 @@ export default class Blossoms extends Top {
 	/** Get/set the link of a blossom.
 	 *  @param b is the id of a blossom or sub-blossom
 	 *  @param p is a pair [v,e] where v is a vertex in b and e is an edge
-	 *  incident to v but external to be; if p is present, the link of b
+	 *  incident to v but external to b; if p is present, the link of b
 	 *  is set to p
 	 *  @return the link of b
 	 */

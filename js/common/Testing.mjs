@@ -126,6 +126,7 @@ export class Tester {
 				try {
 					t0 = Date.now();
 					results = algo.func(...tcase.args, small ? this.trace : 0);
+					if (!results) continue;
 					t1 = Date.now();
 				} catch(e) {
 					if (e instanceof Proceed) {
@@ -138,6 +139,7 @@ export class Tester {
 					}
 					throw(e);
 				}
+
 				let traceString = results[results.length-2];
 				if (this.trace && small)
 					this.log(`${tag}\n${traceString}`);

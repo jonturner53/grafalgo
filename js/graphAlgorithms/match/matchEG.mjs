@@ -75,7 +75,7 @@ export default function matchEG(g0, match0=0, traceFlag=false) {
 		} else {
 			// U and V are both even
 			let A = nca(U,V);
-			if (A != 0) {
+			if (A) {
 				addBlossom(e, A);
 			} else {
 				// U, V are in different trees - augment and start new phase
@@ -118,8 +118,11 @@ function addBranch(u, e) {
 	let ee = match.at(v);
 	let w = g.mate(v,ee); state[w] = +1; link[w] = ee;
 	add2q(w);
-	if (trace)
-		traceString += `branch: ${g.x2s(u)} ${g.x2s(v)} ${g.x2s(w)}\n`
+	if (trace) {
+		traceString += 'branch: ' +
+			`${pathItem2string(0,bid(u),u)} ${g.x2s(v)} ` +
+			`${g.x2s(w)}\n`;
+	}
 	return;
 }
 
@@ -186,8 +189,8 @@ function addBlossom(e, A) {
 /** Return string representing a vertex or blossom */
 function b2s(b) {
 	if (outer.singleton(b)) return g.x2s(b);
-	b = base[outer.findroot(b)];
-	if (b <= 26) return '-ABCDEFGHIJKLMNOPQRSTUVWXYZ'[b];
+	let B = bid(b);
+	if (B <= 26) return '-ABCDEFGHIJKLMNOPQRSTUVWXYZ'[B];
 	else return 'B' + b;
 }
 
@@ -211,15 +214,22 @@ function pathItem2string(x,B,y) {
  *  @param e is the first edge in the path.
  */
 function augment(u, e) {
-	if (trace) traceString += 'augment: [' + g.x2s(u);
+	if (trace) {
+		traceString += 'augment: [' + (u == bid(u) ? b2s(u) : g.x2s(u));
+	}
 	while (true) {
-		if (trace) { u = g.mate(u,e); traceString += ' ' + g.x2s(u); }
-		//if (trace) traceString += ' ' + g.e2s(e,0,1);
+		if (trace) {
+			let v = g.mate(u,e);
+			traceString += (!nca(bid(u),bid(v)) ?  '--' : ' ') + g.x2s(v);
+			u = v;
+		}
 		match.add(e);
 		if (apath.isLast(e)) break;
 		e = apath.pop(e); match.drop(e);
-		if (trace) { u = g.mate(u,e); traceString += ' ' + g.x2s(u); }
-		//if (trace) traceString += ' ' + g.e2s(e,0,1);
+		if (trace) {
+			u = g.mate(u,e);
+			traceString += ' ' + (u == bid(u) ? b2s(u) : g.x2s(u));
+		}
 		e = apath.pop(e);
 		steps++;
 	}
@@ -268,27 +278,21 @@ function nca(u, v) {
 		if (mark[y]) { result = y; break; }
 		if (link[x] == 0 && link[y] == 0) { result = 0; break; }
 		if (link[x] != 0) {
-			mark[x] = true;
-			x = g.mate(x,link[x]);
-			x = bid(g.mate(x,link[x]));
+			mark[x] = true; x = bid(g.mate(x,link[x]));
 		}
 		if (link[y] != 0) {
-			mark[y] = true;
-			y = g.mate(y,link[y]);
-			y = bid(g.mate(y,link[y]));
+			mark[y] = true; y = bid(g.mate(y,link[y]));
 		}
 		steps++;
 	}
 	// second pass to clear mark bits
 	x = u;
 	while (mark[x]) {
-		mark[x] = false; x = g.mate(x,link[x]); x = bid(g.mate(x,link[x]));
-		steps++;
+		mark[x] = false; x = bid(g.mate(x,link[x])); steps++;
 	}
 	y = v;
 	while (mark[y]) {
-		mark[y] = false; y = g.mate(y,link[y]); y = bid(g.mate(y,link[y]));
-		steps++;
+		mark[y] = false; y = bid(g.mate(y,link[y])); steps++;
 	}
 	return result;
 }

@@ -54,7 +54,7 @@ export default class Graph extends Top {
 	get edgeRange() { return this.Left.length-1; }
 
 	/** Determine if this object includes edge weights . */
-	get hasWeights() { return (this.Weight ? true : false); }
+	get hasWeights() { return (this.Weight != null ? true : false); }
 	get hasLengths() { return this.hasWeights; }
 	get hasCosts()   { return this.hasWeights; }
 	get hasBounds()  { return this.hasWeights; }

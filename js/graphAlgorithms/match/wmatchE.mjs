@@ -60,6 +60,8 @@ export default function wmatchE(mg, traceFlag=false) {
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		maxwt = Math.max(g.weight(e),maxwt);
 	}
+	if (maxwt == 0)
+		return [match, trace ? 'no positive weights' : '', {'weight':0}];
 	z.fill(maxwt/2.0,1,g.n+1);
 
 	for (let e = g.first(); e; e = g.next(e)) {
@@ -101,8 +103,16 @@ export default function wmatchE(mg, traceFlag=false) {
 					}
 					if (trace) {
 						traceString += `blossom: ${g.e2s(e)} ${bloss.x2s(A)} ` +
-									   `${bloss.x2s(B)}` +
-									   `${subs.toString(x => bloss.x2s(x))}\n`;
+									   `${bloss.x2s(B)}[`
+						let [lv,ee] = bloss.link(subs.last());
+						lv = g.mate(lv,ee);
+						for (let sb = subs.first(); sb; sb = subs.next(sb)) {
+							let [rv,ee] = bloss.link(sb);
+							traceString += (sb == subs.first() ? '' : ' ') +
+											bloss.pathItem2string(lv,sb,rv);
+							[lv,ee] = bloss.link(sb); lv = g.mate(lv,ee);
+						}
+						traceString += ']\n';
 						let s = bloss.trees2string(1);
 						if (s.length > 2) traceString += `    ${s}\n`;
 					}
@@ -361,20 +371,6 @@ function add2q(b,limit=false) {
 	}
 }
 
-/** Return the slack of an edge.
- *  @param e is an edge in the graph
- *  @param zsum is an array that maps a blossom b to the sum of
- *  the z values for b and its ancestors in the blossom forest;
- *  if z is omitted, e is assumed to be an external edge.
- *  @param ncba is an array mapping an edge to the nearest common
- *  ancestor of its endpoints in the blossom forest
- *  @return the slack of e
-function slack(e,zsum=0,ncba=0) {
-	let s = z[g.left(e)] + z[g.right(e)] - g.weight(e);
-	return !zsum ? s : s + zsum[ncba[e]];
-}
- */
-
 /** Find the nearest common ancestor of two vertices in
  *  the current graph.
  *  To avoid excessive search time, search upwards from both vertices in
@@ -457,13 +453,12 @@ function checkTerm() {
 }
 
 /** Verify that current primal and dual solutions are feasible.
- *  @param outer is a function that returns true if an edge e is outer;
- *  used to limit edges that are checked for matching consistency;
- *  since algorithm does not propagate matching changes to inner edges,
- *  this is needed to prevent spurious errors
+ *  @param final is a flag indicating that a final verification is required
+ *  @return an error message if the invariant is not satisfied, else ''.
  */
 function verifyInvariant(final=false) {
-	let outer = (final ? 0 : e => bloss.outer(g.left(e)) != bloss.outer(g.right(e)));
+	let outer =
+		(final ? 0 : e => bloss.outer(g.left(e)) != bloss.outer(g.right(e)));
 	let s = match.verify(outer);
 	if (s) return s;
 	s = bloss.verify(); if (s) return s;
