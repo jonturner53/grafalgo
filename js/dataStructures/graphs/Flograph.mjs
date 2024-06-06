@@ -302,7 +302,7 @@ export default class Flograph extends Digraph {
 	 *  Uses elab and vlab  to modify the behavior of the Graph.toString()
 	 *  method.
 	 */
-	toString(fmt=0, elab=0, vlab=0) {
+	toString(fmt=2, elab=0, vlab=0) {
 		if (!elab) {
 			elab = (e,u) => 
 					(u == this.head(e) || (fmt&0x8 && this.flow(e) == 0) ? '' :
@@ -320,7 +320,6 @@ export default class Flograph extends Digraph {
 		}
 		return super.toString(fmt, elab, vlab);
 	}
-
 		
 	/** Initialize graph from a string representation.
 	 *  @param s is a string representing a graph

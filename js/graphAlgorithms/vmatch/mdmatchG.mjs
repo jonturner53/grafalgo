@@ -7,7 +7,7 @@
  */
 
 import { assert } from '../../common/Assert.mjs';
-import findSplit from '../misc/findSplit.mjs';
+import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import Matching from '../match/Matching.mjs';
 import bimatchHK from '../match/bimatchHK.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
@@ -18,21 +18,20 @@ let steps;		// number of steps (inner loops)
 
 /** Compute a matching in a bipartite graph that matches all vertices
  *  of maximum degree, using Gabow's algorithm; note, may not be max size.
- *  @param mg is an undirected bipartite graph
+ *  @param g is an undirected bipartite graph
  *  @param trace causes a trace string to be returned when true
- *  @param subsets is a ListPair defining the vertex bipartition
- *  @return a triple [medge, ts, stats] where medge is either the provided
- *  array with additional matching edges or a new array defining the
- *  computed matching, ts is a possibly empty trace string
- *  and stats is a statistics object;
+ *  @return a triple [match, ts, stats] is a matching object,
+ *  ts is a possibly empty trace string and stats is a statistics object;
  *  the coloring is returned as integer edge weights in g
  */
 export default function mdmatchG(g, trace=0) {
+	assert(g.bipartite);
+	let io = new ListPair(g.n);
+	for (let u = g.firstInput(); u; u = g.nextInput(u)) io.swap(u);
+
 	// initialize supporting data structures
 	let degree = new Int32Array(g.n+1);
-	let subsets = findSplit(g);
-	if (!subsets) return [];
-	let steps = g.n + g.m;
+	let steps = g.n;
 	let Delta = 0;
 	for (let u = 1; u <= g.n; u++) {
 		degree[u] = g.degree(u);
@@ -47,15 +46,15 @@ export default function mdmatchG(g, trace=0) {
 		traceString += `graph: ${g.toString(1)}\n`;
 
 	// compute subgraph xg1 that includes all edges incident to max degree
-	// vertices in first subset of bipartition; then get its matching
+	// inputs; then get its matching
 	for (let e = g.first(); e; e = g.next(e)) {
 		let [u,v] = [g.left(e),g.right(e)];
-		if (degree[subsets.in(u,1) ? u : v] != Delta) continue;
-		//xg1.join(u,v,e); steps++;
-		xg1.join(u,v,e); steps++;
+		if (g.isInput(u) && degree[u] == Delta) xg1.join(u,v,e);
+		if (g.isInput(v) && degree[v] == Delta) xg1.join(v,u,e);
+		steps++;
 	}
-		
-	let [xmatch1,,stats1] = bimatchHK(xg1,0,subsets);
+	xg1.split(io);
+	let [xmatch1,ts,stats1] = bimatchHK(xg1);
 	steps += stats1.steps;
 	if (trace)
 		traceString += `first matching: ${xmatch1.toString()}\n`;
@@ -64,10 +63,12 @@ export default function mdmatchG(g, trace=0) {
 	let xg2 = new Graph(g.n,g.edgeRange); // scratch graph
 	for (let e = g.first(); e; e = g.next(e)) {
 		let [u,v] = [g.left(e),g.right(e)];
-		if (degree[subsets.in(u,2) ? u : v] != Delta) continue;
-		xg2.join(u,v,e); steps++;
+		if (g.isOutput(v) && degree[v] == Delta) xg2.join(u,v,e);
+		if (g.isOutput(u) && degree[u] == Delta) xg2.join(v,u,e);
+		steps++;
 	}
-	let [xmatch2,,stats2] = bimatchHK(xg2,0,subsets);
+	xg2.split(io);
+	let [xmatch2,,stats2] = bimatchHK(xg2);
 	steps += stats2.steps;
 	if (trace)
 		traceString += `second matching: ${xmatch2.toString()}\n`;

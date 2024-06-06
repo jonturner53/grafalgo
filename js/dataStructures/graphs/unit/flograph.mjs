@@ -16,7 +16,7 @@ try {
 
 	let g = new Flograph(6, 20);
 	matches(g.fromString('{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ' +
-						 '->f[]}'),
+						 '->f}'),
 		   true,'a00');
 	matches(g.toString(),
 		   '{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}', 'a0');
@@ -28,15 +28,15 @@ try {
 	matches(g.f(e1, 2), -3, 'a4');
 	matches(g.res(e1, 2), 3, 'a5');
 	g.addFlow(e2, 1, 2); g.addFlow(e1, 2, 2);
-	matches(g, '{a->[b:4/1 c:3/2] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f[]}', 'a6');
+	matches(g, '{a->[b:4/1 c:3/2] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}', 'a6');
 	matches(g.totalFlow(), 3, 'a7');
 	g.cost(1, 5);
 	matches(g, '{a->[b:4@5/1 c:3/2] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}',
 			   'a8');
 	matches(g.fromString('{a->[b:4@5/1 c:3/2] b[c:3@7 d:1-4@3/2] c[e:4] ' +
-						'd[f:2-4/2] e[f:3] ->f[]}'), true, 'a9');
+						'd[f:2-4/2] e[f:3] ->f}'), true, 'a9');
 	matches(g,	'{a->[b:4@5/1 c:3/2] b[c:3@7 d:1-4@3/2] c[e:4] ' +
-				'd[f:2-4/2] e[f:3] ->f[]}', 'a10');
+				'd[f:2-4/2] e[f:3] ->f}', 'a10');
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

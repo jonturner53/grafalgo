@@ -548,12 +548,11 @@ export default class Graph extends Top {
 		if (!vlab) vlab = ((u) => this.x2s(u));
 		let s = '';
 		for (let u = 1; u <= this.n; u++) {
-			if (!(fmt&1) && s) s += ' ';
 			let ss = this.alist2string(u, elab, fmt&4);
-			if (fmt&2 || ss) {
-				s += vlab(u) + ss;
-				if (fmt&1) s += '\n';
-			}
+			if (!(fmt&2) && !ss) continue;
+			if (!(fmt&1) && s) s += ' ';
+			s += vlab(u) + ss;
+			if (fmt&1) s += '\n';
 		}
 		return (fmt&1 ? '{\n' + s + '}\n': '{' + s + '}');
 	}

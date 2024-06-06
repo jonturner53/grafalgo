@@ -151,7 +151,7 @@ function augment(u) {
 		let e = link[u];
 		if (!e) break;
 		let v = g.mate(u,e); match.add(e);
-		if (trace) ts = g.x2s(v) + ' ' + ts;
+		if (trace) ts = `${g.x2s(v)} ${ts}`;
 		let ee = link[v];
 		if (!ee) break;
 		u = g.mate(v,ee); match.drop(ee);

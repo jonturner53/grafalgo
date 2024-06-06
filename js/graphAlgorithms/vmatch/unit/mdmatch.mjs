@@ -23,23 +23,20 @@ import findSplit from '../../misc/findSplit.mjs';
 let algomap = {
 	'G' : ['mdmatchG',
 			(g,prio,trace) => {
-				let [match,ts,stats] = mdmatchG(g,trace);
-				if (!match) throw new Proceed('not a bipartite graph');
-				return [match,ts,stats];
+				if (!g.bipartite) return null;
+				return mdmatchG(g,trace);
 			},
 			(g,prio,match) => mdmatchVerify(g,match)],
 	'HKT' : ['pbimatchHKT',
 			  (g,prio,trace) => {
-				let [match,ts,stats] = pbimatchHKT(g,prio,0,0,trace);
-				if (!match) throw new Proceed('not a bipartite graph');
-				return [match,ts,stats];
+				if (!g.bipartite) return null;
+				return pbimatchHKT(g,prio,0,trace);
 			},
 			pmatchVerify],
 	'HKTs' : ['pbimatchHKT:strict',
 			  (g,prio,trace) => {
-				let [match,ts,stats] = pbimatchHKT(g,prio,1,0,trace);
-				if (!match) throw new Proceed('not a bipartite graph');
-				return [match,ts,stats];
+				if (!g.bipartite) return null;
+				return pbimatchHKT(g,prio,1,trace);
 			},
 			pmatchVerify],
 }

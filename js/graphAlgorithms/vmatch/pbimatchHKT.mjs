@@ -17,11 +17,10 @@ let g;            // shared copy of graph
 let match;        // Matching object
 let prio;         // prio[u] is priority of u (in [0,n])
 let pmax;         // largest priority value
-let subsets;      // ListPair defining bipartition
 let link;         // link[u] is parent edge of u in augmenting path
 let plists;       // ListSet with separate list per priority class
 let first;        // first[k] is first vertex in priority k list
-let roots;        // roots contains unmatched vertices in first subset
+let roots;        // roots contains unmatched inputs
 let level;        // level[u] is distance to u from a root vertex
 let nextedge;     // nextedge[u] is next edge at u to be processed
 let q;            // q is List used by newPhase
@@ -40,17 +39,14 @@ let steps;       // total number of steps
  *  @param prio0 is an array of vertex priorities
  *  @param strict is a flag which if true causes the program
  *  to implement the strict version of the algorithm
- *  @param subsets0 is a ListPair object that defines a bipartition
- *  on the vertices
  *  @param traceFlag causes a trace string to be returned when true
  *  @return a triple [match, ts, stats] where match is a Matching
  *  object; ts is a possibly empty trace string
  *  and stats is a statistics object
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function pbimatchHKT(g0, prio0, strict=false, subsets0=null,
-									 traceFlag=false) {
-	g = g0; prio = prio0; subsets = subsets0;
+export default function pbimatchHKT(g0, prio0, strict=false, traceFlag=false) {
+	g = g0; prio = prio0; assert(g.bipartite);
 
 	match = new Matching(g);
 	link = new Int32Array(g.n+1);
@@ -61,10 +57,6 @@ export default function pbimatchHKT(g0, prio0, strict=false, subsets0=null,
 
 	trace = traceFlag; traceString = '';
 	passes = phases = paths = 0; steps = g.n;
-
-	// divide vertices into two independent sets
-	if (!subsets) { subsets = findSplit(g); steps += g.m; }
-	if (!subsets) return [];
 
 	// Create separate list for each priority class.
 	plists = new ListSet(g.n);
@@ -124,7 +116,7 @@ export default function pbimatchHKT(g0, prio0, strict=false, subsets0=null,
 
 /** Extend the matching for specified priority and direction.
  *  @param side specifies the subset of the bipartition containing the
- *  tree roots.
+ *  tree roots (1 for inputs, 2 for outputs).
  *  @param rp is the priority of the tree roots to be used in this pass
  *  when operating in strict mode and 0 otherwise
  */
@@ -135,8 +127,8 @@ function extendMatching(side, rp, strict) {
 	for (let k = rp; k; k--) {
 		for (let r = first[k]; r; r = plists.next(r)) {
 			if (!match.at(r) &&
-				(side == 1 && subsets.in(r,1) ||
-				 side == 2 && subsets.in(r,2)))
+				(side == 1 && g.isInput(r) ||
+				 side == 2 && g.isOutput(r) ))
 				roots.enq(r);
 			steps++;
 		}
@@ -181,11 +173,11 @@ function newPhase(strict) {
 		// label each vertex with its distance from the nearest root
 		// of priority rp, ignoring those already labeled
 		while (!q.empty()) {
-			let u = q.deq(); // u is in root subset
+			let u = q.deq(); // u is in root side of bipartition
 			for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 				steps++;
 				if (e == match.at(u)) continue;
-				let v = g.mate(u,e); // v in "non-root" subset
+				let v = g.mate(u,e); // v in "non-root" side
 				if (level[v] != g.n+1) continue;
 				// first time we've seen v
 				level[v] = level[u] + 1; 
@@ -214,9 +206,9 @@ function newPhase(strict) {
 	return (stopLevel <= g.n);
 }
 
-/** Find an augmenting or priority-incresing path from a
+/** Find an augmenting or priority-increasing path from a
  *  specified vertex.
- *  @param u is a vertex in the first subset
+ *  @param u is an input
  *  @param r is the root of the tree being searched
  *  @return the endpoint of of an augmenting or priority-increasing
  *  path or 0 if there is no admissible path to such a vertex in

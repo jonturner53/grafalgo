@@ -50,12 +50,12 @@ try {
 				 ' {[a(b(c(d(C{e,d}) h(i))))] [l(m(A{n,m}))]}}', 'a6');
 	matches(bloss.outerGraph2string(),
 				'{a[b] b[a c] c[b d h] d[c C] h[c i] i[C h] l[m] ' +
-				'm[l A] A[C m] C[d i A]}', 'a6');
+				'm[l A] A[C m] C[d i A]}', 'a7');
 	bloss.addBlossom(g.findEdge(7,9), 3);
 
 	matches(bloss,'{{[A(!n p o)] ' +
 				 '  [D(!c d{d,e} C{g,i}(!B{g,k}(!e g f) k j{j,g}) i h)]} ' +
-				 ' {[a(b(D{c,b}))] [l(m(A{n,m}))]}}', 'a7');
+				 ' {[a(b(D{c,b}))] [l(m(A{n,m}))]}}', 'a8');
 	matches(bloss.verify(), '', 'a9');
 
 	g = new Graph(9);

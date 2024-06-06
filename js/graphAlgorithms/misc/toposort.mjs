@@ -27,7 +27,7 @@ export default function toposort(g) {
 	}
 	while (!q.empty()) { // q contains nodes u with icount[u] == 0
 		let u = q.deq(); vlist.push(u);
-		for (let e = g.firstOut(u); e != 0; e = g.nextOut(u,e)) {
+		for (let e = g.firstOutof(u); e; e = g.nextOutof(u,e)) {
 			let v = g.head(e); icount[v]--;
 			if (icount[v] == 0) q.enq(v);
 		}

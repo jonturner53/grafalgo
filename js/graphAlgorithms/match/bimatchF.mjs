@@ -16,7 +16,7 @@ import Matching from './Matching.mjs';
 
 /** Compute a maximum size or max weight matching in a bipartite graph
  *  by reducing it to a max flow or min cost flow problem.
- *  @param g is an undirected weighted bipartite graph
+ *  @param g is an undirected (possibly weighted) bipartite graph
  *  @param trace causes a trace string to be returned when true
  *  @return a triple [match, ts, stats] where match is a Matching
  *  object; ts is a possibly empty trace string and stats is a statistics

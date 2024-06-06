@@ -31,9 +31,9 @@ export default function sptDf(g, s, trace=0) {
 
 	dist[s] = 0;
 	let root = h.insert(s, s, 0); inheap[s] = true; heapsize++;
-	if (trace) ts += 'initial heap: ' + h.heap2string(root) + '\n\n' +
+	if (trace) ts += 'initial heap: ' + h.toString(2,0,root) + '\n\n' +
 					 'selected vertex, edge to parent, ' + 
-					 `distance from ${g.index2string(s)}, heap contents\n`;
+					 `distance from ${g.x2s(s)}, heap contents\n`;
 	while (heapsize > 0) {
 		let u; [u, root] = h.deletemin(root);
 		inheap[u] = false; heapsize--;
@@ -51,9 +51,8 @@ export default function sptDf(g, s, trace=0) {
 			}
 		}
 		if (trace) {
-			ts += g.index2string(u) + ' ' +
-				  (link[u] > 0 ? g.e2s(link[u]) : '-') +
-				   ' ' + dist[u] + ' ' + h.toString(root) + '\n';
+			ts += `${g.x2s(u)} ${link[u] > 0 ? g.e2s(link[u]) : '-'} ` +
+				  `${dist[u]} ${heapsize ? h.toString(2,0,root) : '{}'}\n`;
 		}
 	}
 	return [link, dist, ts, h.getStats()];

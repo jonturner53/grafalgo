@@ -32,18 +32,23 @@ let deblossoms; // number of odd blossoms expanded
 let relabels;   // number of relabeling steps
 let steps;      // total number of steps
 
-/** Compute a minimum weight perfect matching in a graph using a
- *  Edmonds's perfect matching algorithm. This is based on a different LP
- *  than the one used for max weight matching.
+/** Compute a matching of specified size in a graph using Edmonds's algorithm.
  *  @param g0 is an undirected graph with weights
+ *  @param size is the number of edges in the returned mapping (defaults to n/2
+ *  giving a perfect matching)
+ *  @param max is a flag, which if true, causes a max weight matching to be
+ *  computed (by default, a min weight matching is returned)
  *  @param trace causes a trace string to be returned when true
  *  @return a triple [match, ts, stats] where match is a Matching object;
  *  ts is a possibly empty trace string and stats is a statistics object;
  *  if assertion-checking is enabled, the correctness of the solution is
  *  verified before returning
  */
-export default function wperfectE(g0, traceFlag=false) {
+export default function wperfectE(g0, size=0, max=0, traceFlag=false) {
 	g = g0;
+	if (!size) size = g.n/2;
+	assert(size == Math.trunc(size));
+
 	match = new Matching(g);
 	bloss = new Blossoms(g, match, 1);
 	z = new Float32Array(bloss.n+1);
@@ -56,6 +61,14 @@ export default function wperfectE(g0, traceFlag=false) {
 	phases = branches = blossoms = deblossoms = relabels = 0;
 	steps = g.n + g.edgeRange;
 
+	let Wmax = 0;
+	if (max) { // complement weights
+		for (let e = g.first(); e; e = g.next(e))
+			Wmax = Math.max(Wmax,g.weight(e));
+		for (let e = g.first(); e; e = g.next(e))
+			g.weight(e, Wmax-g.weight(e));
+	}
+
 	for (let e = g.first(); e; e = g.next(e)) {
 		slack[e] = g.weight(e);
 		if (slack[e] == 0) q.enq(e);
@@ -67,8 +80,9 @@ export default function wperfectE(g0, traceFlag=false) {
 	}
 
 	while (true) {
-		ea && assert(!verifyInvariant(), verifyInvariant() + traceString);
-		while (match.size() < g.n && !q.empty()) {
+		ea && assert(!verifyInvariant(size),
+					 verifyInvariant(size) + traceString);
+		while (match.size() < size && !q.empty()) {
 			steps++;
 			let e = q.deq();
 			let [u,v] = [g.left(e),g.right(e)];
@@ -113,7 +127,7 @@ export default function wperfectE(g0, traceFlag=false) {
 				branches++;
 			}
 		}
-		if (match.size() == g.n/2) break;
+		if (match.size() == size) break;
 		relabels++;
 		if (!relabel()) break;
 	}
@@ -125,9 +139,14 @@ export default function wperfectE(g0, traceFlag=false) {
 
 	// verify solution when assertion checking is enabled
 	if (ea) {
-		let s = verifyInvariant(true);
+		let s = verifyInvariant(size, true);
 		assert(!s, `${s}\n${traceString}${match.toString()}\n` +
 				   `${bloss.toString()}\n${statusString()}`);
+	}
+
+	if (max) { // restore original weights
+		for (let e = g.first(); e; e = g.next(e))
+			g.weight(e, Wmax-g.weight(e));
 	}
 	
 	if (trace) {
@@ -412,7 +431,7 @@ function statusString() {
  *  @param final is a flag that causes the entire matching to be checked;
  *  otherwise, only the matching in the outer graph is checked.
  */
-function verifyInvariant(final=false) {
+function verifyInvariant(size, final=false) {
 	let outer = (final ?
 					0 : e => bloss.outer(g.left(e)) != bloss.outer(g.right(e))
 				);
@@ -435,24 +454,24 @@ function verifyInvariant(final=false) {
 			return `matched edge ${g.e2s(e)} has non-zero slack=${s}`;
 		}
 	}
-	if (!final) return;
+	if (size != g.n/2 || !final) return;
 
 	// finally, verify termination condition
-	for (let u = 1; u <= g.n; u++) {
-		if (!match.at(u)) {
-			return `unmatched vertex ${g.x2s(u)}`;
-		}
-	}
+	if (match.size() != g.n/2) return `not a perfect matching`;
 
-	let dualObj = 0;
-	for (let u = 1; u <= g.n; u++) dualObj += z[u];
-	for (let B = g.n+1; B <= bloss.n; B++) {
-		if (bloss.validBid(B)) dualObj += z[B]
-	}
-	if (dualObj != match.weight()) {
+	if (dualObjective() != match.weight()) {
 		return `dual objective = ${dualObj} does not equal ` +
 			   `matching weight = ${match.weight()}`;
 	}
 
 	return '';
+}
+
+function dualObjective() {
+	let dualObj = 0;
+	for (let u = 1; u <= g.n; u++) dualObj += z[u];
+	for (let B = g.n+1; B <= bloss.n; B++) {
+		if (bloss.validBid(B)) dualObj += z[B]
+	}
+	return dualObj;
 }

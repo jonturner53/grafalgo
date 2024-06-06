@@ -11,9 +11,9 @@ echo "match: ";
 	node match/unit/blossoms.mjs all
 	node match/unit/match.mjs all
 echo "vmatch: ";
-	node vmatch/unit/pmatch.mjs all bipartite
-	node vmatch/unit/pmatch.mjs o egt
-	node vmatch/unit/mdmatch.mjs g
-	node vmatch/unit/smatch.mjs gs
+	node vmatch/unit/pmatch.mjs all
+	node vmatch/unit/mdmatch.mjs all
+	node vmatch/unit/smatch.mjs all
+	node vmatch/unit/wperfect.mjs all
 echo -n "ecolor: "; node ecolor/unit/ecolor.mjs all
 
