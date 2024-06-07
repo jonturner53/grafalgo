@@ -110,8 +110,16 @@ export default function wperfectE(g0, size=0, max=0, traceFlag=false) {
 					}
 					if (trace) {
 						traceString += `blossom: ${g.e2s(e)} ${bloss.x2s(A)} ` +
-									   `${bloss.x2s(B)}` +
-									   `${subs.toString(x => bloss.x2s(x))}\n`;
+									   `${bloss.x2s(B)}[`
+						let [lv,ee] = bloss.link(subs.last());
+						lv = g.mate(lv,ee);
+						for (let sb = subs.first(); sb; sb = subs.next(sb)) {
+							let [rv,ee] = bloss.link(sb);
+							traceString += (sb == subs.first() ? '' : ' ') +
+											bloss.pathItem2string(lv,sb,rv);
+							[lv,ee] = bloss.link(sb); lv = g.mate(lv,ee);
+						}
+						traceString += ']\n';
 						let s = bloss.trees2string(1);
 						if (s.length > 2) traceString += `    ${s}\n`;
 					}
@@ -132,10 +140,7 @@ export default function wperfectE(g0, size=0, max=0, traceFlag=false) {
 		if (!relabel()) break;
 	}
 
-	bloss.rematchAll();
-		// make matching consistent without expanding remaining blossoms
-		// this allows the correctness of the solution to be fully verified
-		// before returning
+	bloss.rematchAll(); // extend matching to blossoms and sub-blossoms
 
 	// verify solution when assertion checking is enabled
 	if (ea) {
