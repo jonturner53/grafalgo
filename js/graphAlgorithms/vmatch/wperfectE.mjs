@@ -33,19 +33,24 @@ let relabels;   // number of relabeling steps
 let steps;      // total number of steps
 
 /** Compute a matching of specified size in a graph using Edmonds's algorithm.
- *  @param g0 is an undirected graph with weights
- *  @param size is the number of edges in the returned mapping (defaults to n/2
+ *  @param G is an undirected graph with weights
+ *  @param size is the specified number of edges in the returned matching;
+ *  0 can be used to specify a perfect matching
  *  giving a perfect matching)
- *  @param max is a flag, which if true, causes a max weight matching to be
- *  computed (by default, a min weight matching is returned)
+ *  @param max is a flag, which if true, causes a max weight matching of the
+ *  specified size to be computed (by default, a min weight matching of
+ *  the specified size is returned)
  *  @param trace causes a trace string to be returned when true
- *  @return a triple [match, ts, stats] where match is a Matching object;
+ *  @return a triple [match, ts, stats] where match is a Matching object
+ *  (if there is no matching of the specified size, the returned matching is
+ *  one of maximum size and among all such matchings has minimum (or maximum)
+ *  weight);
  *  ts is a possibly empty trace string and stats is a statistics object;
  *  if assertion-checking is enabled, the correctness of the solution is
  *  verified before returning
  */
-export default function wperfectE(g0, size=0, max=0, traceFlag=false) {
-	g = g0;
+export default function wperfectE(G, size=0, max=0, traceFlag=false) {
+	g = G;
 	if (!size) size = g.n/2;
 	assert(size == Math.trunc(size));
 

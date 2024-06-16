@@ -22,7 +22,8 @@ export default class Blossoms extends Top {
 	g;              // reference to client's graph
 	match;          // reference to client's matching
 
-	bsf;            // hierarchy of blossoms and sub-blossoms
+	bsf;            // blossom structure forest defines hierarchy of
+					// blossoms and sub-blossoms
 
 	State;          // State[b] is state of outer blossom b; for inner
 					// blossoms, State[b] is undefined
@@ -36,7 +37,9 @@ export default class Blossoms extends Top {
 					// tree parent; for an internal blossom, e is an edge to
 					// next internal blossom in the blossom cycle of b's parent
 
-	outerMethod;    // method used to compute outer: 1 for simple, 2 for forest
+	outerMethod;    // method used to compute outer: 0 for find root of bsf,
+					// 1 for static map method, 2 find root of balanced forest
+					// where each tree enumerates vertices in an outer blossom
 	Outer;          // reference to data structure used to compute outer
 
     ids;            // list of available blossom ids (reduced by n)
@@ -302,6 +305,7 @@ export default class Blossoms extends Top {
 			subs.enq(B);		// adds B to end of subs
 			let [x,ee] = this.link(B);
 			B = this.outer(this.g.mate(x,ee));
+			this.steps++;
 		}
 
 		// now, re-direct the links for sub-blossoms on the "left sub-cycle";

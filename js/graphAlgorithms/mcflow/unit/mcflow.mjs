@@ -10,7 +10,7 @@ import { EnableAssert as ea } from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 import ncrK from '../ncrK.mjs';
 import ncrKGT from '../ncrKGT.mjs';
-import ncrJEKc from '../ncrJEKc.mjs';
+import ncrJEK from '../ncrJEK.mjs';
 import mcflowJ from '../mcflowJ.mjs';
 import mcflowJEK from '../mcflowJEK.mjs';
 import mcflowO from '../mcflowO.mjs';
@@ -24,7 +24,7 @@ import { randomGraph, randomFlograph } from '../../misc/RandomGraph.mjs';
 let algomap = {
 	'K' :   ['ncrK',      (g,trace) => run_ncr(g,trace,ncrK), mcflowVerify],
 	'KGT' : ['ncrKGT',    (g,trace) => run_ncr(g,trace,ncrKGT), mcflowVerify],
-	'JEKc' :['ncrJEKc',   (g,trace) => run_ncr(g,trace,ncrJEKc), mcflowVerify],
+	'JEKc' :['ncrJEK',   (g,trace) => run_ncr(g,trace,ncrJEK), mcflowVerify],
 
 	'J' :   ['mcflowJ',   (g,trace) => run_mcf(g,trace,mcflowJ,0), verify],
 	'JEK' : ['mcflowJEK', (g,trace) => run_mcf(g,trace,mcflowJEK,0), verify],
@@ -34,7 +34,7 @@ let algomap = {
 function run_ncr(g, trace, f) { g.clearFlow(); return f(g, trace); }
 
 function run_mcf(g, trace, algo, lcflag=-1) {
-	g.clearFlow(); ncrJEKc(g);
+	g.clearFlow(); ncrJEK(g);
 	return lcflag == -1 ? algo(g,trace) : algo(g,lcflag,trace);
 }
 

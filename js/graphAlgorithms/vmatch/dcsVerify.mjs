@@ -26,10 +26,10 @@ let mark;      // mark bits used by nca
  */
 export default function matchVerify(g, hi, lo, dcs) {
 	if (dcs.n != g.n)
-		return 'subgraph vertex count does match the graph' + ` (${dcs.n},${g.n})`;
+		return `subgraph vertex count does match the graph (${dcs.n},${g.n})`;
 
 	for (let u = 1; u <= dcs.n; u++) {
-		for (let e = dcs.firstAt(u); e; e = dcs.nextAt(u)) {
+		for (let e = dcs.firstAt(u); e; e = dcs.nextAt(u,e)) {
 			if (!g.validEdge(e)) {
 				return `dcs edge ${dcs.e2s(e)} is not a valid edge in graph`;
 			if (dcs.left(e) != g.left(e) || dcs.right() != g.right(e))
@@ -37,7 +37,7 @@ export default function matchVerify(g, hi, lo, dcs) {
 						`match ${g.e2s(e)}`;
 		}
 		let d = dcs.degree(u);
-		if (d < lo[u])
+		if (lo && d < lo[u])
 			return `vertex ${g.x2s(u)} has ${d} edges, ` +
 					`fewer than lo[${g.x2s(u)}]=${lo[u]}\n`;
 		if (d > hi[u])

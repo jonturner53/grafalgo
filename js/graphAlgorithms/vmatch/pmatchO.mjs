@@ -17,14 +17,14 @@ import Matching from '../match/Matching.mjs';
  *  to a weighted matching problem. For graphs with edge weights, the returned
  *  matching has maximum weight among all max priority matchings.
  *  Priorites are assumed to be non-negative.
- *  @param g0 is an undirected graph
+ *  @param G is an undirected graph
  *  @param priority maps a vertex u to a non-negative integer priority;
  *  larger values imply higher priority
  *  @param trace causes a trace string to be returned when true
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function pmatchO(g0, prio, trace=false) {
-	let g = new Graph(g0.n, g0.edgeRange); g.assign(g0);
+export default function pmatchO(G, prio, trace=false) {
+	let g = new Graph(G.n, G.edgeRange); g.assign(G);
 	
 	let W = 0;
 	for (let e = g.first(); e; e = g.next(e))
@@ -37,14 +37,14 @@ export default function pmatchO(g0, prio, trace=false) {
 
 	let ts = '';
 	if (trace) {
-		ts += g0.toString(3,0,u => g0.x2s(u) + ':' + prio[u]);
+		ts += G.toString(3,0,u => G.x2s(u) + ':' + prio[u]);
 	}
 
-	let [match0,,stats0] = g.bipartite ? wbimatchH(g) : wmatchE(g);
+	let [wmatch,,stats0] = g.bipartite ? wbimatchH(g) : wmatchE(g);
 
-	if (!match0) return [];
-	let match = new Matching(g0);
-	for (let e = match0.first(); e; e = match0.next(e))
+	if (!wmatch) return [];
+	let match = new Matching(G);
+	for (let e = wmatch.first(); e; e = wmatch.next(e))
 		match.add(e);
 	if (trace)
 		ts += `matching: ${match.toString()}\n`;
@@ -53,6 +53,6 @@ export default function pmatchO(g0, prio, trace=false) {
 		if (match.at(u)) psum += prio[u];
 	let stats = { 'size': match.size(), 'psum': psum,
 				  'steps': stats0.steps + g.n};
-	if (g0.hasWeights) stats.weight = match.weight();
+	if (G.hasWeights) stats.weight = match.weight();
 	return [match, ts, stats];
 }

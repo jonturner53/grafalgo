@@ -16,14 +16,14 @@ let link;      // edge to parent in tree
 let mark;      // mark bits used by nca
 
 /** Verify a maximum priority matching.
- *  @param g0 is an undirected graph
- *  @param prio0 is a vector of vertex priorities..
+ *  @param G is an undirected graph
+ *  @param prio is a vector of vertex priorities..
  *  @param match is a Matching object
  *  @return a string which is empty if match is a maximum priority matching,
  *  otherwise it describes an error
  */
-export default function pmatchVerify(g0, prio, match) {
-	g = g0;
+export default function pmatchVerify(G, prio, match) {
+	g = G;
 	blossoms = new MergeSets(g.n);
 	origin = new Int32Array(g.n+1);
 	link = new Int32Array(g.n+1);

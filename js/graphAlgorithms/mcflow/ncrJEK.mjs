@@ -1,4 +1,4 @@
-/** @file ncrJEKc.mjs
+/** @file ncrJEK.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -30,7 +30,7 @@ let steps;      // number of steps in findpath method
  *  algorithm with the Edmonds/Karp cost transform.
  *  @param fg is a flow graph, possibly with a non-zero initial flow.
  */
-export default function ncrJEKc(fg, traceFlag=false) {
+export default function ncrJEK(fg, traceFlag=false) {
 	g = fg; trace = traceFlag; traceString = '';
 
 	link = new Int32Array(g.n+1);
@@ -85,7 +85,7 @@ function findpath() {
 	border.clear(); link.fill(0); Cost.fill(Infinity);
 
 	// search from all sources in parallel
-	for (let s = sources.first(); s != 0; s = sources.next(s)) {
+	for (let s = sources.first(); s; s = sources.next(s)) {
 		Cost[s] = 0; border.insert(s,0); steps++;
 	}
 	let t = 0; let cmax = -Infinity;
@@ -94,7 +94,7 @@ function findpath() {
 		cmax = Math.max(cmax,Cost[u]);
 		if (sinks.contains(u)) t = u;
 			// don't stop yet as need all c values to update lambda
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			steps++;
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
@@ -121,14 +121,14 @@ function findpath() {
  */
 function augment(t) {
 	let u = t; let delta = Infinity;
-	for (let e = link[u]; e != 0; e = link[u]) {
+	for (let e = link[u]; e; e = link[u]) {
 		u = g.mate(u,e); delta = Math.min(delta, g.res(e,u));
 	}
 	delta = Math.min(delta, excess[u]);
 	delta = Math.min(delta, -excess[t]);
 
 	u = t; let ts = '';
-	for (let e = link[u]; e != 0; e = link[u]) {
+	for (let e = link[u]; e; e = link[u]) {
 		u = g.mate(u,e); steps++;
 		if (trace) {
 			if (ts.length > 0) ts = ' ' + ts;

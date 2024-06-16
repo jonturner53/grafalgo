@@ -13,6 +13,7 @@ import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
 import flowfloor from '../maxflow/flowfloor.mjs';
 import mcflowJEK from '../mcflow/mcflowJEK.mjs';
+import ncrJEK from '../mcflow/ncrJEK.mjs';
 
 /** Compute a degree-constrained subgraph in a bipartite graph by
  *  solving a max flow problem using Dinic's algorithm.
@@ -20,15 +21,15 @@ import mcflowJEK from '../mcflow/mcflowJEK.mjs';
  *  @param hi is an array mapping vertices to degree upper bounds
  *  @param lo is an optional array mapping vertices to degree lower bounds;
  *  if omitted a bound of 0 is used
- *  @return a triple [dcs, ts, stats] where dcs is a Graph object;
+ *  @return a triple [dcs, ts, stats] where dcs is a Graph object on success
+ *  or null if there is no dcs that respects all bounds;
  *  ts is a possibly empty trace string and stats is a statistics object;
  *  if lo>0, the returned dcs will satisfy the
  *  specified minimum degree requirements if it is possible to do so
  *  @param trace causes a trace string to be returned when true
  */
-export default function dcsF(g, hi, lo=0, trace=0) {
+export default function bidcsF(g, hi, lo=0, trace=0) {
 	let steps = 0;
-	let lo0 = lo; if (!lo) lo = new Int32Array(g.n+1);
 
 	// create flow graph, taking care to maintain edge numbers
 	let fg = new Flograph(g.n+2, g.n+g.edgeRange); fg.hasFloors = 1;
@@ -41,20 +42,26 @@ export default function dcsF(g, hi, lo=0, trace=0) {
 	}
 	for (let u = g.firstInput(); u; u = g.nextInput(u)) {
 		steps++;
-		let e = fg.join(fg.source,u); fg.cap(e, hi[u]); fg.floor(e,lo[u]);
+		let e = fg.join(fg.source,u); fg.cap(e, hi[u]);
+		if (lo) fg.floor(e,lo[u]);
 	}
 	for (let u = g.firstOutput(); u; u = g.nextOutput(u)) {
 		steps++;
-		let e = fg.join(u,fg.sink); fg.cap(e, hi[u]); fg.floor(e,lo[u]);
+		let e = fg.join(u,fg.sink); fg.cap(e, hi[u]);
+		if (lo) fg.floor(e,lo[u]);
 	}
 
 	// compute flow(s)
-	if (lo0) {
-		let [,ts,stats] = flowfloor(fg, trace);
+	let deficit = 0;
+	if (lo) {
+		let [success,ts,stats] = flowfloor(fg, trace);
 		steps += stats.steps;
+		if (!success) return [null, 'unable to satisfy lower bounds', {}];
 	}
 
-	let [ts,stats] = (fg.hasCosts ? mcflowJEK(fg,1,trace) : maxflowD(fg,trace));
+	//if (fg.hasCosts) ncrJEK(fg); // eliminate negative cost cycles
+	let [ts,stats] = fg.hasCosts ?  mcflowJEK(fg,1,trace) :
+									maxflowD(fg,trace);
 	steps += stats.steps;
 	if (trace)
 		ts = g.toString(1,0,u => `${g.x2s(u)}(${lo[u]},${hi[u]})`) +
@@ -76,11 +83,5 @@ export default function dcsF(g, hi, lo=0, trace=0) {
 		ts += '\ndcs: ' +
 			  dcs.toString(1,0,u => `${dcs.x2s(u)}(${lo[u]},${hi[u]})`);
 	}
-	let deficit = 0;
-	if (lo0) {
-		for (let u = 1; u <= g.n; u++)
-			deficit += (lo[u] > dcs.degree(u) ? 1 : 0);
-	}
-	return [dcs, ts, { 'size': dcs.m, 'weight': weight,
-					   'deficit': deficit, 'steps': steps}];
+	return [dcs, ts, {'size': dcs.m, 'weight': weight, 'steps': steps}];
 }

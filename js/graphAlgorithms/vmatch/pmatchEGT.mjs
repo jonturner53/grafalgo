@@ -47,8 +47,8 @@ let steps;       // total number of steps
  *  @return a triple [match, ts, stats] where match is a Matching object,
  *  ts is a possibly empty trace string and stats is a statistics object.
  */
-export default function pmatchEGT(g0, prio0, traceFlag=false) {
-	g = g0; prio = prio0;
+export default function pmatchEGT(G, Prio, traceFlag=false) {
+	g = G; prio = Prio;
 
 	match = new Matching(g);
 	link = new Int32Array(g.n+1);

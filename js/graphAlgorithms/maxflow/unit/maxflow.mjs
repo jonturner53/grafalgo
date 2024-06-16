@@ -24,12 +24,12 @@ import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomFlograph } from '../../misc/RandomGraph.mjs';
 
 function run(g, trace, f) {
-	if (g.hasFloors) throw new Proceed();
+	if (g.hasFloors) return null;
 	g.clearFlow(); return f(g,trace);
 }
 
 function ff(g, trace) {
-	if (!g.hasFloors) throw new Proceed();
+	if (!g.hasFloors) return null;
 	g.clearFlow();
 	let [success, ts, stats] = flowfloor(g, trace);
 	if (!success) throw new Proceed('cannot satisfy min flow requirements');

@@ -47,11 +47,11 @@ let algomap = {
 			 }, matchVerify],
 	'E' : ['wmatchE',
 			 (g,trace) => {
-				return g.hasWeights ? wmatchE(g,0,trace) : null;
+				return g.hasWeights ? wmatchE(g,trace) : null;
 			 }, wmatchVerify],
 	'GMG' : ['wmatchGMG',
 			 (g,trace) => {
-				return g.hasWeights ? wmatchGMG(g,0,trace) : null;
+				return g.hasWeights ? wmatchGMG(g,trace) : null;
 			 }, wmatchVerify]
 }
 
@@ -61,10 +61,8 @@ let tester = new Tester(args, algomap);
 // unweighted bigraphs
 let g = new Graph();
 g.fromString('{a[f g j] b[h g i] c[f i j] d[g h f] e[h i j]}');
-g.fromString('{ a[o n q r] d[r t u w] e[r w n x] f[t y z o] g[r s t w] h[v w x y] i[p u x y] j[p q v n] k[u v y o] l[s t v z] m[q p o s] n[a e j] o[a f k m] p[i j m] q[a j m] r[a d e g] s[g l m] t[d f g l] u[d i k] v[h j k l] w[d e g h] x[e h i] y[f h i k] z[f l] }');
 g.split();
 tester.addTest('small bigraph', g);
-tester.run();
 
 g = randomBigraph(8, 3);
 tester.addTest('small random bigraph (8,3)', g);
@@ -140,3 +138,4 @@ if (!ea) {
 	tester.addTest('large random dense (weighted 400,80)', g);
 }
 
+tester.run();

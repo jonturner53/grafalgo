@@ -34,7 +34,7 @@ let steps;      // total number of steps
 
 /** Compute a maximum weighted matching in a graph using a
  *  Edmonds's weighted matching algorithm.
- *  @param g is an undirected graph with weights
+ *  @param G is an undirected graph with weights
  *  @param trace causes a trace string to be returned when true
  *  @return a triple [match, ts, stats] where match is an array
  *  matching a vertex u to its matched edge match[u] or 0 if u
@@ -42,8 +42,8 @@ let steps;      // total number of steps
  *  and stats is a statistics object; if assertion-checking is enabled,
  *  the correctness of the solution is verified before returning
  */
-export default function wmatchE(mg, traceFlag=false) {
-	g = mg;
+export default function wmatchE(G, traceFlag=false) {
+	g = G;
 	match = new Matching(g);
 	bloss = new Blossoms(g, match, 1);
 	z = new Float32Array(bloss.n+1);
@@ -56,8 +56,8 @@ export default function wmatchE(mg, traceFlag=false) {
 	phases = branches = blossoms = deblossoms = relabels = 0;
 	steps = g.n + g.edgeRange;
 
-	let maxwt = -Infinity;
-	for (let e = g.first(); e != 0; e = g.next(e)) {
+	let maxwt = 0;
+	for (let e = g.first(); e; e = g.next(e)) {
 		maxwt = Math.max(g.weight(e),maxwt);
 	}
 	if (maxwt == 0)
@@ -351,7 +351,7 @@ function relabel() {
 /** Add edges incident to an even blossom to q.
  *  @param b is an even blossom or sub-blossom.
  */
-function add2q(b,limit=false) {
+function add2q(b) {
 	let B = bloss.outer(b);
 	for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {

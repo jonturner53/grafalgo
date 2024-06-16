@@ -10,7 +10,7 @@ import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import maxflowPPf from './maxflowPPf.mjs';
 import mcflowJEK from '../mcflow/mcflowJEK.mjs';
-import ncrKGT from '../mcflow/ncrKGT.mjs';
+import ncrJEK from '../mcflow/ncrJEK.mjs';
 import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** Compute a feasible flow in a graph with specified flow floors.
@@ -37,34 +37,30 @@ export default function flowfloor(g, trace=false) {
 	// Next copy edges to new flow graph being careful to maintain same
 	// edge numbers. Adjust capacities of edges with non-zero min flows.
 	// Also, add new source/sink edges.
-	let g1 = new Flograph(g.n+2, 3*g.edgeRange+1);
+	let g1 = new Flograph(g.n+2, 1+Math.max(g.m+2*floorCount, g.edgeRange));
 	steps += g1.n + g1.edgeRange;
 	g1.source = g.n+1; g1.sink = g.n+2;
 	for (let e = g.first(); e; e = g.next(e)) {
 		steps++;
-		g1.join(g.tail(e), g.head(e), e);
-		g1.cap(e,g.cap(e) - g.floor(e));
-		if (g.hasCosts) g1.cost(e,g.cost(e));
+		g1.join(g.tail(e), g.head(e), e); g1.cap(e, g.cap(e) - g.floor(e));
+		if (g.hasCosts) g1.cost(e, g.cost(e));
 	}
 	// Now, add new source/sink edges and set capacities.
 	for (let e = g.first(); e; e = g.next(e)) {
 		steps++;
 		if (g.floor(e) == 0) continue;
-		let se = g.edgeRange+e; let te = 2*g.edgeRange+e;
-		g1.join(g1.source, g.head(e), se); g1.cap(se, g.floor(e));
-		g1.join(g.tail(e), g1.sink,   te); g1.cap(te, g.floor(e));
-		if (g.hasCosts) g1.cost(se, g.cost(e));
+		let e1 = g1.join(g1.source, g.head(e)); g1.cap(e1, g.floor(e));
+			e1 = g1.join(g.tail(e), g1.sink);   g1.cap(e1, g.floor(e));
 	}
 	// Finally, add high capacity edge from original sink to original source
 	let e = g1.join(g.sink, g.source); g1.cap(e, totalFloor);
 
-	// Now, find max flow in g1
-	let stats;
+	// Now, find max flow in g1 or min cost max flow
 	if (g1.hasCosts) {
-		[,stats] = ncrKGT(g1); steps += stats.steps;
-		[,stats] = mcflowJEK(g1); steps += stats.steps;
+		let [,stats] = ncrJEK(g1);	   steps += stats.steps;
+			[,stats] = mcflowJEK(g1);  steps += stats.steps;
 	} else {
-		[,stats] = maxflowPPf(g1); steps += stats.steps;
+		let [,stats] = maxflowPPf(g1); steps += stats.steps;
 	}
 
 	let success = g1.totalFlow() == totalFloor;

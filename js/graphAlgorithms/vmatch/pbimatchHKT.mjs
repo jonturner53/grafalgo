@@ -35,8 +35,8 @@ let steps;       // total number of steps
 
 /** Compute a priority matching in a bipartite graph using
  *  Turner's variant of the Hopcroft-Karp algorithm.
- *  @param g0 is an undirected bipartite graph
- *  @param prio0 is an array of vertex priorities
+ *  @param G is an undirected bipartite graph
+ *  @param Prio is an array of vertex priorities
  *  @param strict is a flag which if true causes the program
  *  to implement the strict version of the algorithm
  *  @param traceFlag causes a trace string to be returned when true
@@ -45,8 +45,8 @@ let steps;       // total number of steps
  *  and stats is a statistics object
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function pbimatchHKT(g0, prio0, strict=false, traceFlag=false) {
-	g = g0; prio = prio0; assert(g.bipartite);
+export default function pbimatchHKT(G, Prio, strict=false, traceFlag=false) {
+	g = G; prio = Prio; assert(g.bipartite);
 
 	match = new Matching(g);
 	link = new Int32Array(g.n+1);
