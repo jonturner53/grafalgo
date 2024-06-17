@@ -15,6 +15,7 @@ import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import wbimatchH from '../../graphAlgorithms/match/wbimatchH.mjs';
 import matchEG from '../../graphAlgorithms/match/matchEG.mjs';
 import wmatchE from '../../graphAlgorithms/match/wmatchE.mjs';
+import dcsGT from '../../graphAlgorithms/vmatch/dcsGT.mjs';
 
 let g;
 let pi;          // permutation on 1..n that defines cycles in g
@@ -38,13 +39,13 @@ let traceString;
  *  unsuccessful searches leave additional zero entries at the end of the array
  */
 export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
+	g = g0; 
 	ea && assert(s >= 0 && s <= g.n && t >= 0 && t <= g.n);
 	if (s == 0) t = 0;
 
 	trace = traceFlag; traceString = '';
 	if (trace == 1) traceString += `graph: ${g0.toString(1)}\n`;
 
-	g = g0; 
 	if (s) {
 		// for hamiltonian paths, reduce to hamiltonian cycle problem
 		if (t) {
@@ -80,6 +81,7 @@ export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 	if (!initialCycles())
 		return [path, traceString, {'cycles': 0, 'length': 0}];
 
+	let splices = 0;
 	while (clist.length > 1) {
 		if (trace == 1) traceString +=  traceCycles() + '\n';
 		else if (trace) traceString += cycleLengths() + '\n';
@@ -87,6 +89,7 @@ export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 		if (!cp) break;
 		let [c1,c2,u,v] = cp;
 		splice(u,v); clen[c1] += clen[c2]; clist.delete(c2);
+		splices++;
 	}
 
 	// identify longest cycle
@@ -116,64 +119,26 @@ export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 		traceString += cycleLengths() + '\n';
 	}
 	
-	return [path, traceString, {'cycles': clist.length, 'length': len}];
+	return [path, traceString, {'cycles': clist.length, 'length': len,
+								'splices': splices}];
 }
 
+/** Find an initial set of cycles by finding a degree constrained subgraph
+ *  with exactly two edges at each vertex.
+ */
 function initialCycles() {
-	// partition graph into cycles by finding a perfect matching on
-	// a "matching graph"; the matching graph has a cluster for every
-	// vertex and an edge joining each cluster for each original edge;
-	// the inter-cluster edges have same edge number as the original edge
-
-	// preliminaries
-	let n = 0; let m = g.m;
-	let d = new Int32Array(g.n+1);    // d[u]=degree(u)
-	let base = new Int32Array(g.n+1); // base[u]=first vertex in u's cluster
-	let b = 1;
-	for (let u = 1; u <= g.n; u++) {
-		d[u] = g.degree(u); if (d[u] < 2) return false;
-		base[u] = b; let nu = 2*d[u]-2; b += nu;
-		n += nu; m += d[u]*(d[u]-2);
-	}
-
-	let mg = new Graph(n, m >= g.edgeRange ? m : g.edgeRange);
-	// define inter-custer edges
-	let offset = new Int32Array(g.n+1);
-		// offset[u] determines position of next edge in u's cluster
-	for (let e = g.first(); e; e = g.next(e)) {
-		let [u,v] = [g.left(e),g.right(e)];
-		mg.join(base[u] + offset[u]++, base[v] + offset[v]++, e); 
-	}
-	// define intra-cluster edges
-	for (let u = 1; u <= g.n; u++) {
-		for (let i = 0; i < d[u]; i++) {
-			for (let j = 0; j < d[u]-2; j++) {
-				let me = mg.join(base[u]+i, base[u]+d[u]+j);
-			}
-		}
-	}
-
-	let [match] = matchEG(mg);
-	if (match.size() != mg.n/2) return false;
-
-	let cycleEdges = new List(g.edgeRange);
-	for (let e = match.first(); e; e = match.next(e)) {
-		if (g.validEdge(e)) cycleEdges.enq(e);
-	}
-	// every vertex is incident to two edges in cycleEdges
+	let hi = new Int32Array(g.n+1); hi.fill(2,1);
+	let [sub] = dcsGT(g,hi);
+	if (sub.m != g.n) return false;
 
 	pi.fill(0); rpi.fill(0);
-	while (!cycleEdges.empty()) {
-		let e = cycleEdges.first();
-		let u = g.left(e);
-		let v = u;
+	while (sub.m) {
+		let e = sub.first();
+		let u = g.left(e); let v = u;
 		do {
 			pi[v] = g.mate(v,e); rpi[g.mate(v,e)] = v;
-			cycleEdges.delete(e);
-			clen[u]++;
-			v = pi[v];
-			for (e = g.firstAt(v); e; e = g.nextAt(v,e))
-				if (cycleEdges.contains(e)) break;
+			sub.delete(e); clen[u]++;
+			v = pi[v]; e = sub.firstAt(v);
 		} while (v != u);
 		clist.enq(u);
 	}
