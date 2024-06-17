@@ -36,20 +36,12 @@ let steps;       // total number of steps
  *  ts is a possibly empty trace string and stats is a statistics object
  *  @exceptions throws an exception if graph is not bipartite
  */
-export default function wbimatchH(bg, traceFlag=0) {
-	g = bg; match = new Matching(g);
+export default function wbimatchH(G, traceFlag=0) {
+	g = G; match = new Matching(g);
 
-	// adjust weights to avoid numerical issues arising from
-	// small differences
 	weight = new Float32Array(g.edgeRange+1);
-	for (let e = g.first(); e; e = g.next(e)) {
+	for (let e = g.first(); e; e = g.next(e))
 		weight[e] = g.weight(e);
-		if (Math.abs(weight[e]) < 1) {
-			let scale = 2**20;
-			weight[e] = Math.floor(weight[e]*scale) / scale;
-		}
-	}
-
 	link = new Int32Array(g.n+1);
 	lab = new Float32Array(g.n+1);
 	free = new List(g.n); free.hasReverse = true
@@ -83,23 +75,6 @@ export default function wbimatchH(bg, traceFlag=0) {
 	return [match, traceString, {'weight': match.weight(), 'paths': paths,
 								 'steps': steps }];
 }
-
-/*
-function checkLabels() {
-	for (let e = g.first(); e; e = g.next(e)) {
-		let [u,v] = [g.left(e),g.right(e)];
-		if (match.contains(e)) {
-			if (g.isInput(u)) [u,v] = [v,u];
-			assert(weight[e] + (lab[u]-lab[v]) >= 0, 
-				   ''+lab[u]+' '+lab[v]+' '+(weight[e] + (lab[u]-lab[v])));
-		} else {
-			if (g.isOutput(u)) [u,v] = [v,u];
-			assert(-weight[e] + (lab[u]-lab[v]) >= 0,
-					''+weight[e]+' '+(-weight[e] + (lab[u]-lab[v])));
-		}
-	}
-}
-*/
 
 /** Compute values for labels that give non-negative transformed costs.
  *  The labels are the least cost path distances from an imaginary
