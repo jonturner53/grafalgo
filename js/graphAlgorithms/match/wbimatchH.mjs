@@ -155,7 +155,6 @@ function findpath() {
 function augment(u) {
 	let e = link[u];
 	let ts = ''; let pathCost = 0;
-	if (trace) ts = '';
 	while (e) {
 		steps++;
 		if (trace) ts = `${g.e2s(e,0,1)}` + (ts ? ' ' + ts : '');
@@ -168,6 +167,6 @@ function augment(u) {
 	}
 	free.delete(u);
 	if (trace) {
-		traceString += `${ts} ${pathCost}\n`
+		traceString += `[${ts}] ${pathCost}\n`
 	}
 }
