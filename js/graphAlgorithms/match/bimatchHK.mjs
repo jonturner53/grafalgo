@@ -29,17 +29,17 @@ let steps;       // total number of steps
 
 /** Compute a maximum matching in a bipartite graph using the
  *  Hopcroft-Karp algorithm.
- *  @param g0 is an undirected bipartite graph
- *  @param match0 is an optional initial matching; if supplied, it is
+ *  @param G is an undirected bipartite graph
+ *  @param imatch is an optional initial matching; if supplied, it is
  *  extended to produce a maximum matching
  *  @param trace causes a trace string to be returned when true
  *  @return a triple [match, ts, stats] where match is a Matching
  *  object; ts is a possibly empty trace string
  *  and stats is a statistics object
  */
-export default function bimatchHK(g0, match0=0, traceFlag=0) {
-	g = g0;
-	match = initialMatch(g0,match0);
+export default function bimatchHK(G, imatch=0, traceFlag=0) {
+	g = G;
+	match = initialMatch(g,imatch);
 	link = new Int32Array(g.n+1);
 	level = new Int32Array(g.n+1);
 	nextedge = new Int32Array(g.n+1);

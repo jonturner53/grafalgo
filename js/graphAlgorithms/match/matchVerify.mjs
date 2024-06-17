@@ -17,13 +17,13 @@ let link;      // edge to parent in tree
 let mark;      // mark bits used by nca
 
 /** Verify a maximum size matching.
- *  @param g0 is an undirected graph
+ *  @param G is an undirected graph
  *  @param match is a Matching object
  *  @return a string which is empty if match is a maximum matching,
  *  else it describes an error
  */
-export default function matchVerify(g0, match) {
-	g = g0;
+export default function matchVerify(G, match) {
+	g = G;
 	blossoms = new MergeSets(g.n);
 	origin = new Int32Array(g.n+1);
 	state = new Int8Array(g.n+1);
