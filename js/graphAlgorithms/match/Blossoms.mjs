@@ -27,10 +27,9 @@ export default class Blossoms extends Top {
 
 	State;          // State[b] is state of outer blossom b; for inner
 					// blossoms, State[b] is undefined
-	Base;		    // if b is a matched blossom (or sub-blossom), Base[b]
-					// is the vertex v in b that terminates the matching
-					// edge incident to b; if b is unmatched, Base[b] is
-					// unique vertex in b that is unmatched
+	Base;		    // if b is an outer blossom, Base[b] identifies the unique
+					// vertex in b that has no matching edge with both
+					// endpoints in b's vertex set
 	Link;           // Link[b] is pair [v,e] where e is an edge incident to
 					// b and v is the endpoint of e in b; if undefined: [0,0];
 					// for an external blossom b, e is the edge to b's
@@ -161,7 +160,12 @@ export default class Blossoms extends Top {
 	 */
 	link(b,p=-1) { if (p!=-1) this.Link[b] = p; return this.Link[b]; }
 
-	/** Get the first outer blossom */
+	/** Get the first outer blossom
+Think about extending Forest to support firstTree, nextTree operations.
+This would simplify interation through outer blossoms. Note, must account
+for tree groups as well. Would it make sense to use a different name?
+Say grove?
+	 */
 	firstOuter() {
 		for (let b = 1; b <= this.n; b++) {
 			if (this.parent(b)) continue;
@@ -648,9 +652,9 @@ export default class Blossoms extends Top {
 	 */
 	pathItem2string(x,B,y) {
 		let ts = '';
-		if (B > this.g.n && x) ts += this.x2s(x) + '.';
+		if (B > this.g.n && x) ts += this.x2s(x);
 		ts += this.x2s(B);
-		if (B > this.g.n && y) ts += '.' + this.x2s(y);
+		if (B > this.g.n && y) ts += this.x2s(y);
 		return ts;
 	}
 
@@ -658,7 +662,8 @@ export default class Blossoms extends Top {
 	 *  @param b is a blossom
 	 *  @param label is an optional function that returns a vertex label
 	 *  @return a string that represents the tree
-	 */
+
+not used
 	bloss2string(b, label=0) {
 		let s = label(b);
 		if (this.bsf.firstChild(b) == 0) return s;
@@ -668,6 +673,59 @@ export default class Blossoms extends Top {
 			s += this.bloss2string(c,label);
 		}
 		return s + ']';
+	}
+	 */
+
+	/** Return a string representation of a link. */
+	link2string(b) {
+		let [v,e] = this.link(b);
+		if (!v) return '';
+	    let w = this.g.mate(v,e);
+        let s = `(${this.x2s(v)},${this.x2s(w)})`;
+		if (!this.parent(b))
+			s += this.x2s(this.outer(w));
+        return s;
+	}
+
+	/** Create a string version of the outer graph.  */
+	outerGraph2string() {
+		let og = new Graph(this.n, this.g.edgeRange);
+		for (let e = this.g.first(); e; e = this.g.next(e)) {
+			let [u,v] = [this.g.left(e),this.g.right(e)];
+			let [U,V] = [this.outer(u),this.outer(v)];
+			if (U != V && !og.findEdge(U,V)) og.join(U,V);
+		}
+		return og.toString(0,
+					(e,u) => this.x2s(og.mate(u,e)),
+					u => this.x2s(u));
+	}
+	
+	/** Return a string representation of the outer trees.
+	 *  @param if terse is true, don't show the links joining
+	 *  non-trivial blossoms to their tree neighbors.
+	 */
+	trees2string(terse=0) {
+		let tt = new Forest(this.n);
+		for (let B = this.firstOuter(); B; B = this.nextOuter(B)) {
+			if (!this.state(B)) continue;
+			let [v,e] = this.link(B);
+			if (v) {
+				let w = this.g.mate(v,e); let W = this.outer(w);
+				tt.link(B,W);
+			}
+		}
+		return tt.toString(4,
+					b => {
+						let s = this.x2s(b);
+						if (!terse) {
+							let pb = tt.p(b);
+							let [v,e] = this.link(b);
+							if (v && (b > this.g.n || pb > this.g.n))
+								s += `{${this.x2s(v)},` +
+									 `${this.x2s(this.g.mate(v,e))}}`;
+						}
+						return s;
+					});
 	}
 
 	/** Return a string representation of a link. */
@@ -729,13 +787,27 @@ export default class Blossoms extends Top {
 	blossoms2string(terse=0) {
 		return this.bsf.toString(4,
 					b => {
+						let pb = this.parent(b);
+						if (b <= this.g.n || !pb) return this.x2s(b);
+						let pred = (b == this.firstSub(pb) ?
+										this.bsf.lastChild(pb) :
+										this.bsf.prevSibling(b));
+						let [v,e] = this.link(pred);
+						let x = this.g.mate(v,e);
+						let [y] = this.link(b);
+						let s = this.pathItem2string(x,b,y);
+						if (this.in(this.base(pb),b) && b != this.firstSub(pb))
+							s += '!';
+						return s;
+
+/*
 						let s = '';
+						s += this.x2s(b);
 						let pb = this.parent(b);
 						if (pb) {
 							if (this.in(this.base(pb),b))
 								s += '!';
 						}
-						s += this.x2s(b);
 						if (pb && !terse) {
 							let next = this.nextSub(b) ? this.nextSub(b) :
 													     this.firstSub(pb);
@@ -746,6 +818,7 @@ export default class Blossoms extends Top {
 							}
 						}
 						return s;
+*/
 					});
 	}
 
@@ -771,6 +844,23 @@ export default class Blossoms extends Top {
 			if (!this.nextBlossom(sc,0)) return false;
 			if (!sc.verify(']')) return false;
 		}
+		// set base values, consistent with blossom structure and matching;
+		// also state values
+		for (let b = this.firstOuter(); b; b = this.nextOuter(b)) {
+			if (b <= this.g.n) this.base(b, b);
+			else this.base(b, this.firstIn(b));
+			this.state(b,+1);
+		}
+		let matched = new Set();
+		for (let e = this.match.first(); e; e = this.match.next(e)) {
+			let [u,v] = [this.g.left(e), this.g.right(e)];
+			let U = this.outer(u); let V = this.outer(v);
+			if (U == V) continue;
+			if (matched.has(U) || matched.has(V)) return false;
+			matched.add(U); matched.add(V);
+			this.base(U, u); this.base(V, v);
+			this.state(U, 0); this.state(V, 0);
+		}
 		// scan alternating path forest
 		if (!sc.verify('{')) return false;
 		while (!sc.verify('}')) {
@@ -788,65 +878,91 @@ export default class Blossoms extends Top {
 	 *  @return the blossom scanned when successful, else 0
 	 */
 	nextBlossom(sc, parent) {
-		let b = this.nextIndex(sc);
-		if (Number.isNaN(b) || !this.valid(b) || b == 0) return 0;
-		if (b > this.g.n) {
-			if (!this.ids.contains(b-this.g.n)) return 0;
-			this.ids.delete(b-this.g.n);
-		}
-		this.state(b,-2); // undefined
-		if (parent) {
-			this.bsf.link(b, parent);
-			let lnk = this.nextLink(sc,parent);
-			if (lnk == null) return 0;
-			this.link(b,lnk);
-		}
-		if (!sc.verify('('))
-			return b <= this.g.n ? b : 0;
+		// first get label for next blossom
+		let bl = this.nextBlossLabel(sc);
+		if (!bl) return 0;
+		let [x,B,y] = bl;
+        if (B > this.g.n) {
+            if (!this.ids.contains(B-this.g.n)) return 0;
+            this.ids.delete(B-this.g.n);
+        }
+        this.state(B,-2); // undefined
+        if (parent) {
+            this.bsf.link(B, parent);
+        }
+		if (B <= this.g.n) return bl;
+		if (!sc.verify('(')) return 0;
 
-		// recursive calls on children of b
-		let cnt = 0; let markedChild = 0;
+		// recursive calls on sub-blossoms of b
+		let cnt = 0;
+		let subs = new List(this.n);
+			// list of sub-blossoms with attachment points
 		while (!sc.verify(')')) {
-			if (sc.verify('!')) {
-				if (markedChild != 0) return 0;
-				markedChild = -1;
-			}
-			let cb = this.nextBlossom(sc, b);
-			if (!cb) return 0;
-			if (markedChild < 0) markedChild = cb;
+			let label = this.nextBlossom(sc, B);
+			if (!label) return 0;
+			let [x,sub,y] = label;
+			subs.enq(sub); subs.value(sub,[x,y]);
+			if (sc.verify('!')) ; // just ignore decorative bang
 			cnt++;
 		}
-		if (cnt < 3 || !(cnt&1) || !markedChild) return 0;
+		if (cnt < 3 || !(cnt&1)) return 0;
 
-		// complete links and identify base of parent
-		this.base(b,0);
-		for (let cb = this.firstSub(b); cb; cb = this.nextSub(cb)) {
-			let next = this.nextSub(cb) ? this.nextSub(cb) :
-										  this.firstSub(b);
-			let [v,e] = this.link(cb);
-			if (v != 0) {
-				if (!this.in(v,cb) || !this.in(this.g.mate(v,e), next))
-					return 0;
-			} else if (cb > this.g.n || next > this.g.n) {
-				return 0
-			} else {
-				let e = this.g.findEdge(cb,next);
-				if (!e) return 0;
-				this.link(cb,[cb,e]);
-			}
-			if (cb != markedChild) continue;
-			let unmatched = 0;
-			for (let u = this.firstIn(cb); u; u = this.nextIn(cb,u)) {
-				let e = this.match.at(u);
-				if (!e) { unmatched = u; continue; }
-				if (!this.in(this.g.mate(u,e),b)) {
-					this.base(b,u); break;
-				}
-			}
-			if (!this.base(b)) this.base(b,unmatched);
-			if (!this.base(b)) return 0;
+		// complete links of sub-blossoms
+		this.base(B,this.firstIn(B));
+		for (let sub = this.firstSub(B); sub; sub = this.nextSub(sub)) {
+			let next = this.nextSub(sub) ? this.nextSub(sub) :
+										   this.firstSub(B);
+			let [,u] = subs.value(sub); let [v]  = subs.value(next);
+			if (!this.in(u,sub) || !this.in(v,next)) return 0;
+			let e = this.g.findEdge(u,v);
+			if (!e) return 0;
+			this.link(sub, [u,e]);
 		}
-		return b;
+		return [x,B,y];
+	}
+
+	/** Look for string representing a blossom label, optionally with
+	 *  "attachment points" (e.g., strings like aBc or 22.100.47).
+	 *  @return a triple [x,b,y]; if b is a non-trivial blossom id,
+	 *  either x and y are both zero, or they identify vertices in b
+	 *  that attach to the edges linking b to its neighbors in a blossom
+	 *  cycle; if b is a vertex, x = y = b.
+	 */
+	nextBlossLabel(sc) {
+		let x = 0; let b = 0; let y = 0;
+		sc.skipspace();
+		let c = sc.nextchar(); sc.reset(-1);
+		if (sc.isdigit(c)) {
+			b = this.nextIndex(sc);
+			if (Number.isNaN(b)) return 0;
+			if (sc.verify('.',0)) {
+				x = b;
+				if (x > this.g.n) return false;
+				b = this.nextIndex(sc);
+				if (Number.isNaN(b) || b <= this.g.n) return 0;
+				if (!sc.verify('.',0)) return 0;
+				y = this.nextIndex(sc);
+				if (Number.isNaN(y) || y > this.g.n) return 0;
+			}
+		} else if (sc.isupper(c)) {
+			b = this.nextIndex(sc);
+			if (Number.isNaN(b)) return 0;
+		} else if (sc.islower(c)) {
+			b = this.nextIndex(sc);
+			if (Number.isNaN(b)) return 0;
+			c = sc.nextchar(); sc.reset(-1);
+			if (sc.isupper(c)) {
+				x = b;
+				b = this.nextIndex(sc);
+				if (Number.isNaN(b)) return 0;
+				c = sc.nextchar(); sc.reset(-1);
+				if (!sc.islower(c)) return 0;
+				y = this.nextIndex(sc);
+				if (Number.isNaN(y)) return 0;
+			}
+		}
+		if (b <= this.g.n) x = y = b;
+		return [x,b,y];
 	}
 
 
@@ -865,7 +981,7 @@ export default class Blossoms extends Top {
 			if (this.ids.contains(b-this.g.n)) return 0;
 		}
 		this.state(b,even ? +1 : -1);
-		let lnk = this.nextLink(sc,parent);
+		let lnk = this.nextLink(sc);
 		if (lnk == null) return 0;
 		let [v,e] = lnk;
 		if (v && !parent) return 0;
@@ -897,7 +1013,6 @@ export default class Blossoms extends Top {
 	 *  @param sc is a Scanner object
 	 */
 	nextIndex(sc) {
-		sc.verify('*'); // ignore optional asterisk
 		sc.skipspace();
 		let c = sc.nextchar();
 		if (!c) return 0;
@@ -915,7 +1030,7 @@ export default class Blossoms extends Top {
 	}
 
 	/** Return the next link, if there is one present. */
-	nextLink(sc, parent) {
+	nextLink(sc) {
 		if (!sc.verify('{')) return [0,0];
 		let v = sc.nextIndex();
 		if (Number.isNaN(v) || !this.g.validVertex(v)) return null;

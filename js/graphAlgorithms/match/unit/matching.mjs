@@ -26,16 +26,16 @@ try {
 				 'w[d:8 f:9 r:9 t:0] x[m:7 n:0 q:9 s:3 u:3 v:3] ' +
 				 'y[f:2 g:6 u:9] z[m:2]}'); 
 	let m = new Matching(g);
-	m.fromString('[{a,n} {b,f} {c,d} {g,y} {h,k} {i,j}]');
+	m.fromString('[an bf cd gy hk ij]');
 	matches(m.size(),6,'a1');
 	matches(m.weight(),40,'a2');
-	matches(m,'[{a,n} {b,f} {c,d} {g,y} {h,k} {i,j}]','a3');
+	matches(m,'[an bf cd gy hk ij]','a3');
 	matches(m.contains(g.findEdge(3,4)), true, 'a4');
 	matches(m.contains(g.findEdge(13,4)), false, 'a5');
 	m.add(g.findEdge(13,26));
-	matches(m,'[{a,n} {b,f} {c,d} {g,y} {h,k} {i,j} {m,z}]','a6');
+	matches(m,'[an bf cd gy hk ij mz]','a6');
 	m.drop(g.findEdge(3,4));
-	matches(m,'[{a,n} {b,f} {g,y} {h,k} {i,j} {m,z}]','a7');
+	matches(m,'[an bf gy hk ij mz]','a7');
 
 } catch(e) {
     if (e instanceof Mismatch) {

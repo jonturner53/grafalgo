@@ -137,10 +137,7 @@ export default class Matching extends Top {
 				showList.enq(e); size++; weight += this.g.weight(e);
 			}
 		}
-		return showList.toString(e =>
-					(this.g.n <= 26 ?  this.g.e2s(e,0,1) : this.g.e2s(e))
-					+ (this.g.weight(e) ? ':' + this.g.weight(e) : ''))
-					+ ' ' + size + (this.g.hasWeights ? ' ' + weight : '');
+		return showList.toString(e => this.g.e2s(e,0,1));
 	}
 
 	/** Initialize this from a string representation.
@@ -153,17 +150,22 @@ export default class Matching extends Top {
 		if (!sc.verify('[')) return false;
 		let items = new Set();
 		while (!sc.verify(']')) {
-			if (!sc.verify('{')) return false;
-			let u = sc.nextIndex();
-			if (Number.isNaN(u)) return false;
-			if (!sc.verify(',')) return false;
-			let v = sc.nextIndex();
-			if (Number.isNaN(v)) return false;
-			if (sc.verify(',')) {
-				if (Number.isNaN(sc.nextNumber()))
-					return false;
+			let u = 0; let v = 0;
+			if (sc.verify('{')) {
+				u = sc.nextIndex();
+				if (Number.isNaN(u)) return false;
+				if (!sc.verify(',')) return false;
+				v = sc.nextIndex();
+				if (Number.isNaN(v)) return false;
+				if (!sc.verify('}')) return false;
+			} else if (this.g.n <= 26) {
+				u = sc.nextIndex();
+				if (Number.isNaN(u)) return false;
+				v = sc.nextIndex();
+				if (Number.isNaN(v)) return false;
+			} else {
+				return false;
 			}
-			if (!sc.verify('}')) return false;
 			if (!this.g.validVertex(u) || !this.g.validVertex(v))
 				return false;
 			let e = this.g.findEdge(u,v);

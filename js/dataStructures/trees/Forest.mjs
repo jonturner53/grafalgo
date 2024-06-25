@@ -191,7 +191,7 @@ export default class Forest extends Top {
 
 	/** Rotate the siblings within a tree.
 	 *  @param f is the first child of its parent
-	 *  @param c is a sibling  of u that becomems the first child in
+	 *  @param c is a sibling  of u that becomes the first child in
 	 *  the list following the rotation
 	 *  @return the new first sibling
 	 *  - no longer used, drop it?
