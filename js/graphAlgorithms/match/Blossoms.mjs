@@ -788,7 +788,7 @@ not used
 		return this.bsf.toString(4,
 					b => {
 						let pb = this.parent(b);
-						if (b <= this.g.n || !pb) return this.x2s(b);
+						if (!pb) return this.x2s(b);
 						let pred = (b == this.firstSub(pb) ?
 										this.bsf.lastChild(pb) :
 										this.bsf.prevSibling(b));
@@ -800,25 +800,6 @@ not used
 							s += '!';
 						return s;
 
-/*
-						let s = '';
-						s += this.x2s(b);
-						let pb = this.parent(b);
-						if (pb) {
-							if (this.in(this.base(pb),b))
-								s += '!';
-						}
-						if (pb && !terse) {
-							let next = this.nextSub(b) ? this.nextSub(b) :
-													     this.firstSub(pb);
-							if (b > this.g.n || next > this.g.n) {
-								let [v,e] = this.link(b);
-								let w = this.g.mate(v,e);
-								s += `{${this.x2s(v)},${this.x2s(w)}}`;
-							}
-						}
-						return s;
-*/
 					});
 	}
 
