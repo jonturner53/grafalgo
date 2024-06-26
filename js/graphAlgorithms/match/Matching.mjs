@@ -131,11 +131,8 @@ export default class Matching extends Top {
 	 */
 	toString(show=0) {
 		let showList = new List(this.g.edgeRange);
-		let size = 0; let weight = 0;
 		for (let e = this.elist.first(); e; e = this.elist.next(e)) {
-			if (!show || show(e)) {
-				showList.enq(e); size++; weight += this.g.weight(e);
-			}
+			if (!show || show(e)) showList.enq(e);
 		}
 		return showList.toString(e => this.g.e2s(e,0,1));
 	}

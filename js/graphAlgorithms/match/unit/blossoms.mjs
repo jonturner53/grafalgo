@@ -16,24 +16,6 @@ import Blossoms from '../Blossoms.mjs';
 try {
 	console.log('testing Blossoms');
 
-{
-let g = new Graph();
-g.fromString('{a[b j k] b[a c] c[b d j h] d[c e f] e[d f] f[d e g i] g[f i] ' +
-             'h[i n] i[f g h] j[a c k] k[a j m] l[m n] m[k l n] n[h l m]}');
-let match = new Matching(g);
-match.fromString('[bc fg hi jk mn]');
-let bloss = new Blossoms(g,match);
-bloss.fromString('{{[A(d e f!)]} ' +
-                 '{[a(b(c(A{d,c}(g{g,f}))) j(k))] [l(m(n))]}}');
-console.log(bloss.outerGraph2string());
-console.log(match.toString());
-
-bloss.addBranch(g.findEdge(3,8),8);       // {c,h} h
-bloss.addBlossom(g.findEdge(1,11),1);     // {a,k} 1
-console.log(bloss.blossoms2string());
-console.log(bloss.trees2string());
-}
-
 	let g = new Graph(16); g.hasWeights = true;
 	g.fromString(
 			'{a[b:6] b[a:6 c:1] c[b:1 d:2 h:7] d[c:2 e:8] ' +

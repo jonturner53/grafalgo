@@ -658,24 +658,6 @@ Say grove?
 		return ts;
 	}
 
-	/** Create a string representation of one blossom.
-	 *  @param b is a blossom
-	 *  @param label is an optional function that returns a vertex label
-	 *  @return a string that represents the tree
-
-not used
-	bloss2string(b, label=0) {
-		let s = label(b);
-		if (this.bsf.firstChild(b) == 0) return s;
-		s += '[';
-		for (let c = this.bsf.firstChild(b); c; c = this.bsf.nextSibling(c)) {
-			if (c != this.bsf.firstChild(b)) s += ' ';
-			s += this.bloss2string(c,label);
-		}
-		return s + ']';
-	}
-	 */
-
 	/** Return a string representation of a link. */
 	link2string(b) {
 		let [v,e] = this.link(b);
@@ -787,6 +769,7 @@ not used
 	blossoms2string(terse=0) {
 		return this.bsf.toString(4,
 					b => {
+						let B = this.outer(b);
 						let pb = this.parent(b);
 						if (!pb) return this.x2s(b);
 						let pred = (b == this.firstSub(pb) ?
@@ -796,7 +779,8 @@ not used
 						let x = this.g.mate(v,e);
 						let [y] = this.link(b);
 						let s = this.pathItem2string(x,b,y);
-						if (this.in(this.base(pb),b) && b != this.firstSub(pb))
+						if (b <= this.g.n && this.in(this.base(B),b) &&
+							b != this.firstSub(pb))
 							s += '!';
 						return s;
 
