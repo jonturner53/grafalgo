@@ -30,7 +30,7 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 export default class OrderedHeaps extends BalancedForest {
 	Key;           // Key[i] is key of item i
 	Minkey;        // Minkey[i] is smallest key within subtree at i 
-	offset;		// offset[h] is a key offset for heap h
+	offset;	       // offset[h] is a key offset for heap h
 
 	/** Constructor for OrderedHeaps object.
 	 *  @param n is index range for object
@@ -42,32 +42,32 @@ export default class OrderedHeaps extends BalancedForest {
 		this.offset = new Float32Array(this.n+1)
 	}
 
-	/** Assign a new value by copying from another heap.
-	 *  @param lh is another OrderedHeaps object
+	/** Assign a new value by copying from another OrderedHeaps object.
+	 *  @param oh is another OrderedHeap 
 	 */
-	assign(sh) {
-		if (sh == this || (!sh instanceof OrderedHeaps)) return;
-		if (sh.n != this.n) this.reset(sh.n);
+	assign(oh) {
+		if (oh == this || (!oh instanceof OrderedHeaps)) return;
+		if (oh.n != this.n) this.reset(oh.n);
 		else this.clear();
 
-		for (let h = 1; h <= sh.n; h++) {
-			if (sh.p(h)) continue;
-			let hh = sh.first(h);
-			for (let u = sh.next(hh); u; u = sh.next(u))
-				hh = this.insertAfter(u, hh, sh.key(u,h), sh.prev(u));
+		for (let h = 1; h <= oh.n; h++) {
+			if (oh.p(h)) continue;
+			let hh = oh.first(h);
+			for (let u = oh.next(hh); u; u = oh.next(u))
+				hh = this.insertAfter(u, hh, oh.key(u,h), oh.prev(u));
 		}
 		this.clearStats();
 	}
 
-	/** Assign a new value by transferring from another heap.
-	 *  @param h is another heap
+	/** Assign a new value by transferring from another OrderedHeaps object.
+	 *  @param oh is another OrderedHeaps
 	 */
-	xfer(sh) {
-		if (sh == this) return;
-		super.xfer(sh);
-		this.Key = sh.Key; this.Minkey = sh.Minkey;
-		this.offset = sh.offset;
-		sh.Key = sh.Minkey = sh.offset = null;
+	xfer(oh) {
+		if (oh == this) return;
+		super.xfer(oh);
+		this.Key = oh.Key; this.Minkey = oh.Minkey;
+		this.offset = oh.offset;
+		oh.Key = oh.Minkey = oh.offset = null;
 		this.clearStats();
 	}
 

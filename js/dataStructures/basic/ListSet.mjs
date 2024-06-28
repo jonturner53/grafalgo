@@ -97,16 +97,6 @@ export default class ListSet extends Top {
 		return this.Prev[i] == i;
 	}
 	
-	/** Find the start of a list.
-	 *  @param i is an item on some list
-	 *  @return the first item on the list
-	 */
-	findList(i) {
-		ea && assert(this.valid(i));
-		while (this.prev(i) != 0) i = this.prev(i);
-		return i;
-	}
-
 	/** Rotate list to make i it's first item.
 	 *  @param f is the first item on a list.
 	 *  @param i is another item on the same list
@@ -162,7 +152,7 @@ export default class ListSet extends Top {
 	/** Split a list at an item.
 This just removes i from its list. Not much use.
 Think we want to split into two lists, with second starting with i.
-	 */
+Does not appear to be used. Delete or make it useful.
 	split(f, i) {
 		ea && assert (this.valid(f) && this.valid(i) && this.isfirst(f));
 		if (i == 0 || i == f) return;
@@ -170,6 +160,7 @@ Think we want to split into two lists, with second starting with i.
 		this.Next[p] = s; this.Prev[s] = p;
 		this.Next[i] = 0; this.Prev[i] = i;
 	}
+	 */
 
 	/** Sort the lists in ascending order.
 	 *  @param cmp(a,b) is an optional comparison funcion used to compare two

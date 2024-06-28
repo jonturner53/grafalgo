@@ -38,28 +38,28 @@ let traceString;
  *  non-zero; in a successful search for a path, all but the last are non-zero;
  *  unsuccessful searches leave additional zero entries at the end of the array
  */
-export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
-	g = g0; 
+export default function hpcKT(G, s=0, t=0, traceFlag=0) {
+	g = G; 
 	ea && assert(s >= 0 && s <= g.n && t >= 0 && t <= g.n);
 	if (s == 0) t = 0;
 
 	trace = traceFlag; traceString = '';
-	if (trace == 1) traceString += `graph: ${g0.toString(1)}\n`;
+	if (trace == 1) traceString += `graph: ${G.toString(1)}\n`;
 
 	if (s) {
 		// for hamiltonian paths, reduce to hamiltonian cycle problem
 		if (t) {
-			g = new Graph(g0.n+1,g0.edgeRange+2); g.assign(g0,1);
-			let x = g0.n+1; g.join(x,s); g.join(t,x);
-			// g0 has an s-t HP if and only if g has a HC
+			g = new Graph(G.n+1,G.edgeRange+2); g.assign(G,1);
+			let x = G.n+1; g.join(x,s); g.join(t,x);
+			// G has an s-t HP if and only if g has a HC
 		} else {
-			g = new Graph(g0.n+2,g0.edgeRange+g0.n+1); g.assign(g0,1);
-			let x = g0.n+1; let y = g0.n+2;
+			g = new Graph(G.n+2,G.edgeRange+G.n+1); g.assign(G,1);
+			let x = G.n+1; let y = G.n+2;
 			g.join(x,s); g.join(x,y);
-			for (let u = 1; u <= g0.n; u++) {
+			for (let u = 1; u <= G.n; u++) {
 				if (u != s) g.join(u,y);
 			}
-			// g0 has a HP starting at s if and only if g has a HC
+			// G has a HP starting at s if and only if g has a HC
 		}
 	}
 
@@ -76,7 +76,7 @@ export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 		link[g.right(e)][g.left(e)] = e;
 	}
 
-	let path = new Int32Array(g0.n);
+	let path = new Int32Array(G.n);
 
 	if (!initialCycles())
 		return [path, traceString, {'cycles': 0, 'length': 0}];
@@ -101,20 +101,20 @@ export default function hpcKT(g0, s=0, t=0, traceFlag=0) {
 	let v0 = (s ? s : lc); let v = v0; let i = 0; let len = 0;
 	do {
 		let e = link[v][pi[v]];
-		if (g0.validEdge(e)) { path[i++] = e; len++; }
+		if (G.validEdge(e)) { path[i++] = e; len++; }
 		v = pi[v];
 	} while(v != v0);
 
-	// reverse path in special case of HP where nextEdge[s] (in g) is not in g0
-	if (s && g.left(path[0]) != s && g.right(path[0]) != s && path[g0.n-2]) {
+	// reverse path in special case of HP where nextEdge[s] (in g) is not in G
+	if (s && g.left(path[0]) != s && g.right(path[0]) != s && path[G.n-2]) {
 		// special case requiring path reversal
-		for (let i = 0; i < (g0.n-2)-i; i++) 
-			[path[i],path[(g0.n-2)-i]] = [path[(g0.n-2)-i],path[i]]
+		for (let i = 0; i < (G.n-2)-i; i++) 
+			[path[i],path[(G.n-2)-i]] = [path[(G.n-2)-i],path[i]]
 	}
 
 	if (trace == 1) {
 		traceString += `\nfinal ${s ? 'path' : 'cycle'}: ` +
-					   `${g0.elist2string(path,0,0,1)} ${len}\n`;
+					   `${G.elist2string(path,0,0,1)} ${len}\n`;
 	} else if (trace) {
 		traceString += cycleLengths() + '\n';
 	}

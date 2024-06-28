@@ -24,14 +24,14 @@ let steps;     // total number of steps
 
 /** Compute a coloring of a bipartite graph using the
  *  path recoloring method.
- *  @param cg is an undirected bipartite graph
+ *  @param G is an undirected bipartite graph
  *  @param traceFlag causes a trace string to be returned when true
  *  @return a pair [ts, stats] where ts is a possibly
  *  empty trace string and stats is a statistics object;
  *  the coloring is returned as integer edge colors in g
  */
-export default function ecolorR(cg, traceFlag=false) {
-	g = cg; trace = traceFlag;
+export default function ecolorR(G, traceFlag=false) {
+	g = G; trace = traceFlag;
 	color = new Int32Array(g.edgeRange+1);
 	let Delta = g.maxDegree();
 

@@ -30,14 +30,13 @@ export default function components(g, trace=0) {
 		k++; q.enq(s);
 		while (!q.empty()) {
 			let u = q.deq();
-			for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+			for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 				let v = g.mate(u,e);
 				if (comps.singleton(v)) {
 					comps.join(s, v); q.enq(v);
 				}
 			}
-			if (trace)
-				traceString += `${g.index2string(u)} ${q} ${comps}\n`
+			if (trace) traceString += `${g.x2s(u)} ${q} ${comps}\n`
 		}
 	}
 	comps.sort();

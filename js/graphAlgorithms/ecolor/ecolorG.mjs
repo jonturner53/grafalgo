@@ -31,14 +31,14 @@ let matches;	// number of matchings found
 
 
 /** Compute a coloring of a bipartite graph using Gabow's algorithm.
- *  @param cg is an undirected bipartite graph to be colored
+ *  @param G is an undirected bipartite graph to be colored
  *  @param trace causes a trace string to be returned when true
  *  @return a pair [color, ts, stats] where color is an array of
  *  edge colors, ts is a trace string and stats is a statistics object
  */
-export default function ecolorG(cg, traceFlag=false) {
+export default function ecolorG(G, traceFlag=false) {
 	// initialize data structures
-	g = cg; trace = traceFlag
+	g = G; trace = traceFlag
 
 	wg = new Graph(g.n, g.edgeRange);
 	degree = new Int32Array(g.n+1);
@@ -86,21 +86,21 @@ function rcolor(Delta) {
 	// color its edges and remove them from wg
 	if (Delta & 1) {
 		// first build compact version of wg with no isolated vertices
-		let cg = new Graph(active.length,g.m);
+		let cwg = new Graph(active.length,g.m);
 		let u = 1;
 		for (let v = active.first(); v; v = active.next(v)) {
-			active.value(v,u++); // use value to map wg's vertices to cg's
+			active.value(v,u++); // use value to map wg's vertices to cwg's
 			steps++;
 		}
 		for (let e = wg.first(); e; e = wg.next(e)) {
 			let [u,v] = [wg.left(e),wg.right(e)];
 			let [uu,vv] = [active.value(u), active.value(v)];
-			let ee = cg.join(uu,vv); emap[ee] = e;
+			let ee = cwg.join(uu,vv); emap[ee] = e;
 			steps++;
 		}
 
-		// get max degree matching of cg
-		let [match,,stats] = mdmatchG(cg);
+		// get max degree matching of cwg
+		let [match,,stats] = mdmatchG(cwg);
 		matches++; steps += stats.steps;
 		if (trace) traceString += nextColor + ':';
 		for (let e = match.first(); e; e = match.next(e)) {

@@ -11,7 +11,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { randomInteger } from '../../common/Random.mjs';
 
 /** Find a Hamiltonian path or cycle using Angluin and Valiant's algorithm.
- *  @param g0 is a graph to be searched.
+ *  @param G is a graph to be searched.
  *  @param selectMax is maximum number of times an edge can be selected
  *  @param s is a starting vertex in the case of a hamiltonian path, else 0
  *  @param t is defined when s != 0 and is either a specific termination
@@ -21,22 +21,22 @@ import { randomInteger } from '../../common/Random.mjs';
  *  non-zero; in a successful search for a path, all but the last are non-zero;
  *  unsuccessful searches leave additional zero entries at the end of the array
  */
-export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
-	assert(s >= 0 && s <= g0.n && t >= 0 && t <= g0.n);
+export default function hpcPAV(G, selectMax=1, s=0, t=0, trace=0) {
+	assert(s >= 0 && s <= G.n && t >= 0 && t <= G.n);
 	assert(1 <= selectMax && selectMax <= 100);
 	if (s == 0) t = 0;
 	
-	let u0 = (s ? s : randomInteger(1,g0.n));
+	let u0 = (s ? s : randomInteger(1,G.n));
 
 	let traceString = '';
 	if (trace) {
-		traceString += `graph: ${g0.toString(1)}\n` +
-				  	   `vertices on partial paths from ${g0.x2s(u0)} ` +
+		traceString += `graph: ${G.toString(1)}\n` +
+				  	   `vertices on partial paths from ${G.x2s(u0)} ` +
 					   `with selected edge\n`;
 	}
 
-	let g = new Graph(g0.n,g0.edgeRange);
-	g.assign(g0);
+	let g = new Graph(G.n,G.edgeRange);
+	g.assign(G);
 	let selectCount = new Int8Array(g.edgeRange+1);
 
 	let u = u0; let rotations = 0;
@@ -44,7 +44,7 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 	while (g.firstAt(u)) {
 		//if (s && k == g.n-1) break;
 		if (!s && k == g.n-1 || s && t && k == g.n-2) {
-			let lastEdge = g0.findEdge(u, (s ? t : u0));
+			let lastEdge = G.findEdge(u, (s ? t : u0));
 			if (lastEdge) {
 				path[k++] = lastEdge; break;
 			}
@@ -60,7 +60,7 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 		// find position of first edge in path containing v
 		let pv;
 		for (pv = 0; pv < k; pv++) {
-			if (g0.left(path[pv]) == v || g0.right(path[pv]) == v)
+			if (G.left(path[pv]) == v || G.right(path[pv]) == v)
 				break;
 		}
 		if (pv == k) { // v not on path
@@ -69,15 +69,15 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 			// reverse tail end of path
 			rotations++;
 			if (trace) {
-				traceString += '[' + g0.x2s(u0);
+				traceString += '[' + G.x2s(u0);
 				let x = u0;
 				for (let i = 0; i < k; i++) {
-					x = g0.mate(x,path[i]);
-					traceString += ' ' + g0.x2s(x);
+					x = G.mate(x,path[i]);
+					traceString += ' ' + G.x2s(x);
 				}
-				traceString += `] ${g0.e2s(e)}\n`;
+				traceString += `] ${G.e2s(e)}\n`;
 			}
-			u = g0.mate(v,path[pv+1]); // new free endpoint
+			u = G.mate(v,path[pv+1]); // new free endpoint
 			path[pv+1] = e;
 			for (let j = 0; j < ~~((k-(pv+1))/2); j++) {
 				let ee = path[pv+2+j];
@@ -88,16 +88,16 @@ export default function hpcPAV(g0, selectMax=1, s=0, t=0, trace=0) {
 	}
 	if (trace)
 		traceString += `\nfinal ${s ? 'path' : 'cycle'}: ` +
-					   `${g0.elist2string(path,0,0,1)} ${k}\n`;
+					   `${G.elist2string(path,0,0,1)} ${k}\n`;
 	return [path, traceString, {'rotations': rotations, 'length': k}];
 }
 
-function path2string(path, u0, k, g0) {
-	let s = '[' + g0.x2s(u0);
+function path2string(path, u0, k, G) {
+	let s = '[' + G.x2s(u0);
 	let x = u0;
 	for (let i = 0; i < k; i++) {
-		x = g0.mate(x,path[i]);
-		s += ' ' + g0.x2s(x);
+		x = G.mate(x,path[i]);
+		s += ' ' + G.x2s(x);
 	}
 	s += `]`;
 	return s;

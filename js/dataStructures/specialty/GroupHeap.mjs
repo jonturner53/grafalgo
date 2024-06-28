@@ -136,7 +136,7 @@ export default class GroupHeap extends Top {
 	/** Activate a group */
 	activate(g) {
 		let h = this.top[g];
-		ea && assert(h /*, 'GroupHeap.activate requires a non-empty heap'*/);
+		ea && assert(h, 'GroupHeap.activate requires a non-empty heap');
 		this.active.insert(g, h ? this.key(this.groups.findmin(h),g) :
 										   Infinity);
 		this.lastOffset[g] = this.active.offset;
@@ -278,9 +278,11 @@ export default class GroupHeap extends Top {
 			let h = this.top[g];
 			if (!(fmt&0x1) && s) s += ' ';
 			s += heapLabel(g);
-			s += (!h ? '[]' : this.groups.tree2string(h, fmt,
-				(u => itemLabel(u) + ':' + 
-					  (this.key(u,g) == Infinity ? 'I' : this.key(u,g)))));
+			s += (!h ? '[]' :
+					this.groups.tree2string(h, fmt,
+						(u => itemLabel(u) + ':' + 
+					  	(this.key(u,g) == Infinity ? 'I' : this.key(u,g)))
+					).replaceAll('*',''));
 			if (fmt&0x1) s += '\n';
 		}
 		return fmt&0x1 ? '{\n' + s + '}\n' : '{' + s + '}';
