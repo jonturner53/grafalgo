@@ -50,7 +50,7 @@ export default class FibHeaps extends Forest {
 	 *  @param that is another FibHeaps object
 	 */
 	assign(that, relaxed=false) {
-		super.assign(fh, relaxed);
+		super.assign(that, relaxed);
 		for (let i = 1; i < that.n; i++) {
 			this.Key[i] = that.Key[i];
 			this.Rank[i] = that.Rank[i];
@@ -64,9 +64,9 @@ export default class FibHeaps extends Forest {
 	 */
 	xfer(that) {
 		super.xfer(that);
-		this.Key = fh.Key; this.Rank = fh.Rank; this.Mark = fh.Mark;
-		this.rankVec = fh.rankVec; this.tmpq = fh.tmpq;
-		fh.Key = fh.Rank = fh.Mark = fh.rankVec = fh.tmpq = null;
+		this.Key = that.Key; this.Rank = that.Rank; this.Mark = that.Mark;
+		this.rankVec = that.rankVec; this.tmpq = that.tmpq;
+		that.Key = that.Rank = that.Mark = that.rankVec = that.tmpq = null;
 		this.clearStats();
 	}
 	
