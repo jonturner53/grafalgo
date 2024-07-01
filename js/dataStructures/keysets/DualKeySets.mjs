@@ -32,25 +32,25 @@ export default class DualKeySets extends KeySets {
 	}
 
 	/** Assign a new value by copying from another DualKeySets.
-	 *  @param b is another DualKeySets
+	 *  @param that is another DualKeySets
 	 */
-	assign(b) {
-		if (b == this || !(f instanceof DualKeySets)) return false;
-		super.assign(b);
-		for (u = 1; u <= b.n; u++) {
-			this.key2(u, b.key2(u)); this.min2(u, b.min2(u));
+	assign(that) {
+		if (that == this || !(f instanceof DualKeySets)) return false;
+		super.assign(that);
+		for (u = 1; u <= that.n; u++) {
+			this.key2(u, that.key2(u)); this.min2(u, that.min2(u));
 		}
 	}
 
 	/** Assign a new value by transferring from another DualKeySets.
-	 *  @param b is another DualKeySets
+	 *  @param that is another DualKeySets
 	 */
-	xfer(b) {
-		if (b == this) return;
-		if (!(b instanceof DualKeySets)) return;
-		super.xfer(b);
-		this.Key2 = b.Key2; b.Key2 = null;
-		this.Min2 = b.Min2; b.Min2 = null;
+	xfer(that) {
+		if (that == this) return;
+		if (!(that instanceof DualKeySets)) return;
+		super.xfer(that);
+		this.Key2 = that.Key2; that.Key2 = null;
+		this.Min2 = that.Min2; b.Min2 = null;
 	}
 	
 	clearStats() {
@@ -163,17 +163,17 @@ export default class DualKeySets extends KeySets {
 	}
 
 	/** Determine if two DualKeySets objects are equal.
-	 *  @param other is a DualKeySets object to be compared to this
+	 *  @param that is a DualKeySets object to be compared to this
 	 *  @return true if both represent the same sets and the
 	 *  keys match; otherwise return false
 	 */
-	equals(other) {
-		let dk = super.listEquals(other);
-		if (typeof dk == 'boolean') return dk;
+	equals(that) {
+		that = super.listEquals(that);
+		if (typeof that == 'boolean') return that;
 		for (let u = 1; u <= this.n; u++) {
-			if (this.key2(u) != dk.key2(u)) return false;
+			if (this.key2(u) != that.key2(u)) return false;
 		}
-		return dk;
+		return that;
 	}
 
 	/** Create a string representation of object.

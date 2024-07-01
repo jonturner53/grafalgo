@@ -36,26 +36,26 @@ export default class BinaryForest extends Top {
 	}
 
 	/** Assign a new value by copying from another BinaryForest.
-	 *  @param other is another BinaryForest
+	 *  @param that is another BinaryForest
 	 */
-	assign(other, relaxed=false) {
-		super.assign(other,relaxed);
-		for (let u = 1; u <= other.n; u++) {
-			this.left(u, other.left(u)); this.right(u, other.right(u));
-			this.p(u, other.p(u));
-			if (!this.p(u)) this.property(u, other.property(u));
+	assign(that, relaxed=false) {
+		super.assign(that,relaxed);
+		for (let u = 1; u <= that.n; u++) {
+			this.left(u, that.left(u)); this.right(u, that.right(u));
+			this.p(u, that.p(u));
+			if (!this.p(u)) this.property(u, that.property(u));
 		}
 		this.clearStats();
 	}
 
 	/** Assign a new value by transferring from another BinaryForest.
-	 *  @param other is another BinaryForest
+	 *  @param that is another BinaryForest
 	 */
-	xfer(other) {
-		super.xfer(other);
-		this.Left = other.Left; this.Right = other.Right;
-		this.P = other.P;
-		other.Left = other.Right = other.P = null;
+	xfer(that) {
+		super.xfer(that);
+		this.Left = that.Left; this.Right = that.Right;
+		this.P = that.P;
+		that.Left = that.Right = that.P = null;
 		this.clearStats();
 	}
 	
@@ -486,67 +486,67 @@ export default class BinaryForest extends Top {
 	}
 
 	/** Determine if another BinaryForest are object is equal to this one.
-	 *  @param other is a BinaryForest object or a string representation of one.
+	 *  @param that is a BinaryForest object or a string representation of one.
 	 *  @return true if the two objects contain the same trees (meaning
 	 *  every node has the same parent in both objects).
 	 */
-	equals(other) {
-		other = super.equals(other);
-		if (typeof other == 'boolean') return other;
+	equals(that) {
+		that = super.equals(that);
+		if (typeof that == 'boolean') return that;
 		for (let u = 1; u <= this.n; u++) {
-			if (this.left(u) != other.left(u) || this.right(u) != other.right(u))
+			if (this.left(u) != that.left(u) || this.right(u) != that.right(u))
 				return false;
 				// p is assumed to be consistent with left and right
 		}
-		return other;
+		return that;
 	}
 
 	/** Determine if two BinaryForest objects represent the same sets.
-	 *  @param other is a BinaryForest object to be compared to this
+	 *  @param that is a BinaryForest object to be compared to this
 	 *  @return true if both represent the same sets.
 	 */
-	setEquals(other) {
-		other = super.equals(other);
-		if (typeof other == 'boolean') return other;
+	setEquals(that) {
+		that = super.equals(that);
+		if (typeof that == 'boolean') return that;
 		let l = new List(this.n);
 		for (let u = 1; u <= this.n; u++) {
 			if (this.p(u)) continue;
 			l.clear();
 			for (let v = this.first(u); v; v = this.next(v)) l.enq(v);
 			let len = 0;
-			for (let v = other.first(other.root(u)); v; v = other.next(v)) {
+			for (let v = that.first(that.root(u)); v; v = that.next(v)) {
 				if (!l.contains(v)) return false;
 				len++;
 			}
 			if (len != l.length) return false;
 		}
-		return other;
+		return that;
 	}
 
 	/** Determine if two BinaryForest objects consist of
 	 *  trees with nodes in the same left-to-right order (list equality).
-	 *  @param other is a BinaryForest object to be compared to this
+	 *  @param that is a BinaryForest object to be compared to this
 	 *  @return true or false if the equality status can be determined
 	 *  without any further comparison of objects; otherwise return an
 	 *  object that can be compared to this; two objects are considered
 	 *  listEqual if their trees contain the same nodes and they appear
 	 *  in the same order.
 	 */
-	listEquals(other) {
-		other = super.equals(other);
-		if (typeof other == 'boolean') return other;
+	listEquals(that) {
+		that = super.equals(that);
+		if (typeof that == 'boolean') return that;
 		for (let u = 1; u <= this.n; u++) {
 			if (this.p(u)) continue;
-			let r1 = u; let r2 = other.root(u);
-			let v1 = this.first(r1); let v2 = other.first(r2);
+			let r1 = u; let r2 = that.root(u);
+			let v1 = this.first(r1); let v2 = that.first(r2);
 			while (v1 == v2 && v1 != 0) {
-				v1 = this.next(v1,r1); v2 = other.next(v2,r2);
+				v1 = this.next(v1,r1); v2 = that.next(v2,r2);
 			}
 			if (v1 != v2) {
 				return false;
 			}
 		}
-		return other;
+		return that;
 	}
 	
 	/** Produce a string representation of the forest.

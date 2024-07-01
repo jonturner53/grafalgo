@@ -49,30 +49,30 @@ export default class Map extends Top {
 	}
 
 	/** Assign a new value by copying from another Map object.
-	 *  @param other is another Map object
+	 *  @param that is another Map object
 	 */
-	assign(other, relaxed) {
-        ea && assert(other != this &&
-                this.constructor.name == other.constructor.name);
-        if (this.n == other.n || relaxed && this.n > other.n) this.clear();
-        else this.reset(other.n, this.stringKey, this.stringValue);
-		for (let p = other.first(); p; p = other.next(p))
-			this.put(other.key(p), other.value(p));
+	assign(that, relaxed) {
+        ea && assert(that != this &&
+                this.constructor.name == that.constructor.name);
+        if (this.n == that.n || relaxed && this.n > that.n) this.clear();
+        else this.reset(that.n, this.stringKey, this.stringValue);
+		for (let p = that.first(); p; p = that.next(p))
+			this.put(that.key(p), that.value(p));
 	}
 	
 	/** Assign a new value by transferring from another Map.
-	 *  @param other is another Map object.
+	 *  @param that is another Map object.
 	 */
-	xfer(other) {
-		this.n = other.n;
-		this.keys = other.keys; other.keys = null;
-		this.Value = other.Value; other.Value = null;
-		this.free = other.free; other.free = null;
-		this.top = other.top; this.Size = other.Size;
+	xfer(that) {
+		this.n = that.n;
+		this.keys = that.keys; that.keys = null;
+		this.Value = that.Value; that.Value = null;
+		this.free = that.free; that.free = null;
+		this.top = that.top; this.Size = that.Size;
 
-		this.stringKey = other.stringKey;
-		this.stringValue = other.stringValue;
-		this.compare = other.compare;
+		this.stringKey = that.stringKey;
+		this.stringValue = that.stringValue;
+		this.compare = that.compare;
 	}
 
 	/** Expand the max size of this Map and possibly. */
@@ -169,26 +169,26 @@ export default class Map extends Top {
 	}
 	
 	/** Determine if two Map objects are equal.
-	 *  @param other is a Map object to be compared to this
+	 *  @param that is a Map object to be compared to this
 	 *  @return true if both contain the same values.
 	 */
-	equals(other) {
-		if (this === other) return true;
-        if (typeof other == 'string') {
-            let s = other;
-			other = new this.constructor(this.n,
+	equals(that) {
+		if (this === that) return true;
+        if (typeof that == 'string') {
+            let s = that;
+			that = new this.constructor(this.n,
 						this.stringKey, this.stringValue);
-			if (!other.fromString(s)) return s == this.toString();
-        } else if (other.constructor.name != this.constructor.name) {
+			if (!that.fromString(s)) return s == this.toString();
+        } else if (that.constructor.name != this.constructor.name) {
 			return false;
 		}
-		if (this.size != other.size) return false;
+		if (this.size != that.size) return false;
 		for (let p = this.first(); p; p = this.next(p)) {
-			let pp = other.getPair(this.key(p));
-			if (!pp || this.value(p) !== other.value(pp))
+			let pp = that.getPair(this.key(p));
+			if (!pp || this.value(p) !== that.value(pp))
 				return false
 		}
-		return other;
+		return that;
 	}
 	
 	/** Produce a string representation of the Map object.

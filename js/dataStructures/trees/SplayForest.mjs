@@ -66,7 +66,7 @@ export default class SplayForest extends BinaryForest {
 
 	split(u) { this.splay(u); return super.split(u); }
 
-	equals(other) { return super.listEquals(other); }
+	equals(that) { return super.listEquals(that); }
 
 	toString(fmt=0x0, label=0, treeProp=0) {
 		return super.toString(fmt, label, treeProp);

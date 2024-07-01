@@ -88,33 +88,33 @@ export default class List extends Top {
 	}
 
 	/** Assign new value to list from another. 
-	 *  @param other is a list whose value is to be assigned to this
+	 *  @param that is a list whose value is to be assigned to this
 	 *  @param relaxed is a boolean; when false, this.n is adjusted
-	 *  to exactly match other.n; when true, this.n is only adjusted
-	 *  if it is less than other.n; relaxed assignments are used to
+	 *  to exactly match that.n; when true, this.n is only adjusted
+	 *  if it is less than that.n; relaxed assignments are used to
 	 *  implement the expand method
 	 */
-	assign(other, relaxed=false) {
-		super.assign(other, relaxed);
+	assign(that, relaxed=false) {
+		super.assign(that, relaxed);
 
-		if (other.hasReverse && !this.hasReverse) this.hasReverse = true;
-		if (other.hasValues && !this.hasValues) this.hasValues = true;
-		for (let i = other.first(); i; i = other.next(i)) {
-			if (this.hasValues) this.enq(i, other.value(i));
+		if (that.hasReverse && !this.hasReverse) this.hasReverse = true;
+		if (that.hasValues && !this.hasValues) this.hasValues = true;
+		for (let i = that.first(); i; i = that.next(i)) {
+			if (this.hasValues) this.enq(i, that.value(i));
 			else this.enq(i);
 		}
 	}
 
 	/** Assign a new value to this, by transferring contents of another list.
-	 *  @param other is a list whose contents are to be transferred to this
+	 *  @param that is a list whose contents are to be transferred to this
 	 */
-	xfer(other) {
-		super.xfer(other);
-		this.First = other.first(); this.Last = other.last();
-		this.Length = other.length;
-		this.Next = other.Next; other.Next = null;
-		this.Prev = other.Prev; other.Prev = null;
-		this.Value = other.Value; other.Value = null;
+	xfer(that) {
+		super.xfer(that);
+		this.First = that.first(); this.Last = that.last();
+		this.Length = that.length;
+		this.Next = that.Next; that.Next = null;
+		this.Prev = that.Prev; that.Prev = null;
+		this.Value = that.Value; that.Value = null;
 	}
 	
 	/** Remove all elements from list. */
@@ -269,43 +269,43 @@ export default class List extends Top {
 	deq() { return this.pop(); }
 
 	/** Find an item in common between two lists.
-	 *  @param other is a second List object
+	 *  @param that is a second List object
 	 *  @return an item that is common to both lists or 0.
 	 */
-	common2(other) {
+	common2(that) {
 		for (let i = this.first(); i; i = this.next(i))
-			if (other.contains(i)) return i;
+			if (that.contains(i)) return i;
 		return 0;
 	}
 
 	/** Compare two lists for equality.
-	 *  @param other is the list to be compared to this one or a string
+	 *  @param that is the list to be compared to this one or a string
 	 *  @return true if they are the same list or have the
 	 *  same contents (in the same order)
 	 */
-	equals(other) {
-		let l = super.equals(other); 
-		if (typeof l == 'boolean') return l;
-		let j = l.first();
+	equals(that) {
+		that = super.equals(that); 
+		if (typeof that == 'boolean') return that;
+		let j = that.first();
 		for (let i = this.first(); i; i = this.next(i)) {
 			if (i != j) return false;
-			if (this.value(i) != l.value(j)) return false;
-			j = l.next(j);
+			if (this.value(i) != that.value(j)) return false;
+			j = that.next(j);
 		}
-		return j == 0 ? l : false;
+		return j == 0 ? that : false;
 	}
 
 	/** Compare two lists for set equality.
-	 *  @param other is the list to be compared to this one
+	 *  @param that is the list to be compared to this one
 	 *  @return true if they contain the same items, but not
 	 *  necessarily in the same order.
 	 */
-	setEquals(other) {
-		let l = super.equals(other); 
-		if (typeof l == 'boolean') return l;
-		// l is now guaranteed to be an object that can be compared
-		for (let i = this.first(); i != 0; i = this.next(i))
-			if (!l.contains(i)) return false;
+	setEquals(that) {
+		that = super.equals(that); 
+		if (typeof that == 'boolean') return that;
+		// that is now guaranteed to be an object that can be compared
+		for (let i = this.first(); i; i = this.next(i))
+			if (!that.contains(i)) return false;
 		return true;
 	}
 

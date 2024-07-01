@@ -17,7 +17,7 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  is specified when a heap object is constructed.
  */
 export default class ArrayHeap extends Top {
-	D;          // base of heap
+	D;          // arity of heap
 	Size;       // # of items in the heap set
 
 	pos;        // pos[i] gives position of i in the heap
@@ -44,29 +44,29 @@ export default class ArrayHeap extends Top {
 	}
 
 	/** Assign a new value by copying from another heap.
-	 *  @param other is another ArrayHeap
+	 *  @param that is another ArrayHeap
 	 */
-	assign(other, relaxed=false) {
-		super.assign(other, relaxed);
+	assign(that, relaxed=false) {
+		super.assign(that, relaxed);
 
-		this.Size = other.size; this.Offset = other.Offset;
-		for (let p = 1; p <= other.size; p++) {
-			let x = other.Item[p];
-			this.Item[p] = x; this.pos[x] = p; this.Key[x] = other.Key[x];
+		this.Size = that.size; this.Offset = that.Offset;
+		for (let p = 1; p <= that.size; p++) {
+			let x = that.Item[p];
+			this.Item[p] = x; this.pos[x] = p; this.Key[x] = that.Key[x];
 		}
 		this.clearStats();
 	}
 
 	/** Assign a new value by transferring from another heap.
-	 *  @param other is another ArrayHeap
+	 *  @param that is another ArrayHeap
 	 */
-	xfer(other) {
-		if (other == this || !(other instanceof ArrayHeap)) return;
-		this.n = other.n;
-		this.D = other.D; this.Size = other.Size; this.Offset = other.Offset;
-		this.Item = other.Item; this.pos = other.pos;
-		this.Key = other.Key;
-		other.Item = other.pos = other.Key = null;
+	xfer(that) {
+		if (that == this || !(that instanceof ArrayHeap)) return;
+		this.n = that.n;
+		this.D = that.D; this.Size = that.Size; this.Offset = that.Offset;
+		this.Item = that.Item; this.pos = that.pos;
+		this.Key = that.Key;
+		that.Item = that.pos = that.Key = null;
 		this.clearStats();
 	}
 	
@@ -237,22 +237,22 @@ export default class ArrayHeap extends Top {
 	}
 
 	/** Determine if two heaps are equal.
-	 *  @param other is a heap to be compared to this
+	 *  @param that is a heap to be compared to this
 	 *  @return true or false if equality can be determined without
 	 *  further object comparison; otherwise return an object that
 	 *  can be compared
 	 */
-	equals(other) {
-		let h = super.equals(other);
-		if (typeof h == 'boolean') return h;
-		if (this.size != h.size) return false;
+	equals(that) {
+		that = super.equals(that);
+		if (typeof that == 'boolean') return that;
+		if (this.size != that.size) return false;
 		for (let i = 1; i <= this.size; i++) {
 			let x = this.Item[i];
-			if (!h.contains(x) || this.key(x) != h.key(x)) return false;
-			let y = h.Item[i];
-			if (!this.contains(y) || this.key(y) != h.key(y)) return false;
+			if (!that.contains(x) || this.key(x) != that.key(x)) return false;
+			let y = that.Item[i];
+			if (!this.contains(y) || this.key(y) != that.key(y)) return false;
 		}
-		return h;
+		return that;
 	}
 	
 	/** Produce a string representation of the heap.

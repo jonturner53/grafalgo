@@ -43,31 +43,31 @@ export default class OrderedHeaps extends BalancedForest {
 	}
 
 	/** Assign a new value by copying from another OrderedHeaps object.
-	 *  @param oh is another OrderedHeap 
+	 *  @param that is another OrderedHeap 
 	 */
-	assign(oh) {
-		if (oh == this || (!oh instanceof OrderedHeaps)) return;
-		if (oh.n != this.n) this.reset(oh.n);
+	assign(that) {
+		if (that == this || (!that instanceof OrderedHeaps)) return;
+		if (that.n != this.n) this.reset(that.n);
 		else this.clear();
 
-		for (let h = 1; h <= oh.n; h++) {
-			if (oh.p(h)) continue;
-			let hh = oh.first(h);
-			for (let u = oh.next(hh); u; u = oh.next(u))
-				hh = this.insertAfter(u, hh, oh.key(u,h), oh.prev(u));
+		for (let h = 1; h <= that.n; h++) {
+			if (that.p(h)) continue;
+			let hh = that.first(h);
+			for (let u = that.next(hh); u; u = that.next(u))
+				hh = this.insertAfter(u, hh, that.key(u,h), that.prev(u));
 		}
 		this.clearStats();
 	}
 
 	/** Assign a new value by transferring from another OrderedHeaps object.
-	 *  @param oh is another OrderedHeaps
+	 *  @param that is another OrderedHeaps
 	 */
-	xfer(oh) {
-		if (oh == this) return;
-		super.xfer(oh);
-		this.Key = oh.Key; this.Minkey = oh.Minkey;
-		this.offset = oh.offset;
-		oh.Key = oh.Minkey = oh.offset = null;
+	xfer(that) {
+		if (that == this) return;
+		super.xfer(that);
+		this.Key = that.Key; this.Minkey = that.Minkey;
+		this.offset = that.offset;
+		that.Key = that.Minkey = that.offset = null;
 		this.clearStats();
 	}
 
@@ -267,18 +267,18 @@ export default class OrderedHeaps extends BalancedForest {
 	}
 
 	/** Determine if two OrderedHeaps objects are equal.
-	 *  @param other is another OrderedHeaps to be compared to this,
+	 *  @param that is another OrderedHeaps to be compared to this,
 	 *  or a string representing an OrderedHeaps object.
 	 *  @return true, false or an object
 	 */
-	equals(other) {
-		let sh = super.listEquals(other);
-        if (typeof sh == 'boolean') return sh;
+	equals(that) {
+		that = super.listEquals(that);
+        if (typeof that == 'boolean') return that;
 		for (let i = 1; i <= this.n; i++) {
-			if (this.key(i,this.find(i)) != sh.key(i,this.find(i)))
+			if (this.key(i,this.find(i)) != that.key(i,this.find(i)))
 				return false;
 		}
-		return sh;
+		return that;
 	}
 
 	/** Produce a string representation of the OrderedHeap object.

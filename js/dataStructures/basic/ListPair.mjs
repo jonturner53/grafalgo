@@ -50,29 +50,29 @@ export default class ListPair extends Top {
 	/** Assign one ListPair to another by copying its contents.
 	 *  @param l is the ListPair whose contents is to be copied.
 	 */
-	assign(other, relaxed=false) {
-		super.assign(other, relaxed);
-		for (let i = other.first(1); i; i = other.next(i)) {
+	assign(that, relaxed=false) {
+		super.assign(that, relaxed);
+		for (let i = that.first(1); i; i = that.next(i)) {
 			this.swap(i);
 		}
-		for (let i = other.first(2); i; i = other.next(i)) {
-			this.swap(i); this.swap(i); // to match order in other
+		for (let i = that.first(2); i; i = that.next(i)) {
+			this.swap(i); this.swap(i); // to match order in that
 		}
-		for (let i = other.n+1; i <= this.n; i++) {
+		for (let i = that.n+1; i <= this.n; i++) {
 			this.swap(i); this.swap(i);
 		}
 	}
 
 	/** Assign one ListPair to another by transferring its contents.
-	 *  @param other is the ListPair to assign.
+	 *  @param that is the ListPair to assign.
 	 */
-	xfer(other) {
-		super.xfer(other);
-		this.Next = other.Next; this.Prev = other.Prev;
-		other.Next = other.Prev = null;
-		this.First[0] = other.First[0]; this.Last[0] = other.Last[0];
-		this.First[1] = other.First[1]; this.Last[1] = other.Last[1];
-		this.Length[0] = other.Length[0]; this.Length[1] = other.Length[1];
+	xfer(that) {
+		super.xfer(that);
+		this.Next = that.Next; this.Prev = that.Prev;
+		that.Next = that.Prev = null;
+		this.First[0] = that.First[0]; this.Last[0] = that.Last[0];
+		this.First[1] = that.First[1]; this.Last[1] = that.Last[1];
+		this.Length[0] = that.Length[0]; this.Length[1] = that.Length[1];
 	}
 	
 	/** Determine if an item belongs in a specified list.
@@ -176,19 +176,19 @@ export default class ListPair extends Top {
 	}
 	
 	/** Compare two list pairs for equality.
-	 *  @param other is another list pair or a string
+	 *  @param that is another list pair or a string
 	 *  @return true if the two lists are identical
 	 */
-	equals(other) {
-		let lp = super.equals(other);
-		if (typeof lp == 'boolean') return lp;
-		let i = this.first(1); let j = lp.first(1);
-		while (i && i == j) { i = this.next(i); j = lp.next(j); }
+	equals(that) {
+		that = super.equals(that);
+		if (typeof that == 'boolean') return that;
+		let i = this.first(1); let j = that.first(1);
+		while (i && i == j) { i = this.next(i); j = that.next(j); }
 		if (i != j) return false;
-		i = this.first(2); j = lp.first(2);
-		while (i && i == j) { i = this.next(i); j = lp.next(j); }
+		i = this.first(2); j = that.first(2);
+		while (i && i == j) { i = this.next(i); j = that.next(j); }
 		if (i != j) return false;
-		return lp;
+		return that;
 	}
 	
 	/** Create a string representation of a given string.

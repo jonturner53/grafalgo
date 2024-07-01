@@ -29,24 +29,24 @@ try {
 	matches(fh.verify(), '', 'v2 ' + fh.verify());
 	matches(fh, '{[a:1] [b:2] [c:3 d:4 e:5 f:6 g:7 h:8 i:9 j:10]}', 'a3');
 	matches(fh.toString(0x1e),
-		   '{[a:1:0] [b:2:0] [c:3:3(j:10:0 h:8:1(i:9:0) d:4:2(e:5:0 ' +
-		   'f:6:1(g:7:0)))]}', 'a4');
+		   '{a:1:0 b:2:0 c:3:3(j:10:0 h:8:1(i:9:0) d:4:2(e:5:0 ' +
+		   'f:6:1(g:7:0)))}', 'a4');
 	fh.changekey(9, 3, 2);
 	matches(fh.verify(), '', 'v3 ' + fh.verify());
 	matches(fh.toString(0x1e),
-		   '{[a:1:0] [b:2:0] [i:2:0 c:3:3(j:10:0 h:8:0! d:4:2(e:5:0 ' +
+		   '{a:1:0 b:2:0 [i:2:0 c:3:3(j:10:0 h:8:0! d:4:2(e:5:0 ' +
 		   'f:6:1(g:7:0)))]}', 'a5');
 	fh.meld(1,9); fh.meld(2,1); fh.deletemin(1);
 	matches(fh.toString(0x1e),
-		   '{[a:1:0] [i:2:1(b:2:0) c:3:3(j:10:0 h:8:0! d:4:2(e:5:0 ' +
+		   '{a:1:0 [i:2:1(b:2:0) c:3:3(j:10:0 h:8:0! d:4:2(e:5:0 ' +
 		   'f:6:1(g:7:0)))]}', 'a6');
 	fh.changekey(5, 9, 1);
 	matches(fh.toString(0x1e),
-		   '{[a:1:0] [e:1:0 i:2:1(b:2:0) c:3:3(j:10:0 h:8:0! ' +
+		   '{a:1:0 [e:1:0 i:2:1(b:2:0) c:3:3(j:10:0 h:8:0! ' +
 		   'd:4:1!(f:6:1(g:7:0)))]}', 'a7');
 	fh.changekey(6, 5, 0);
 	matches(fh.toString(0x1e),
-		   '{[a:1:0] [f:0:1(g:7:0) e:1:0 i:2:1(b:2:0) ' +
+		   '{a:1:0 [f:0:1(g:7:0) e:1:0 i:2:1(b:2:0) ' +
 		   'c:3:2(j:10:0 h:8:0!) d:4:0]}', 'a8');
 	matches(fh.verify(), '', 'v4 ' + fh.verify());
 

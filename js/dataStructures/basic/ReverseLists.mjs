@@ -31,19 +31,19 @@ export default class ReverseLists extends Top {
 		this.nabor2[0] = 0;
 	}
 
-	assign(other, relaxed=false) {
-		super.assign(other, relaxed);
-		for (let i = 1; i <= other.n; i++) {
-			this.nabor1[i] = other.nabor1[i]; this.nabor2[i] = other.nabor2[i];
+	assign(that, relaxed=false) {
+		super.assign(that, relaxed);
+		for (let i = 1; i <= that.n; i++) {
+			this.nabor1[i] = that.nabor1[i]; this.nabor2[i] = that.nabor2[i];
 		}
 	}
 
-	xfer(other) {
-		super.xfer(other);
-		if (other == this) return;
-		this.n = other.n;
-		this.nabor1 = other.nabor1; this.nabor2 = other.nabor2;
-		other.nabor1 = other.nabor2 = null;
+	xfer(that) {
+		super.xfer(that);
+		if (that == this) return;
+		this.n = that.n;
+		this.nabor1 = that.nabor1; this.nabor2 = that.nabor2;
+		that.nabor1 = that.nabor2 = null;
 	}
 	
 	/** Clear the data structure, moving all items into singletons.
@@ -158,14 +158,14 @@ export default class ReverseLists extends Top {
 	}
 
 	/** Determine if two ReverseLists objects are equal.
-	 *  @param other is another ReverseLists or a string representing one
+	 *  @param that is another ReverseLists or a string representing one
 	 *  @return true if the two objects contain identical lists.
 	 */
-	equals(other) {
-		other = super.equals(other);
-		if (typeof other == 'boolean') return other;
+	equals(that) {
+		that = super.equals(that);
+		if (typeof that == 'boolean') return that;
 		for (let i = 1; i < this.n; i++) {
-			if (this.isFirst(i) != other.isFirst(i)) return false;
+			if (this.isFirst(i) != that.isFirst(i)) return false;
 			if (!this.isFirst(i)) continue;
 			let j1 = i; let k1 = 0; let j2 = i; let k2 = 0;
 			do {
@@ -174,7 +174,7 @@ export default class ReverseLists extends Top {
 				if (j1 != j2) return false;
 			} while (j1 != 0);
 		}
-		return other;
+		return that;
 	}
 	
 	/** Produce a string representation of the object.

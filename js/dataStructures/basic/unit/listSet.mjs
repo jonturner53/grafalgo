@@ -21,14 +21,14 @@ try {
 	matches(ls, '{[h]}', 'a3');
 
 	ls.join(1, 3); ls.join(5, 6); ls.join(2, 7);
-	matches(ls, '{[a c] [b g] [e f] [h]}', 'b1');
+	matches(ls, '{[a c] [b g] [e f] h}', 'b1');
 	let v = ls.join(1, 5);
-	matches(ls, '{[a c e f] [b g] [h]}', v, 1, 'b2');
+	matches(ls, '{[a c e f] [b g] h}', v, 1, 'b2');
 	matches(ls.last(1), 6, 'b4');
 	matches(ls.next(1), 3, 'b5');
 	matches(ls.prev(5), 3, 'b6');
 	ls.delete(5, 1); 
-	matches(ls, '{[a c f] [b g] [h]}', 'b7');
+	matches(ls, '{[a c f] [b g] h}', 'b7');
 	ls.delete(1, 1); ls.delete(7, 2);
 	matches(ls, '{[c f] [h]}', 'b8');
 	matches(ls.singleton(6), false, 'b9');
@@ -57,8 +57,8 @@ try {
 					pvec[u] = p;
 					return true;
 				};
-	ls.fromString('{[a:1 c:3] [b:2 e:5 d:4]}', prop);
-	matches(ls,'{[a c] [b e d]}', 'd1');
+	ls.fromString('{[a:1 c:3] [b:2 e:5 d:4] f:2}', prop);
+	matches(ls,'{[a c] [b e d] f}', 'd1');
 	matches(pvec[4],4, 'd2');
 
 } catch(e) {

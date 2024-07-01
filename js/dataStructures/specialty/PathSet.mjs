@@ -35,26 +35,26 @@ export default class PathSet extends SplayForest {
 	}
 
 	/** Assign new value to PathSet from another. 
-	 *  @paran ps is a PathSet whose value is to be assigned to this
+	 *  @paran that is a PathSet whose value is to be assigned to this
 	 */
-	assign(ps) {
-		ea && assert(ps == this || !(ps instanceof PathSet));
-		if (ps == this || !(ps instanceof PathSet)) return;
-		super.assign(ps);
+	assign(that) {
+		ea && assert(that == this || !(that instanceof PathSet));
+		if (that == this || !(that instanceof PathSet)) return;
+		super.assign(that);
 		for (let u = 1; u <= this.n; u++) {
-			this.Dcost[u] = ps.Dcost[u];
-			this.Dmin[u] = ps.Dmin[u];
+			this.Dcost[u] = that.Dcost[u];
+			this.Dmin[u] = that.Dmin[u];
 		}
 	}
 
 	/** Assign a new value to this, by transferring contents of another list.
-	 *  @param ps is a PathSet whose contents are to be transferred to this
+	 *  @param that is a PathSet whose contents are to be transferred to this
 	 */
-	xfer(ps) {
-		if (ps == this || !(ps instanceof PathSet)) return;
-		super.xfer(ps);
-		this.Dcost = ps.Dcost; ps.Dcost = null;
-		this.Dmin = ps.Dmin; ps.Dmin = null;
+	xfer(that) {
+		if (that == this || !(that instanceof PathSet)) return;
+		super.xfer(that);
+		this.Dcost = that.Dcost; that.Dcost = null;
+		this.Dmin = that.Dmin; that.Dmin = null;
 	}
 	
 	/** Return to initial state */
@@ -232,20 +232,20 @@ export default class PathSet extends SplayForest {
 	}
 	
 	/** Compare two PathSets for equality.
-	 *  @param other is the PathSet to be compared to this one
+	 *  @param that is the PathSet to be compared to this one
 	 *  @return true if they are the same list or have the
 	 *  same contents (in the same order).
 	 */
-	equals(other) {
-		let ps = super.listEquals(other);
-		if (typeof ps == 'boolean') return ps;
+	equals(that) {
+		that = super.listEquals(that);
+		if (typeof that == 'boolean') return that;
 
 		let mc1 = this.getMincosts();
-		let mc2 =   ps.getMincosts();
+		let mc2 =   that.getMincosts();
 		for (let u = 1; u <= this.n; u++) {
-			if (this.cost(u,mc1) != ps.cost(u,mc2)) return false;
+			if (this.cost(u,mc1) != that.cost(u,mc2)) return false;
 		}
-		return ps;
+		return that;
 	}
 
 	/** Compute the mincosts for all nodes and return an array mapping

@@ -89,32 +89,32 @@ export default class Blossoms extends Top {
 	}
 
 	/** Assign new value to this from another. 
-	 *  @param other is a Blossoms object
+	 *  @param that is a Blossoms object
 	 */
-	assign(other) {
-		if (other == this) return;
-		if (other.g != this.g)
-			this.reset(other.g, other.match, other.outerMethod);
-		this.bsf.assign(other.subs);
-		this.ids.assign(other.ids);
+	assign(that) {
+		if (that == this) return;
+		if (that.g != this.g)
+			this.reset(that.g, that.match, that.outerMethod);
+		this.bsf.assign(that.subs);
+		this.ids.assign(that.ids);
 		for (let b = 0; b <= this.n; b++) {
-			this.Base[b] = other.Base[b];
-			this.State[b] = other.State[b];
-			this.Link[b] = other.Link[b];
+			this.Base[b] = that.Base[b];
+			this.State[b] = that.State[b];
+			this.Link[b] = that.Link[b];
 		}
 	}
 
 	/** Assign a new value to this, by transferring contents of another list.
-	 *  @param other is another Blossoms object
+	 *  @param that is another Blossoms object
 	 */
-	xfer(other) {
-		if (other == this) return;
-		this._n = other.n;
-		this.g = other.g; this.match = other.match;
-		this.ids = other.ids;
-		this.State = other.State; this.Link = other.Link;
-		other.g = other.match = null;
-		other.subs = other.ids = other.State = other.Link = null;
+	xfer(that) {
+		if (that == this) return;
+		this._n = that.n;
+		this.g = that.g; this.match = that.match;
+		this.ids = that.ids;
+		this.State = that.State; this.Link = that.Link;
+		that.g = that.match = null;
+		that.subs = that.ids = that.State = that.Link = null;
 	}
 	
 	/** Restore to initial state. */
@@ -563,54 +563,55 @@ Say grove?
 	}
 
 	/** Determine if two Blossoms objects are equal.
+	 *  @param that is a Blossoms object to be compared to this
 	 */
-	equals(other) {
-		if (other === this) return true;
-		if (typeof other == 'string') {
-			let s = other;
-			other = new Blossoms(this.g, this.match);
-			ea && assert(other.fromString(s), 
+	equals(that) {
+		if (that === this) return true;
+		if (typeof that == 'string') {
+			let s = that;
+			that = new Blossoms(this.g, this.match);
+			ea && assert(that.fromString(s), 
 					'Blossoms.fromString cannot parse ' + s); 
-			if (!other.fromString(s)) return s == this.toString();
+			if (!that.fromString(s)) return s == this.toString();
 		}
-        if (!(other instanceof Blossoms)) return false;
-		if (other.n != this.n) return false;
-		if (this.ids.length != other.ids.length) return false;
+        if (!(that instanceof Blossoms)) return false;
+		if (that.n != this.n) return false;
+		if (this.ids.length != that.ids.length) return false;
 
-		if (!this.g.equals(other.g)) return false;
-		if (!this.match.equals(other.match)) return false;
+		if (!this.g.equals(that.g)) return false;
+		if (!this.match.equals(that.match)) return false;
 
-		// establish mapping between blossom ids in this and other
+		// establish mapping between blossom ids in this and that
 		let bidmap = new Int32Array(this.n+1);
 		let q = new List(this.n);
 		for (let b = 1; b <= this.g.n; b++) {
 			bidmap[b] = b; let pb = this.parent(b);
 			if (pb && !bidmap[pb] && !q.contains(pb)) {
-				bidmap[pb] = other.parent(b); q.enq(pb);
+				bidmap[pb] = that.parent(b); q.enq(pb);
 			}
 		}
 		// q now contains super-blossoms for which bidmap has been initialized
 		while (!q.empty()) {
 			let b = q.deq(); let pb = this.parent(b);
 			if (pb && !bidmap[pb] && !q.contains(pb)) {
-				bidmap[pb] = other.parent(bidmap[b]); q.enq(pb);
+				bidmap[pb] = that.parent(bidmap[b]); q.enq(pb);
 			}
 		}
 		// now verify that all blossoms have matching parents
 		for (let b = 1; b <= this.g.n; b++) {
 			if (b > this.g.n && this.ids.contains(b-this.g.n)) continue;
-			if (bidmap[this.parent(b)] != other.parent(bidmap[b]))
+			if (bidmap[this.parent(b)] != that.parent(bidmap[b]))
 				return false;
 		}
 
 		for (let b = 1; b <= this.n; b++) {
 			if (b > this.g.n && this.ids.contains(b-this.g.n)) continue;
 			let bb = bidmap[b];
-			if (this.base(b)  != other.base(bb) ||
-				this.state(b) != other.state(bb)) {
+			if (this.base(b)  != that.base(bb) ||
+				this.state(b) != that.state(bb)) {
 				return false;
 			}
-			let [v1,e1] = this.link(b); let [v2,e2] = other.link(bb);
+			let [v1,e1] = this.link(b); let [v2,e2] = that.link(bb);
 			if (v1 != v2) return false;
 			if (v1 && v2) {
 				let g = this.g;

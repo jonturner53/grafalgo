@@ -19,9 +19,9 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  is specified when an FibHeaps object is constructed.
  */
 export default class FibHeaps extends Forest {
-	Key;        // Key[i] is key of item i
-	Rank;       // Rank[i] gives rank of item i
-	Mark;       // Mark[i] is true if item i is considered marked
+	Key;        // Key[i] is key of node/item i
+	Rank;       // Rank[i] gives rank of node/item i
+	Mark;       // Mark[i] is true if node/item i is considered marked
 
 	rankVec;    // rankVec is an auxiliary array used during restructuring
 	tmpq;       // tmpq is a List object used as a temporary queue 
@@ -47,23 +47,23 @@ export default class FibHeaps extends Forest {
 	}
 
 	/** Assign a new value by copying from another heap.
-	 *  @param other is another FibHeaps object
+	 *  @param that is another FibHeaps object
 	 */
-	assign(other, relaxed=false) {
+	assign(that, relaxed=false) {
 		super.assign(fh, relaxed);
-		for (let i = 1; i < other.n; i++) {
-			this.Key[i] = other.Key[i];
-			this.Rank[i] = other.Rank[i];
-			this.Mark[i] = other.Mark[i];
+		for (let i = 1; i < that.n; i++) {
+			this.Key[i] = that.Key[i];
+			this.Rank[i] = that.Rank[i];
+			this.Mark[i] = that.Mark[i];
 		}
 		this.clearStats();
 	}
 
 	/** Assign a new value by transferring from another heap.
-	 *  @param other is another heap
+	 *  @param that is another heap
 	 */
-	xfer(other) {
-		super.xfer(other);
+	xfer(that) {
+		super.xfer(that);
 		this.Key = fh.Key; this.Rank = fh.Rank; this.Mark = fh.Mark;
 		this.rankVec = fh.rankVec; this.tmpq = fh.tmpq;
 		fh.Key = fh.Rank = fh.Mark = fh.rankVec = fh.tmpq = null;
@@ -82,25 +82,25 @@ export default class FibHeaps extends Forest {
 		this.changekeys = this.decreasesteps = this.mergesteps = 0;
 	}
 
-	/** Get/set the key of a heap item. */
+	/** Get/set the key of a node. */
 	key(i, v=false) {
 		if (v !== false) this.Key[i] = v;
 		return this.Key[i];
 	}
 
-	/** Get/set the rank of a heap item. */
+	/** Get/set the rank of a node. */
 	rank(i, r=false) {
 		if (r !== false) this.Rank[i] = r;
 		return this.Rank[i];
 	}
 
-	/** Return mark of a heap item. */
+	/** Return mark of a node. */
 	mark(i, m=-1) { 	
 		if (m != -1) this.Mark[i] = m;
 		return this.Mark[i];
 	}
 
-	/** Return a child of a heap item. */
+	/** Return a child of a node. */
 	c(i) { return this.firstChild(i); }
 
 	/** Return the item of minimum key in a heap.
@@ -126,7 +126,7 @@ export default class FibHeaps extends Forest {
 		if (h1 == 0) return h2;
 		if (h2 == 0 || h1 == h2) return h1;
 		return (this.key(h1) <= this.key(h2) ?
-					this.joinGroups(h1, h2) : this.joinGroups(h2, h1));
+					this.combineGroves(h1, h2) : this.combineGroves(h2, h1));
 	}
 
 	/** Insert item into a heap. 
@@ -172,7 +172,7 @@ export default class FibHeaps extends Forest {
 	}
 
 	/** Merge the tree roots in heap, to eliminate repeated ranks.
-	 *  @param r0 is the first tree root in a tree group for a heap;
+	 *  @param r0 is the first tree root in the grove defining a heap;
 	 *  it is called after the node with the smallest key is removed from heap
 	 *  @return the root of the the tree root with the smallest key,
 	 *  following the merging
@@ -202,11 +202,11 @@ export default class FibHeaps extends Forest {
 			} else if (r2 == 0) {
 				rvec[rank1] = r1;
 			} else if (key[r1] < key[r2] || (key[r1] == key[r2] && r1 == r0)) {
-				this.ungroup(r2,r0);
+				this.remove(r2,r0);
 				this.link(r2,r1); tmpq.enq(r1);
 				rvec[rank1] = 0; rank[r1]++;
 			} else {
-				this.ungroup(r1,r0);
+				this.remove(r1,r0);
 				this.link(r1,r2); tmpq.enq(r2);
 				rvec[rank1] = 0; rank[r2]++;
 			}
@@ -222,11 +222,11 @@ export default class FibHeaps extends Forest {
 	deletemin(h) {
 		// Move h's children into root list and delete h
 		for (let i = this.firstChild(h); i; i = this.firstChild(h)) {
-			this.cut(i); this.joinGroups(h,i);
+			this.cut(i); this.combineGroves(h,i);
 		}
 		this.rank(h,0);
 		if (!this.nextSibling(h)) return [h,0];
-		let r = this.ungroup(h,h); // r is first root remaining in tree group
+		let r = this.remove(h,h); // r is first root remaining in tree group
 		return [h, (r ? this.mergeRoots(r) : 0)];
 	}
 	
@@ -244,17 +244,17 @@ export default class FibHeaps extends Forest {
 	}
 	
 	/** Determine if two FibHeaps objects are equal.
-	 *  @param other is another FibHeaps to be compared to this, or a string
+	 *  @param that is another FibHeaps to be compared to this, or a string
 	 *  representing an FibHeaps object.
 	 *  @return if true or false or an object that can be compared further
 	 */
-	equals(other) {
-		let fh = super.setEquals(other);
-        if (typeof fh == 'boolean') return fh;
+	equals(that) {
+		that = super.setEquals(that);
+        if (typeof that == 'boolean') return that;
 		for (let i = 0; i < this.n; i++) {
-			if (this.key(i) != fh.key(i)) return false;
+			if (this.key(i) != that.key(i)) return false;
 		}
-		return fh;
+		return that;
 	}
 	
 	/** Construct a string representation of this object.

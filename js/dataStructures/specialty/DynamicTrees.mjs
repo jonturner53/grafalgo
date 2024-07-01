@@ -125,26 +125,26 @@ export default class DynamicTrees extends PathSet {
 	
 	/** Compare two DynamicTrees for equality.
 	 *
-	 *  @param dt is the DynamicTrees to be compared to this one
+	 *  @param other is the DynamicTrees to be compared to this one
 	 *  @return true if they are the same list or have the
 	 *  same contents (in the same order)
 	 */
-	equals(dt) {
-		if (this == dt) return true;
-		if (typeof dt == 'string') {
-			let s = dt; dt = new DynamicTrees(this.n);
-			if (!dt.fromString(s)) return s == this.toString();
-		} else if (!(dt instanceof DynamicTrees) || this.n != dt.n) {
+	equals(other) {
+		if (this == other) return true;
+		if (typeof other == 'string') {
+			let s = other; other = new DynamicTrees(this.n);
+			if (!other.fromString(s)) return s == this.toString();
+		} else if (!(other instanceof DynamicTrees) || this.n != other.n) {
 			return false;
 		}
-		let f1 = this.explicitForest(); let f2 = dt.explicitForest();
+		let f1 = this.explicitForest(); let f2 = other.explicitForest();
 		if (!f1.equals(f2)) return;
 
-		let mc1 = this.getMincosts(); let mc2 = dt.getMincosts();
+		let mc1 = this.getMincosts(); let mc2 = other.getMincosts();
 		for (let u = 1; u <= this.n; u++) {
-			if (this.cost(u,mc1) != dt.cost(u,mc2)) return false;
+			if (this.cost(u,mc1) != other.cost(u,mc2)) return false;
 		}
-		return dt;
+		return other;
 	}
 
 	/** Get an explicit representation of the forest represented by

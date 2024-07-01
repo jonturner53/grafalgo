@@ -51,22 +51,22 @@ export default class LazyHeaps extends LeftistHeaps {
 	}
 
 	/** Assign a new value by copying from another heap.
-	 *  @param lh is another LazyHeaps object
+	 *  @param that is another LazyHeaps object
 	 */
-	assign(lh) {
-		if (lh == this || (!lh instanceof LazyHeaps)) return;
-		if (lh.n != this.n) {
-			this.reset(lh.n, typeof lh.Retired == 'function' ?
-							 lh.Retired : null);
+	assign(that) {
+		if (that == this || (!that instanceof LazyHeaps)) return;
+		if (that.n != this.n) {
+			this.reset(that.n, typeof that.Retired == 'function' ?
+							 that.Retired : null);
 		} else {
 			this.clear();
 		}
-		for (let r = 1; r <= lh.n; r++) {
-			if (lh.p(r) || lh.rank(r) < 0) continue;
-			let rr = lh.first(r);
-			for (let u = lh.next(rr); u; u = lh.next(u)) {
-				if (u > lh.nn) continue;
-				rr = this.insert(u, rr, lh.key(u));
+		for (let r = 1; r <= that.n; r++) {
+			if (that.p(r) || that.rank(r) < 0) continue;
+			let rr = that.first(r);
+			for (let u = that.next(rr); u; u = that.next(u)) {
+				if (u > that.nn) continue;
+				rr = this.insert(u, rr, that.key(u));
 			}
 		}
 	}
@@ -74,11 +74,11 @@ export default class LazyHeaps extends LeftistHeaps {
 	/** Assign a new value by transferring from another heap.
 	 *  @param h is another heap
 	 */
-	xfer(lh) {
-		if (lh == this || (!lh instanceof LazyHeaps)) return;
-		super.xfer(lh);
-		this.nn = lh.nn;
-		this.Retired = lh.Retired; lh.Retired = null;
+	xfer(that) {
+		if (that == this || (!that instanceof LazyHeaps)) return;
+		super.xfer(that);
+		this.nn = that.nn;
+		this.Retired = that.Retired; that.Retired = null;
 	}
 
 	/** Revert to initial state. */
@@ -192,16 +192,16 @@ export default class LazyHeaps extends LeftistHeaps {
 	}
 	
 	/** Determine if two LazyHeaps objects represent the same sets.
-	 *  @param lh is a LazyHeaps object to be compared to this
+	 *  @param that is a LazyHeaps object to be compared to this
 	 *  @return true if both represent the same sets.
 	 */
-	equals(lh) {
-		if (this === lh) return true;
-        if (typeof lh == 'string') {
-            let s = lh; lh = new LazyHeaps(this.n);
-			if (!lh.fromString(s)) return s == this.toString();
+	equals(that) {
+		if (this === that) return true;
+        if (typeof that == 'string') {
+            let s = that; that = new LazyHeaps(this.n);
+			if (!that.fromString(s)) return s == this.toString();
         }
-		if (lh.constructor.name != 'LazyHeaps' || lh.n != this.n)
+		if (that.constructor.name != 'LazyHeaps' || that.n != this.n)
 			return false;
 		let l = new List(this.n);
 		for (let u = 1; u <= this.n; u++) {
@@ -211,15 +211,15 @@ export default class LazyHeaps extends LeftistHeaps {
 				if (this.isactive(v)) l.enq(v);
 			}
 			let len = 0;
-			for (let v = lh.first(lh.find(l.first())); v; v = lh.next(v)) {
-				if (!lh.isactive(v)) continue;
+			for (let v = that.first(that.find(l.first())); v; v=that.next(v)) {
+				if (!that.isactive(v)) continue;
 				if (!l.contains(v)) return false;
-				if (this.key(v) != lh.key(v)) return false;
+				if (this.key(v) != that.key(v)) return false;
 				len++;
 			}
 			if (len != l.length) return false;
 		}
-		return lh;
+		return that;
 	}
 
 	/** Produce a string representation of this LazyHeaps object.

@@ -29,23 +29,23 @@ export default class Matching extends Top {
 	}
 
 	/** Assign new value to this from another. 
-	 *  @paran match is another Matching object
+	 *  @paran that is another Matching object
 	 */
-	assign(match) {
-		if (match == this) return;
-		match.g = this.g; this._n = match.n
-		this.elist.assign(match.elist);
+	assign(that) {
+		if (that == this) return;
+		that.g = this.g; this._n = that.n
+		this.elist.assign(that.elist);
 		for (let u = 0; u <= this.g.n; u++)
-			this.map[u] = match.map[u];
+			this.map[u] = that.map[u];
 	}
 
 	/** Assign a new value to this, by transferring contents of another list.
 	 *  @param l is a list whose contents are to be transferred to this
 	 */
-	xfer(match) {
-		if (match == this) return;
-		this.g = match.g; this._n = match.n;
-		this.elist = match.elist; this.map = match.map;
+	xfer(that) {
+		if (that == this) return;
+		this.g = that.g; this._n = that.n;
+		this.elist = that.elist; this.map = that.map;
 	}
 	
 	/** Restore to initial state. */
@@ -102,25 +102,25 @@ export default class Matching extends Top {
 	}
 
 	/** Compare two matchings for equality.
-	 *  @param other is the matching to be compared to this one,
+	 *  @param that is the matching to be compared to this one,
 	 *  or a string representing a matching
 	 *  @return true if they contain the same edges
 	 */
-	equals(other) {
-		if (this === other) return true;
-        if (typeof other == 'string') {
+	equals(that) {
+		if (this === that) return true;
+        if (typeof that == 'string') {
 			if (!('fromString' in this)) 
-				return this.toString() == other.toString();
-            let s = other;
-			other = new this.constructor(this.g);
-			other.fromString(s);
+				return this.toString() == that.toString();
+            let s = that;
+			that = new this.constructor(this.g);
+			that.fromString(s);
         }
-		if (other.constructor.name != this.constructor.name ||
-		    other.n != this.n) {
+		if (that.constructor.name != this.constructor.name ||
+		    that.n != this.n) {
 			return false;
 		}
-		if (!this.elist.setEquals(other.elist)) return false;
-		return other;
+		if (!this.elist.setEquals(that.elist)) return false;
+		return that;
 	}
 
 	/** Create a string representation of the matching.

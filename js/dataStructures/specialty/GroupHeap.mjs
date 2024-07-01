@@ -52,30 +52,30 @@ export default class GroupHeap extends Top {
 	}
 
 	/** Assign new value to this from another. 
-	 *  @param other is a GroupHeap object
+	 *  @param that is a GroupHeap object
 	 */
-	assign(other) {
-		ea && assert(other instanceof GroupHeap);
-		if (other == this) return;
-		if (other.n != this.n || other.gn != this.gn)
-			this.reset(other.n, other.gn);
-		this.groups.assign(other.groups);
-		this.active.assign(other.top);
+	assign(that) {
+		ea && assert(that instanceof GroupHeap);
+		if (that == this) return;
+		if (that.n != this.n || that.gn != this.gn)
+			this.reset(that.n, that.gn);
+		this.groups.assign(that.groups);
+		this.active.assign(that.top);
 		for (let g = 1; g <= this.n; g++) {
-			this.top[g] = other.top[g];
+			this.top[g] = that.top[g];
 		}
 	}
 
 	/** Assign a new value to this, by transferring contents of another object.
-	 *  @param other is another GroupHeap object
+	 *  @param that is another GroupHeap object
 	 */
-	xfer(other) {
-		ea && assert(other instanceof GroupHeap);
-		if (other == this) return;
-		this.n = other.n; this.gn = other.gn;
-		this.groups = other.groups; this.top = other.top;
-		this.active = other.active; this.lastOffset = other.lastOffset;
-		other.groups = other.top = other.active = other.lastOffset = null;
+	xfer(that) {
+		ea && assert(that instanceof GroupHeap);
+		if (that == this) return;
+		this.n = that.n; this.gn = that.gn;
+		this.groups = that.groups; this.top = that.top;
+		this.active = that.active; this.lastOffset = that.lastOffset;
+		that.groups = that.top = that.active = that.lastOffset = null;
 	}
 	
 	/** Restore to initial state. */
@@ -217,26 +217,26 @@ export default class GroupHeap extends Top {
 
 	/** Determine if two GroupHeap objects are equal.
 	 */
-	equals(other) {
-		other = super.equals(other);
-		if (typeof other == 'boolean') return other;
-		if (other.gn != this.gn) return false;
+	equals(that) {
+		that = super.equals(that);
+		if (typeof that == 'boolean') return that;
+		if (that.gn != this.gn) return false;
 
-		if (!this.active.equals(other.active)) return false;
+		if (!this.active.equals(that.active)) return false;
 
 		for (let g = 1; g <= this.gn; g++) {
-			let h = this.top[g]; let hh = other.top[g];
+			let h = this.top[g]; let hh = that.top[g];
 			if ((h && !hh) || (!h && h)) return false;
 			if (!h) continue;
-			let u = this.groups.first(h); let uu = other.groups.first(hh);
+			let u = this.groups.first(h); let uu = that.groups.first(hh);
 			while (u && uu) {
 				if (u != uu) return false;
-				if (this.key(u,g) != other.key(uu,g)) return false;
-				u = this.groups.next(u); uu = other.groups.next(uu);
+				if (this.key(u,g) != that.key(uu,g)) return false;
+				u = this.groups.next(u); uu = that.groups.next(uu);
 			}
 			if (u != uu) return false;
 		}
-		return other;
+		return that;
 	}
 
 	/** Create a string representation of GroupHeap object.

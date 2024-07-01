@@ -34,31 +34,31 @@ export default class EdgeGroupLayers extends Top {
 	clear() { layers.clear(); fgl.fill(0); }
 
 	/** Assign one object to another by copying its contents.
-	 *  @param other is another object whose contents is copied to this one
+	 *  @param that is another object whose contents is copied to this one
 	 */
-	assign(other) {
-        ea && assert(other != this &&
-                	 this.constructor.name == other.constructor.name,
+	assign(that) {
+        ea && assert(that != this &&
+                	 this.constructor.name == that.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
-		if (this.eg == other.eg && this.n_l == other.n_l)
+		if (this.eg == that.eg && this.n_l == that.n_l)
 			this.clear();
 		else
-			this.reset(other.eg, other.n_l);
+			this.reset(that.eg, that.n_l);
 
 		for (let l = 1; l <= this.n_l; l++) {
-			for (let g = other.firstInLayer(l); g; g = other.nextInLayer(l))
+			for (let g = that.firstInLayer(l); g; g = that.nextInLayer(l))
 				this.add(g,l);
 		}
 	}
 	
 	/** Assign one graph to another by transferring its contents.
-	 *  @param other is another graph whose contents is transferred to this one
+	 *  @param that is another graph whose contents is transferred to this one
 	 */
-	xfer(other) {
-		super.xfer(other);
-		this.eg = other.eg; this.layers = other.layers; this.fgl = other.fgl;
-		this.gmap = other.gmap;
-		other.eg = other.layers = other.fgl = other.gmap = null;
+	xfer(that) {
+		super.xfer(that);
+		this.eg = that.eg; this.layers = that.layers; this.fgl = that.fgl;
+		this.gmap = that.gmap;
+		that.eg = that.layers = that.fgl = that.gmap = null;
 	}
 
 	/** Get the layer that a specified group belongs to. */

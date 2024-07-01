@@ -48,32 +48,32 @@ export default class Flograph extends Digraph {
 	}
 
 	/** Assign one Flograph to another (but not its flow).
-	 *  @param other is another Flograph that is copied to this one
+	 *  @param that is another Flograph that is copied to this one
 	 */
-	assign(other, relaxed=false) {
-		super.assign(other, relaxed);
-		if (other.hasFloors && !this.hasFloors) this.hasFloors = true;
-		if (!other.hasFloors && this.hasFloors) this.hasFloors = null;
+	assign(that, relaxed=false) {
+		super.assign(that, relaxed);
+		if (that.hasFloors && !this.hasFloors) this.hasFloors = true;
+		if (!that.hasFloors && this.hasFloors) this.hasFloors = null;
 		this.clear();
-		for (let e = other.first(); e; e = other.next(e)) {
+		for (let e = that.first(); e; e = that.next(e)) {
 			let ee = this.edges.in(e,2) ?
-					 	this.join(other.left(e), other.right(e), e) :
-						this.join(other.left(e), other.right(e));
-			this.cap(ee, other.cap(e)); this.flow(ee, 0);
-			if (other.hasCosts) this.cost(ee, other.cost(e));
-			if (other.hasFloors) this.floor(ee, other.floor(e));
+					 	this.join(that.left(e), that.right(e), e) :
+						this.join(that.left(e), that.right(e));
+			this.cap(ee, that.cap(e)); this.flow(ee, 0);
+			if (that.hasCosts) this.cost(ee, that.cost(e));
+			if (that.hasFloors) this.floor(ee, that.floor(e));
 		}
-		this.source = other.source; this.sink = other.sink;
+		this.source = that.source; this.sink = that.sink;
 	}
 
 	/** Assign one graph to another by transferring its contents.
-	 *  @param other is another graph whose contents is traferred to this one
+	 *  @param that is another graph whose contents is traferred to this one
 	 */
-	xfer(other) {
-		super.xfer(other);
-		this.F = other.F; this.Cap = other.Cap;
-		other.F = other.Cap = null;
-		this.Floor = other.Floor; other.Floor = null;
+	xfer(that) {
+		super.xfer(that);
+		this.F = that.F; this.Cap = that.Cap;
+		that.F = that.Cap = null;
+		this.Floor = that.Floor; that.Floor = null;
 	}
 
 	/** Get/set the source vertex.
@@ -237,27 +237,27 @@ export default class Flograph extends Digraph {
 	}
 
 	/** Compare another flograph to this one.
-	 *  @param g is a Flograph object or a string representing one.
+	 *  @param that is a Flograph object or a string representing one.
 	 *  @param includeFlow (when true) causes the comparison to include
 	 *  flows on edges
-	 *  @return true if other is equal to this; that is, it has the same
+	 *  @return true if that is equal to this; that is, it has the same
 	 *  vertices, edges, capacities and costs (and possibly flows);
 	 *  endpoint lists are sorted as a side effect
 	 */
-	equals(other, includeFlow=false) {
-		other = super.equals(other);
-		if (typeof other == 'boolean') return other;
-		if (this.m != other.m) return false;
-		let el1 = this.sortedElist(); let el2 = other.sortedElist();
+	equals(that, includeFlow=false) {
+		that = super.equals(that);
+		if (typeof that == 'boolean') return that;
+		if (this.m != that.m) return false;
+		let el1 = this.sortedElist(); let el2 = that.sortedElist();
 		for (let i = 0; i < el1.length; i++) {
 			let e1 = el1[i]; let e2 = el2[i];
-			if (this.cap(e1) != other.cap(e2) ||
-				this.floor(e1) != other.floor(e2) ||
-				(includeFlow && this.f(e1) != other.f(e2))) {
+			if (this.cap(e1) != that.cap(e2) ||
+				this.floor(e1) != that.floor(e2) ||
+				(includeFlow && this.f(e1) != that.f(e2))) {
 				return false;
 			}
 		}
-		return other;
+		return that;
 	}
 
 	/** Compare two edges incident to the same endpoint u.

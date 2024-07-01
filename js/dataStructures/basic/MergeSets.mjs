@@ -36,33 +36,33 @@ export default class MergeSets extends Top {
 	}
 	
 	/** Assign another MergeSets object to this one.
-	 *  @param other is another MergeSets object.
+	 *  @param that is another MergeSets object.
 	 */
-	assign(ds, relaxed=false) {
-		super.assign(other, relaxed);
-		for (let i = 0; i <= other.n; i++) {
-			this.P[i] = ds.P[i]; this.Rank[i] = ds.Rank[i];
+	assign(that, relaxed=false) {
+		super.assign(that, relaxed);
+		for (let i = 0; i <= that.n; i++) {
+			this.P[i] = that.P[i]; this.Rank[i] = that.Rank[i];
 		}
 	}
 
 	/** Import a ListSets object into to this MergeSets object.
-	 *  @param other is a ListSets object.
+	 *  @param that is a ListSets object.
 	 */
-	importFrom(other) {
-		ea && assert(other.constructor.name == 'ListSet');
-		if (this.n != other.n) this.reset(other.n);
+	importFrom(that) {
+		ea && assert(that.constructor.name == 'ListSet');
+		if (this.n != that.n) this.reset(that.n);
 		else this.clear();
 		for (let i = 0; i <= this.n; i++) {
-			if (!other.isfirst(i)) continue;
-			for (let j = other.next(i); j != 0; j = other.next(j))
+			if (!that.isfirst(i)) continue;
+			for (let j = that.next(i); j != 0; j = that.next(j))
 				this.merge(this.find(i), j);
 		}
 	}
 
-	xfer(other) {
-		super.xfer(other);
-		this.P = other.P; this.Rank = other.Rank;
-		other.P = other.Rank = null;
+	xfer(that) {
+		super.xfer(that);
+		this.P = that.P; this.Rank = that.Rank;
+		that.P = that.Rank = null;
 	}
 	
 	/** Clear all items in a given range.
@@ -134,26 +134,26 @@ export default class MergeSets extends Top {
 	}
 
 	/** Compare two MergeSets for equality.
-	 *  @param other is another MergeSets object or a string
+	 *  @param that is another MergeSets object or a string
 	 *  @return true if they represent the same collection of sets.
 	 */
-	equals(other) {
-		let ms = super.equals(other);
-		if (typeof ms == 'boolean') return ms;
+	equals(that) {
+		that = super.equals(that);
+		if (typeof that == 'boolean') return that;
 		// use smallest item in set as its 'id', store in set's root location
 		let id1 = new Int32Array(this.n+1).fill(this.n+1);
 		let id2 = new Int32Array(this.n+1).fill(this.n+1);
 
 		for (let i = 1; i <= this.n; i++) {
 			let r1 = this.findroot(i); id1[r1] = Math.min(i, id1[r1]);
-			let r2 =   ms.findroot(i); id2[r2] = Math.min(i, id2[r2]);
+			let r2 = that.findroot(i); id2[r2] = Math.min(i, id2[r2]);
 		}
 		for (let i = 1; i < this.n; i++) {
-			if (id1[this.findroot(i)] != id2[ms.findroot(i)]) {
+			if (id1[this.findroot(i)] != id2[that.findroot(i)]) {
 				return false;
 			}
 		}
-		return ms;
+		return that;
 	}
 
 	/** Return a string representation of this object.

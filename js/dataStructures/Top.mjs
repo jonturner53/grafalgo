@@ -35,19 +35,19 @@ export default class Top {
 		this.xfer(new this.constructor(... arguments));
 	}
 
-    assign(other, relaxed=false) {
-        ea && assert(other != this &&
-                	 this.constructor.name == other.constructor.name,
+    assign(that, relaxed=false) {
+        ea && assert(that != this &&
+                	 this.constructor.name == that.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
-        if (this.n == other.n || relaxed && this.n > other.n) this.clear();
-        else this.reset(other.n);
+        if (this.n == that.n || relaxed && this.n > that.n) this.clear();
+        else this.reset(that.n);
 	}
 
-	xfer(other) {
-        ea && assert(other != this &&
-                	 this.constructor.name == other.constructor.name,
+	xfer(that) {
+        ea && assert(that != this &&
+                	 this.constructor.name == that.constructor.name,
 					 'Top:xfer: self-assignment or mismatched types');
-		this.N = other.N;
+		this.N = that.N;
 	}
 
 	/** Get the index range for the object.
@@ -92,30 +92,30 @@ export default class Top {
 
 	/** Determine if two objects are equal.
 	 *  Uses string comparison for objects that lack a fromString method.
-	 *  @param other is an object to be compared to this, or a string
+	 *  @param that is an object to be compared to this, or a string
 	 *  @returns true or false if equality status can be determined
 	 *  without an explicit object comparison; otherwise returns an
 	 *  object that can be compared to "this".
 	 */
-	equals(other) {
-		if (this === other) return true;
-        if (typeof other == 'string') {
+	equals(that) {
+		if (this === that) return true;
+        if (typeof that == 'string') {
 			//if (!('fromString' in this)) 
-			//	return this.toString() == other;
-            let s = other;
+			//	return this.toString() == that;
+            let s = that;
 			if (typeof this.fromString !== 'function')
 				return s == this.toString();
-			other = new this.constructor();
-			assert(other.fromString(s), other.constructor.name +
+			that = new this.constructor();
+			assert(that.fromString(s), that.constructor.name +
 						 ':equals: fromString cannot parse ' + s);
 				// note: this assert must always be enabled
-			if (other.n > this.n) return false;
-			if (other.n < this.n) other.expand(this.n);
-        } else if (other.constructor.name != this.constructor.name ||
-		    other.n != this.n) {
+			if (that.n > this.n) return false;
+			if (that.n < this.n) that.expand(this.n);
+        } else if (that.constructor.name != this.constructor.name ||
+		    that.n != this.n) {
 			return false;
 		}
-		return other;
+		return that;
 	}
 
 	/** Convert an index to a string.

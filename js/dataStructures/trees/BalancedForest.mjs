@@ -26,21 +26,21 @@ export default class BalancedForest extends BinaryForest {
 	}
 
 	/** Assign a new value by copying from another BinaryForest.
-	 *  @param other is another BinaryForest
+	 *  @param that is another BinaryForest
 	 */
-	assign(other, relaxed=false) {
-		super.assign(other,relaxed);
-		for (let u = 1; u <= other.n; u++) this.rank(u, other.rank(u));
+	assign(that, relaxed=false) {
+		super.assign(that,relaxed);
+		for (let u = 1; u <= that.n; u++) this.rank(u, that.rank(u));
 	}
 
 	/** Assign a new value by transferring from another BinaryForest.
-	 *  @param f is another BinaryForest
+	 *  @param that is another BinaryForest
 	 */
-	xfer(f) {
-		if (f == this) return;
-		if (!(f instanceof BalancedForest)) return;
-		super.xfer(f);
-		this.Rank = f.Rank; f.Rank = null;
+	xfer(that) {
+		if (that == this) return;
+		if (!(that instanceof BalancedForest)) return;
+		super.xfer(that);
+		this.Rank = that.Rank; that.Rank = null;
 	}
 	
 	/** Clear trees converting them to singletons.
@@ -228,14 +228,14 @@ export default class BalancedForest extends BinaryForest {
 
 	/** Compare another BalancedForest to this. Compares the left-to-right
 	 *  order of the vertices, not the tree structure.
-	 *  @other is another BalancedForest or a string representing one
+	 *  @param that is another BalancedForest or a string representing one
 	 *  @return true if the trees in both have the same set of vertices
 	 *  and they appear in the same left-to-right order.
 	 */
-	equals(other) {
-		other = super.listEquals(other);
-		if (typeof other == 'boolean') return other;
-		return other;
+	equals(that) {
+		that = super.listEquals(that);
+		if (typeof that == 'boolean') return that;
+		return that;
 	}
 
 	/** Return a string representation of this object.

@@ -22,52 +22,52 @@ import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 export default class EdgeGroupColors extends Top {
 	eg;				/// EdgeGroups object that colors are applied to
 
-	_color;         // _color[e] is edge assigned to e or 0
-	_edgesByColor;	// ListSet of edges partitioned by color (including 0)
-	_firstEdge;     // _firstEdge[c] is first edge of color c
+	Color;         // Color[e] is edge assigned to e or 0
+	EdgesByColor;	// ListSet of edges partitioned by color (including 0)
+	FirstEdge;     // FirstEdge[c] is first edge of color c
 
-	_usage;         // usage[u][c] is number of times c is used at u
+	Usage;         // Usage[u][c] is number of times c is used at u
 
-	_palettes;      // _palettes[u] is ListSet that defines palettes at u
-	_unused;        // _unused[u] is first unused color in _palettes[u]
-	_firstColor;    // _firstColor[g] is first color in g's palette
-	_owner;         // _owner[u][c] is group at input u that owns color c
-	_paletteSize;   // _paletteSize[g] is number of colors in g's palette
+	Palettes;      // Palettes[u] is ListSet that defines palettes at u
+	Unused;        // Unused[u] is first unused color in Palettes[u]
+	FirstColor;    // FirstColor[g] is first color in g's palette
+	Owner;         // Owner[u][c] is group at input u that owns color c
+	PaletteSize;   // PaletteSize[g] is number of colors in g's palette
 
 	constructor(eg, n_c=1) {
 		super(n_c);	// n_c is number of colors in palette
 		this.eg = eg;
 
-		this._color = new Int32Array(eg.graph.edgeRange+1);
-		this._edgesByColor = new ListSet(eg.graph.edgeRange);
-		this._firstEdge = new Int32Array(this.n_c+1);
+		this.Color = new Int32Array(eg.graph.edgeRange+1);
+		this.EdgesByColor = new ListSet(eg.graph.edgeRange);
+		this.FirstEdge = new Int32Array(this.n_c+1);
 		for (let e = eg.graph.first(); e; e = eg.graph.next(e)) {
-			this._firstEdge[0] = this._edgesByColor.join(this._firstEdge[0],e);
+			this.FirstEdge[0] = this.EdgesByColor.join(this.FirstEdge[0],e);
 		}
 
-		this._usage = new Array(eg.graph.n+1);
+		this.Usage = new Array(eg.graph.n+1);
 
-		this._palettes = new Array(eg.n_i+1);
-		this._unused = new Int32Array(eg.n_i+1);
-		this._firstColor = new Int32Array(eg.n_g+1);
-		this._owner = new Array(eg.n_i+1);
-		this._paletteSize = new Int32Array(eg.n_g+1);
+		this.Palettes = new Array(eg.n_i+1);
+		this.Unused = new Int32Array(eg.n_i+1);
+		this.FirstColor = new Int32Array(eg.n_g+1);
+		this.Owner = new Array(eg.n_i+1);
+		this.PaletteSize = new Int32Array(eg.n_g+1);
 
 		for (let u = 1; u <= eg.graph.n; u++) {
-			this._usage[u] = new Int32Array(n_c+1);
-			this._usage[u][0] = eg.graph.degree(u);
+			this.Usage[u] = new Int32Array(n_c+1);
+			this.Usage[u][0] = eg.graph.degree(u);
 		}
 		for (let u = 1; u <= eg.n_i; u++) {
-			this._palettes[u] = new ListSet(n_c);
-			this._owner[u] = new Int32Array(n_c+1);
+			this.Palettes[u] = new ListSet(n_c);
+			this.Owner[u] = new Int32Array(n_c+1);
 			for (let c = 1; c <= n_c; c++)
-				this._unused[u] = this._palettes[u].join(this._unused[u],c);
+				this.Unused[u] = this.Palettes[u].join(this.Unused[u],c);
 		}
 	}
 
 	get n_c() { return this.n; }
 
-	maxColor() { return Math.max(...this._color); }
+	maxColor() { return Math.max(...this.Color); }
 
 	clear() {
 		for (let e = this.eg.graph.first(); e; e = this.eg.graph.next(e))
@@ -79,42 +79,42 @@ export default class EdgeGroupColors extends Top {
 	}
 
 	/** Assign one GroupColors object to another by copying its contents.
-	 *  @param other is another object whose contents is copied to this one
+	 *  @param that is another object whose contents is copied to this one
 	 */
-	assign(other) {
-        ea && assert(other != this &&
-                	 this.constructor.name == other.constructor.name,
+	assign(that) {
+        ea && assert(that != this &&
+                	 this.constructor.name == that.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
-		if (this.eg == other.eg && this.n_c == other.n_c)
+		if (this.eg == that.eg && this.n_c == that.n_c)
 			this.clear();
 		else
-			this.reset(other.eg, other.n_c);
+			this.reset(that.eg, that.n_c);
 
 		for (let e = this.eg.graph.first(); e; e = this.eg.graph.next(e))
-			if (other.color(e)) this.color(e, other.color(e));
+			if (that.color(e)) this.color(e, that.color(e));
 	}
 	
 	/** Assign one graph to another by transferring its contents.
-	 *  @param other is another graph whose contents is transferred to this one
+	 *  @param that is another graph whose contents is transferred to this one
 	 */
-	xfer(other) {
-        ea && assert(other != this &&
-                	 this.constructor.name == other.constructor.name,
+	xfer(that) {
+        ea && assert(that != this &&
+                	 this.constructor.name == that.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
-		this._n = other.n_c;
-		this.eg = other.eg;
-		this._color = other._color;
-		this._edgesByColor = other._edgesByColor;
-		this._firstEdge = other._firstEdge;
-		this._usage = other._usage;
-		this._palettes = other._palettes;
-		this._firstColor = other._firstColor;
-		this._owner = other._owner;
-		this._paletteSize = other._paletteSize;
+		this._n = that.n_c;
+		this.eg = that.eg;
+		this.Color = that.Color;
+		this.EdgesByColor = that.EdgesByColor;
+		this.FirstEdge = that.FirstEdge;
+		this.Usage = that.Usage;
+		this.Palettes = that.Palettes;
+		this.FirstColor = that.FirstColor;
+		this.Owner = that.Owner;
+		this.PaletteSize = that.PaletteSize;
 
-		other.eg = other._color = _other.edgesByColor = other._firstEdge = null;
-		other._usage = other._palettes = other._firstColor = null;
-		other._owner = other.paletteSize = null;
+		that.eg = that.Color = _that.edgesByColor = that.FirstEdge = null;
+		that.Usage = that.Palettes = that.FirstColor = null;
+		that.Owner = that.paletteSize = null;
 	}
 
 	/** Determine if a color is available for use with a specified edge. */
@@ -122,35 +122,35 @@ export default class EdgeGroupColors extends Top {
 		if (c == 0) return true;
 		let g = this.eg.group(e);
 		let [u,v] = [this.eg.input(e),this.eg.output(e)]
-		return this._usage[v][c] == 0 && 
+		return this.Usage[v][c] == 0 && 
 			   (!this.owner(c,u) || this.owner(c,u) == g);
 	}
 
-	usage(c,u) { return this._usage[u][c]; }
-	paletteSize(g) { return this._paletteSize[g]; }
+	usage(c,u) { return this.Usage[u][c]; }
+	paletteSize(g) { return this.PaletteSize[g]; }
 
-	firstEdgeWithColor(c) { return this._firstEdge[c]; }
-	nextEdgeWithColor(c,e) { return this._edgesByColor.next(e); }
+	firstEdgeWithColor(c) { return this.FirstEdge[c]; }
+	nextEdgeWithColor(c,e) { return this.EdgesByColor.next(e); }
 
 	/** Get the first color in a group's palette.
 	 *  @param g is a valid group defined by this.eg
 	 *  @return the first color used by g (there must be one)
 	 */
-	firstColor(g) { return this._firstColor[g]; };
+	firstColor(g) { return this.FirstColor[g]; };
 
 	/** Get the next color in a group's palette.
 	 *  @param g is a valid group defined by eg
 	 *  @param c is a color used by some edge in g
 	 *  @return the color that follows c in g's list of colors
 	 */
-	nextColor(g,c) { return this._palettes[this.eg.hub(g)].next(c); }
+	nextColor(g,c) { return this.Palettes[this.eg.hub(g)].next(c); }
 
 	/** Get the group that owns a specified color at an input.
 	 *  @param c is a color
 	 *  @param u is an input
 	 *  @return the group with hub u that has c in its palette
 	 */
-	owner(c,u) { return this._owner[u][c]; }
+	owner(c,u) { return this.Owner[u][c]; }
 
 	/** Bind a color to a group.
 	 *  @param c is a color
@@ -161,10 +161,10 @@ export default class EdgeGroupColors extends Top {
 		let u = this.eg.hub(g);
 		ea && assert(g && c && u && !this.owner(c,u) && !this.usage(c,u),
 					 g+' '+c+' '+u+' '+this.owner(c,u)+' '+this.usage(c,u));
-		this._owner[u][c] = g;
-		this._unused[u] = this._palettes[u].delete(c, this._unused[u]);
-		this._firstColor[g] = this._palettes[u].join(this._firstColor[g],c);
-		this._paletteSize[g]++;
+		this.Owner[u][c] = g;
+		this.Unused[u] = this.Palettes[u].delete(c, this.Unused[u]);
+		this.FirstColor[g] = this.Palettes[u].join(this.FirstColor[g],c);
+		this.PaletteSize[g]++;
 	}
 
 	/** Release a color from a group.
@@ -175,10 +175,10 @@ export default class EdgeGroupColors extends Top {
 	release(c,g) {
 		let u = this.eg.hub(g);
 		ea && assert(g && c && u && this.owner(c,u) == g);
-		this._owner[u][c] = 0;
-		this._firstColor[g] = this._palettes[u].delete(c,this._firstColor[g]);
-		this._unused[u] = this._palettes[u].join(this._unused[u], c);
-		this._paletteSize[g]--;
+		this.Owner[u][c] = 0;
+		this.FirstColor[g] = this.Palettes[u].delete(c,this.FirstColor[g]);
+		this.Unused[u] = this.Palettes[u].join(this.Unused[u], c);
+		this.PaletteSize[g]--;
 	}
 
 	/** Get/set an edge color.
@@ -196,22 +196,22 @@ export default class EdgeGroupColors extends Top {
 			ea && assert(g);
 
 			// free current color assigned to e
-			let cc = this._color[e];  // old color (possibly 0)
-			this._firstEdge[cc] =
-				this._edgesByColor.delete(e, this._firstEdge[cc]);
-			this._usage[u][cc]--; this._usage[v][cc]--;
+			let cc = this.Color[e];  // old color (possibly 0)
+			this.FirstEdge[cc] =
+				this.EdgesByColor.delete(e, this.FirstEdge[cc]);
+			this.Usage[u][cc]--; this.Usage[v][cc]--;
 			// note: cc remains bound to group, even if usage now 0
 
 			// set the new color (possibly 0)
 			ea && assert(this.avail(c,e),g+' '+
 					this.avail(c,e)+' '+ this.owner(c,u)+' '+ this.usage(c,u));
-			this._color[e] = c;
-			this._firstEdge[c] =
-				this._edgesByColor.join(this._firstEdge[c], e);
+			this.Color[e] = c;
+			this.FirstEdge[c] =
+				this.EdgesByColor.join(this.FirstEdge[c], e);
 			if (c && !this.owner(c,u)) this.bind(c,g);
-			this._usage[u][c]++; this._usage[v][c]++;
+			this.Usage[u][c]++; this.Usage[v][c]++;
 		}
-		return this._color[e];
+		return this.Color[e];
 	}
 
 	/** Color the edges in the graph using the palettes.
@@ -251,27 +251,27 @@ export default class EdgeGroupColors extends Top {
 	}
 	
 	/** Compare another object to this one.
-	 *  @param other is a EdgeGroupColors object or a string representing one.
+	 *  @param that is a EdgeGroupColors object or a string representing one.
 	 *  @return true if g is equal to this; that is, it has the same
 	 *  vertices, edges and edge weights
 	 *
 	 *  Bug: comparison expects group graphs to have matching group numbers.
 	 */
-	equals(other) {
-		if (this === other) return true;
-        if (typeof other == 'string') {
-            let s = other;
-			other = new this.constructor(this.eg,this.n_c);
-			assert(other.fromString(s), other.constructor.name +
+	equals(that) {
+		if (this === that) return true;
+        if (typeof that == 'string') {
+            let s = that;
+			that = new this.constructor(this.eg,this.n_c);
+			assert(that.fromString(s), that.constructor.name +
 						 ':equals: fromString cannot parse ' + s);
 				// note: this assert must always be enabled
-			if (other.n_c > this.n_c) return false;
-			if (other.n_c < this.n_c) other.expand(this.n_c);
-        } else if (other.constructor.name != this.constructor.name ||
-		    other.n_c != this.n_c) {
+			if (that.n_c > this.n_c) return false;
+			if (that.n_c < this.n_c) that.expand(this.n_c);
+        } else if (that.constructor.name != this.constructor.name ||
+		    that.n_c != this.n_c) {
 			return false;
 		}
-		if (!this.eg.equals(other.eg)) return false;
+		if (!this.eg.equals(that.eg)) return false;
 
 		// now make sure the colors in the groups match
 		let clist = new List(this.n_c);
@@ -280,13 +280,13 @@ export default class EdgeGroupColors extends Top {
 			for (let c = this.firstColor(g); c; c = this.nextColor(c)) {
 				clist.enq(c); len1++;
 			}
-			for (let c = other.firstColor(g); c; c = other.nextColor(c)) {
+			for (let c = that.firstColor(g); c; c = that.nextColor(c)) {
 				if (!clist.contains(c)) return false;
 				len2++;
 			}
 			if (len1 != len2) return false;
 		}
-		return other;
+		return that;
 	}
 
 	/** Construct a string showing the edges by color. */
@@ -348,7 +348,7 @@ export default class EdgeGroupColors extends Top {
 							if (v <= this.eg.n_i) return false;
 							pairs.push([v,c]);
 						}
-						let g = sc.nextIndexUpper();
+						let g = sc.nextIndexExt(0,0);
 						if (g <= 0 || g > this.eg.n_g) return false;
 						// replace vertices just scanned with edge numbers
 						for (let i = i0; i < pairs.length; i++) {

@@ -39,25 +39,25 @@ export default class LeftistHeaps extends BinaryForest {
 	}
 
 	/** Assign a new value by copying from another heap.
-	 *  @param other is another LeftistHeaps object
+	 *  @param that is another LeftistHeaps object
 	 */
-	assign(other, relaxed=false) {
-		super.assign(other, relaxed);
-		for (let r = 1; r <= other.n; r++) {
-			if (other.p(r)) continue;
-			let rr = other.first(r);
-			for (let u = other.next(rr); u; u = other.next(u))
-				rr = this.insert(u, rr, other.key(u));
+	assign(that, relaxed=false) {
+		super.assign(that, relaxed);
+		for (let r = 1; r <= that.n; r++) {
+			if (that.p(r)) continue;
+			let rr = that.first(r);
+			for (let u = that.next(rr); u; u = that.next(u))
+				rr = this.insert(u, rr, that.key(u));
 		}
 	}
 
 	/** Assign a new value by transferring from another heap.
 	 *  @param h is another heap
 	 */
-	xfer(other) {
-		super.xfer(other);
-		this.Key = other.Key; this.Rank = other.Rank;
-		other.Key = other.Rank = null;
+	xfer(that) {
+		super.xfer(that);
+		this.Key = that.Key; this.Rank = that.Rank;
+		that.Key = that.Rank = null;
 	}
 
 	/** Revert to initial state. */
@@ -154,17 +154,17 @@ export default class LeftistHeaps extends BinaryForest {
 	}
 
 	/** Determine if two LeftistHeaps objects are equal.
-	 *  @param other is another LeftistHeaps to be compared to this,
+	 *  @param that is another LeftistHeaps to be compared to this,
 	 *  or a string representing an LeftistHeaps object.
 	 *  @return true, false or an object
 	 */
-	equals(other) {
-		let lh = super.setEquals(other);
-        if (typeof lh == 'boolean') return lh;
+	equals(that) {
+		that = super.setEquals(that);
+        if (typeof that == 'boolean') return that;
 		for (let i = 1; i <= this.n; i++) {
-			if (this.key(i) != lh.key(i)) return false;
+			if (this.key(i) != that.key(i)) return false;
 		}
-		return lh;
+		return that;
 	}
 
 	/** Produce a string representation of the KeySets object.

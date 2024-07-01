@@ -30,17 +30,17 @@ export default class ListSet extends Top {
 		for (let i = 0; i <= this.n; i++) this.Prev[i] = i;
 	}
 
-	assign(other, relaxed=false) {
-		super.assign(other, relaxed);
-		for (let i = 1; i <= other.n; i++) {
-			this.Next[i] = other.Next[i]; this.Prev[i] = other.Prev[i];
+	assign(that, relaxed=false) {
+		super.assign(that, relaxed);
+		for (let i = 1; i <= that.n; i++) {
+			this.Next[i] = that.Next[i]; this.Prev[i] = that.Prev[i];
 		}
 	}
 
-	xfer(other) {
-		super.xfer(other);
-		this.Next = other.Next; this.Prev = other.Prev;
-		other.Next = other.Prev = null;
+	xfer(that) {
+		super.xfer(that);
+		this.Next = that.Next; this.Prev = that.Prev;
+		that.Next = that.Prev = null;
 	}
 	
 	/** Clear the data structure, moving all items into single node lists.
@@ -150,17 +150,17 @@ export default class ListSet extends Top {
 	}
 
 	/** Split a list at an item.
-This just removes i from its list. Not much use.
-Think we want to split into two lists, with second starting with i.
-Does not appear to be used. Delete or make it useful.
+	 *  @param f is first item in a list
+	 *  @param i is another item in f's list; this method divides f's list
+	 *  into two parts, with the second part starting with i
+	 */
 	split(f, i) {
 		ea && assert (this.valid(f) && this.valid(i) && this.isfirst(f));
 		if (i == 0 || i == f) return;
-		let p = this.prev(i); let s = this.next(i);
-		this.Next[p] = s; this.Prev[s] = p;
-		this.Next[i] = 0; this.Prev[i] = i;
+		let p = this.prev(i);
+		this.Prev[i] = this.last(f);
+		this.Next[p] = 0; this.Prev[f] = p;
 	}
-	 */
 
 	/** Sort the lists in ascending order.
 	 *  @param cmp(a,b) is an optional comparison funcion used to compare two
@@ -184,51 +184,51 @@ Does not appear to be used. Delete or make it useful.
 	}
 
 	/** Determine if two ListSets are equal.
-	 *  @param other is a second ListSet or a string representing a
+	 *  @param that is a second ListSet or a string representing a
 	 *  ListSet object
 	 *  @return true if the two ListSet objects contain identical lists.
 	 */
-	equals(other) {
-		let ls = super.equals(other);
-		if (typeof ls == 'boolean') return ls;
+	equals(that) {
+		that = super.equals(that);
+		if (typeof that == 'boolean') return that;
 		for (let i = 1; i < this.n; i++) {
-			if (this.isfirst(i) != ls.isfirst(i)) return false;
+			if (this.isfirst(i) != that.isfirst(i)) return false;
 			if (!this.isfirst(i)) continue;
 			let j1 = i; let j2 = i;
 			do {
-				j1 = this.next(j1); j2 = ls.next(j2);
+				j1 = this.next(j1); j2 = that.next(j2);
 				if (j1 != j2) return false;
 			} while (j1 != 0);
 		}
-		return ls;
+		return that;
 	}
 
 	/** Determine if two ListSets define the same sets.
-	 *  @param other is a second ListSet or a string representing a
+	 *  @param that is a second ListSet or a string representing a
 	 *  ListSet object
 	 *  @return true if the two ListSet objects define identical sets.
 	 */
-	setEquals(other) {
-		let ls = super.equals(other);
-		if (typeof ls == 'boolean') return ls;
+	setEquals(that) {
+		that = super.equals(that);
+		if (typeof that == 'boolean') return that;
 		let l = new List(this.n);
 		for (let i = 1; i < this.n; i++) {
 			if (!this.isfirst(i)) continue;
 			l.clear();
 			for (let j = i; j; j = this.next(j)) l.enq(j);
 			let lng = 0;
-			for (let j = ls.find(i); j; j = ls.next(j)) {
+			for (let j = that.find(i); j; j = that.next(j)) {
 				if (!l.contains(j)) return false;
 				lng++;
 			}
 			if (lng != l.length) return false;
 		}
-		return ls;
+		return that;
 	}
 	
 	/** Produce a string representation of the object.
 	 *  @param fmt is a pair of format bits that controls presentation
-	 *     01 causes sets to be shown on separate lines
+	 *     01 causes lists to be shown on separate lines
 	 *     10 causes singletons to be shown explictly
 	 *  @param label is a function used to label list items
 	 *  @return a string such as "{[a c] [d b g]}".
@@ -239,13 +239,14 @@ Does not appear to be used. Delete or make it useful.
 		for (let l = 1; l <= this.n; l++) {
 			if (!this.isfirst(l) || (this.singleton(l) && !(fmt&0x2)))
 				continue;
-			if (s.length) s += ' ';
-			s += '[';
+			if (!(fmt&1) && s.length) s += ' ';
+			if (!this.singleton(l)) s += '[';
 			for (let i = l; i; i = this.next(i)) {
 				if (i != l) s += ' ';
 				s += label(i);
 			}
-			s += ']' + (fmt&0x1 ? '\n' : '');
+			if (!this.singleton(l)) s += ']';
+			s += (fmt&0x1 ? '\n' : '');
 		}
 		return (fmt&0x1 ? `{\n${s}}\n` : `{${s}}`);
 	}
@@ -262,8 +263,16 @@ Does not appear to be used. Delete or make it useful.
 		let sc = new Scanner(s);
 		if (!sc.verify('{')) return false;
 		let lists = []; let n = 0; let items = new Set();
-		for (let l = sc.nextIndexList('[', ']', prop); l;
-				 l = sc.nextIndexList('[', ']', prop)) {
+		while (!sc.verify('}')) {
+			let l;
+			if (sc.verify('[')) {
+				sc.reset(-1);
+				l = sc.nextIndexList('[',']', prop);
+			} else {
+				let x = sc.nextIndex(prop);
+				if (!x) return false;
+				l = [x];
+			}
 			for (let i of l) {
 				n = Math.max(i, n);
 				if (items.has(i)) return false;
@@ -271,7 +280,6 @@ Does not appear to be used. Delete or make it useful.
 			}
 			lists.push(l);
 		}
-		if (!sc.verify('}')) return false;
 		if (n != this.n) this.reset(n);
 		else this.clear();
 		for (let l of lists) {

@@ -84,44 +84,44 @@ export default class Graph extends Top {
 	}
 
 	/** Assign one graph to another.
-	 *  @param other is another graph that is to replace this one.
+	 *  @param that is another graph that is to replace this one.
 	 */
-	assign(other, relaxed=false) {
-		ea && assert(other != this &&
-				this.constructor.name == other.constructor.name);
-		if ((this.n == other.n || relaxed && this.n > other.n) &&
-			this.edgeRange >= other.m)
+	assign(that, relaxed=false) {
+		ea && assert(that != this &&
+				this.constructor.name == that.constructor.name);
+		if ((this.n == that.n || relaxed && this.n > that.n) &&
+			this.edgeRange >= that.m)
 			this.clear();
 		else
-			this.reset(other.n, other.m);
+			this.reset(that.n, that.m);
 
-		if ( other.hasWeights && !this.hasWeights) this.hasWeights = true;
-		if (!other.hasWeights &&  this.hasWeights) this.hasWeights = false;
-		if (other.io) {
-			this.io = new ListPair(this.n); this.io.assign(other.io);
+		if ( that.hasWeights && !this.hasWeights) this.hasWeights = true;
+		if (!that.hasWeights &&  this.hasWeights) this.hasWeights = false;
+		if (that.io) {
+			this.io = new ListPair(this.n); this.io.assign(that.io);
 		}
-		for (let e = other.first(); e; e = other.next(e)) {
+		for (let e = that.first(); e; e = that.next(e)) {
 			let ee = this.edges.in(e,2) ?
-						this.join(other.left(e), other.right(e), e) :
-						this.join(other.left(e), other.right(e));
+						this.join(that.left(e), that.right(e), e) :
+						this.join(that.left(e), that.right(e));
 				// preserve edge numbers when possible; consider dropping that
-			if (other.hasWeights) {
-				this.Weight[ee] = other.weight(e);
+			if (that.hasWeights) {
+				this.Weight[ee] = that.weight(e);
 			}
 		}
 	}
 
 	/** Assign one graph to another by transferring its contents.
-	 *  @param other is another graph that is to replace this one.
+	 *  @param that is another graph that is to replace this one.
 	 */
-	xfer(other) {
-		super.xfer(other);
-		this.firstEp = other.firstEp;
-		this.Left = other.Left; this.Right = other.Right;
-		this.Weight = other.Weight;
-		this.edges = other.edges; this.epLists = other.epLists;
-		other.firstEp = other.Left = other.Right = other.Weight = null;
-		other.edges = null; other.epLists = null;
+	xfer(that) {
+		super.xfer(that);
+		this.firstEp = that.firstEp;
+		this.Left = that.Left; this.Right = that.Right;
+		this.Weight = that.Weight;
+		this.edges = that.edges; this.epLists = that.epLists;
+		that.firstEp = that.Left = that.Right = that.Weight = null;
+		that.edges = null; that.epLists = null;
 	}
 
 	/** Remove all the edges from a graph.  */
@@ -442,32 +442,32 @@ export default class Graph extends Top {
 	}
 
 	/** Compare another graph to this one.
-	 *  @param other is a Graph object or a string representation of a Graph
-	 *  @return true if other is equal to this
+	 *  @param that is a Graph object or a string representation of a Graph
+	 *  @return true if that is equal to this
 	 */
-	equals(other) {
-		if (this === other) return true;
+	equals(that) {
+		if (this === that) return true;
 		// handle string case here
-        if (typeof other == 'string') {
-            let s = other; other = new this.constructor();
-			if (!other.fromString(s)) return s == this.toString();
-			if (other.n > this.n) return false;
-			if (other.n < this.n)
-				other.expand(this.n,other.edgeRange);
-        } else if (!super.equals(other)) return false;
+        if (typeof that == 'string') {
+            let s = that; that = new this.constructor();
+			if (!that.fromString(s)) return s == this.toString();
+			if (that.n > this.n) return false;
+			if (that.n < this.n)
+				that.expand(this.n,that.edgeRange);
+        } else if (!super.equals(that)) return false;
 		// now compare the edges using sorted edge lists
-		if (other.m != this.m) return false;
-		let el1 = this.sortedElist(); let el2 = other.sortedElist();
+		if (that.m != this.m) return false;
+		let el1 = this.sortedElist(); let el2 = that.sortedElist();
 		for (let i = 0; i < el1.length; i++) {
 			let e1 = el1[i]; let e2 = el2[i];
 			let m1 = Math.min(this.left(e1), this.right(e1));
 			let M1 = Math.max(this.left(e1), this.right(e1));
-			let m2 = Math.min(other.left(e2), other.right(e2));
-			let M2 = Math.max(other.left(e2), other.right(e2));
-			if (m1 != m2 || M1 != M2 || this.weight(e1) != other.weight(e2))
+			let m2 = Math.min(that.left(e2), that.right(e2));
+			let M2 = Math.max(that.left(e2), that.right(e2));
+			if (m1 != m2 || M1 != M2 || this.weight(e1) != that.weight(e2))
 				return false;
 		}
-		return other;
+		return that;
 	}
 	
 	/** Create a string representation of an edge.

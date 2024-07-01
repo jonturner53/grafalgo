@@ -44,24 +44,24 @@ export default class KeySets extends BalancedForest {
 	}
 
 	/** Assign a new value by copying from another KeySets object.
-	 *  @param other is another KeySets object
+	 *  @param that is another KeySets object
 	 */
-	assign(other, relaxed=false) {
-		super.assign(other, relaxed);
-		this.stringKey = other.stringKey;
-		this.compare = other.compare;
-		for (let u = 1; u <= other.n; u++)
-			this.key(u, other.key(u));
+	assign(that, relaxed=false) {
+		super.assign(that, relaxed);
+		this.stringKey = that.stringKey;
+		this.compare = that.compare;
+		for (let u = 1; u <= that.n; u++)
+			this.key(u, that.key(u));
 	}
 	
 	/** Assign a new value by transferring from another KeySets.
-	 *  @param other is another KeySets object.
+	 *  @param that is another KeySets object.
 	 */
-	xfer(other) {
-		super.xfer(other);
-		this.Key = other.Key; other.Key = null;
-		this.stringKey = other.stringKey; other.stringKey = null;
-		this.compare = other.compare; other.compare = null;
+	xfer(that) {
+		super.xfer(that);
+		this.Key = that.Key; that.Key = null;
+		this.stringKey = that.stringKey; that.stringKey = null;
+		this.compare = that.compare; that.compare = null;
 	}
 
 	clear() { super.clear(); this.Key.fill(null); }
@@ -105,29 +105,29 @@ export default class KeySets extends BalancedForest {
 	}
 
 	/** Determine if two KeySets objects are equal.
-	 *  @param other is a KeySets object to be compared to this
+	 *  @param that is a KeySets object to be compared to this
 	 *  @return true if both represent the same sets and the
 	 *  keys match; otherwise return false
 	 */
-	equals(other) {
-		if (this === other) return true;
+	equals(that) {
+		if (this === that) return true;
 
-		// must handle the string case here to ensure other
+		// must handle the string case here to ensure that
 		// has correct stringKey value
-        if (typeof other == 'string') {
-            let s = other;
-			other = new KeySets(this.n, this.stringKey);
-			if (!other.fromString(s)) return s == this.toString();
-			if (other.n > this.n) return false;
-			if (other.n < this.n) other.expand(this.n);
+        if (typeof that == 'string') {
+            let s = that;
+			that = new KeySets(this.n, this.stringKey);
+			if (!that.fromString(s)) return s == this.toString();
+			if (that.n > this.n) return false;
+			if (that.n < this.n) that.expand(this.n);
         }
 
-		if (!super.setEquals(other)) return false;
+		if (!super.setEquals(that)) return false;
 
 		for (let u = 1; u <= this.n; u++) {
-			if (this.key(u) != other.key(u)) return false;
+			if (this.key(u) != that.key(u)) return false;
 		}
-		return other;
+		return that;
 	}
 	
 	/** Produce a string representation of the KeySets object.

@@ -24,136 +24,136 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  *  than outputs; with vertices 1..n_i, pre-defined as inputs.
  */
 export default class EdgeGroups extends Top {
-	_graph;          // underlying bipartite graph
-	_ni;             // number of inputs
+	Graph;          // underlying bipartite graph
+	N_i;            // number of inputs
 
-    _group;          // _group[e] is group identifier for e
-    _fanout;         // _fanout[g]=# of edges in group g
+    Group;          // Group[e] is group identifier for e
+    Fanout;         // Fanout[g]=# of edges in group g
 
-    _groupIds;       // ListPair that separates in-use group numbers from unused
-    _edgesInGroups;  // ListSet that partitions edges into their groups
-    _firstInGroup;   // _firstInGroup[g] is first edge in group g
-    _groupsAtInputs; // ListSet dividing groups among inputs
-    _firstGroup;     // _firstGroup[u] is first group at input u
+    GroupIds;       // ListPair that separates in-use group numbers from unused
+    EdgesInGroups;  // ListSet that partitions edges into their groups
+    FirstInGroup;   // firstInGroup[g] is first edge in group g
+    GroupsAtInputs; // ListSet dividing groups among inputs
+    FirstGroup;     // FirstGroup[u] is first group at input u
 
-	_vlist;          // temporary list of vertices
+	vlist;          // temporary list of vertices
 
 	/** Constructor for EdgeGroups object.
 	 *  @param gg is graph on which edge groups are defined; assumed bipartite
 	 *  with all inputs coming before outputs; if gg is omitted, user is
 	 *  expected to define it using fromString
-	 *  @param ng is the maximum number of groups that can be accommodated
+	 *  @param n_g is the maximum number of groups that can be accommodated
 	 */
 	constructor(gg, n_g) {
 		super(n_g);
 		if (!gg) return;
-		this._graph = gg;
+		this.Graph = gg;
 
-		let n_i = 0;
+		let ni = 0;
 		for (let e = this.graph.first(); e; e = this.graph.next(e)) {
-			n_i = Math.max(n_i,this.input(e));
+			ni = Math.max(ni,this.input(e));
 		}
-		this._ni = n_i;
+		this.N_i = ni;
 
-		this._group = new Int32Array(this._graph.edgeRange+1);
-		this._fanout = new Int32Array(this.n_g+1);
+		this.Group = new Int32Array(this.Graph.edgeRange+1);
+		this.Fanout = new Int32Array(this.n_g+1);
 
-		this._groupIds = new ListPair(this.n_g);
-		this._edgesInGroups = new ListSet(this._graph.edgeRange);
-		this._firstInGroup = new Int32Array(this.n_g+1);
-		this._groupsAtInputs = new ListSet(this.n_g);
-		this._firstGroup = new Int32Array(this.n_i+1);
+		this.GroupIds = new ListPair(this.n_g);
+		this.EdgesInGroups = new ListSet(this.Graph.edgeRange);
+		this.FirstInGroup = new Int32Array(this.n_g+1);
+		this.GroupsAtInputs = new ListSet(this.n_g);
+		this.FirstGroup = new Int32Array(this.n_i+1);
 
-		this._vlist = new List(this._graph.n);
+		this.vlist = new List(this.Graph.n);
 	}
 
 	clear() {
-		this._group.fill(0);
-		this._fanout.fill(0);
+		this.Group.fill(0);
+		this.Fanout.fill(0);
 
-		this._groupIds.clear();
-		this._edgesInGroups.clear(); this._firstInGroup.fill(0);
-		this._groupsAtInputs.clear(); this._firstGroup.fill(0);
+		this.GroupIds.clear();
+		this.EdgesInGroups.clear(); this.FirstInGroup.fill(0);
+		this.GroupsAtInputs.clear(); this.FirstGroup.fill(0);
 
-		this._vlist.clear();
+		this.vlist.clear();
 	}
 
-	get n_i() { return this._ni; }
+	get n_i() { return this.N_i; }
 
-	get n_o() { return this.graph.n - this._ni; }
+	get n_o() { return this.graph.n - this.N_i; }
 
 	get n_g() { return this.n; }
 
-	get graph() { return this._graph; }
+	get graph() { return this.Graph; }
 
 	/** Assign one GroupGraph to another by copying its contents.
-	 *  @param other is another graph whose contents is copied to this one
+	 *  @param that is another graph whose contents is copied to this one
 	 */
-	assign(other, relaxed=false) {
-		super.assign(other);
-        ea && assert(other != this &&
-                	 this.constructor.name == other.constructor.name,
+	assign(that, relaxed=false) {
+		super.assign(that);
+        ea && assert(that != this &&
+                	 this.constructor.name == that.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
 
-		if (this.n_g == other.n_g && this._graph == other.graph)
+		if (this.n == that.n && this.Graph == that.graph)
 			this.clear();
 		else
-			this.reset(other.n_g, other.graph);
+			this.reset(that.graph, that.n);
 
-		for (let e = other.graph.first(); e; e = other.graph.next(e)) {
-			this.add(e, other.group(e));
+		for (let e = that.graph.first(); e; e = that.graph.next(e)) {
+			this.add(e, that.group(e));
 		}
 	}
 
 	/** Assign one graph to another by transferring its contents.
-	 *  @param other is another graph whose contents is transferred to this one
+	 *  @param that is another graph whose contents is transferred to this one
 	 */
-	xfer(other) {
-        ea && assert(other != this &&
-                	 this.constructor.name == other.constructor.name,
+	xfer(that) {
+        ea && assert(that != this &&
+                	 this.constructor.name == that.constructor.name,
 					 'Top:xfer: self-assignment or mismatched types');
-		this._graph = other.graph; this._n = other.n_g; this._ni = other.n_i;
+		this.Graph = that.graph; this.n = that.n; this.N_i = that.n_i;
 
-		this._fanout = other._fanout;
-		this._group = other._group;
-		this._groupIds = other._groupIds;
-		this._edgesInGroups = other._edgesInGroups;
-		this._firstInGroup = other._firstInGroup;
-		this._groupsAtInputs = other._groupsAtInputs;
-		this._firstGroup = other._firstGroup;
-		this._vlist = other._vlist;
+		this.Fanout = that.Fanout;
+		this.Group = that.Group;
+		this.GroupIds = that.GroupIds;
+		this.EdgesInGroups = that.EdgesInGroups;
+		this.FirstInGroup = that.FirstInGroup;
+		this.GroupsAtInputs = that.GroupsAtInputs;
+		this.FirstGroup = that.FirstGroup;
+		this.vlist = that.vlist;
 
-		other._fanout = null; other._group = null;
-		other._groupIds = other._edgesInGroups = other._groupsAtInputs = null;
-		other._firstInGroup = other._firstGroup = other._vlist = null;
+		that.Fanout = null; that.Group = null;
+		that.GroupIds = that.EdgesInGroups = that.GroupsAtInputs = null;
+		that.FirstInGroup = that.FirstGroup = that.vlist = null;
 	}
 
-	group(e) { return this._group[e]; };
-	input(e) { return this._graph.left(e); }
-	output(e) { return this._graph.right(e); }
+	group(e) { return this.Group[e]; };
+	input(e) { return this.Graph.left(e); }
+	output(e) { return this.Graph.right(e); }
 
-	fanout(g) { return this._fanout[g]; }
+	fanout(g) { return this.Fanout[g]; }
 	hub(g) {
-		let e = this._firstInGroup[g];
+		let e = this.FirstInGroup[g];
 		return e ? this.input(e) : 0;
 	}
 
 	groupCount(u=0) {
-		if (!u) return this._groupIds.length(1);
+		if (!u) return this.GroupIds.length(1);
 		let cnt = 0;
 		for (let g = this.firstGroupAt(u); g; g = this.nextGroupAt(u,g))
 			cnt++;
 		return cnt;
 	}
 
-	firstGroup() { return this._groupIds.first(1); }
-	nextGroup(g) { return this._groupIds.next(g,1); }
+	firstGroup() { return this.GroupIds.first(1); }
+	nextGroup(g) { return this.GroupIds.next(g,1); }
 
-	firstGroupAt(u) { return this._firstGroup[u]; }
-	nextGroupAt(u,g) { return this._groupsAtInputs.next(g); }
+	firstGroupAt(u) { return this.FirstGroup[u]; }
+	nextGroupAt(u,g) { return this.GroupsAtInputs.next(g); }
 
-	firstInGroup(g) { return this._firstInGroup[g]; }
-	nextInGroup(g,e) { return this._edgesInGroups.next(e); }
+	firstInGroup(g) { return this.FirstInGroup[g]; }
+	nextInGroup(g,e) { return this.EdgesInGroups.next(e); }
 
 	/** Assign an edge to an edge group.
 	 *  @param e is an edge not currently assigned to a group
@@ -162,25 +162,25 @@ export default class EdgeGroups extends Top {
 	 *  @return the group id that e is assigned to
 	 */
 	add(e, g=0) {
-		ea && assert(this._group[e] == 0);
-		if (g == 0 || this._groupIds.in(g,2)) {
+		ea && assert(this.Group[e] == 0);
+		if (g == 0 || this.GroupIds.in(g,2)) {
 			// allocate group and add edge to it
-			if (g == 0) g = this._groupIds.first(2);
-			ea && assert(this._group[e] == 0 && this._firstInGroup[g] == 0);
-			this._groupIds.swap(g);
-			this._group[e] = g; this._fanout[g] = 1; this._firstInGroup[g] = e;
+			if (g == 0) g = this.GroupIds.first(2);
+			ea && assert(this.Group[e] == 0 && this.FirstInGroup[g] == 0);
+			this.GroupIds.swap(g);
+			this.Group[e] = g; this.Fanout[g] = 1; this.FirstInGroup[g] = e;
 			let u = this.input(e);
-			this._firstGroup[u] =
-				this._groupsAtInputs.join(this._firstGroup[u],g);
+			this.FirstGroup[u] =
+				this.GroupsAtInputs.join(this.FirstGroup[u],g);
 		} else {
 			// add edge to an existing group
 			ea && assert(this.firstInGroup(g));
 			let u = this.hub(g);
 			ea && assert(u == this.input(e));
-			this._group[e] = g;
-			this._firstInGroup[g] =
-				this._edgesInGroups.join(this._firstInGroup[g],e);
-			this._fanout[g]++;
+			this.Group[e] = g;
+			this.FirstInGroup[g] =
+				this.EdgesInGroups.join(this.FirstInGroup[g],e);
+			this.Fanout[g]++;
 		}
 		return g;
 	}
@@ -189,15 +189,15 @@ export default class EdgeGroups extends Top {
 	 *  @param e is an edge in a group
 	 */
 	delete(e) {
-		let g = this._group[e];
-		this._group[e] = 0; this._fanout[g]--;
-		this._firstInGroup[g] =
-				this._edgesInGroups.delete(e, this._firstInGroup[g]);
-		if (this._firstInGroup[g] == 0) {
+		let g = this.Group[e];
+		this.Group[e] = 0; this.Fanout[g]--;
+		this.FirstInGroup[g] =
+				this.EdgesInGroups.delete(e, this.FirstInGroup[g]);
+		if (this.FirstInGroup[g] == 0) {
 			let u = this.input(e);
-			this._firstGroup[u] =
-				this._groupsAtInputs.delete(g, this._firstGroup[u]);
-			this._groupIds.swap(g);
+			this.FirstGroup[u] =
+				this.GroupsAtInputs.delete(g, this.FirstGroup[u]);
+			this.GroupIds.swap(g);
 		}
 	}
 
@@ -213,16 +213,16 @@ export default class EdgeGroups extends Top {
 		let u = this.hub(g1);
 		ea && assert(u == this.hub(g2));
 	
-		// update _group of edges in g2, while checking for and removing
+		// update Group of edges in g2, while checking for and removing
 		// potential parallel edges
-		this._vlist.clear();
+		this.vlist.clear();
 		for (let e = this.firstInGroup(g1); e; e = this.nextInGroup(g1,e))
-			this._vlist.enq(this.output(e));
+			this.vlist.enq(this.output(e));
 
 		for (let e = this.firstInGroup(g2); e; e = this.firstInGroup(g2)) {
 			this.delete(e);  // removes e from g2
-			if (this._vlist.contains(this.output(e))) {
-				this._graph.delete(e);  // no parallel edges within groups
+			if (this.vlist.contains(this.output(e))) {
+				this.Graph.delete(e);  // no parallel edges within groups
 			} else {
 				this.add(e,g1);
 			}
@@ -236,29 +236,29 @@ export default class EdgeGroups extends Top {
 	sortGroups(u) {
 		let vec = new Int32Array(this.groupCount(u));
 		let i = 0;
-		while (this._firstGroup[u]) {
-			vec[i++] = this._firstGroup[u];
-			this._firstGroup[u] =
-				this._groupsAtInputs.delete(this._firstGroup[u],
-											this._firstGroup[u]);
+		while (this.FirstGroup[u]) {
+			vec[i++] = this.FirstGroup[u];
+			this.FirstGroup[u] =
+				this.GroupsAtInputs.delete(this.FirstGroup[u],
+											this.FirstGroup[u]);
 		}
 		vec.sort((g1,g2) => this.fanout(g2) - this.fanout(g1));
 		while (i > 0) {
-			this._firstGroup[u] =
-				this._groupsAtInputs.join(vec[--i], this._firstGroup[u]);
+			this.FirstGroup[u] =
+				this.GroupsAtInputs.join(vec[--i], this.FirstGroup[u]);
 		}
 	}
 	
 	/** Sort all groups by fanout (largest to smallest). */
 	sortAllGroups() {
-		let vec = new Int32Array(this._groupIds.length(1));
+		let vec = new Int32Array(this.GroupIds.length(1));
 		let i = 0;
-		for (let g = this._groupIds.first(1); g; g = this._groupIds.first(1)) {
-			vec[i++] = g; this._groupIds.swap(g);
+		for (let g = this.GroupIds.first(1); g; g = this.GroupIds.first(1)) {
+			vec[i++] = g; this.GroupIds.swap(g);
 		}
 		vec.sort((g1,g2) => this.fanout(g2) - this.fanout(g1));
 		for (i = 0; i < vec.length; i++) {
-			this._groupIds.swap(vec[i]);
+			this.GroupIds.swap(vec[i]);
 		}
 	}
 
@@ -274,34 +274,34 @@ export default class EdgeGroups extends Top {
 	}
 
 	/** Compare another EdgeGroups object to this one.
-	 *  @param other is a EdgeGroups object or a string representing one.
-	 *  @return true if other is equal to this; that is, it has the same
+	 *  @param that is a EdgeGroups object or a string representing one.
+	 *  @return true if that is equal to this; that is, it has the same
 	 *  underlying graph, inputs, outputs and groups
 	 *
 	 *  notice: equality requires same graph object in both and
 	 * 	        matching group ids
 	 */
-	equals(other) {
-        other = super.equals(other);
-        if (typeof other == 'boolean') return other;
+	equals(that) {
+        that = super.equals(that);
+        if (typeof that == 'boolean') return that;
 
-		if (!this._graph.equals(other.graph) || this.n_g != other.n_g ||
-			this._groupIds.length(1) != other._groupIds.length(1))
+		if (!this.Graph.equals(that.graph) || 
+			this.GroupIds.length(1) != that.GroupIds.length(1))
 			 return false;
 
-		this._vlist.clear();
+		this.vlist.clear();
 		for (let g = this.firstGroup(); g; g = this.nextGroup(g)) {
-			if (other._groupIds.in(g,2) || this.fanout(g) != other.fanout(g) ||
-				this.hub(g) != other.hub(g)) {
+			if (that.GroupIds.in(g,2) || this.fanout(g) != that.fanout(g) ||
+				this.hub(g) != that.hub(g)) {
 				return false;
 			}
-			this._vlist.clear();
+			this.vlist.clear();
 			for (let e = this.firstInGroup(g); e; e = this.nextInGroup(g,e))
-				this._vlist.enq(this.output(e));
-			for (let e = other.firstInGroup(g); e; e = other.nextInGroup(g,e))
-				if (!this._vlist.contains(other.output(e))) return false;
+				this.vlist.enq(this.output(e));
+			for (let e = that.firstInGroup(g); e; e = that.nextInGroup(g,e))
+				if (!this.vlist.contains(that.output(e))) return false;
 		}
-		return other;
+		return that;
 	}
 
 	/** Construct a string representation of the EdgeGroups object.
@@ -343,7 +343,7 @@ export default class EdgeGroups extends Top {
 
 	/** Return index value for a group or an upper case letter. */
 	g2s(g) {
-		return (this.n_g <= 26 ?
+		return (this.n <= 26 ?
 				'-ABCDEFGHIJKLMNOPQRSTUVWXYZ'[g] : ''+g);
 	}
 
@@ -373,7 +373,7 @@ export default class EdgeGroups extends Top {
 							if (!v) return false;
 							triples.push([u,v,group]);
 						}
-						let g = sc.nextIndexUpper();
+						let g = sc.nextIndexExt(0,0);
 						if (g > 0) {
 							if (groupIds.has(g)) return false;
 							// fill in group identifiers
@@ -409,8 +409,8 @@ export default class EdgeGroups extends Top {
 
 		// configure graph
 		let erange = Math.max(1,triples.length);
-		if (!this._graph)
-			this._graph = new Graph(n,erange);
+		if (!this.Graph)
+			this.Graph = new Graph(n,erange);
 		else if (n == this.graph.n && erange == this.graph.edgeRange)
 			this.graph.clear();
 		else
@@ -421,10 +421,11 @@ export default class EdgeGroups extends Top {
 		for (let [u,v,g] of triples) pairs.push([this.graph.join(u,v),g]);
 
 		if (n_i == this.n_i && n_g == this.n_g &&
-			this._group.length == this.erange+1)
+			this.Group.length == this.erange+1)
 			this.clear();
-		else
+		else {
 			this.reset(this.graph, n_g);
+		}
 
 		// add edges
 		for (let [e,g] of pairs) {
