@@ -180,7 +180,8 @@ export default class LeftistHeaps extends BinaryForest {
 	toString(fmt=0b010,label=0) {
 		if (!label) {
 			label = (x => this.x2s(x) + (':' + this.key(x)) +
-						  ((fmt&0x8) ? ':'+this.rank(x) : ''));
+						  ((fmt&0x8 && this.rank(x) > 1) ?
+								':' + this.rank(x) : ''));
 		}
 		return super.toString(fmt,label);
 	}
