@@ -15,26 +15,6 @@ import FibHeaps from '../FibHeaps.mjs';
 try {
 	console.log('testing FibHeaps');
 
-{
-let fh = new FibHeaps();
-fh.fromString('{[a:2 b:4 c:1 d:3] [e:4 f:1 g:5 h:3] i:2 j:5 k:1 l:5 m:1 n:2}');
-console.log(fh.toString(0x1e));
-fh.deletemin(3); fh.deletemin(6);
-console.log(fh.toString(0x1e));
-fh.meld(8,9); fh.meld(9,10); fh.meld(9,11); fh.meld(12,13); fh.meld(13,14);
-console.log(fh.toString(0x1e));
-fh.meld(3,6); fh.meld(3,13);
-console.log(fh.toString(0x1e));
-fh.meld(1,3); fh.meld(3,11);
-console.log(fh.toString(0x1e));
-fh.deletemin(3); console.log(fh.toString(0x1e));
-fh.deletemin(6); console.log(fh.toString(0x1e));
-fh.changekey(2,11,1); console.log(fh.toString(0x1e));
-fh.changekey(5,11,1); console.log(fh.toString(0x1e));
-
-
-console.log('--------------');
-}
 	let fh = new FibHeaps(10);
 	for (let i = 1; i <= fh.n; i += 2) {
 		fh.key(i, i); fh.key(i+1, i+1); fh.meld(i, i+1);

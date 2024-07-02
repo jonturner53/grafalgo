@@ -14,6 +14,17 @@ import LeftistHeaps from '../LeftistHeaps.mjs';
 try {
 	console.log('testing LeftistHeaps');
 
+{
+let lh = new LeftistHeaps();
+lh.fromString('{[a:2 b:4 c:1 d:3 e:4] [f:1 g:5 h:3 i:2 j:5]' +
+              '[k:1 l:5 m:3 n:2 o:4]}');
+
+lh.deletemin(3);
+console.log(lh.toString());
+console.log(lh.toString(0x1e));
+console.log('----------');
+}
+
 	let n = 10;
 	let lh = new LeftistHeaps(n);
 	let hlist1 = new List(n); let hlist2 = new List(20);

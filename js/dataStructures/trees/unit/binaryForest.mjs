@@ -14,8 +14,9 @@ try {
 	console.log('testing BinaryForest');
 
 	let f = new BinaryForest();
-	matches(f.fromString('{[a *b (c d e)] ' +
-						'[((h i -) j k) *l ((m n -) o (- p (q r -)))]}'), true, 'a0');
+	matches(f.fromString(
+			'{[a *b (c d e)] [((h i -) j k) *l ((m n -) o (- p (q r -)))]}'),
+			true, 'a0');
 	matches(f,'{[a *b (c d e)] ' +
 			  '[((h i -) j k) *l ((m n -) o (- p (q r -)))]}', 'a1');
 	matches(f.singleton(6),true,'a2');
@@ -85,8 +86,7 @@ try {
 	f.fromListString('{[a b c d] [e f g] [h i j k l m n] [p q r]}');
 	matches(f,'{[(a b -) *c d] [e *f g] ' +
 			  '[((((h i -) j -) k -) l -) *m n] [p *q r]}', 'f1');
-	matches(f.toString(0),'{[a b *c d] [e *f g] [h i j k l *m n] [p *q r]}',
-			'f2');
+	matches(f.toString(0),'{[a b c d] [e f g] [h i j k l m n] [p q r]}', 'f2');
 
 	let key = new Float32Array(18);
 	for (let i = 0; i <= 18; i++) key[i] = i;

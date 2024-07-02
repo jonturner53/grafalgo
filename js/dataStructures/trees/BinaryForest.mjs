@@ -548,6 +548,21 @@ export default class BinaryForest extends Top {
 		}
 		return that;
 	}
+
+	/** Create a ListSet that defines the same lists as those defined
+	 *  by the trees of this object.
+	 *  @return the computed ListSet.
+	 */
+	toListSet() {
+		let ls = new ListSet(this.n);
+		for (let t = 1; t <= this.n; t++) {
+			if (this.p(t)) continue;
+			let f = this.first(t);
+			for (let u = this.next(f); u; u = this.next(u))
+				ls.join(f,u);
+		}
+		return ls;
+	}
 	
 	/** Produce a string representation of the forest.
 	 *  @param fmt is an integer with low-order bits specifying one
@@ -561,6 +576,8 @@ export default class BinaryForest extends Top {
 	 *  representing a tree property
 	 */
 	toString(fmt=0x4, nodeLabel=0, treeProp=0) {
+		if (!(fmt&4)) return this.toListSet().toString(fmt&3,nodeLabel);
+
 		if (!nodeLabel) nodeLabel = (u => this.x2s(u));
 		if (!treeProp) treeProp = (u => this.property(u));
 		let s = '';
@@ -569,37 +586,28 @@ export default class BinaryForest extends Top {
 			if (this.singleton(u) && !(fmt&0x2)) continue;
 			if (!(fmt&0x1) && s) s += ' ';
 			if (this.property(u)) s += treeProp(u);
-			s += this.tree2string(u,fmt,nodeLabel);
+			s += this.tree2string(u,nodeLabel);
 			if (fmt&0x1) s += '\n';
 		}
 		return fmt&0x1 ? '{\n' + s + '}\n' : '{' + s + '}';
 	}
 
 	/** Recursive helper for constructing a string representation of a tree.
-	 *  @param u is a node in one of the trees of the heap
-	 *  @param treeRoot is true if h is the canonical element of the heap
+	 *  @param u is a node in one of the trees in the forest
+	 *  @param treeRoot is true if u is the root of the tree
 	 *  @return the string
 	 */
-	tree2string(u, fmt, nodeLabel=0, treeRoot=1) {
-		if (u == 0) return (treeRoot ? '[-]' : ((fmt&0x4) ? '-' : ''));
-		let s = '';
+	tree2string(u, nodeLabel=0, treeRoot=1) {
+		if (u == 0) return '-'
 		if (this.left(u) == 0 && this.right(u) == 0) {
-			s += nodeLabel(u);
-			return treeRoot ? '[' + s + ']' : s;
+			return nodeLabel(u);
 		}
 
-		let sl = (this.left(u) || fmt&0x4) ?
-					this.tree2string(this.left(u),fmt,nodeLabel,0) : '';
-		let sr = (this.right(u) || fmt&0x4) ?
-					this.tree2string(this.right(u),fmt,nodeLabel,0) : '';
-		let lu = (treeRoot ? '*' : '') + nodeLabel(u);
-		if (fmt&0x4 || (sl && lu && sr))
-			s += sl + ' ' + lu + ' ' + sr;
-		else if (sl) 
-			s += sl + (lu ? ' ' + lu : '') + (sr ? ' ' + sr : '');
-		else if (lu)
-			s += lu + (sr ? ' ' + sr : '');
-		return (treeRoot ? '[' + s + ']' : (fmt&0x4 ? '(' + s + ')' : s));
+		let s = this.tree2string(this.left(u),nodeLabel,0) + ' ' +
+				(treeRoot ? '*' : '') + nodeLabel(u) + ' ' +
+				this.tree2string(this.right(u),nodeLabel,0);
+
+		return (treeRoot ? '[' + s + ']' : '(' + s + ')');
 	}
 
 	/** Initialize this BinaryForest object from a string,
