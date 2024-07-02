@@ -147,12 +147,13 @@ export default class FibHeaps extends Forest {
 	 */
 	changekey(i, h, k) {
 		this.changekeys++;
-		if (k > this.key(i)) {
+		if (k > this.key(i)) { // increasing key
 			h = this.delete(i, h);
 			return this.insert(i, (h != 0 ? h : i), k);
 		}
+		// decreasing key
 		this.key(i,k);
-		if (this.p(i) == 0) {
+		if (!this.p(i)) {
 			if (this.key(h) > this.key(i)) {
 				this.rotate(h,i); h = i;
 			}
@@ -216,8 +217,8 @@ export default class FibHeaps extends Forest {
 		
 	/** Remove the item with smallest key from a heap.
 	 *  @param h is the top item of some heap
-	 *  @return the pair [min, hnew] where min is the deleted item
-	 *  and hnew is the id of the modified heap
+	 *  @return the pair [min, h'] where min is the deleted item
+	 *  and h' is the id of the modified heap
 	 */
 	deletemin(h) {
 		// Move h's children into root list and delete h
@@ -237,8 +238,8 @@ export default class FibHeaps extends Forest {
 	 */
 	delete(i, h) {
 		let k = this.key(i);
-		h = decreasekey(i, (this.key(i) - this.key(h)) + 1, h);
-		h = deletemin(h);
+		h = this.changekey(i, h, (this.key(i) - this.key(h)) + 1);
+		h = this.deletemin(h);
 		this.key(i,k);
 		return h;
 	}
@@ -270,7 +271,7 @@ export default class FibHeaps extends Forest {
 	toString(fmt=0x2, label=0, selectHeap=0) {
 		if (!label) {
 			label = (u => `${this.x2s(u)}:${this.key(u)}` +
-						  (fmt&0x10 ? `:${this.rank(u)}` : '') +
+						  (fmt&0x10 && this.rank(u) ? `:${this.rank(u)}` : '') +
 						  ((fmt&0x08 && this.mark(u)) ? '!' : ''));
 		}
 		return super.toString(fmt&0x7, label, selectHeap);
@@ -294,11 +295,11 @@ export default class FibHeaps extends Forest {
 			return false;
 		if (ls.n != this.n) this.reset(ls.n);
 		else this.clear();
-		for (let u = 1; u <= ls.n; u++) {
-			if (!ls.isfirst(u)) continue;
-			this.key(u, key[u]);
-			for (let i = ls.next(u); i; i = ls.next(i))
-				this.insert(i, u, key[i]);
+		for (let h = 1; h <= ls.n; h++) {
+			if (!ls.isfirst(h)) continue;
+			this.key(h, key[h]);
+			for (let i = ls.next(h); i; i = ls.next(i))
+				h = this.insert(i, h, key[i]);
 		}
 		return true;
 	}

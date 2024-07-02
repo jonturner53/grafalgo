@@ -287,7 +287,7 @@ export default class Forest extends Top {
 	 *  @return the string
 	 */
 	toString(fmt=0b100, label=0, selectGrove=0) {
-		if (!(fmt&4)) return this.toListSet().toString(fmt&3);
+		if (!(fmt&4)) return this.toListSet().toString(fmt&3,label);
 
 		const newlines = fmt & 0b001;
 		const singletons = fmt & 0b010;
