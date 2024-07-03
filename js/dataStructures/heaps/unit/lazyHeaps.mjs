@@ -13,48 +13,52 @@ import LazyHeaps from '../LazyHeaps.mjs';
 
 try {
 	console.log('testing LazyHeaps');
+{
+let lazy = new LazyHeaps();
+lazy.fromString('{[a:2 b:4 c:1 d:3] [e:4 f:1 g:5 h:3] ' +
+				'[i:2 j:5 k:1 l:5 m:3]}');
+console.log(lazy.toString(0x1e));
+lazy.deletemin(3);
+console.log(lazy.toString(0x1e));
+let h = lazy.lazyMeld (1,6); 
+console.log(lazy.toString(0x1e));
+h = lazy.lazyMeld(h,11); 
+console.log(lazy.toString(0x1e));
+lazy.retire(9);
+console.log(lazy.toString(0x1e));
+lazy.findmin(h);
+console.log(lazy.toString(0x1e));
+}
 
-	let n = 20;
-	let lh = new LazyHeaps(n);
-	let hlist1 = new List(n); let hlist2 = new List(20);
-	for (let i = 1; i <= n/2; i ++) {
-		lh.key(i, i);
-		if (i < n/4) hlist1.enq(i);
-		else hlist2.enq(i);
-	}
-	lh.heapify(hlist1);
-	matches(lh, '{[b:2 a:1 d:4 c:3] [e:5] [f:6] [g:7] [h:8] [i:9] [j:10]}',
-			   'a1');
-	lh.heapify(hlist2);
-	matches(lh, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 e:5 f:6]}', 'a2');
+	let lh = new LazyHeaps();
+	matches(lh.fromString('{[a:1 b:2 c:3 d:4] [h:8 g:7 j:10 i:9 e:5 f:6]}'),
+			true, 'a0');
+	matches(lh, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 e:5 f:6]}', 'a1');
 	let [min,h] = lh.deletemin(5);
-	matches(min, 5, 'a3.1'); matches(h, 11, 'a3.2');
-	matches(lh, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}', 'a4');
+	matches(min, 5, 'a2'); matches(h, 6, 'a3');
+	matches(lh, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] e:5}', 'a4');
 
 	let lh2 = new LazyHeaps();
 	matches(lh2.fromString(
-				'{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}'), true, 'a5');
+				'{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] e:5}'), true, 'a5');
 	matches(lh, lh2, 'a6');
+
 	lh.meld(lh.find(1), lh.find(6));
 	matches(lh, '{[b:2 a:1 d:4 c:3 h:8 g:7 j:10 i:9 f:6] [e:5]}', 'a7');
 	lh.clear();
-	for (let i = 1; i <= n; i ++) lh.key(i, i);
+	for (let i = 1; i <= lh.n/2; i ++) lh.key(i, i);
 	let r = lh.lazyMeld(1, 2);
-	r = lh.lazyMeld(r, 3);
-	r = lh.lazyMeld(r, 4);
-	r = lh.lazyMeld(r, 5);
-	r = lh.lazyMeld(r, 6);
-	matches(lh, '{[g:7] [h:8] [i:9] [j:10] [a:1 b:2 c:3 d:4 e:5 f:6]}',
-				'a7');
+		r = lh.lazyMeld(r, 3);
+		r = lh.lazyMeld(r, 4);
+		r = lh.lazyMeld(r, 5);
+		r = lh.lazyMeld(r, 6);
+	matches(lh, '{g:7 h:8 i:9 j:10 [a:1 b:2 c:3 d:4 e:5 f:6]}', 'a7');
 	matches(lh.toString(0x1e),
-		'{[g:7:1] [h:8:1] [i:9:1] [j:10:1] ' +
-		'[((((a:1:1 11! b:2:1) 12! c:3:1) 13! d:4:1) 14! e:5:1) *15! f:6:1]}',
-		'a8');
+		'{g:7 h:8 i:9 j:10 [((((a:1 ! b:2) ! c:3) ! d:4) ! e:5) * f:6]}','a8');
 	lh.findmin(r);
 	matches(lh, '{[d:4 c:3 f:6 e:5 a:1 b:2] [g:7] [h:8] [i:9] [j:10]}', 'a9');
 	matches(lh.toString(0x1e),
-		'{[(d:4:1 c:3:2 (f:6:1 e:5:1 -)) *a:1:2 b:2:1] ' +
-		'[g:7:1] [h:8:1] [i:9:1] [j:10:1]}', 'a10');
+		'{[(d:4 c:3 (f:6 e:5 -)) *a:1 b:2] g:7 h:8 i:9 j:10}', 'a10');
 
 } catch(e) {
     if (e instanceof Mismatch) {

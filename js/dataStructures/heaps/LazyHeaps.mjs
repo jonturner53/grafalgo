@@ -31,7 +31,7 @@ export default class LazyHeaps extends LeftistHeaps {
 	 *  @param retired is an optional function that if present is used
 	 *  to determine which nodes are retired.
 	 */
-	constructor(n=20, retired=null) {
+	constructor(n=10, retired=null) {
 		super((n&1) ? n+1 : n); this.nn = this.n/2;
 
 		for (let i = this.nn+1; i <= this.n; i++) this.rank(i,-1);
@@ -77,7 +77,7 @@ export default class LazyHeaps extends LeftistHeaps {
 	xfer(that) {
 		if (that == this || (!that instanceof LazyHeaps)) return;
 		super.xfer(that);
-		this.nn = that.nn;
+		this.nn = that.nn; this.dummy = that.dummy;
 		this.Retired = that.Retired; that.Retired = null;
 	}
 
@@ -146,12 +146,15 @@ export default class LazyHeaps extends LeftistHeaps {
 	 */
 	deletemin(h) {
 		this.deleteCount++;
-		h = this.findmin(h);  // purges top of heap
+		if (!this.isactive(h)) h = this.findmin(h);  // purge top of heap
+		return super.deletemin(h);
+/*
 		let lh = this.left(h); let rh = this.right(h);
 		if (lh) this.cut(lh); if (rh) this.cut(rh);
 		let hnew = this.lazyMeld(lh,rh);
 		this.rank(h,1);
 		return [h,hnew];
+*/
 	}
 
 	/** Remove deleted items from the top of a heap and construct list
@@ -222,6 +225,26 @@ export default class LazyHeaps extends LeftistHeaps {
 		return that;
 	}
 
+
+	/** Create a ListSet that defines lists with the same items as
+	 *  the heaps of this object.
+	 *  @return the computed ListSet.
+	 */
+	toListSet() {
+		let ls = new ListSet(this.nn);
+		for (let h = 1; h <= this.nn; h++) {
+			if (this.p(h)) continue;
+			let f = 0;
+			for (let u = this.first(h); u; u = this.next(u)) {
+				if (this.retired(u) || this.isdummy(u)) continue;
+				if (!f) f = u;
+				else ls.join(f,u);
+			}
+		}
+		return ls;
+	}
+	
+
 	/** Produce a string representation of this LazyHeaps object.
 	 *  @param fmt is an integer with low order bits specifying format options.
 	 *	0b0001 specifies newlines between sets
@@ -235,16 +258,13 @@ export default class LazyHeaps extends LeftistHeaps {
 	 *  heap is included in the string
 	 */
 	toString(fmt=0x2, label=0, selectHeap=0) {
-		if (!label) label = x => this.x2s(x);
-		let xlabel;
-		if (fmt&0x4) {
-			xlabel = x =>
-						(this.isdummy(x) ? ''+x : label(x)) +
-			   			(!this.isactive(x) ? '!' : (':' + this.key(x)) + 
-							((fmt&0x8) ? ':'+this.rank(x) : ''));
-		} else {
-			xlabel = x => label(x) + ':' + this.key(x);
-		}
+		if (!label) label = x => `${this.x2s(x)}:${this.key(x)}`;
+		if (!(fmt&4)) return this.toListSet().toString(fmt&3,label);
+
+		let xlabel = x => !this.isactive(x) ? (this.p(x) ? '!' : '') : 
+								label(x) + ((fmt&0x8) && this.rank > 1 ?
+											`:${this.rank(x)}` : '');
+
 		let s = '';
 		for (let u = 1; u <= this.n; u++) {
 			if (this.p(u)) continue;
@@ -252,18 +272,8 @@ export default class LazyHeaps extends LeftistHeaps {
 			if (selectHeap && u != selectHeap) continue;
 			if (u == this.dummy) continue;
 			if (!(fmt&0x01) && s) s += ' ';
-			if (fmt&0x4) {
-				s += `${super.tree2string(u,fmt,xlabel)}`;
-				if (fmt&0x01) s += '\n';
-			} else {
-				let ss = '';
-				for (let v = this.first(u); v; v = this.next(v)) {
-					if (!this.isactive(v)) continue;
-					if (ss) ss += ' ';
-					ss += xlabel(v);
-				}
-				if (ss) s += '[' + ss + ']' + (fmt&0x01 ? '\n' : '');
-			}
+			s += `${super.tree2string(u,xlabel)}`;
+			if (fmt&0x01) s += '\n';
 		}
 		if (selectHeap) return s;
 		return fmt&0x1 ? '{\n' + s + '}\n' : '{' + s + '}';

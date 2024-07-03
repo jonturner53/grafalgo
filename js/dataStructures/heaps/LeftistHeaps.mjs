@@ -140,6 +140,8 @@ export default class LeftistHeaps extends BinaryForest {
 		return [h,hnew];
 	}
 
+	delete() { assert(false, 'delete not implemented by LeftistHeaps'); }
+
 	/** Combine a List of heaps into a single heap.
 	 *	@param hlist is a List object containing a list of heaps
 	 *  @param return the root of the combined heap.
