@@ -262,7 +262,7 @@ export default class LazyHeaps extends LeftistHeaps {
 		if (!(fmt&4)) return this.toListSet().toString(fmt&3,label);
 
 		let xlabel = x => !this.isactive(x) ? (this.p(x) ? '!' : '') : 
-								label(x) + ((fmt&0x8) && this.rank > 1 ?
+								label(x) + ((fmt&0x8) && this.rank(x) > 1 ?
 											`:${this.rank(x)}` : '');
 
 		let s = '';
