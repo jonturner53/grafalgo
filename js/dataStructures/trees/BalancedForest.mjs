@@ -252,7 +252,8 @@ export default class BalancedForest extends BinaryForest {
 	toString(fmt=0x0, nodeLabel=0, treeLabel=0) {
 		if (!nodeLabel) {
 			nodeLabel =
-				(u => this.x2s(u) + ((fmt&0x8) ? ':' + this.rank(u) : ''));
+				(u => this.x2s(u) + ((fmt&0x8 && this.rank(u) > 1) ?
+										':' + this.rank(u) : ''));
 		}
 		return super.toString(fmt, nodeLabel, treeLabel);
 	}

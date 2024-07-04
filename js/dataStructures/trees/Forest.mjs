@@ -189,7 +189,7 @@ export default class Forest extends Top {
 	 */
 	remove(t,g) { return this.Sibs.delete(t,g); }
 
-	/** Rotate the siblings within a tree.
+	/** Rotate the siblings within a tree or trees within a grove.
 	 *  @param f is the first child of its parent
 	 *  @param c is a sibling  of u that becomes the first child in
 	 *  the list following the rotation
