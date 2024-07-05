@@ -14,17 +14,6 @@ import LeftistHeaps from '../LeftistHeaps.mjs';
 try {
 	console.log('testing LeftistHeaps');
 
-{
-let lh = new LeftistHeaps();
-lh.fromString('{[a:2 b:4 c:1 d:3 e:4] [f:1 g:5 h:3 i:2 j:5]' +
-              '[k:1 l:5 m:3 n:2 o:4]}');
-
-lh.deletemin(3);
-console.log(lh.toString());
-console.log(lh.toString(0x1e));
-console.log('----------');
-}
-
 	let n = 10;
 	let lh = new LeftistHeaps(n);
 	let hlist1 = new List(n); let hlist2 = new List(20);
@@ -34,18 +23,18 @@ console.log('----------');
 		else hlist2.enq(i);
 	}
 	lh.heapify(hlist1);
-	matches(lh, '{[b:2 a:1 d:4 c:3] [e:5] [f:6] [g:7] [h:8] [i:9] [j:10]}','a1');
+	matches(lh, '{[b:2 a:1 d:4 c:3] e:5 f:6 g:7 h:8 i:9 j:10}','a1');
 	lh.heapify(hlist2);
 	matches(lh, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 e:5 f:6]}', 'a2');
 	let [min,h] = lh.deletemin(5);
 	matches(min, 5, 'a3.1'); matches(h, 6, 'a3.2');
-	matches(lh, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}', 'a4');
+	matches(lh, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] e:5}', 'a4');
 	let lh2 = new LeftistHeaps();
 	matches(lh2.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}'),
 		   true, 'a5');
 	matches(lh, lh2, 'a6');
 	lh.meld(1, 6);
-	matches(lh, '{[b:2 a:1 d:4 c:3 h:8 g:7 j:10 i:9 f:6] [e:5]}', 'a7');
+	matches(lh, '{[b:2 a:1 d:4 c:3 h:8 g:7 j:10 i:9 f:6] e:5}', 'a7');
 
 } catch(e) {
     if (e instanceof Mismatch) {

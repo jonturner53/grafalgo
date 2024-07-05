@@ -624,7 +624,7 @@ export default class BinaryForest extends Top {
 		if (!tprop)
 			tprop = (sc) => {
 							let p = sc.nextNumber();
-							if (isNaN(p)) return 0;
+							if (isNaN(p) || p <= 0) return -1;
 							return p;
 							};
 		
@@ -633,12 +633,16 @@ export default class BinaryForest extends Top {
 		
 		let pmap = [];
 		while (!sc.verify('}')) {
+			let treeProp = 0;
 			if (sc.verify('[')) {
 				sc.reset(-1);
 			} else {
-				if (!tprop(sc)) return false;
+				treeProp = tprop(sc)
+				if (treeProp < 0) return false;
 			}
-			if (this.nextSubtree(sc, pmap, prop, tprop) < 0) return false;
+			let root = this.nextSubtree(sc, pmap, prop);
+			if (!root < 0) return false;
+			pmap.push([root,-treeProp,0]);
 		}
 		let n = 0; let nodes = new Set();
 		for (let [u,p] of pmap) {
@@ -664,45 +668,20 @@ export default class BinaryForest extends Top {
 	 *  0 or negative, in which case its inverse is the tree's property;
 	 *  nextSubtree adds new mappings to pmap
 	 *  @param prop is an optional function used to scan for an item property
-	 *  @param tprop is an optional function used to scan for a tree property,
-	 *  which is a positive integer value
-	 *  @param treeRoot is a flag at the root of a tree.
 	 *  @return the root of the subtree scanned (possibly 0 for empty subtree)
 	 *  or -1 if no valid subtree
 	 */
-	nextSubtree(sc, pmap, prop=0, tprop=0, treeRoot=1) {
-		if (treeRoot) {
-			let treeProp = 0;
-			if (!sc.verify('[')) {
-				treeProp = tprop(sc);
-				if (!treeProp) return -1;
-				if (!sc.verify('[')) return -1;
-			}
-			let t1 = this.nextSubtree(sc, pmap, prop, 0, 0);
-			if (t1 < 0) return -1;
-			let u = sc.nextIndex(prop);
-			if (u == -2) return -1;
-			if (u == -1) { // special case for singleton tree
-				pmap.push([t1,-treeProp,0]);  // t1 is tree root, so no parent
-				return (sc.verify(']') ? t1 : -1);
-			}
-			pmap.push([u,-treeProp,0]);
-			let t2 = this.nextSubtree(sc, pmap, prop, 0, 0);
-			if (t2 < 0) return -1;
-			if (t1 && u) pmap.push([t1,u,-1]);
-			if (t2 && u) pmap.push([t2,u,+1]);
-			return (sc.verify(']') ? u : -1);
-		}
-		if (sc.verify('(')) {
-			let t1 = this.nextSubtree(sc, pmap, prop, 0, 0);
+	nextSubtree(sc, pmap, prop=0) {
+		if (sc.verify('(') || sc.verify('[')) {
+			let t1 = this.nextSubtree(sc, pmap, prop);
 			if (t1 < 0) return -1;
 			let u = sc.nextIndex(prop);
 			if (u < 0) return -1;
-			let t2 = this.nextSubtree(sc, pmap, prop, 0, 0);
+			let t2 = this.nextSubtree(sc, pmap, prop);
 			if (t2 < 0) return -1;
 			if (t1 && u) pmap.push([t1,u,-1]);
 			if (t2 && u) pmap.push([t2,u,+1]);
-			return (sc.verify(')') ? u : -1);
+			return ((sc.verify(')') || sc.verify(']')) ? u : -1);
 		}
 		let u = sc.nextIndex(prop);
 		return (u >= 0 ? u : -1);
