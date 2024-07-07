@@ -184,13 +184,16 @@ export default class DualKeySets extends KeySets {
 	 *		001000 specifies that min2 be shown
 	 *  @param label is an optional function used to extend node labels
 	 */
-	toString(fmt=0x00, label=0) {
+	toString(fmt=0x2, label=0) {
 		if (!label) {
-			label = (u => this.x2s(u)  + ':' + this.key(u) +
-							':' + this.key2(u) +  
-                            (fmt & 0b01000 ? ':' + this.min2(u) : ''));
+			label = (u => {
+					let s = `${this.x2s(u)}:${this.key(u)}:${this.key2(u)}`;
+					if ((fmt&8) && (fmt&4) && (this.min2(u)!=this.key2(u)))
+						s += `:${this.min2(u)}`;
+					return s;
+				});
 		}
-		return super.toString(fmt,label);
+		return super.toString(fmt&7,label);
 	}
 
 	/** Initialize this DualKeySets object from a string.
