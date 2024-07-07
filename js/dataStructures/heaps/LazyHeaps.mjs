@@ -255,7 +255,8 @@ export default class LazyHeaps extends LeftistHeaps {
 	 *  @param label is an optional function used to generate the label for
 	 *  the heap item
 	 *  @param selectHeap is an optional heap id; if present, only this
-	 *  heap is included in the string
+	 *  heap is included in the string (note, this feature prevents use
+	 *  of inherited version of toString).
 	 */
 	toString(fmt=0x2, label=0, selectHeap=0) {
 		if (!label) label = x => `${this.x2s(x)}:${this.key(x)}`;
@@ -264,15 +265,16 @@ export default class LazyHeaps extends LeftistHeaps {
 		let xlabel = x => !this.isactive(x) ? (this.p(x) ? '!' : '') : 
 								label(x) + ((fmt&0x8) && this.rank(x) > 1 ?
 											`:${this.rank(x)}` : '');
-
 		let s = '';
-		for (let u = 1; u <= this.n; u++) {
-			if (this.p(u)) continue;
-			if (this.singleton(u) && !(fmt&0x2)) continue;
-			if (selectHeap && u != selectHeap) continue;
-			if (u == this.dummy) continue;
+		for (let h = 1; h <= this.n; h++) {
+			if (this.p(h)) continue;
+			if (this.singleton(h) && !(fmt&0x2)) continue;
+			if (selectHeap && h != selectHeap) continue;
+			if (h == this.dummy) continue;
 			if (!(fmt&0x01) && s) s += ' ';
-			s += `${super.tree2string(u,xlabel)}`;
+			if (!this.singleton(h)) s += '[';
+			s += `${super.tree2string(h,xlabel)}`;
+			if (!this.singleton(h)) s += ']';
 			if (fmt&0x01) s += '\n';
 		}
 		if (selectHeap) return s;

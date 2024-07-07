@@ -15,14 +15,18 @@ try {
 	console.log('testing KeySets');
 
 	let ks = new KeySets();
-	ks.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}');
-	matches(ks, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] [e:5]}', 'a1');
+	matches(ks.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] e:5}'),
+			true,'a0');
+	matches(ks, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:7 f:6] e:5}', 'a1');
 	ks.delete(7,ks.find(7));
-	matches(ks, '{[b:2 a:1 d:4 c:3] [h:8 j:10 i:7 f:6] [e:5] [g:7]}', 'a2');
+	matches(ks, '{[b:2 a:1 d:4 c:3] [h:8 j:10 i:7 f:6] e:5 g:7}', 'a2');
 	ks.join(ks.find(1), 5, ks.find(10));
-	matches(ks, '{[b:2 a:1 d:4 c:3 h:8 j:10 i:7 f:6 e:5] [g:7]}', 'a3');
+	matches(ks, '{[b:2 a:1 d:4 c:3 h:8 j:10 i:7 f:6 e:5] g:7}', 'a3');
 	ks.split(9);
-	matches(ks, '{[a:1 b:2 c:3 d:4 e:5 f:6] [g:7] [h:8 j:10] [i:7]}', 'a4');
+	matches(ks, '{[a:1 b:2 c:3 d:4 e:5 f:6] g:7 [h:8 j:10] i:7}', 'a4');
+	matches(ks.toString(0xe),
+			'{[a:1 *b:2:2 ((c:3 d:4 -) e:5:2 f:6)] g:7 i:7 [h:8 *j:10 -]}',
+			'a4.1');
 	let r = ks.find(1); let l = new List();
 	for (let u = ks.first(r); u != 0; u = ks.next(u)) l.enq(u);
 	matches(l, '[a b c d e f]', 'a5');
@@ -32,12 +36,10 @@ try {
 	matches(ks.contains(5, r), true, 'a10');
 
 	ks.reset(10, true);  // switch to keys that are strings
-	ks.fromString('{[a:"bb" b:"aa" c d:"c c"] [e:"ee"]}');
-	matches(ks, '{[b:"aa" *a:"bb" d:"c c" c:""] [e:"ee"]}', 'b1');
-	matches(ks.toString(6), '{[c:"" *b:"aa" (- a:"bb" d:"c c")] ' +
-							'[e:"ee"]}', 'b2');
+	matches(ks.fromString('{[a:"bb" b:"aa" c d:"c c"] e:"ee"}'), true, 'b0');
+	matches(ks, '{[b:"aa" *a:"bb" d:"c c" c:""] e:"ee"}', 'b1');
+	matches(ks.toString(6), '{[c:"" *b:"aa" (- a:"bb" d:"c c")] e:"ee"}', 'b2');
 	matches(ks.lookup('c c',1), 4, 'b3');
-
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

@@ -47,20 +47,27 @@ try {
 	matches(ls, '{[e c a] [k i h d] [j f] [l g b]}', 'c5');
 	matches(!!ls.setEquals('{[a c e] [d h i k] [f j] [b g l]}'), true, 'c6');
 
-	let pvec = new Array(10);
+	let property = new Array(10).fill(0);
 	let prop = (u,sc) => {
 					if (!sc.verify(':')) {
 						pvec[u] = 0; return true;
 					}
 					let p = sc.nextNumber();
 					if (Number.isNaN(p)) return false;
-					pvec[u] = p;
+					property[u] = p;
 					return true;
 				};
-	ls.fromString('{[a:1 c:3] [b:2 e:5 d:4] f:2}', prop);
+	let listProp = new Array(10).fill(0);
+	let listLabel = (l, sc) => {
+						let q = sc.nextInt(false);
+						if (Number.isNaN(q)) return false;
+						listProp[l] = q;
+						return true;
+					};
+	ls.fromString('{[a:1 c:3] [b:2 e:5 d:4]7 f:2}', prop, listLabel);
 	matches(ls,'{[a c] [b e d] f}', 'd1');
-	matches(pvec[4],4, 'd2');
-
+	matches(property[4],4, 'd2');
+	matches(listProp[2],7, 'd3');
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

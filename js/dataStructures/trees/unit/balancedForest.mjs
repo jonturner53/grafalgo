@@ -12,11 +12,6 @@ import BalancedForest from '../BalancedForest.mjs';
 
 try {
 	console.log('testing BalancedForest');
-{
-let bf = new BalancedForest();
-bf.fromString('{[a b c d e] [h i j k l m n o p q r]}');
-console.log(bf.toString(0xc));
-}
 
 	let f = new BalancedForest();
 

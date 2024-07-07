@@ -13,6 +13,7 @@ import SplayForest from '../SplayForest.mjs';
 
 try {
 	console.log('testing SplayForest');
+
 	let sf = new SplayForest();
 	matches(sf.fromString('{[(b a -) *d c] [((h g -) j -) *i f]}'), true, 'a0');
 	matches(sf, '{[(b a -) *d c] [((h g -) j -) *i f]}', 'a1');

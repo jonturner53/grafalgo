@@ -571,22 +571,25 @@ export default class BinaryForest extends Top {
 	 *    0b010 specifies that singletons are shown
 	 *    0b100 specifies that the tree structure is shown
 	 *  the default value is 0b100
-	 *  @param nodeLabel(u) is a function that is used to label nodes
-	 *  @param treeProp(t) is an optional function used to generate a string
-	 *  representing a tree property
+	 *  @param label(u) is a function that is used to label nodes
+	 *  @param treeProp(t) is an optional function used to label a tree.
 	 */
-	toString(fmt=0x4, nodeLabel=0, treeProp=0) {
-		if (!(fmt&4)) return this.toListSet().toString(fmt&3,nodeLabel);
+	toString(fmt=0x4, label=0, treeProp=0) {
+		if (!label) label = (u => this.x2s(u));
+		if (!treeProp)
+			treeProp = (t => (this.property(t) ? this.property(t) : ''));
 
-		if (!nodeLabel) nodeLabel = (u => this.x2s(u));
-		if (!treeProp) treeProp = (u => this.property(u));
+		if (!(fmt&4))
+			return this.toListSet().toString(
+						fmt&3, label, v => treeProp(this.root(v)));
 		let s = '';
-		for (let u = 1; u <= this.n; u++) {
-			if (this.p(u) > 0) continue;
-			if (this.singleton(u) && !(fmt&0x2)) continue;
+		for (let t = 1; t <= this.n; t++) {
+			if (this.p(t) > 0) continue;
+			if (this.singleton(t) && !(fmt&0x2)) continue;
 			if (!(fmt&0x1) && s) s += ' ';
-			if (this.property(u)) s += treeProp(u);
-			s += this.tree2string(u,nodeLabel);
+			if (!this.singleton(t) || treeProp(t)) s += '[';
+			s += this.tree2string(t,label);
+			if (!this.singleton(t) || treeProp(t)) s += ']' + treeProp(t);
 			if (fmt&0x1) s += '\n';
 		}
 		return fmt&0x1 ? '{\n' + s + '}\n' : '{' + s + '}';
@@ -594,20 +597,19 @@ export default class BinaryForest extends Top {
 
 	/** Recursive helper for constructing a string representation of a tree.
 	 *  @param u is a node in one of the trees in the forest
-	 *  @param treeRoot is true if u is the root of the tree
 	 *  @return the string
 	 */
-	tree2string(u, nodeLabel=0, treeRoot=1) {
+	tree2string(u, label=0, treeRoot=1) {
 		if (u == 0) return '-'
 		if (this.left(u) == 0 && this.right(u) == 0) {
-			return nodeLabel(u);
+			return label(u);
 		}
 
-		let s = this.tree2string(this.left(u),nodeLabel,0) + ' ' +
-				(treeRoot ? '*' : '') + nodeLabel(u) + ' ' +
-				this.tree2string(this.right(u),nodeLabel,0);
+		let s = this.tree2string(this.left(u),label,0) + ' ' +
+				(treeRoot ? '*' : '') + label(u) + ' ' +
+				this.tree2string(this.right(u),label,0);
 
-		return (treeRoot ? '[' + s + ']' : '(' + s + ')');
+		return (treeRoot ? s : '(' + s + ')');
 	}
 
 	/** Initialize this BinaryForest object from a string,
@@ -690,27 +692,18 @@ export default class BinaryForest extends Top {
 	/** Initialize this object from a string that represents a set of lists.
 	 *  @param s is a string representing a heap.
 	 *  @param prop is an optional function used to parse a list item property
-	 *  @param lprop is an optional function used to parse a list property;
-	 *  which must be a positive integer value
+	 *  @param listProp is an optional function used to parse a list property;
+	 *  its arguments are the first item in a list and a Scanner object
 	 *  @return on if success, else false
 	 */
-	fromListString(s, prop=0, lprop=0) {
+	fromListString(s, prop=0, listProp=0) {
 		let sc = new Scanner(s);
-		if (!lprop) 
-			lprop = (sc => {
-						let p = sc.nextNumber();
-						if (isNaN(p)) return 0;
-						return p;
-						});
 		if (!sc.verify('{')) return false;
 		let lists = []; let n = 0; let items = new Set();
 		while (!sc.verify('}')) {
-			let listProp = 0;
-			if (sc.verify('[')) {
-				sc.reset(-1);
-			} else {
-				listProp = lprop(sc);
-				if (!listProp) return false;
+			if (!sc.peek('[')) {
+				lists.push([[sc.nextIndex(prop)],'']);
+				continue;
 			}
 			let l = sc.nextIndexList('[', ']', prop);
 			if (!l) return false;
@@ -719,16 +712,17 @@ export default class BinaryForest extends Top {
 				if (items.has(i)) return false;
 				items.add(i);
 			}
-			lists.push([l,listProp]);
+			if (listProp && !listProp(l[0],sc)) return false;
+			lists.push([l]);
 		}
+
 		if (n != this.n) this.reset(n);
 		else this.clear();
-		for (let [l,p] of lists) {
+		for (let [l] of lists) {
 			let t = l[0];
 			for (let u of l) {
 				t = this.append(t,u);
 			}
-			this.property(t,p);
 		}
 		return true;
 	}

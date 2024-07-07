@@ -185,16 +185,17 @@ export default class PathSet extends SplayForest {
 	
 	/** Join two paths at a node.
 	 *  @param r is the canonical element of some path
-	 *  @param u is an isolated node (equivalently, it is in a length 1 path)
+	 *  @param u is an isolated node (equivalently, it is a length 1 path)
 	 *  @param q is the canonical element of some path
 	 *  @return the new path formed by combining r,u and q (so r is the first
 	 *  part of the resultant path, then u, then q); this new path replaces
 	 *  the original paths; note: the new path inherits its successor from q
+	 *  or possibly u
 	 */
 	join(r, u, q) {
 		let dmin = this.Dmin; let dcost = this.Dcost;
 		let dmin_u = dmin[u];
-		let sq = (q ? this.property(q) : 0);
+		let pathProp = (q ? this.property(q) : this.property(u));
 		super.join(r,u,q);
 		if (r == 0 && q == 0) {
 			; // do nothing
@@ -209,7 +210,7 @@ export default class PathSet extends SplayForest {
 			dmin[r] -= dmin[u];
 			dmin[q] -= dmin[u];
 		}
-		dcost[u] = dmin_u - dmin[u]; this.property(u, sq);
+		dcost[u] = dmin_u - dmin[u]; this.property(u, pathProp);
 		return u;
 	}
 	
@@ -274,15 +275,17 @@ export default class PathSet extends SplayForest {
 	 *		0010 specifies that singleton paths are shown
 	 *		0100 specifies that underlying tree structure is shown
 	 *		1000 specifies that dmin and dcost values are shown
-	 *  @param label is an optional function used to generate the node label
+	 *  @param label is an optional function used to generate a node label
 	 *  @return the string
 	 */
 	toString(fmt=0x2, label=0) {
 		let mc = this.getMincosts();
-		let xlabel = (u => (label ?  this.label(u) : this.x2s(u)) +
-				':' + (mc[u]+this.dcost(u)) +
-				((fmt&0x8) ? `:${this.dmin(u)}:${this.dcost(u)}` : ''));
-		return super.toString(fmt,xlabel,v => this.x2s(this.property(v)));
+		if (!label) label = (u => `${this.x2s(u)}:${mc[u]+this.dcost(u)}`);
+		let pathLabel = (t => this.succ(t) ? this.x2s(this.succ(t)) : '');
+		if (!(fmt&4)) return super.toString(fmt&3, label, pathLabel);
+		let xlabel = (u => label(u) + (!(fmt&0x8) ? '' :
+				`:${this.dmin(u)}` + (this.dcost(u) ? `:${this.dcost(u)}`:'')));
+		return super.toString(fmt, xlabel, pathLabel);
 	}
 
 	/** Initialize this PathSets object from a string.
@@ -290,28 +293,32 @@ export default class PathSet extends SplayForest {
 	 *  @return true on success, else false
 	 */
 	fromString(s) {
-		let cost = [];
+		let cost = []; let succ = [];
 		let nodeProp = (u,sc) => {
 						if (!sc.verify(':')) {
 							cost[u] = 0; return true;
 						}
-						let p = sc.nextNumber();
+						let p = sc.nextInt(0);
 						if (Number.isNaN(p)) return false;
 						cost[u] = p;
 						return true
 					};
-		let pathProp = (sc => {
-						let p = sc.nextIndex();
-						return p > 0 ? p : 0;
-						});
+		let pathProp = (p,sc) => {
+						let q = sc.nextIndex();
+						succ[p] = (q > 0 ? q : 0);
+						return true;
+						};
 		if (!super.fromListString(s, nodeProp, pathProp))
 			return false;
 
-		for (let u = 1; u <= this.n; u++) {
-			if (this.p(u)) continue;
-			this.docosts1(u,cost); this.docosts2(u);
+		for (let t = 1; t <= this.n; t++) {
+			if (this.p(t)) continue;
+			let f = this.first(t);
+			this.succ(t, succ[f] ? succ[f] : 0);
+			this.docosts1(t,cost); this.docosts2(t);
 		}
-		return true;
+
+        return true;
 	}
 
 	/** First phase of differential cost computation for a tree.

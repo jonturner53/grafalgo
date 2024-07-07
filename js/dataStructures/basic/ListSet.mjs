@@ -231,21 +231,23 @@ export default class ListSet extends Top {
 	 *     01 causes lists to be shown on separate lines
 	 *     10 causes singletons to be shown explictly
 	 *  @param label is a function used to label list items
+	 *  @param listLabel is a function used to label lists
 	 *  @return a string such as "{[a c] [d b g]}".
 	 */
-	toString(fmt=0, label=0) {
+	toString(fmt=0, label=0, listLabel=0) {
 		if (!label) label = (u => this.x2s(u));
+		if (!listLabel) listLabel = (l=>'');
 		let s = '';
 		for (let l = 1; l <= this.n; l++) {
 			if (!this.isfirst(l) || (this.singleton(l) && !(fmt&0x2)))
 				continue;
 			if (!(fmt&1) && s.length) s += ' ';
-			if (!this.singleton(l)) s += '[';
+			if (listLabel(l) || !this.singleton(l)) s += '[';
 			for (let i = l; i; i = this.next(i)) {
 				if (i != l) s += ' ';
 				s += label(i);
 			}
-			if (!this.singleton(l)) s += ']';
+			if (listLabel(l) || !this.singleton(l)) s += ']' + listLabel(l);
 			s += (fmt&0x1 ? '\n' : '');
 		}
 		return (fmt&0x1 ? `{\n${s}}\n` : `{${s}}`);
@@ -255,19 +257,26 @@ export default class ListSet extends Top {
 	 *  @param s is a string, such as produced by toString().
 	 *  @param prop is an optional function that is used to scan
 	 *  for a property of a list item; it is called after each
-	 *  list item is successfully called; its arguments are the
+	 *  list item is successfully scanned; its arguments are the
 	 *  list item and a Scanner object
+	 *  @param listLabel is an optional function used to scan for a
+	 *  list label; it is called immediately after the list's
+	 *  closing bracket; it's arguments are the index of the
+	 *  first item in the list and a Scanner
 	 *  @return true on success, else false
 	 */
-	fromString(s,prop=0) {
+	fromString(s,prop=0,listLabel=0) {
 		let sc = new Scanner(s);
 		if (!sc.verify('{')) return false;
 		let lists = []; let n = 0; let items = new Set();
 		while (!sc.verify('}')) {
 			let l;
-			if (sc.verify('[')) {
-				sc.reset(-1);
+			if (sc.peek('[')) {
 				l = sc.nextIndexList('[',']', prop);
+				if (l.length > 0 && listLabel && !sc.isspace() &&
+					!sc.peek('}') && !listLabel(l[0],sc)) {
+					return false;
+				}
 			} else {
 				let x = sc.nextIndex(prop);
 				if (!x) return false;
