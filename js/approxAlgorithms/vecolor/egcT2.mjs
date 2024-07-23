@@ -124,7 +124,7 @@ function expandPalettes(C, Delta_o) {
 	let pg = new Graph(eg.n_g+C, Delta_o*C);
 	let io = new ListPair(eg.n_g + C);
 	for (let g = 1; g <= eg.n_g; g++) io.swap(g);
-	pg.split(io);
+	pg.setBipartition(io);
 
 	// define a palette expansion graph
 	let xg = new Flograph(eg.n_g+C+2, Delta_o*C + Delta_o + C);

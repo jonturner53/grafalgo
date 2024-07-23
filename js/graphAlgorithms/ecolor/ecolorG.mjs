@@ -6,6 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
@@ -41,12 +42,9 @@ let matches;	// number of matchings found
 export default function ecolorG(G, traceFlag=false) {
 	// initialize data structures
 	g = G; trace = traceFlag; trace = 1;
-	if (!g.bipartite) throw exception;
+	ea && assert(g.bipartite);
 
-	io = new ListPair(g.n);
-	for (let u = g.firstInput(); u; u = g.nextInput(u)) io.swap(u);
-
-	wg = new Graph(g.n, g.edgeRange); wg.split(io);
+	wg = new Graph(g.n, g.edgeRange); wg.setBipartition(g.bipartition);
 	degree = new Int32Array(g.n+1);
 	active = new List(g.n);
 	emap = new Int32Array(g.m+1);
@@ -92,17 +90,16 @@ function rcolor(Delta) {
 	if (Delta & 1) {
 		// first build compact version of wg with no isolated vertices
 		let cwg = new Graph(active.length,g.m);
-		let cio = new ListPair(active.length);
+		let io = new ListPair(active.length);
 		let u = 1;
 		for (let v = active.first(); v; v = active.next(v)) {
 			active.value(v,u); // use value to map wg's vertices to cwg's
-			if (wg.isInput(v)) cio.swap(u);
-			u++;
-			steps++;
+			if (wg.isInput(v)) io.swap(u);
+			u++; steps++;
 		}
-		cwg.split(cio);
+		cwg.setBipartition(io);
 		for (let e = wg.first(); e; e = wg.next(e)) {
-			let [u,v] = [wg.left(e),wg.right(e)];
+			let [u,v] = [wg.input(e),wg.output(e)];
 			let [uu,vv] = [active.value(u), active.value(v)];
 			let ee = cwg.join(uu,vv); emap[ee] = e;
 			steps++;

@@ -61,7 +61,7 @@ let tester = new Tester(args, algomap);
 // unweighted bigraphs
 let g = new Graph();
 g.fromString('{a[f g j] b[h g i] c[f i j] d[g h f] e[h i j]}');
-g.split();
+g.setBipartition();
 tester.addTest('small bigraph', g);
 
 g = randomBigraph(8, 3);
@@ -80,7 +80,7 @@ tester.addTest('large/denser random weighted bigraph (400,50)', g);
 g = new Graph();
 g.fromString('{a[f:3 g:2 j:1] b[h:2 g:3 i:6] c[f:1 i:6 j:1] ' +
 			  'd[g:1 h:2 f:1] e[h:2 i:5 j:3]}');
-g.split();
+g.setBipartition();
 tester.addTest('small weighted bigraph', g);
 
 g = randomBigraph(8,3); g.randomWeights(randomInteger,1,9);

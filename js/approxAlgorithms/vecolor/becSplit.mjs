@@ -8,7 +8,6 @@
 
 import {assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
-import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import findSplit from '../../graphAlgorithms/misc/findSplit.mjs';
 import bidcsF from '../../graphAlgorithms/vmatch/bidcsF.mjs';
@@ -23,16 +22,13 @@ import becDegreeBound from './becDegreeBound.mjs';
  */
 export default function becSplit(g, trace=0) {
 	let ts = ''; let steps = 0;
-
-	if (!g.bipartite) throw exception
-	let io = new ListPair(g.n);
-	for (let u = g.firstInput(); u; u = g.nextInput(u)) io.swap(u);
+	ea && assert(g.bipartite);
 
 	let bmax = 0;
 	for (let e = g.first(); e; e = g.next(e))
 		bmax = Math.max(bmax, g.bound(e));
 	let k = ~~(bmax/2);
-	let gk = new Graph(g.n,g.edgeRange); gk.split(io);
+	let gk = new Graph(g.n,g.edgeRange); gk.setBipartition(g.bipartition);
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (g.bound(e) <= k) gk.join(g.left(e),g.right(e),e);
 	}
@@ -64,7 +60,7 @@ export default function becSplit(g, trace=0) {
 		dmin[u] = Math.max(0, d[u] - (C-k));
 	[H,,mstats] = bidcsF(gk, dmax, dmin);
 	steps += mstats.steps;
-	let J = new Graph(g.n, g.edgeRange); J.split(io);
+	let J = new Graph(g.n, g.edgeRange); J.setBipartition(g.bipartition);
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (!H.validEdge(e)) J.join(g.left(e),g.right(e),e);
 	}

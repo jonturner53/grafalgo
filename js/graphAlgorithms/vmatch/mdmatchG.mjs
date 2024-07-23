@@ -26,8 +26,6 @@ let steps;		// number of steps (inner loops)
  */
 export default function mdmatchG(g, trace=0) {
 	assert(g.bipartite);
-	let io = new ListPair(g.n);
-	for (let u = g.firstInput(); u; u = g.nextInput(u)) io.swap(u);
 
 	// initialize supporting data structures
 	let degree = new Int32Array(g.n+1);
@@ -50,7 +48,7 @@ export default function mdmatchG(g, trace=0) {
 		if (degree[u] == Delta) xg1.join(u,v,e);
 		steps++;
 	}
-	xg1.split(io);
+	xg1.setBipartition(g.bipartition);
 	let [xmatch1,ts,stats1] = bimatchHK(xg1);
 	steps += stats1.steps;
 	if (trace) traceString += `first matching: ${xmatch1.toString()}\n`;
@@ -62,7 +60,7 @@ export default function mdmatchG(g, trace=0) {
 		if (degree[v] == Delta) xg2.join(u,v,e);
 		steps++;
 	}
-	xg2.split(io);
+	xg2.setBipartition(g.bipartition);
 	let [xmatch2,,stats2] = bimatchHK(xg2);
 	steps += stats2.steps;
 	if (trace)

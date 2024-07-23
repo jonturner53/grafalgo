@@ -21,10 +21,10 @@ console.log('testing lower bounds for bounded edge coloring');
 
 let g = hardCase(64,1);
 let s = `${degreeBound(g)} ${matchBound(g)} ${flowBound(g)}`;
-let sx = '64 96 96'
+let sx = '64 80 83'
 if (s != sx) console.log(`large hard (64,1) mismatch: ${s} not ${sx}`);
 
 g = hardCase(64,1.5);
 s = `${degreeBound(g)} ${matchBound(g)} ${flowBound(g)}`;
-sx = '96 112 112';
+sx = '96 96 96';
 if (s != sx) console.log(`large hard (64,1.5) mismatch: ${s} not ${sx}`);

@@ -225,14 +225,34 @@ export default class Graph extends Top {
 		return Math.trunc(this.epLists.next(ep)/2);
 	}
 
+	/** Determine if this graph is bipartite.
+	 *  If a bipartition was previously defined for this graph, it is assumed to
+	 *  be bipartite. Otherwise a bipartition is computed (if possible) and saved
+	 *  for future use.
+	 *  @param return true or false?
+	 */
+	get bipartite() { return this.io || this.setBipartition(); }
+
+	/** Get a reference to the bipartition for this graph.
+	 *  @return a reference to a ListPair that defines a bipartition on the
+	 *  vertices; list1 identifies the inputs, list2 identifies the outputs;
+	 *  if necessary, the ListPair is computed first; if the graph is not bipartite,
+	 *  null is returned.
+	 */
+	get bipartition() {
+		if (!this.io && !this.setBipartition()) return null;
+		return this.io;
+	}
+
 	/** Define a bipartition on the graph.
 	 *  @param io is an optional ListPair that divides the vertices into
 	 *  "inputs" and "outputs" and defines a bipartition; if not supplied,
-	 *  a bipartition is computed.
+	 *  a bipartition is computed. The computed bipartition treats classifies first
+	 *  vertex (the one with smallest index) in each connected component as an input.
 	 *  @return true if the graph is bipartite; if io is supplied, the graph
 	 *  is assumed to be bipartite.
 	 */	
-	split(io=0) {
+	setBipartition(io=0) {
 		if (io) { this.io = io; return true; }
 
 		io = new ListPair(this.n);
@@ -259,28 +279,30 @@ export default class Graph extends Top {
 		this.io = io; return true;
 	}
 
-	get bipartite() { return this.io || this.split(); }
-
+	/** Determine if a vertex in a bipartite graph is an input.
+	 *  @param u is a vertex
+	 *  @return true if u is an input, else false
+	 */
 	isInput(u) { return this.io.in(u,1); }
 	isOutput(u) { return this.io.in(u,2); }
 
-	input(e)  {
-		return this.isInput(this.left(e)) ? this.left(e) : this.right(e);
-	}
-	output(e) {
-		return this.isOutput(this.left(e)) ? this.left(e) : this.right(e);
-	}
+	/** Get the input end of an edge in a bipartite graph.
+	 *  @param e is an edge
+	 *  @param return whichever endpoint of e is an input
+	 */
+	input(e)  { return this.isInput(this.left(e)) ? this.left(e) : this.right(e); }
+	output(e) { return this.isOutput(this.left(e)) ? this.left(e) : this.right(e); }
 
 	/** Return first input defined by bipartition io. */
 	firstInput() { return this.io.first(1); }
 
-	/** Return first output defined by bipartition io. */
+	/** Return next output defined by bipartition io. */
 	nextInput(u) { return this.io.next(u); }
 
 	/** Return first output defined by bipartition io. */
 	firstOutput() { return this.io.first(2); }
 
-	/** Return first output defined by bipartition io. */
+	/** Return next output defined by bipartition io. */
 	nextOutput(u) { return this.io.next(u); }
 
 	/** Join two vertices.

@@ -226,7 +226,7 @@ export default class EdgeGroupColors extends Top {
 		let pg = new Graph(this.eg.n_g+this.n_c, Delta_o*this.n_c);
 		let io = new ListPair(this.eg.n_g + this.n_c);
 		for (let g = 1; g <= this.eg.n_g; g++) io.swap(g);
-		pg.split(io);
+		pg.setBipartition(io);
 
 		let egg = this.eg.graph;
 		let firstOut = out ? out : this.eg.n_i+1;

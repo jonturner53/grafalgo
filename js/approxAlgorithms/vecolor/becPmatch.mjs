@@ -21,9 +21,7 @@ import pbimatchHKT from '../../graphAlgorithms/vmatch/pbimatchHKT.mjs';
  */
 export default function becPmatch(g, trace=0) {
 	let steps = 0;
-	if (!g.bipartite) throw exception;
-	let io = new ListPair(g.n);
-	for (let u = g.firstInput(); u; u = g.nextInput(u)) io.swap(u);
+	ea && assert(g.bipartite);
 
 	// compute degrees in g and assign initial priorities
 	let d = new Int32Array(g.n+1);
@@ -35,7 +33,7 @@ export default function becPmatch(g, trace=0) {
 	steps += g.n;
 
 	let color = new Int32Array(g.edgeRange+1);
-	let gc = new Graph(g.n,g.edgeRange); gc.split(io);
+	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.bipartition);
 		// subgraph of uncolored edges with bounds <= c
 	let ts = '';
 	if (trace) {

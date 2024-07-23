@@ -97,9 +97,7 @@ export function randomBigraph(ni, id, no=ni, dmax=Math.max(ni,no)-1) {
 								(u < ni ? [u+1, ni+1] : null))),
 					() => [randomInteger(1,ni), randomInteger(ni+1,ni+no)],
 					dmax);
-	let io = new ListPair(g.n);
-	for (let u = 1; u <= ni; u++) io.swap(u);
-	g.split(io);
+	g.setBipartition();
 	return g;
 }
 
@@ -421,9 +419,6 @@ export function randomRegularBigraph(ni, id, no=ni) {
 	}
 	regularize(g, od, lo, hi);
 
-	let io = new ListPair(g.n);
-	for (let u = 1; u <= ni; u++) io.swap(u);
-	g.split(io);
-
+	g.setBipartition();
 	return g;
 }
