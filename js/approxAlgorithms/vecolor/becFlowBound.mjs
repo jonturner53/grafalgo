@@ -80,7 +80,7 @@ export default function becFlowBound(g) {
  */
 function buildFlograph(g, subsets, k, C) {
 	let fg = new Flograph(g.n*k+2, g.edgeRange+g.n*k);
-	fg.setSource(g.n*k+1); fg.setSink(g.n*k+2);
+	fg.source = g.n*k+1; fg.sink = g.n*k+2;
 	// first, build core edges, preserving edge numbers from g
 	for (let e = g.first(); e; e = g.next(e)) {
 		let [u,v] = [g.left(e),g.right(e)]

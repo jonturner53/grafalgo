@@ -286,6 +286,8 @@ export default class List extends Top {
 	equals(that) {
 		that = super.equals(that); 
 		if (typeof that == 'boolean') return that;
+		if (this.length != that.length) return false;
+
 		let j = that.first();
 		for (let i = this.first(); i; i = this.next(i)) {
 			if (i != j) return false;
@@ -337,7 +339,7 @@ export default class List extends Top {
 		let pvec = [];
 		if (!prop) {
 			prop = (u,sc) => {
-						if (!sc.verify(':')) return true;
+						if (!sc.verify(':',0)) return true;
 						let p = sc.nextNumber();
 						if (Number.isNaN(p)) return false;
 						pvec[u] = p;
@@ -352,8 +354,8 @@ export default class List extends Top {
             if (items.has(i)) return false;
             items.add(i);
 		}
-		if (n != this.n) this.reset(n);
-		else this.clear();
+
+		this.reset(n);
 		for (let i of l) {
 			if (pvec.length == 0) this.enq(i);
 			else this.enq(i, pvec[i] ? pvec[i] : 0);

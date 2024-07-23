@@ -129,22 +129,22 @@ export default class DynamicTrees extends PathSet {
 	 *  @return true if they are the same list or have the
 	 *  same contents (in the same order)
 	 */
-	equals(other) {
-		if (this == other) return true;
-		if (typeof other == 'string') {
-			let s = other; other = new DynamicTrees(this.n);
-			if (!other.fromString(s)) return s == this.toString();
-		} else if (!(other instanceof DynamicTrees) || this.n != other.n) {
+	equals(that) {
+		if (this == that) return true;
+		if (typeof that == 'string') {
+			let s = that; that = new DynamicTrees(this.n);
+			if (!that.fromString(s)) return s == this.toString();
+		} else if (!(that instanceof DynamicTrees) || this.n != that.n) {
 			return false;
 		}
-		let f1 = this.explicitForest(); let f2 = other.explicitForest();
+		let f1 = this.explicitForest(); let f2 = that.explicitForest();
 		if (!f1.equals(f2)) return;
 
-		let mc1 = this.getMincosts(); let mc2 = other.getMincosts();
+		let mc1 = this.getMincosts(); let mc2 = that.getMincosts();
 		for (let u = 1; u <= this.n; u++) {
-			if (this.cost(u,mc1) != other.cost(u,mc2)) return false;
+			if (this.cost(u,mc1) != that.cost(u,mc2)) return false;
 		}
-		return other;
+		return that;
 	}
 
 	/** Get an explicit representation of the forest represented by
@@ -208,7 +208,7 @@ export default class DynamicTrees extends PathSet {
 		let dmin = new Float32Array(f.n+1);
 		if (!f.fromString(s, (u,sc) => {
 							dmin[u] = 0;
-							if (!sc.verify(':')) {
+							if (!sc.verify(':',0)) {
 								dmin[u] = 0; return true;
 							}
 							let cost = sc.nextNumber();
@@ -217,8 +217,8 @@ export default class DynamicTrees extends PathSet {
 							return true
 						}))
 			return false;
-		if (this.n != f.n) this.reset(f.n);
-		else this.clear();
+		this.reset(f.n);
+
 		for (let u = 1; u <= this.n; u++) {
 			if (f.p(u)) this.succ(u,f.p(u));
 			this.dmin(u, dmin[u]);

@@ -21,12 +21,12 @@ import ncrJEK from '../mcflow/ncrJEK.mjs';
  *  @param hi is an array mapping vertices to degree upper bounds
  *  @param lo is an optional array mapping vertices to degree lower bounds;
  *  if omitted a bound of 0 is used
+ *  @param trace causes a trace string to be returned when true
  *  @return a triple [dcs, ts, stats] where dcs is a Graph object on success
  *  or null if there is no dcs that respects all bounds;
  *  ts is a possibly empty trace string and stats is a statistics object;
  *  if lo>0, the returned dcs will satisfy the
  *  specified minimum degree requirements if it is possible to do so
- *  @param trace causes a trace string to be returned when true
  */
 export default function bidcsF(g, hi, lo=0, trace=0) {
 	let steps = 0;

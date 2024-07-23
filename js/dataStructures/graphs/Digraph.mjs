@@ -249,22 +249,12 @@ export default class Digraph extends Graph {
 	 *  vertices, edges and edge weights
 	 */
 	equals(that) {
-		if (this === that) return true;
-		// handle string case here
-        if (typeof that == 'string') {
-            let s = that; that = new this.constructor();
-			if (!that.fromString(s)) return s == this.toString();
-			if (that.n > this.n) return false;
-			if (that.n < this.n)
-				that.expand(this.n,that.edgeRange);
-        } else if (that.constructor.name != this.constructor.name ||
-		    that.n != this.n || that.m != this.m) {
-			return false;
-		}
+		that = super.equals(that);
+		if ((typeof that) == 'boolean') return that;
+
 		// now compare the edges using sorted edge lists
-		// note: cannot use super.equals since directed graphs require
-		// different sorting order
-		if (this.m != that.m) return false;
+		// note: cannot rely on super.equals since directed graphs
+		// separate inputs from ouputs in sorted adjacency lists
 		let el1 = this.sortedElist(); let el2 = that.sortedElist();
 		for (let i = 0; i < el1.length; i++) {
 			let e1 = el1[i]; let e2 = el2[i];
@@ -321,8 +311,8 @@ export default class Digraph extends Graph {
 						n = Math.max(n,v);
 						let i = pairs.length;
 						pairs.push([u,v]);
-						if (sc.verify(':')) {
-						let w = sc.nextNumber();
+						if (sc.verify(':',0)) {
+							let w = sc.nextNumber();
 							if (Number.isNaN(w)) return false;
 							lengths[i] = w;
 						}
@@ -331,11 +321,9 @@ export default class Digraph extends Graph {
 
 		if (!this.parseString(s, vnext, enext)) return false;
 
-		// configure graph
-		let erange = Math.max(1,pairs.length);
-		if (n != this.n || erange != this.erange) this.reset(n, erange);
-		else this.clear();
+		this.reset(n, Math.max(1,pairs.length));
 
+		// configure graph
 		for (let i = 0; i < pairs.length; i++) {
 			let [u,v] = pairs[i];
 			let e = this.join(u,v);

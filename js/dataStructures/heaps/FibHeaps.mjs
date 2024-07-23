@@ -252,6 +252,7 @@ export default class FibHeaps extends Forest {
 	equals(that) {
 		that = super.setEquals(that);
         if (typeof that == 'boolean') return that;
+
 		for (let i = 0; i < this.n; i++) {
 			if (this.key(i) != that.key(i)) return false;
 		}
@@ -284,7 +285,7 @@ export default class FibHeaps extends Forest {
 	fromString(s) {
 		let ls = new ListSet(); let key = [];
 		if (!ls.fromString(s, (u,sc) => {
-							if (!sc.verify(':')) {
+							if (!sc.verify(':',0)) {
 								key[u] = 0; return true;
 							}
 							let p = sc.nextNumber();
@@ -293,8 +294,8 @@ export default class FibHeaps extends Forest {
 							return true;
 						}))
 			return false;
-		if (ls.n != this.n) this.reset(ls.n);
-		else this.clear();
+		this.reset(ls.n);
+		
 		for (let h = 1; h <= ls.n; h++) {
 			if (!ls.isfirst(h)) continue;
 			this.key(h, key[h]);

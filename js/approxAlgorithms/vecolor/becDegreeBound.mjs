@@ -20,8 +20,9 @@ export default function becDegreeBound(g0) {
 	let lb = 0;
     for (let u = 1; u <= g.n; u++) {
 		let d = g.degree(u); let i = 1;
-        for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) 
+        for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
             lb = Math.max(lb, Math.ceil(g.bound(e)) + (d-i++));
+		}
     }
 	return lb;
 }

@@ -16,7 +16,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  *  @return a graph with bounds
  */
 export default function becHardCase(n,speedup=1) {
-	let g = new Graph(3*n-1,n*n); g.addBounds();
+	let g = new Graph(3*n-1,n*n); g.hasBounds = 1;
 	for (let u = 1; u <= n; u++) {
 		for (let i = 1; i <= u; i++) {
 			let e = g.join(u, n+i);

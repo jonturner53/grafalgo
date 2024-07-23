@@ -15,24 +15,27 @@ import Scanner from '../Scanner.mjs';
 try {
 	console.log('testing Scanner');
 
-	let s = new Scanner("  123  45.5abc_2C.  a  23 \n xx");
-	matches(s.nextInt(), 123, 'a1');
-	matches(s.nextNumber(), 45.5, 'a2');
-	matches(s, 'abc_2C.  a  23 \n xx', 'b1');
-	matches(s.nextWord(), 'abc_2C', 'a3');
-	matches(s.verify('.'), true, 'a4');
-	matches(s.nextIndex(), 1, 'a5');
-	matches(s, '  23 \n xx', 'b1');
-	matches(s.nextIndex(), 23, 'a6');
-	matches(s.verify('x'), true, 'a7');
+	let sc = new Scanner('  123  45.5abc_2C.  a  23 \n "xy"z');
+	matches(sc.nextInt(), 123, 'a0');
+	matches(sc.nextNumber(), 45.5, 'a1');
+	matches(sc, 'abc_2C.  a  23 \n "xy"z', 'a2');
+	matches(sc.nextWord(), 'abc_2C', 'a3');
+	matches(sc.verify('.'), true, 'a4');
+	matches(sc.nextIndex(), 1, 'a5');
+	matches(sc, '  23 \n "xy"z', 'a6');
+	matches(sc.nextIndex(), 23, 'a7');
+	matches(sc.nextLine(), " \n", 'a8');
+	matches(sc.nextString(), 'xy', 'a9');
+	matches(sc, 'z', 'a10');
 
-	s.reset();
-	matches(s, '  123  45.5abc_2C.  a  23 \n xx', 'b1');
-	matches(s.nextWord(), '', 'b2');
-	matches(s.nextNumber(), 123, 'b3');
-	matches(s.nextInt(), 45, 'b4');
-	matches(s.toString(), '.5abc_2C.  a  23 \n xx', 'b5');
-	matches(s.length, 21, 'b6');
+	sc.reset(0,'  123  45.5e+2abc_2C.  a  23 \n xx');
+	matches(sc, '  123  45.5e+2abc_2C.  a  23 \n xx', 'b1');
+	matches(sc.nextWord(), '', 'b2');
+	matches(sc.nextNumber(), 123, 'b3');
+	matches(sc.nextInt(), 45, 'b4');
+	matches(sc.toString(), '.5e+2abc_2C.  a  23 \n xx', 'b5');
+	matches(sc.nextNumber(), 50, 'b6');
+	matches(sc.length, 19, 'b7');
 
 	let pvec = new Array(10);
 	let prop = (u,sc) => {
@@ -44,15 +47,15 @@ try {
 					pvec[u] = p;
 					return true;
 				};
-	s = new Scanner("a:11 b:22 c");
-	matches(s.nextIndex(prop), 1, 'c1'); matches(pvec[1], 11, 'c2');
-	matches(s.nextIndex(prop), 2, 'c3'); matches(pvec[2], 22, 'c4');
-	matches(s.nextIndex(prop), 3, 'c5'); matches(pvec[3], 0, 'c6');
+	sc = new Scanner("a:11 b:22 c");
+	matches(sc.nextIndex(prop), 1, 'c1'); matches(pvec[1], 11, 'c2');
+	matches(sc.nextIndex(prop), 2, 'c3'); matches(pvec[2], 22, 'c4');
+	matches(sc.nextIndex(prop), 3, 'c5'); matches(pvec[3], 0, 'c6');
 
-	s = new Scanner("[a b]");
-	matches(s, '[a b]', 'd1');
-	s = new Scanner("[a:1 b c:3]");
-	let l = s.nextIndexList('[',']',prop);
+	sc = new Scanner("[a b]");
+	matches(sc, '[a b]', 'd1');
+	sc = new Scanner("[a:1 b c:3]");
+	let l = sc.nextIndexList('[',']',prop);
 	matches(l[0],1,'d2'); matches(l[1],2,'d3'); matches(l[2], 3,'d4');
 	matches(pvec[1],1,'d5'); matches(pvec[2],0,'d6'); matches(pvec[3],3,'d7');
 

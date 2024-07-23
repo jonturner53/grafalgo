@@ -164,10 +164,10 @@ export default class GroupHeap extends Top {
 	 *  @param k is the required key value for i
 	 *  @param i0 is an item in the heap; i is inserted immediately after i0
 	 */
-	insertAfter(i, g, k, i0) {
+	insertAfter(i, k, i0, g) {
 		if (this.isactive(g)) this.updateKeys(g);
 		let h = this.top[g];
-		this.top[g] = this.groups.insertAfter(i, h, k, i0);
+		this.top[g] = this.groups.insertAfter(i, k, i0, h);
 		if (this.isactive(g) && k < this.active.key(g)) {
 			this.active.changekey(g, k);
 		}
@@ -218,9 +218,9 @@ export default class GroupHeap extends Top {
 	/** Determine if two GroupHeap objects are equal.
 	 */
 	equals(that) {
-		that = super.equals(that);
+		that = super.equals(that, [this.n,this.gn]);
 		if (typeof that == 'boolean') return that;
-		if (that.gn != this.gn) return false;
+		if (this.n != that.n || that.gn != this.gn) return false;
 
 		if (!this.active.equals(that.active)) return false;
 
@@ -296,7 +296,7 @@ export default class GroupHeap extends Top {
 		let sc = new Scanner(s);
 		let key = [];
 		let getProp = (u,sc) => {
-								if (!sc.verify(':')) {
+								if (!sc.verify(':',0)) {
 									key[u] = 0; return true;
 								}
 								let p;
@@ -330,12 +330,12 @@ export default class GroupHeap extends Top {
 			heapIds.add(g);
 			lists.push([g,active,l]);
 		}
-		if (n != this.n || gn != this.gn) this.reset(n,gn);
-		else this.clear();
+		this.reset(n,gn);
+
 		for (let [g, active, l] of lists) {
 			let previ = 0;
 			for (let i of l) {
-				this.insertAfter(i, g, key[i], previ);
+				this.insertAfter(i, key[i], previ, g);
 				previ = i;
 			}
 			if (active) this.activate(g);

@@ -13,7 +13,7 @@ import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 
 export default function becMatchBound(g) {
-	let gc = new Graph(g.n, g.edgeRange);
+	let gc = new Graph(g.n, g.edgeRange); gc.split(g.io);
 	let total = 0; let c;
 	for (c = 1; total < g.m; c++) {
 		// construct G_c (by adding edges to previous G_c)

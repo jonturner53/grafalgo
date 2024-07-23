@@ -28,7 +28,7 @@ import { assert, EnableAssert as ea } from '../common/Assert.mjs';
 export default class Top {
 	N;		// index values in 1..N
 
-	constructor(n=5) { this.N = n; }
+	constructor(n=1) { this.N = Math.max(1,n); }
 
 	/** Reset the object, discarding value.  */
 	reset() {
@@ -75,9 +75,20 @@ export default class Top {
 		throw `Top: sub-class ${this.constructor.name} failed to ` +
 			  `define clear method.`;
 	}
+
 	toString() {
 		throw `Top: sub-class ${this.constructor.name} failed to ` +
 			  `define toString method.`;
+	}
+
+	/* Produce string representation of a data item, based on its type.
+	 * @param d is a string, number, Array or object.
+	 * @return a string representation of d
+	 */
+	datum2string(d) {
+		if ((typeof d) == 'string') return '"' + d + '"';
+		if ((typeof d) == 'number' || (typeof d) == 'boolean') return d;
+		if ((typeof d) == 'object') return JSON.stringify(d);
 	}
 
 	/** Determine if a given index is valid.
@@ -93,26 +104,25 @@ export default class Top {
 	/** Determine if two objects are equal.
 	 *  Uses string comparison for objects that lack a fromString method.
 	 *  @param that is an object to be compared to this, or a string
+	 *  @param consArgs is an array of arguments to be passed to the
+	 *  constructor of a new object in the case where that is a string
+	 *  @param fsArgs is an array optional arguments to fromString
 	 *  @returns true or false if equality status can be determined
 	 *  without an explicit object comparison; otherwise returns an
 	 *  object that can be compared to "this".
 	 */
-	equals(that) {
+	equals(that, consArgs=[this.n], fsArgs=[]) {
 		if (this === that) return true;
         if (typeof that == 'string') {
-			//if (!('fromString' in this)) 
-			//	return this.toString() == that;
             let s = that;
 			if (typeof this.fromString !== 'function')
 				return s == this.toString();
-			that = new this.constructor();
-			assert(that.fromString(s), that.constructor.name +
-						 ':equals: fromString cannot parse ' + s);
+			that = new this.constructor(...consArgs);
+			assert(that.fromString(s, ...fsArgs),
+					that.constructor.name + '.fromString: ' +
+					'called by .equals() cannot parse ' + s);
 				// note: this assert must always be enabled
-			if (that.n > this.n) return false;
-			if (that.n < this.n) that.expand(this.n);
-        } else if (that.constructor.name != this.constructor.name ||
-		    that.n != this.n) {
+        } else if (that.constructor.name != this.constructor.name) {
 			return false;
 		}
 		return that;

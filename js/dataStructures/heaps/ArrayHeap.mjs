@@ -243,9 +243,10 @@ export default class ArrayHeap extends Top {
 	 *  can be compared
 	 */
 	equals(that) {
-		that = super.equals(that);
+		that = super.equals(that, [this.n,this.d]);
 		if (typeof that == 'boolean') return that;
 		if (this.size != that.size) return false;
+
 		for (let i = 1; i <= this.size; i++) {
 			let x = this.Item[i];
 			if (!that.contains(x) || this.key(x) != that.key(x)) return false;
@@ -275,7 +276,7 @@ export default class ArrayHeap extends Top {
 		for (let x = 2; x <= this.size; x++) {
 			f.link(this.itemAt(x),this.itemAt(this.p(x)));
 		}
-		return f.toString((showTree ? 0x4 : 0), label).slice(1,-1);
+		return '[' + f.toString((showTree ? 0x4 : 0), label).slice(1,-1) + ']';
 	}
 
 	/** Initialize this ArrayHeap object from a string.
@@ -286,20 +287,20 @@ export default class ArrayHeap extends Top {
 		let l = new List();
 		let key = [];
 		if (!l.fromString(s, (u,sc) => {
-							if (!sc.verify(':')) {
+							if (!sc.verify(':',0)) {
 								key[u] = 0; return true;
 							}
 							let p = sc.nextNumber();
-							if (Number.isNaN(p)) return false;
+							if (p == NaN) return false;
 							key[u] = p;
 							return true;
 						}))
 			return false;
-		if (l.n > this.n) this.reset(l.n, this.d);
-		else this.clear();
+		this.reset(l.n);
+
 		for (let i = l.first(); i; i = l.next(i)) {
 			this.insert(i, key[i]);
-}
+		}
 		return true;
 	}
 

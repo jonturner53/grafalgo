@@ -112,7 +112,7 @@ export default class EdgeGroupColors extends Top {
 		this.Owner = that.Owner;
 		this.PaletteSize = that.PaletteSize;
 
-		that.eg = that.Color = _that.edgesByColor = that.FirstEdge = null;
+		that.eg = that.Color = that.edgesByColor = that.FirstEdge = null;
 		that.Usage = that.Palettes = that.FirstColor = null;
 		that.Owner = that.paletteSize = null;
 	}
@@ -226,6 +226,7 @@ export default class EdgeGroupColors extends Top {
 		let pg = new Graph(this.eg.n_g+this.n_c, Delta_o*this.n_c);
 		let io = new ListPair(this.eg.n_g + this.n_c);
 		for (let g = 1; g <= this.eg.n_g; g++) io.swap(g);
+		pg.split(io);
 
 		let egg = this.eg.graph;
 		let firstOut = out ? out : this.eg.n_i+1;
@@ -238,7 +239,7 @@ export default class EdgeGroupColors extends Top {
 					pg.join(g,this.eg.n_g+c);
 				}
 			}
-			let [match] = bimatchHK(pg,0,io);
+			let [match] = bimatchHK(pg);
 			for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e)) {
 				let g = this.eg.group(e); let u = this.eg.hub(g);
 				let me = match.at(g);
@@ -258,29 +259,19 @@ export default class EdgeGroupColors extends Top {
 	 *  Bug: comparison expects group graphs to have matching group numbers.
 	 */
 	equals(that) {
-		if (this === that) return true;
-        if (typeof that == 'string') {
-            let s = that;
-			that = new this.constructor(this.eg,this.n_c);
-			assert(that.fromString(s), that.constructor.name +
-						 ':equals: fromString cannot parse ' + s);
-				// note: this assert must always be enabled
-			if (that.n_c > this.n_c) return false;
-			if (that.n_c < this.n_c) that.expand(this.n_c);
-        } else if (that.constructor.name != this.constructor.name ||
-		    that.n_c != this.n_c) {
-			return false;
-		}
+		that = super.equals(that, [this.eg, this.n]);
+		if ((typeof that) == 'boolean') return that;
+
 		if (!this.eg.equals(that.eg)) return false;
 
 		// now make sure the colors in the groups match
 		let clist = new List(this.n_c);
 		for (let g = this.eg.firstGroup(); g; g = this.eg.nextGroup(g)) {
 			clist.clear(); let len1 = 0; let len2 = 0;
-			for (let c = this.firstColor(g); c; c = this.nextColor(c)) {
+			for (let c = this.firstColor(g); c; c = this.nextColor(g,c)) {
 				clist.enq(c); len1++;
 			}
-			for (let c = that.firstColor(g); c; c = that.nextColor(c)) {
+			for (let c = that.firstColor(g); c; c = that.nextColor(g,c)) {
 				if (!clist.contains(c)) return false;
 				len2++;
 			}
@@ -365,7 +356,7 @@ export default class EdgeGroupColors extends Top {
 		let cmax = 0;
 		while (!sc.verify('}')) {
 			let c = sc.nextNumber();
-			if (Number.isNaN(c) || c != ~~c) return false;
+			if (c == NaN || c != ~~c) return false;
 			cmax = Math.max(cmax,c);
 			if (!sc.verify('[')) return false;
 			while (!sc.verify(']')) {
@@ -375,8 +366,7 @@ export default class EdgeGroupColors extends Top {
 			}
 		}
 
-		if (cmax == this.n_c) this.clear();
-		else this.reset(this.eg, this.n_c);
+		this.reset(this.eg, this.n_c);
 
 		for (let i = 0; i < pairs.length; i++) {
 			let [e,c] = pairs[i];

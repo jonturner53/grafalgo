@@ -111,13 +111,15 @@ export default class BinaryForest extends Top {
 	 */
 	property(t, p=-1) {
 		ea && assert(this.isroot(t),
-					 `BinaryForest.property: ${this.x2s(t)} ${this.P[t]}`);
+					 `BinaryForest.property: ${this.x2s(t)} ${p}`);
 		if (p >= 0) this.P[t] = -p;
 		return -this.P[t]
 	}
 
 	/* Determine if a node is a tree root, */
-	isroot(r) { return r && this.P[r] <= 0; }
+	isroot(r) {
+		return this.valid(r) && (this.P[r] === undefined || this.P[r] <= 0);
+	}
 
 	/* Get the sibling of a node. */
 	sibling(u) {
@@ -256,15 +258,15 @@ export default class BinaryForest extends Top {
 	
 	/** Insert a node immediately after another vertex in a tree.
 	 *  @param u is a singleton
-	 *  @param t is the tree root; if omitted, the tree containing v is used
 	 *  @param v is a vertes in a tree which defines the point where u is
+	 *  @param t is the tree root; if omitted, the tree containing v is used
 	 *  to be inserted; if zero, u is inserted before all nodes in tree
 	 *  @param refresh(u) is an optional function that can be used to adjust
 	 *  client data that is affected by the tree structure; it is called
 	 *  just after u is inserted
 	 *  @return the root of the resuling tree
 	 */
-	insertAfter(u, t=this.root(v), v, refresh=0) {
+	insertAfter(u, v, t=this.root(v), refresh=0) {
 		ea && assert(v || t, 
 					 'BinaryForest:insertAfter: either v or t must be defined');
 		if (t == u) return u;
@@ -493,6 +495,8 @@ export default class BinaryForest extends Top {
 	equals(that) {
 		that = super.equals(that);
 		if (typeof that == 'boolean') return that;
+		if (this.n != that.n) return false;
+
 		for (let u = 1; u <= this.n; u++) {
 			if (this.left(u) != that.left(u) || this.right(u) != that.right(u))
 				return false;
@@ -508,6 +512,8 @@ export default class BinaryForest extends Top {
 	setEquals(that) {
 		that = super.equals(that);
 		if (typeof that == 'boolean') return that;
+		if (this.n != that.n) return false;
+
 		let l = new List(this.n);
 		for (let u = 1; u <= this.n; u++) {
 			if (this.p(u)) continue;
@@ -535,6 +541,7 @@ export default class BinaryForest extends Top {
 	listEquals(that) {
 		that = super.equals(that);
 		if (typeof that == 'boolean') return that;
+
 		for (let u = 1; u <= this.n; u++) {
 			if (this.p(u)) continue;
 			let r1 = u; let r2 = that.root(u);
@@ -542,9 +549,7 @@ export default class BinaryForest extends Top {
 			while (v1 == v2 && v1 != 0) {
 				v1 = this.next(v1,r1); v2 = that.next(v2,r2);
 			}
-			if (v1 != v2) {
-				return false;
-			}
+			if (v1 != v2) return false;
 		}
 		return that;
 	}
@@ -616,48 +621,45 @@ export default class BinaryForest extends Top {
 	 *  like those produced by toString().
 	 *  @param s is a string representing a forest.
 	 *  @param prop is an optional function used to parse and
-	 *  process node properties.
-	 *  @param tprop is an optional function used to parse and
-	 *  process tree properties
+	 *  process node properties; it is called with two arguments,
+	 *  a node index and a Scanner
+	 *  @param treeProp is an optional function used to parse and
+	 *  process tree properties; it is called with two arguments,
+	 *  a tree root and a Scanner
 	 *  @return true on success, else false
 	 */
-	fromString(s,prop=0,tprop=0) {
+	fromString(s, prop=0, treeProp=0) {
 		let sc = new Scanner(s);
-		if (!tprop)
-			tprop = (sc) => {
-							let p = sc.nextNumber();
-							if (isNaN(p) || p <= 0) return -1;
-							return p;
-							};
-		
         if (!sc.verify('{')) return false;
-		// scan input building parent mapping
 		
 		let pmap = [];
+	 		// pmap is an array of pairs [u,p,side] representing a mapping
+	 		// from a node u to its parent, with side specifying that u is
+			// the left child (-1) or right child (+1)
+	
 		while (!sc.verify('}')) {
-			let treeProp = 0;
-			if (sc.verify('[')) {
-				sc.reset(-1);
-			} else {
-				treeProp = tprop(sc)
-				if (treeProp < 0) return false;
-			}
 			let root = this.nextSubtree(sc, pmap, prop);
 			if (!root < 0) return false;
-			pmap.push([root,-treeProp,0]);
+			if (treeProp && !treeProp(root,sc)) return false;
+			//pmap.push([root,0,0]);
 		}
+
+		// check for repeated nodes
 		let n = 0; let nodes = new Set();
 		for (let [u,p] of pmap) {
 			n = Math.max(n,u,p);
 			if (nodes.has(u)) return false;
 			nodes.add(u);
 		}
+		for (let [,p] of pmap) {
+			if (p < 0 || p > n) return false;
+		}
 
 		if (n != this.n) this.reset(n);
 		else this.clear();
+
 		for (let [u,p,side] of pmap) {
 			if (p > 0) this.link(u,p,side);
-			else this.property(u,-p);
 		}
 		return true;
 	}
@@ -670,20 +672,21 @@ export default class BinaryForest extends Top {
 	 *  0 or negative, in which case its inverse is the tree's property;
 	 *  nextSubtree adds new mappings to pmap
 	 *  @param prop is an optional function used to scan for an item property
+	 *  @param root is 1 if the tree being scanned is at the top level, else 0
 	 *  @return the root of the subtree scanned (possibly 0 for empty subtree)
 	 *  or -1 if no valid subtree
 	 */
-	nextSubtree(sc, pmap, prop=0) {
-		if (sc.verify('(') || sc.verify('[')) {
-			let t1 = this.nextSubtree(sc, pmap, prop);
+	nextSubtree(sc, pmap, prop=0, root=1) {
+		if (!root && sc.verify('(') || root && sc.verify('[')) {
+			let t1 = this.nextSubtree(sc, pmap, prop, 0);
 			if (t1 < 0) return -1;
 			let u = sc.nextIndex(prop);
 			if (u < 0) return -1;
-			let t2 = this.nextSubtree(sc, pmap, prop);
+			let t2 = this.nextSubtree(sc, pmap, prop, 0);
 			if (t2 < 0) return -1;
 			if (t1 && u) pmap.push([t1,u,-1]);
 			if (t2 && u) pmap.push([t2,u,+1]);
-			return ((sc.verify(')') || sc.verify(']')) ? u : -1);
+			return ((!root && sc.verify(')') || root && sc.verify(']')) ? u:-1);
 		}
 		let u = sc.nextIndex(prop);
 		return (u >= 0 ? u : -1);
@@ -697,34 +700,23 @@ export default class BinaryForest extends Top {
 	 *  @return on if success, else false
 	 */
 	fromListString(s, prop=0, listProp=0) {
-		let sc = new Scanner(s);
-		if (!sc.verify('{')) return false;
-		let lists = []; let n = 0; let items = new Set();
-		while (!sc.verify('}')) {
-			if (!sc.peek('[')) {
-				lists.push([[sc.nextIndex(prop)],'']);
-				continue;
-			}
-			let l = sc.nextIndexList('[', ']', prop);
-			if (!l) return false;
-			for (let i of l) {
-				n = Math.max(i, n);
-				if (items.has(i)) return false;
-				items.add(i);
-			}
-			if (listProp && !listProp(l[0],sc)) return false;
-			lists.push([l]);
-		}
+		let ls = new ListSet();
+		if (!ls.fromString(s, prop, listProp))
+			return false;
+		this.reset(ls.n);
 
-		if (n != this.n) this.reset(n);
-		else this.clear();
-		for (let [l] of lists) {
-			let t = l[0];
-			for (let u of l) {
-				t = this.append(t,u);
+		this.fromListSet(ls);
+        return true;
+	}
+
+	fromListSet(ls) {
+		for (let l = 1; l <= ls.n; l++) {
+			if (!ls.isfirst(l)) continue;
+			let t = l;
+			for (let u = ls.next(t); u; u = ls.next(u)) {
+				t = this.insertAfter(u,ls.prev(u),t);
 			}
 		}
-		return true;
 	}
 
 	/** Verify that object is self-consistent.

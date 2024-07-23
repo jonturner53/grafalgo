@@ -164,6 +164,8 @@ export default class ReverseLists extends Top {
 	equals(that) {
 		that = super.equals(that);
 		if (typeof that == 'boolean') return that;
+		if (this.n != that.n) return false;
+
 		for (let i = 1; i < this.n; i++) {
 			if (this.isFirst(i) != that.isFirst(i)) return false;
 			if (!this.isFirst(i)) continue;
@@ -201,7 +203,7 @@ export default class ReverseLists extends Top {
 	 *  @param s is a string, such as produced by toString().
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
+	fromString(s, prop=0) {
 		let sc = new Scanner(s);
 		if (!sc.verify('{')) return false;
 
@@ -214,13 +216,11 @@ export default class ReverseLists extends Top {
 				items.add(i);
 			}
 			lists.push(l);
-			if (!sc.verify(',')) break;
 			l = sc.nextIndexList('[', ']');
 		}
 		if (!sc.verify('}')) return false;
 
-		if (n != this.n) this.reset(n);
-		else this.clear();
+		this.reset(n);
 		for (l of lists) {
 			for (let i of l) {
 				if (i != l[0]) this.join(l[0], i);

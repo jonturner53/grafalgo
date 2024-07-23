@@ -7,7 +7,7 @@
  */
 
 import Top from '../Top.mjs';
-import List from '../basic/List.mjs';
+import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import BinaryForest from './BinaryForest.mjs';
 
@@ -69,15 +69,15 @@ export default class BalancedForest extends BinaryForest {
 	
 	/** Insert a singleton immediately after a node in a tree.
 	 *  @param u is a singleton
-	 *  @param t is the tree root
 	 *  @param v is a node in t which defines the point where u is
 	 *  to be inserted; if zero, u is inserted before all nodes in tree
+	 *  @param t is the tree root
 	 *  @param refresh(u) is an optional function that can be used to adjust
 	 *  client data that is affected by the tree structure; it is called
 	 *  just before the tree is rebalanced.
 	 */
-	insertAfter(u, t, v, refresh=0) {
-		return super.insertAfter(u, t, v, u => { if (refresh) refresh(u);
+	insertAfter(u, v, t, refresh=0) {
+		return super.insertAfter(u, v, t, u => { if (refresh) refresh(u);
 												this.rerankUp(u);
 												});
 	}
@@ -232,11 +232,7 @@ export default class BalancedForest extends BinaryForest {
 	 *  @return true if the trees in both have the same set of vertices
 	 *  and they appear in the same left-to-right order.
 	 */
-	equals(that) {
-		that = super.listEquals(that);
-		if (typeof that == 'boolean') return that;
-		return that;
-	}
+	equals(that) { return super.listEquals(that); }
 
 	/** Return a string representation of this object.
 	 *  @param u is a node in a tree
@@ -258,8 +254,15 @@ export default class BalancedForest extends BinaryForest {
 		return super.toString(fmt, nodeLabel, treeLabel);
 	}
 
-	/** Initialize this object from a string. */
-	fromString(s) { return super.fromListString(s); }
+	/** Initialize this from a string.
+	 *  @param s is a string representing a set of lists;
+	 *  since this data structure restructures the trees to maintain balance,
+	 *  it's really just the lists that are significant
+	 *  @return true on success
+	 */
+	fromString(s, prop=0, listProp=0) {
+		return super.fromListString(s, prop, listProp);
+	}
 
 	/** Determine if this object is self-consistent.
 	 *  In addition to verifying the tree structure, checks that the

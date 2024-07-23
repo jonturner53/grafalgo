@@ -22,7 +22,7 @@ try {
 	matches(eg.toString(), '{a[(f i l) (g k) (e)] b[(i l) (h j) (g k)] ' +
                            'c[(f h j) (e) (g h)] d[(f i) (e j) (k l)]}', 'a1');
 	matches(eg,'{a[(f i l)A (g k)B (e)C] b[(i l)D (h j)E (g k)F] ' +
-                'c[(f h j)G (e)H (g h)I] d[(f i)J (e j)K (k l)L]}', 'a2');
+               'c[(f h j)G (e)H (g h)I] d[(f i)J (e j)K (k l)L]}', 'a2');
 	let g1 = eg.group(eg.findEdge(10,7));
 	let g2 = eg.group(eg.findEdge(8,9));
 	matches(eg.group2string(g1), '(f h j)', 'a3');

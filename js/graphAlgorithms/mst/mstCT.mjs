@@ -65,7 +65,7 @@ export default function mstCT(g, trace=0) {
 		q.enq(trees.find(u));
 
 		if (trace) {
-			traceString += g.edge2string(e) + ' ' + q + ' ' + trees;
+			traceString += g.e2s(e) + ' ' + q + ' ' + trees;
 			if (g.n <= 26 && trace > 1) {
 				let s = epHeap.toString(0x2, ep =>
 						 g.x2s(g.left(~~(ep/2))) + g.x2s(g.right(~~(ep/2))),

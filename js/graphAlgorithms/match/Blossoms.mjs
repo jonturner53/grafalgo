@@ -566,20 +566,13 @@ Say grove?
 	 *  @param that is a Blossoms object to be compared to this
 	 */
 	equals(that) {
-		if (that === this) return true;
-		if (typeof that == 'string') {
-			let s = that;
-			that = new Blossoms(this.g, this.match);
-			ea && assert(that.fromString(s), 
-					'Blossoms.fromString cannot parse ' + s); 
-			if (!that.fromString(s)) return s == this.toString();
-		}
-        if (!(that instanceof Blossoms)) return false;
-		if (that.n != this.n) return false;
-		if (this.ids.length != that.ids.length) return false;
+		that = super.equals(that, [this.g, this.match, this.outerMethod]);
+		if ((typeof that) == 'boolean') return that;
 
 		if (!this.g.equals(that.g)) return false;
 		if (!this.match.equals(that.match)) return false;
+
+		if (this.ids.length != that.ids.length) return false;
 
 		// establish mapping between blossom ids in this and that
 		let bidmap = new Int32Array(this.n+1);

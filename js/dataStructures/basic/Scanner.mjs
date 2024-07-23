@@ -28,15 +28,13 @@ export default class Scanner extends Top {
 	 *  @param s specifies a new string to be scanned
 	 */
 	reset(i=0, s=this.buffer) {
-		this.cursor = (i >= 0 ? i : Math.max(0, this.cursor+i));
+		this.cursor = (i >= 0 ? Math.min(s.length, i) :
+								Math.max(0, this.cursor+i));
 		this.buffer = s;
 	}
 
-	/** Get the position of the cursor in the string.  */
-	get cursor() { return this.cursor; }
-
 	/** Get the length of the unscanned portion of the string.  */
-	get length() { return this.buffer.length - this.cursor; }
+	get length() { return Math.max(0, this.buffer.length - this.cursor); }
 
 	/** Return true if no non-space characters remaining. */
 	empty() { return this.firstNonSpace() == this.buffer.length; }
@@ -50,6 +48,7 @@ export default class Scanner extends Top {
 	 *  @param i0 is an optional starting position (relative to the current
 	 *  cursor position) from which to scan
 	 *  @return the (absolute) position of the first non-space character
+	 *  or -1 if there is no non-space character
 	 */
 	firstNonSpace(i0=0) {
 		i0 += this.cursor
@@ -61,9 +60,7 @@ export default class Scanner extends Top {
 	}
 
 	/** Skip whitespace.  */
-	skipspace() {
-		this.cursor = this.firstNonSpace();
-	}
+	skipspace() { this.cursor = this.firstNonSpace(); }
 
 	#zero = '0'.codePointAt(0);
 	#nine = '9'.codePointAt(0);
@@ -97,33 +94,27 @@ export default class Scanner extends Top {
 		return this.#A <= i && i <= this.#Z;
 	}
 
+	isalpha(c=this.buffer[this.cursor]) {
+		let i = c.codePointAt(0);
+		return c == '_' ||  (this.#a <= i && i <= this.#z) ||
+							(this.#A <= i && i <= this.#Z);
+	}
+
 	/** Verify that the next bit of text matches a string.
 	 *  @param s is text to be matched
 	 *  @param skip determines whether leading white space should be skipped.
+	 *  @param advance determines whether cursor is advanced when s is matched.
+	 *  @return true if s is a prefix of buffer[cursor].
 	 */
-	verify(s, skip=true) {
-		let c0 = skip ? this.firstNonSpace() : this.cursor;
-		if (c0 + s.length > this.buffer.length) {
-			this.cursor = c0; return false;
-		}
-		for (let i = 0; i < s.length; i++) {
-			if (s[i] != this.buffer[c0+i]) {
-				this.cursor = c0; return false;
-			}
-		}
-		this.cursor = c0 + s.length;
+	verify(s, skip=true, advance=true) {
+		if (skip) this.skipspace();
+		if (!this.buffer.startsWith(s,this.cursor))
+			return false;
+		if (advance) this.cursor += s.length;
 		return true;
 	}
 
-	/** Verify that the next bit of text matches a string without
-	 *  advancing cursor 
-	 */
-	peek(s, skip) {
-		let status = this.verify(s, skip);
-		if (status) this.reset(-s.length);
-		return status;
-	}
-
+	/** Get next character from buffer and advance cursor. */
 	nextchar() {
 		return (this.cursor < this.buffer.length ?
 							  this.buffer[this.cursor++] : 0);
@@ -136,16 +127,13 @@ export default class Scanner extends Top {
 	 *  remains at its original position.
 	 */
 	nextInt(skip=true) {
-		let c0 = skip ? this.firstNonSpace() : this.cursor;
-		let value = parseInt(this.buffer.slice(c0, c0+20));
+		if (skip) this.skipspace();
+		let chunk = this.buffer.slice(this.cursor, this.cursor+20);
+		let value = parseInt(chunk);
 		if (Number.isNaN(value)) return NaN;
-		if (this.buffer[c0] == '-' || this.buffer[c0] == '+') 
-			c0 = this.firstNonSpace(c0+1);
-		let i = c0;
-		for ( ; i < this.buffer.length; i++) {
-			if (!this.isdigit(this.buffer[i])) break;
-		}
-		this.cursor = i; return value;
+		let [prefix] = chunk.match(/^[+-]?\d+/);
+		this.cursor += prefix.length;
+		return value;
 	}
 
 	/** Get a numeric value (possibly floating point) from the scanned string.
@@ -154,34 +142,14 @@ export default class Scanner extends Top {
 	 *  not represent a number, NaN is returned and the cursor
 	 *  remains at its original position.
 	 */
-	nextNumber() {
-		let s = this.buffer; let n = s.length;
-		let i = this.firstNonSpace();
-		if (s.startsWith('Infinity',i)) return Infinity;
-		let value = parseFloat(s.slice(i, i+30));
+	nextNumber(skip=true) {
+		if (skip) this.skipspace();
+		let chunk = this.buffer.slice(this.cursor, this.cursor+30);
+		let value = parseFloat(chunk);
 		if (Number.isNaN(value)) return NaN;
-		if (s[i] == '-' || s[i] == '+') {
-			i = this.firstNonSpace((i+1) - this.cursor);
-		}
-		for ( ; i < n; i++) {
-			if (!this.isdigit(s[i])) break;
-		}
-		if (i == n || s[i] != '.') {
-			this.cursor = i; return value;
-		}
-		i++;	// skip past '.'
-		for ( ; i < n; i++) {
-			if (!this.isdigit(s[i])) break;
-		}
-		if (i == n || s[i] != 'e') {
-			this.cursor = i; return value;
-		}
-		i++; 	// skip past 'e'
-		if (s[i] == '+' || s[i] == '-') i++;
-		for ( ; i < n; i++) {
-			if (!this.isdigit(s[i])) break;
-		}
-		this.cursor = i; return value;
+		let [prefix] = chunk.match(/^([+-]?\d*((\.\d*)?([eE][+-]?\d{1,3})?)?)/);
+		this.cursor += prefix.length;
+		return value;
 	}
 
 	/** Scan next word.
@@ -192,30 +160,71 @@ export default class Scanner extends Top {
 	 *  string and do not update the scanner state.
 	 */
 	nextWord(skip=1) {
-		let s = this.buffer; let n = s.length;
-		let c0 = skip ? this.firstNonSpace() : this.cursor;
-		for (let i = c0; i < n; i++) {
-			if (this.islower(s[i]) || this.isupper(s[i]) ||
-				s[i] == '_' || (i > c0 && this.isdigit(s[i])))
+		if (skip) this.skipspace();
+		for (let i = this.cursor; i < this.buffer.length; i++) {
+			if (this.isalpha(this.buffer[i]) ||
+				(i > this.cursor && this.isdigit(this.buffer[i])))
 				continue;
-			if (i > c0) this.cursor = i;
-			return s.slice(c0, i); 
+			let word = this.buffer.slice(this.cursor,i);
+			this.cursor = i;
+			return word;
 		}
-		if (c0 < n) this.cursor = n;
-		return s.slice(c0);
+		let word = this.buffer.slice(this.cursor);
+		this.cursor = this.buffer.length;
+		return word;
 	}
 
-	/** Scan for a string enclosed in double quotes. */
-	nextString(skip=true) {
-		let s = this.buffer; let n = s.length;
-		if (!this.verify('"',skip)) return null;
-		let c0 = this.cursor;
-		for (let i = c0; i < n; i++) {
-			if (s[i] == '"') {
-				this.cursor = i+1; return s.slice(c0,i);
-			}
+	/** Scan for a string enclosed in a pair of delimiters.
+	 *  @param delim1 is an opening delimiters.
+	 *  @param delim2 is a closing delimiters.
+	 *  @param strip is a boolean that controls whether or not the
+	 *  the delimiters are stripped from the returned string
+	 *  @return the string (including the delimiters) if there is one,
+	 *  else null; delimiters may have length>1.
+	 */
+	nextString(skip=true, delim1='"', delim2 = '"', strip=true) {
+		if (skip) this.skipspace();
+		if (!this.buffer.startsWith(delim1, this.cursor)) return null;
+		let p = this.buffer.indexOf(delim2, this.cursor+delim1.length);
+		if (p < 0) return null;
+		let s='';
+		if (strip) {
+			s = this.buffer.slice(this.cursor+delim1.length, p);
+			this.cursor += delim1.length + s.length + delim2.length;
+		} else {
+			s = this.buffer.slice(this.cursor, p+delim2.length);
+			this.cursor += s.length;
 		}
-		this.cursor--; return null;
+		return s;
+	}
+
+	/* Scan for next string, number, array or object.
+	 * @param sc is scanner
+	 * @return the data item identified by the next portion of the scanned
+	 * string; note that this method does not handle nested objects
+	 * or arrays
+	 */
+	nextDatum(sc) {
+		if (sc.verify('"',1,0))  {
+			let s = sc.nextString(1);
+			return s == null ? null : s;
+		}
+		if (sc.verify('{',1,0)) {
+			let s = sc.nextString(1,'{','}',0);
+			if (s == null) return null;
+			try { let k = JSON.parse(s); return k; } catch { return null; }
+		}
+		if (sc.verify('[',1,0))  {
+			let s = sc.nextString(1,'[',']',0);
+			if (s == null) return null;
+			try { let k = JSON.parse(s); return k; } catch { return null; }
+		}
+		let c0 = this.cursor;
+		if (sc.verify('true') && !this.isalpha()) return true;
+		else this.cursor = c0;
+		if (sc.verify('false') && !this.isalpha()) return false;
+		else this.cursor = c0;
+		let n = sc.nextNumber(); return (n == NaN ? null : n);
 	}
 
 	/** Read an index value.
@@ -239,15 +248,15 @@ export default class Scanner extends Top {
 	 */
 	nextIndex(prop=0) {
 		let u = 0;
+		this.skipspace();
 		this.verify('*'); // ignore optional asterisk
-		let c0 = this.firstNonSpace();
-		if (this.buffer.charCodeAt(c0) == '-'.charCodeAt(0)) {
-			this.cursor = c0 + 1; u = 0;
-		} else if (this.islower(this.buffer[c0])) {
-			this.cursor = c0 + 1; 
-			u = this.buffer.charCodeAt(c0) - ('a'.charCodeAt(0) - 1);
+		if (this.buffer[this.cursor] == '-') {
+			u = 0; this.cursor++; 
+		} else if (this.islower(this.buffer[this.cursor])) {
+			u = this.buffer.charCodeAt(this.cursor) - (this.#a - 1);
+			this.cursor++;
 		} else {
-			u = this.nextInt();
+			u = this.nextInt(0);
 			if (Number.isNaN(u)) return -1;
 		}
 		return (u && prop && !prop(u, this) ? -2 : u);
@@ -261,19 +270,18 @@ export default class Scanner extends Top {
 	 */
 	nextIndexExt(prop=0, offset=26) {
 		let u = 0;
+		this.skipspace();
 		this.verify('*'); // ignore optional asterisk
-		let c0 = this.firstNonSpace();
-		if (this.buffer.charCodeAt(c0) == '-'.charCodeAt(0)) {
-			this.cursor = c0 + 1; u = 0;
-		} else if (this.islower(this.buffer[c0])) {
-			this.cursor = c0 + 1; 
-			u = this.buffer.charCodeAt(c0) - ('a'.charCodeAt(0) - 1);
-		} else if (this.isupper(this.buffer[c0])) {
-			this.cursor = c0 + 1; 
-			u = this.buffer.charCodeAt(c0) - ('A'.charCodeAt(0) - 1);
-			u += offset;
+		if (this.buffer[this.cursor] == '-') {
+			u = 0; this.cursor++; 
+		} else if (this.islower(this.buffer[this.cursor])) {
+			u = this.buffer.charCodeAt(this.cursor) - (this.#a - 1);
+			this.cursor++;
+		} else if (this.isupper(this.buffer[this.cursor])) {
+			u = this.buffer.charCodeAt(this.cursor) - (this.#A - 1);
+			this.cursor++;
 		} else {
-			u = this.nextInt();
+			u = this.nextInt(0);
 			if (Number.isNaN(u)) return -1;
 		}
 		return (u && prop && !prop(u, this) ? -2 : u);
@@ -288,16 +296,16 @@ export default class Scanner extends Top {
 	 *  @return list of index values or null on failure
 	 */
 	nextIndexList(ld, rd, prop=0) {
+		this.skipspace();
 		let l = []; let c0 = this.cursor;
 		if (!this.verify(ld)) return null;
-		for (let i = this.nextIndex(prop); i !=-1; i = this.nextIndex(prop)) {
+		for (let i = this.nextIndex(prop); i !=- 1; i = this.nextIndex(prop)) {
 			if (i == -2) return null;
 			l.push(i);
 		}
-		if (!this.verify(rd)) {
-			this.cursor = c0; l.length = 0; return null;
-		}
-		return l;
+		if (this.verify(rd)) return l;
+		this.cursor = c0;
+		return null;
 	}
 
 	/** Return the next line in the input.
@@ -306,10 +314,10 @@ export default class Scanner extends Top {
 	 *  return the empty string and leave the cursor unchanged.
 	 */
 	nextLine() {
-		let i = this.buffer.indexOf('\n');
+		let i = this.buffer.indexOf('\n', this.cursor);
 		if (i < 0) return '';
+		let line = this.buffer.slice(this.cursor, i+1);
 		this.cursor = i+1;
-		return this.buffer.slice(0, i+1);
+		return line;
 	}
 }
-

@@ -20,26 +20,21 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  */
 export default class KeySets extends BalancedForest {
 	Key;        // Key[u] is the key of item u
-	stringKey;  // true if the keys are strings
-	compare;    // function used to compare two strings
+	compare;    // function used to compare two keys
 
 	/** Constructor for KeySets object.
 	 *  @param n is index range for object
-	 *  @param stringKey is a flag; if true, the object is constructed using
-	 *  strings as the key values; otherwise, it uses Numbers
+	 *  @param compare is a function for comparing string values
 	 */
-	constructor(n=10, stringKey=false) {
-		super(n);
-		this.stringKey = stringKey;
-		this.compare = (stringKey ? (a,b) => a.localeCompare(b) :
-									 (a,b) => a-b);
-		this.Key = new Array(this.n+1).fill(this.stringKey ? '' : 0);
+	constructor(n=10, compare=((a,b)=>(a-b))) {
+		super(n); this.compare = compare;
+		this.Key = new Array(this.n+1);
 	}
 
 	/** Expand this object. */
 	expand(n) {
 		ea && assert(n > this.n);
-		let nu = new KeySets(n, this.stringKey);
+		let nu = new KeySets(n, this.compare);
 		nu.assign(this,true); this.xfer(nu);
 	}
 
@@ -48,7 +43,6 @@ export default class KeySets extends BalancedForest {
 	 */
 	assign(that, relaxed=false) {
 		super.assign(that, relaxed);
-		this.stringKey = that.stringKey;
 		this.compare = that.compare;
 		for (let u = 1; u <= that.n; u++)
 			this.key(u, that.key(u));
@@ -60,11 +54,10 @@ export default class KeySets extends BalancedForest {
 	xfer(that) {
 		super.xfer(that);
 		this.Key = that.Key; that.Key = null;
-		this.stringKey = that.stringKey; that.stringKey = null;
 		this.compare = that.compare; that.compare = null;
 	}
 
-	clear() { super.clear(); this.Key.fill(null); }
+	clear() { super.clear(); }
 
 	/** Find the set containing a given item. */
 	find(u) { return super.root(u); }
@@ -75,12 +68,12 @@ export default class KeySets extends BalancedForest {
 		return this.Key[u];
 	}
 	
-	/** Determine if a specified item is contained in a set.
+	/** Determine if a specified item is in a set.
 	 *  @param u is a set item
 	 *  @param s is a set
 	 *  @return true if u is in s, else false
 	 */
-	contains(u, s) { return s == this.find(u); }
+	in(u, s) { return s == this.find(u); }
 	
 	/** Lookup an item in a set based on its key.
 	 *  @param k is a key.
@@ -101,7 +94,9 @@ export default class KeySets extends BalancedForest {
 	insert(u, t, refresh=0) {
 		if (u > this.n) this.expand(u);
 		return super.insertByKey(u, t, this.Key,
-								 (a,b) => this.compare(a,b), refresh);
+								 (a,b) => { 
+											let result = this.compare(a,b);
+											return result;}, refresh);
 	}
 
 	/** Determine if two KeySets objects are equal.
@@ -110,22 +105,12 @@ export default class KeySets extends BalancedForest {
 	 *  keys match; otherwise return false
 	 */
 	equals(that) {
-		if (this === that) return true;
-
-		// must handle the string case here to ensure that
-		// has correct stringKey value
-        if (typeof that == 'string') {
-            let s = that;
-			that = new KeySets(this.n, this.stringKey);
-			if (!that.fromString(s)) return s == this.toString();
-			if (that.n > this.n) return false;
-			if (that.n < this.n) that.expand(this.n);
-        }
-
-		if (!super.setEquals(that)) return false;
+		that = super.setEquals(that, [this.n, this.compare]);
+		if (typeof that == 'boolean') return that;
+		if (this.n != that.n) return false;
 
 		for (let u = 1; u <= this.n; u++) {
-			if (this.key(u) != that.key(u)) return false;
+			if (this.compare(this.key(u), that.key(u))) return false;
 		}
 		return that;
 	}
@@ -141,13 +126,21 @@ export default class KeySets extends BalancedForest {
 	 *  additional node fields following the key
 	 *  numerical values, not letters.
 	 */
-	toString(fmt=0b010, label=0) {
+	toString(fmt=0x2, label=0) {
 		if (!label) {
-			label = (x => this.x2s(x) + ':' +
-						  (this.stringKey ? `"${this.key(x)}"` : this.key(x)) +
-					 (fmt&0x8 && this.rank(x) > 1 ? ':' + this.rank(x) : ''));
+			label =
+				(x => {
+					return this.x2s(x) + ':' + this.key2string(this.key(x)) +
+					 	 ((fmt&0x8) && this.rank(x)>1 ? ':'+this.rank(x) : '');
+				});
 		}
 		return super.toString(fmt,label);
+	}
+
+	key2string(k) {
+		if ((typeof k) == 'string') return '"' + k + '"';
+		if ((typeof k) == 'number' || (typeof k) == 'boolean') return k;
+		if ((typeof k) == 'object') return JSON.stringify(k);
 	}
 	
 	/** Initialize this KeySets object from a string.
@@ -155,33 +148,43 @@ export default class KeySets extends BalancedForest {
 	 *  @return on if success, else false
 	 */
 	fromString(s) {
-		let ls = new ListSet(); let key = [];
+		let ls = new ListSet(); let keyMap = [];
 		if (!ls.fromString(s, (u,sc) => {
-							if (!sc.verify(':')) return true;
-							let k;
-							if (this.stringKey) {
-								k = sc.nextString();
-								if (k == null) return false;
-							} else {
-								k = sc.nextNumber();
-								if (isNaN(k)) return false;
-							}
-							key[u] = k;
+							if (!sc.verify(':')) return false;
+							let k = this.nextKey(sc);
+							if (k == null) return false;
+							keyMap.push([u,k]);
 							return true;
 						}))
 			return false;
+		this.reset(ls.n, this.compare);
 
-		if (ls.n != this.n) this.reset(ls.n, this.stringKey);
-		else this.clear();
+		for (let [u,k] of keyMap) this.key(u,k);
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
-			this.key(u, key[u]);
 			let s = u;
 			for (let i = ls.next(u); i; i = ls.next(i)) {
-				this.key(i, key[i]);
 				s = this.insert(i,s);
 			}
 		}
 		return true;
+	}
+
+	nextKey(sc) {
+		if (sc.verify('"',1,0))  {
+			let s = sc.nextString(0);
+			return s == null ? false : s;
+		}
+		if (sc.verify('{',1,0)) {
+			let s = sc.nextString(1,'{','}',0);
+			if (s == null) return null;
+			try { let k = JSON.parse(s); return k; } catch { return null; }
+		}
+		if (sc.verify('[',1,0))  {
+			let s = sc.nextString(1,'[',']',0);
+			if (s == null) return null;
+			try { let k = JSON.parse(s); return k; } catch { return null; }
+		}
+		let n = sc.nextNumber(); return (n == NaN ? null : n);
 	}
 }

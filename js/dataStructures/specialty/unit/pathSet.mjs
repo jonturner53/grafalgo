@@ -19,26 +19,31 @@ try {
 
 	matches(ps, '{[b:1] [a:5 f:2 c:4]g [d:2 g:3 e:4]}', 'a1');
 	matches(ps.toString(0xe),
-			'{b:1:1 [a:5:3 *f:2:2 c:4:2]g [d:2:0 *g:3:2:1 e:4:2]}', 'a2');
+			'{b:1:1 [(a:5:3 f:2:0 -) *c:4:2:2 -]g ' +
+			'[(d:2:0 g:3:0:1 -) *e:4:2:2 -]}', 'a2');
 	let [r,c] = ps.findpathcost(6);
 	matches(r, 6, 'a3'); matches(c, 2, 'a4');
 	matches(ps.toString(0xe),
-			'{b:1:1 [a:5:3 *f:2:2 c:4:2]g [d:2:0 *g:3:2:1 e:4:2]}', 'a5');
-	ps.join(7, 2, 6);
-	matches(ps, '{[d:2 g:3 e:4 *b:1 a:5 f:2 c:4]}', 'a6');
+			'{b:1:1 [(d:2:0 g:3:0:1 -) *e:4:2:2 -] [a:5:3 *f:2:2 c:4:2]g}',
+			'a5');
+	ps.join(5, 2, 6);
+	matches(ps, '{[d:2 g:3 e:4 b:1 a:5 f:2 c:4]}', 'a6');
 	matches(ps.toString(0xe),
-		'{[(d:2:0 g:3:1:1 e:4:2) *b:1:1 (a:5:3 f:2:1 c:4:2)]g}', 'a7');
+		'{[((d:2:0 g:3:0:1 -) e:4:1:2 -) *b:1:1 (a:5:3 f:2:1 c:4:2)]g}', 'a7');
 	ps.findtail(2);
 	matches(ps.toString(0xe),
-		'{[(((d:2:0 g:3:1:1 e:4:2) b:1:0 a:5:4) f:2:0:1 -) *c:4:1:3 -]g}','a8');
+		'{[((((d:2:0 g:3:0:1 -) e:4:1:2 -) b:1:0 a:5:4) f:2:0:1 -) ' +
+		'*c:4:1:3 -]g}', 'a8');
 	ps.split(5);
 	matches(ps, '{[b:1 a:5 f:2 c:4] [e:4] [d:2 g:3]}', 'a9');
 	matches(ps.toString(0xe),
-		'{e:4:4 [(- b:1:0 a:5:4) *f:2:1:1 c:4:3] [d:2:0 *g:3:2:1 -]}', 'a10');
-	[r, c] = ps.findpathcost(6);
+		'{[(- b:1:0 (a:5:3 f:2:1 -)) *c:4:1:3 -] e:4:4 [d:2:0 *g:3:2:1 -]}',
+		'a10');
+	[r, c] = ps.findpathcost(3);
 	matches(r, 2, 'a11'); matches(c, 1, 'a12');
 	matches(ps.toString(0xe),
-		'{[- *b:1:1 (a:5:3 f:2:1 c:4:2)] e:4:4 [d:2:0 *g:3:2:1 -]}', 'a13');
+		'{[- *b:1:1 ((a:5:3 f:2:0 -) c:4:1:2 -)] e:4:4 [d:2:0 *g:3:2:1 -]}',
+		'a13');
 	matches(ps.cost(1), 5, 'a14'); matches(ps.mincost(2), 1, 'a15');
 
 } catch(e) {

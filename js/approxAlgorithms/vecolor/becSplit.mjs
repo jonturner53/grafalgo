@@ -8,9 +8,10 @@
 
 import {assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
+import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import findSplit from '../../graphAlgorithms/misc/findSplit.mjs';
-import bimatchF from '../../graphAlgorithms/match/bimatchF.mjs';
+import bidcsF from '../../graphAlgorithms/vmatch/bidcsF.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 import ecolorG from '../../graphAlgorithms/ecolor/ecolorG.mjs';
 import becDegreeBound from './becDegreeBound.mjs';
@@ -23,14 +24,15 @@ import becDegreeBound from './becDegreeBound.mjs';
 export default function becSplit(g, trace=0) {
 	let ts = ''; let steps = 0;
 
-	let subsets = findSplit(g);
-	if (!subsets) throw exception
+	if (!g.bipartite) throw exception
+	let io = new ListPair(g.n);
+	for (let u = g.firstInput(); u; u = g.nextInput(u)) io.swap(u);
 
 	let bmax = 0;
 	for (let e = g.first(); e; e = g.next(e))
 		bmax = Math.max(bmax, g.bound(e));
 	let k = ~~(bmax/2);
-	let gk = new Graph(g.n,g.edgeRange);
+	let gk = new Graph(g.n,g.edgeRange); gk.split(io);
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (g.bound(e) <= k) gk.join(g.left(e),g.right(e),e);
 	}
@@ -42,42 +44,37 @@ export default function becSplit(g, trace=0) {
 	let dmax = new Int32Array(g.n+1).fill(k);
 	let [lo,hi] = [becDegreeBound(g), bmax+g.maxDegree()-1];
 	steps += g.n + g.m * Math.ceil(Math.log(g.m));
+
 	if (hi <= lo) hi = lo+1;
 	let H; let C; let mstats;
 	while (lo < hi) {
-		// search for largest C for which G cannot be split into H and J
-		// cannot split on C=lo, can split on C=hi
-		C = ~~((lo + hi + 1)/2);
+		// search for smallest C for which G can be split into H and J
+		C = ~~((lo + hi)/2);
 		for (let u = 1; u <= gk.n; u++)
 			dmin[u] = Math.max(0, d[u] - (C-k));
-		[H,,mstats] = bimatchF(gk, subsets, dmin, dmax);
+		[H,,mstats] = bidcsF(gk, dmax, dmin);
 			// H is a Graph object with edges defining subset of g
-		steps += mstats.steps;
-		for (let u = 1; u <= H.n; u++) {
-			steps++;
-			if (H.degree(u) < dmin[u]) {
-				lo = C; break;
-			} else if (u == H.n) {
-				hi = C-1; break;
-			}
-		}
+		if (H) { hi = C; steps += mstats.steps; }
+		else	 lo = C+1;
 	}
-	C = lo+1;  // smallest C for which G can be split
+	C = hi;  // smallest C for which G can be split
+
 	// compute H and J for final value of C
 	for (let u = 1; u <= gk.n; u++)
 		dmin[u] = Math.max(0, d[u] - (C-k));
-	[H,,mstats] = bimatchF(gk, subsets, dmin, dmax);
+	[H,,mstats] = bidcsF(gk, dmax, dmin);
 	steps += mstats.steps;
-	let J = new Graph(g.n, g.edgeRange);
+	let J = new Graph(g.n, g.edgeRange); J.split(io);
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (!H.validEdge(e)) J.join(g.left(e),g.right(e),e);
 	}
+
 	// color H and J and transfer results to color for g
 	let color = new Int32Array(g.edgeRange+1);
 	let [colorH] = ecolorG(H);
 	for (let e = H.first(); e; e = H.next(e)) 
 		color[e] = (k-1) + colorH[e];
-	let [colorJ] = ecolorG(J);
+	let [colorJ,x] = ecolorG(J); ts += x;
 	for (let e = J.first(); e; e = J.next(e)) 
 		color[e] = (bmax-1) + colorJ[e];
 	steps += g.n + g.m;
@@ -85,6 +82,10 @@ export default function becSplit(g, trace=0) {
 		ts += g.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
                               `${g.bound(e)}/${color[e]}` +
 							  (H.validEdge(e) ? '.' : ''));
+		ts += H.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
+                              `${colorH[e]}`);
+		ts += J.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
+                              `${colorJ[e]}`);
 		ts = ts.slice(0,-1);
 	}
 	return [color, ts, { 'C': Math.max(...color), 'steps': steps }];

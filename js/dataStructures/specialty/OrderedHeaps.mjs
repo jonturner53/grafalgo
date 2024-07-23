@@ -54,7 +54,7 @@ export default class OrderedHeaps extends BalancedForest {
 			if (that.p(h)) continue;
 			let hh = that.first(h);
 			for (let u = that.next(hh); u; u = that.next(u))
-				hh = this.insertAfter(u, hh, that.key(u,h), that.prev(u));
+				hh = this.insertAfter(u, that.key(u,h), that.prev(u), hh);
 		}
 		this.clearStats();
 	}
@@ -130,32 +130,32 @@ export default class OrderedHeaps extends BalancedForest {
 
 	/** Insert an item in a heap.
 	 *  @param i is a heap item
-	 *  @param h is the heap into which i is inserted
 	 *  @param k is the key with which i is inserted
+	 *  @param h is the heap into which i is inserted
 	 *  @return id of modified heap.
 	 */
-	insert(i, h, k) {
-		return this.insertAfter(i, h, k, this.last(h));
+	insert(i, k, h) {
+		return this.insertAfter(i, k, this.last(h), h);
 	}
 
 	/** Insert item into a heap. 
 	 *  @param i is a singleton
 	 *  linear ordering of the heap items; if j=0, i is inserted before the
 	 *  first item in the heap.
+	 *  @param k is the key under which i is inserted
+	 *  @param j is an item in h; item i is inserted immediately after j
 	 *  @param h is a heap into which i is to be inserted; if h=0, the
 	 *  the singleton heap i is returned
-	 *  @param k is the key under which i is inserted
-	 *  @param j is an item in h; item i is inserted immediately after j in the
 	 *  @return the id of the modified heap
 	 */
-	insertAfter(i, h, k, j) {
+	insertAfter(i, k, j, h=this.find(j)) {
 		ea && assert(this.valid(i) && this.valid(j) && this.valid(h));
 		if (h == 0) {
 			this.Key[i] = this.Minkey[i] = k; return i;
 		}
 		let offset = this.offset[h];
 		this.Key[i] = k - offset; this.Minkey[i] = this.Key[i];
-		h = super.insertAfter(i, h, j, x => this.refresh(x));
+		h = super.insertAfter(i, j, h, x => this.refresh(x));
 		this.offset[h] = offset;
 		return h;
 	}
@@ -274,6 +274,8 @@ export default class OrderedHeaps extends BalancedForest {
 	equals(that) {
 		that = super.listEquals(that);
         if (typeof that == 'boolean') return that;
+		if (this.n != that.n) return false;
+
 		for (let i = 1; i <= this.n; i++) {
 			if (this.key(i,this.find(i)) != that.key(i,this.find(i)))
 				return false;
@@ -312,7 +314,7 @@ export default class OrderedHeaps extends BalancedForest {
 	fromString(s) {
 		let ls = new ListSet(); let key = [];
 		ls.fromString(s, (u,sc) => {
-							if (!sc.verify(':')) {
+							if (!sc.verify(':',0)) {
 								key[u] = 0; return true;
 							}
 							let p = sc.nextNumber();
@@ -320,15 +322,15 @@ export default class OrderedHeaps extends BalancedForest {
 							key[u] = p;
 							return true;
 						});
-		if (ls.n != this.n) this.reset(ls.n);
-		else this.clear();
+		this.reset(ls.n);
+
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
 			this.Key[u] = key[u];
 			this.Minkey[u] = key[u];
 			let h = u; let pi = u;
 			for (let i = ls.next(u); i; i = ls.next(i)) {
-				h = this.insertAfter(i, h, key[i], pi);
+				h = this.insertAfter(i, key[i], pi, h);
 				pi = i;
 			}
 		}

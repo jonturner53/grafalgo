@@ -121,6 +121,7 @@ export default class ListPair extends Top {
 	 *  into the other list, following item j, or at the start if j=0.
 	 */
 	swap(i, j=-1) {
+assert(i > 0 && i <= this.n, i + ' ' + this.n);
 		if (j < 0) j = this.in(i,1) ? this.last(2) : this.last(1);
 
 		ea && assert(this.valid(i) && i && this.valid(j));
@@ -182,6 +183,8 @@ export default class ListPair extends Top {
 	equals(that) {
 		that = super.equals(that);
 		if (typeof that == 'boolean') return that;
+		if (this.n != that.n) return false;
+
 		let i = this.first(1); let j = that.first(1);
 		while (i && i == j) { i = this.next(i); j = that.next(j); }
 		if (i != j) return false;
@@ -214,7 +217,7 @@ export default class ListPair extends Top {
 	 *  @param s is a string, such as produced by toString().
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
+	fromString(s, prop=0) {
 		let sc = new Scanner(s);
 
 		// first read values into two lists
@@ -238,8 +241,7 @@ export default class ListPair extends Top {
         }
 		
 		// initialize this
-		if (n != this.n) this.reset(n);
-		else this.clear();
+		this.reset(n);
         for (let i of l1) this.swap(i);
         for (let i of l2) { this.swap(i); this.swap(i); }
 			// double swap produces correct order for list 2

@@ -160,8 +160,8 @@ export default class LeftistHeaps extends BinaryForest {
 	 *  or a string representing an LeftistHeaps object.
 	 *  @return true, false or an object
 	 */
-	equals(that) {
-		that = super.setEquals(that);
+	equals(that, consArgs=[this.n]) {
+		that = super.setEquals(that, consArgs);
         if (typeof that == 'boolean') return that;
 		for (let i = 1; i <= this.n; i++) {
 			if (this.key(i) != that.key(i)) return false;
@@ -195,7 +195,7 @@ export default class LeftistHeaps extends BinaryForest {
 	fromString(s) {
 		let ls = new ListSet(); let key = [];
 		if (!ls.fromString(s, (u,sc) => {
-							if (!sc.verify(':')) {
+							if (!sc.verify(':',0)) {
 								key[u] = 0; return true;
 							}
 							let p = sc.nextNumber();
@@ -204,8 +204,8 @@ export default class LeftistHeaps extends BinaryForest {
 							return true;
 						}))
 			return false;
-		if (ls.n != this.n) this.reset(ls.n);
-		else this.clear();
+		this.reset(ls.n);
+
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
 			this.key(u, key[u]);

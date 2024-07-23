@@ -36,13 +36,13 @@ try {
 		r = lh.lazyMeld(r, 4);
 		r = lh.lazyMeld(r, 5);
 		r = lh.lazyMeld(r, 6);
-	matches(lh, '{g:7 h:8 i:9 j:10 [a:1 b:2 c:3 d:4 e:5 f:6]}', 'a7');
+	matches(lh, '{g:7 h:8 i:9 j:10 [a:1 b:2 c:3 d:4 e:5 f:6]}', 'a8');
 	matches(lh.toString(0x1e),
-		'{g:7 h:8 i:9 j:10 [((((a:1 ! b:2) ! c:3) ! d:4) ! e:5) * f:6]}','a8');
+		'{g:7 h:8 i:9 j:10 [((((a:1 ! b:2) ! c:3) ! d:4) ! e:5) * f:6]}','a9');
 	lh.findmin(r);
-	matches(lh, '{[d:4 c:3 f:6 e:5 a:1 b:2] [g:7] [h:8] [i:9] [j:10]}', 'a9');
+	matches(lh, '{[d:4 c:3 f:6 e:5 a:1 b:2] [g:7] [h:8] [i:9] [j:10]}', 'a10');
 	matches(lh.toString(0x1e),
-		'{[(d:4 c:3:2 (f:6 e:5 -)) *a:1:2 b:2] g:7 h:8 i:9 j:10}', 'a10');
+		'{[(d:4 c:3:2 (f:6 e:5 -)) *a:1:2 b:2] g:7 h:8 i:9 j:10}', 'a11');
 
 } catch(e) {
     if (e instanceof Mismatch) {

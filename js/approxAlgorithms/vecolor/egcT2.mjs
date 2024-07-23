@@ -124,10 +124,11 @@ function expandPalettes(C, Delta_o) {
 	let pg = new Graph(eg.n_g+C, Delta_o*C);
 	let io = new ListPair(eg.n_g + C);
 	for (let g = 1; g <= eg.n_g; g++) io.swap(g);
+	pg.split(io);
 
 	// define a palette expansion graph
 	let xg = new Flograph(eg.n_g+C+2, Delta_o*C + Delta_o + C);
-	xg.setSource(xg.n-1); xg.setSink(xg.n);
+	xg.source = xg.n-1; xg.sink = xg.n;
 
 	for (let v = eg.n_i+1; v <= eg.n_i + eg.n_o; v++) {
 		let dv = eg.graph.degree(v);
@@ -156,7 +157,7 @@ function expandPalettes(C, Delta_o) {
 				let cv = eg.n_g+c;
 				xe = xg.join(g, cv); xg.cap(xe, 1);
 				xg.cost(xe, egc.owner(c,u) == g ? 0 : psize);
-				if (!xg.firstOut(cv)) {
+				if (!xg.firstOutof(cv)) {
 					xe = xg.join(cv,xg.sink); xg.cap(xe, 1);
 				}
 			}
@@ -164,9 +165,10 @@ function expandPalettes(C, Delta_o) {
 		if (uncolored == 0) continue;
 		mcflowJEK(xg);
 		if (xg.totalFlow() != eg.graph.degree(v)) return false;
-		for (let e = xg.firstOut(xg.source); e; e = xg.nextOut(xg.source,e)) {
+		for (let e = xg.firstOutof(xg.source); e;
+				 e = xg.nextOutof(xg.source,e)) {
 			let g = xg.mate(xg.source,e); let u = eg.hub(g);
-			for (let xe = xg.firstOut(g); xe; xe = xg.nextOut(g,xe)) {
+			for (let xe = xg.firstOutof(g); xe; xe = xg.nextOutof(g,xe)) {
 				let c = xg.mate(g,xe) - eg.n_g;
 				if (xg.f(xe) == 1 && !egc.owner(c,u)) egc.bind(c,g);
 			}

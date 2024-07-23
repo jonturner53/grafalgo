@@ -23,7 +23,7 @@ let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
 let g = new Graph();
-g.fromString('{a[f g j] b[g h i] c[f i j] d[f h j] e[h i]}');
+g.fromString('{ a[e i i] b[j j] c[f g k] d[e g h]}');
 tester.addTest('small graph', g);
 
 g = randomRegularBigraph(7, 5); tester.addTest('small random (7,5)', g);

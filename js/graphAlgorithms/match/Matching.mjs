@@ -107,18 +107,10 @@ export default class Matching extends Top {
 	 *  @return true if they contain the same edges
 	 */
 	equals(that) {
-		if (this === that) return true;
-        if (typeof that == 'string') {
-			if (!('fromString' in this)) 
-				return this.toString() == that.toString();
-            let s = that;
-			that = new this.constructor(this.g);
-			that.fromString(s);
-        }
-		if (that.constructor.name != this.constructor.name ||
-		    that.n != this.n) {
-			return false;
-		}
+		that = super.equals(that, [this.g]);
+		if ((typeof that) == 'boolean') return that;
+		if (this.n != that.n) return false;
+
 		if (!this.elist.setEquals(that.elist)) return false;
 		return that;
 	}
@@ -150,16 +142,16 @@ export default class Matching extends Top {
 			let u = 0; let v = 0;
 			if (sc.verify('{')) {
 				u = sc.nextIndex();
-				if (Number.isNaN(u)) return false;
+				if (u == NaN) return false;
 				if (!sc.verify(',')) return false;
 				v = sc.nextIndex();
-				if (Number.isNaN(v)) return false;
+				if (v == NaN) return false;
 				if (!sc.verify('}')) return false;
 			} else if (this.g.n <= 26) {
 				u = sc.nextIndex();
-				if (Number.isNaN(u)) return false;
+				if (u == NaN) return false;
 				v = sc.nextIndex();
-				if (Number.isNaN(v)) return false;
+				if (v == NaN) return false;
 			} else {
 				return false;
 			}

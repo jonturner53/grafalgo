@@ -12,7 +12,7 @@ import KeySets from './KeySets.mjs';
 
 import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
-/** This class implements a key set with two keys.
+/** This class implements a key set with two integer keys.
  *  The primary key is the usual one. The data structure supports
  *  an efficient findmin operation on the secondary key, where
  *  the search is limited to those items with a primary key
@@ -184,14 +184,14 @@ export default class DualKeySets extends KeySets {
 	 *		001000 specifies that min2 be shown
 	 *  @param label is an optional function used to extend node labels
 	 */
-	toString(fmt=0x2, label=0) {
+	toString(fmt=0x00, label=0) {
 		if (!label) {
 			label = (u => {
-					let s = `${this.x2s(u)}:${this.key(u)}:${this.key2(u)}`;
-					if ((fmt&8) && (fmt&4) && (this.min2(u)!=this.key2(u)))
-						s += `:${this.min2(u)}`;
-					return s;
-				});
+						let s = `${this.x2s(u)}:${this.key(u)}:${this.key2(u)}`;
+						if ((fmt&8) && (fmt&4) && (this.min2(u)!=this.key2(u)))
+							s += `:${this.min2(u)}`;
+						return s;
+					});
 		}
 		return super.toString(fmt&7,label);
 	}
@@ -204,11 +204,11 @@ export default class DualKeySets extends KeySets {
 		let ls = new ListSet();
 		let key = []; let key2 = [];
 		if (!ls.fromString(s, (u,sc) => {
-							if (!sc.verify(':')) return false;
+							if (!sc.verify(':',0)) return false;
 							let p = sc.nextNumber();
 							if (Number.isNaN(p)) return false;
 							key[u] = p;
-							if (!sc.verify(':')) return false;
+							if (!sc.verify(':',0)) return false;
 							p = sc.nextNumber();
 							if (Number.isNaN(p)) return false;
 							key2[u] = p;

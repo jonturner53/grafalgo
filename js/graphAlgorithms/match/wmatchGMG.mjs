@@ -367,11 +367,11 @@ function newPhase() {
 			for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
 				// insert dummy edge for u in b's subheap within exh
 				let e = u + g.edgeRange;
-				exh.insertAfter(e, b, Infinity, laste); laste = e;
+				exh.insertAfter(e, Infinity, laste, b); laste = e;
 				for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 					let v = g.mate(u,e); let V = bloss.outer(v);
 					if (bloss.state(V) == +1) {
-						exh.insertAfter(e, b, slack(e), laste); laste = e;
+						exh.insertAfter(e, slack(e), laste, b); laste = e;
 					}
 				}
 				steps++;
@@ -487,7 +487,7 @@ function addEXedges(b) {
 			if (bloss.state(V) == +1)
 				eeh.insert(e,slack(e)/2);
 			else {// V is odd or unbound
-				exh.insertAfter(e, V, slack(e), v+g.edgeRange);
+				exh.insertAfter(e, slack(e), v+g.edgeRange, V);
 			}
 		}
 	}

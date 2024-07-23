@@ -21,7 +21,7 @@ import { randomRegularBigraph }
  *  @return a graph with random bounds
  */
 export default function becRandomCase(n, d, maxBound=d, speedup=1) {
-	let g = randomRegularBigraph(n,d); g.addBounds();
+	let g = randomRegularBigraph(n,d); g.hasBounds = 1;
 	for (let u = 1; u <= n; u++) {
 		let bu = randomSample(maxBound, d); let i = 1;
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {

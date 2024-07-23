@@ -13,13 +13,6 @@ import DualKeySets from '../DualKeySets.mjs';
 try {
 	console.log('testing DualKeySets');
 
-{
-let dk = new DualKeySets();
-dk.fromString('{[b:2:21 a:1:23 d:4:20 c:3:27] ' +
-			  '[h:8:20 g:7:30 j:10:31 i:7:27 f:6:37] e:5:29}');
-console.log(dk.toString());
-console.log(dk.toString(0xe));
-}
 	let dk = new DualKeySets();
 	dk.fromString('{[b:2:21 a:1:23 d:4:20 c:3:27] ' +
 				  '[h:8:20 g:7:30 j:10:31 i:7:27 f:6:37] [e:5:29]}');

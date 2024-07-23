@@ -69,9 +69,9 @@ export default class Graph extends Top {
 			this.Weight = null;
 		}
 	}
-	set hasLengths(on) { this.hasWeights(on); }
-	set hasCosts(on)   { this.hasWeights(on); }
-	set hasBounds(on)  { this.hasWeights(on); }
+	set hasLengths(on) { this.hasWeights = on; }
+	set hasCosts(on)   { this.hasWeights = on; }
+	set hasBounds(on)  { this.hasWeights = on; }
 
 	/** Expand the vertex range and/or edge range of this object.
 	 *  @param n is the desired new vertex range
@@ -120,8 +120,9 @@ export default class Graph extends Top {
 		this.Left = that.Left; this.Right = that.Right;
 		this.Weight = that.Weight;
 		this.edges = that.edges; this.epLists = that.epLists;
+		this.io = that.io;
 		that.firstEp = that.Left = that.Right = that.Weight = null;
-		that.edges = null; that.epLists = null;
+		that.edges = that.epLists = that.io = null;
 	}
 
 	/** Remove all the edges from a graph.  */
@@ -226,7 +227,7 @@ export default class Graph extends Top {
 
 	/** Define a bipartition on the graph.
 	 *  @param io is an optional ListPair that divides the vertices into
-	 *  "inputs" and "outputs" and defines an bipartition; if not supplied,
+	 *  "inputs" and "outputs" and defines a bipartition; if not supplied,
 	 *  a bipartition is computed.
 	 *  @return true if the graph is bipartite; if io is supplied, the graph
 	 *  is assumed to be bipartite.
@@ -262,6 +263,13 @@ export default class Graph extends Top {
 
 	isInput(u) { return this.io.in(u,1); }
 	isOutput(u) { return this.io.in(u,2); }
+
+	input(e)  {
+		return this.isInput(this.left(e)) ? this.left(e) : this.right(e);
+	}
+	output(e) {
+		return this.isOutput(this.left(e)) ? this.left(e) : this.right(e);
+	}
 
 	/** Return first input defined by bipartition io. */
 	firstInput() { return this.io.first(1); }
@@ -446,17 +454,11 @@ export default class Graph extends Top {
 	 *  @return true if that is equal to this
 	 */
 	equals(that) {
-		if (this === that) return true;
-		// handle string case here
-        if (typeof that == 'string') {
-            let s = that; that = new this.constructor();
-			if (!that.fromString(s)) return s == this.toString();
-			if (that.n > this.n) return false;
-			if (that.n < this.n)
-				that.expand(this.n,that.edgeRange);
-        } else if (!super.equals(that)) return false;
+		that = super.equals(that, [this.n, this.edgeRange]);
+		if ((typeof that) == "boolean") return that;
+		if (this.n != that.n || that.m != this.m) return false;
+
 		// now compare the edges using sorted edge lists
-		if (that.m != this.m) return false;
 		let el1 = this.sortedElist(); let el2 = that.sortedElist();
 		for (let i = 0; i < el1.length; i++) {
 			let e1 = el1[i]; let e2 = el2[i];
@@ -601,7 +603,7 @@ export default class Graph extends Top {
 						n = Math.max(n,v);
 						let i = pairs.length;
 						if (u < v) pairs.push([u,v]);
-						if (sc.verify(':')) {
+						if (sc.verify(':',0)) {
 							let w = sc.nextNumber();
 							if (Number.isNaN(w)) return false;
 							if (u < v) weights[i] = w;
@@ -611,11 +613,9 @@ export default class Graph extends Top {
 
 		if (!this.parseString(s, vnext, enext)) return false;
 
-		// configure graph
-		let erange = Math.max(1,pairs.length);
-		if (n != this.n || erange > this.erange) this.reset(n, erange);
-		else this.clear();
+		this.reset(n, Math.max(1,pairs.length));
 
+		// configure graph
 		for (let i = 0; i < pairs.length; i++) {
 			let [u,v] = pairs[i];
 			let e = this.join(u,v);

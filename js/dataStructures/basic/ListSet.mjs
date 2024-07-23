@@ -191,6 +191,8 @@ export default class ListSet extends Top {
 	equals(that) {
 		that = super.equals(that);
 		if (typeof that == 'boolean') return that;
+		if (this.n != that.n) return false;
+
 		for (let i = 1; i < this.n; i++) {
 			if (this.isfirst(i) != that.isfirst(i)) return false;
 			if (!this.isfirst(i)) continue;
@@ -265,21 +267,22 @@ export default class ListSet extends Top {
 	 *  first item in the list and a Scanner
 	 *  @return true on success, else false
 	 */
-	fromString(s,prop=0,listLabel=0) {
+	fromString(s, prop=0, listLabel=0) {
 		let sc = new Scanner(s);
 		if (!sc.verify('{')) return false;
 		let lists = []; let n = 0; let items = new Set();
 		while (!sc.verify('}')) {
 			let l;
-			if (sc.peek('[')) {
+			if (sc.verify('[',1,0)) {
 				l = sc.nextIndexList('[',']', prop);
+				if (l == null) return false;
 				if (l.length > 0 && listLabel && !sc.isspace() &&
-					!sc.peek('}') && !listLabel(l[0],sc)) {
+					!sc.verify('}',1,0) && !listLabel(l[0],sc)) {
 					return false;
 				}
 			} else {
 				let x = sc.nextIndex(prop);
-				if (!x) return false;
+				if (x == NaN || x <= 0) return false;
 				l = [x];
 			}
 			for (let i of l) {
@@ -289,8 +292,8 @@ export default class ListSet extends Top {
 			}
 			lists.push(l);
 		}
-		if (n != this.n) this.reset(n);
-		else this.clear();
+
+		this.reset(n);
 		for (let l of lists) {
 			for (let i of l) {
 				if (i != l[0]) this.join(l[0], i);

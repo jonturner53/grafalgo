@@ -363,7 +363,10 @@ function regularize(g, d, lo, hi) {
 		for (let e = g.firstAt(v); e; e = g.nextAt(v,e)) {
 			let w = g.mate(v,e); if (w == u) continue;
 			if (!g.findEdge(u,w)) {
-				g.delete(e); g.join(u,w);
+				g.delete(e);
+				g.join(Math.min(u,w),Math.max(u,w));
+					// placing smaller vertex on left, ensures that
+					// bipartite graphs with inputs first, remain so
 				if (g.degree(u) == d) lo.deq();
 				if (g.degree(v) == d) hi.deq();
 				if (lo.contains(u) && hi.contains(v)) {

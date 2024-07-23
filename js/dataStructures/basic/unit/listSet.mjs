@@ -35,7 +35,6 @@ try {
 	matches(ls.singleton(7), true, 'b10');
 	ls.clear(); 
 	matches(ls, '{[h]}', 'b11');
-
 	matches(ls.fromString('{[d i h k] [e a  c] [g b l ] [j f]}'), true, 'c0');
 	matches(ls, '{[d i h k] [e a c] [g b l] [j f]}', 'c1');
 	matches(ls.n, 12, 'c2');
@@ -59,15 +58,16 @@ try {
 				};
 	let listProp = new Array(10).fill(0);
 	let listLabel = (l, sc) => {
-						let q = sc.nextInt(false);
-						if (Number.isNaN(q)) return false;
+						let q = sc.nextIndex(false);
+						if (q <= 0) return false;
 						listProp[l] = q;
 						return true;
 					};
-	ls.fromString('{[a:1 c:3] [b:2 e:5 d:4]7 f:2}', prop, listLabel);
+	ls.fromString('{[a:1 c:3]5 [b:2 e:5 d:7]f f:2}', prop, listLabel);
 	matches(ls,'{[a c] [b e d] f}', 'd1');
-	matches(property[4],4, 'd2');
-	matches(listProp[2],7, 'd3');
+	matches(property[4], 7, 'd2');
+	matches(listProp[1], 5, 'd3');
+	matches(listProp[2], 6, 'd3');
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

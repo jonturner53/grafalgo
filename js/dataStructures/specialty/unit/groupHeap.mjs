@@ -36,10 +36,10 @@ try {
 	matches(gh.findmin(), 7, 'a10');
 	gh.clear(1);
 	matches(gh,'{2@[e:4 j:10] 3[c:2 d:5] 6@![f:6 g:3]}', 'b1');
-	gh.insertAfter(1, 2, 2, 5);
-	gh.insertAfter(2, 2, Infinity, 10);
+	gh.insertAfter(1, 2, 5, 2);
+	gh.insertAfter(2, Infinity, 10, 2);
 	matches(gh,'{2@![e:4 a:2 j:10 b:I] 3[c:2 d:5] 6@[f:6 g:3]}', 'b2');
-	gh.delete(10,2); gh.insertAfter(10,3,7,3);
+	gh.delete(10,2); gh.insertAfter(10,7,3,3);
 	matches(gh,'{2@![e:4 a:2 b:I] 3[c:2 j:7 d:5] 6@[f:6 g:3]}', 'b3');
 	matches(gh.toString(0),'[e:4 a:2 b:I f:6 g:3]', 'b4');
 

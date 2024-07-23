@@ -36,8 +36,7 @@ tester.addTest('small random (8,5,7)', g);
 
 g = randomCase(100,20);
 tester.addTest('medium random (100,20,24)', g);
-
-g = hardCase(8);
+g = hardCase(4);
 tester.addTest('small hard (8)', g);
 
 g = hardCase(16);

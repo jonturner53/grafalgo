@@ -247,7 +247,7 @@ export default class Flograph extends Digraph {
 	equals(that, includeFlow=false) {
 		that = super.equals(that);
 		if (typeof that == 'boolean') return that;
-		if (this.m != that.m) return false;
+
 		let el1 = this.sortedElist(); let el2 = that.sortedElist();
 		for (let i = 0; i < el1.length; i++) {
 			let e1 = el1[i]; let e2 = el2[i];
@@ -352,7 +352,7 @@ export default class Flograph extends Digraph {
 						n = Math.max(n,v);
 						let i = pairs.length;
 						pairs.push([u,v]);
-						if (!sc.verify(':')) return false;
+						if (!sc.verify(':',0)) return false;
 						let x = sc.nextNumber();
 						if (Number.isNaN(x)) return false;
 						if (!sc.verify('-')) {
@@ -378,11 +378,9 @@ export default class Flograph extends Digraph {
 
 		if (!super.parseString(s, vnext, enext)) return false;
 
-		// configure graph
-		let erange = Math.max(1,pairs.length);
-		if (n != this.n || erange != this.erange) this.reset(n, erange);
-		else this.clear();
+		this.reset(n, Math.max(1,pairs.length));
 
+		// configure graph
 		for (let i = 0; i < pairs.length; i++) {
 			let [u,v] = pairs[i];
 			let e = this.join(u,v);

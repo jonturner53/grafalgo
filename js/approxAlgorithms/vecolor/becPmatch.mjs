@@ -8,6 +8,7 @@
 
 import {assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
+import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import pbimatchHKT from '../../graphAlgorithms/vmatch/pbimatchHKT.mjs';
 
@@ -20,6 +21,10 @@ import pbimatchHKT from '../../graphAlgorithms/vmatch/pbimatchHKT.mjs';
  */
 export default function becPmatch(g, trace=0) {
 	let steps = 0;
+	if (!g.bipartite) throw exception;
+	let io = new ListPair(g.n);
+	for (let u = g.firstInput(); u; u = g.nextInput(u)) io.swap(u);
+
 	// compute degrees in g and assign initial priorities
 	let d = new Int32Array(g.n+1);
 	for (let u = 1; u <= g.n; u++) d[u] = g.degree(u);
@@ -30,7 +35,7 @@ export default function becPmatch(g, trace=0) {
 	steps += g.n;
 
 	let color = new Int32Array(g.edgeRange+1);
-	let gc = new Graph(g.n,g.edgeRange);
+	let gc = new Graph(g.n,g.edgeRange); gc.split(io);
 		// subgraph of uncolored edges with bounds <= c
 	let ts = '';
 	if (trace) {

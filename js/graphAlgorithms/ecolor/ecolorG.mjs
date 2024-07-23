@@ -7,12 +7,14 @@
  */
 
 import List from '../../dataStructures/basic/List.mjs';
+import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import findSplit from '../misc/findSplit.mjs';
 import mdmatchG from '../vmatch/mdmatchG.mjs';
 
 let g;			// shared reference to input graph
+let io;         // ListPair defining bipartition on g
 let wg;			// current working subgraph
 
 let degree;		// degree[u] is the degree of u in wg
@@ -38,16 +40,19 @@ let matches;	// number of matchings found
  */
 export default function ecolorG(G, traceFlag=false) {
 	// initialize data structures
-	g = G; trace = traceFlag
+	g = G; trace = traceFlag; trace = 1;
+	if (!g.bipartite) throw exception;
 
-	wg = new Graph(g.n, g.edgeRange);
+	io = new ListPair(g.n);
+	for (let u = g.firstInput(); u; u = g.nextInput(u)) io.swap(u);
+
+	wg = new Graph(g.n, g.edgeRange); wg.split(io);
 	degree = new Int32Array(g.n+1);
 	active = new List(g.n);
 	emap = new Int32Array(g.m+1);
 	color = new Int32Array(g.edgeRange+1);
 
 	for (let e = g.first(); e; e = g.next(e)) addEdge(e);
-	subsets = findSplit(g);
 
 	traceString = '';
 	if (trace) traceString += 'euler partitions and color sets\n'
@@ -87,11 +92,15 @@ function rcolor(Delta) {
 	if (Delta & 1) {
 		// first build compact version of wg with no isolated vertices
 		let cwg = new Graph(active.length,g.m);
+		let cio = new ListPair(active.length);
 		let u = 1;
 		for (let v = active.first(); v; v = active.next(v)) {
-			active.value(v,u++); // use value to map wg's vertices to cwg's
+			active.value(v,u); // use value to map wg's vertices to cwg's
+			if (wg.isInput(v)) cio.swap(u);
+			u++;
 			steps++;
 		}
+		cwg.split(cio);
 		for (let e = wg.first(); e; e = wg.next(e)) {
 			let [u,v] = [wg.left(e),wg.right(e)];
 			let [uu,vv] = [active.value(u), active.value(v)];

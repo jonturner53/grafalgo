@@ -55,16 +55,53 @@ export default class EdgeGroups extends Top {
 		}
 		this.N_i = ni;
 
-		this.Group = new Int32Array(this.Graph.edgeRange+1);
+		this.Group = new Int32Array(this.graph.edgeRange+1);
 		this.Fanout = new Int32Array(this.n_g+1);
 
 		this.GroupIds = new ListPair(this.n_g);
-		this.EdgesInGroups = new ListSet(this.Graph.edgeRange);
+		this.EdgesInGroups = new ListSet(this.graph.edgeRange);
 		this.FirstInGroup = new Int32Array(this.n_g+1);
 		this.GroupsAtInputs = new ListSet(this.n_g);
 		this.FirstGroup = new Int32Array(this.n_i+1);
 
 		this.vlist = new List(this.Graph.n);
+	}
+
+	/** Assign new value to this from another EdgeGroups object. 
+	 *  @param that is an EdgeGroups object to be assigned to this
+	 *  @param relaxed is a boolean; when false, this.n is adjusted
+	 *  to exactly match that.n; when true, this.n is only adjusted
+	 *  if it is less than that.n; relaxed assignments are used to
+	 *  implement the expand method
+	 */
+	assign(that, relaxed=false) {
+		super.assign(that, relaxed);
+
+		this.N_i = that.N_i;
+		this.Graph.assign(that.Graph);
+		this.Group = that.Group.slice(0);
+		this.Fanout = that.Fanout.slice(0);
+		this.EdgesInGroups.assign(that.EdgesInGroups);
+		this.FirstInGroup = that.FirstInGroup.slice(0);
+		this.GroupsAtInputs.assign(that.GroupsAtInputs);
+		this.FirstGroup = that.FirstGroup.slice(0);
+		this.vlist.assign(that.vlist);
+	}
+
+	/** Assign a new value to this, by transferring contents of another object.
+	 *  @param that is a list whose contents are to be transferred to this
+	 */
+	xfer(that) {
+		super.xfer(that);
+		this.N_i = that.N_i;
+		this.Graph = that.Graph;
+		this.Group = that.Group;
+		this.Fanout = that.Fanout;
+		this.EdgesInGroups = that.EdgesInGroups;
+		this.FirstInGroup = that.FirstInGroup;
+		this.GroupsAtInputs = that.GroupsAtInputs;
+		this.FirstGroup = that.FirstGroup;
+		this.vlist = that.vlist;
 	}
 
 	clear() {
@@ -95,7 +132,7 @@ export default class EdgeGroups extends Top {
                 	 this.constructor.name == that.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
 
-		if (this.n == that.n && this.Graph == that.graph)
+		if (this.n == that.n && this.graph == that.graph)
 			this.clear();
 		else
 			this.reset(that.graph, that.n);
@@ -129,8 +166,8 @@ export default class EdgeGroups extends Top {
 	}
 
 	group(e) { return this.Group[e]; };
-	input(e) { return this.Graph.left(e); }
-	output(e) { return this.Graph.right(e); }
+	input(e) { return this.graph.left(e); }
+	output(e) { return this.graph.right(e); }
 
 	fanout(g) { return this.Fanout[g]; }
 	hub(g) {
@@ -176,7 +213,9 @@ export default class EdgeGroups extends Top {
 			// add edge to an existing group
 			ea && assert(this.firstInGroup(g));
 			let u = this.hub(g);
-			ea && assert(u == this.input(e));
+			ea && assert(u == this.input(e),
+				this.graph.x2s(u) + ' ' + this.graph.e2s(e) + ' ' +
+				this.graph.e2s(this.FirstInGroup[g]) + ' ' + this.n_i);
 			this.Group[e] = g;
 			this.FirstInGroup[g] =
 				this.EdgesInGroups.join(this.FirstInGroup[g],e);
@@ -222,7 +261,7 @@ export default class EdgeGroups extends Top {
 		for (let e = this.firstInGroup(g2); e; e = this.firstInGroup(g2)) {
 			this.delete(e);  // removes e from g2
 			if (this.vlist.contains(this.output(e))) {
-				this.Graph.delete(e);  // no parallel edges within groups
+				this.graph.delete(e);  // no parallel edges within groups
 			} else {
 				this.add(e,g1);
 			}
@@ -268,8 +307,9 @@ export default class EdgeGroups extends Top {
 	 *  @return edge in g with v as output or 0
 	 */
 	findEdge(v,g) {
-		for (let e = this.firstInGroup(g); e; e = this.nextInGroup(g, e))
+		for (let e = this.firstInGroup(g); e; e = this.nextInGroup(g, e)) {
 			if (this.output(e) == v) return e;
+		}
 		return 0;
 	}
 
@@ -282,10 +322,10 @@ export default class EdgeGroups extends Top {
 	 * 	        matching group ids
 	 */
 	equals(that) {
-        that = super.equals(that);
+        that = super.equals(that, [this.gg, this.n_g]);
         if (typeof that == 'boolean') return that;
 
-		if (!this.Graph.equals(that.graph) || 
+		if (!this.graph.equals(that.graph) || 
 			this.GroupIds.length(1) != that.GroupIds.length(1))
 			 return false;
 
@@ -407,14 +447,7 @@ export default class EdgeGroups extends Top {
 		for (let [u,v,g] of triples)
 			if (v <= n_i) return false;
 
-		// configure graph
-		let erange = Math.max(1,triples.length);
-		if (!this.Graph)
-			this.Graph = new Graph(n,erange);
-		else if (n == this.graph.n && erange == this.graph.edgeRange)
-			this.graph.clear();
-		else
-			this.graph.reset(n, erange);
+		this.Graph = new Graph(n, Math.max(1,triples.length));
 
 		// add edges to graph before configuring object
 		let pairs = []

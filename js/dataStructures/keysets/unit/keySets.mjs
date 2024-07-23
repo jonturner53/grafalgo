@@ -33,13 +33,24 @@ try {
 	matches(ks.lookup(2, r), 2, 'a7');
 	matches(ks.lookup(5, r), 5, 'a8');
 	matches(ks.lookup(7, r), 0, 'a9');
-	matches(ks.contains(5, r), true, 'a10');
+	matches(ks.in(5, r), true, 'a10');
 
-	ks.reset(10, true);  // switch to keys that are strings
-	matches(ks.fromString('{[a:"bb" b:"aa" c d:"c c"] e:"ee"}'), true, 'b0');
-	matches(ks, '{[b:"aa" *a:"bb" d:"c c" c:""] e:"ee"}', 'b1');
+	ks.reset(10, (a,b) => a.localeCompare(b)); // switch to string keys
+	matches(ks.fromString('{[a:"bb" b:"aa" c:"" d:"c c"] e:"ee"}'), true, 'b0');
+	matches(ks, '{[b:"aa" a:"bb" d:"c c" c:""] e:"ee"}', 'b1');
 	matches(ks.toString(6), '{[c:"" *b:"aa" (- a:"bb" d:"c c")] e:"ee"}', 'b2');
 	matches(ks.lookup('c c',1), 4, 'b3');
+
+	ks.reset(4, (a,b) => (a[0]!=b[0] ? a[0]-b[0] : a[1]-b[1]));
+	ks.fromString('{[a:[2,1] b:[1,2] c:[1,1] d:[2,2]]}');
+	matches(ks.toString(6), '{[c:[1,1] *b:[1,2] (- a:[2,1] d:[2,2])]}', 'b4');
+
+	ks.reset(4, (a,b) => (a.real!=b.real ? a.real-b.real : a.imag-b.imag));
+	ks.fromString('{[a:{"real":2, "imag":1} b:{"real":1, "imag":2} ' +
+					'c:{"real":1, "imag":1} d:{"real":2, "imag":2}]}');
+	matches(ks.toString(6),
+				'{[c:{"real":1,"imag":1} *b:{"real":1,"imag":2} ' +
+				'(- a:{"real":2,"imag":1} d:{"real":2,"imag":2})]}', 'b5');
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

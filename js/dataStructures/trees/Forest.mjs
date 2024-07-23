@@ -209,6 +209,8 @@ export default class Forest extends Top {
 	equals(that) {
 		that = super.equals(that);
 		if (typeof that == 'boolean') return that;
+		if (this.n != that.n) return false;
+
 		if (!this.Sibs.setEquals(that.Sibs)) return false;
 
 		for (let u = 1; u <= this.n; u++) {
@@ -364,8 +366,8 @@ export default class Forest extends Top {
 				smap.push([t,firstTree]);
 			}
 		}
-		if (n != this.n) this.reset(n);
-		else this.clear();
+		this.reset(n);
+		
 		for (let pair of pmap) {
 			let [u,v] = pair;
 			if (v) this.link(u,v);

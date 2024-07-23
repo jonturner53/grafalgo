@@ -40,31 +40,26 @@ export default function mdmatchG(g, trace=0) {
 	}
 
 	let traceString = '';
-
-	let xg1 = new Graph(g.n,g.edgeRange); // scratch graph
-	if (trace) 
-		traceString += `graph: ${g.toString(1)}\n`;
+	if (trace) traceString += `graph: ${g.toString(1)}\n`;
 
 	// compute subgraph xg1 that includes all edges incident to max degree
 	// inputs; then get its matching
+	let xg1 = new Graph(g.n,g.edgeRange); // scratch graph
 	for (let e = g.first(); e; e = g.next(e)) {
-		let [u,v] = [g.left(e),g.right(e)];
-		if (g.isInput(u) && degree[u] == Delta) xg1.join(u,v,e);
-		if (g.isInput(v) && degree[v] == Delta) xg1.join(v,u,e);
+		let [u,v] = [g.input(e),g.output(e)]
+		if (degree[u] == Delta) xg1.join(u,v,e);
 		steps++;
 	}
 	xg1.split(io);
 	let [xmatch1,ts,stats1] = bimatchHK(xg1);
 	steps += stats1.steps;
-	if (trace)
-		traceString += `first matching: ${xmatch1.toString()}\n`;
+	if (trace) traceString += `first matching: ${xmatch1.toString()}\n`;
 
-	// repeat xmatch2;
+	// compute xg2, including edges incident to max degree outputs
 	let xg2 = new Graph(g.n,g.edgeRange); // scratch graph
 	for (let e = g.first(); e; e = g.next(e)) {
-		let [u,v] = [g.left(e),g.right(e)];
-		if (g.isOutput(v) && degree[v] == Delta) xg2.join(u,v,e);
-		if (g.isOutput(u) && degree[u] == Delta) xg2.join(v,u,e);
+		let [u,v] = [g.input(e),g.output(e)];
+		if (degree[v] == Delta) xg2.join(u,v,e);
 		steps++;
 	}
 	xg2.split(io);

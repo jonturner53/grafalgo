@@ -84,34 +84,46 @@ try {
 	matches(f.verify(), '', 'e3');
 
 	f.fromListString('{[a b c d] [e f g] [h i j k l m n] [p q r]}');
-	matches(f,'{[(a b -) *c d] [e *f g] ' +
-			  '[((((h i -) j -) k -) l -) *m n] [p *q r]}', 'f1');
+	matches(f,'{[- *a (- b (- c d))] [- *e (- f g)] ' +
+			   '[- *h (- i (- j (- k (- l (- m n)))))] [- *p (- q r)]}', 'f1');
 	matches(f.toString(0),'{[a b c d] [e f g] [h i j k l m n] [p q r]}', 'f2');
 
 	let key = new Float32Array(18);
 	for (let i = 0; i <= 18; i++) key[i] = i;
-	matches(f.search(9,13,key), 9, 'f3');
+	matches(f.search(9,8,key), 9, 'f3');
 
 	key[15] = 10.5;
 	f.insertByKey(15, 13, key);
-	matches(f,'{[(a b -) *c d] [e *f g] ' +
-			  '[((((h i -) j o) k -) l -) *m n] [p *q r]}', 'f4');
+	matches(f,'{[- *a (- b (- c d))] [- *e (- f g)] ' +
+			   '[- *h (- i (- j (- k (- l (o m n)))))] [- *p (- q r)]}', 'f4');
 
-	f.insertAfter(10, f.delete(10), 11);
-	matches(f,'{[(a b -) *c d] [e *f g] [(((h i o) k j) l -) *m n] ' +
-			 '[p *q r]}', 'f5');
-	f.property(3,3); f.property(13,13);
-	matches(f,'{3[(a b -) *c d] [e *f g] 13[(((h i o) k j) l -) *m n] ' +
-			 '[p *q r]}', 'f5');
+	f.insertAfter(10, 11, f.delete(10));
+	matches(f,'{[- *a (- b (- c d))] [- *e (- f g)] ' +
+			   '[- *h (- i (- k (j l (o m n))))] [- *p (- q r)]}', 'f5');
+
+	f.property(f.root(4),3); f.property(f.root(14),13);
+	let f2 = new BinaryForest();
+	let prop = [];
+	let treeProp = ((t,sc) => {
+						let p = sc.nextInt();
+						p = isNaN(p) ? 0 : p;
+						prop.push([t,p]);
+						return true;
+					});
+	matches(f2.fromString('{[- *a (- b (- c d))]3 [- *e (- f g)] ' +
+				   		  '[- *h (- i (- k (j l (o m n))))]13 [- *p (- q r)]}',
+				   		  0, treeProp), true, 'f6');
+	for (let [t,p] of prop) f2.property(t,p);
+	matches(f, f2, 'f7');
 
 	let compare = (a,b) => a.localeCompare(b);
 	f = new BinaryForest();
 	key = [ '', 'abc', 'bcd', 'cde', 'def' ];
-	f.insertByKey(1, 0, key, compare);
-	f.insertByKey(2, 1, key, compare);
-	f.insertByKey(3, 2, key, compare);
-	f.insertByKey(4, 3, key, compare);
-	matches(f.toString(4),'{[- *a (- b (- c d))]}','f5');
+	f.insertByKey(1, f.root(1), key, compare);
+	f.insertByKey(2, f.root(1), key, compare);
+	f.insertByKey(3, f.root(1), key, compare);
+	f.insertByKey(4, f.root(1), key, compare);
+	matches(f.toString(4),'{[- *a (- b (- c d))]}','f8');
 
 } catch(e) {
     if (e instanceof Mismatch) {

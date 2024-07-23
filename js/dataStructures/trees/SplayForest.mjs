@@ -7,7 +7,7 @@
  */
 
 import Top from '../Top.mjs';
-import List from '../basic/List.mjs';
+import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import BinaryForest from './BinaryForest.mjs';
 
@@ -15,6 +15,8 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
 /** This class adds a splay operation to the BinaryForest class
  *  and uses it to implicitly balance the trees in the forest.
+ *  Since tree structure is changed to improve efficiency, from
+ *  user perspective, the data structure maintains a collection of lists.
  */
 export default class SplayForest extends BinaryForest {
 	/** Constructor for BinaryForest object.
@@ -51,9 +53,8 @@ export default class SplayForest extends BinaryForest {
 		return this.splay(super.search(k, t, key));
 	}
 
-	insertAfter(u, t, v) {
-		//return super.insertAfter(u, t, v, u => this.splay(u));
-		super.insertAfter(u, t, v); this.splay(u);
+	insertAfter(u, v, t) {
+		super.insertAfter(u, v, t); this.splay(u);
 	}
 
 	insertByKey(u, t, key, compare=((a,b)=>a-b)) {
@@ -65,4 +66,33 @@ export default class SplayForest extends BinaryForest {
 	}
 
 	split(u) { this.splay(u); return super.split(u); }
+
+	equals(that) { return super.listEquals(that); }
+
+	/** Return a string representation of this object.
+	 *  @param u is a node in a tree
+	 *  @param fmt is an integer; its lower bits control the format
+     *    0b001 specifies newlines between trees
+     *    0b010 specifies that singletons are shown
+     *    0b100 specifies that the tree structure is shown
+	 *  @param nodeLabel(u) is an optional function used to produce node label
+	 *  @param treeLabel(t) is an optional function used to produce tree label
+	 *  @return a string
+	 *  
+	 *  Implementation note: this method looks redundant, but the default
+	 *  format argument of 0 distinguishes it from the inherited version.
+	 */
+	toString(fmt=0, nodeLabel=0, treeLabel=0) {
+		return super.toString(fmt, nodeLabel, treeLabel);
+	}
+
+	/** Initialize this from a string.
+	 *  @param s is a string representing a set of lists;
+	 *  since this data structure restructures the trees to maintain balance,
+	 *  it's really just the lists that are significant
+	 *  @return true on success
+	 */
+	fromString(s, prop=0, listProp=0) {
+		return super.fromListString(s, prop, listProp);
+	}
 }

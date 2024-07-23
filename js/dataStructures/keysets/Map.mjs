@@ -24,26 +24,22 @@ export default class Map extends Top {
 	Size;      // number of key-value pairs
 	free;      // list of unused pair ids
 
-	stringKey;    // true if keys are strings
-	stringValue;  // true if values are strings
-	
-	compare;       // function comparing two keys
+	compare;         // function for comparing two keys
+	eqValue;         // function for comparing two values
 
 	/** Constructor for Map object.
 	 *  @param n is the initial index range for key-value pairs
 	 *  @param stringKey is true if the keys are strings
-	 *  @param stringValue is true if the values are strings
 	 */
-	constructor(n=10, stringKey=false, stringValue=false) {
+	constructor(n=10, compare=((a,b)=>a-b), eqValue=((a,b)=>a==b)) {
 		super(n);
 
-		this.stringKey = stringKey;
-		this.stringValue = stringValue;
-		this.compare = (stringKey ? (a,b) => localeCompare : (a,b) => a-b);
+		this.compare = compare;
+		this.eqValue = eqValue;
 
-		this.keys = new KeySets(n, stringKey);
+		this.keys = new KeySets(n, (a,b)=>this.compare(a,b));
 		this.top = 0; this.Size = 0;
-		this.Value = new Array(this.n+1).fill(stringKey ? '' : 0);
+		this.Value = new Array(this.n+1);
 		this.free = new List(this.n+1);
 		for (let i = 1; i <= this.n; i++) this.free.enq(i);
 	}
@@ -55,7 +51,7 @@ export default class Map extends Top {
         ea && assert(that != this &&
                 this.constructor.name == that.constructor.name);
         if (this.n == that.n || relaxed && this.n > that.n) this.clear();
-        else this.reset(that.n, this.stringKey, this.stringValue);
+        else this.reset(that.n, this.compare, this.eqValue)
 		for (let p = that.first(); p; p = that.next(p))
 			this.put(that.key(p), that.value(p));
 	}
@@ -70,15 +66,14 @@ export default class Map extends Top {
 		this.free = that.free; that.free = null;
 		this.top = that.top; this.Size = that.Size;
 
-		this.stringKey = that.stringKey;
-		this.stringValue = that.stringValue;
 		this.compare = that.compare;
+		this.eqValue = that.eqValue;
 	}
 
 	/** Expand the max size of this Map and possibly. */
 	expand(n) {
 		ea && assert(n > this.n);
-		let nu = new this.constructor(n, this.stringKey, this.stringValue);
+		let nu = new this.constructor(n, this.stringKey);
 		nu.assign(this,true);
 		this.xfer(nu);
 	}
@@ -148,7 +143,7 @@ export default class Map extends Top {
 			p = this.free.deq();
 		}
 		this.keys.key(p, k);
-		this.top = this.keys.insert(p, this.top)
+		this.top = (this.top ? this.keys.insert(p, this.top) : p);
 		this.value(p,v);
 		this.Size++;
 		return p;
@@ -173,19 +168,17 @@ export default class Map extends Top {
 	 *  @return true if both contain the same values.
 	 */
 	equals(that) {
-		if (this === that) return true;
-        if (typeof that == 'string') {
-            let s = that;
-			that = new this.constructor(this.n,
-						this.stringKey, this.stringValue);
-			if (!that.fromString(s)) return s == this.toString();
-        } else if (that.constructor.name != this.constructor.name) {
-			return false;
-		}
+		that = super.equals(that, [this.n, this.compare, this.eqValue]);
+		if ((typeof that) == 'boolean') return that;
 		if (this.size != that.size) return false;
+
+		if (''+this.compare != ''+that.compare ||
+			''+this.eqValue != ''+that.eqValue)
+			return false;
+
 		for (let p = this.first(); p; p = this.next(p)) {
 			let pp = that.getPair(this.key(p));
-			if (!pp || this.value(p) !== that.value(pp))
+			if (!pp || !this.eqValue(this.value(p), that.value(pp)))
 				return false
 		}
 		return that;
@@ -193,21 +186,21 @@ export default class Map extends Top {
 	
 	/** Produce a string representation of the Map object.
 	 *  @param fmt is an integer used to specify format options
-	 *     0001 specifies that the integer identifying each pair be shown
-	 *  @param label is a function that is used to pair identifiers
+	 *     0001 specifies that the index identifying each pair be shown
+	 *  @param label is a function that is used to label identifiers
 	 */
 	toString(fmt=0, label=0) {
 		if (!label) label = (p => this.x2s(p));
-		let s = '';
+		let s = ''; let value = this.Value;
 		for (let p = this.first(); p; p = this.next(p)) {
 			if (s) s += ' ';
 			if (fmt&1) s += label(p) + ':';
-			s += (this.stringKey ? `"${this.key(p)}"` : ''+this.key(p)) + ':' +
-				 (this.stringValue ? `"${this.value(p)}"` : ''+this.value(p));
+			s += this.datum2string(this.key(p)) + ':' +
+				 this.datum2string(this.value(p));
 		}
 		return '{' + s + '}';
 	}
-	
+
 	/** Initialize this Map object from a string.
 	 *  @param s is a string representing a Map.
 	 *  @return on if success, else false
@@ -215,33 +208,19 @@ export default class Map extends Top {
 	fromString(s) {
 		let sc = new Scanner(s);
 		if (!sc.verify('{')) return false;
-		let pairs = []; let n = 0;
-		let next = (isstring) => {
-						let i;
-						if (isstring) {
-							i = sc.nextString();
-							if (i == null) return null;
-						} else {
-							i = sc.nextNumber();
-							if (isNaN(i)) return null;
-						}
-						return i;
-					};
 
+		let pairs = [];
 		while (!sc.verify('}')) {
-			let k = next(this.stringKey);
-			if (k == null || !sc.verify(':')) return false;
-			let v = next(this.stringValue);
+			let k = sc.nextDatum(sc);
+			if (k == null) return false;
+			if (!sc.verify(':')) return false;
+			let v = sc.nextDatum(sc);
 			if (v == null) return false;
 			pairs.push([k,v]);
-			n++;
 		}
-		if (n > this.n) this.reset(n, this.stringKey, this.stringValue);
-		else this.clear();
+		this.reset(pairs.length, this.compare, this.eqValue) 
 
-		for (let [k,v] of pairs) {
-			this.put(k,v);
-		}
+		for (let [k,v] of pairs) this.put(k,v);
 		return true;
 	}
 }

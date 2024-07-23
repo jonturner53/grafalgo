@@ -140,6 +140,8 @@ export default class MergeSets extends Top {
 	equals(that) {
 		that = super.equals(that);
 		if (typeof that == 'boolean') return that;
+		if (this.n != that.n) return false;
+
 		// use smallest item in set as its 'id', store in set's root location
 		let id1 = new Int32Array(this.n+1).fill(this.n+1);
 		let id2 = new Int32Array(this.n+1).fill(this.n+1);
@@ -181,9 +183,9 @@ export default class MergeSets extends Top {
 	 *  @param s is a string, such as produced by toString().
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
+	fromString(s, prop=0) {
 		let ls = new ListSet(); 
-		if (!ls.fromString(s)) return false;
+		if (!ls.fromString(s, prop)) return false;
 		this.importFrom(ls);
 		return true;
 	}
