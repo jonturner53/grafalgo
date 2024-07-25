@@ -21,6 +21,8 @@ export default function hpcVerify(g, s=0, t=0, path) {
 	if (t < 0 || t > g.n) return('invalid destination');
 	if (s == 0) t = 0;
 
+	if (!path) return 'no path/cycle found';
+
 	for (let i = 0; i < g.n; i++) {
 		let e = path[i];
 		if (!g.validEdge(e) && (i < g.n-1 || !s))

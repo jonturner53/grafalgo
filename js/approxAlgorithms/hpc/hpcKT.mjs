@@ -36,7 +36,7 @@ let traceString;
  *  @return a triple [path, ts, stats] where path is an array of edge numbers
  *  of length n; in a successful search for a cycle, all array entries are
  *  non-zero; in a successful search for a path, all but the last are non-zero;
- *  unsuccessful searches leave additional zero entries at the end of the array
+ *  if no path/cycle is found, null is returned in place of path
  */
 export default function hpcKT(G, s=0, t=0, traceFlag=0) {
 	g = G; 
@@ -79,14 +79,14 @@ export default function hpcKT(G, s=0, t=0, traceFlag=0) {
 	let path = new Int32Array(G.n);
 
 	if (!initialCycles())
-		return [path, traceString, {'cycles': 0, 'length': 0}];
+		return [null, traceString, {'cycles': 0, 'length': 0}];
 
 	let splices = 0;
 	while (clist.length > 1) {
 		if (trace == 1) traceString +=  traceCycles() + '\n';
 		else if (trace) traceString += cycleLengths() + '\n';
 		let cp = compatiblePair();
-		if (!cp) break;
+		if (!cp) return [null, traceString, {'cycles': 0, 'length': 0}];
 		let [c1,c2,u,v] = cp;
 		splice(u,v); clen[c1] += clen[c2]; clist.delete(c2);
 		splices++;

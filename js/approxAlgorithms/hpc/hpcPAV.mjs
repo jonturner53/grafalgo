@@ -19,7 +19,7 @@ import { randomInteger } from '../../common/Random.mjs';
  *  @return a triple [path, ts, stats] where path is an array of edge numbers
  *  of length n; in a successful search for a cycle, all array entries are
  *  non-zero; in a successful search for a path, all but the last are non-zero;
- *  unsuccessful searches leave additional zero entries at the end of the array
+ *  if no path/cycle is found, null is returned in place of path
  */
 export default function hpcPAV(G, selectMax=1, s=0, t=0, trace=0) {
 	assert(s >= 0 && s <= G.n && t >= 0 && t <= G.n);
@@ -35,8 +35,7 @@ export default function hpcPAV(G, selectMax=1, s=0, t=0, trace=0) {
 					   `with selected edge\n`;
 	}
 
-	let g = new Graph(G.n,G.edgeRange);
-	g.assign(G);
+	let g = new Graph(G.n,G.edgeRange); g.assign(G);
 	let selectCount = new Int8Array(g.edgeRange+1);
 
 	let u = u0; let rotations = 0;
@@ -89,7 +88,8 @@ export default function hpcPAV(G, selectMax=1, s=0, t=0, trace=0) {
 	if (trace)
 		traceString += `\nfinal ${s ? 'path' : 'cycle'}: ` +
 					   `${G.elist2string(path,0,0,1)} ${k}\n`;
-	return [path, traceString, {'rotations': rotations, 'length': k}];
+	return [((s && path[G.n-2] || !s && path[G.n-1]) ? path : null),
+			traceString, {'rotations': rotations, 'length': k}];
 }
 
 function path2string(path, u0, k, G) {
