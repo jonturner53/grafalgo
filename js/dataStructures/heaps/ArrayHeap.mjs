@@ -296,7 +296,7 @@ export default class ArrayHeap extends Top {
 							return true;
 						}))
 			return false;
-		this.reset(l.n);
+		this.reset(Math.max(this.n, l.n));
 
 		for (let i = l.first(); i; i = l.next(i)) {
 			this.insert(i, key[i]);

@@ -123,7 +123,7 @@ export default class OrderedHeaps extends BalancedForest {
 	 *  @param h is the heap containing i
 	 *  @param k is the new key value for i
 	 */
-	changekey(i, h, k) {
+	changekey(i, k, h) {
 		this.Key[i] = k - this.offset[h];
 		this.refresh(i);
 	}

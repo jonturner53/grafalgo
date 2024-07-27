@@ -44,7 +44,7 @@ try {
 		h = sh.insertAfter(5,2,10,h);
 	matches(sh,'{[b:6 h:8 a:5 j:13 e:2 *d:8 i:9 g:10 c:7 f:12]}', 'b1');
 	matches(sh.findmin(4), 5, 'b2');
-	sh.changekey(6,4,1);
+	sh.changekey(6,1,4);
 	matches(sh,'{[b:6 h:8 a:5 j:13 e:2 *d:8 i:9 g:10 c:7 f:1]}', 'b3');
 	matches(sh.findmin(h), 6, 'b4');
 	let [h1,h2] = sh.divide(10,h);

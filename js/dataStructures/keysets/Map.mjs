@@ -212,10 +212,7 @@ export default class Map extends Top {
 			if (v == null) return false;
 			pairs.push([k,v]);
 		}
-		if (this.n < pairs.length) 
-			this.reset(pairs.length, this.compare, this.eqValue) 
-		else
-			this.clear();
+		this.reset(Math.max(this.n, pairs.length), this.compare, this.eqValue) 
 
 		for (let [k,v] of pairs) this.put(k,v);
 		return true;
