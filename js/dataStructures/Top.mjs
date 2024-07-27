@@ -62,12 +62,13 @@ export default class Top {
 	set n(x) { this.N = x; }
 
 	/** Expand the index range of an object.
-	 *  Since index range is often semantically significant,
-	 *  cannot over-expand.
+	 *  Since index range is often semantically significant, use carefully.
+	 *  @param n is the new index range
+	 *  @param consXargs is an optional list of additional arguments for constructor.
 	 */
-	expand(n) {
+	expand(n, consXargs=[]) {
 		ea && assert(n > this.n, 'Top: expand must increase range');
-		let nu = new this.constructor(n);
+		let nu = new this.constructor(n, ...consXargs);
 		nu.assign(this,true); this.xfer(nu);
 	}
 

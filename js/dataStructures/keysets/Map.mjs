@@ -20,7 +20,7 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 export default class Map extends Top {
 	keys;      // KeySet used to store keys
 	top;       // id of the specific set in keys used to represent map
-	Value;     // Value[i] is value paired with key(i)
+	Value;     // Value[i] is value paired with key(i) in keys
 	Size;      // number of key-value pairs
 	free;      // list of unused pair ids
 
@@ -31,7 +31,7 @@ export default class Map extends Top {
 	 *  @param n is the initial index range for key-value pairs
 	 *  @param stringKey is true if the keys are strings
 	 */
-	constructor(n=10, compare=((a,b)=>a-b), eqValue=((a,b)=>a==b)) {
+	constructor(n=10, compare=((a,b)=>a-b), eqValue=((a,b)=>a===b)) {
 		super(n);
 
 		this.compare = compare;
@@ -70,13 +70,8 @@ export default class Map extends Top {
 		this.eqValue = that.eqValue;
 	}
 
-	/** Expand the max size of this Map and possibly. */
-	expand(n) {
-		ea && assert(n > this.n);
-		let nu = new this.constructor(n, this.stringKey);
-		nu.assign(this,true);
-		this.xfer(nu);
-	}
+	/** Expand the max size of this Map. */
+	expand(n, consArgs=[this.compare,this.eqValue]) { super.expand(n, consArgs); }
 
 	/** Remove all key-value pairs */
 	clear() { while (this.top) this.deletePair(this.top); }
@@ -142,9 +137,8 @@ export default class Map extends Top {
 			this.expand(Math.max(this.n+10, ~~(1.5*this.n)));
 			p = this.free.deq();
 		}
-		this.keys.key(p, k);
+		this.keys.key(p,k); this.value(p,v);
 		this.top = (this.top ? this.keys.insert(p, this.top) : p);
-		this.value(p,v);
 		this.Size++;
 		return p;
 	}
@@ -198,7 +192,7 @@ export default class Map extends Top {
 			s += this.datum2string(this.key(p)) + ':' +
 				 this.datum2string(this.value(p));
 		}
-		return '{' + s + '}';
+		return '{' + s + '}\n' + this.keys.toString(0x6);
 	}
 
 	/** Initialize this Map object from a string.
@@ -218,7 +212,10 @@ export default class Map extends Top {
 			if (v == null) return false;
 			pairs.push([k,v]);
 		}
-		this.reset(pairs.length, this.compare, this.eqValue) 
+		if (this.n < pairs.length) 
+			this.reset(pairs.length, this.compare, this.eqValue) 
+		else
+			this.clear();
 
 		for (let [k,v] of pairs) this.put(k,v);
 		return true;

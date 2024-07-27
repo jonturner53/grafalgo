@@ -426,7 +426,7 @@ export default class BinaryForest extends Top {
 	 */
 	search(k, t, key, compare=((a,b)=>a-b)) {
 		let u = t;
-		while (u != 0 && compare(key[u],k) != 0) {
+		while (u != 0 && compare(k,key[u]) != 0) {
 			this.steps++;
 			if (compare(k,key[u]) < 0)
 				u = this.left(u);
