@@ -192,7 +192,7 @@ export default class Map extends Top {
 			s += this.datum2string(this.key(p)) + ':' +
 				 this.datum2string(this.value(p));
 		}
-		return '{' + s + '}\n' + this.keys.toString(0x6);
+		return '{' + s + '}\n';
 	}
 
 	/** Initialize this Map object from a string.
