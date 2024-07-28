@@ -13,16 +13,16 @@ import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 
 /** Find a bounded edge coloring using the max degree matching method.
- *  Edges are colored using a succession of matching which give priority
+ *  Edges are colored using a succession of matchings which give priority
  *  to vertices of max degree in uncolored subgraph of g
  *  @param g is the graph to be colored with bounds; assumed to be bipartite
  *  @return a triple [color, ts, stats] where color is an array of edge colors,
  *  ts is a traceString and stats is a statistics object.
  */
-export default function becolorMdmatch(g, trace=0) {
+export default function becMdmatch(g, trace=0) {
 	let steps = 0;
 	let color = new Int32Array(g.edgeRange+1);
-	let gc = new Graph(g.n,g.edgeRange);
+	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.bipartition);
 		// subgraph of uncolored edges with bounds <= c
 	let ts = '';
 	if (trace) {

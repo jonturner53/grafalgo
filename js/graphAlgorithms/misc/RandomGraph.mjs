@@ -97,7 +97,9 @@ export function randomBigraph(ni, id, no=ni, dmax=Math.max(ni,no)-1) {
 								(u < ni ? [u+1, ni+1] : null))),
 					() => [randomInteger(1,ni), randomInteger(ni+1,ni+no)],
 					dmax);
-	g.setBipartition();
+	let io = new ListPair(ni+no);
+	for (let u = 1; u <= ni; u++) io.swap(u);
+	g.setBipartition(io);
 	return g;
 }
 
@@ -359,25 +361,24 @@ function regularize(g, d, lo, hi) {
 		// find a neighbor w of v that is not a neighbor of u,
 		// remove {v,w} and add {u,w}
 		for (let e = g.firstAt(v); e; e = g.nextAt(v,e)) {
-			let w = g.mate(v,e); if (w == u) continue;
-			if (!g.findEdge(u,w)) {
-				g.delete(e);
-				g.join(Math.min(u,w),Math.max(u,w));
-					// placing smaller vertex on left, ensures that
-					// bipartite graphs with inputs first, remain so
-				if (g.degree(u) == d) lo.deq();
-				if (g.degree(v) == d) hi.deq();
-				if (lo.contains(u) && hi.contains(v)) {
-					// rotate longer list to ensure different (u,v) pair
-					// on next iteration
-					if (lo.length > hi.length) {
-						lo.enq(lo.deq());
-					} else {
-						hi.enq(hi.deq());
-					}
+			let w = g.mate(v,e);
+			if (w == u || g.findEdge(u,w)) continue;
+			g.delete(e);
+			g.join(Math.min(u,w),Math.max(u,w));
+				// placing smaller vertex on left, ensures that
+				// bipartite graphs with inputs first, remain so
+			if (g.degree(u) == d) lo.deq();
+			if (g.degree(v) == d) hi.deq();
+			if (lo.contains(u) && hi.contains(v)) {
+				// rotate longer list to ensure different (u,v) pair
+				// on next iteration
+				if (lo.length > hi.length) {
+					lo.enq(lo.deq());
+				} else {
+					hi.enq(hi.deq());
 				}
-				break;
 			}
+			break;
 		}	
 	}
 	return g;
@@ -419,6 +420,5 @@ export function randomRegularBigraph(ni, id, no=ni) {
 	}
 	regularize(g, od, lo, hi);
 
-	g.setBipartition();
 	return g;
 }

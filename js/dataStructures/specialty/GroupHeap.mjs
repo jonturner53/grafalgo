@@ -10,7 +10,7 @@ import Top from '../../dataStructures/Top.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import ArrayHeap from '../heaps/ArrayHeap.mjs';
-import OrderedHeaps from './OrderedHeaps.mjs';
+import OrderedHeaps from '../heaps/OrderedHeaps.mjs';
 
 import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 
@@ -160,14 +160,14 @@ export default class GroupHeap extends Top {
 
 	/** Insert an item into a group.
 	 *  @param i is an item to be inserted into a group
-	 *  @param g is the id of group in which i is to be inserted
 	 *  @param k is the required key value for i
-	 *  @param i0 is an item in the heap; i is inserted immediately after i0
+	 *  @param j is an item in the heap; i is inserted immediately after j
+	 *  @param g is the id of group in which i is to be inserted
 	 */
-	insertAfter(i, k, i0, g) {
+	insertAfter(i, k, j, g) {
 		if (this.isactive(g)) this.updateKeys(g);
 		let h = this.top[g];
-		this.top[g] = this.groups.insertAfter(i, k, i0, h);
+		this.top[g] = this.groups.insertAfter(i, k, j, h);
 		if (this.isactive(g) && k < this.active.key(g)) {
 			this.active.changekey(g, k);
 		}

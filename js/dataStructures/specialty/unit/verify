@@ -1,5 +1,4 @@
 echo `pwd`
-node orderedHeaps.mjs
 node groupHeap.mjs
 node pathSet.mjs
 node dynamicTrees.mjs

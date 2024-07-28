@@ -315,7 +315,7 @@ export default class Graph extends Top {
 	 */
 	join(u, v, e=this.edges.first(2)) {
 		ea && assert(u != v && u > 0 && v > 0 &&
-					(!this.io || (isInput(u) && this.isOutput(v))) &&
+					(!this.io || (this.isInput(u) && this.isOutput(v))) &&
 			   		(e > 0 || this.edges.first(2) == 0) && !this.edges.in(e,1),
 			   		`graph.join(${this.x2s(u)},${this.x2s(v)},` +
 			   		`${this.edges.in(e,2)})`);
