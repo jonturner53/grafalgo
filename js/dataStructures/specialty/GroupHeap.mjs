@@ -96,8 +96,7 @@ export default class GroupHeap extends Top {
 	 *  active group that is not empty.
 	 */ 
 	empty(g=0) {
-		return (g ? this.top[g] != 0 : this.active.empty() ||
-					this.active.key(this.active.findmin()) == Infinity);
+		return (g ? this.top[g] == 0 : this.active.empty());
 	}
 
 	/** Determine if a group is active. */
@@ -137,8 +136,7 @@ export default class GroupHeap extends Top {
 	activate(g) {
 		let h = this.top[g];
 		ea && assert(h, 'GroupHeap.activate requires a non-empty heap');
-		this.active.insert(g, h ? this.key(this.groups.findmin(h),g) :
-										   Infinity);
+		this.active.insert(g, this.key(this.groups.findmin(h),g));
 		this.lastOffset[g] = this.active.offset;
 	}
 
@@ -242,52 +240,55 @@ export default class GroupHeap extends Top {
 	/** Create a string representation of GroupHeap object.
 	 *  @param fmt is an integer with bits representing format options
 	 *      0001 specifies newlines separating groups
-	 *      0010 specifies that groups are shown
+	 *      0010 show only the active items (no group details)
 	 *      0100 specifies that tree representation of groups is shown
+	 *           (implies 010)
 	 *  @return the string representation of the object
 	 */
-	toString(fmt=0x2, itemLabel=0, heapLabel=0) {
-		let s = '';
-		if (!itemLabel) itemLabel = (u => this.x2s(u));
-		if (fmt == 0) { // suppress group details
-			s += '['; let first = true;
-			for (let g = 1; g <= this.gn; g++) {
-				if (!this.top[g] || !this.isactive(g)) continue;
-				this.updateKeys(g); let h = this.top[g];
-				for (let i = this.groups.first(h); i; i = this.groups.next(i)) {
-					let lab = itemLabel(i);
-					if (!lab) continue;
-					if (first) first = false;
-					else s += ' ';
-					s += lab + (this.key(i,g) == Infinity ? ':I' : 
-					   			(this.key(i,g) ? ':' + this.key(i,g) : ''));
-				}
-			}
-			s += ']';
-			return s;
+	toString(fmt=0, itemLabel=0, heapLabel=0) {
+		if (!itemLabel) {
+			itemLabel = ((i,g) => this.x2s(i) + ':' + this.key(i,g));
 		}
-
 		if (!heapLabel) {
 			heapLabel = (g => '' + g +
-									(this.isactive(g) ? '@' : '') +
-									(this.active.findmin() == g ? '!' : ''));
+								(this.isactive(g) ? '@' : '') +
+								(this.active.findmin() == g ? '!' : ''));
 		}
+		let s = '';
 		for (let g = 1; g <= this.gn; g++) {
-			if (!this.top[g] && !this.isactive(g)) continue;
-			if (this.isactive(g)) this.updateKeys(g);
+			if (this.empty(g)) continue;
 			let h = this.top[g];
-			if (!(fmt&0x1) && s) s += ' ';
-			s += heapLabel(g);
-			s += (!h ? '[]' :
-					this.groups.tree2string(h, fmt,
-						(u => itemLabel(u) + ':' + 
-					  	(this.key(u,g) == Infinity ? 'I' : this.key(u,g)))
-					).replaceAll('*',''));
-			if (fmt&0x1) s += '\n';
-		}
-		return fmt&0x1 ? '{\n' + s + '}\n' : '{' + s + '}';
-	}
+			let active = this.isactive(g);
+			if (active) this.updateKeys(g);
 
+			if (fmt&2) {
+				if (active) {
+					for (let i = this.groups.first(h); i;
+							 i = this.groups.next(i)) {
+						let lab = itemLabel(i,g); if (!lab) continue;
+						if (s) s += ' '; s += lab;
+					}
+				}
+				continue;
+			}
+
+			if (!(fmt&1) && s) s += ' ';
+			s += heapLabel(g) + '[';
+			if (fmt&4) {
+				s += this.groups.tree2string(h,
+							u => itemLabel(u) ? itemLabel(u) : '#');
+			} else {
+				for (let i = this.groups.first(h); i; i = this.groups.next(i)) {
+					if (s[s.length-1] != '[') s += ' ';
+					let lab = itemLabel(i); if (!lab) continue;
+					s += lab;
+				}
+			}
+			s += ']'; if (fmt&1) s += '\n';
+		}
+		return '{' + (fmt&1 ? '\n' : '') + s + '}';
+	}
+				
 	/** Initialize this from a string representation.
 	 *  @param s is a string, such as produced by toString().
 	 *  @return true on success, else false
@@ -300,12 +301,8 @@ export default class GroupHeap extends Top {
 									key[u] = 0; return true;
 								}
 								let p;
-								if (sc.verify('I')) {
-									p = Infinity;
-								} else {
-									p = sc.nextNumber();
-									if (Number.isNaN(p)) return false;
-								}
+								p = sc.nextNumber();
+								if (p == NaN) return false;
 								key[u] = p;
 								return true
 								};
@@ -315,7 +312,7 @@ export default class GroupHeap extends Top {
 		let gn = 0; let heapIds = new Set();
 		while (!sc.verify('}')) {
 			let g = sc.nextNumber();
-			if (Number.isNaN(g)) return false;
+			if (g == NaN) return false;
 			let active = sc.verify('@');
 			if (sc.verify('!')) {}	// ignore min mark
 			let l = sc.nextIndexList('[', ']', getProp);

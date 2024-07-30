@@ -138,7 +138,7 @@ export default class Top {
 	 */
 	index2string(x, label=0) {
 		if (label) return label(x);
-		return (this.n <= 26 ? '-abcdefghijklmnopqrstuvwxyz'[x] : x);
+		return (this.n <= 26 ? '-abcdefghijklmnopqrstuvwxyz'[x] : ''+x);
 	}
 	x2s(x,label) { return this.index2string(x,label); }
 

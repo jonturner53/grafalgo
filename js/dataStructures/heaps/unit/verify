@@ -1,5 +1,6 @@
 echo `pwd`
 node arrayHeap.mjs
 node fibHeaps.mjs
-node lazyHeaps.mjs
 node leftistHeaps.mjs
+node lazyHeaps.mjs
+node orderedHeaps.mjs

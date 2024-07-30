@@ -605,7 +605,7 @@ export default class BinaryForest extends Top {
 	 *  @return the string
 	 */
 	tree2string(u, label=0, treeRoot=1) {
-		if (u == 0) return '-'
+		if (u == 0 || !label(u)) return '-'
 		if (this.left(u) == 0 && this.right(u) == 0) {
 			return label(u);
 		}

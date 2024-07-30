@@ -290,10 +290,10 @@ export default class OrderedHeaps extends BalancedForest {
 	 *    0b0100 specifies that the underlying tree structure be shown
 	 *    0b1000 specifies that the minkey values be shown
 	 *  @param label is an optional function used to generate the label for
-	 *  the heap item; if omitted x2s() is used
+	 *  the heap item
 	 *  default for fmt is 0b010
 	 */
-	toString(fmt=0b010,label=0) {
+	toString(fmt=0x2,label=0) {
 		if (!label) {
 			label = (x => {
 						let ks = (this.key(x) == Infinity ?

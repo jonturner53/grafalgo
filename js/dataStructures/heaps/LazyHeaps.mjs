@@ -244,9 +244,10 @@ export default class LazyHeaps extends LeftistHeaps {
 		if (!label) label = x => `${this.x2s(x)}:${this.key(x)}`;
 		if (!(fmt&4)) return this.toListSet().toString(fmt&3,label);
 
-		let xlabel = x => !this.isactive(x) ? (this.p(x) ? '!' : '') : 
+		let xlabel = x => this.isdummy(x) ? 'D' : 
+							(this.retired(x) ? 'R' :
 								label(x) + ((fmt&0x8) && this.rank(x) > 1 ?
-											`:${this.rank(x)}` : '');
+											`:${this.rank(x)}` : ''));
 		let s = '';
 		for (let h = 1; h <= this.n; h++) {
 			if (this.p(h) || h == this.dummy) continue;
@@ -259,6 +260,7 @@ export default class LazyHeaps extends LeftistHeaps {
 			if (!this.singleton(h)) s += ']';
 			if (fmt&0x01) s += '\n';
 		}
+		s = s.replaceAll('*!', '*');
 		if (selectHeap) return s;
 		return fmt&0x1 ? '{\n' + s + '}\n' : '{' + s + '}';
 	}

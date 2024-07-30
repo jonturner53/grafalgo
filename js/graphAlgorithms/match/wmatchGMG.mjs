@@ -366,8 +366,8 @@ function newPhase() {
 			let laste = 0;
 			for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
 				// insert dummy edge for u in b's subheap within exh
-				let e = u + g.edgeRange;
-				exh.insertAfter(e, Infinity, laste, b); laste = e;
+				let e0 = u + g.edgeRange;
+				exh.insertAfter(e0, Infinity, laste, b); laste = e0;
 				for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 					let v = g.mate(u,e); let V = bloss.outer(v);
 					if (bloss.state(V) == +1) {
@@ -381,7 +381,7 @@ function newPhase() {
 	}
 	if (trace) {
 		let s = bloss.blossoms2string(1);
-		if (s.length > 2) traceString += `	${s}\n`;
+		if (s.length > 2) traceString += `    ${s}\n`;
 	}
 }
 
@@ -392,10 +392,9 @@ function newPhase() {
 function relabel() {
 	let d1 = evh.empty() ? 0 : evh.key(evh.findmin());
 
-	let e = exh.findmin();
-	let d2 = (e && e <= g.edgeRange ? slack(e) : Infinity);
+	let d2 = exh.empty() ? Infinity : exh.key(exh.findmin());
 
-	e = eeh.findmin();
+	let e = eeh.findmin();
 	while (e && bloss.outer(g.left(e)) == bloss.outer(g.right(e))) {
 		eeh.delete(e); e = eeh.findmin(); steps++;
 	}
@@ -445,8 +444,9 @@ function relabel() {
 	}
 
 	if (trace) {
+		traceString += '\n';
 		let s = eligibleEdgeString();
-		if (s.length > 2) traceString += `\n    ${s}\n`;
+		if (s.length > 2) traceString += `    ${s}\n`;
 		s = bloss.trees2string(1);
 		if (s.length > 2 && delta == d4) traceString += `    ${s}\n`;
 		s = bloss.blossoms2string(1);
@@ -458,18 +458,15 @@ function relabel() {
 
 /** Construct a string listing eligible edges */
 function eligibleEdgeString() {
-	let exs = exh.toString(0,e => {
+	let exs = exh.toString(2,(e,B) => {
 							if (!g.validEdge(e)) return '';
 							let [u,v] = [g.left(e),g.right(e)];
 							let [U,V] = [bloss.outer(u),bloss.outer(v)];
-							let B = bloss.state(u) == 0 ? U : V;
-							return exh.key(e,B) == 0 ? g.e2s(e,0,1) : ''
-						});
-	let ees = eeh.toString(0,e => eeh.key(e) == 0 ? g.e2s(e,0,1) : '')
-	if (exs.length > 2 && ees.length > 2)
-		return `${exs.slice(0,-1)} ${ees.slice(1)}`;
-	else if (exs.length > 2) return exs;
-	else if (ees.length > 2) return ees;
+							//let B = bloss.state(u) == 0 ? U : V;
+							return '' + ((exh.key(e,B) == 0) ? ''+g.e2s(e,0,1) : '');
+						}).slice(1,-1).trim();
+	let ees = eeh.toString(0,e => eeh.key(e) == 0 ? g.e2s(e,0,1) : '').slice(1,-1).trim();
+	return '[' + ((exs && ees ? (exs + ' ' + ees) : (exs ? exs : ees))) + ']';
 }
 
 /** Add ex edges incident to an even blossom or sub-blossom.
@@ -717,10 +714,9 @@ function heaps2string() {
 				g.n > 26 ? g.e2s(e) : g.x2s(g.left(e)) + g.x2s(g.right(e)) +
 							':' + eeh.key(e)) + '\n';
 	}
-	if (!exh.empty()) {
-		s += 'exh: ' + exh.toString(0,e => 
-				e > g.edgeRange ? g.x2s(e-g.edgeRange) :
-				 (g.n > 26 ? g.e2s(e) : g.x2s(g.left(e)) + g.x2s(g.right(e))));
+	if (!exh.empty() && exh.key(exh.findmin()) != Infinity) {
+		s += 'exh: ' + exh.toString(2,
+						(e,B) => (e <= g.edgeRange) ? g.e2s(e,0,1) : g.x2s(e-g.edgeRange));
 		s += '\n';
 	}
 	return s;

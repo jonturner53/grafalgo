@@ -264,12 +264,13 @@ export default class ArrayHeap extends Top {
 	toString(showTree=0, label=0) {
 		if (!label) label = (u => this.x2s(u) + ':' + this.key(u));
 		if (!showTree || this.size <= 1) {
-			let s = '[';
+			let s = '';
 			for (let i = 1; i <= this.size; i++) {
 				let lab = label(this.itemAt(i));
-				s += (i > 1 && lab ? ' ' : '') + lab;
+				s += (lab && s ? ' ' : '');
+				//s += (i > 1 && lab ? ' ' : '') + lab;
 			}
-			return s + ']';
+			return '[' + s + ']';
 		}
 		if (this.size == 1) return '[' + label(this.itemAt(1)) + ']';
 		let f = new Forest(this.n);

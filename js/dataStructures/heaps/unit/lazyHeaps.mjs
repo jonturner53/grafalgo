@@ -38,7 +38,7 @@ try {
 		r = lh.lazyMeld(r, 6);
 	matches(lh, '{g:7 h:8 i:9 j:10 [a:1 b:2 c:3 d:4 e:5 f:6]}', 'a8');
 	matches(lh.toString(0x1e),
-		'{g:7 h:8 i:9 j:10 [((((a:1 ! b:2) ! c:3) ! d:4) ! e:5) * f:6]}','a9');
+		'{g:7 h:8 i:9 j:10 [((((a:1 D b:2) D c:3) D d:4) D e:5) *D f:6]}','a9');
 	lh.findmin(r);
 	matches(lh, '{[d:4 c:3 f:6 e:5 a:1 b:2] [g:7] [h:8] [i:9] [j:10]}', 'a10');
 	matches(lh.toString(0x1e),
