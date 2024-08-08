@@ -75,7 +75,8 @@ export default function tspC(g, trace=0) {
 		if (!e) { e = g.join(u,v); g.length(e, dist[u][v]); }
 		tour[i++] = e; tourLength += g.length(e);
 	}
-	
+	g.sortAllEplists();
+
 	if (trace) traceString += `tsp tour: ${g.x2s(u0)} ` +
 					`${g.elist2string(tour,0,0,1)} ${tourLength}\n`;
 
@@ -163,13 +164,6 @@ function eulerTour(h0,u) {
 		} else {
 			u = visited.first();
 		}
-/*
-		} else if (!visited.empty()) {
-			u = visited.first();
-		} else if (h.m) {
-			u = h.left(g.first()); visited.enq(u); arrivalEdge[u] = 0;
-		}
-*/
 	}
 	return tour;
 }
@@ -184,54 +178,3 @@ function shortcutTour(h, u0, euler) {
 	}
 	return tour;
 }
-
-/* Construct tsp tour from eulerian graph.
- * @param g is graph
- * @param h is eulerian graph obtained from mst and matching on g
- * @param link[r][u] is the link joining vertex u to its parent in
- * a shortest path tree with root r.
- * @return a pair [u0, cycle] where u0 is the first vertex on the
- * tsp tour and cycle is a vector of edges defining cycle in g
- * that includes every vertex
-function buildtour(g,h,link) {
-	// build tsp vertex tour by traversing eulerian graph, inserting vertices
-	// into vtour when first encountered
-	let vtour = new List(g.n);
-	let u = h.left(h.first());
-	let pu = 0;		// insertion point for next vtour vertex
-	while (h.m) {
-		if (!vtour.contains(u)) {
-			vtour.insert(u,pu); pu = u;
-		}
-		let e = h.firstAt(u);
-		if (e) { u = h.mate(u,e); h.delete(e); continue; }
-		// find starting point for new loop
-		pu = 0;
-		for (u = vtour.first(); u; u = vtour.next(u)) {
-			e = h.firstAt(u);
-			if (e) {
-				pu = u; u = h.mate(u,e); h.delete(e); break;
-			}
-		}
-	}
-
-	// construct tour of edges
-	// for each consecutive pair [u,v] on vtour, insert shortest path from
-	// u to v by following link pointers
-	let etour = new Array(2*g.n).fill(0); let etourLength = 0;
-	let j = 0;
-	for (let s = vtour.first(); s; s = vtour.next(s)) {
-
-		let t = (s == vtour.last() ? vtour.first() : vtour.next(s));
-		let u = s;
-		do {
-			let e = link[t][u];
-			etour[j++] = e; u = g.mate(u,e);
-			etourLength += g.length(e);
-		} while (u != t);
-	}
-	etour.length = j;
-
-	return [vtour.first(), etour];
-}
- */
