@@ -412,32 +412,20 @@ export default class Graph extends Top {
 	 *  are present, they are used to break ties.
 	 */
 	sortedElist(evec=null) {
-		// first create vector of edge information
-		// [smaller endpoint, larger endpoint, weight, edge number]
-		if (evec) {
-			for (let i = 0; i < evec.length; i++) {
-				let e = evec[i];
-				if (this.left(e) < this.right(e)) {
-					evec[i] = [this.left(e), this.right(e), this.weight(e), e];
-				} else {
-					evec[i] = [this.right(e), this.left(e), this.weight(e), e];
-				}
-			}
-		} else {
+		if (evec == null) {
 			let i = 0; evec = new Array(this.m);
 			for (let e = this.first(); e; e = this.next(e)) {
-				if (this.left(e) < this.right(e)) {
-					evec[i] = [this.left(e), this.right(e), this.weight(e), e];
-				} else {
-					evec[i] = [this.right(e), this.left(e), this.weight(e), e];
-				}
-				i++;
+				evec[i++] = e;
 			}
 		}
-		evec.sort((t1, t2) => (t1[0] != t2[0] ? t1[0] - t2[0] :
-							   (t1[1] != t2[1] ? t1[1] - t2[1] :
-								(t1[2] != t2[2] ? t1[2] - t2[2] : 0))));
-		for (let i = 0; i < evec.length; i++) evec[i] = evec[i][3];
+		evec.sort((e1,e2) => { let m1 = Math.min(this.left(e1),this.right(e1));
+							   let M1 = this.mate(m1,e1);
+							   let m2 = Math.min(this.left(e2),this.right(e2));
+							   let M2 = this.mate(m2,e2);
+							   return (m1 != m2 ? m1 - m2 : 
+									   (M1 != M2 ? M1 - M2 :
+										this.weight(e1) - this.weight(e2)));
+							 });
 		return evec;
 	}
 	
@@ -485,9 +473,9 @@ export default class Graph extends Top {
 		for (let i = 0; i < el1.length; i++) {
 			let e1 = el1[i]; let e2 = el2[i];
 			let m1 = Math.min(this.left(e1), this.right(e1));
-			let M1 = Math.max(this.left(e1), this.right(e1));
+			let M1 = this.mate(m1,e1);
 			let m2 = Math.min(that.left(e2), that.right(e2));
-			let M2 = Math.max(that.left(e2), that.right(e2));
+			let M2 = that.mate(m2,e2);
 			if (m1 != m2 || M1 != M2 || this.weight(e1) != that.weight(e2))
 				return false;
 		}

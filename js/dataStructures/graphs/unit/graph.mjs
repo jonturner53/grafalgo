@@ -20,8 +20,7 @@ try {
 
 	matches(g.n, 8, 'a1'); matches(g.m, 0, 'a2');
 	matches(g, '{h}', 'a3');
-	g.join(1, 4);
-	g.join(1, 3); g.join(2, 4); g.join(3, 5);
+	g.join(1, 4); g.join(1, 3); g.join(2, 4); g.join(3, 5);
 	matches(g, '{a[d c] b[d] c[a e] d[b a] e[c] h[]}', 'a4');
 	g.join(5, 1); g.join(2, 7); g.join(3, 7);
 	matches(g, '{a[d c e] b[d g] c[a e g] d[a b] e[c a] g[b c] h}', 'a5');

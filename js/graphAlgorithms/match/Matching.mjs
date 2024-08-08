@@ -55,6 +55,10 @@ export default class Matching extends Top {
 		this.elist.clear();
 	}
 
+	/** Get endpoints of edges. */
+	left(e) { return this.g.left(e); }
+	right(e) { return this.g.right(e); }
+
 	/** Get the matching edge incident to a vertex */
 	at(u) { return this.map[u]; }
 

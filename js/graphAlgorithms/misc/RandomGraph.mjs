@@ -187,7 +187,7 @@ export function randomFlograph(n, d, ssd=d, ncuts=1, lookback=1) {
  *  considered dense
  *  @param dmax is an optional upper bound on the vertex degree
  */
-function add2graph(g, m, dense, nextpair, randpair, dmax=g.n-1) {
+export function add2graph(g, m, dense, nextpair, randpair, dmax=g.n-1) {
 	if (m <= g.m) return;
 	assert(m <= dmax*g.n/2);
 
@@ -210,8 +210,7 @@ function add2graph(g, m, dense, nextpair, randpair, dmax=g.n-1) {
 
 /** Sort vector of pairs and remove duplicates */
 function sortReduce(pairs) {
-	pairs.sort((a,b) => (a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 :
-						(a[1] < b[1] ? -1 : (a[1] > b[1] ? 1 : 0)))));
+	pairs.sort((a,b) => (a[0] != b[0] ? a[0]-b[0] : a[1]-b[1]));
 	let i = 0; let j = 1;
 	while (j < pairs.length) {
 		if (pairs[j][0] != pairs[i][0] || pairs[j][1] != pairs[i][1])

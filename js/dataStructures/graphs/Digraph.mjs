@@ -160,6 +160,7 @@ export default class Digraph extends Graph {
 			this.expand(Math.max(this.n, u, v), Math.max(e, this.edges.n+1));
 			if (e == 0) e = this.edges.first(2);
 		}
+assert(e <= this.edges.n, e + ' ' + this.edges.n);
 		this.edges.swap(e);
 
 		// initialize edge information

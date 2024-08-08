@@ -182,8 +182,8 @@ export default class List extends Top {
 	/** Insert an item into the list, relative to another. 
 	 *  @param i is item to insert
 	 *  @param j is item after which i is to be inserted;
-	 *  @param value is optional value for inserted item
 	 *  if zero, i is inserted at the front of the list
+	 *  @param value is optional value for inserted item
 	 */
 	insert(i, j, value=undefined) {
 		if (i > this.n) this.expand(i);

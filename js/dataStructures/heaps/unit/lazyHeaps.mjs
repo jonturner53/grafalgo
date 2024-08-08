@@ -13,6 +13,13 @@ import LazyHeaps from '../LazyHeaps.mjs';
 
 try {
 	console.log('testing LazyHeaps');
+{
+let lazy = new LazyHeaps();
+lazy.fromString('{[a:2 b:4 c:1 d:3] [e:4 f:1 g:5 h:3] ' +
+                '[i:2 j:5 k:1 l:5 m:3]}');
+let h = lazy.lazyMeld (1,6); h = lazy.lazyMeld(h,11);
+console.log(lazy.toString(0x1e));
+}
 
 	let lh = new LazyHeaps();
 	matches(lh.fromString('{[a:1 b:2 c:3 d:4] [h:8 g:7 j:10 i:9 e:5 f:6]}'),

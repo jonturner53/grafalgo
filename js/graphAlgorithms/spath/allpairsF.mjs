@@ -14,8 +14,7 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
  *  @param g is a digraph with edge lengths
  *  @param trace controls output of information about the internal  
  *  state of the computation; larger values produce more information
- *  @return a tuple [error, link, dist, ts, stats] where error is an empty
- *  string on success and an error string on failure, link[s][u] is the edge
+ *  @return a tuple [link, dist, ts, stats] where link[s][u] is the edge
  *  from the parent of u to u in the spt rooted at s (or 0 if u unreachable);
  *  dist[s][u] is the shortest path distance from vertex s to vertex u
  *  (or infinity if u unreachable), ts is a trace string and stats is a
