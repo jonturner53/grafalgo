@@ -189,7 +189,7 @@ export function randomFlograph(n, d, ssd=d, ncuts=1, lookback=1) {
  */
 export function add2graph(g, m, dense, nextpair, randpair, dmax=g.n-1) {
 	if (m <= g.m) return;
-	assert(m <= dmax*g.n/2);
+	assert(m <= dmax*g.n/((g instanceof Digraph) ? 1 : 2));
 
 	// generate vector of candidate edges to select new edges from
 	let pairs = [];
@@ -202,8 +202,8 @@ export function add2graph(g, m, dense, nextpair, randpair, dmax=g.n-1) {
 		sortReduce(pairs);
 	}
 	removeDuplicates(pairs, g);
-	if (pairs.length < m - g.m)
-		fatal("Rgraph: program error, too few candidate edges");
+	ea && assert(pairs.length >= m-g.m,
+				 'add2graph: program error, too few candidate edges');
 	samplePairs(pairs, g, m, dmax);
 	g.sortAllEplists();
 }
@@ -230,8 +230,10 @@ function removeDuplicates(pairs, g) {
 		if (u < pairs[i][0]) continue;
 		// build list of u's neighbors
 		nabors.clear();
-		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e))
-			nabors.enq(g.mate(u,e));
+		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
+			if (!(g instanceof Digraph) || u == g.tail(e))
+				nabors.enq(g.mate(u,e));
+		}
 		// mark pairs that are already u's neighbors
 		while (i < pairs.length && pairs[i][0] == u) {
 			if (nabors.contains(pairs[i][1]))
@@ -244,7 +246,7 @@ function removeDuplicates(pairs, g) {
 	i = 0; let j = 0;
 	while (j < pairs.length) {
 		if (pairs[j][0] == 0) j++;
-		else 				  pairs[i++] = pairs[j++];
+		else pairs[i++] = pairs[j++];
 	}
 	pairs.length = i;
 }

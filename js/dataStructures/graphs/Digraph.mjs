@@ -160,7 +160,6 @@ export default class Digraph extends Graph {
 			this.expand(Math.max(this.n, u, v), Math.max(e, this.edges.n+1));
 			if (e == 0) e = this.edges.first(2);
 		}
-assert(e <= this.edges.n, e + ' ' + this.edges.n);
 		this.edges.swap(e);
 
 		// initialize edge information
@@ -271,11 +270,14 @@ assert(e <= this.edges.n, e + ' ' + this.edges.n);
 	 *  @param e is an edge number
 	 *  @return a string representing the edge
 	 */
-	edge2string(e, label) {
+	edge2string(e, label, terse) {
 		return e == 0 ? '-' :
-					'(' + this.index2string(this.tail(e), label) + ',' 
-					+ this.index2string(this.head(e), label)
-					+ (this.hasLengths ? ',' + this.length(e) : '') + ')';
+				((terse && this.n <= 26) ?
+					(this.x2s(this.tail(e), label) + 
+					 this.x2s(this.head(e), label)) : 
+					('(' + this.x2s(this.tail(e), label) + ','  +
+					  this.x2s(this.head(e), label) +
+					  (this.hasLengths ? ',' + this.length(e) : '') + ')'));
 	}
 
 	/** Construct a string representation of the Digraph object.

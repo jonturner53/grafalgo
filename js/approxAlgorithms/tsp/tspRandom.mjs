@@ -21,47 +21,75 @@ import { add2graph } from '../../graphAlgorithms/misc/RandomGraph.mjs';
  *  @param scale is scale factor used to adjust length of seeded tour
  *  @param rand is a vector that specifies the random the number generator
  *  to be used to generate edge weights and its arguments
+ *  @param asym is a boolean which determines if the generated instance is
+ *  aysmmetric or not; in symmetric case, the edge lengths satisfy the triangle
+ *  inequality, in the asymmetric case, they do not and the retured graph
+ *  is a Digraph
+ *  @param tri is a boolean which determines if the edge weights must satisfy
+ *  the triangle inequality or not
  *  @return pair [g,tourLength] where random graph that contains a tsp tour
  *  and tourLength is the length of that tour
  */
-export default function tspRandom(n, d, scale=1, rand=[randomFraction]) {
+export default function tspRandom(n, d, scale=1, rand=[randomFraction],
+								  asym=0, tri=1) {
+	let m = (asym ? d*n : ~~(d*n/2));
+	let g = (asym ? new Digraph(n,m) : new Graph(n,m));
 
-	let m = ~~(d*n/2); let g = new Graph(n,m);
-
-	// initialize graph with random tour
+	// compute random "seed" tour
 	let p = randomPermutation(n);
-	let tour = new Int32Array(n); let i = 0;
-	for (let u = 1; u < n; u++) tour[i++] = g.join(p[u],p[u+1]);
-	tour[n-1] = g.join(p[n],p[1]);
+	let seed = new Int32Array(n); let i = 0;
+	for (let u = 1; u < n; u++) seed[i++] = g.join(p[u],p[u+1]);
+	seed[n-1] = g.join(p[n],p[1]);
 
-	// augment random edges
-	let dense = (d > n/3);
-	add2graph(g, m, dense,
-					([u,v]) => (n < 2 || u == n-1 && v == n ? null :
-						    	(u == 0 ? [1,2] :
-								 (v < n ? [u,v+1] : [u+1,u+2]))),
-					() => { let u = randomInteger(1,n-1);
-							return [u, randomInteger(u+1, n)]; }); 
+	addEdges(g, m); g.randomWeights(...rand);
 
-	g.randomWeights(...rand);
-
-	// apply scale factor to tour edges.
-	for (let e of tour)
+	// apply scale factor to seed edges.
+	for (let e of seed)
 		g.length(e, Math.max(1, Math.round(g.length(e) * scale)));
 
-	// force lengths to satisfy triangle inequality
-	let dg = new Digraph(g.n, 2*m);
-	for (let e = g.first(); e; e = g.next(e)) {
-		let de = dg.join(g.left(e),g.right(e)); dg.length(de, g.length(e));
-			de = dg.join(g.right(e),g.left(e)); dg.length(de, g.length(e));
+	let seedLength = 0;
+	for (let e of seed) seedLength += g.length(e);
+
+	if (tri) enforceTriangleInequality(g);
+
+	return [g, seed, seedLength];
+}
+
+function addEdges(g, m) {
+	let n = g.n;
+	let dense = n*(n-1)/3; let nextpair; let randpair;
+	if (g instanceof Digraph) {
+		nextpair = ([u,v]) => (n < 2 || u == n && v == n-1 ? null :
+						       (u == 0 ? [1,2] :
+								(v < n ? [u,(v==u-1 ? u : v) + 1] : [u+1,1])));
+		randpair = () => {  let u = randomInteger(1,n);
+						    let v = randomInteger(1,n-1);
+							return [u, (v < u ? v : v+1)]; }; 
+	} else {
+		dense /= 2;
+		nextpair = ([u,v]) => (n < 2 || u == n-1 && v == n ? null :
+                                (u == 0 ? [1,2] : 
+                                 (v < n ? [u,v+1] : [u+1,u+2])))
+		randpair = () => { let u = randomInteger(1,n-1); 
+                            return [u, randomInteger(u+1, n)]; };
 	}
 
+	add2graph(g, m, dense, nextpair, randpair);
+
+	return g;
+}
+
+function enforceTriangleInequality(g) {
+	let dg = g;
+	if (!(dg instanceof Digraph)) {
+		dg = new Digraph(g.n, 2*g.m);
+		for (let e = g.first(); e; e = g.next(e)) {
+			let de = dg.join(g.left(e),g.right(e)); dg.length(de, g.length(e));
+				de = dg.join(g.right(e),g.left(e)); dg.length(de, g.length(e));
+		}
+	}
+assert(dg instanceof Digraph);
 	let [,dist] = allpairsF(dg);
 	for (let e = g.first(); e; e = g.next(e))
-		g.weight(e, Math.min(g.weight(e), dist[g.left(e)][g.right(e)]));
-
-	let tourLength = 0;
-	for (let e of tour) tourLength += g.length(e);
-
-	return [g,tourLength];
+		g.length(e, Math.min(g.length(e), dist[g.left(e)][g.right(e)]));
 }

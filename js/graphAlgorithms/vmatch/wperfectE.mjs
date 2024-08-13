@@ -464,10 +464,10 @@ function verifyInvariant(size, final=false) {
 			return `matched edge ${g.e2s(e)} has non-zero slack=${s}`;
 		}
 	}
-	if (size != g.n/2 || !final) return;
+	if (size != g.n/2 || !final) return '';
 
-	// finally, verify termination condition
-	if (match.size() != g.n/2) return `not a perfect matching`;
+	// final checks for termination of perfect matching case
+	if (match.size() != g.n/2) return `not a perfect matching` + match.size() + ' ' + g.n/2;
 
 	if (dualObjective() != match.weight()) {
 		return `dual objective = ${dualObj} does not equal ` +
