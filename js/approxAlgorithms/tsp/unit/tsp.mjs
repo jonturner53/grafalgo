@@ -72,19 +72,19 @@ g = new Digraph();
 g.fromString('{a[d:5 g:8 i:3] b[e:4 g:6 j:7 k:6] c[d:1 f:3 h:3 i:9 l:1] d[b:1 h:6 l:7] e[a:3 k:4] f[e:1 g:6 h:5 k:3] g[c:4] h[b:9 j:5 l:4] i[h:2] j[d:5 e:1 f:4 g:5] k[a:1 d:4 f:4 g:4] l[f:5 j:1]}');
 tester.addTest('small graph (12,4):32', g, null);
 
-[g,seed,seedLength] = tspRandom(16,5,.35,[randomInteger,1,9],true);
+[g,seed,seedLength] = tspRandom(16,5,.35,[randomInteger,1,9],1,0);
 tester.addTest('small random graph (16,5,.35):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(50,15,1,[randomInteger,1,50],true);
+[g,seed,seedLength] = tspRandom(50,15,1,[randomInteger,1,50],1,0);
 tester.addTest('medium random graph (50,15,1):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(50,15,.2,[randomInteger,1,50],true);
+[g,seed,seedLength] = tspRandom(50,15,.2,[randomInteger,1,50],1,0);
 tester.addTest('medium random graph (50,15,.2):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(100,30,1,[randomInteger,1,100],true);
+[g,seed,seedLength] = tspRandom(100,30,1,[randomInteger,1,100],1,0);
 tester.addTest('large random graph (100,30,1):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(100,30,.05,[randomInteger,1,100],true);
+[g,seed,seedLength] = tspRandom(100,30,.05,[randomInteger,1,100],1,0);
 tester.addTest('large random graph (100,30,.05):'+seedLength, g, seed);
 
 tester.run();

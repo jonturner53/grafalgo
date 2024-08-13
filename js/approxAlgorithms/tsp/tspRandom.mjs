@@ -31,7 +31,7 @@ import { add2graph } from '../../graphAlgorithms/misc/RandomGraph.mjs';
  *  and tourLength is the length of that tour
  */
 export default function tspRandom(n, d, scale=1, rand=[randomFraction],
-								  asym=0, tri=1) {
+								  asym=0, tri=!asym) {
 	let m = (asym ? d*n : ~~(d*n/2));
 	let g = (asym ? new Digraph(n,m) : new Graph(n,m));
 
