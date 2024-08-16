@@ -20,7 +20,11 @@ let csets;  // MergeSets of vertices in cycles
 let clist;  // List of cycles
 let  link;  // link[u] is edge to next vertex in u's cycle
 let rlink;  // rlink[u] is edge to previous vertex
-let  size	// size[u] is size of u's cycle
+let  size;	// size[u] is size of u's cycle
+let C;      // vertex that identifies the cycle with the most edges
+
+let trace;
+let traceString;
 
 /** Find a traveling salesman tour, using Karp's algorithm.
  *  @param G is a weighted digraph.
@@ -28,12 +32,37 @@ let  size	// size[u] is size of u's cycle
  *  of the tour and tour is an array of n edges; tour may require edges not
  *  explicitly represented in g; such edges are added to g where necessary
  */
-export default function tspK(G, trace=0) {
-	g = G;
+export default function tspK(G, traceFlag=0) {
+	g = G; trace = traceFlag; traceString = '';
 
-	let traceString = '';
 	if (trace) traceString += `graph: ${g.toString(1)}`;
 
+	let cyclesLength = initialCycles(); let lowerBound = cyclesLength;
+	let cycleCount = clist.length; clist.delete(C);
+	if (trace) traceString += '\ninitial cycles: ' + cycles2string(C) + '\n';
+
+	if (clist.length > 0) cyclesLength = merge1(cyclesLength);
+	if (clist.length > 0) cyclesLength = merge2(cyclesLength);
+	if (clist.length > 0) cyclesLength = merge3(cyclesLength);
+	ea && assert(clist.length == 0);
+
+	// create vector of edges in tour
+	let tour = new Int32Array(g.n); let i = 0; let u = C;
+	do { let e = link[u]; tour[i++] = e; u = g.head(e); } while (u != C);
+	
+	if (trace) traceString += `\ntsp tour: ${g.x2s(C)}` +
+					`${g.elist2string(tour,0,0,1)} ${cyclesLength}\n`;
+
+	return [[C,tour], traceString,
+			{'cycleCount': cycleCount, 'lowerBound':lowerBound,
+			 'tourLength':cyclesLength}];
+}
+
+/** Use match to construct initial set of cycles.
+ *  @return pair [len,C] where len is the total length of the initial
+ *  set of cycles and C is the id of the initial cycle with the most edges.
+ */
+function initialCycles() {
 	// determine edges that define cycles
 	let mg = new Graph(2*g.n, g.edgeRange);
 	for (let e = g.first(); e; e = g.next(e)) {
@@ -41,7 +70,7 @@ export default function tspK(G, trace=0) {
 	}
 	let [match] = wperfectE(mg);
 
-	// initialize working data structures
+	// initialize data structures used to represent cycles
 	csets = new MergeSets(g.n);    
 	clist = new List(g.n);         
 	link = new Int32Array(g.n+1); 
@@ -57,110 +86,106 @@ export default function tspK(G, trace=0) {
 		if (cu != cv)
 			size[csets.merge(cu,cv)] = size[cu] + size[cv];
 	}
-	let tourLength = cyclesLength;
 
-	let bigc = 0;
+	// identify largest cycle
+	C = 0;
 	for (let u = 1; u <= g.n; u++) {
 		let c = csets.find(u);
 		if (!clist.contains(c)) clist.enq(c);
-		if (bigc == 0 || size[c] > size[bigc]) bigc = c;
+		if (C == 0 || size[c] > size[C]) C = c;
 	}
-	let cycleCount = clist.length;
-	clist.delete(bigc);
-	if (trace) traceString += '\ninitial cycles: ' + cycles2string(bigc) + '\n';
-
-	if (clist.length > 0) {
-		// use matching to identify best patching operations to perform
-		mg = new Graph(2*g.n, g.edgeRange);
-		if (trace) traceString += '\npotential patching edge sets\n';
-		for (let c = clist.first(); c; c = clist.next(c)) {
-			// find all ways to merge c with bigc
-			let u = c;
-			do {
-				let uv = link[u]; let v = g.head(uv);
-				for (let uy = g.firstOutof(u); uy; uy = g.nextOutof(u,uy)) {
-					let y = g.head(uy);
-					if (csets.find(y) != bigc) continue;
-					let xy = rlink[y]; let x = g.tail(xy);
-					let xv = g.findEdge(x,v);
-					if (!xv) continue;
-					if (trace) {
-						traceString += `    ${g.e2s(uv,0,1)} ${g.e2s(uy,0,1)}` +
-									   ` ${g.e2s(xy,0,1)} ${g.e2s(xv,0,1)}`;
-					}
-					mg.join(c, g.n+y, uy);
-					mg.weight(uy, (g.length(uy) + g.length(xv)) -
-								  (g.length(xy) + g.length(uv)));
-					if (trace) traceString += ' ' + mg.weight(uy) + '\n';
-				}
-				u = g.head(uv);
-			} while (u != c);
-		}
-		if (mg.m) {
-			let [match2] = wperfectE(mg, Math.min(mg.m,clist.length));
-		
-			if (trace) traceString += '\nupdated cycle sets\n';
-			for (let uy = match2.first(); uy; uy = match2.next(uy)) {
-				let [u,y] = [g.tail(uy),g.head(uy)];
-				let uv = link[u];  let v = g.head(uv);
-				let xy = rlink[y]; let x = g.tail(xy);
-				let xv = g.findEdge(x,v);
-				link[u] = rlink[y] = uy; link[x] = rlink[v] = xv;
-				tourLength += mg.weight(uy);
-				let cu = csets.find(u);
-				bigc = csets.merge(cu, bigc);
-				clist.delete(cu);
-				if (trace) traceString += '    ' + cycles2string(bigc) + '\n';
-			}
-		}
-
-		// merge remaining smaller cycles into bigc
-		while (clist.length > 0) {
-			let [uy,xv,cost] = bestMerge(bigc);
-			tourLength += cost;
-			if (!uy) return null;
-			let [u,y] = [g.tail(uy),g.head(uy)];
-			let [x,v] = [g.tail(xv),g.head(xv)];
-			link[u] = rlink[y] = uy; link[x] = rlink[v] = xv;
-			let cu = csets.find(u);   // smaller cycle
-			bigc = csets.merge(cu, bigc);
-			clist.delete(cu);
-			if (trace) traceString += '    ' + cycles2string(bigc) + '\n';
-		}
-	}
-
-	// create vector of edges in tour
-	let tour = new Int32Array(g.n); let i = 0;
-	let u = bigc;
-	do {
-		let e = link[u]; tour[i++] = e; u = g.head(e);
-	} while (u != bigc);
-	
-	if (trace) traceString += `\ntsp tour: ${g.x2s(bigc)}` +
-					`${g.elist2string(tour,0,0,1)} ${tourLength}\n`;
-
-	return [[bigc,tour], traceString,
-			{'cycleCount': cycleCount, 'cyclesLength':cyclesLength,
-			 'tourLength':tourLength}];
+	return cyclesLength;
 }
 
-/** Find least cost merge of a smaller cycle into the largest.
- *  @param bigc is the largest cycle
- *  @return triple [uy,xv,cost] where uy and xv are "cross-edges" linking
- *  a small cycle containing edge uv and the large cycle which includes xy;
- *  cost is the cost of merging the cycles by replacing edges uv and xy
- *  with uy and xv.
+/** Use matching to merge smaller cycles with largest.
+ *  @param cyclesLength is total length of current set of cycles
+ *  @param cyclesLength is updated length of cycles
  */
-function bestMerge(bigc) {
-	let bestCost = Infinity; let bestPair = [0,0];
+function merge1(cyclesLength) {
+	// use matching to identify best patching operations to perform
+	let mg = new Graph(2*g.n, g.edgeRange);
+	if (trace) traceString += '\npotential patching edge sets\n';
 	for (let c = clist.first(); c; c = clist.next(c)) {
-		// look for best way to merge c with bigc
+		// find all ways to merge c with C
 		let u = c;
 		do {
 			let uv = link[u]; let v = g.head(uv);
 			for (let uy = g.firstOutof(u); uy; uy = g.nextOutof(u,uy)) {
 				let y = g.head(uy);
-				if (csets.find(y) != bigc) continue;
+				if (csets.find(y) != C) continue;
+				let xy = rlink[y]; let x = g.tail(xy);
+				let xv = g.findEdge(x,v);
+				if (!xv) continue;
+				if (trace) {
+					traceString += `    ${g.e2s(uv,0,1)} ${g.e2s(uy,0,1)}` +
+								   ` ${g.e2s(xy,0,1)} ${g.e2s(xv,0,1)}`;
+				}
+				mg.join(c, g.n+y, uy);
+				mg.weight(uy, (g.length(uy) + g.length(xv)) -
+							  (g.length(xy) + g.length(uv)));
+				if (trace) traceString += ' ' + mg.weight(uy) + '\n';
+			}
+			u = v;
+		} while (u != c);
+	}
+	if (!mg.m) return cyclesLength;
+
+	let [match] = wperfectE(mg, Math.min(mg.m,clist.length));
+
+	if (trace) traceString += '\nupdated cycle sets\n';
+	for (let uy = match.first(); uy; uy = match.next(uy)) {
+		let [u,y] = [g.tail(uy),g.head(uy)];
+		let uv = link[u];  let v = g.head(uv);
+		let xy = rlink[y]; let x = g.tail(xy);
+		let xv = g.findEdge(x,v);
+		link[u] = rlink[y] = uy; link[x] = rlink[v] = xv;
+		cyclesLength += mg.weight(uy);
+		let cu = csets.find(u);
+		C = csets.merge(cu, C);
+		clist.delete(cu);
+		if (trace) traceString += '    ' + cycles2string(C) + '\n';
+	}
+	return cyclesLength;
+}
+
+/** Attempt to merge any remaining smaller cycles into C.
+ *  @param cyclesLength is total length of current collection of cycles
+ *  @return updated length of cycles
+ */
+function merge2(cyclesLength) {
+	// merge remaining smaller cycles into C
+	while (clist.length > 0) {
+		let [uy,xv,cost] = bestMerge(C);
+		cyclesLength += cost;
+		if (!uy) return cyclesLength;
+		let [u,y] = [g.tail(uy),g.head(uy)];
+		let [x,v] = [g.tail(xv),g.head(xv)];
+		link[u] = rlink[y] = uy; link[x] = rlink[v] = xv;
+		let cu = csets.find(u);   // smaller cycle
+		C = csets.merge(cu, C);
+		clist.delete(cu);
+		if (trace) traceString += '    ' + cycles2string(C) + '\n';
+	}
+	return cyclesLength;
+}
+
+/** Find least cost merge of a smaller cycle into the largest.
+ *  @param C is the largest cycle
+ *  @return triple [uy,xv,cost] where uy and xv are "cross-edges" linking
+ *  a small cycle containing edge uv and the large cycle which includes xy;
+ *  cost is the cost of merging the cycles by replacing edges uv and xy
+ *  with uy and xv.
+ */
+function bestMerge() {
+	let bestCost = Infinity; let bestPair = [0,0];
+	for (let c = clist.first(); c; c = clist.next(c)) {
+		// look for best way to merge c with C
+		let u = c;
+		do {
+			let uv = link[u]; let v = g.head(uv);
+			for (let uy = g.firstOutof(u); uy; uy = g.nextOutof(u,uy)) {
+				let y = g.head(uy);
+				if (csets.find(y) != C) continue;
 				let xy = rlink[y]; let x = g.tail(xy);
 				let xv = g.findEdge(x,v);
 				if (!xv) continue;
@@ -176,15 +201,31 @@ function bestMerge(bigc) {
 	return [uy,xv,bestCost];
 }
 
+/** Complete a tour by adding infinite length cross edges.
+ *  @param cyclesLength is total length of current collection of cycles
+ *  @return updated length of cycles (infinity)
+ */
+function merge3(cyclesLength) {
+	while (clist.length > 0) {
+		let c = clist.deq();
+		let uv = link(c); let xy = link(C);
+		let uy = g.findEdge(u,y);
+		if (!uy) { uy = g.join(u,y); g.length(uy,Infinity); }
+		let xv = g.findEdge(u,y);
+		if (!xv) { xv = g.join(x,v); g.length(xv,Infinity); }
+	}
+	return Infinity;
+}
+
 /** Create a string representation of the cycles.
- *  @param bigc is the largest cycle
+ *  @param C is the largest cycle
  *  @return a string showing the edges in each cycle
  */
-function cycles2string(bigc) {
+function cycles2string() {
 	let s = ''; let len = 0;
-	let c = bigc;
+	let c = C;
 	do {
-		if (c != bigc) s += ' ';
+		if (c != C) s += ' ';
 		s += g.x2s(c) + '[';
 		let u = c;
 		do {
@@ -194,7 +235,7 @@ function cycles2string(bigc) {
 			u = g.head(e);
 		} while (u != c);
 		s += ']';
-		c = (c == bigc ? clist.first() : clist.next(c));
+		c = (c == C ? clist.first() : clist.next(c));
 	} while (c);
 	return s + ' ' + len;
 }

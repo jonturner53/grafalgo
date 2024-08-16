@@ -467,7 +467,8 @@ function verifyInvariant(size, final=false) {
 	if (size != g.n/2 || !final) return '';
 
 	// final checks for termination of perfect matching case
-	if (match.size() != g.n/2) return `not a perfect matching` + match.size() + ' ' + g.n/2;
+	if (match.size() != g.n/2)
+		return `not a perfect matching` + match.size() + ' ' + g.n/2;
 
 	if (dualObjective() != match.weight()) {
 		return `dual objective = ${dualObj} does not equal ` +
