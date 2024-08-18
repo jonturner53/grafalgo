@@ -18,9 +18,9 @@ import wperfectE from '../../graphAlgorithms/vmatch/wperfectE.mjs';
 let g;      // shared reference to tsp graph
 let csets;  // MergeSets of vertices in cycles
 let clist;  // List of cycles
-let  link;  // link[u] is edge to next vertex in u's cycle
+let link;   // link[u] is edge to next vertex in u's cycle
 let rlink;  // rlink[u] is edge to previous vertex
-let  size;	// size[u] is size of u's cycle
+let size;	// size[u] is size of u's cycle
 let C;      // vertex that identifies the cycle with the most edges
 
 let trace;
@@ -37,8 +37,9 @@ export default function tspK(G, traceFlag=0) {
 
 	if (trace) traceString += `graph: ${g.toString(1)}`;
 
-	let cyclesLength = initialCycles(); let lowerBound = cyclesLength;
-	let cycleCount = clist.length; clist.delete(C);
+	let cyclesLength = initialCycles();
+	let cycleStats = [size[C],clist.length,cyclesLength];
+	clist.delete(C);
 	if (trace) traceString += '\ninitial cycles: ' + cycles2string(C) + '\n';
 
 	if (clist.length > 0) cyclesLength = merge1(cyclesLength);
@@ -54,8 +55,7 @@ export default function tspK(G, traceFlag=0) {
 					`${g.elist2string(tour,0,0,1)} ${cyclesLength}\n`;
 
 	return [[C,tour], traceString,
-			{'cycleCount': cycleCount, 'lowerBound':lowerBound,
-			 'tourLength':cyclesLength}];
+			{'cycleStats': cycleStats, 'tourLength':cyclesLength}];
 }
 
 /** Use match to construct initial set of cycles.
@@ -78,23 +78,23 @@ function initialCycles() {
 	size = new Int32Array(g.n+1).fill(1); 
 
 	// build csets and get total weight of selected edges
-	let cyclesLength = 0;
+	let totalLength = 0;
 	for (let u = 1; u <= g.n; u++) {
 		let e = match.at(u); let v = g.head(e);
-		link[u] = rlink[v] = e; cyclesLength += g.length(e);
+		link[u] = rlink[v] = e; totalLength += g.length(e);
 		let cu = csets.find(u); let cv = csets.find(v);
 		if (cu != cv)
 			size[csets.merge(cu,cv)] = size[cu] + size[cv];
 	}
 
 	// identify largest cycle
-	C = 0;
+	C = 0; 
 	for (let u = 1; u <= g.n; u++) {
 		let c = csets.find(u);
 		if (!clist.contains(c)) clist.enq(c);
 		if (C == 0 || size[c] > size[C]) C = c;
 	}
-	return cyclesLength;
+	return totalLength;
 }
 
 /** Use matching to merge smaller cycles with largest.
@@ -117,10 +117,12 @@ function merge1(cyclesLength) {
 				let xv = g.findEdge(x,v);
 				if (!xv) continue;
 				if (trace) {
-					traceString += `    ${g.e2s(uv,0,1)} ${g.e2s(uy,0,1)}` +
-								   ` ${g.e2s(xy,0,1)} ${g.e2s(xv,0,1)}`;
+					traceString += `    ${g.e2s(uv,0,1)} ${g.e2s(xy,0,1)}` +
+								   ` ${g.e2s(uy,0,1)} ${g.e2s(xv,0,1)}`;
 				}
 				mg.join(c, g.n+y, uy);
+					// number in g of the cross-edge uy is used to identify 
+					// specific patching operation (along with cycle info)
 				mg.weight(uy, (g.length(uy) + g.length(xv)) -
 							  (g.length(xy) + g.length(uv)));
 				if (trace) traceString += ' ' + mg.weight(uy) + '\n';
