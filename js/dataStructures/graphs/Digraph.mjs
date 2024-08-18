@@ -154,8 +154,7 @@ export default class Digraph extends Graph {
 	 *  on failure
 	 */
 	join(u, v, e=this.edges.first(2)) {
-		ea && assert(u > 0 && v > 0 && (e > 0 || this.edges.first(2) == 0) &&
-			   		 this.edges.length(2));
+		ea && assert(u > 0 && v > 0 && (e > 0 || this.edges.first(2) == 0));
 		if (u > this.n || v > this.n || this.edges.length(2) == 0) {
 			this.expand(Math.max(this.n, u, v), Math.max(e, this.edges.n+1));
 			if (e == 0) e = this.edges.first(2);

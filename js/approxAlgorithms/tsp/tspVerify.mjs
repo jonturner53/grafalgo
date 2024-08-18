@@ -19,8 +19,11 @@ export default function tspVerify(g, seed, [u0,tour]) {
 		return `tour length ${tour.length} smaller than graph size ${g.n}`;
 	for (let i = 0; i < tour.length; i++) {
 		let e = tour[i];
-		if (!g.validEdge(e))
+		if (!g.validEdge(e)) {
+console.log(g.toString(1));
+console.log(g.elist2string(tour,0,0,1));
 			return `edge number ${e} at tour[${i}] is not valid`;
+		}
 	}
 	for (let i = 0; i < tour.length-1; i++) {
 		let e0 = tour[i]; let e1 = tour[i+1];

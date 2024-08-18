@@ -210,13 +210,13 @@ function bestMerge() {
 function merge3(cyclesLength) {
 	while (clist.length > 0) {
 		let c = clist.deq();
-		let uv = link[c]; let xy = link[C];
-		let [u,v] = [g.tail(uv),g.head(uv)];
-		let [x,y] = [g.tail(xy),g.head(xy)];
+		let uv = link[c]; let [u,v] = [g.tail(uv),g.head(uv)];
+		let xy = link[C]; let [x,y] = [g.tail(xy),g.head(xy)];
 		let uy = g.findEdge(u,y);
 		if (!uy) { uy = g.join(u,y); g.length(uy,Infinity); }
-		let xv = g.findEdge(u,y);
+		let xv = g.findEdge(x,v);
 		if (!xv) { xv = g.join(x,v); g.length(xv,Infinity); }
+		link[u] = rlink[y] = uy; link[x] = rlink[v] = xv;
 	}
 	return Infinity;
 }

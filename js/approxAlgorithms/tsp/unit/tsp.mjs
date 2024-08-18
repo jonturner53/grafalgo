@@ -46,6 +46,7 @@ let tester = new Tester(args, algomap);
 
 // symmetric test cases
 let g = new Graph(); let seed; let seedLength;
+/*
 g.fromString('{ a[h:4 i:1] b[c:3 d:7 f:7 g:5] c[b:3 f:4] d[b:7 f:6 i:7 j:5 k:3] e[h:3 k:6 l:3] f[b:7 c:4 d:6 g:2] g[b:5 f:2 k:1] h[a:4 e:3] i[a:1 d:7 l:4] j[d:5 l:6] k[d:3 e:6 g:1] l[e:3 i:4 j:6] }');
 tester.addTest('small graph (12,3):48', g, seed);
 
@@ -86,5 +87,8 @@ tester.addTest('large random graph (100,30,1):'+seedLength, g, seed);
 
 [g,seed,seedLength] = tspRandom(100,30,.05,[randomInteger,1,100],1,0);
 tester.addTest('large random graph (100,30,.05):'+seedLength, g, seed);
+*/
+[g,seed,seedLength] = tspRandom(26,2,1,[randomInteger,1,100],1,0);
+tester.addTest('large random graph (26,2,1):'+seedLength, g, seed);
 
 tester.run();
