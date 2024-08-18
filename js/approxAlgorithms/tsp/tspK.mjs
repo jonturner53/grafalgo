@@ -211,6 +211,8 @@ function merge3(cyclesLength) {
 	while (clist.length > 0) {
 		let c = clist.deq();
 		let uv = link[c]; let xy = link[C];
+		let [u,v] = [g.tail(uv),g.head(uv)];
+		let [x,y] = [g.tail(xy),g.head(xy)];
 		let uy = g.findEdge(u,y);
 		if (!uy) { uy = g.join(u,y); g.length(uy,Infinity); }
 		let xv = g.findEdge(u,y);
