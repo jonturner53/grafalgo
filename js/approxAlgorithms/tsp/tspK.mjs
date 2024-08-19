@@ -142,9 +142,9 @@ function merge1(cyclesLength) {
 		let xv = g.findEdge(x,v);
 		link[u] = rlink[y] = uy; link[x] = rlink[v] = xv;
 		cyclesLength += mg.weight(uy);
-		let cu = csets.find(u);
-		C = csets.merge(cu, C);
-		clist.delete(cu);
+		let c = csets.find(u);
+		C = csets.merge(c, C);
+		clist.delete(c);
 		if (trace) traceString += '    ' + cycles2string(C) + '\n';
 	}
 	return cyclesLength;
@@ -163,9 +163,9 @@ function merge2(cyclesLength) {
 		let [u,y] = [g.tail(uy),g.head(uy)];
 		let [x,v] = [g.tail(xv),g.head(xv)];
 		link[u] = rlink[y] = uy; link[x] = rlink[v] = xv;
-		let cu = csets.find(u);   // smaller cycle
-		C = csets.merge(cu, C);
-		clist.delete(cu);
+		let c = csets.find(u);   // smaller cycle
+		C = csets.merge(c, C); size[C] += size[c];
+		clist.delete(c);
 		if (trace) traceString += '    ' + cycles2string(C) + '\n';
 	}
 	return cyclesLength;
@@ -217,6 +217,8 @@ function merge3(cyclesLength) {
 		let xv = g.findEdge(x,v);
 		if (!xv) { xv = g.join(x,v); g.length(xv,Infinity); }
 		link[u] = rlink[y] = uy; link[x] = rlink[v] = xv;
+		C = csets.merge(C, c); size[C] += size[c];
+		if (trace) traceString += '    ' + cycles2string(C) + '\n';
 	}
 	return Infinity;
 }
