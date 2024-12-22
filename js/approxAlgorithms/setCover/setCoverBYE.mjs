@@ -34,7 +34,7 @@ export default function setCoverBYE(g, weight, trace=0) {
 		traceString += 'graph: ' +
 			g.toString(1, (e,u) => x2s(g.mate(u,e)),
 						  u => x2s(u) + (u<=m ? `:${weight[u]}` : '')) + '\n';
-		traceString += 'partial cover, uncovered items, slack\n';
+		traceString += "uncovered items, slacks of first item's subsets, partial cover\n";
 	}
 
 	let y = new Int32Array(g.n+1);  // for set item i, y[i] is dual variable
@@ -45,11 +45,18 @@ export default function setCoverBYE(g, weight, trace=0) {
 									   // constraint for j
 	for (let j = g.firstInput(); j; j = g.nextInput(j)) slack[j] = weight[j];
 
+	let coverWt = 0;
 	while (!uncovered.empty()) {
 		let i = uncovered.first();
 		if (trace) {
-			traceString += `${cover.toString(x2s)} ` +
-							`${uncovered.toString()} [${slack.slice(1,m+1)}]\n`;
+			traceString += uncovered.toString() + ' [';
+			for (let e = g.firstAt(i); e; e = g.nextAt(i,e)) {
+				let s = g.mate(i,e);
+				if (e != g.firstAt(i)) traceString += ' ';
+				traceString += x2s(s)+':'+slack[s];
+			}
+			traceString += '] ' + cover.toString(s=>x2s(s)+':'+weight[s]);
+			traceString += '] ' + coverWt + '\n';
 		}
 		// find smallest slack for constraint involving i
 		let minSlack = Infinity;
@@ -63,7 +70,7 @@ export default function setCoverBYE(g, weight, trace=0) {
 			let j = g.mate(i,e);
 			slack[j] -= minSlack;
 			if (slack[j] == 0 && !cover.contains(j)) {
-				if (!uncovered.empty()) cover.enq(j)
+				if (!uncovered.empty()) { cover.enq(j); coverWt += weight[j]; }
 				for (let ee = g.firstAt(j); ee; ee = g.nextAt(j,ee)) {
 					let ii = g.mate(j,ee);
 					if (uncovered.contains(ii)) uncovered.delete(ii);
@@ -72,12 +79,8 @@ export default function setCoverBYE(g, weight, trace=0) {
 		}
 	}
 
-	let coverWeight = 0;
-	for (let j = cover.first(); j; j = cover.next(j))
-		coverWeight += weight[j];
-
 	if (trace)
-		traceString += `\ncover: ${cover.toString(x2s)} ${coverWeight}\n`;
+		traceString += `\ncover: ${cover.toString(x2s)} ${coverWt}\n`;
 
-	return [cover, traceString, {'weight':coverWeight}];
+	return [cover, traceString, {'weight':coverWt}];
 }

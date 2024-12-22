@@ -33,7 +33,7 @@ export default function setCoverC(g, weight, trace=0) {
 		traceString += 'graph: ' +
 			g.toString(1, (e,u) => x2s(g.mate(u,e)),
 						  u => x2s(u) + (u<=m ? `:${weight[u]}` : '')) + '\n';
-		traceString += 'remaining sets, partial cover\n';
+		traceString += 'remaining sets, partial cover and cover weight\n';
 	}
 
 	let degree = new Int32Array(m+1);
@@ -49,7 +49,7 @@ export default function setCoverC(g, weight, trace=0) {
 		if (trace) {
 			traceString +=
 				subsets.toString(0,s=>x2s(s)+':'+subsets.key(s).toFixed(2)) +
-				` ${cover.toString(x2s)} (${coverWeight})\n`;
+				` ${cover.toString(s=>x2s(s)+':'+weight[s])} ${coverWeight}\n`;
 		}
 		let s = subsets.deletemin();
 		cover.enq(s);
