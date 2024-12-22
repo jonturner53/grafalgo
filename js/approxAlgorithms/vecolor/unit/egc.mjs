@@ -37,11 +37,11 @@ tester.addTest('small example', eg);
 eg = egcRandomCase(4,3,12,3,3);
 tester.addTest('small random (4,3,12,3,4)', eg);
 
-eg = egcRandomCase(5,4,20,4,4);
-tester.addTest('smallish random +0 (5,4,20,4,4)', eg);
+eg = egcRandomCase(6,4,18,4,4);
+tester.addTest('smallish random +0 (6,4,18,4,4)', eg);
 
-eg = egcRandomCase(5,4,20,4,5);
-tester.addTest('smallish random +1 (5,4,20,4,5)', eg);
+eg = egcRandomCase(6,4,18,4,6);
+tester.addTest('smallish random +1 (5,4,18,4,5)', eg);
 
 eg = egcRandomCase(30,10,150,10,10);
 tester.addTest('medium random +0 (30,10,150,10,10)', eg);

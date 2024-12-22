@@ -17,6 +17,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  */
 export default function becHardCase(n,speedup=1) {
 	let g = new Graph(3*n-1,n*n); g.hasBounds = 1;
+	g.setBipartition(n);
 	for (let u = 1; u <= n; u++) {
 		for (let i = 1; i <= u; i++) {
 			let e = g.join(u, n+i);

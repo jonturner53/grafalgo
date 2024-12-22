@@ -7,45 +7,57 @@
  */
 
 import { assert, AssertFail } from '../../../common/Assert.mjs';
+import { randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomBigraph, randomDigraph, randomDag, randomTree,
 		 randomConnectedGraph, randomFlograph, randomRegularGraph,
-		 randomRegularBigraph} from '../RandomGraph.mjs';
+		 randomRegularBigraph, add2graph} from '../RandomGraph.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../../dataStructures/graphs/Digraph.mjs';
 import {randomSample} from '../../../common/Random.mjs';
 
 try {
 	console.log('testing RandomGraph');
+	let g = randomGraph(10, 2.5);
+	console.log('sparse undirected (10,2.5)\n', g.toString(1));
+	g = randomGraph(10, 2.5, 3);
+	console.log('same with bounded degree (10,2.5,3)\n', g.toString(1));
+	g.randomWeights(randomInteger, 1, 9);
+	console.log('same with weights (1,9)\n', g.toString(1));
 
-	let g = randomGraph(10, 3);
-	console.log('sparse undirected graph\n', g.toString(1));
+	g.fromString('{a[b c] d[e] f[g h] i[j]}');
+	console.log('undirected graph with random extension (3,4) \n',g.toString());
+	add2graph(g, 3, 4);
+	console.log(g.toString(1));
+	
+	g = randomGraph(10, 6);
+	console.log('dense undirected graph (10,6)\n', g.toString(1));
 
-	g = randomGraph(10, 5);
-	console.log('dense undirected graph\n', g.toString(1));
+	g = randomBigraph(8, 2.5, 12);
+	console.log('undirected bigraph (8,2.5,12)\n', g.toString(1));
 
-	g = randomGraph(10, 5, 6);
-	console.log('undirected graph with bounded degree\n', g.toString(1));
-
-	g = randomBigraph(8, 12, 5);
-	console.log('undirected bigraph\n', g.toString(1));
+	g = randomBigraph(8, 2.5, 12, 3);
+	console.log('same with bounded degree (8,2.5,12,3)\n', g.toString(1));
 
 	g = randomDigraph(10, 2);
-	console.log('sparse directed graph\n', g.toString(1));
+	console.log('sparse directed graph (10,2)\n', g.toString(1));
 
-	g = randomDigraph(7, 3);
-	console.log('dense directed graph\n', g.toString(1));
+	g = randomDigraph(10, 4);
+	console.log('dense directed graph (10,4)\n', g.toString(1));
 
-	g = randomDag(10, 2);
-	console.log('sparse dag\n', g.toString(1));
+	g = randomDag(10, 1.5);
+	console.log('sparse dag (10,1.5)\n', g.toString(1));
 
-	g = randomTree(10);
-	console.log('tree\n', g.toString(1));
+	g = randomDag(10, 1.5, 2);
+	console.log('same with degree bound (10,1.5,2)\n', g.toString(1));
 
-	g = randomConnectedGraph(10, 3);
-	console.log('connected graph\n', g.toString(1));
+	g = randomTree(12);
+	console.log('tree (10)\n', g.toString(1));
 
-	g = randomFlograph(10, 3, 3, 1);
-	console.log('flow graph\n', g.toString(1));
+	g = randomTree(12,3);
+	console.log('same with degree bound (10,3)\n', g.toString(1));
+
+	g = randomConnectedGraph(10,2.5,3);
+	console.log('connected graph (10,2.5,3)\n', g.toString(1));
 
 	g = randomRegularGraph(10, 3);
 	console.log('regular graph\n', g.toString(1));
@@ -53,6 +65,9 @@ try {
 	g = randomRegularBigraph(8,6,16);
 	console.log('regular bigraph (8,6,16)\n', g.toString(1));
 
+	g = randomFlograph(16, 2.5, 3);
+	g.randomCapacities(randomInteger,1,9);
+	console.log('flow graph (16,2.5,3)\n', g.toString(1));
 } catch(e) {
 	if (e instanceof AssertFail) {
 		if (e.message.length > 0)

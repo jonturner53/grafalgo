@@ -76,7 +76,34 @@ export function randomTruncatedGeometric(p, k) {
  *  @return a random sample
  */
 export function randomPareto(mu, s) {
-	return mu*(1-1/s) / Math.exp((1/s)*Math.log(randfrad()));
+	return mu*(1-1/s) / Math.exp((1/s)*Math.log(randomFraction()));
+}
+
+/** Return sample from a discrete distribution.
+ *  @param cp is an array defining a cumulative probability distribution
+ *  on [1..cp.length-1].
+ *  @return random sample in [1,cp.length-1]
+ */
+export function randomDiscrete(cp) {
+	let p = randomFraction();
+	let lo = 1; let hi = cp.length-1;
+	while (lo < hi) {
+		let mid = ~~((lo+hi)/2);
+		if (p <= cp[mid]) hi = mid;
+		else lo = mid+1;
+	}
+	return hi;
+}
+
+/** Compute cumulative distribution from discrete probability distribution.
+ *  @param p is an array defining a discrete distribution on [1..p.length-1].
+ *  @return cumulative distribution defined by p
+ */
+export function toCumulative(p) {
+	let cp = new Float32Array(p.length);
+	for (let i = 1; i < p.length; i++)
+		cp[i] = cp[i-1] + p[i];
+	return cp;
 }
 
 /** Fill an array with values from a function.

@@ -400,8 +400,6 @@ export default class Flograph extends Digraph {
 	}
 
 	/** Compute random capacities for edges.
-	 *  @param scale is a scaling factor to be applied to the capacities
-	 *  of source/sink edges.
 	 *  @param f is a random number generator used to generate the
 	 *  random edge capacities; it is invoked using any extra arguments
 	 *  provided by caller; for example randomCapacities(randomInteger, 1, 10)

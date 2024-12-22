@@ -22,7 +22,7 @@ import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 export default function becMdmatch(g, trace=0) {
 	let steps = 0;
 	let color = new Int32Array(g.edgeRange+1);
-	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.bipartition);
+	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.getBipartition());
 		// subgraph of uncolored edges with bounds <= c
 	let ts = '';
 	if (trace) {

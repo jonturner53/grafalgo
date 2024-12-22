@@ -28,15 +28,17 @@ let tester = new Tester(args, algomap);
 let g = new Graph();
 g.fromString('{a[f:1 g:3 j:4] b[g:2 h:3 i:1] c[f:2 i:3 j:4] ' +
 			 'd[f:4 h:2 j:3] e[h:1 i:2]}');
+g.setBipartition(5);
 tester.addTest('small graph', g);
 
-g = randomCase(8,5);
+g = randomCase(8,5,7);
 tester.addTest('small random (8,5,7)', g);
 
-g = randomCase(100,20);
+g = randomCase(100,20,24);
 tester.addTest('medium random (100,20,24)', g);
+
 g = hardCase(4);
-tester.addTest('small hard (8)', g);
+tester.addTest('small hard (4)', g);
 
 g = hardCase(16);
 tester.addTest('medium hard (16)', g);

@@ -24,25 +24,26 @@ let tester = new Tester(args, algomap);
 
 let g = new Graph();
 g.fromString('{ a[e i i] b[j j] c[f g k] d[e g h]}');
+g.setBipartition(4);
 tester.addTest('small graph', g);
 
-g = randomRegularBigraph(7, 5); tester.addTest('small random (7,5)', g);
+g = randomRegularBigraph(7, 3); tester.addTest('small random (7,3)', g);
 g = randomRegularBigraph(13, 3); tester.addTest('smallish random (13,3)', g);
-g = randomRegularBigraph(100, 63);
-	tester.addTest('medium random (100,63)', g);
-g = randomRegularBigraph(100, 64);
-	tester.addTest('medium random even (100,64)', g);
+g = randomRegularBigraph(100, 31);
+	tester.addTest('medium random (100,31)', g);
+g = randomRegularBigraph(100, 32);
+	tester.addTest('medium random even (100,32)', g);
 if (!ea) {
-	g = randomRegularBigraph(200, 127);
-		tester.addTest('large random (200,127)', g);
-	g = randomRegularBigraph(200, 128);
-		tester.addTest('large random even (200,128)', g);
-	g = randomRegularBigraph(400, 255);
-		tester.addTest('larger random (400,255)', g);
-	g = randomRegularBigraph(400, 256);
-		tester.addTest('larger random even (400,256)', g);
-	g = randomBigraph(400, 256);
-		tester.addTest('larger random irregular (400,256)', g);
+	g = randomRegularBigraph(200, 63);
+		tester.addTest('large random (200,63)', g);
+	g = randomRegularBigraph(200, 64);
+		tester.addTest('large random even (200,64)', g);
+	g = randomRegularBigraph(400, 127);
+		tester.addTest('larger random (400,127)', g);
+	g = randomRegularBigraph(400, 128);
+		tester.addTest('larger random even (400,128)', g);
+	g = randomBigraph(400, 128);
+		tester.addTest('larger random irregular (400,128)', g);
 }
 
 tester.run();

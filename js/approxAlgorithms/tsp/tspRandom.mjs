@@ -41,7 +41,7 @@ export default function tspRandom(n, d, scale=1, rand=[randomFraction],
 	for (let u = 1; u < n; u++) seed[i++] = g.join(p[u],p[u+1]);
 	seed[n-1] = g.join(p[n],p[1]);
 
-	addEdges(g, m); g.randomWeights(...rand);
+	add2graph(g, d); g.randomWeights(...rand);
 
 	// apply scale factor to seed edges.
 	for (let e of seed)
@@ -55,30 +55,6 @@ export default function tspRandom(n, d, scale=1, rand=[randomFraction],
 	return [g, seed, seedLength];
 }
 
-function addEdges(g, m) {
-	let n = g.n;
-	let dense = n*(n-1)/3; let nextpair; let randpair;
-	if (g instanceof Digraph) {
-		nextpair = ([u,v]) => (n < 2 || u == n && v == n-1 ? null :
-						       (u == 0 ? [1,2] :
-								(v < n ? [u,(v==u-1 ? u : v) + 1] : [u+1,1])));
-		randpair = () => {  let u = randomInteger(1,n);
-						    let v = randomInteger(1,n-1);
-							return [u, (v < u ? v : v+1)]; }; 
-	} else {
-		dense /= 2;
-		nextpair = ([u,v]) => (n < 2 || u == n-1 && v == n ? null :
-                                (u == 0 ? [1,2] : 
-                                 (v < n ? [u,v+1] : [u+1,u+2])))
-		randpair = () => { let u = randomInteger(1,n-1); 
-                            return [u, randomInteger(u+1, n)]; };
-	}
-
-	add2graph(g, m, dense, nextpair, randpair);
-
-	return g;
-}
-
 function enforceTriangleInequality(g) {
 	let dg = g;
 	if (!(dg instanceof Digraph)) {
@@ -88,7 +64,6 @@ function enforceTriangleInequality(g) {
 				de = dg.join(g.right(e),g.left(e)); dg.length(de, g.length(e));
 		}
 	}
-assert(dg instanceof Digraph);
 	let [,dist] = allpairsF(dg);
 	for (let e = g.first(); e; e = g.next(e))
 		g.length(e, Math.min(g.length(e), dist[g.left(e)][g.right(e)]));

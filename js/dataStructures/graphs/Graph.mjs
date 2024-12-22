@@ -225,35 +225,35 @@ export default class Graph extends Top {
 		return Math.trunc(this.epLists.next(ep)/2);
 	}
 
-	/** Determine if this graph is bipartite.
-	 *  If a bipartition was previously defined for this graph, it is assumed to
-	 *  be bipartite. Otherwise a bipartition is computed (if possible) and saved
-	 *  for future use.
-	 *  @param return true or false?
-	 */
-	get bipartite() { return this.io || this.setBipartition(); }
-
 	/** Get a reference to the bipartition for this graph.
-	 *  @return a reference to a ListPair that defines a bipartition on the
-	 *  vertices; list1 identifies the inputs, list2 identifies the outputs;
-	 *  if necessary, the ListPair is computed first; if the graph is not bipartite,
-	 *  null is returned.
+	 *  @return a reference to the internal ListPair that defines a
+	 *  bipartition on the vertices; list1 identifies the inputs,
+	 *  list2 identifies the outputs; return null if no bipartition
+	 *  has been defined
 	 */
-	get bipartition() {
-		if (!this.io && !this.setBipartition()) return null;
-		return this.io;
-	}
+	getBipartition() { return this.io ? this.io : null; }
+	get hasBipartition() { return this.io ? true : false; }
 
 	/** Define a bipartition on the graph.
-	 *  @param io is an optional ListPair that divides the vertices into
-	 *  "inputs" and "outputs" and defines a bipartition; if not supplied,
-	 *  a bipartition is computed. The computed bipartition treats classifies first
-	 *  vertex (the one with smallest index) in each connected component as an input.
-	 *  @return true if the graph is bipartite; if io is supplied, the graph
-	 *  is assumed to be bipartite.
+	 *  @param io is a ListPair that divides the vertices into
+	 *  "inputs" and "outputs" and defines a bipartition; alternatively,
+	 *  it may be a positive integer k, in which case the first k vertices
+	 *  are defined to be inputs, while the remainder are outputs; if io
+	 *  is omitted or 0, a bipartition is computed from the graph;
+	 *  the computed bipartition classifies the first vertex
+	 *  (the one with smallest index) in each connected component as an input;
+	 *  if io is specified, it is assumed consistent with any current edges.
+	 *  @return false if computed value of io does not define a bipartition;
+	 *  otherwise, return true
 	 */	
 	setBipartition(io=0) {
-		if (io) { this.io = io; return true; }
+		if (io) {
+			if (typeof io === 'number') {
+				let ni = io; io = new ListPair(this.n);
+				for (let i = 1; i <= ni; i++) io.swap(i);
+			}
+			this.io = io; return true;
+		}
 
 		io = new ListPair(this.n);
 		let unreached = new Int8Array(this.n+1).fill(true);
@@ -283,15 +283,22 @@ export default class Graph extends Top {
 	 *  @param u is a vertex
 	 *  @return true if u is an input, else false
 	 */
-	isInput(u) { return this.io.in(u,1); }
-	isOutput(u) { return this.io.in(u,2); }
+	isInput(u)  { return (this.io ? this.io.in(u,1) : 0); }
+	isOutput(u) { return (this.io ? this.io.in(u,2) : 0); }
 
 	/** Get the input end of an edge in a bipartite graph.
 	 *  @param e is an edge
 	 *  @param return whichever endpoint of e is an input
 	 */
-	input(e)  { return this.isInput(this.left(e)) ? this.left(e) : this.right(e); }
-	output(e) { return this.isOutput(this.left(e)) ? this.left(e) : this.right(e); }
+	input(e)  {
+		return this.isInput(this.left(e)) ? this.left(e) : this.right(e);
+	}
+	output(e) {
+		return this.isOutput(this.left(e)) ? this.left(e) : this.right(e);
+	}
+
+	inputCount() { return this.io.length(1); }
+	outputCount() { return this.io.length(2); }
 
 	/** Return first input defined by bipartition io. */
 	firstInput() { return this.io.first(1); }
@@ -315,8 +322,9 @@ export default class Graph extends Top {
 	 */
 	join(u, v, e=this.edges.first(2)) {
 		ea && assert(u != v && u > 0 && v > 0 &&
-					(!this.io || (this.isInput(u) && this.isOutput(v))) &&
-			   		(e > 0 || this.edges.first(2) == 0) && !this.edges.in(e,1),
+					(!this.hasBipartition ||
+						(this.isInput(u) != this.isInput(v))) &&
+			   		(e > 0 || !this.edges.first(2)) && !this.edges.in(e,1),
 			   		`graph.join(${this.x2s(u)},${this.x2s(v)},` +
 			   		`${this.edges.in(e,2)})`);
 		if (u > this.n || v > this.n || this.edges.length(2) == 0) {
@@ -708,7 +716,8 @@ export default class Graph extends Top {
 	/** Randomize the order of the vertices, edges and adjacency lists.
 	 *  @param fixedPoints is an optional Set of vertices that are
 	 *  not to be randomized
-	 *  @return the permutation used for the edges
+	 *  @return the pair [vp,ep] where v is the vertex permutation used and
+	 *  ep is the edge permutation
 	 */
 	scramble(fixedPoints=null) {
 		let vp = randomPermutation(this.n,fixedPoints);
@@ -717,7 +726,7 @@ export default class Graph extends Top {
 		this.shuffle(vp, ep);
 		if (weight) { shuffle(weight, ep); this.Weight = weight; }
 		this.scrambleEplists();
-		return ep;
+		return [vp,ep];
 	}
 
 	/** Randomize order of edges.
@@ -752,7 +761,6 @@ export default class Graph extends Top {
 	}
 
 	/** Shuffle the vertices and edges according to the given permutations.
-	 *  @param g is a graph object to be shuffled
 	 *  @param vp is a permutation on the vertices, mapping vertex u to vp[u-1]
 	 *  @param ep is a permutation on the edge numbers (including unused ones)
 	 *  mapping edge e to ep[e-1]
@@ -760,7 +768,7 @@ export default class Graph extends Top {
 	shuffle(vp, ep) {
 		let left = new Array(this.edgeRange).fill(0);
 		let right = new Array(this.edgeRange);
-		for (let e = this.first(); e != 0; e = this.next(e)) {
+		for (let e = this.first(); e; e = this.next(e)) {
 			left[ep[e]] = this.left(e); right[ep[e]] = this.right(e);
 		}
 		this.clear();
@@ -771,16 +779,17 @@ export default class Graph extends Top {
 	}
 
 	/** Compute random weights for all the edges.
-	 *  @param f is a random number generator used to generate the
-	 *  random edge weights; it is invoked using any extra arguments
+	 *  @param rand is a random number generator used to generate the
+	 *  random edge weights
+	 *  @param args collects any remaining arguments to randomWeights
+	 *  into an array; its slements are the arguments to rand.
 	 *  provided by caller; for example randomWeights(randomInteger, 1, 10)
 	 *  will assign random integer weights in 1..10.
 	 */
-	randomWeights(f) {
+	randomWeights(rand, ...args) {
 		if (!this.hasWeights) this.hasWeights = true;
-		let fargs = [... arguments].slice(1);
-		for (let e = this.first(); e != 0; e = this.next(e)) {
-			let w = f(...fargs); this.weight(e, w);
+		for (let e = this.first(); e; e = this.next(e)) {
+			this.weight(e, rand(...args));
 		}
 	}
 }

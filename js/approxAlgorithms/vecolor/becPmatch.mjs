@@ -21,7 +21,7 @@ import pbimatchHKT from '../../graphAlgorithms/vmatch/pbimatchHKT.mjs';
  */
 export default function becPmatch(g, trace=0) {
 	let steps = 0;
-	ea && assert(g.bipartite);
+	ea && assert(g.hasBipartition, g);
 
 	// compute degrees in g and assign initial priorities
 	let d = new Int32Array(g.n+1);
@@ -33,7 +33,7 @@ export default function becPmatch(g, trace=0) {
 	steps += g.n;
 
 	let color = new Int32Array(g.edgeRange+1);
-	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.bipartition);
+	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.getBipartition());
 		// subgraph of uncolored edges with bounds <= c
 	let ts = '';
 	if (trace) {
@@ -44,8 +44,9 @@ export default function becPmatch(g, trace=0) {
 	for (c = 1; count < g.m; c++) {
 		// add edges with bound of c to gc
 		for (let e = g.first(); e; e = g.next(e)) {
-			if (c >= g.bound(e) && c < g.bound(e) + 1)
+			if (c >= g.bound(e) && c < g.bound(e) + 1) {
 				gc.join(g.left(e), g.right(e), e);
+			}
 		}
 		// find matching in gc that colors all vertices with max
 		// degree in uncolored subgraph; extend to max size matching

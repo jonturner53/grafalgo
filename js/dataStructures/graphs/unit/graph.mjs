@@ -58,14 +58,19 @@ try {
 	matches(g.toString(0,0,(u) => g.x2s(u) + ':' + u),
 		   '{a:1[d:1 b:2] b:2[a:2 c:3] c:3[b:3 d:4] d:4[a:1 c:4]}', 'c3');
 
-	//g = new randomBigraph(8,3);
 	g.fromString('{a[l n] b[i] c[i k l m n p] d[i j l o p] e[k o] ' +
 				 'f[j m] g[o] h[j k l o p]}');
 	matches(g.setBipartition(), true, 'd1');
 	matches(g.firstInput(), 1, 'd2');
 	matches(g.nextInput(3), 4, 'd3');
 	matches(g.nextOutput(10), 11, 'd4');
-
+	g.setBipartition(8);
+	for (let e = g.first(); e; e = g.next(e)) {
+		matches(g.isInput(g.left(e)) != g.isInput(g.right(e)), true,
+				'd5 ' + g.e2s(e));
+	}
+	g.setBipartition(7); let e = g.findEdge(8,10);
+	matches(g.isInput(g.left(e)) != g.isInput(g.right(e)), false, 'd6');
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

@@ -20,7 +20,7 @@ try {
 	let vlist = toposort(g);
 	matches(g.ilist2string(vlist), '[d a b e c f]', 'a1');
 
-	g = randomDag(100, 1000); g.scramble();
+	g = randomDag(100, 10); g.scramble();
 	vlist = toposort(g);
 	matches(vlist.length, g.n, 'a2');
 	

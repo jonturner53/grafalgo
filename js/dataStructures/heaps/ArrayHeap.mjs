@@ -267,8 +267,7 @@ export default class ArrayHeap extends Top {
 			let s = '';
 			for (let i = 1; i <= this.size; i++) {
 				let lab = label(this.itemAt(i));
-				s += (lab && s ? ' ' : '');
-				//s += (i > 1 && lab ? ' ' : '') + lab;
+				s += (lab && s ? ' ' : '') + lab;
 			}
 			return '[' + s + ']';
 		}

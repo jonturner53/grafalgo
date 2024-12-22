@@ -36,11 +36,10 @@ g = randomConnectedGraph(10, 3); g.randomWeights(randomInteger, 0, 9);
 tester.addTest('small random graph (10,15)', g);
 
 g = randomGraph(100, 10); g.randomWeights(randomInteger, 0, 99);
-tester.addTest('medium random graph', g);
+tester.addTest('medium random graph (100,10)', g);
 
 g = randomGraph(1000, 20); g.randomWeights(randomInteger, 0, 99);
-!ea && tester.addTest('large random graph', g);
-
+!ea && tester.addTest('large random graph (1000,20)', g);
 g = hardcaseP(1000);
 !ea && tester.addTest('large hard case (100, 4950)', g);
 

@@ -22,13 +22,13 @@ import becDegreeBound from './becDegreeBound.mjs';
  */
 export default function becSplit(g, trace=0) {
 	let ts = ''; let steps = 0;
-	ea && assert(g.bipartite);
+	ea && assert(g.hasBipartition);
 
 	let bmax = 0;
 	for (let e = g.first(); e; e = g.next(e))
 		bmax = Math.max(bmax, g.bound(e));
 	let k = ~~(bmax/2);
-	let gk = new Graph(g.n,g.edgeRange); gk.setBipartition(g.bipartition);
+	let gk = new Graph(g.n,g.edgeRange); gk.setBipartition(g.getBipartition());
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (g.bound(e) <= k) gk.join(g.left(e),g.right(e),e);
 	}
@@ -60,7 +60,7 @@ export default function becSplit(g, trace=0) {
 		dmin[u] = Math.max(0, d[u] - (C-k));
 	[H,,mstats] = bidcsF(gk, dmax, dmin);
 	steps += mstats.steps;
-	let J = new Graph(g.n, g.edgeRange); J.setBipartition(g.bipartition);
+	let J = new Graph(g.n, g.edgeRange); J.setBipartition(g.getBipartition());
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (!H.validEdge(e)) J.join(g.left(e),g.right(e),e);
 	}

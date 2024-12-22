@@ -40,7 +40,7 @@ export default function pmatchO(G, prio, trace=false) {
 		ts += G.toString(3,0,u => G.x2s(u) + ':' + prio[u]);
 	}
 
-	let [wmatch,,stats0] = g.bipartite ? wbimatchH(g) : wmatchE(g);
+	let [wmatch,,stats0] = g.hasBipartition ? wbimatchH(g) : wmatchE(g);
 
 	if (!wmatch) return [];
 	let match = new Matching(G);

@@ -6,6 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import {assert} from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
@@ -46,8 +47,7 @@ export default function mstP(g, d=2+Math.floor(g.m/g.n), trace) {
 			}
 			if (trace) {
 				traceString += g.x2s(u) + ' ' +
-					  (link[u] != 0 ? g.e2s(link[u]) : '-') +
-					  ' ' + border + '\n';
+					  `${(link[u] ? g.e2s(link[u]) : '-')} ${''+border}\n`;
 			}
 		}
 	}

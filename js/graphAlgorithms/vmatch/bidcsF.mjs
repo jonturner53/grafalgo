@@ -69,6 +69,7 @@ export default function bidcsF(g, hi, lo=0, trace=0) {
 
 	// construct dcs from flow
 	let dcs = new Graph(g.n,g.edgeRange); let weight = 0;
+	dcs.setBipartition(g.getBipartition());
 	for (let e = g.first(); e; e = g.next(e)) {
 		steps++;
 		if (fg.f(e)) {

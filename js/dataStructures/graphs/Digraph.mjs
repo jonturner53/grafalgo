@@ -65,7 +65,7 @@ export default class Digraph extends Graph {
 	 */ 
 	firstInto(u) {
 		let e = this.firstAt(u);
-		return (u == this.tail(e) ? 0 : e);
+		return ((e == 0 || u == this.tail(e)) ? 0 : e);
 	}
 
 	/** Get the next edge coming into u.
@@ -76,7 +76,7 @@ export default class Digraph extends Graph {
 	 */ 
 	nextInto(u, e) {
 		e = this.nextAt(u, e);
-		return (e == 0 || u == this.tail(e) ? 0 : e);
+		return ((e == 0 || u == this.tail(e)) ? 0 : e);
 	}
 
 	/** Get the first edge leaving u.

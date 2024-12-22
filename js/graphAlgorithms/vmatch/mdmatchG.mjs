@@ -25,7 +25,7 @@ let steps;		// number of steps (inner loops)
  *  the coloring is returned as integer edge weights in g
  */
 export default function mdmatchG(g, trace=0) {
-	assert(g.bipartite);
+	assert(g.hasBipartition);
 
 	// initialize supporting data structures
 	let degree = new Int32Array(g.n+1);

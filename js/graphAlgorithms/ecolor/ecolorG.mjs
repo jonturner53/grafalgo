@@ -42,9 +42,9 @@ let matches;	// number of matchings found
 export default function ecolorG(G, traceFlag=false) {
 	// initialize data structures
 	g = G; trace = traceFlag; trace = 1;
-	ea && assert(g.bipartite);
+	ea && assert(g.hasBipartition);
 
-	wg = new Graph(g.n, g.edgeRange); wg.setBipartition(g.bipartition);
+	wg = new Graph(g.n, g.edgeRange); wg.setBipartition(g.getBipartition());
 	degree = new Int32Array(g.n+1);
 	active = new List(g.n);
 	emap = new Int32Array(g.m+1);

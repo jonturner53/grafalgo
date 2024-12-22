@@ -46,7 +46,7 @@ let steps;       // total number of steps
  *  @exceptions throws an exception if graph is not bipartite
  */
 export default function pbimatchHKT(G, Prio, strict=false, traceFlag=false) {
-	g = G; prio = Prio; assert(g.bipartite);
+	g = G; prio = Prio; assert(g.hasBipartition);
 
 	match = new Matching(g);
 	link = new Int32Array(g.n+1);

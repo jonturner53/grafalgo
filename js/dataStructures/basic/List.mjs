@@ -268,6 +268,14 @@ export default class List extends Top {
 	 */
 	deq() { return this.pop(); }
 
+	/** Set list to a range.
+	 *  @param lo is in integer
+	 *  @param hi > lo defines range [lo,hi)
+	 */
+	range(lo, hi) {
+		this.clear(); for (let i = lo; i <= hi; i++) this.enq(i);
+	}
+
 	/** Find an item in common between two lists.
 	 *  @param that is a second List object
 	 *  @return an item that is common to both lists or 0.

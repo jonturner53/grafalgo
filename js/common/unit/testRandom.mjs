@@ -1,5 +1,5 @@
-import { range, scramble, randomFraction,randomInteger,randomPermutation }
-	from '../Random.mjs';
+import { range, scramble, randomFraction, randomInteger, randomDiscrete,
+	     randomPermutation } from '../Random.mjs';
 
 let results = new Array(10);
 for (let i = 0; i < results.length; i++)
@@ -17,3 +17,6 @@ results = range(results.length-1);
 scramble(results, new Set([2,7]));
 console.log(`random permutation with fixed points 2 and 7 ` +
 			`on [1,${results.length-1}]`,results.toString());
+
+let cp = [.1,.3,.6,1];
+console.log('sample from [.1,.2,.3,.4]', randomDiscrete(cp));
