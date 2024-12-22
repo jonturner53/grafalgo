@@ -56,7 +56,7 @@ export default function setCoverBYE(g, weight, trace=0) {
 				traceString += x2s(s)+':'+slack[s];
 			}
 			traceString += '] ' + cover.toString(s=>x2s(s)+':'+weight[s]);
-			traceString += '] ' + coverWt + '\n';
+			traceString += ' ' + coverWt + '\n';
 		}
 		// find smallest slack for constraint involving i
 		let minSlack = Infinity;
