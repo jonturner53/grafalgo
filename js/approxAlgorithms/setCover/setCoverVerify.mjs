@@ -16,9 +16,9 @@ import {assert} from '../../common/Assert.mjs';
  *  otherwise an error string
  */
 export default function setCoverVerify(g, weight, cover) {
-	let m = g.inputCount(); let n = g.outputCount();
+	let k = g.inputCount(); let n = g.outputCount();
 
-	let mark = new Int32Array(m+n+1); let covered = 0;
+	let mark = new Int32Array(k+n+1); let covered = 0;
 	for (let j = cover.first(); j; j = cover.next(j)) {
 		if (!g.isInput(j))
 			return `set ${j} in cover is not an input in graph`;

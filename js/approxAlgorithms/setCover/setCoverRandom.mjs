@@ -12,45 +12,51 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { shuffle } from '../../common/Random.mjs';
 import { randomBigraph, regularize }
 		from '../../graphAlgorithms/misc/RandomGraph.mjs';
+import setCoverSizeBound from './setCoverSizeBound.mjs';
+import setCoverSplitBound from './setCoverSplitBound.mjs';
+import setCoverLabelBound from './setCoverLabelBound.mjs';
 
 /** Generate a random set cover instance.
- *  @param m is the number of sets
- *  @param n is the number of elements in the base set
- *  @param k is the number of sets in the "seed" cover
+ *  @param k is the number of sets
+ *  @param h is the number of elements in the base set
+ *  @param c is the number of sets in the "seed" cover
  *  @param scale is scale factor used to adjust weight of seeded cover
  *  @param randomWeight is a function that returns a random number
  *  @param args collects remaining arguments into an array of arguments
  *  for randomWeight
- *  @return tuple [g,weight,coverWeight] where g is a bipartite graph
- *  representing the sets, the elements and containment relationship;
- *  weight is an array mapping set numbers to weights and coverWeight
- *  is the weight of the seed cover
+ *  @return tuple [g,weight,properties] and properties is an object containing
+ *  several properties of the graph g: the lower bounds, sizeBound and
+ *  splitBound, the weight of the seed cover built into the graph and the
+ *  maximum number of times any item of the base set is included in a subset
  */
-export default function setCoverRandom(m, n, k, scale, randomWeight, ...args) {
+export default function setCoverRandom(k, h, c, scale,
+									   randomWeight, ...args) {
 
-	let ss = n/k;			// average set size
-	let coverage = ss*m/n;	// average number of times an item is covered
+	let ss = h/c;			// average set size
+	let coverage = ss*k/h;	// average number of times an item is covered
 
-	let items = new List(m+n);
-	let seed = randomBigraph(k, ss, n);
-	items.range(k+1,k+n); regularize(seed,1,items);
-	let camo = randomBigraph(m-k, ss, n);
-	items.range((m-k)+1,(m-k)+n); regularize(camo,coverage-1,items);
+	let items = new List(h);
+	let seed = randomBigraph(c, ss, h);
+	items.range(c+1,c+h); regularize(seed,1,items);
+	let camo = randomBigraph(k-c, ss, h);
+	items.range((k-c)+1,(k-c)+h); regularize(camo,coverage-1,items);
 
-	let g = new Graph(m+n, ss*m); g.setBipartition(m);
+	let g = new Graph(k+h, ss*k); g.setBipartition(k);
 	for (let e = seed.first(); e; e = seed.next(e))
-		g.join(seed.left(e), seed.right(e)+(m-k));
+		g.join(seed.left(e), seed.right(e)+(k-c));
 	for (let e = camo.first(); e; e = camo.next(e))
-		g.join(camo.left(e)+k, camo.right(e)+k);
+		g.join(camo.left(e)+c, camo.right(e)+c);
 
 	// assign weights to sets and compute weight of seed cover
-	let weight = new Int32Array(m+1);
-	let coverWeight = 0;
-	for (let j = 1; j <= m; j++) {
+	let weight = new Array(k+1);
+	let seedWeight = 0; let allInteger = true;
+	for (let j = 1; j <= k; j++) {
 		weight[j] = randomWeight(...args);
-		if (j <= k) {
-			weight[j] *= scale; coverWeight += weight[j];
-		}
+		if (!Number.isInteger(weight[j])) allInteger = false;
+	}
+	for (let j = 1; j <= c; j++) {
+		if (allInteger) weight[j] = Math.round(scale*weight[j]);
+		seedWeight += weight[j];
 	}
 
 	let maxCover = 0;
@@ -59,11 +65,16 @@ export default function setCoverRandom(m, n, k, scale, randomWeight, ...args) {
 
 	// now, scramble graph, while keeping outputs fixed
 	let outputs = new Set();
-	for (let i = m+1; i <= m+n; i++) outputs.add(i);
+	for (let i = k+1; i <= k+h; i++) outputs.add(i);
 	let [vp] = g.scramble(outputs);
-	shuffle(weight, vp.slice(0,m+1)); 
+	shuffle(weight, vp.slice(0,k+1)); 
 
 	g.sortAllEplists()
 
-	return [g, weight, coverWeight, maxCover];
+	let sb = setCoverSizeBound(g,weight);
+	let wsb = setCoverSplitBound(g,weight);
+	let lb = setCoverLabelBound(g,weight);
+
+	return [g, weight, {'sizeBound':sb, 'splitBound':wsb, 'labelBound':lb,
+						'seedWeight':seedWeight, 'maxCover':maxCover}];
 }

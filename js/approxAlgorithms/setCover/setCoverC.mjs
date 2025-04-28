@@ -23,7 +23,7 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
  *  statistics object.
  */
 export default function setCoverC(g, weight, trace=0) {
-	let m = g.inputCount(); let n = g.outputCount();
+	let k = g.inputCount(); let n = g.outputCount();
 	let traceString = '';
 
 	let x2s;
@@ -32,17 +32,17 @@ export default function setCoverC(g, weight, trace=0) {
 						"-ABCDEFGHIJKLMNOPQRSTUVWXYZ"[u] : g.x2s(u));
 		traceString += 'graph: ' +
 			g.toString(1, (e,u) => x2s(g.mate(u,e)),
-						  u => x2s(u) + (u<=m ? `:${weight[u]}` : '')) + '\n';
+						  u => x2s(u) + (u<=k ? `:${weight[u]}` : '')) + '\n';
 		traceString += 'remaining sets, partial cover and cover weight\n';
 	}
 
-	let degree = new Int32Array(m+1);
-	let subsets = new ArrayHeap(m); // subsets remaining to be considered
-	for (let s = 1; s <= m; s++) {
+	let degree = new Int32Array(k+1);
+	let subsets = new ArrayHeap(n); // subsets remaining to be considered
+	for (let s = 1; s <= k; s++) {
 		degree[s] = g.degree(s);
 		if (degree[s]) subsets.insert(s, weight[s]/g.degree(s));
 	}
-	let cover = new List(m);	// list of subsets in current cover
+	let cover = new List(k);	// list of subsets in current cover
 	let coverWeight = 0;
 	let h = new Graph(); h.assign(g);
 	while (h.m > 0 && !subsets.empty()) {
