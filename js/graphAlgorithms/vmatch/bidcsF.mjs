@@ -64,7 +64,7 @@ export default function bidcsF(g, hi, lo=0, trace=0) {
 									maxflowD(fg,trace);
 	steps += stats.steps;
 	if (trace)
-		ts = g.toString(1,0,u => `${g.x2s(u)}(${lo[u]},${hi[u]})`) +
+		ts = g.toString(1,0,u => `${g.x2s(u)}(${lo?lo[u]:0},${hi[u]})`) +
 			 '\nflow: ' + fg.toString(9);
 
 	// construct dcs from flow
@@ -82,7 +82,7 @@ export default function bidcsF(g, hi, lo=0, trace=0) {
 	}
 	if (trace) {
 		ts += '\ndcs: ' +
-			  dcs.toString(1,0,u => `${dcs.x2s(u)}(${lo[u]},${hi[u]})`);
+			  dcs.toString(1,0,u => `${dcs.x2s(u)}(${lo?lo[u]:0},${hi[u]})`);
 	}
 	return [dcs, ts, {'size': dcs.m, 'weight': weight, 'steps': steps}];
 }

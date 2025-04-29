@@ -30,16 +30,17 @@ function verify(g, match) {
 let algomap = {
 	'F' : ['bimatchF',
 			(g,trace) => {
-				return g.bipartite ?  bimatchF(g,trace) : null;
+				return g.hasBipartition ?  bimatchF(g,trace) : null;
 			}, verify],
 	'HK' : ['bimatchHK',
 			(g,trace) => {
-				return g.bipartite && !g.hasWeights ?
+				return g.hasBipartition && !g.hasWeights ?
 							bimatchHK(g,0,trace) : null;
  			}, matchVerify],
 	'H' : ['wbimatchH',
 			(g,trace) => {
-				return g.bipartite && g.hasWeights ? wbimatchH(g,trace) : null;
+				return g.hasBipartition && g.hasWeights ?
+					   wbimatchH(g,trace) : null;
  			}, wmatchVerify],
 	'EG' : ['matchEG',
 			 (g,trace) => {

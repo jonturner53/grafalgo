@@ -23,19 +23,19 @@ import findSplit from '../../misc/findSplit.mjs';
 let algomap = {
 	'G' : ['mdmatchG',
 			(g,prio,trace) => {
-				if (!g.bipartite) return null;
+				if (!g.hasBipartition) return null;
 				return mdmatchG(g,trace);
 			},
 			(g,prio,match) => mdmatchVerify(g,match)],
 	'HKT' : ['pbimatchHKT',
 			  (g,prio,trace) => {
-				if (!g.bipartite) return null;
+				if (!g.hasBipartition) return null;
 				return pbimatchHKT(g,prio,0,trace);
 			},
 			pmatchVerify],
 	'HKTs' : ['pbimatchHKT:strict',
 			  (g,prio,trace) => {
-				if (!g.bipartite) return null;
+				if (!g.hasBipartition) return null;
 				return pbimatchHKT(g,prio,1,trace);
 			},
 			pmatchVerify],

@@ -19,7 +19,7 @@ import ListPair from '../../../dataStructures/basic/ListPair.mjs';
 let algomap = {
 	'F' : ['bidcsF',
 			(g,hi,lo,trace) => {
-				if (!g.bipartite) return null;
+				if (!g.hasBipartition) return null;
 				let [dcs,ts,stats] = bidcsF(g,hi,lo,trace);
 				if (dcs == null)
 					throw new Proceed('*** infeasible lower bounds')
@@ -27,7 +27,7 @@ let algomap = {
 			},
 			(g,hi,lo,dcs) => dcs ? dcsVerify(g,hi,lo,dcs) : true],
 	'GT' : ['dcsGT',
-			 (g,hi,lo,trace) => g.bipartite ? null : dcsGT(g,hi,lo,trace),
+			 (g,hi,lo,trace) => g.hasBipartition ? null : dcsGT(g,hi,lo,trace),
 			dcsVerify]
 }
 
@@ -46,7 +46,7 @@ let tester = new Tester(args, algomap);
 // bipartite graphs
 let g = new Graph();
 g.fromString('{a[f g j] b[h g i] c[f i j] d[g h f] e[h i j]}');
-g.split();
+g.setBipartition();
 let hi = [0,2,3,3,2,3,3,2,2,3,2];
 tester.addTest('small bigraph with upper bounds', g, hi, 0);
 let lo = [0,1,2,1,0,1,2,0,0,2,1];
@@ -69,7 +69,7 @@ if (!ea) {
 // weighted bigraphs
 g.fromString('{a[f:3 g:2 j:1] b[h:2 g:3 i:6] c[f:1 i:6 j:-1] ' +
 			  'd[g:1 h:2 f:1] e[h:2 i:5 j:3]}');
-g.split(); [hi,lo] = bounds(g);
+g.setBipartition(); [hi,lo] = bounds(g);
 tester.addTest('small weighted bigraph', g, hi, lo);
 
 g = new randomBigraph(10,3); [hi,lo] = bounds(g);

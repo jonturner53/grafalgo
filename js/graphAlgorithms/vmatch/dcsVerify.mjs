@@ -6,6 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import {assert} from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import MergeSets from '../../dataStructures/basic/MergeSets.mjs';
 
@@ -24,15 +25,15 @@ let mark;      // mark bits used by nca
  *  @return a string which is empty if dcs is a subgraph that respects
  *  the bounds, else it describes an error
  */
-export default function matchVerify(g, hi, lo, dcs) {
+export default function dcsVerify(g, hi, lo, dcs) {
 	if (dcs.n != g.n)
 		return `subgraph vertex count does match the graph (${dcs.n},${g.n})`;
 
 	for (let u = 1; u <= dcs.n; u++) {
 		for (let e = dcs.firstAt(u); e; e = dcs.nextAt(u,e)) {
-			if (!g.validEdge(e)) {
+			if (!g.validEdge(e))
 				return `dcs edge ${dcs.e2s(e)} is not a valid edge in graph`;
-			if (dcs.left(e) != g.left(e) || dcs.right() != g.right(e))
+			if (dcs.left(e) != g.left(e) || dcs.right(e) != g.right(e))
 				return `dcs edge ${dcs.e2s(e)} endpoints do not ` +
 						`match ${g.e2s(e)}`;
 		}
@@ -43,7 +44,6 @@ export default function matchVerify(g, hi, lo, dcs) {
 		if (d > hi[u])
 			return `vertex ${g.x2s(u)} has ${d} edges, ` +
 					`more than hi[${g.x2s(u)}]=${hi[u]}\n`;
-		}
 	}
 	return '';
 }

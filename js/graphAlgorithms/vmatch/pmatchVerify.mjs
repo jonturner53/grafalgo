@@ -84,7 +84,6 @@ export default function pmatchVerify(G, prio, match) {
 		let a = nca(U,V);
 		if (a == 0) {
 			return  `can augment matching thru ${g.e2s(e)} `;
-			continue;
 		}
 
 		// U and V are in same tree - collapse blossom
