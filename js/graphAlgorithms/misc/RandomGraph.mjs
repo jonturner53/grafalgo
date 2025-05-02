@@ -457,7 +457,7 @@ export function randomRegularBigraph(ni, id, no=ni) {
  *  of the vertices in W are in open interval (d-1,d+1) on return;
  *  note: the average degrees of vertices in W is assumed to be d initially
  */
-export function regularize(g, d, W) {// lo, hi, under, over) {
+export function regularize(g, d, W) {
 	let lo = new List(g.n); let under = new List(g.n);
 	let hi = new List(g.n); let over = new List(g.n);
 

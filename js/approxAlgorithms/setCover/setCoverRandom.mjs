@@ -19,7 +19,7 @@ import setCoverLabelBound from './setCoverLabelBound.mjs';
 /** Generate a random set cover instance.
  *  @param k is the number of sets
  *  @param h is the number of elements in the base set
- *  @param c is the number of sets in the "seed" cover
+ *  @param coverage is the number of times each item appears in a subset
  *  @param scale is scale factor used to adjust weight of seeded cover
  *  @param randomWeight is a function that returns a random number
  *  @param args collects remaining arguments into an array of arguments
@@ -29,23 +29,25 @@ import setCoverLabelBound from './setCoverLabelBound.mjs';
  *  splitBound, the weight of the seed cover built into the graph and the
  *  maximum number of times any item of the base set is included in a subset
  */
-export default function setCoverRandom(k, h, c, scale,
+export default function setCoverRandom(k, h, coverage, scale,
 									   randomWeight, ...args) {
 
-	let ss = h/c;			// average set size
-	let coverage = ss*k/h;	// average number of times an item is covered
+	let subSize = coverage*h/k; // average subset size
+	let seedSize = Math.round(k/coverage);
+							 	// number of subsets in hidden "seed"
 
 	let items = new List(h);
-	let seed = randomBigraph(c, ss, h);
-	items.range(c+1,c+h); regularize(seed,1,items);
-	let camo = randomBigraph(k-c, ss, h);
-	items.range((k-c)+1,(k-c)+h); regularize(camo,coverage-1,items);
+	let seed = randomBigraph(seedSize, subSize, h);
+	items.range(seedSize+1,seedSize+h); regularize(seed,1,items);
+	let camo = randomBigraph(k-seedSize, subSize, h);
+	items.range((k-seedSize)+1,(k-seedSize)+h);
+		regularize(camo,coverage-1,items);
 
-	let g = new Graph(k+h, ss*k); g.setBipartition(k);
+	let g = new Graph(k+h, subSize*k); g.setBipartition(k);
 	for (let e = seed.first(); e; e = seed.next(e))
-		g.join(seed.left(e), seed.right(e)+(k-c));
+		g.join(seed.left(e), seed.right(e)+(k-seedSize));
 	for (let e = camo.first(); e; e = camo.next(e))
-		g.join(camo.left(e)+c, camo.right(e)+c);
+		g.join(camo.left(e)+seedSize, camo.right(e)+seedSize);
 
 	// assign weights to sets and compute weight of seed cover
 	let weight = new Array(k+1);
@@ -54,8 +56,9 @@ export default function setCoverRandom(k, h, c, scale,
 		weight[j] = randomWeight(...args);
 		if (!Number.isInteger(weight[j])) allInteger = false;
 	}
-	for (let j = 1; j <= c; j++) {
-		if (allInteger) weight[j] = Math.round(scale*weight[j]);
+	for (let j = 1; j <= seedSize; j++) {
+		weight[j] = scale*weight[j];
+		if (allInteger) weight[j] = Math.round(weight[j]);
 		seedWeight += weight[j];
 	}
 
@@ -76,5 +79,5 @@ export default function setCoverRandom(k, h, c, scale,
 	let lb = setCoverLabelBound(g,weight);
 
 	return [g, weight, {'sizeBound':sb, 'splitBound':wsb, 'labelBound':lb,
-						'seedWeight':seedWeight, 'maxCover':maxCover}];
+						'seedWeight':seedWeight, 'subsetSize':subSize} ];
 }

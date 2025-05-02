@@ -23,29 +23,28 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
  *  statistics object.
  */
 export default function setCoverC(g, weight, trace=0) {
-	let k = g.inputCount(); let n = g.outputCount();
+	let k = g.inputCount(); let h = g.outputCount();
 	let traceString = '';
 
 	let x2s;
 	if (trace) {
 		x2s = (u => (g.n <= 26 && g.isInput(u)) ?
-						"-ABCDEFGHIJKLMNOPQRSTUVWXYZ"[u] : g.x2s(u));
-		traceString += 'graph: ' +
-			g.toString(1, (e,u) => x2s(g.mate(u,e)),
+						"-ABCDEFGHIJKLMNOPQRSTUVWXYZ"[u] : g.x2s(u-k));
+		traceString += g.toString(1, (e,u) => x2s(g.mate(u,e)),
 						  u => x2s(u) + (u<=k ? `:${weight[u]}` : '')) + '\n';
 		traceString += 'remaining sets, partial cover and cover weight\n';
 	}
 
 	let degree = new Int32Array(k+1);
-	let subsets = new ArrayHeap(n); // subsets remaining to be considered
+	let subsets = new ArrayHeap(h); // subsets remaining to be considered
 	for (let s = 1; s <= k; s++) {
 		degree[s] = g.degree(s);
 		if (degree[s]) subsets.insert(s, weight[s]/g.degree(s));
 	}
 	let cover = new List(k);	// list of subsets in current cover
 	let coverWeight = 0;
-	let h = new Graph(); h.assign(g);
-	while (h.m > 0 && !subsets.empty()) {
+	let gg = new Graph(); gg.assign(g);
+	while (gg.m > 0 && !subsets.empty()) {
 		if (trace) {
 			traceString +=
 				subsets.toString(0,s=>x2s(s)+':'+subsets.key(s).toFixed(2)) +
@@ -54,10 +53,10 @@ export default function setCoverC(g, weight, trace=0) {
 		let s = subsets.deletemin();
 		cover.enq(s);
 		coverWeight += weight[s]; let nexte;
-		for (let e = h.firstAt(s); e; e = h.firstAt(s)) {
-			let i = h.mate(s,e); h.delete(e);
-			for (let ee = h.firstAt(i); ee; ee = h.firstAt(i,ee)) {
-				let j = h.mate(i,ee); h.delete(ee)
+		for (let e = gg.firstAt(s); e; e = gg.firstAt(s)) {
+			let i = gg.mate(s,e); gg.delete(e);
+			for (let ee = gg.firstAt(i); ee; ee = gg.firstAt(i,ee)) {
+				let j = gg.mate(i,ee); gg.delete(ee)
 				if (--(degree[j]) == 0) subsets.delete(j);
 				else subsets.changekey(j,weight[j]/degree[j]);
 			}

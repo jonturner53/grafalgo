@@ -30,8 +30,7 @@ export default function setCoverBYE(g, weight, trace=0) {
 		x2s = (u => (k <= 26 && h <= 26) ?
 					 (u <= k ? "-ABCDEFGHIJKLMNOPQRSTUVWXYZ"[u] : g.x2s(u-k))
 					 : (u <= k ? u : -(u-k)));
-		traceString += 'graph: ' +
-			g.toString(1, (e,u) => x2s(g.mate(u,e)),
+		traceString += g.toString(1, (e,u) => x2s(g.mate(u,e)),
 						  u => x2s(u) + (u<=k ? `:${weight[u]}` : '')) + '\n';
 		traceString += "uncovered items, slacks of first item's subsets, " +
 						"partial cover\n";
@@ -53,7 +52,7 @@ export default function setCoverBYE(g, weight, trace=0) {
 			for (let e = g.firstAt(vi); e; e = g.nextAt(vi,e)) {
 				let s = g.mate(vi,e);
 				if (e != g.firstAt(vi)) traceString += ' ';
-				traceString += x2s(s)+':'+slack[s];
+				traceString += x2s(s)+'.'+slack[s];
 			}
 			traceString += '] ' + cover.toString(s=>x2s(s)+':'+weight[s]);
 			traceString += ' ' + coverWt + '\n';
