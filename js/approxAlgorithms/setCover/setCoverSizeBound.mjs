@@ -23,15 +23,15 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 export default function setCoverSizeBound(g, weight) {
 	let k = g.inputCount(); let h = g.outputCount();
 
-	let size = new Int32Array(k+1);
-	for (let s = 1; s <= k; s++) size[s] = g.degree(s);
+	let size = new Int32Array(k);
+	for (let s = 1; s <= k; s++) size[s-1] = g.degree(s);
 	size.sort((a,b)=>b-a);
 	let r = 0; let count = 0;
 	while(r <= k && count < h) count += size[r++];
 	
 	// any cover uses at least r subsets
 
-	let wt = weight.slice(1); wt.sort();
+	let wt = weight.slice(1); wt.sort((a,b)=>a-b);
 	let lowerBound = 0;
 	for (let i = 0; i < r; i++) lowerBound += wt[i];
 

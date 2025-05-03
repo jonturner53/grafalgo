@@ -23,9 +23,8 @@ let algomap = {
 function p2s(props) {
 	let wsb = props.splitBound;
 	wsb = Number.isInteger(wsb) ? wsb : wsb.toFixed(2);
-	
 	return `[${props.sizeBound} ${wsb} ${props.labelBound}` +
-			` ${props.seedWeight}`;
+			` ${props.seedWeight}]`;
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
@@ -35,18 +34,18 @@ let g = new Graph();
 g.fromString('{a[e h j m p] b[f g i n o] c[g k l m p] d[f h k l o]}');
 g.setBipartition(4);
 let weight = [0,3,7,4,8];
-tester.addTest('small set cover instance (4,12): 14,2', g, weight);
+tester.addTest('small set cover instance (4,12)', g, weight);
 
 let props;
 [g,weight, props] = setCoverRandom(6, 18, 2, .5, randomInteger, 2, 20);
-tester.addTest(`small random instance (6,${props.subsetSize},18,2,.5): ${p2s(props)}`, g, weight);
+tester.addTest(`small random instance (6,18,2,.5): ${p2s(props)}`, g, weight);
 
 [g, weight, props] = setCoverRandom(50,200,5,.5, randomInteger, 5, 99);
-tester.addTest(`medium random instance (50,${props.subsetSize},200,5,.5): ${p2s(props)}`,
+tester.addTest(`medium random instance (50,200,5,.5): ${p2s(props)}`,
 				g, weight);
 
 [g, weight, props] = setCoverRandom(100,2000,5,.5, randomInteger, 10, 999);
-tester.addTest(`large random instance (100,${props.subsetSize},2000,5,.5): ${p2s(props)}`,
+tester.addTest(`large random instance (100,2000,5,.5): ${p2s(props)}`,
 				g, weight);
 
 tester.run();
