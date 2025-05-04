@@ -66,5 +66,5 @@ export default function setCoverC(g, weight, trace=0) {
 	if (trace)
 		traceString += `\ncover: ${cover.toString(x2s)} ${coverWeight}\n`;
 
-	return [cover, traceString, {'weight':coverWeight}];
+	return [cover, traceString, {'coverWeight':coverWeight}];
 }

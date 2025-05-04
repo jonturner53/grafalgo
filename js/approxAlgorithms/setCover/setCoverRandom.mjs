@@ -38,7 +38,7 @@ export default function setCoverRandom(k, h, coverage, scale,
 
 	let items = new List(h);
 	let seed = randomBigraph(seedSize, h/seedSize, h);
-	items.range(seedSize+1,seedSize+h); regularize(seed, 1, items);
+	items.range(seedSize+1,seedSize+h); regularize(seed, 1, items); 
 	let camo = randomBigraph(k-seedSize, h*(coverage-1)/(k-seedSize), h);
 	items.range((k-seedSize)+1,(k-seedSize)+h);
 		regularize(camo,coverage-1,items);
