@@ -499,12 +499,12 @@ export default class Graph extends Top {
 	 */
 	edge2string(e, label=null, terse=false) {
 		return e == 0 ? '-' :
-				((terse && this.n <= 26) ?
+				(terse ?
 					(this.x2s(this.left(e), label) + 
 					 this.x2s(this.right(e), label)) : 
 					('{' + this.x2s(this.left(e), label) + ','  +
 					  this.x2s(this.right(e), label) +
-					  (this.hasWeights ? ',' + this.weight(e) : '') + '}'));
+					  (this.hasWeights ? ','+this.weight(e) : '') + '}'));
 	}
 	e2s(e,label,terse) { return this.edge2string(e,label,terse); }
 	

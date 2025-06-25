@@ -73,7 +73,6 @@ export default class EdgeGroups extends Top {
 	 *  to exactly match that.n; when true, this.n is only adjusted
 	 *  if it is less than that.n; relaxed assignments are used to
 	 *  implement the expand method
-	 */
 	assign(that, relaxed=false) {
 		super.assign(that, relaxed);
 
@@ -87,10 +86,10 @@ export default class EdgeGroups extends Top {
 		this.FirstGroup = that.FirstGroup.slice(0);
 		this.vlist.assign(that.vlist);
 	}
+	 */
 
 	/** Assign a new value to this, by transferring contents of another object.
 	 *  @param that is a list whose contents are to be transferred to this
-	 */
 	xfer(that) {
 		super.xfer(that);
 		this.N_i = that.N_i;
@@ -103,6 +102,7 @@ export default class EdgeGroups extends Top {
 		this.FirstGroup = that.FirstGroup;
 		this.vlist = that.vlist;
 	}
+	 */
 
 	clear() {
 		this.Group.fill(0);

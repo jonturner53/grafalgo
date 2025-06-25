@@ -1,4 +1,4 @@
-/** @file becolorMdmatch.mjs
+/** @file becMdmatch.mjs
  * 
  *  @author Jon Turner
  *  @date 2023

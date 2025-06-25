@@ -123,14 +123,15 @@ export default class Matching extends Top {
 	 *  @param show is an optional function where show(e) returns
 	 *  true if e should be included in the returned string;
 	 *  if omitted, all edges are included
+	 *  @param label is an optional function used to label the edge endpoints
 	 *  @return the string representation
 	 */
-	toString(show=0) {
+	toString(show=0,label) {
 		let showList = new List(this.g.edgeRange);
-		for (let e = this.elist.first(); e; e = this.elist.next(e)) {
+		for (let e = this.first(); e; e = this.next(e)) {
 			if (!show || show(e)) showList.enq(e);
 		}
-		return showList.toString(e => this.g.e2s(e,0,1));
+		return showList.toString(e => this.g.e2s(e,label,1));
 	}
 
 	/** Initialize this from a string representation.

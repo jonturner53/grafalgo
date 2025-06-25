@@ -20,12 +20,13 @@ import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
  *  algorithms.
  */
 export default class EdgeGroupColors extends Top {
-	eg;				/// EdgeGroups object that colors are applied to
+	eg;            // EdgeGroups object that colors are applied to
 
 	Color;         // Color[e] is edge assigned to e or 0
-	EdgesByColor;	// ListSet of edges partitioned by color (including 0)
+	EdgesByColor;  // ListSet of edges partitioned by color (including 0)
 	FirstEdge;     // FirstEdge[c] is first edge of color c
-
+	maxC;          // largest color in use
+	numC;          // number of edges that have been colored
 	Usage;         // Usage[u][c] is number of times c is used at u
 
 	Palettes;      // Palettes[u] is ListSet that defines palettes at u
@@ -63,11 +64,14 @@ export default class EdgeGroupColors extends Top {
 			for (let c = 1; c <= n_c; c++)
 				this.Unused[u] = this.Palettes[u].join(this.Unused[u],c);
 		}
+		this.numC = 0; this.maxC = 0;
 	}
 
 	get n_c() { return this.n; }
 
-	maxColor() { return Math.max(...this.Color); }
+	maxColor() { return this.maxC; }
+
+	numberColored() { return this.numC; }
 
 	clear() {
 		for (let e = this.eg.graph.first(); e; e = this.eg.graph.next(e))
@@ -76,6 +80,7 @@ export default class EdgeGroupColors extends Top {
 			for (let c = this.firstColor(g); c; c = this.firstColor(g))
 				this.release(c,g);
 		}
+		this.complete(0);
 	}
 
 	/** Assign one GroupColors object to another by copying its contents.
@@ -92,6 +97,7 @@ export default class EdgeGroupColors extends Top {
 
 		for (let e = this.eg.graph.first(); e; e = this.eg.graph.next(e))
 			if (that.color(e)) this.color(e, that.color(e));
+		this.numC = that.numC; this.maxC = that.maxC;
 	}
 	
 	/** Assign one graph to another by transferring its contents.
@@ -111,6 +117,7 @@ export default class EdgeGroupColors extends Top {
 		this.FirstColor = that.FirstColor;
 		this.Owner = that.Owner;
 		this.PaletteSize = that.PaletteSize;
+		this.numC = that.numC; this.maxC = that.maxC;
 
 		that.eg = that.Color = that.edgesByColor = that.FirstEdge = null;
 		that.Usage = that.Palettes = that.FirstColor = null;
@@ -190,29 +197,37 @@ export default class EdgeGroupColors extends Top {
 	 */
 	color(e, c=-1) {
 		ea && assert(this.eg.graph.validEdge(e) && c <= this.n_c);
-		if (c != -1) {
-			let [u,v] = [this.eg.input(e),this.eg.output(e)];
-			let g = this.eg.group(e);
-			ea && assert(g);
+		if (c < 0) return this.Color[e];
 
-			// free current color assigned to e
-			let cc = this.Color[e];  // old color (possibly 0)
-			this.FirstEdge[cc] =
-				this.EdgesByColor.delete(e, this.FirstEdge[cc]);
-			this.Usage[u][cc]--; this.Usage[v][cc]--;
-			// note: cc remains bound to group, even if usage now 0
+		let [u,v] = [this.eg.input(e),this.eg.output(e)];
+		let g = this.eg.group(e);
+		ea && assert(g);
 
-			// set the new color (possibly 0)
-			ea && assert(this.avail(c,e),g+' '+
-					this.avail(c,e)+' '+ this.owner(c,u)+' '+ this.usage(c,u));
-			this.Color[e] = c;
-			this.FirstEdge[c] =
-				this.EdgesByColor.join(this.FirstEdge[c], e);
-			if (c && !this.owner(c,u)) this.bind(c,g);
-			this.Usage[u][c]++; this.Usage[v][c]++;
+		// free current color assigned to e
+		let cc = this.Color[e];  // old color (possibly 0)
+		this.FirstEdge[cc] = this.EdgesByColor.delete(e, this.FirstEdge[cc]);
+		this.Usage[u][cc]--; this.Usage[v][cc]--;
+		// note: cc remains bound to group, even if usage now 0
+		if (cc) this.numC--;
+		if (cc && (cc == this.maxC)) {
+			while (!this.FirstEdge[this.maxC]) this.maxC--;
 		}
+
+		// set the new color (possibly 0)
+		ea && assert(this.avail(c,e),g+' '+
+				this.avail(c,e)+' '+ this.owner(c,u)+' '+ this.usage(c,u));
+		this.Color[e] = c;
+		this.FirstEdge[c] = this.EdgesByColor.join(this.FirstEdge[c], e);
+		if (c && !this.owner(c,u)) this.bind(c,g);
+		this.Usage[u][c]++; this.Usage[v][c]++;
+		if (c) this.numC++;
+		if (c > this.maxC) this.maxC = c;
+		
 		return this.Color[e];
 	}
+
+	/** Check that all edges are colored */
+	complete() { return this.numC == this.eg.graph.m; }
 
 	/** Color the edges in the graph using the palettes.
 	 *  Constructs palette graph for each output v, computes a maximum
@@ -222,13 +237,14 @@ export default class EdgeGroupColors extends Top {
 	 *  @return true if successful, else false
 	 */
 	colorFromPalettes(out=0) {
+		// first uncolor all edges
+		let egg = this.eg.graph;
+		for (let e = egg.first(); e; e = egg.next(e)) this.color(e,0);
+
 		let Delta_o = maxOutDegree(this.eg);
 		let pg = new Graph(this.eg.n_g+this.n_c, Delta_o*this.n_c);
-		let io = new ListPair(this.eg.n_g + this.n_c);
-		for (let g = 1; g <= this.eg.n_g; g++) io.swap(g);
-		pg.setBipartition(io);
+		pg.setBipartition(this.eg.n_g);
 
-		let egg = this.eg.graph;
 		let firstOut = out ? out : this.eg.n_i+1;
 		let  lastOut = out ? out : egg.n;
 		for (let v = firstOut; v <= lastOut; v++) {
@@ -241,14 +257,13 @@ export default class EdgeGroupColors extends Top {
 			}
 			let [match] = bimatchHK(pg);
 			for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e)) {
-				let g = this.eg.group(e); let u = this.eg.hub(g);
-				let me = match.at(g);
-				if (!me) return false;
-				let c = pg.mate(g,me) - this.eg.n_g
-				this.color(e, c);
+				let g = this.eg.group(e); let me = match.at(g);
+				if (me) {
+					let c = pg.mate(g,match.at(g)) - this.eg.n_g;
+					this.color(e, c);
+				}
 			}
 		}
-		return true;
 	}
 	
 	/** Compare another object to this one.
@@ -307,7 +322,9 @@ export default class EdgeGroupColors extends Top {
 			}
 			s += ']\n';
 		}
-		s += '}\n';
+		let deficit = this.eg.graph.m - this.numberColored();
+		s += '}\n' + (deficit ? ' ' + deficit + ' uncolored': '');
+
 		return s;
 	}
 

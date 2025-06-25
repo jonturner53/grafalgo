@@ -9,7 +9,7 @@
 import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import { range, scramble, randomInteger } from '../../common/Random.mjs';
 import EdgeGroups from './EdgeGroups.mjs';
-import { randomRegularBigraph }
+import { randomBigraph, randomRegularBigraph }
 		from '../../graphAlgorithms/misc/RandomGraph.mjs';
 
 /** Generate a random test case.
@@ -19,15 +19,21 @@ import { randomRegularBigraph }
  *  @param od is the degree of the outputs
  *  @param k is an upper bound on the number of colors needed to
  *  color the graph; must be at least as big as gd and od
+ *  @param r determines how regular the underlying graph is;
+ *  in particluar, it allows the degrees to deviate from the
+ *  target value by less than r.
  */
 export default function egcRandomCase(ni, gd, no=ni, od=gd, 
-									  k=Math.max(gd,od)+2) {
-	let id = ~~(no*od/ni);
-	ea && assert(gd <= id && gd <= k && od <= k && od <= ni &&
-		   		 id <= no && id*ni == od*no);
+									  k=Math.max(gd,od)+2, r=1) {
+	let id = no*od/ni;
+	ea && assert(gd <= id && gd <= k && od <= k && od <= ni && id <= no);
 
-	let gg = randomRegularBigraph(ni, id, no);
-	let eg = new EdgeGroups(gg, k*ni);
+	let	gg = randomRegularBigraph(ni, id, no, r);
+	let maxod = 0; // compute largest output degree
+	for (let v = ni+1; v <= ni+no; v++)
+		maxod = Math.max(maxod, gg.degree(v));
+	k = Math.max(k,maxod); // adjust number of colors
+	let	eg = new EdgeGroups(gg, k*ni);
 
 	// add edges to eg using groups consistent with a k-coloring
 	let colors = range(k);

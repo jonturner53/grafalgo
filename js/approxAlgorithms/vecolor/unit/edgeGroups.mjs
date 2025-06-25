@@ -10,6 +10,7 @@ import { AssertFail } from '../../../common/Assert.mjs';
 import { matches, Mismatch } from '../../../common/Testing.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import EdgeGroups from '../EdgeGroups.mjs';
+import egcRandomCase from '../egcRandomCase.mjs';
 
 try {
 	console.log('testing edgeGroups');
@@ -31,6 +32,14 @@ try {
 	matches(eg, '{a[(f i l) (g k) (e)] b[(i l) (h j) (g k)] ' +
 				'c[(f h j g) (e)] d[(f i)J (e j)K (k l)L]}', 'a5');
 		// explicit group ids required at d, since old group I is gone
+
+	eg = egcRandomCase(100,50,500);
+	let stats = new Int32Array(21);
+	for (let g = eg.firstGroup(); g; g = eg.nextGroup(g)) {
+		if (eg.fanout(g) < 20) stats[eg.fanout(g)]++;
+		else stats[20]++;
+	}
+	console.log('random(100,50,500) fanout stats:', stats);
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

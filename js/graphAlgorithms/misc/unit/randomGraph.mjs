@@ -60,10 +60,16 @@ try {
 	console.log('connected graph (10,2.5,3)\n', g.toString(1));
 
 	g = randomRegularGraph(10, 3);
-	console.log('regular graph\n', g.toString(1));
+	console.log('regular graph (10,3)\n', g.toString(1));
+
+	g = randomRegularGraph(10, 3, 1.5);
+	console.log('seimi-regular graph (10,3,1.5) \n', g.toString(1));
 
 	g = randomRegularBigraph(8,6,16);
 	console.log('regular bigraph (8,6,16)\n', g.toString(1));
+
+	g = randomRegularBigraph(8,6.5,16,3);
+	console.log('semi-regular bigraph (8,6.5,16,3)\n', g.toString(1));
 
 	g = randomFlograph(16, 2.5, 3);
 	g.randomCapacities(randomInteger,1,9);

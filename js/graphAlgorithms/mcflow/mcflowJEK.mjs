@@ -31,7 +31,7 @@ let steps;      // number of steps in findpath method
  *  @param fg is a flow graph with a possibly non-zero initial flow with no
  *  unsaturated negative cycles
  *  @param leastCost is a boolean; when true, returns the least-cost flow;
- *  when false, returns the least-cost flow that also has maximum value
+ *  when false, returns the least-cost flow among those of maximum value
  *  @return [traceString,statsObject]
  */
 export default function mcflowJEK(fg, leastCost=false, traceFlag=false) {

@@ -36,7 +36,6 @@ let steps;      // total number of steps
  *  @param G is an undirected graph with weights
  *  @param size is the specified number of edges in the returned matching;
  *  0 can be used to specify a perfect matching
- *  giving a perfect matching)
  *  @param max is a flag, which if true, causes a max weight matching of the
  *  specified size to be computed (by default, a min weight matching of
  *  the specified size is returned)
@@ -48,6 +47,12 @@ let steps;      // total number of steps
  *  ts is a possibly empty trace string and stats is a statistics object;
  *  if assertion-checking is enabled, the correctness of the solution is
  *  verified before returning
+
+do we really need the dual for min weight matchings?
+
+Why not use max weight matching but complement weights?
+
+
  */
 export default function wperfectE(G, size=0, max=0, traceFlag=false) {
 	g = G;

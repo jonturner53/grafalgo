@@ -9,22 +9,29 @@
 import { Tester } from '../../../common/Testing.mjs';
 import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
 import simple from '../egcSimple.mjs';
-import egcKKP1 from '../egcKKP1.mjs';
-import egcKKP2 from '../egcKKP2.mjs';
+import egcTl from '../egcTl.mjs';
+import egcCT from '../egcCT.mjs';
+import egcKKP from '../egcKKP.mjs';
+import egcKKPT from '../egcKKPT.mjs';
 import egcYM from '../egcYM.mjs';
-import egcT1 from '../egcT1.mjs';
-import egcT2 from '../egcT2.mjs';
+import egcTh from '../egcTh.mjs';
+import { coreCT } from '../egcCT.mjs';
+import { coreYM } from '../egcYM.mjs';
+import egcBsearch from '../egcBsearch.mjs';
 import verify from '../egcVerify.mjs';
 import EdgeGroups from '../EdgeGroups.mjs';
 import egcRandomCase from '../egcRandomCase.mjs';
 
 let algomap = {
 	'simple' : ['simple ', simple, verify ],
-	'kkp1' : ['KKP1 ', egcKKP1, verify ],
-	'kkp2' : ['KKP2 ', egcKKP2, verify ],
+	'tl' : ['Tl ', egcTl, verify],
+	'ct' : ['CT ', (eg,trace) => egcCT(eg,0,trace), verify],
+	'ctor' : ['CTor ', egcCT, verify],
+	'kkp' : ['KKP ', egcKKP, verify],
+	'kkpt' : ['KKPT ', egcKKPT, verify],
 	'ym' : ['YM ', egcYM, verify],
-	't1' : ['T1 ', (eg,trace) => egcT1(eg,0,trace), verify ],
-	't2' : ['T2 ', egcT2, verify]
+	'thct' : ['egcThCT ', (eg, trace) => egcTh(eg, coreCT, trace), verify],
+	'thym' : ['egcThYM ', (eg, trace) => egcTh(eg, coreYM, trace), verify],
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
@@ -37,17 +44,23 @@ tester.addTest('small example', eg);
 eg = egcRandomCase(4,3,12,3,3);
 tester.addTest('small random (4,3,12,3,4)', eg);
 
-eg = egcRandomCase(6,4,18,4,4);
-tester.addTest('smallish random +0 (6,4,18,4,4)', eg);
+eg = egcRandomCase(5,4,15,4,4);
+tester.addTest('smallish random +0 (5,4,15,4,4)', eg);
 
-eg = egcRandomCase(6,4,18,4,6);
-tester.addTest('smallish random +1 (5,4,18,4,5)', eg);
+eg = egcRandomCase(5,4,15,4,5);
+tester.addTest('smallish random +1 (5,4,15,4,5)', eg);
+
+eg = egcRandomCase(5,4,15,4,5,3);
+tester.addTest('smallish random irregular +1 (5,4,15,4,5,3)', eg);
 
 eg = egcRandomCase(30,10,150,10,10);
 tester.addTest('medium random +0 (30,10,150,10,10)', eg);
 
 eg = egcRandomCase(30,10,150,10,12);
 tester.addTest('medium random +2 (30,10,150,10,12)', eg);
+
+eg = egcRandomCase(30,10,150,10,12,3);
+tester.addTest('medium random irregular +2,+3 (30,10,150,10,12,3)', eg);
 
 if (!ea) {
 	eg = egcRandomCase(60,20,1200,20,22);
