@@ -12,7 +12,6 @@ import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
-import { coreYM } from './egcYM.mjs';
 import { coreKKPT } from './egcKKPT.mjs';
 import egcBsearch from './egcBsearch.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';

@@ -69,20 +69,6 @@ export default function setCoverC(g, weight=null, type=null, or=0, trace=0) {
 		if (!eligible[type[s]]) continue;
 		eligible[type[s]] = 0;
 
-/*
-if (trace) {
-	for (let e = g.firstAt(s); e; e = g.nextAt(s,e)) {
-		let i = g.mate(s,e);
-		for (let ee = g.firstAt(i); ee; ee = g.nextAt(i,ee)) {
-			let ss = g.mate(i,ee);
-			if (ss != s && cover.contains(ss)) {
-				traceString += ' ' + g.x2s(i-k);
-			}
-		}
-	}
-}
-*/
-
 		cover.enq(s); coverWeight += weight[s];
 		for (let e = g.firstAt(s); e; e = g.nextAt(s,e)) {
 			let i = g.mate(s,e);
