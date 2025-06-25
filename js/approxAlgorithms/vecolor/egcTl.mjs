@@ -91,12 +91,14 @@ function buildLayers() {
 	// create matching graph for expanding layers
 	let mg = new Graph(Gamma_i+eg.n_g, Gamma_i*eg.n_g);
 	mg.setBipartition(Gamma_i);
+
+	// for each input u, use matching to assign groups at u to layers
 	for (let j = 1; j < invec.length; j++) { 
 		let [u] = invec[j];
 
 		// construct matching graph with edges (l,g) where l is a layer and
 		// g a group at u; set weight to number of outputs in olist[l] plus
-		// number of outputs in g, all divided by number common to both
+		// number of outputs in g, all the resulting layer thickness
 		mg.clear();
 		for (let l = 1; l <= Gamma_i; l++) {
 			for (let g = eg.firstGroupAt(u); g; g = eg.nextGroupAt(u,g)) {
