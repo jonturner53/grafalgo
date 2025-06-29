@@ -47,6 +47,8 @@ export default function egcCT(eg, overlapReduction=1, trace) {
 export function coreCT(eg, Cmax, overlapReduction=1) {
 	let egg = eg.graph;
 	let egc = new EdgeGroupColors(eg, Cmax);
+	let orf = !overlapReduction ? 0 : (s,covered,uncovered,width) =>
+										(1+covered[s]+width[s])/uncovered[s];
 
 	// build set cover graph with edges (g,v) where g is a group and v an output
 	let scg = new Graph(eg.n_g + eg.n_o, egg.m);
@@ -65,7 +67,7 @@ export function coreCT(eg, Cmax, overlapReduction=1) {
 	let covered = new Int8Array(eg.n_o+1); // used when processing each cover
 	let C = 1;
 	while (C <= Cmax && scg.m > 0) {
-		let [cover]  = setCoverC(scg, null, type, overlapReduction);
+		let [cover]  = setCoverC(scg, 0, type, orf);
 		covered.fill(0);
 		for (let g = cover.first(); g; g = cover.next(g)) {
 			let nexte;

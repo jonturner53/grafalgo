@@ -26,7 +26,7 @@ let algomap = {
 	'simple' : ['simple ', simple, verify ],
 	'tl' : ['Tl ', egcTl, verify],
 	'ct' : ['CT ', (eg,trace) => egcCT(eg,0,trace), verify],
-	'ctor' : ['CTor ', egcCT, verify],
+	'ctor' : ['CTor ', (eg,trace) => egcCT(eg,1,trace), verify],
 	'kkp' : ['KKP ', egcKKP, verify],
 	'kkpt' : ['KKPT ', egcKKPT, verify],
 	'ym' : ['YM ', egcYM, verify],
@@ -62,9 +62,9 @@ tester.addTest('medium random +2 (30,10,150,10,12)', eg);
 eg = egcRandomCase(30,10,150,10,12,3);
 tester.addTest('medium random irregular +2,+3 (30,10,150,10,12,3)', eg);
 
-if (!ea) {
-	eg = egcRandomCase(60,20,1200,20,22);
+	eg = egcRandomCase(60,20,300,20,22);
 	tester.addTest('medium large random (60,20,300,20,22)', eg);
+if (!ea) {
 	
 	eg = egcRandomCase(80,30,400,30,33);
 	tester.addTest('large random (80,30,400,30,33)', eg);

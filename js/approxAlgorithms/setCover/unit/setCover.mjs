@@ -18,9 +18,11 @@ import {randomInteger, randomFraction} from '../../../common/Random.mjs';
 let algomap = {
 	'bye' : ['setCoverBYE', setCoverBYE, setCoverVerify],
 	'c' : ['setCoverC',
-		   (g,weight,trace) => setCoverC(g,weight,null,0,trace),setCoverVerify],
+		   (g,weight,trace) => setCoverC(g,weight,0,0,trace),setCoverVerify],
 	'cr' : ['setCoverCr',
-		   (g,weight,trace) => setCoverC(g,weight,null,1,trace), setCoverVerify]
+		    (g,weight,trace) => setCoverC(g, weight, 0,
+				(s,covered,uncovered,width) => (1+covered[s])/uncovered[s],
+				 trace), setCoverVerify]
 }
 
 function p2s(props) {
@@ -37,7 +39,7 @@ let g = new Graph();
 g.fromString('{a[e h j m p] b[f g i n o] c[g k l m p] d[f h k l o]}');
 g.setBipartition(4);
 let weight = [0,3,7,4,8];
-//tester.addTest('small set cover instance (4,12)', g, weight);
+tester.addTest('small set cover instance (4,12)', g, weight);
 
 let props;
 [g,weight, props] = setCoverRandom(8, 16, 2, 1, randomInteger, 1, 1);

@@ -230,7 +230,6 @@ export default class ArrayHeap extends Top {
 	changekey(i, k) {
 		this.changekeys++;
 		let ki = this.Key[i] + this.Offset;
-		//this.Key[i] += k - ki;
 		this.Key[i] = k - this.Offset;
 			 if (k < ki) this.siftup(i, this.pos[i]);
 		else if (k > ki) this.siftdown(i, this.pos[i]);
