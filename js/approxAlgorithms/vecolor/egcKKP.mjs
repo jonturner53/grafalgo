@@ -28,6 +28,7 @@ let eg;     // shared reference to EdgeGroups object
  */
 export default function egcKKP(eg, trace) {
 	let Cmin = lowerBound(maxGroupCount(eg), maxOutDegree(eg));
+	for (let u = 1; u <= eg.n_i; u++) eg.sortGroups(u);
 	let egc = egcBsearch(coreKKP, eg, Cmin, 10*Cmin);
 	assert(egc);
 
@@ -47,13 +48,15 @@ export function coreKKP(eg, C) {
 	let limit = 10;
 	let egc = new EdgeGroupColors(eg,C);
 	for (let i = 1; i <= limit; i++) {
-		egc.clear();
+		egc.clear(); let first = true;
 		for (let u = 1; u <= eg.n_i; u++) {
 			let g = eg.firstGroupAt(u);
 			for (let ci = 1; ci <= C; ci++) {
 				egc.bind(colors[ci],g);
 				g = eg.nextGroupAt(u,g);
-				if (!g) g = eg.firstGroupAt(u);
+				if (!g || (eg.fanout(g) == 1 && first)) {
+					g = eg.firstGroupAt(u); first = false;
+				}
 			}
 			scramble(colors);
 		}

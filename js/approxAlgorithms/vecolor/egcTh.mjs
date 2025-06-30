@@ -30,7 +30,6 @@ import EdgeGroupColors from './EdgeGroupColors.mjs';
  *  if the graph cannot be colored with C colors, egc will be incomplete
  */
 export default function egcTh(eg, imethod, trace) {
-	eg.sortAllGroups();
 
 	let deficit;  // initial deficit from last successful call to core
 	let core = function(eg, C) {
@@ -45,6 +44,7 @@ export default function egcTh(eg, imethod, trace) {
 	}
 
 	let Cmin = lowerBound(maxGroupCount(eg), maxOutDegree(eg));
+	eg.sortAllGroups();
 	let egc = egcBsearch(core, eg, Cmin, 10*Cmin);
 	assert(egc);
 

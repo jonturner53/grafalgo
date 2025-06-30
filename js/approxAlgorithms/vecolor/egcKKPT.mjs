@@ -1,4 +1,4 @@
-/** @file egcKKP2.mjs
+/** @file egcKKPT.mjs
  * 
  *  @author Jon Turner
  *  @date 2023

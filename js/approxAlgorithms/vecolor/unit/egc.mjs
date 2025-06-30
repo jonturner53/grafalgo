@@ -62,8 +62,9 @@ tester.addTest('medium random +2 (30,10,150,10,12)', eg);
 eg = egcRandomCase(30,10,150,10,12,3);
 tester.addTest('medium random irregular +2,+3 (30,10,150,10,12,3)', eg);
 
-	eg = egcRandomCase(60,20,300,20,22);
-	tester.addTest('medium large random (60,20,300,20,22)', eg);
+eg = egcRandomCase(60,20,300,20,22);
+tester.addTest('medium large random (60,20,300,20,22)', eg);
+
 if (!ea) {
 	
 	eg = egcRandomCase(80,30,400,30,33);
