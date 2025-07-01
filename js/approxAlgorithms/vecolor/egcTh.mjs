@@ -30,7 +30,6 @@ import EdgeGroupColors from './EdgeGroupColors.mjs';
  *  if the graph cannot be colored with C colors, egc will be incomplete
  */
 export default function egcTh(eg, imethod, trace) {
-
 	let deficit;  // initial deficit from last successful call to core
 	let core = function(eg, C) {
 		let egc = imethod(eg, C);

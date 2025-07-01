@@ -13,6 +13,7 @@ import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
+import { scramble } from '../../common/Random.mjs';
 
 /** This class maintains a set of edge groups on, an underlying  bipartite
  *  graph. Groups are centered on inputs, and each output has at most one
@@ -285,6 +286,25 @@ export default class EdgeGroups extends Top {
 		while (i > 0) {
 			this.FirstGroup[u] =
 				this.GroupsAtInputs.join(vec[--i], this.FirstGroup[u]);
+		}
+	}
+
+	/** Reorder the group list at a specified input.
+	 *  @para u is an input; on return the list of groups at u is randomly
+	 *  reordered.
+	 */
+	scrambleGroups(u) {
+		let vec = new Int32Array(1+this.groupCount(u));
+		let i = 1;
+		while (this.FirstGroup[u]) {
+			vec[i++] = this.FirstGroup[u];
+			this.FirstGroup[u] = this.GroupsAtInputs.delete(
+										this.FirstGroup[u], this.FirstGroup[u]);
+		}
+		scramble(vec);
+		while (i > 1) {
+			this.FirstGroup[u] = this.GroupsAtInputs.join(
+										vec[--i], this.FirstGroup[u]);
 		}
 	}
 	

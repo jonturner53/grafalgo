@@ -60,5 +60,7 @@ export default function egcRandomCase(ni, gd, no=ni, od=gd,
 			eg.merge(g1, g2); // g2 now gone from graph
 		}
 	}
+
+	for (let u = 1; u <= ni; u++) eg.scrambleGroups(u);
 	return eg;
 }
