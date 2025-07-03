@@ -34,6 +34,10 @@ export default function egcVerify(eg, egc) {
 						return `color ${c} of edge ${eg.e2s(e)} in group ` +
 							   `${eg.g2s(g)} conflicts with another edge ` +
 							   `at input ${eg.x2s(u)}`;
+					if (eg.hasBounds && c < eg.bound(g))
+						return `color ${c} of edge ${eg.e2s(e)} in group ` +
+							   `${eg.g2s(g)} conflicts with bound ${eg.bound(g)}`;
+							   `at input ${eg.x2s(u)}`;
 				}
 				for (let e = eg.firstInGroup(g); e; e = eg.nextInGroup(g,e)) {
 					if (egc.color(e) && !ucolors.contains(egc.color(e)))

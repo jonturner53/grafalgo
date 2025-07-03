@@ -562,7 +562,7 @@ export default class Graph extends Top {
 	 */
 	toString(fmt=0, elab=0, vlab=0) {
 		if (!elab) {
-			elab = (e,u) => this.x2s(this.mate(u,e)) +
+			elab = (e,u) => this.x2s(this.mate(u,e)) + 
 							(this.weight(e) ? (':' + this.weight(e)) : '');
 		}
 		if (!vlab) vlab = ((u) => this.x2s(u));

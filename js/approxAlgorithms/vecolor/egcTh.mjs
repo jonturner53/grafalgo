@@ -13,10 +13,10 @@ import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { coreKKPT } from './egcKKPT.mjs';
+import { lowerBound } from './egcCommon.mjs';
 import egcBsearch from './egcBsearch.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
-import {lowerBound, maxGroupCount, maxOutDegree} from './egcCommon.mjs';
 import EdgeGroupLayers from './EdgeGroupLayers.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
 
@@ -42,7 +42,7 @@ export default function egcTh(eg, imethod, trace) {
 		return egc;
 	}
 
-	let Cmin = lowerBound(maxGroupCount(eg), maxOutDegree(eg));
+	let Cmin = lowerBound(eg);
 	eg.sortAllGroups();
 	let egc = egcBsearch(core, eg, Cmin, 10*Cmin);
 	assert(egc);
@@ -56,5 +56,5 @@ export default function egcTh(eg, imethod, trace) {
 	}
 
 	let C = egc.maxColor();
-	return [egc, ts, {'C': C, 'R': (C/Cmin).toFixed(2), 'D': deficit}];
+	return [egc, ts, {'C': C, 'Cmin':Cmin, 'R': (C/Cmin).toFixed(2), 'D': deficit}];
 }

@@ -13,7 +13,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 import wbimatchH from '../../graphAlgorithms/match/wbimatchH.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
 import EdgeGroupLayers from './EdgeGroupLayers.mjs';
-import {lowerBound, maxGroupCount, maxOutDegree} from './egcCommon.mjs';
+import { lowerBound, maxGroupCount } from './egcCommon.mjs';
 
 let eg;		// shared reference to EdgeGroups object
 let egl;	// shared reference to EdgeGroupLayers object
@@ -40,8 +40,7 @@ export default function egcTl(eg0, strict=false, traceFlag=0) {
 	}
 
 	Gamma_i = maxGroupCount(eg);
-	let Delta_o = maxOutDegree(eg);
-	let Cmin = lowerBound(Gamma_i, Delta_o);
+	let Cmin = lowerBound(eg);
 
 	egl = new EdgeGroupLayers(eg,Gamma_i);
 	buildLayers();

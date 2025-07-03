@@ -37,6 +37,8 @@ export default class EdgeGroups extends Top {
     GroupsAtInputs; // ListSet dividing groups among inputs
     FirstGroup;     // FirstGroup[u] is first group at input u
 
+	Bound           // bound[g] is lower bound on color of g
+
 	vlist;          // temporary list of vertices
 
 	/** Constructor for EdgeGroups object.
@@ -64,65 +66,10 @@ export default class EdgeGroups extends Top {
 		this.FirstInGroup = new Int32Array(this.n_g+1);
 		this.GroupsAtInputs = new ListSet(this.n_g);
 		this.FirstGroup = new Int32Array(this.n_i+1);
+		this.Bound = 0;
 
 		this.vlist = new List(this.Graph.n);
 	}
-
-	/** Assign new value to this from another EdgeGroups object. 
-	 *  @param that is an EdgeGroups object to be assigned to this
-	 *  @param relaxed is a boolean; when false, this.n is adjusted
-	 *  to exactly match that.n; when true, this.n is only adjusted
-	 *  if it is less than that.n; relaxed assignments are used to
-	 *  implement the expand method
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-
-		this.N_i = that.N_i;
-		this.Graph.assign(that.Graph);
-		this.Group = that.Group.slice(0);
-		this.Fanout = that.Fanout.slice(0);
-		this.EdgesInGroups.assign(that.EdgesInGroups);
-		this.FirstInGroup = that.FirstInGroup.slice(0);
-		this.GroupsAtInputs.assign(that.GroupsAtInputs);
-		this.FirstGroup = that.FirstGroup.slice(0);
-		this.vlist.assign(that.vlist);
-	}
-	 */
-
-	/** Assign a new value to this, by transferring contents of another object.
-	 *  @param that is a list whose contents are to be transferred to this
-	xfer(that) {
-		super.xfer(that);
-		this.N_i = that.N_i;
-		this.Graph = that.Graph;
-		this.Group = that.Group;
-		this.Fanout = that.Fanout;
-		this.EdgesInGroups = that.EdgesInGroups;
-		this.FirstInGroup = that.FirstInGroup;
-		this.GroupsAtInputs = that.GroupsAtInputs;
-		this.FirstGroup = that.FirstGroup;
-		this.vlist = that.vlist;
-	}
-	 */
-
-	clear() {
-		this.Group.fill(0);
-		this.Fanout.fill(0);
-
-		this.GroupIds.clear();
-		this.EdgesInGroups.clear(); this.FirstInGroup.fill(0);
-		this.GroupsAtInputs.clear(); this.FirstGroup.fill(0);
-
-		this.vlist.clear();
-	}
-
-	get n_i() { return this.N_i; }
-
-	get n_o() { return this.graph.n - this.N_i; }
-
-	get n_g() { return this.n; }
-
-	get graph() { return this.Graph; }
 
 	/** Assign one GroupGraph to another by copying its contents.
 	 *  @param that is another graph whose contents is copied to this one
@@ -141,6 +88,11 @@ export default class EdgeGroups extends Top {
 		for (let e = that.graph.first(); e; e = that.graph.next(e)) {
 			this.add(e, that.group(e));
 		}
+
+		if (!that.Bound) return;
+		this.Bound = new Int32Array(that.n_g+1);
+		for (let g = this.firstGroup(); g; g = this.nextGroup(g))
+			this.bound(g, that.bound(g));
 	}
 
 	/** Assign one graph to another by transferring its contents.
@@ -159,12 +111,33 @@ export default class EdgeGroups extends Top {
 		this.FirstInGroup = that.FirstInGroup;
 		this.GroupsAtInputs = that.GroupsAtInputs;
 		this.FirstGroup = that.FirstGroup;
+		this.Bound = that.Bound;
 		this.vlist = that.vlist;
 
 		that.Fanout = null; that.Group = null;
 		that.GroupIds = that.EdgesInGroups = that.GroupsAtInputs = null;
 		that.FirstInGroup = that.FirstGroup = that.vlist = null;
 	}
+
+	clear() {
+		this.Group.fill(0);
+		this.Fanout.fill(0);
+
+		this.GroupIds.clear();
+		this.EdgesInGroups.clear(); this.FirstInGroup.fill(0);
+		this.GroupsAtInputs.clear(); this.FirstGroup.fill(0);
+		this.Bound = 0;
+
+		this.vlist.clear();
+	}
+
+	get n_i() { return this.N_i; }
+
+	get n_o() { return this.graph.n - this.N_i; }
+
+	get n_g() { return this.n; }
+
+	get graph() { return this.Graph; }
 
 	group(e) { return this.Group[e]; };
 	input(e) { return this.graph.left(e); }
@@ -192,6 +165,22 @@ export default class EdgeGroups extends Top {
 
 	firstInGroup(g) { return this.FirstInGroup[g]; }
 	nextInGroup(g,e) { return this.EdgesInGroups.next(e); }
+
+	/** Get/set lower bound for an edge group.
+	 *  @param g is a group number
+	 *  @param b is an optional bound fore the group; if present
+	 *  the bound on g is changed to b
+	 *  @return the bound on g
+	 */
+	bound(g, b=0) {
+		if (b) {
+			if (!this.Bound) this.Bound = new Int32Array(this.n_g+1);
+			this.Bound[g] = b;
+		}
+		return this.Bound ? this.Bound[g] : 0;
+	}
+
+	get hasBounds() { return this.Bound ? 1 : 0; }
 
 	/** Assign an edge to an edge group.
 	 *  @param e is an edge not currently assigned to a group
@@ -380,6 +369,7 @@ export default class EdgeGroups extends Top {
 			s += this.graph.x2s(u) + '[';
 			for (let g = this.firstGroupAt(u); g; g = this.nextGroupAt(u,g)) {
 				if (g != this.firstGroupAt(u)) s += ' ';
+				let b = this.bound(g); if (b) s += b;
 				s += this.group2string(g);
 				if (fmt&4) s += this.g2s(g);
 				if (gxs) s += gxs(g);
@@ -423,22 +413,27 @@ export default class EdgeGroups extends Top {
 						return u > 0 ? u : 0;
 					});
 		// function to parse an edge group
-		let triples = []; let group = 0; let groupIds = new Set(); let n_g = 0;
+		let tuples = []; let group = 0; let groupIds = new Set(); let n_g = 0;
 		let nextGroup = ((u,sc) => {
-						if (!sc.verify('(')) return false
+						let b = 0; let bmax = b;
+						if (!sc.verify('(')) {
+							b = sc.nextInt();
+							if (Number.isNaN(b)) return false;
+							if (!sc.verify('(')) return false;
+						}
 						while (groupIds.has(++group)) {}
-						let i0 = triples.length;
+						let i0 = tuples.length;
 						while (!sc.verify(')')) {
 							let v = nextVertex(sc);
 							if (!v) return false;
-							triples.push([u,v,group]);
+							tuples.push([u,v,group,b]);
 						}
-						let g = sc.nextIndexExt(0,0);
+						let g = (!sc.isspace() ? sc.nextIndexExt(0,0) : 0);
 						if (g > 0) {
 							if (groupIds.has(g)) return false;
-							// fill in group identifiers
-							for (let i = i0; i < triples.length; i++) {
-								triples[i][2] = g;
+							// replace group identifiers
+							for (let i = i0; i < tuples.length; i++) {
+								tuples[i][2] = g;
 							}
 							group--;
 						} else {
@@ -464,14 +459,14 @@ export default class EdgeGroups extends Top {
 		}
 
 		// check that inputs precede outputs
-		for (let [u,v,g] of triples)
+		for (let [u,v,g,b] of tuples)
 			if (v <= n_i) return false;
 
-		this.Graph = new Graph(n, Math.max(1,triples.length));
+		this.Graph = new Graph(n, Math.max(1,tuples.length));
 
 		// add edges to graph before configuring object
-		let pairs = []
-		for (let [u,v,g] of triples) pairs.push([this.graph.join(u,v),g]);
+		let triples = []
+		for (let [u,v,g,b] of tuples) triples.push([this.graph.join(u,v),g,b]);
 
 		if (n_i == this.n_i && n_g == this.n_g &&
 			this.Group.length == this.erange+1)
@@ -481,8 +476,9 @@ export default class EdgeGroups extends Top {
 		}
 
 		// add edges
-		for (let [e,g] of pairs) {
+		for (let [e,g,b] of triples) {
 			this.add(e,g);
+			if (!this.bound(g)) this.bound(g,b);
 		}
 		return true;
 	}

@@ -30,7 +30,7 @@ import EdgeGroupColors from './EdgeGroupColors.mjs';
  *  if the graph cannot be colored with C colors, egc will be incomplete
  */
 export default function egcCT(eg, overlapReduction=1, trace) {
-	let Cmin = lowerBound(maxGroupCount(eg), maxOutDegree(eg));
+	let Cmin = lowerBound(eg);
 	let egc = coreCT(eg, 10*Cmin, overlapReduction);
 
 	let ts = '';
@@ -40,7 +40,7 @@ export default function egcCT(eg, overlapReduction=1, trace) {
 		ts += 'colors: ' + egc.toString(0);
 	}
 
-	return [egc, ts, {'C':egc.maxColor(),
+	return [egc, ts, {'C':egc.maxColor(), 'Cmin':Cmin,
 					  'R': (egc.maxColor()/Cmin).toFixed(2)}];
 }
 
@@ -53,10 +53,13 @@ export function coreCT(eg, Cmax, overlapReduction=1) {
 	// build set cover graph with edges (g,v) where g is a group and v an output
 	let scg = new Graph(eg.n_g + eg.n_o, egg.m);
 	scg.setBipartition(eg.n_g);
-	for (let e = egg.first(); e; e = egg.next(e)) {
-		let v = egg.right(e) - eg.n_i;
-		scg.join(eg.group(e), v + eg.n_g, e);
-		// vertex numbers of scg outputs shifted relative to egg
+	if (!eg.hasBounds) {
+		for (let e = egg.first(); e; e = egg.next(e)) {
+			if (eg.hasBounds && eg.bound(eg.group(e)) != 1) continue;
+			let v = egg.right(e) - eg.n_i;
+			scg.join(eg.group(e), v + eg.n_g, e);
+			// vertex numbers of scg outputs shifted relative to egg
+		}
 	}
 
 	// assign types to groups based on their hubs
@@ -65,8 +68,16 @@ export function coreCT(eg, Cmax, overlapReduction=1) {
 		type[g] = eg.hub(g);
 
 	let covered = new Int8Array(eg.n_o+1); // used when processing each cover
-	let C = 1;
-	while (C <= Cmax && scg.m > 0) {
+	let C = 1; let numberColored = 0;
+	while (C <= Cmax && numberColored <= egg.m) {
+		// add to scg those edges that can be colored with C
+		if (eg.hasBounds) {
+			for (let e = egg.first(); e; e = egg.next(e)) {
+				if (eg.bound(eg.group(e)) != C) continue;
+				let v = egg.right(e) - eg.n_i;
+				scg.join(eg.group(e), v + eg.n_g, e);
+			}
+		}
 		let [cover]  = setCoverC(scg, 0, type, orf);
 		covered.fill(0);
 		for (let g = cover.first(); g; g = cover.next(g)) {
@@ -76,6 +87,7 @@ export function coreCT(eg, Cmax, overlapReduction=1) {
 				let v = scg.right(e);
 				if (!covered[v-eg.n_g]) {
 					covered[v-eg.n_g] = 1; egc.color(e, C); scg.delete(e);
+					numberColored++;
 				}
 			}
 		}

@@ -12,10 +12,9 @@ import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
+import { lowerBound } from './egcCommon.mjs';
 import egcBsearch from './egcBsearch.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
-import { maxGroupCount, maxOutDegree, lowerBound, randUbound, wcUbound }
-		from './egcCommon.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
 
 let eg;     // shared reference to EdgeGroups object
@@ -27,7 +26,7 @@ let eg;     // shared reference to EdgeGroups object
  *  object, ts is a traceString and stats is a statistics object.
  */
 export default function egcKKP(eg, trace) {
-	let Cmin = lowerBound(maxGroupCount(eg), maxOutDegree(eg));
+	let Cmin = lowerBound(eg);
 	for (let u = 1; u <= eg.n_i; u++) eg.sortGroups(u);
 	let egc = egcBsearch(coreKKP, eg, Cmin, 10*Cmin);
 	assert(egc);

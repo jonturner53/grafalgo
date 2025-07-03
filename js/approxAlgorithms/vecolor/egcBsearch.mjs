@@ -14,7 +14,6 @@ import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
-import {lowerBound, maxGroupCount, maxOutDegree} from './egcCommon.mjs';
 import EdgeGroupLayers from './EdgeGroupLayers.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
 

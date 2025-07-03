@@ -19,10 +19,11 @@ import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import wbimatchH from '../../graphAlgorithms/match/wbimatchH.mjs';
 import EdgeGroupLayers from './EdgeGroupLayers.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
-import {lowerBound, maxGroupCount, maxOutDegree} from './egcCommon.mjs';
+import { lowerBound, maxOutDegree } from './egcCommon.mjs';
 
-/** Find an edge group coloring using Turner's variant of the
- *  Kirkpatrick, Klawe and Pippenger alorithm.
+/** Find an edge group coloring using Turner's variant of Kirkpatrick,
+ *  Klawe and Pippenger alorithm. If the graph to be colored has lower
+ *  lower bounds defined, the colorint respects those bounds.
  *  @param g is a group graph to be colored.
  *  @param C is the number of colors available for coloring the edges
  *  @param egc is an optional coloring (possibly incomplete); it is
@@ -30,7 +31,7 @@ import {lowerBound, maxGroupCount, maxOutDegree} from './egcCommon.mjs';
  *  @return an EdgeGroupColors object
  */
 export default function egcKKPT(eg, trace=0) {
-	let Cmin = lowerBound(maxGroupCount(eg), maxOutDegree(eg));
+	let Cmin = lowerBound(eg);
 	let egc = egcBsearch(coreKKPT, eg, Cmin, 10*Cmin);
 	assert(egc);
 
@@ -42,7 +43,7 @@ export default function egcKKPT(eg, trace=0) {
 	}
 
 	let C = egc.maxColor();
-	return [egc, ts, {'C': C, 'R': (C/Cmin).toFixed(2)}];
+	return [egc, ts, {'C': C, 'Cmin':Cmin, 'R': (C/Cmin).toFixed(2)}];
 }
 
 export function coreKKPT(eg, C, egc=0) {
@@ -70,17 +71,20 @@ export function coreKKPT(eg, C, egc=0) {
 		let [match] = bimatchHK(pg);
 		if (match.size() == dv) continue;
 
-		// Try to expand palette's for the groups with edges at v, without
+		// Try to expand palettes for the groups with edges at v, without
 		// increasing the total number of colors.
 		// Do this by solving a min weight matching problem.
 		xg.clear();
 		for (let e = eg.graph.firstAt(v); e; e = eg.graph.nextAt(v,e)) {
 			let g = eg.group(e); let u = eg.hub(g);
-			let cost = egc.paletteSize(g)/eg.fanout(g);
 			for (let c = 1; c <= C; c++) {
+				if (eg.bound(g) > c) continue;
 				if (egc.owner(c,u) && egc.owner(c,u) != g) continue;
 				let xe = xg.join(g, eg.n_g+c);
-				xg.weight(xe, egc.owner(c,u) == g ? C : C-cost);
+				let cost = (eg.hasBounds ?
+							(egc.paletteSize(g)+(c-eg.bound(g))) / eg.fanout(g) :
+							 (egc.paletteSize(g) / eg.fanout(g))) ;
+				xg.weight(xe, egc.owner(c,u) == g ? 2*C : 2*C-cost);
 			}
 		}
 

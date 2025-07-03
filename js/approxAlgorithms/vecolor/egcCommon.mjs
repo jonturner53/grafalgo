@@ -30,14 +30,33 @@ export function maxOutDegree(eg) {
 	return Delta_o;
 }
 
+export function lowerBound(eg) {
+	let egg = eg.graph;
+	let lowerBound = Math.max(maxGroupCount(eg), maxOutDegree(eg));
+	if (!eg.bound) return lowerBound;
+
+	let bvec = new Int32Array(lowerBound);
+	for (let v = eg.n_i+1; v <= eg.n_i+eg.n_o; v++) {
+		let i = 0;
+		for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e))
+			bvec[i++] = eg.bound(eg.group(e));
+		i--; // index of last bound at v
+		bvec.fill(bvec[i]+1,i+1); // fill remaining entries with larger value
+		bvec.sort((a,b)=>a-b);
+		for (let j = 0; j <= i; j++)
+			lowerBound = Math.max(lowerBound, bvec[j] + (i-j));
+	}
+	return lowerBound;
+}
+
 /** Compute trivial lower bound on colors.
  *  @param Gamma_i is max input group count
  *  @param Delta_o is max output degree
  *  @return the trivial lower bound
- */
 export function lowerBound(Gamma_i, Delta_o) {
 	return Math.max(Gamma_i, Delta_o);
 }
+ */
 
 /** Compute randomized upper bound on colors.
  *  @param Gamma_i is max input group count

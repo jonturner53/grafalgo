@@ -12,10 +12,10 @@ import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
+import { lowerBound } from './egcCommon.mjs';
 import egcBsearch from './egcBsearch.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
-import {lowerBound, maxGroupCount, maxOutDegree} from './egcCommon.mjs';
 import EdgeGroupLayers from './EdgeGroupLayers.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
 
@@ -27,7 +27,7 @@ import EdgeGroupColors from './EdgeGroupColors.mjs';
  */
 export default function egcYM(eg, trace) {
 	eg.sortAllGroups();
-	let Cmin = lowerBound(maxGroupCount(eg), maxOutDegree(eg));
+	let Cmin = lowerBound(eg);
 	let egc = egcBsearch(coreYM, eg, Cmin, 10*Cmin);
 	assert(egc);
 
@@ -39,7 +39,7 @@ export default function egcYM(eg, trace) {
 	}
 
 	let C = egc.maxColor();
-	return [egc, ts, {'C': C, 'R': (C/Cmin).toFixed(2)}];
+	return [egc, ts, {'C': C, 'Cmin':Cmin, 'R': (C/Cmin).toFixed(2)}];
 }
 
 export function coreYM(eg, C) {
@@ -58,7 +58,7 @@ export function coreYM(eg, C) {
 		while (k < limit && colored < eg.fanout(g)) {
 			// first find best color for the remaining uncolored edges
 			let bestColor = 0; let bestCount = 0;
-			for (let c = 1; c <= C; c++) {
+			for (let c = (eg.hasBounds ? eg.bound(g) : 1); c <= C; c++) {
 				let count = 0;
 				for (let e = eg.firstInGroup(g); e; e = eg.nextInGroup(g,e)) {
 					if (egc.color(e) == 0 && egc.avail(c,e)) count++;
