@@ -30,33 +30,39 @@ export function maxOutDegree(eg) {
 	return Delta_o;
 }
 
+/** Compute lower bound on the number of colors required.
+ *  @param eg is an EdgeGroups object
+ *  @param speedup is a parameter that defines the allowed
+ *  lower bound sets for the group colors; for example,
+ *  if speedup=1.5, the allowed lower bounds are 1,2,4,5,7,8.
+ */
 export function lowerBound(eg) {
 	let egg = eg.graph;
-	let lowerBound = Math.max(maxGroupCount(eg), maxOutDegree(eg));
-	if (!eg.bound) return lowerBound;
+	let maxOD = maxOutDegree(eg);
+	let lowerBound = Math.max(maxGroupCount(eg), maxOD);
+	if (!eg.hasBounds) return lowerBound;
 
-	let bvec = new Int32Array(lowerBound);
+	let maxBound = 0;
+	for (let g = eg.firstGroup(); g; g = eg.nextGroup(g))
+		maxBound = Math.max(maxBound, eg.bound(g));
+
+	let bvec = new Int32Array(maxOD);
 	for (let v = eg.n_i+1; v <= eg.n_i+eg.n_o; v++) {
+		// create ordered vector of bounds at v
 		let i = 0;
-		for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e))
+		for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e)) {
 			bvec[i++] = eg.bound(eg.group(e));
-		i--; // index of last bound at v
-		bvec.fill(bvec[i]+1,i+1); // fill remaining entries with larger value
-		bvec.sort((a,b)=>a-b);
-		for (let j = 0; j <= i; j++)
+		}
+		i--; // i is index of last valid bound at v
+		bvec.fill(maxBound+1,i+1); // fill remaining entries with larger value
+		bvec.sort();
+
+		for (let j = 0; j <= i; j++) {
 			lowerBound = Math.max(lowerBound, bvec[j] + (i-j));
+		}
 	}
 	return lowerBound;
 }
-
-/** Compute trivial lower bound on colors.
- *  @param Gamma_i is max input group count
- *  @param Delta_o is max output degree
- *  @return the trivial lower bound
-export function lowerBound(Gamma_i, Delta_o) {
-	return Math.max(Gamma_i, Delta_o);
-}
- */
 
 /** Compute randomized upper bound on colors.
  *  @param Gamma_i is max input group count

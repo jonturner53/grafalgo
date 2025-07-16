@@ -34,39 +34,48 @@ let eg = new EdgeGroups();
 eg.fromString('{a[2(e k o p) 1(f g j m) 3(l)] b[1(e n o p) 3(h k) 2(m i l)] c[3(f) 1(h k g j m) 2(i l n)] d[1(e i o p) 2(f g h) 3(j n)]}');
 tester.addTest('small example', eg);
 
-eg = egcRandomCase(4,3,8,3,4,1,1);
-tester.addTest('small random (4,3,12,3,4)', eg);
+eg = egcRandomCase(4,3,12,3,1,4,3);
+tester.addTest('small random (4,3,12,3,1,4,3)', eg);
 
-eg = egcRandomCase(5,4,15,4,4,1,1);
-tester.addTest('smallish random (5,4,15,4,4)', eg);
+eg = egcRandomCase(5,4,15,4,1,4,4);
+tester.addTest('smallish random (5,4,15,4,1,4,4)', eg);
 
-eg = egcRandomCase(5,4,15,4,5,1,1);
-tester.addTest('smallish random (5,4,15,4,5)', eg);
+eg = egcRandomCase(5,4,15,4,1,5,4);
+tester.addTest('smallish random (5,4,15,4,1,5,4)', eg);
 
-eg = egcRandomCase(5,4,15,4,5,3,1);
-tester.addTest('smallish random (5,4,15,4,5,3,1,1)', eg);
+eg = egcRandomCase(5,4,15,4,3,6,5);
+tester.addTest('smallish random (5,4,15,4,3,6,5)', eg);
 
-eg = egcRandomCase(5,4,15,4,5,1,1,1.5);
-tester.addTest('smallish random (5,4,15,4,5,1,1.5)', eg);
+eg = egcRandomCase(5,4,15,4,1,6,5);
+tester.addTest('smallish random (5,4,15,4,1,6,5)', eg);
 
-eg = egcRandomCase(30,10,150,10,10,1,1);
-tester.addTest('medium random (30,10,150,10,10)', eg);
+eg = egcRandomCase(5,4,15,4,1,6,6,1.5);
+tester.addTest('smallish random (5,4,15,4,1,6,6,1.5)', eg);
 
-eg = egcRandomCase(30,10,150,10,12,1,1);
-tester.addTest('medium random (30,10,150,10,12,1,1)', eg);
+eg = egcRandomCase(30,10,150,10,1,10,10);
+tester.addTest('medium random (30,10,150,10,1,10,10)', eg);
 
-eg = egcRandomCase(30,10,150,10,12,3,1);
-tester.addTest('medium random irregular +2,+3 (30,10,150,10,12,3)', eg);
+eg = egcRandomCase(30,10,150,10,1,12,11);
+tester.addTest('medium random (30,10,150,10,1,12,11)', eg);
 
-eg = egcRandomCase(60,20,300,20,22,1,1);
-tester.addTest('medium large random (60,20,300,20,22,1,1)', eg);
+eg = egcRandomCase(30,10,150,10,3,12,11);
+tester.addTest('medium random (30,10,150,10,3,12,11)', eg);
+
+eg = egcRandomCase(30,10,150,10,1,14,14,1.4);
+tester.addTest('medium random (30,10,150,10,1,14,14,1.4)', eg);
+
+eg = egcRandomCase(30,10,150,10,3,17,14,1.4);
+tester.addTest('medium random (30,10,150,10,3,17,14,1.4)', eg);
+
+eg = egcRandomCase(60,20,300,20,1,22,20);
+tester.addTest('medium large random (60,20,300,20,1,22,20)', eg);
 
 if (!ea) {
-	eg = egcRandomCase(80,30,400,30,33,1,1);
-	tester.addTest('large random (80,30,400,30,33,1,1)', eg);
+	eg = egcRandomCase(80,30,400,30,1,33,30);
+	tester.addTest('large random (80,30,400,30,1,33,30)', eg);
 
-	eg = egcRandomCase(100,50,1000,50,55,1,1);
-	tester.addTest('larger random (100,50,1000,50,55,1,1)', eg);
+	eg = egcRandomCase(100,50,1000,50,1,55,50);
+	tester.addTest('larger random (100,50,1000,50,1,55,50)', eg);
 }
 
 tester.run();
