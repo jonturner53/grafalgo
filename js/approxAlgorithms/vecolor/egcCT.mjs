@@ -34,7 +34,6 @@ export default function egcCT(eg, trace) {
 	let egc = coreCT(eg, 10*Cmin); 
 
 	let ts = '';
-ts += 'xx\n';
 	if (trace) {
 		ts += '\ngraph with palletes ' +
 			  eg.toString(1,g=>egc.palette2string(g)) + '\n';
