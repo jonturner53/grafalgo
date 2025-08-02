@@ -20,8 +20,8 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
  *  @param weight is an array that maps inputs of g to their set weights
  *  @param type is an optional array mapping subsets to positive integer types;
  *  if type is present, the returned cover has at most one subset of each type
- *  @param key(s,covered,uncovered,width) is an optional function that defines
- *  the key values used to select each subset; covered[s] is the number of
+ *  @param cost(s,covered,uncovered,width) is an optional function that defines
+ *  the cost values used to select each subset; covered[s] is the number of
  *  items in s that have been covered so far, uncovered[s] is the number of
  *  items not yet covered and width[s] is the maximum number of times that
  *  an item in s has been covered so far; the default function value
@@ -31,7 +31,7 @@ import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
  *  identify the sets in the cover; ts is a trace string and stats is a
  *  statistics object.
  */
-export default function setCoverC(g, weight=0, type=0, key=0, trace=0) {
+export default function setCoverC(g, weight=0, type=0, cost=0, trace=0) {
 	let k = g.inputCount(); let h = g.outputCount();
 
 	if (!weight) weight = new Int8Array(k+1).fill(1);
@@ -39,10 +39,8 @@ export default function setCoverC(g, weight=0, type=0, key=0, trace=0) {
 		type = new Int32Array(k+1);
 		for (let s = 0; s <= k; s++) type[s] = s;
 	}
-	if (!key) {
-		key = (s,covered,uncovered,width) => {
-				return weight[s] / uncovered[s];
-			}
+	if (!cost) {
+		cost = (s,covered,uncovered,width) => weight[s] / uncovered[s];
 	}
 
 	// define covered[s] = number of covered outputs in s; also uncovered[s]
@@ -70,7 +68,7 @@ export default function setCoverC(g, weight=0, type=0, key=0, trace=0) {
 
 	let subsets = new ArrayHeap(k+1); // subsets remaining to be considered
 	for (let s = 1; s <= k; s++) {
-		if (uncovered[s]) subsets.insert(s, key(s,covered,uncovered,width));
+		if (uncovered[s]) subsets.insert(s, cost(s,covered,uncovered,width));
 	}
 
 	let cover = new List(k);	// list of subsets in current cover
@@ -106,7 +104,7 @@ export default function setCoverC(g, weight=0, type=0, key=0, trace=0) {
 				width[ss] = Math.max(width[ss], coverCount[i]);
 				if (uncovered[ss] == 0) subsets.delete(ss);
 				else {
-					subsets.changekey(ss, key(ss,covered,uncovered,width));
+					subsets.changekey(ss, cost(ss,covered,uncovered,width));
 				}
 			}
 		}

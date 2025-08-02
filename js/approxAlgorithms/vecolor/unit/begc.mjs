@@ -20,7 +20,7 @@ import verify from '../egcVerify.mjs';
 import EdgeGroups from '../EdgeGroups.mjs';
 
 let algomap = {
-	'ct' : ['CT ', (eg,trace) => egcCT(eg,1,trace), verify],
+	'ct' : ['CT ', egcCT, verify],
 	'kkpt' : ['KKPT ', egcKKPT, verify],
 	'ym' : ['YM ', egcYM,verify],
 	'thct' : ['ThCT ', (eg,trace) => egcTh(eg,coreCT,trace), verify],

@@ -182,6 +182,12 @@ export default class EdgeGroups extends Top {
 
 	get hasBounds() { return this.Bound ? 1 : 0; }
 
+	/** Remove edge group bounds from this instance.
+	 *  Useful for comparing solutions on a particular graph with and without
+	 *  lower bounds.
+	 */
+	removeBounds() { this.Bound = 0; }
+
 	/** Assign an edge to an edge group.
 	 *  @param e is an edge not currently assigned to a group
 	 *  @param g is a group to assign e to or 0, to assign e

@@ -29,11 +29,12 @@ import EdgeGroupColors from './EdgeGroupColors.mjs';
  *  object, ts is a trace string and stats is a statistics object;
  *  if the graph cannot be colored with C colors, egc will be incomplete
  */
-export default function egcCT(eg, overlapReduction=1, trace) {
+export default function egcCT(eg, trace) {
 	let Cmin = lowerBound(eg);
-	let egc = coreCT(eg, 10*Cmin, overlapReduction);
+	let egc = coreCT(eg, 10*Cmin); 
 
 	let ts = '';
+ts += 'xx\n';
 	if (trace) {
 		ts += '\ngraph with palletes ' +
 			  eg.toString(1,g=>egc.palette2string(g)) + '\n';
@@ -44,11 +45,9 @@ export default function egcCT(eg, overlapReduction=1, trace) {
 					  'R': (egc.maxColor()/Cmin).toFixed(2)}];
 }
 
-export function coreCT(eg, Cmax, overlapReduction=1) {
+export function coreCT(eg, Cmax) {
 	let egg = eg.graph;
 	let egc = new EdgeGroupColors(eg, Cmax);
-	let orf = !overlapReduction ? 0 : (s,covered,uncovered,width) =>
-										(1+covered[s]+width[s])/uncovered[s];
 
 	// build set cover graph with edges (g,v) where g is a group and v an output
 	let scg = new Graph(eg.n_g + eg.n_o, egg.m);
@@ -68,7 +67,12 @@ export function coreCT(eg, Cmax, overlapReduction=1) {
 		type[g] = eg.hub(g);
 
 	let covered = new Int8Array(eg.n_o+1); // used when processing each cover
-	let C = 1; let numberColored = 0;
+	let C;
+	let setCoverCost =
+		(s,covered,uncovered,width) =>
+			(1+covered[s]+width[s]+ (eg.hasBounds ? C-eg.bound(s) : 0))
+		 	  / uncovered[s];
+	C = 1; let numberColored = 0;
 	while (C <= Cmax && numberColored <= egg.m) {
 		// add to scg those edges that can be colored with C
 		if (eg.hasBounds) {
@@ -78,7 +82,7 @@ export function coreCT(eg, Cmax, overlapReduction=1) {
 				scg.join(eg.group(e), v + eg.n_g, e);
 			}
 		}
-		let [cover]  = setCoverC(scg, 0, type, orf);
+		let [cover]  = setCoverC(scg, 0, type, setCoverCost);
 		covered.fill(0);
 		for (let g = cover.first(); g; g = cover.next(g)) {
 			let nexte;
