@@ -38,6 +38,12 @@ let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
 let eg = new EdgeGroups();
+
+//eg = egcRandomCase(3,4,21,1,1, 5,4);
+//console.log(eg.toString(1));
+eg = egcRandomCase(40,20,40,15,1, 22,21);
+
+/*
 eg.fromString('{a[(e k o p) (f g j m) (l)] b[(e n o p) (h k) (m i l)] c[(f) (h k g j m) (i l n)] d[(e i o p) (f g h) (j n)]}');
 tester.addTest('small example', eg);
 
@@ -75,3 +81,4 @@ if (!ea) {
 }
 
 tester.run();
+*/

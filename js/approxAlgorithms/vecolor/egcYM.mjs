@@ -33,7 +33,7 @@ export default function egcYM(eg, trace) {
 
 	let ts = '';
 	if (trace) {
-		ts += '\ngraph with palletes ' +
+		ts += '\ngraph with palettes ' +
 			  eg.toString(1,g=>egc.palette2string(g)) + '\n';
 		ts += 'colors: ' + egc.toString(0);
 	}

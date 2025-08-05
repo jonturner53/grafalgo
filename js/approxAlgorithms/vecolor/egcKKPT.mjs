@@ -37,7 +37,7 @@ export default function egcKKPT(eg, trace=0) {
 
 	let ts = '';
 	if (trace) {
-		ts += '\ngraph with palletes ' +
+		ts += '\ngraph with palettes ' +
 			  eg.toString(1,g=>egc.palette2string(g)) + '\n';
 		ts += 'colors: ' + egc.toString(0);
 	}

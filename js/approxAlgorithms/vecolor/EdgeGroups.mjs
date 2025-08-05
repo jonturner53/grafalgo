@@ -304,13 +304,16 @@ export default class EdgeGroups extends Top {
 	}
 	
 	/** Sort all groups by fanout (largest to smallest). */
-	sortAllGroups() {
+	sortAllGroups(cmp=0) {
 		let vec = new Int32Array(this.GroupIds.length(1));
 		let i = 0;
 		for (let g = this.GroupIds.first(1); g; g = this.GroupIds.first(1)) {
 			vec[i++] = g; this.GroupIds.swap(g);
 		}
-		vec.sort((g1,g2) => this.fanout(g2) - this.fanout(g1));
+		if (!cmp) {
+			cmp = (g1,g2) => this.fanout(g2) - this.fanout(g1);
+		}
+		vec.sort(cmp);
 		for (i = 0; i < vec.length; i++) {
 			this.GroupIds.swap(vec[i]);
 		}

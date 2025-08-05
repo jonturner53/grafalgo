@@ -34,9 +34,10 @@ export default function egcRandomCase(ni, gd, no=ni, od=gd, reg=1,
 									  Cmax=Math.max(gd,od)+2,
 									  Bmax=0, speedup=1) {
 	let id = no*od/ni;
-	ea && assert(gd <= id && od <= ni && id <= no && reg >= 1 &&
-				 Cmax >= Bmax && Cmax >= 1+(od+reg-2)*speedup &&
-				 (!Bmax || Bmax >= 1+(gd-1)*speedup) && speedup >= 1);
+	assert(gd <= id && od <= ni && id <= no && reg >= 1 &&
+		   Cmax >= Bmax && Cmax >= 1+(od+reg-2)*speedup &&
+		   (!Bmax || (Bmax >= 1+(gd-1)*speedup && Bmax >= od)) &&
+		   speedup >= 1);
 
 	let	egg = randomRegularBigraph(ni, id, no, reg);
 	let nc = Math.floor(1+(Cmax-1)/speedup);

@@ -35,7 +35,7 @@ export default function egcCT(eg, trace) {
 
 	let ts = '';
 	if (trace) {
-		ts += '\ngraph with palletes ' +
+		ts += '\ngraph with palettes ' +
 			  eg.toString(1,g=>egc.palette2string(g)) + '\n';
 		ts += 'colors: ' + egc.toString(0);
 	}
@@ -53,7 +53,6 @@ export function coreCT(eg, Cmax) {
 	scg.setBipartition(eg.n_g);
 	if (!eg.hasBounds) {
 		for (let e = egg.first(); e; e = egg.next(e)) {
-			if (eg.hasBounds && eg.bound(eg.group(e)) != 1) continue;
 			let v = egg.right(e) - eg.n_i;
 			scg.join(eg.group(e), v + eg.n_g, e);
 			// vertex numbers of scg outputs shifted relative to egg

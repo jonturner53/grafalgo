@@ -20,8 +20,7 @@ import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import EdgeGroupLayers from './EdgeGroupLayers.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
 
-/** Find an edge group coloring using Turner's hybrid algorithm in which the
- *  the initial attempt uses the bounded greedy method of Yang & Masson.
+/** Find an edge group coloring using Turner's hybrid algorithm.
  *  @param eg is a group graph to be colored
  *	@param imethod(eg, C) is a function that returns an EdgeGroupColors object
  *  for eg on C colors; the returned coloring may be incomplete
@@ -50,7 +49,7 @@ export default function egcTh(eg, imethod, trace) {
 	let ts = '';
 	if (trace) {
 		ts += 'initial deficit: ' + deficit + '\n';
-		ts += '\ngraph with palletes ' +
+		ts += '\ngraph with palettes ' +
 			  eg.toString(1,g=>egc.palette2string(g)) + '\n';
 		ts += 'colors: ' + egc.toString(0);
 	}
