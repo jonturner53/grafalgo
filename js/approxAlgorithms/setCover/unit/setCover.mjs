@@ -36,33 +36,33 @@ tester.addTest('small set cover instance (4,12)', g, weight);
 let lowerBounds, upperBound;
 
 [g,weight, lowerBounds,upperBound] =
-				setCoverRandom(6, 18, 2, 0, randomInteger, 2, 15);
-tester.addTest(`small random (6,18,2): ` +
+				setCoverRandom(6, 18, 2, [3,2], randomInteger, 2, 15);
+tester.addTest(`small random (6,18,2,[3,2]): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g,weight, lowerBounds,upperBound] =
 				setCoverRandom(6, 18, 2, 1, randomInteger, 2, 15);
-tester.addTest(`small uniform random (6,18,2): ` +
+tester.addTest(`small random (6,18,2,[1,1]): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g,weight, lowerBounds,upperBound] =
-				setCoverRandom(6, 18, 2, 0);
-tester.addTest(`small unit weight random (6,18,2): ` +
+				setCoverRandom(6, 18, 2, [3,2]);
+tester.addTest(`small unit weight random (6,18,2,[3,2]): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g, weight, lowerBounds,upperBound] =
-				setCoverRandom(50,200,5, 0, randomInteger, 5, 99);
-tester.addTest(`medium random (50,200,5): ` +
+				setCoverRandom(50,200,5, [5,3], randomInteger, 5, 99);
+tester.addTest(`medium random (50,200,5,[5,3]): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g, weight, lowerBounds,upperBound] =
-				setCoverRandom(50,200,5, 0);
-tester.addTest(`medium unit weight random (50,200,5): ` +
+				setCoverRandom(50,200,5, [5,3]);
+tester.addTest(`medium unit weight random (50,200,5,[5,3]): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g, weight, lowerBounds, upperBound] =
-				setCoverRandom(100,2000,5, 0, randomInteger, 10, 999);
-tester.addTest(`large random (100,2000,5): ` +
+				setCoverRandom(100,2000,5, [10,3], randomInteger, 10, 999);
+tester.addTest(`large random (100,2000,5,[10,3]): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 tester.run();

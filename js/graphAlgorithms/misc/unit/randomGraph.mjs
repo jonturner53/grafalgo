@@ -35,8 +35,8 @@ try {
 	g = randomBigraph(8, 2.5, 12);
 	console.log('undirected bigraph (8,2.5,12)\n', g.toString(1));
 
-	g = randomBigraph(8, 2.5, 12, 3);
-	console.log('same with bounded degree (8,2.5,12,3)\n', g.toString(1));
+	g = randomBigraph(8, 2.5, 12, [3,2]);
+	console.log('same with bounded degree (8,2.5,12,[3,2])\n', g.toString(1));
 
 	g = randomDigraph(10, 2);
 	console.log('sparse directed graph (10,2)\n', g.toString(1));
@@ -63,17 +63,17 @@ try {
 	console.log('regular graph (10,3)\n', g.toString(1));
 
 	g = randomRegularGraph(10, 3, 1.5);
-	console.log('seimi-regular graph (10,3,1.5) \n', g.toString(1));
+	console.log('semi-regular graph (10,3,1.5) \n', g.toString(1));
 
 	g = randomRegularBigraph(8,6,16);
 	console.log('regular bigraph (8,6,16)\n', g.toString(1));
 
-	g = randomRegularBigraph(8,6.5,16,3);
-	console.log('semi-regular bigraph (8,6.5,16,3)\n', g.toString(1));
+	g = randomRegularBigraph(8,6,16,[2.5,1.5]);
+	console.log('semi-regular bigraph (8,6,16,[2.5,1.5])\n', g.toString(1));
 
-	g = randomFlograph(16, 2.5, 3);
+	g = randomFlograph(16, 3, 4);
 	g.randomCapacities(randomInteger,1,9);
-	console.log('flow graph (16,2.5,3)\n', g.toString(1));
+	console.log('flow graph (16,3,4)\n', g.toString(1));
 } catch(e) {
 	if (e instanceof AssertFail) {
 		if (e.message.length > 0)

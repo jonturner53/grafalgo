@@ -43,7 +43,7 @@ export function randomDigraph(n, d, dmax=n-1) {
 			d + ' ' + dmax + ' ' + n);
 	let m = Math.round(d*n);
 	let g = new Digraph(n, m);
-	add2graph(g, d, dmax, 0);
+	add2graph(g, d, dmax);
 	return g;
 }
 
@@ -67,11 +67,15 @@ export function randomDag(n, d, dmax=n-1) {
  *  @param ni specifies the number of "input" vertices
  *  @param no specifies the number of "output" vertices
  *  @param id is the average degree of the inputs
- *  @param dmax is optional upper bound on the  vertex degree
+ *  @param dmax is an optional pair [idmax,odmax] where idmax is an upper
+ *  bound on the degree of inputs and odmax is an upper bound on the degree of
+ *  outputs; when idmax=odmax, one can use a single integer rather than a pair.
  */
-export function randomBigraph(ni, id, no=ni, dmax=Math.max(ni,no)-1) {
+export function randomBigraph(ni, id, no=ni, dmax=0) {
 	ni = Math.max(1,ni); no = Math.max(1,no); let od = ni*id/no;
 	ea && assert((no <= 20 || id <= no/2) && (ni <= 20 || od <= ni/2));
+	if (!dmax) dmax = [no,ni];
+	else if (Number.isInteger(dmax)) dmax = [dmax,dmax];
 	let m = Math.round(id*ni);
 	let g = new Graph(ni+no, m); g.setBipartition(ni);
 	add2graph(g, id, dmax); 
@@ -81,15 +85,15 @@ export function randomBigraph(ni, id, no=ni, dmax=Math.max(ni,no)-1) {
 /** Generate a random flograph with a small cut (V1,V2) of roughly
  *  equal size.
  *  @param n is requested number of vertices
- *  @param d is average out-degree of non-source/sink vertices
- *  @param dmax is maximum out-degree of all vertices but source
+ *  @param d is average out-degree of non-source vertices
+ *  @param dmax is maximum out-degree of non-source vertices
  *  @return a random flograph with a cut between the first n/2
  *  and the last n/2 vertices that is likely to define a minimum
  *  cut when flow capacities are assigned randomly (capacities
  *  must be assigned separately by the client).
  */
 export function randomFlograph(n, d, dmax=n-2) {
-	let n1 = Math.floor((n-2)/2); let n2 = Math.ceil((n-2)/2);
+	let n1 = Math.floor((n-2)/2); let n2 = n - (n1 + 2);
 	let m = Math.round((n/2) + d*(n-2));
 
 	let g = new Flograph(n, m); g.source = 1; g.sink = g.n;
@@ -101,14 +105,14 @@ export function randomFlograph(n, d, dmax=n-2) {
 
 	// first generate source and sink edges
 	let ssn = Math.ceil(n1/2);
-	SS.range(1,1);   add2graph(g,ssn,n1,0,SS,U);
-	SS.range(n,n); add2graph(g,ssn/n2,ssn,0,U2,SS);
+	SS.range(1,1);   add2graph(g,ssn,n1,SS,U);
+	SS.range(n,n); add2graph(g,ssn/n2,1,U2,SS);
 
 	// now edges within first half and crossing the cut
-	add2graph(g,2*d/3,dmax,0,U); add2graph(g,d/3,dmax,0,U,U2);
+	add2graph(g,2*d/3,dmax,U); add2graph(g,d/3,dmax,U,U2);
 
 	// now edges within second half and crossing the reverse cut
-	add2graph(g,2*d/3,dmax,0,U2); add2graph(g,d/3,dmax,0,U2,U);
+	add2graph(g,2*d/3,dmax,U2); add2graph(g,d/3,dmax,U2,U);
 
 	return g;
 }
@@ -116,30 +120,36 @@ export function randomFlograph(n, d, dmax=n-2) {
 /** Add edges to a graph (or subgraph).
  *  @param g is a graph.
  *  @param d is an integer specifying the average degree (details below)
- *  @param dmax is an upper bound on the degree of the returned graph
- *	@param rising is a boolean; when true, the index of the second vertex
- *  of every generated edge is larger than that of the first vertex;
- *  it defaults to true
+ *  @param dmax is an upper bound on the degree of the returned graph;
+ *  if g is bipartite, dmax is a pair of upper bounds, one for the inputs,
+ *  one for the outputs; if dmax is omitted, the degrees are unrestricted
  *  @param U is an optional List defining a subset of the vertices of g;
  *  its value defaults to the full vertex set if g has no bipartition and
  *  to the set of inputs if g does
  *  @param U2 is a List defining a second subset of vertices; it defaults
  *  to U if g has no bipartition and to the set of outputs if g does
- *  @return on return, g is a random graph that extends the original value
- *  using edges from U to U2, where the average degree (or out-degree for
+ *  @return on return, g is a random simple graph that extends the original
+ *  graph using edges from U to U2, where the average degree (or out-degree for
  *  digraphs) in the subgraph induced by U and U2 is d and the maximum degree
- *  of g is d; may fail to generate enough edges if dmax constraint
+ *  of g is dmax; may fail to generate enough edges if dmax constraint
  *  is too tight
  */
-export function add2graph(g, d, dmax=g.n-1, rising=1, U=0, U2=0) {
-	let [mm, pairs] = createPairs(g, d, rising, U, U2);
-	reduce(g, pairs);		// removes duplicates from within pairs
+export function add2graph(g, d, dmax=0, U=0, U2=0) {
+	if (!dmax) {
+		dmax = g.n-1;
+		if (g.hasBipartition)
+			dmax = [g.outputCount(), g.inputCount()];
+	}
+	let [mm, pairs] = createPairs(g, d, U, U2);
+		// mm is number of edges to be added to g
+	reduce(g, pairs);			 // removes duplicates from within pairs
 	removeDuplicates(g, pairs);  // removes pairs that are in g
 
 	ea && assert(pairs.length >= mm,
 				 'add2graph: program error, too few candidate edges');
 
 	let success = samplePairs(g, mm, pairs, dmax);
+		// randomly sample mm pairs, limiting degrees according to dmax
 	g.sortAllEplists();
 	return success;
 }
@@ -153,8 +163,9 @@ export function add2graph(g, d, dmax=g.n-1, rising=1, U=0, U2=0) {
  * added to reach the target average degree and pairs is an Array of
  * vertex pairs.
  */
-function createPairs(g, d, rising=1, U=0, U2=0) {
+function createPairs(g, d, U=0, U2=0) {
 	let digraph = (g instanceof Digraph);
+
 	if (!U) {
 		U = new List(g.n);
 		if (g.hasBipartition) {
@@ -175,25 +186,25 @@ function createPairs(g, d, rising=1, U=0, U2=0) {
 	ea && assert(d <= U2.length);
 
 	// create discrete distribution on U for generating vertex pairs
-	let [mu, sv, sv2] = samplingVectors(g, U, U2);
+	let [mU, sv, sv2] = samplingVectors(g, U, U2);
+		// mU is number of edges already in g
 
 	// determine number of edges required to get desired avg degree
-	let mm = Math.round(d*U.length);
-	if (!digraph && U2 == U) mm /= 2;
-	ea && assert(mu <= mm);
+	let mn = Math.round((digraph || U2 != U ) ? d*U.length : d*U.length/2);
+	ea && assert(mU <= mn);
 
-	// and number of pairs to be confident that sampling will yield mm edges
-	let mp = mm-mu; mp += Math.max(mp, 100);
+	// and number of pairs to be confident that sampling will yield mn edges
+	let mp = mn-mU; mp += Math.max(mp, 100);
 
 	let pairs = new Array();
 	while (mp > 0) {
 		let u =  sv[1][randomDiscrete(sv[0])];
 		let v = sv2[1][randomDiscrete(sv2[0])];
-		if (u == v || (rising && v<u)) continue;
+		if (u == v || (!digraph && v<u)) continue;
 		pairs.push([u,v]); mp--;
 	}
 
-	return [mm,pairs];
+	return [mn-mU,pairs];
 }
 
 /** Compute sampling vector for a graph or subgraph
@@ -330,6 +341,7 @@ function removeDuplicates(g, pairs) {
  */
 function samplePairs(g, mm, pairs, dmax) {
 	let digraph = (g instanceof Digraph);
+	let bipartite = g.hasBipartition;
 	let deg; let odeg; let ideg;
 	if (digraph) {
 		ideg = new Int32Array(g.n+1); odeg = new Int32Array(g.n+1);
@@ -345,11 +357,13 @@ function samplePairs(g, mm, pairs, dmax) {
 		let i = randomInteger(0,k);
 		let [u,v] = pairs[i];
 		if (digraph) {
-			if (odeg[u] < dmax && ideg[v] < dmax) {
+			if (!bipartite && odeg[u] < dmax    && ideg[v] < dmax   ||
+				 bipartite && odeg[u] < dmax[0] && ideg[v] < dmax[1]) {
 				g.join(u,v); odeg[u]++; ideg[v]++; mm--;
 			}
 		} else {
-			if (deg[u] < dmax && deg[v] < dmax) {
+			if (!bipartite && deg[u] < dmax    && deg[v] < dmax   ||
+				 bipartite && deg[u] < dmax[0] && deg[v] < dmax[1]) {
 				g.join(u,v); deg[u]++; deg[v]++; mm--;
 			}
 		}
@@ -409,19 +423,21 @@ export function randomConnectedGraph(n, d, dmax=n-1) {
  *  @param n is the number of vertices in the graph
  *  @param d is the number of edges incident to each vertex;
  *  if d is not an integer, degrees differ from d by <1
+ *  @param reg is an integer that controls how regular the graph is;
+ *  specifically, the degree must differ from d by less than reg
  *  @param return a random d-regular graph with n vertices
  *  (note, d*n must be even)
  */
-export function randomRegularGraph(n, d, r=1) {
+export function randomRegularGraph(n, d, reg=1) {
 	// first find a nearly d-regular graph
-	let k = r+1; let g = randomGraph(n,d,d+k);
-	while (g.m != n*d/2) {
-		k *= 2; g = randomGraph(n,d,Math.min(n-1,d+k));
+	let k = 1; let g = randomGraph(n,d,d+reg+k);
+	while (g.m != n*d/2) { // typically, 1 or 2 attempts is enough
+		k *= 2; g = randomGraph(n,d,d+reg+k);
 	}
 	// now regularize by shifting edges from vertices with too many
 	// to those with too few
 	let W = new List(g.n); W.range(1,g.n);
-	regularize(g,d,W,r);
+	regularize(g,d,W,reg);
 	return g;
 }
 
@@ -430,24 +446,28 @@ export function randomRegularGraph(n, d, r=1) {
  *  @param ni is the # of input (left-side) vertices 
  *  @param id is the target degree of the inputs
  *  @param no is the # of output (right-side) vertices
- *  @param r allows the regularity requirement to be relaxed; vertex degrees
- *  may differ from the average degree target by less than r on return;
- *  this allows non-integral targets and graphs that are "almost regular"
+ *  @param reg is a pair [ir,or] that controls how regular the graph is;
+ *  specifically, the degree of the inputs must differ from id by less than ir
+ *  and the degree of outputs must differ from od=ni*id/no by less than or.
+ *  if ir=or, one may use a single integer instead of a pair
  *  @param return Graph object with inputs 1..ni, outputs ni+1..ni+no
  */
-export function randomRegularBigraph(ni, id, no=ni, r=1) {
+export function randomRegularBigraph(ni, id, no=ni, reg=1) {
 	let od = ni*id/no;
+
+	if (Number.isFinite(reg)) reg = [reg,reg];
+	let [ir,or] = reg;
 
 	// first find a nearly d-regular graph
 	let d = Math.max(id,od);
-	let k = r+1; let g = randomBigraph(ni,id,no,d+k);
+	let k = 1; let g = randomBigraph(ni,id,no,[id+ir+k, od+or+k]);
 	while (g.m < ni*id) {
-		k *= 2; g = randomBigraph(ni,id,no,d+k);
+		k *= 2; g = randomBigraph(ni,id,no,[id+ir+k, od+or+k]);
 	}
 
 	let W = new List(g.n);
-	W.range(1,ni);     regularize(g,id,W,r);
-	W.range(ni+1,g.n); regularize(g,od,W,r);
+	W.range(1,ni);     regularize(g,id,W,ir);
+	W.range(ni+1,g.n); regularize(g,od,W,or);
 
 	return g;
 }
@@ -472,6 +492,7 @@ export function regularize(g, d, W, r=1) {
 		else if (du >= d+r) hi.enq(u);	// those in hi must lose edges
 		else if (du > d) over.enq(u);	// those in over can give up one
 	}
+
 	while (!lo.empty() || !hi.empty()) {
 		ea && assert((!lo.empty() || !under.empty()) &&
 					 (!hi.empty() || !over.empty()),

@@ -10,7 +10,7 @@ import {assert, EnableAssert as ea} from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { shuffle } from '../../common/Random.mjs';
-import { randomBigraph, regularize }
+import { randomRegularBigraph }
 		from '../../graphAlgorithms/misc/RandomGraph.mjs';
 import { randomFraction } from '../../common/Random.mjs';
 import setCoverSizeBound from './setCoverSizeBound.mjs';
@@ -20,9 +20,12 @@ import setCoverLabelBound from './setCoverLabelBound.mjs';
 /** Generate a random set cover instance.
  *  @param k is the number of sets
  *  @param h is the number of elements in the base set
- *  @param coverage is the number of times each item appears in a subset
- *  @param uniform is a flag which when set ensures that every subset
- *  has the same size and that the coverage or all items is uniform.
+ *  @param coverage is the average number of times each item appears in a subset
+ *  @param uni is a pair [x,y] where x determines how uniform the subset
+ *  sizes are and y determines how uniform the item coverages are; specifically,
+ *  the subset size can differ from the average size by less than x and the
+ *  item coverage can differ from the average by less than y; if a single
+ *  value is supplied, it is used for both x and y
  *  @param randomWeight is a function that returns a random number
  *  @param args collects remaining arguments into an array of arguments
  *  for randomWeight
@@ -31,52 +34,40 @@ import setCoverLabelBound from './setCoverLabelBound.mjs';
  *  is an upperBound on the weight, specifically it is the weight of
  *  a secret cover that is embedded in the constructed instance.
  */
-export default function setCoverRandom(k, h, coverage, uniform=1,
+export default function setCoverRandom(k, h, coverage, uni=1,
 									   randomWeight=(()=>1), ...args) {
 	let subSize = coverage*h/k; // average subset size
 
 	// determine number of subsets in secret and camouflage
-	let secretWidth = Math.ceil(h/subSize);
-	let camoWidth = k - secretWidth
+	let secWidth = Math.ceil(h/subSize);
+	let camoWidth = k - secWidth
 
 	// average coverage for secret and camouflage
-	let secretCoverage = secretWidth*subSize/h;
-	let camoCoverage = coverage - secretCoverage;
+	let secCoverage = secWidth*subSize/h;
+	let camoCoverage = coverage - secCoverage;
 
 	// create graphs for  secret and comouflage
-	let secret = randomBigraph(secretWidth, h*secretCoverage/secretWidth, h);
-	let camo = randomBigraph(camoWidth, h*camoCoverage/camoWidth, h);
-
-	// now regularize the subset sizes in both
-	let items = new List(k+h);
-	items.range(1, secretWidth);
-	regularize(secret, h*secretCoverage/secretWidth, items,
-			   uniform ? 1 : subSize - Math.sqrt(subSize));
-	items.range(1, camoWidth);
-	regularize(camo, h*camoCoverage/camoWidth, items,
-			   uniform ? 1 : subSize - Math.sqrt(subSize));
-
-	// and the coverages for both
-	items.range(secretWidth+1,secretWidth+h);
-	regularize(secret, secretCoverage, items, 1); 
-	items.range(camoWidth+1,camoWidth+h);
-	regularize(camo, camoCoverage, items,
-			   uniform ? 1 : Math.max(1, Math.log2(camoCoverage)));
+	if (Number.isFinite(uni)) uni = [uni,uni];
+	let [su,cu] = uni;
+	let secret = randomRegularBigraph(
+					secWidth, h*secCoverage/secWidth, h, [su,1]);
+	let camo = randomRegularBigraph(
+					camoWidth, h*camoCoverage/camoWidth, h, [su,cu]);
 
 	// combine the graphs
 	let g = new Graph(k+h, subSize*k); g.setBipartition(k);
 	for (let e = secret.first(); e; e = secret.next(e))
-		g.join(secret.left(e), secret.right(e)+(k-secretWidth));
+		g.join(secret.left(e), secret.right(e)+(k-secWidth));
 	for (let e = camo.first(); e; e = camo.next(e))
-		g.join(camo.left(e)+secretWidth, camo.right(e)+secretWidth);
+		g.join(camo.left(e)+secWidth, camo.right(e)+secWidth);
 
 	// assign costs to subsets, with lower costs for subsets in secret
 	let weightList = new Float32Array(k);
 	for (let j in weightList) weightList[j] = randomWeight(...args);
 	weightList.sort();
 	let weight = new Float32Array(k+1); let upperBound = 0;
-	let s = 1; let sr = secretWidth;	// next secret subset, # remaining
-	let t = secretWidth+1; let tr = camoWidth; // next camo subset, # remaining
+	let s = 1; let sr = secWidth;	// next secret subset, # remaining
+	let t = secWidth+1; let tr = camoWidth; // next camo subset, # remaining
 	for (let w of weightList) {
 		if (sr && randomFraction() < Math.sqrt(coverage)*(sr/(sr+tr))) {
 			weight[s++] = w; sr--; upperBound += w;
