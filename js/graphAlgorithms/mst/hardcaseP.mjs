@@ -14,7 +14,7 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
  *  @return a Graph object that defines a hardcase graph for Prim
  */
 export default function hardcaseP(n, m=n*(n-1)/2) {
-	let g = new Graph(n, m);
+	let g = new Graph(n, m, 'weight', 0);
 	let skip = n*(n-1)/(2*m); let k = 0; let wt = m;
 	for (let u = 1; u <= n; u++) {
 		for (let v = n; v > u; v--) {

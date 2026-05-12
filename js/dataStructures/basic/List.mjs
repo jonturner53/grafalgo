@@ -30,23 +30,50 @@ export default class List extends Top {
 	Next;       // Next[i] is successor of i in list
 	Prev;       // Prev[i] is predecessor of i in list
                 // allocated dynamically as required
-	Value;      // allocated dynamically as required
+
+	propName;	// name of optional item property
+	defProp;	// default property value
+	propValues; // array of property values
 	
 	/** Constructor for List object.
 	 *  @param n is the range for the list
 	 */
-	constructor(n=10) {
+	constructor(n=10, propName, defVal) {
 		super(n);
 		this.Next = new Int32Array(this.n+1).fill(-1);
 		this.Next[0] = this.First = this.Last = this.Length = 0;
-		this.Prev = this.Value = null;
+		this.Prev = null;
+
+		this.propName = ''; this.propValues == null;
+		if (arguments.length == 3)
+			this.addProperty(propName, defVal);
 	}
 
+	/** Add an item property.
+	 *  @param propName is the name of the new property
+	 *  @param defVal is the default value of the new property
+	 */
+	addProperty(propName='value', defVal=0) {
+		this.propName = propName;
+		this.defProp = defVal;
+		this.propValues = new Array(this.n+1).fill(defVal);
+		Object.defineProperty(this, propName,
+			{ value: 	function(i) {
+							ea && assert(this.valid(i),
+                     			`Graph.${propName}: invalid item number: ${i}`);
+							if (arguments.length > 1) {
+								this.propValues[i] = arguments[1];
+							}
+							return this.propValues[i];
+						}
+			});
+	}
+		
 	/** Determine if this object has both forward and reverse links. */
 	get hasReverse() { return this.Prev ? true : false; }
 
 	/** Turn reverse links on or off.
-	 *  @param on is a boolean used to enable or disable the values feature
+	 *  @param on is a boolean used to enable or disable the reverse feature
 	 */
 	set hasReverse(on) {
 		if (on && !this.Prev) {
@@ -57,67 +84,10 @@ export default class List extends Top {
 			this.Prev = null;
 		}
 	}
-
-	/** Determine if this object includes item values. */
-	get hasValues() { return this.Value ? true : false; }
-
-	/** Turn item values feature on or off.
-	 *  @param on is a boolean used to enable or disable the values feature
-	 */
-	set hasValues(on) {
-		if (on && !this.Value) {
-			this.Value = new Array(this.Next.length).fill(undefined);
-		} else if (!on && this.Value) {
-			this.Value = null;
-		}
-	}
-
-	/** Get/set the value of an item.
-	 *  @param i is an integer
-	 *  @param val is an optional value to be assigned to i
-	 *  @return the value of i or null if i is not a valid item or no
-	 *  value has been assigned to i
-	 */
-	value(i, val=undefined) {
-		ea && assert(this.valid(i));
-		if (val != undefined) {
-			if (!this.hasValues) this.hasValues = true;
-			this.Value[i] = val;
-		}
-		return this.hasValues ? this.Value[i] : undefined;
-	}
-
-	/** Assign new value to list from another. 
-	 *  @param that is a list whose value is to be assigned to this
-	 *  @param relaxed is a boolean; when false, this.n is adjusted
-	 *  to exactly match that.n; when true, this.n is only adjusted
-	 *  if it is less than that.n; relaxed assignments are used to
-	 *  implement the expand method
-	 */
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-
-		if (that.hasReverse && !this.hasReverse) this.hasReverse = true;
-		if (that.hasValues && !this.hasValues) this.hasValues = true;
-		for (let i = that.first(); i; i = that.next(i)) {
-			if (this.hasValues) this.enq(i, that.value(i));
-			else this.enq(i);
-		}
-	}
-
-	/** Assign a new value to this, by transferring contents of another list.
-	 *  @param that is a list whose contents are to be transferred to this
-	 */
-	xfer(that) {
-		super.xfer(that);
-		this.First = that.first(); this.Last = that.last();
-		this.Length = that.length;
-		this.Next = that.Next; that.Next = null;
-		this.Prev = that.Prev; that.Prev = null;
-		this.Value = that.Value; that.Value = null;
-	}
 	
-	/** Remove all elements from list. */
+	/** Remove all elements from list.
+	 *  Note: property values are retained when items leave list
+	 */
 	clear() { while (!this.empty()) this.pop(); }
 
 	/** Get the number of items in the list. */
@@ -183,14 +153,11 @@ export default class List extends Top {
 	 *  @param i is item to insert
 	 *  @param j is item after which i is to be inserted;
 	 *  if zero, i is inserted at the front of the list
-	 *  @param value is optional value for inserted item
 	 */
-	insert(i, j, value=undefined) {
-		if (i > this.n) this.expand(i);
+	insert(i, j) {
 		ea && assert(i && this.valid(i) && !this.contains(i) &&
 					 (j == 0 || this.contains(j)),
 					 `List.insert: ${this.x2s(i)} ${this.x2s(j)} ${''+this}`);
-		if (value != undefined) this.value(i, value);
 		if (j == 0) {
 			if (this.empty()) this.Last = i;
 			this.Next[i] = this.First; this.First = i; this.Length++;
@@ -225,7 +192,6 @@ export default class List extends Top {
 				this.Prev[this.next(i)] = i;
 			this.Prev[j] = 0;
 		}
-		if (this.hasValues) this.value(j,undefined);
 		return (i == 0 ? this.first() : this.next(i));
 	}
 
@@ -242,9 +208,8 @@ export default class List extends Top {
 	
 	/** Push item onto front of a list. 
 	 *  @param item to be added.
-	 *  @param value is an optional value associated with i
 	 */
-	push(i, value) { this.insert(i, 0, value); }
+	push(i) { this.insert(i, 0); }
 	
 	/** Remove the first item in the list. 
 	 *  @return the item removed, or 0
@@ -258,10 +223,9 @@ export default class List extends Top {
 	
 	/** Add item to the end of the list. 
 	 *  @param item to be added.
-	 *  @param value is an optional value associated with i
 	 *  @return true if the list was modified, else false
 	 */
-	enq(i, value) { this.insert(i, this.last(), value); }
+	enq(i) { this.insert(i, this.last()); }
 	
 	/** Remove the first item in the list. 
 	 *  @return the item removed, or 0
@@ -293,14 +257,27 @@ export default class List extends Top {
 	 *  same contents (in the same order)
 	 */
 	equals(that) {
-		that = super.equals(that); 
+		that = super.equals(...(arguments.length == 1 ?
+							[that, this.n] : arguments));
+			// when that is a string, Top constructs and returns a List;
+			// passing it this.n ensures that index range of List matches this
 		if (typeof that == 'boolean') return that;
 		if (this.length != that.length) return false;
+
+		if (this.propName != that.propName) return false;
 
 		let j = that.first();
 		for (let i = this.first(); i; i = this.next(i)) {
 			if (i != j) return false;
-			if (this.value(i) != that.value(j)) return false;
+			if (this.propName) {
+				if (typeof this.propValues[i] != typeof that.propValues[i]) {
+					return false;
+				}
+				if (typeof this.propValues[i] != 'object' &&
+				    this.propValues[i] != that.propValues[i]) {
+					return false;
+				}
+			}
 			j = that.next(j);
 		}
 		return j == 0 ? that : false;
@@ -312,12 +289,19 @@ export default class List extends Top {
 	 *  necessarily in the same order.
 	 */
 	setEquals(that) {
-		that = super.equals(that); 
+		that = super.equals(...(arguments.length==1 ? [that,this.n]:arguments));
 		if (typeof that == 'boolean') return that;
 		// that is now guaranteed to be an object that can be compared
 		for (let i = this.first(); i; i = this.next(i))
 			if (!that.contains(i)) return false;
 		return true;
+	}
+
+	prop2string(i) {
+		let p = this.propValues[i];
+		if (typeof p == 'string') return '"' + p + '"';
+		if (typeof p == 'object') return JSON.stringify(p);
+		return ''+p;
 	}
 
 	/** Create a string representation of a given string.
@@ -327,9 +311,9 @@ export default class List extends Top {
 	 */
 	toString(label=0) {
 		if (!label) {
-			label = (u => this.x2s(u) +
-					 (this.hasValues && this.value(u) ?
-					  ':' + this.value(u) : ''));
+			label = (j => this.x2s(j) +
+					 (this.propValues && this.propValues[j] != this.defProp ?
+					  ':' + this.prop2string(j) : ''));
 		}
 		let s = '';
 		for (let i = this.first(); i != 0; i = this.next(i)) {
@@ -341,34 +325,41 @@ export default class List extends Top {
 	
 	/** Initialize this from a string representation.
 	 *  @param s is a string, such as produced by toString().
+	 *  @param n is an optional minimum value for the index range
+	 *  @param prop is an optional function used to parse an item property
 	 *  @return true on success, else false
 	 */
-	fromString(s,prop=0) {
+	static fromString(s, n=10, propName='value', defVal=0, scanProp=0) {
 		let sc = new Scanner(s);
-		let pvec = [];
-		if (!prop) {
-			prop = (u,sc) => {
+		let propVals = []; let hasProps = 0;
+		if (!scanProp) {
+			scanProp = (u,sc) => {
 						if (!sc.verify(':',0)) return true;
-						let p = sc.nextNumber();
-						if (Number.isNaN(p)) return false;
-						pvec[u] = p;
+						let p = sc.nextDatum();
+						if (p == null) return false;
+						//if (Number.isNaN(p)) return false;
+						propVals[u] = p; hasProps = 1;
 						return true;
 					};
 		}
-		let l = sc.nextIndexList('[', ']',prop);
-		if (l == null) return false;
-		let n = 0; let items = new Set();
+		let l = sc.nextIndexList('[', ']', scanProp);
+		if (l == null) return null;
+		let items = new Set();
 		for (let i of l) {
 			n = Math.max(i, n);
-            if (items.has(i)) return false;
+            if (items.has(i)) return null;
             items.add(i);
 		}
 
-		this.reset(n);
-		for (let i of l) {
-			if (pvec.length == 0) this.enq(i);
-			else this.enq(i, pvec[i] ? pvec[i] : 0);
+		let list = new List(n);
+		if (arguments.length >= 4 || hasProps) {
+			list.addProperty(propName, defVal);
 		}
-		return true;
+		for (let i of l) {
+			list.enq(i);
+			if (hasProps && propVals[i])
+				list.propValues[i] = propVals[i];
+		}
+		return list;
 	}
 }

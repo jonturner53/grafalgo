@@ -43,7 +43,7 @@ export function randomDigraph(n, d, dmax=n-1) {
 			d + ' ' + dmax + ' ' + n);
 	let m = Math.round(d*n);
 	let g = new Digraph(n, m);
-	add2graph(g, d, dmax);
+	add2graph(g, d, dmax, 0);
 	return g;
 }
 
@@ -54,7 +54,8 @@ export function randomDigraph(n, d, dmax=n-1) {
  *  topologically sorted order.
  */  
 export function randomDag(n, d, dmax=n-1) {
-	assert(d <= dmax && dmax <= n-1 && (n <= 20 || d <= n/4));
+	assert(d <= dmax && dmax <= n-1 && (n <= 20 || d <= n/4),
+			n+' '+d+' '+dmax);
 	let m = Math.round(d*n);
 	assert(m <= (dmax*n - dmax*(dmax+1)/2));
 
@@ -105,14 +106,14 @@ export function randomFlograph(n, d, dmax=n-2) {
 
 	// first generate source and sink edges
 	let ssn = Math.ceil(n1/2);
-	SS.range(1,1);   add2graph(g,ssn,n1,SS,U);
-	SS.range(n,n); add2graph(g,ssn/n2,1,U2,SS);
+	SS.range(1,1);   add2graph(g,ssn,n1,0,SS,U);
+	SS.range(n,n); add2graph(g,ssn/n2,1,0,U2,SS);
 
 	// now edges within first half and crossing the cut
-	add2graph(g,2*d/3,dmax,U); add2graph(g,d/3,dmax,U,U2);
+	add2graph(g,2*d/3,dmax,0,U); add2graph(g,d/3,dmax,0,U,U2);
 
 	// now edges within second half and crossing the reverse cut
-	add2graph(g,2*d/3,dmax,U2); add2graph(g,d/3,dmax,U2,U);
+	add2graph(g,2*d/3,dmax,0,U2); add2graph(g,d/3,dmax,0,U2,U);
 
 	return g;
 }
@@ -123,6 +124,9 @@ export function randomFlograph(n, d, dmax=n-2) {
  *  @param dmax is an upper bound on the degree of the returned graph;
  *  if g is bipartite, dmax is a pair of upper bounds, one for the inputs,
  *  one for the outputs; if dmax is omitted, the degrees are unrestricted
+ *  @param rising is a boolean; when true, the index of the second vertex
+ *  of every generated edge is larger than that of the first vertex;
+ *  it defaults to true
  *  @param U is an optional List defining a subset of the vertices of g;
  *  its value defaults to the full vertex set if g has no bipartition and
  *  to the set of inputs if g does
@@ -134,13 +138,13 @@ export function randomFlograph(n, d, dmax=n-2) {
  *  of g is dmax; may fail to generate enough edges if dmax constraint
  *  is too tight
  */
-export function add2graph(g, d, dmax=0, U=0, U2=0) {
+export function add2graph(g, d, dmax=0, rising=1, U=0, U2=0) {
 	if (!dmax) {
 		dmax = g.n-1;
 		if (g.hasBipartition)
 			dmax = [g.outputCount(), g.inputCount()];
 	}
-	let [mm, pairs] = createPairs(g, d, U, U2);
+	let [mm, pairs] = createPairs(g, d, rising, U, U2);
 		// mm is number of edges to be added to g
 	reduce(g, pairs);			 // removes duplicates from within pairs
 	removeDuplicates(g, pairs);  // removes pairs that are in g
@@ -163,7 +167,7 @@ export function add2graph(g, d, dmax=0, U=0, U2=0) {
  * added to reach the target average degree and pairs is an Array of
  * vertex pairs.
  */
-function createPairs(g, d, U=0, U2=0) {
+function createPairs(g, d, rising=1, U=0, U2=0) {
 	let digraph = (g instanceof Digraph);
 
 	if (!U) {
@@ -200,7 +204,7 @@ function createPairs(g, d, U=0, U2=0) {
 	while (mp > 0) {
 		let u =  sv[1][randomDiscrete(sv[0])];
 		let v = sv2[1][randomDiscrete(sv2[0])];
-		if (u == v || (!digraph && v<u)) continue;
+		if (u == v || (rising && v<u)) continue;
 		pairs.push([u,v]); mp--;
 	}
 
@@ -414,7 +418,10 @@ might want to use this method only when d is small enough
 to make it likely that a random graph is not connected
  */
 export function randomConnectedGraph(n, d, dmax=n-1) {
-	let g = randomTree(n, dmax);
+	let t = randomTree(n, dmax);
+	let g = new Graph(n, Math.ceil(n*d/2));
+	for (let e = t.first(); e; e = t.next(e))
+		g.join(t.left(e), t.right(e));
 	add2graph(g, d, dmax);
 	return g;
 }

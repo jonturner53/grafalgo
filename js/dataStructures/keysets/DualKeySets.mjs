@@ -30,28 +30,6 @@ export default class DualKeySets extends KeySets {
 		this.Key2 = new Array(this.n+1);
 		this.Min2 = new Array(this.n+1);
 	}
-
-	/** Assign a new value by copying from another DualKeySets.
-	 *  @param that is another DualKeySets
-	 */
-	assign(that) {
-		if (that == this || !(f instanceof DualKeySets)) return false;
-		super.assign(that);
-		for (u = 1; u <= that.n; u++) {
-			this.key2(u, that.key2(u)); this.min2(u, that.min2(u));
-		}
-	}
-
-	/** Assign a new value by transferring from another DualKeySets.
-	 *  @param that is another DualKeySets
-	 */
-	xfer(that) {
-		if (that == this) return;
-		if (!(that instanceof DualKeySets)) return;
-		super.xfer(that);
-		this.Key2 = that.Key2; that.Key2 = null;
-		this.Min2 = that.Min2; b.Min2 = null;
-	}
 	
 	clearStats() {
 		super.clearStats(); this.findminSteps = this.refreshSteps = 0;
@@ -168,7 +146,8 @@ export default class DualKeySets extends KeySets {
 	 *  keys match; otherwise return false
 	 */
 	equals(that) {
-		that = super.listEquals(that);
+		that = super.listEquals(...(arguments.length == 1 ?
+										[that, this.n] : arguments));
 		if (typeof that == 'boolean') return that;
 		for (let u = 1; u <= this.n; u++) {
 			if (this.key2(u) != that.key2(u)) return false;
@@ -200,10 +179,9 @@ export default class DualKeySets extends KeySets {
 	 *  @param s is a string representing a heap.
 	 *  @return on if success, else false
 	 */
-	fromString(s) {
-		let ls = new ListSet();
+	static fromString(s, n=10) {
 		let key = []; let key2 = [];
-		if (!ls.fromString(s, (u,sc) => {
+		let ls = ListSet.fromString(s, n, (u,sc) => {
 							if (!sc.verify(':',0)) return false;
 							let p = sc.nextNumber();
 							if (Number.isNaN(p)) return false;
@@ -213,22 +191,23 @@ export default class DualKeySets extends KeySets {
 							if (Number.isNaN(p)) return false;
 							key2[u] = p;
 							return true;
-						}))
-			return false;
-		if (ls.n != this.n) this.reset(ls.n);
-		else this.clear();
+						});
+
+		if (!ls) return null;
+		let dk = new DualKeySets(ls.n);
+
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
-			this.key(u, key[u]);
-			this.key2(u, key2[u]); this.min2(u, key2[u]);
+			dk.key(u, key[u]);
+			dk.key2(u, key2[u]); dk.min2(u, key2[u]);
 			let s = u;
 			for (let i = ls.next(s); i; i = ls.next(i)) {
-				this.key(i, key[i]);
-				this.key2(i, key2[i]); this.min2(i, key2[i]);
-				s = this.insert(i,s);
+				dk.key(i, key[i]);
+				dk.key2(i, key2[i]); dk.min2(i, key2[i]);
+				s = dk.insert(i,s);
 			}
 		}
-		return true;
+		return dk;
 	}
 
 	verify() {

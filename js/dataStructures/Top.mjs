@@ -31,46 +31,11 @@ export default class Top {
 	constructor(n=1) { this.N = Math.max(1,n); }
 
 	/** Reset the object, discarding value.  */
-	reset() {
-		this.xfer(new this.constructor(... arguments));
-	}
-
-    assign(that, relaxed=false) {
-        ea && assert(that != this &&
-                	 this.constructor.name == that.constructor.name,
-					 'Top:assign: self-assignment or mismatched types');
-        if (this.n == that.n || relaxed && this.n > that.n) this.clear();
-        else this.reset(that.n);
-	}
-
-	xfer(that) {
-        ea && assert(that != this &&
-                	 this.constructor.name == that.constructor.name,
-					 'Top:xfer: self-assignment or mismatched types');
-		this.N = that.N;
-	}
 
 	/** Get the index range for the object.
 	 *  @return the largest index value
 	 */
 	get n() { return this.N; }
-
-	/** Set the index range for the object.
-	 *  For use of subclasses only.
-	 *  @param x becomes the largest index value
-	 */
-	set n(x) { this.N = x; }
-
-	/** Expand the index range of an object.
-	 *  Since index range is often semantically significant, use carefully.
-	 *  @param n is the new index range
-	 *  @param consXargs is an optional list of additional arguments for constructor.
-	 */
-	expand(n, consXargs=[]) {
-		ea && assert(n > this.n, 'Top: expand must increase range');
-		let nu = new this.constructor(n, ...consXargs);
-		nu.assign(this,true); this.xfer(nu);
-	}
 
 	clear() {
 		throw `Top: sub-class ${this.constructor.name} failed to ` +
@@ -112,17 +77,16 @@ export default class Top {
 	 *  without an explicit object comparison; otherwise returns an
 	 *  object that can be compared to "this".
 	 */
-	equals(that, consArgs=[this.n], fsArgs=[]) {
+	equals(that) {
 		if (this === that) return true;
         if (typeof that == 'string') {
             let s = that;
-			if (typeof this.fromString !== 'function')
+			if (typeof this.constructor.fromString !== 'function')
 				return s == this.toString();
-			that = new this.constructor(...consArgs);
-			assert(that.fromString(s, ...fsArgs),
-					that.constructor.name + '.fromString: ' +
-					'called by .equals() cannot parse ' + s);
-				// note: this assert must always be enabled
+			that = this.constructor.fromString(... arguments);
+			assert(that != null, 
+				   this.constructor.name + '.fromString: ' +
+			                    'called by .equals() cannot parse ' + s);
         } else if (that.constructor.name != this.constructor.name) {
 			return false;
 		}

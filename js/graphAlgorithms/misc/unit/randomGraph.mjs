@@ -24,7 +24,7 @@ try {
 	g.randomWeights(randomInteger, 1, 9);
 	console.log('same with weights (1,9)\n', g.toString(1));
 
-	g.fromString('{a[b c] d[e] f[g h] i[j]}');
+	g = Graph.fromString('{a[b c] d[e] f[g h] i[j]}', 10, 20);
 	console.log('undirected graph with random extension (3,4) \n',g.toString());
 	add2graph(g, 3, 4);
 	console.log(g.toString(1));

@@ -7,6 +7,7 @@
  */
 
 import { scramble, shuffle } from '../../common/Random.mjs';
+import Scanner from '../basic/Scanner.mjs';
 import Graph from './Graph.mjs';
 import { randomPermutation } from '../../common/Random.mjs';
 
@@ -25,26 +26,9 @@ export default class Digraph extends Graph {
 	 *  @param erange is the max number of edges to provide space for
 	 */
 	constructor(n, erange=n) {
-		super(n, erange);
+		super(...arguments);
 		this.firstEpOut = new Int32Array(this.n+1);
 	} 
-
-	/** Assign one graph to another by copying its contents.
-	 *  @param that is another graph whose contents is copied to this one
-	 */
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-		for (let u = 1; u <= that.n; u++)
-			this.firstEpOut[u] = that.firstEpOut[u];
-	}
-	
-	/** Assign one graph to another by transferring its contents.
-	 *  @param that is another graph whose contents is transferred to this one
-	 */
-	xfer(that) {
-		super.xfer(that)
-		this.firstEpOut = that.firstEpOut; that.firstEpOut = null;
-	}
 
 	/** Get the tail of a directed edge.
 	 *  @param e is a directed edge
@@ -154,11 +138,14 @@ export default class Digraph extends Graph {
 	 *  on failure
 	 */
 	join(u, v, e=this.edges.first(2)) {
-		ea && assert(u > 0 && v > 0 && (e > 0 || this.edges.first(2) == 0));
+		ea && assert(this.validVertex(u) && this.validVertex(v) &&
+					 (e > 0 || this.edges.first(2) == 0));
+/*
 		if (u > this.n || v > this.n || this.edges.length(2) == 0) {
 			this.expand(Math.max(this.n, u, v), Math.max(e, this.edges.n+1));
-			if (e == 0) e = this.edges.first(2);
 		}
+*/
+		if (e == 0) e = this.edges.first(2);
 		this.edges.swap(e);
 
 		// initialize edge information
@@ -196,11 +183,8 @@ export default class Digraph extends Graph {
 									&& this.validEdge(e2));
 			 if (u == this.head(e1) && u == this.tail(e2)) return -1;
 		else if (u == this.tail(e1) && u == this.head(e2)) return 1;
-		else {
-			let v1 = this.mate(u, e1); let v2 = this.mate(u, e2);
-			return (v1 != v2 ? v1 - v2 : this.length(e1) - this.length(e2));
-		}
-		return 0;
+		let v1 = this.mate(u, e1); let v2 = this.mate(u, e2);
+		return (v1 != v2 ? v1 - v2 : this.compareProps(e1, e2));
 	}
 
 	sortEplist(u) {
@@ -217,38 +201,35 @@ export default class Digraph extends Graph {
 	 *  @param evec is an optional array of edge numbers; if present,
 	 *  its edges are sorted; if omitted, all edges in graph are sorted
 	 *  @return a sorted array of edge numbers, where edges  are sorted
-	 *  first by the tail, then by the head; if lengths are present, they
-	 *  are used to break ties.
+	 *  first by the tail, then by the head; if edge properties are present,
+	 *  they are used to break ties.
 	 */
     sortedElist(evec=null) {
         // first create vector of edge information
-        // [smaller endpoint, larger endpoint, weight, edge number]
-        if (evec) {
-            for (let i = 0; i < evec.length; i++) {
-                let e = evec[i];
-				evec[i] = [this.tail(e), this.head(e), this.length(e), e];
-            }
-		} else {
+        // [tail, head, edge number]
+        if (evec == null) {
 			let i = 0; evec = new Array(this.m);
-			for (let e = this.first(); e; e = this.next(e)) {
-				evec[i++] = [this.tail(e), this.head(e), this.length(e), e];
-			}
+			for (let e = this.first(); e; e = this.next(e))
+				evec[i++] = e;
 		}
-		evec.sort((t1, t2) => (t1[0] < t2[0] ? -1 : (t1[0] > t2[0] ? 1 :
-							  	(t1[1] < t2[1] ? -1 : (t1[1] > t2[1] ? 1 :
-								  (t1[2] < t2[2] ? -1 : (t1[2] > t2[2] ? 1 : 0
-				  )))))));
-		for (let i = 0; i < evec.length; i++) evec[i] = evec[i][3];
+		evec.sort((e1,e2) => { let [t1,h1] = [this.tail(e1), this.head(e1)];
+							   let [t2,h2] = [this.tail(e2), this.head(e2)];
+							   return t1 != t2 ? t1-t2 :
+									   h1 != h2 ? h1-h2 :
+							   		  	this.compareProps(e1,e2);
+							   });
 		return evec;
 	}
 	
 	/** Compare another graph to this one.
 	 *  @param that is a Digraph object or a string representing one.
 	 *  @return true if g is equal to this; that is, it has the same
-	 *  vertices, edges and edge weights
+	 *  vertices, edges and edge lengths. Properties named 'length"
+	 *  are checked, but others are not.
 	 */
 	equals(that) {
-		that = super.equals(that);
+		that = super.equals(...(arguments.length==1 ?
+							[that, this.n, Math.max(10,this.m)] : arguments));
 		if ((typeof that) == 'boolean') return that;
 
 		// now compare the edges using sorted edge lists
@@ -259,8 +240,17 @@ export default class Digraph extends Graph {
 			let e1 = el1[i]; let e2 = el2[i];
 			let t1 = this.tail(e1); let t2 = that.tail(e2);
 			let h1 = this.head(e1); let h2 = that.head(e2);
-			if (t1 != t2 || h1 != h2 || this.length(e1) != that.length(e2))
-				return false;
+			if (t1 != t2 || h1 != h2) return false;
+			for (let j = 0; j < this.propNames.length; j++) {
+				let ep1 = this.edgeProperties[j][e1];
+				let ep2 = that.edgeProperties[j][e2];
+				if ((typeof ep1 != 'number' && typeof ep1 != 'string') ||
+					typeof ep1 != typeof ep2)
+					continue;
+				if ((typeof ep1 == 'number' && ep1 != ep2) ||
+					(typeof ep1 == 'string' && ep1.localeCompare(ep2)))
+					return false;
+			}
 		}
 		return that;
 	}
@@ -276,7 +266,7 @@ export default class Digraph extends Graph {
 					 this.x2s(this.head(e), label)) : 
 					('(' + this.x2s(this.tail(e), label) + ','  +
 					  this.x2s(this.head(e), label) +
-					  (this.hasLengths ? ',' + this.length(e) : '') + ')'));
+					  (this.length ? ',' + this.length(e) : '') + ')'));
 	}
 
 	/** Construct a string representation of the Digraph object.
@@ -287,18 +277,19 @@ export default class Digraph extends Graph {
 			elab = (e,u) =>
 					(u == this.head(e) ? '' :
 					 (this.x2s(this.mate(u,e)) +
-							(this.hasLengths && this.length(e) ?
-								(':' + this.weight(e)) : '')));
+						(this.edgeProperties.length > 0 &&
+						 this.edgeProperties[0][e] ?
+							(':' + this.edgeProperties[0][e]) : '')));
 		}
 		return super.toString(fmt, elab, vlab);
 	}
 
 	/** Initialize graph from a string representation.
-	 *  @param s is a string representing a graph
+	 *  @param s is a string representing a graph; if s includes
+	 *  edge properties, they are assumed to represent lengths
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
-		let n = 1;
+	static fromString(s, n=10, erange=n, propName='length', defVal=0) {
 		// function to parse a vertex
 		let vnext = (sc => {
 						let u = sc.nextIndex();
@@ -306,7 +297,7 @@ export default class Digraph extends Graph {
 						return u > 0 ? u : 0;
 					});
 		// function to parse an adjacency list item and save properties
-		let pairs = []; let lengths = [];
+		let pairs = []; let pvals = []; let hasProps = 0;
 		let enext = ((u,sc) => {
 						let v = sc.nextIndex();
 						if (v < 0) return false;
@@ -316,22 +307,36 @@ export default class Digraph extends Graph {
 						if (sc.verify(':',0)) {
 							let w = sc.nextNumber();
 							if (Number.isNaN(w)) return false;
-							lengths[i] = w;
+							pvals[i] = w;
+							hasProps = 1;
 						}
 						return true;
 					});
 
-		if (!this.parseString(s, vnext, enext)) return false;
+		let sc = new Scanner(s);
+		if (!sc.verify('{')) return null;
+		while (!sc.verify('}')) {
+			let u = vnext(sc);
+			if (!u) return null;
+			if (sc.verify('[')) {
+				while (!sc.verify(']')) {
+					if (!enext(u,sc)) return null;
+				}
+			}
+		}
 
-		this.reset(n, Math.max(1,pairs.length));
+		let g = new Digraph(n, Math.max(erange, pairs.length));
+		if (hasProps) g.addEdgeProperty(propName, defVal);
 
 		// configure graph
 		for (let i = 0; i < pairs.length; i++) {
 			let [u,v] = pairs[i];
-			let e = this.join(u,v);
-			if (lengths[i]) this.length(e, lengths[i]);
+			let e = g.join(u,v);
+			if (pvals[i] != undefined) {
+				g.edgeProperties[0][e] = pvals[i];
+			}
 		}
-		return true;
+		return g;
 	}
 
 	/** Randomize the order of the vertices, edges and adjacency lists.
@@ -362,10 +367,15 @@ export default class Digraph extends Graph {
 	}
 	
 	/** Compute random lengths for all the edges.
-	 *  @param f is a random number generator used to generate the
+	 *  @param rand is a random number generator used to generate the
 	 *  random edge lengths; it is invoked using any extra arguments
 	 *  provided by caller; for example randomLengths(randomInteger, 1, 10)
      *  will assign random integer lengths in 1..10.
 	 */
-	randomLengths(f) { super.randomWeights(...arguments); }
+	randomLengths(rand, ...args) {
+		if (!this.length) this.addEdgeProperty('length', 0);
+		for (let e = this.first(); e; e = this.next(e)) {
+			this.length(e, rand(...args));
+		}
+	}
 }

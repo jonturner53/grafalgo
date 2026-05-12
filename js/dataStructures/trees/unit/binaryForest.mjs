@@ -13,10 +13,9 @@ import BinaryForest from '../BinaryForest.mjs';
 try {
 	console.log('testing BinaryForest');
 
-	let f = new BinaryForest();
-	matches(f.fromString(
-			'{[a *b (c d e)] [((h i -) j k) *l ((m n -) o (- p (q r -)))]}'),
-			true, 'a0');
+	let f = BinaryForest.fromString(
+			'{[a *b (c d e)] [((h i -) j k) *l ((m n -) o (- p (q r -)))]}');
+	matches(!!f, true, 'a0');
 	matches(f,'{[a *b (c d e)] ' +
 			  '[((h i -) j k) *l ((m n -) o (- p (q r -)))]}', 'a1');
 	matches(f.singleton(6),true,'a2');
@@ -83,7 +82,8 @@ try {
 			 'e2');
 	matches(f.verify(), '', 'e3');
 
-	f.fromListString('{[a b c d] [e f g] [h i j k l m n] [p q r]}');
+	f = BinaryForest.fromListSetString(
+			'{[a b c d] [e f g] [h i j k l m n] [p q r]}');
 	matches(f,'{[- *a (- b (- c d))] [- *e (- f g)] ' +
 			   '[- *h (- i (- j (- k (- l (- m n)))))] [- *p (- q r)]}', 'f1');
 	matches(f.toString(0),'{[a b c d] [e f g] [h i j k l m n] [p q r]}', 'f2');
@@ -102,7 +102,6 @@ try {
 			   '[- *h (- i (- k (j l (o m n))))] [- *p (- q r)]}', 'f5');
 
 	f.property(f.root(4),3); f.property(f.root(14),13);
-	let f2 = new BinaryForest();
 	let prop = [];
 	let treeProp = ((t,sc) => {
 						let p = sc.nextInt();
@@ -110,9 +109,10 @@ try {
 						prop.push([t,p]);
 						return true;
 					});
-	matches(f2.fromString('{[- *a (- b (- c d))]3 [- *e (- f g)] ' +
+	let f2 = BinaryForest.fromString('{[- *a (- b (- c d))]3 [- *e (- f g)] ' +
 				   		  '[- *h (- i (- k (j l (o m n))))]13 [- *p (- q r)]}',
-				   		  0, treeProp), true, 'f6');
+				   		  10, 0, treeProp);
+	matches(!!f2, true, 'f6');
 	for (let [t,p] of prop) f2.property(t,p);
 	matches(f, f2, 'f7');
 

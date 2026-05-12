@@ -14,8 +14,8 @@ import Graph from '../../../dataStructures/graphs/Graph.mjs';
 try {
 	console.log("testing bfs");
 
-	let n = 6; let g = new Graph(n);
-	g.fromString("{a[b d e] b[a c f] c[b d f] d[a c e] e[a d] f[b c]}");
+	let g = Graph.fromString('{a[b d e] b[a c f] c[b d f] d[a c e] ' +
+							 'e[a d] f[b c]}');
 
 	let vlist = bfs(g, 1);
 	matches(g.ilist2string(vlist), '[a b d e c f]', 'a1');

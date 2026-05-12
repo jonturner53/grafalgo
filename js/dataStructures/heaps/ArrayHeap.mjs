@@ -43,33 +43,6 @@ export default class ArrayHeap extends Top {
 		this.clearStats();
 	}
 
-	/** Assign a new value by copying from another heap.
-	 *  @param that is another ArrayHeap
-	 */
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-
-		this.Size = that.size; this.Offset = that.Offset;
-		for (let p = 1; p <= that.size; p++) {
-			let x = that.Item[p];
-			this.Item[p] = x; this.pos[x] = p; this.Key[x] = that.Key[x];
-		}
-		this.clearStats();
-	}
-
-	/** Assign a new value by transferring from another heap.
-	 *  @param that is another ArrayHeap
-	 */
-	xfer(that) {
-		if (that == this || !(that instanceof ArrayHeap)) return;
-		this.n = that.n;
-		this.D = that.D; this.Size = that.Size; this.Offset = that.Offset;
-		this.Item = that.Item; this.pos = that.pos;
-		this.Key = that.Key;
-		that.Item = that.pos = that.Key = null;
-		this.clearStats();
-	}
-	
 	/** Remove all elements from heap. */
 	clear() {
 		for (let x = 1; x <= this.Size; x++) this.pos[this.Item[x]] = 0;
@@ -242,7 +215,8 @@ export default class ArrayHeap extends Top {
 	 *  can be compared
 	 */
 	equals(that) {
-		that = super.equals(that, [this.n,this.d]);
+		that = super.equals(...(arguments.length==1 ?
+							[that, this.n, this.d]:arguments));
 		if (typeof that == 'boolean') return that;
 		if (this.size != that.size) return false;
 
@@ -282,25 +256,25 @@ export default class ArrayHeap extends Top {
 	 *  @param s is a string representing a heap.
 	 *  @return on if success, else false
 	 */
-	fromString(s) {
-		let l = new List();
+	static fromString(s, n=10, d=4) {
 		let key = [];
-		if (!l.fromString(s, (u,sc) => {
-							if (!sc.verify(':',0)) {
-								key[u] = 0; return true;
-							}
-							let p = sc.nextNumber();
-							if (p == NaN) return false;
-							key[u] = p;
-							return true;
-						}))
-			return false;
-		this.reset(Math.max(this.n, l.n));
+		let l = List.fromString(s, n, (u,sc) => {
+										if (!sc.verify(':',0)) {
+											key[u] = 0; return true;
+										}
+										let p = sc.nextNumber();
+										if (p == NaN) return false;
+										key[u] = p;
+										return true;
+									});
+		if (!l) return null;
+
+		let ah = new ArrayHeap(l.n, d);
 
 		for (let i = l.first(); i; i = l.next(i)) {
-			this.insert(i, key[i]);
+			ah.insert(i, key[i]);
 		}
-		return true;
+		return ah;
 	}
 
 	/** Return statistics object. */

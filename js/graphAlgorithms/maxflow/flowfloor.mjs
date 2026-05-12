@@ -38,12 +38,13 @@ export default function flowfloor(g, trace=false) {
 	// edge numbers. Adjust capacities of edges with non-zero min flows.
 	// Also, add new source/sink edges.
 	let g1 = new Flograph(g.n+2, 1+Math.max(g.m+2*floorCount, g.edgeRange));
+	if (g.cost) g1.addEdgeProperty('cost', 0);
 	steps += g1.n + g1.edgeRange;
 	g1.source = g.n+1; g1.sink = g.n+2;
 	for (let e = g.first(); e; e = g.next(e)) {
 		steps++;
 		g1.join(g.tail(e), g.head(e), e); g1.cap(e, g.cap(e) - g.floor(e));
-		if (g.hasCosts) g1.cost(e, g.cost(e));
+		if (g.cost) g1.cost(e, g.cost(e));
 	}
 	// Now, add new source/sink edges and set capacities.
 	for (let e = g.first(); e; e = g.next(e)) {
@@ -56,7 +57,7 @@ export default function flowfloor(g, trace=false) {
 	let e = g1.join(g.sink, g.source); g1.cap(e, totalFloor);
 
 	// Now, find max flow in g1 or min cost max flow
-	if (g1.hasCosts) {
+	if (g1.cost) {
 		let [,stats] = ncrJEK(g1);	   steps += stats.steps;
 			[,stats] = mcflowJEK(g1);  steps += stats.steps;
 	} else {

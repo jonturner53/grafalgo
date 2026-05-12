@@ -28,22 +28,21 @@ export default function bimatchF(g, trace=0) {
 
 	// create flow graph, taking care to maintain edge numbers
 	let fg = new Flograph(g.n+2, g.n+g.edgeRange);
+	if (g.weight) fg.addEdgeProperty('cost', 0);
 	fg.source = g.n+1; fg.sink = g.n+2;
 	for (let e = g.first(); e; e = g.next(e)) {
 		let u = g.isInput(g.left(e)) ? g.left(e) : g.right(e);
 		fg.join(u,g.mate(u,e),e); fg.cap(e,1);
-		if (g.hasWeights) fg.cost(e, -g.weight(e)); steps++;
+		if (g.weight) fg.cost(e, -g.weight(e)); steps++;
 	}
 	for (let u = g.firstInput(); u; u = g.nextInput(u)) {
-		let e = fg.join(fg.source,u); fg.cost(e, 0); steps++;
-		fg.cap(e, 1);
+		let e = fg.join(fg.source,u); fg.cap(e, 1); steps++;
 	}
 	for (let u = g.firstOutput(); u; u = g.nextOutput(u)) {
-		let e = fg.join(u,fg.sink); fg.cost(e, 0); steps++;
-		fg.cap(e, 1);
+		let e = fg.join(u,fg.sink); fg.cap(e, 1); steps++;
 	}
 
-	let [,stats] = (g.hasWeights ? mcflowJEK(fg,1) : maxflowD(fg));
+	let [,stats] = (fg.cost ? mcflowJEK(fg,1) : maxflowD(fg));
 	steps += stats.steps;
 	// construct matching from flow
 	let match = new Matching(g);
@@ -52,7 +51,7 @@ export default function bimatchF(g, trace=0) {
 		steps++;
 	}
 	if (trace) ts += '\nmatching: ' + match.toString() + '\n';
-	if (g.hasWeights) stats.weight = match.weight();
+	if (g.weight) stats.weight = match.weight();
 
 	return [match, ts, stats];
 }

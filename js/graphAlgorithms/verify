@@ -7,13 +7,14 @@ echo -n "spath: "; node spath/unit/spath.mjs all
 echo -n "maxflow: "; node maxflow/unit/maxflow.mjs all
 echo -n "mcflow: "; node mcflow/unit/mcflow.mjs all
 echo "match: ";
-	node match/unit/matching.mjs all
-	node match/unit/blossoms.mjs all
+	node match/unit/matching.mjs
+	node match/unit/blossoms.mjs
 	node match/unit/match.mjs all
 echo "vmatch: ";
 	node vmatch/unit/pmatch.mjs all
 	node vmatch/unit/mdmatch.mjs all
 	node vmatch/unit/smatch.mjs all
 	node vmatch/unit/wperfect.mjs all
+	node vmatch/unit/dcs.mjs all
 echo -n "ecolor: "; node ecolor/unit/ecolor.mjs all
 

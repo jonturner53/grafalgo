@@ -13,7 +13,7 @@ import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { coreKKPT } from './egcKKPT.mjs';
-import { lowerBound } from './egcCommon.mjs';
+import { egcLbound } from './egcCommon.mjs';
 import egcBsearch from './egcBsearch.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
@@ -41,7 +41,7 @@ export default function egcTh(eg, imethod, trace) {
 		return egc;
 	}
 
-	let Cmin = lowerBound(eg);
+	let Cmin = egcLbound(eg);
 	eg.sortAllGroups();
 	let egc = egcBsearch(core, eg, Cmin, 10*Cmin);
 	assert(egc);

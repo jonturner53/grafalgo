@@ -17,14 +17,14 @@ import sptBM from '../spath/sptBM.mjs';
  */
 export default function mcflowVerify(g) {
 	// create residual graph of g
-	let rg = new Digraph(g.n,2*g.m);
+	let rg = new Digraph(g.n, 2*g.m, 'length', 0);
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		let u = g.tail(e); let v = g.head(e);
 		if (g.res(e,u) > 0) {
-			let ee = rg.join(u,v); rg.length(ee, g.costFrom(e,u));
+			let ee = rg.join(u,v); rg.length(ee, g.c(e,u));
 		}
 		if (g.res(e,v) > 0) {
-			let ee = rg.join(v,u); rg.length(ee, g.costFrom(e,v));
+			let ee = rg.join(v,u); rg.length(ee, g.c(e,v));
 		}
 	}
 	let [spt] = sptBM(rg, 0);

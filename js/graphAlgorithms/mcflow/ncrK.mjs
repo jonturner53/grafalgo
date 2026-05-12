@@ -71,9 +71,9 @@ function findCycle() {
 			steps++;
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
-			if (Cost[v] > Cost[u] + g.costFrom(e,u)) {
+			if (Cost[v] > Cost[u] + g.c(e,u)) {
 				link[v] = e;
-				Cost[v] = Cost[u] +  g.costFrom(e,u);
+				Cost[v] = Cost[u] +  g.c(e,u);
 				if (!q.contains(v)) q.enq(v);
 			}
 		}

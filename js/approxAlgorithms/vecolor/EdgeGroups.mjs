@@ -37,7 +37,7 @@ export default class EdgeGroups extends Top {
     GroupsAtInputs; // ListSet dividing groups among inputs
     FirstGroup;     // FirstGroup[u] is first group at input u
 
-	Bound           // bound[g] is lower bound on color of g
+	Bound           // Bound[g] is lower bound on color of g
 
 	vlist;          // temporary list of vertices
 
@@ -52,11 +52,9 @@ export default class EdgeGroups extends Top {
 		if (!gg) return;
 		this.Graph = gg;
 
-		let ni = 0;
-		for (let e = this.graph.first(); e; e = this.graph.next(e)) {
-			ni = Math.max(ni,this.input(e));
+		for (let u = 1; u <= gg.n; u++) {
+			if (!gg.isInput(u)) { this.N_i = u-1; break; }
 		}
-		this.N_i = ni;
 
 		this.Group = new Int32Array(this.graph.edgeRange+1);
 		this.Fanout = new Int32Array(this.n_g+1);
@@ -73,7 +71,6 @@ export default class EdgeGroups extends Top {
 
 	/** Assign one GroupGraph to another by copying its contents.
 	 *  @param that is another graph whose contents is copied to this one
-	 */
 	assign(that, relaxed=false) {
 		super.assign(that);
         ea && assert(that != this &&
@@ -94,10 +91,10 @@ export default class EdgeGroups extends Top {
 		for (let g = this.firstGroup(); g; g = this.nextGroup(g))
 			this.bound(g, that.bound(g));
 	}
+	 */
 
 	/** Assign one graph to another by transferring its contents.
 	 *  @param that is another graph whose contents is transferred to this one
-	 */
 	xfer(that) {
         ea && assert(that != this &&
                 	 this.constructor.name == that.constructor.name,
@@ -118,6 +115,7 @@ export default class EdgeGroups extends Top {
 		that.GroupIds = that.EdgesInGroups = that.GroupsAtInputs = null;
 		that.FirstInGroup = that.FirstGroup = that.vlist = null;
 	}
+	 */
 
 	clear() {
 		this.Group.fill(0);
@@ -155,6 +153,13 @@ export default class EdgeGroups extends Top {
 		for (let g = this.firstGroupAt(u); g; g = this.nextGroupAt(u,g))
 			cnt++;
 		return cnt;
+	}
+
+	maxGroupCount() {
+		let gcmax = 0;
+		for (let u = 1; u <= this.n_i; u++)
+			gcmax = Math.max(gcmax, this.groupCount(u));
+		return gcmax;
 	}
 
 	firstGroup() { return this.GroupIds.first(1); }
@@ -340,7 +345,8 @@ export default class EdgeGroups extends Top {
 	 * 	        matching group ids
 	 */
 	equals(that) {
-        that = super.equals(that, [this.gg, this.n_g]);
+		let egg = this.graph;
+        that = super.equals(that, egg.n, egg.erange, this.n_i, this.n_g);
         if (typeof that == 'boolean') return that;
 
 		if (!this.graph.equals(that.graph) || 
@@ -413,8 +419,7 @@ export default class EdgeGroups extends Top {
 	 *  @param s is a string representing a graph
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
-		let n = 1; let n_i = 1;
+	static fromString(s, n=15, erange=2*n, n_i=5, n_g=15) {
 		// function to parse a vertex
 		let nextVertex = (sc => {
 						let u = sc.nextIndex();
@@ -422,14 +427,17 @@ export default class EdgeGroups extends Top {
 						return u > 0 ? u : 0;
 					});
 		// function to parse an edge group
-		let tuples = []; let group = 0; let groupIds = new Set(); let n_g = 0;
+		let tuples = []; let group = 0; let groupIds = new Set();
 		let nextGroup = ((u,sc) => {
-						let b = 0; let bmax = b;
+						// check for bound
+						let b = 0;
 						if (!sc.verify('(')) {
 							b = sc.nextInt();
 							if (Number.isNaN(b)) return false;
 							if (!sc.verify('(')) return false;
 						}
+						// select an unused group number and process
+						// list of vertices in group
 						while (groupIds.has(++group)) {}
 						let i0 = tuples.length;
 						while (!sc.verify(')')) {
@@ -437,6 +445,8 @@ export default class EdgeGroups extends Top {
 							if (!v) return false;
 							tuples.push([u,v,group,b]);
 						}
+						// check for explicit group number following close-)
+						// update group number in tuples
 						let g = (!sc.isspace() ? sc.nextIndexExt(0,0) : 0);
 						if (g > 0) {
 							if (groupIds.has(g)) return false;
@@ -459,7 +469,7 @@ export default class EdgeGroups extends Top {
 		while (!sc.verify('}')) {
 			let u = nextVertex(sc);
 			if (!u) return false;
-			n_i = Math.max(n_i,u);
+			n_i = Math.max(n_i, u);
 			if (sc.verify('[')) {
 				while (!sc.verify(']')) {
 					if (!nextGroup(u,sc)) return false;
@@ -471,24 +481,14 @@ export default class EdgeGroups extends Top {
 		for (let [u,v,g,b] of tuples)
 			if (v <= n_i) return false;
 
-		this.Graph = new Graph(n, Math.max(1,tuples.length));
-
-		// add edges to graph before configuring object
-		let triples = []
-		for (let [u,v,g,b] of tuples) triples.push([this.graph.join(u,v),g,b]);
-
-		if (n_i == this.n_i && n_g == this.n_g &&
-			this.Group.length == this.erange+1)
-			this.clear();
-		else {
-			this.reset(this.graph, n_g);
+		// construct object from tuples
+		erange = Math.max(erange, tuples.length);
+		let egg = new Graph(n, erange); egg.setBipartition(n_i);
+		let eg = new EdgeGroups(egg, n_g);
+		for (let [u,v,g,b] of tuples) {
+			eg.add(egg.join(u,v), g);
+			if (!eg.bound(g)) eg.bound(g, b);
 		}
-
-		// add edges
-		for (let [e,g,b] of triples) {
-			this.add(e,g);
-			if (!this.bound(g)) this.bound(g,b);
-		}
-		return true;
+		return eg;
 	}
 }

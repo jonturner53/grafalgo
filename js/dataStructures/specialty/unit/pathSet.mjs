@@ -13,9 +13,8 @@ import PathSet from '../PathSet.mjs';
 try {
 	console.log('testing PathSet');
 
-	let ps = new PathSet();
-
-	matches(ps.fromString('{[a:5 f:2 c:4]g [b:1] [d:2 g:3 e:4]}'), true, 'a0');
+	let ps = PathSet.fromString('{[a:5 f:2 c:4]g [b:1] [d:2 g:3 e:4]}',7);
+	matches(!!ps, true, 'a0');
 
 	matches(ps, '{[b:1] [a:5 f:2 c:4]g [d:2 g:3 e:4]}', 'a1');
 	matches(ps.toString(0xe),

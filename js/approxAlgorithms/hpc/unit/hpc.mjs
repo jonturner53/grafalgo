@@ -33,8 +33,8 @@ function run(algo,g,maxSelect,s,t,trace) {
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
-let g = new Graph();
-g.fromString('{a[b e j] b[c g h] c[d f j] d[e g i j] e[f h] f[g i] g[h] h[i] i[j] j[]}');
+let g = Graph.fromString('{a[b e j] b[c g h] c[d f j] d[e g i j] e[f h] ' +
+					 	 'f[g i] g[h] h[i] i[j] j[]}');
 tester.addTest('small graph - cycle', g, 0, 0);
 
 tester.addTest('small graph - free path', g, 7, 0);

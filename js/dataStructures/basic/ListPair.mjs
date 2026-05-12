@@ -47,34 +47,6 @@ export default class ListPair extends Top {
 		this.Next[this.n] = this.Prev[1] = 0;
 	}
 
-	/** Assign one ListPair to another by copying its contents.
-	 *  @param l is the ListPair whose contents is to be copied.
-	 */
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-		for (let i = that.first(1); i; i = that.next(i)) {
-			this.swap(i);
-		}
-		for (let i = that.first(2); i; i = that.next(i)) {
-			this.swap(i); this.swap(i); // to match order in that
-		}
-		for (let i = that.n+1; i <= this.n; i++) {
-			this.swap(i); this.swap(i);
-		}
-	}
-
-	/** Assign one ListPair to another by transferring its contents.
-	 *  @param that is the ListPair to assign.
-	 */
-	xfer(that) {
-		super.xfer(that);
-		this.Next = that.Next; this.Prev = that.Prev;
-		that.Next = that.Prev = null;
-		this.First[0] = that.First[0]; this.Last[0] = that.Last[0];
-		this.First[1] = that.First[1]; this.Last[1] = that.Last[1];
-		this.Length[0] = that.Length[0]; this.Length[1] = that.Length[1];
-	}
-	
 	/** Determine if an item belongs in a specified list.
 	 *  @param i is valid index
 	 *  @param k is 1 or 2
@@ -121,7 +93,7 @@ export default class ListPair extends Top {
 	 *  into the other list, following item j, or at the start if j=0.
 	 */
 	swap(i, j=-1) {
-assert(i > 0 && i <= this.n, i + ' ' + this.n);
+		ea && assert(i > 0 && i <= this.n, i + ' ' + this.n);
 		if (j < 0) j = this.in(i,1) ? this.last(2) : this.last(1);
 
 		ea && assert(this.valid(i) && i && this.valid(j));
@@ -181,7 +153,7 @@ assert(i > 0 && i <= this.n, i + ' ' + this.n);
 	 *  @return true if the two lists are identical
 	 */
 	equals(that) {
-		that = super.equals(that);
+		that = super.equals(...(arguments.length==1 ? [that,this.n]:arguments));
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -214,37 +186,39 @@ assert(i > 0 && i <= this.n, i + ' ' + this.n);
 	}
 
 	/** Initialize this from a string representation.
-	 *  @param s is a string, such as produced by toString().
+	 *  @param s is a string, such as produced by toString();
+	 *  it need not be complete, any index in the index range that does
+	 *  not appear in the input is assumed to belong to the second set
+	 *  @param n is a minimum value for the index range
 	 *  @return true on success, else false
 	 */
-	fromString(s, prop=0) {
+	static fromString(s) {
 		let sc = new Scanner(s);
 
 		// first read values into two lists
         let l1 = sc.nextIndexList('[', ':');
-        if (l1 == null) return false;
+        if (l1 == null) return null;
 		sc.reset(-1);
         let l2 = sc.nextIndexList(':', ']');
-        if (l2 == null) return false;
-		let n = Math.max(Math.max(...l1), Math.max(...l2));
-
+        if (l2 == null) return null;
+		let n = Math.max(0, ...l1, ...l2);
+		if (n != l1.length+l2.length) return null;
 		// verify that lists are valid
-		if (l1.length + l2.length != n) return false;
         let items = new Set();
         for (let i of l1) {
-            if (items.has(i)) return false;
+            if (items.has(i)) return null;
             items.add(i);
         }
         for (let i of l2) {
-            if (items.has(i)) return false;
+            if (items.has(i)) return null;
             items.add(i);
         }
 		
 		// initialize this
-		this.reset(n);
-        for (let i of l1) this.swap(i);
-        for (let i of l2) { this.swap(i); this.swap(i); }
+		let ls = new ListPair(n);
+        for (let i of l1) ls.swap(i);
+        for (let i of l2) { ls.swap(i); ls.swap(i); }
 			// double swap produces correct order for list 2
-		return true;
+		return ls;
 	}
 }

@@ -35,36 +35,21 @@ export default class MergeSets extends Top {
 		this.merges = this.finds = this.steps = 0;
 	}
 	
-	/** Assign another MergeSets object to this one.
-	 *  @param that is another MergeSets object.
-	 */
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-		for (let i = 0; i <= that.n; i++) {
-			this.P[i] = that.P[i]; this.Rank[i] = that.Rank[i];
-		}
-	}
-
 	/** Import a ListSets object into to this MergeSets object.
-	 *  @param that is a ListSets object.
+	 *  @param ls is a ListSets object.
 	 */
-	importFrom(that) {
-		ea && assert(that.constructor.name == 'ListSet');
-		if (this.n != that.n) this.reset(that.n);
-		else this.clear();
-		for (let i = 0; i <= this.n; i++) {
-			if (!that.isfirst(i)) continue;
-			for (let j = that.next(i); j != 0; j = that.next(j))
-				this.merge(this.find(i), j);
+	static fromListSet(ls) {
+		ea && assert(ls.constructor.name == 'ListSet');
+		
+		let ms = new MergeSets(ls.n);
+		for (let i = 0; i <= ls.n; i++) {
+			if (!ls.isfirst(i)) continue;
+			for (let j = ls.next(i); j; j = ls.next(j))
+				ms.merge(ms.find(i), j);
 		}
+		return ms;
 	}
 
-	xfer(that) {
-		super.xfer(that);
-		this.P = that.P; this.Rank = that.Rank;
-		that.P = that.Rank = null;
-	}
-	
 	/** Clear all items in a given range.
 	 *  @param lo is the low end of the range of items to be cleared
 	 *  @param hi is the high end of the range; all items <hi are cleared
@@ -138,7 +123,7 @@ export default class MergeSets extends Top {
 	 *  @return true if they represent the same collection of sets.
 	 */
 	equals(that) {
-		that = super.equals(that);
+		that = super.equals(...(arguments.length==1 ? [that,this.n]:arguments));
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -183,11 +168,11 @@ export default class MergeSets extends Top {
 	 *  @param s is a string, such as produced by toString().
 	 *  @return true on success, else false
 	 */
-	fromString(s, prop=0) {
-		let ls = new ListSet(); 
-		if (!ls.fromString(s, prop)) return false;
-		this.importFrom(ls);
-		return true;
+	static fromString(s, prop=0, n=0) {
+		let ls = ListSet.fromString(s, prop, n);
+		if (!ls) return null;
+		let ms = MergeSets.fromListSet(ls);
+		return ms;
 	}
 
 	getStats() {

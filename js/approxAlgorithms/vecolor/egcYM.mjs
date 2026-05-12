@@ -12,7 +12,7 @@ import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
-import { lowerBound } from './egcCommon.mjs';
+import { egcLbound } from './egcCommon.mjs';
 import egcBsearch from './egcBsearch.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
@@ -27,7 +27,7 @@ import EdgeGroupColors from './EdgeGroupColors.mjs';
  */
 export default function egcYM(eg, trace) {
 	eg.sortAllGroups();
-	let Cmin = lowerBound(eg);
+	let Cmin = egcLbound(eg);
 	let egc = egcBsearch(coreYM, eg, Cmin, 10*Cmin);
 	assert(egc);
 

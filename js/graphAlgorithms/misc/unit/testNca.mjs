@@ -15,10 +15,8 @@ import { matches, Mismatch } from '../../../common/Testing.mjs';
 try {
 	console.log('testing nca');
 
-	let f = new Forest();
-	f.fromString('{[a(b(c d) e)] [f(g h i(j k))]}');
-	let g = new Graph();
-	g.fromString('{b[d e j] c[d e f] g[h j] h[k] j[k]}');
+	let f = Forest.fromString('{[a(b(c d) e)] [f(g h i(j k))]}');
+	let g = Graph.fromString('{b[d e j] c[d e f] g[h j] h[k] j[k]}');
 	let ncav = nca(f,g);
 
 	let e = g.findEdge(2,4);   matches(ncav[e], 2, 'a1');

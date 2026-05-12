@@ -132,8 +132,9 @@ export default class DynamicTrees extends PathSet {
 	equals(that) {
 		if (this == that) return true;
 		if (typeof that == 'string') {
-			let s = that; that = new DynamicTrees(this.n);
-			if (!that.fromString(s)) return s == this.toString();
+			let s = that;
+			that = DynamicTrees.fromString(s, this.n);
+			if (!that) return s == this.toString();
 		} else if (!(that instanceof DynamicTrees) || this.n != that.n) {
 			return false;
 		}
@@ -203,27 +204,27 @@ export default class DynamicTrees extends PathSet {
 		return path;
 	}
 
-	fromString(s) {
+	static fromString(s='', n=10) {
 		let f = new Forest();
-		let dmin = new Float32Array(f.n+1);
-		if (!f.fromString(s, (u,sc) => {
-							dmin[u] = 0;
+		let cost = new Float32Array(f.n+1);
+		f = Forest.fromString(s, n, (u,sc) => {
+							cost[u] = 0;
 							if (!sc.verify(':',0)) {
-								dmin[u] = 0; return true;
+								return true;
 							}
-							let cost = sc.nextNumber();
-							if (Number.isNaN(cost)) return false;
-							dmin[u] = cost;
+							cost[u] = sc.nextNumber();
+							if (Number.isNaN(cost[u])) return false;
 							return true
-						}))
-			return false;
-		this.reset(f.n);
+						});
+		if (!f) return false;
 
-		for (let u = 1; u <= this.n; u++) {
-			if (f.p(u)) this.succ(u,f.p(u));
-			this.dmin(u, dmin[u]);
+		let dt = new DynamicTrees(f.n);
+
+		for (let u = 1; u <= dt.n; u++) {
+			if (f.p(u)) dt.succ(u,f.p(u));
+			dt.dmin(u, cost[u]);
 		}
-		return true;
+		return dt;
 	}
 
 	clearStats() {
@@ -231,6 +232,7 @@ export default class DynamicTrees extends PathSet {
 	}
 
 	getStats() {
-		return { 'exposes' : this.exposes, 'splices' : this.splices, 'steps' : this.steps };
+		return { 'exposes' : this.exposes, 'splices' : this.splices,
+				 'steps' : this.steps };
 	}
 }

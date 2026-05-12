@@ -35,7 +35,8 @@ try {
 	matches(ds.toString(0b1100), '{a:3(b c d:1(e) f:2(g) h:1(i) j)}', 'a9');
 	matches(r, 1, 'a12');
 
-	matches(ds.fromString('{[a c] [d b e] [f g] [h i j]}'), true, 'a10');
+	ds = MergeSets.fromString('{[a c] [d b e] [f g] [h i j]}');
+	matches(!!ds, true, 'a10');
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

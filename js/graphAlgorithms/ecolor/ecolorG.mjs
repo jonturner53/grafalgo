@@ -24,7 +24,6 @@ let subsets;	// vertex subsets that define bipartition
 let emap;		// temp array used to map edge numbers in rcolor
 
 let nextColor;  // next color to apply to edges
-let color;		/// color[e] is color of edge e
 
 let trace;
 let traceString;
@@ -40,15 +39,18 @@ let matches;	// number of matchings found
  *  edge colors, ts is a trace string and stats is a statistics object
  */
 export default function ecolorG(G, traceFlag=false) {
+	if (G.m == 0) return ['no edges in graph', {'steps':1}];
 	// initialize data structures
+	ea && assert(G.hasBipartition);
+	if (!G.color) G.addEdgeProperty('color', 0);
 	g = G; trace = traceFlag; trace = 1;
-	ea && assert(g.hasBipartition);
 
-	wg = new Graph(g.n, g.edgeRange); wg.setBipartition(g.getBipartition());
+	wg = new Graph(g.n, g.edgeRange);
+	wg.setBipartition(g.getBipartition());
+
 	degree = new Int32Array(g.n+1);
-	active = new List(g.n);
+	active = new List(g.n, 'value', 0);
 	emap = new Int32Array(g.m+1);
-	color = new Int32Array(g.edgeRange+1);
 
 	for (let e = g.first(); e; e = g.next(e)) addEdge(e);
 
@@ -57,11 +59,10 @@ export default function ecolorG(G, traceFlag=false) {
 	steps = matches = 0;
 
 	nextColor = 1;
-	rcolor(g.maxDegree());
+	rcolor(Math.max(...g.maxDegree()));
 
-	if (trace)
-		traceString += g.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:${color[e]}`);
-	return [color, traceString, {'matches': matches, 'steps': steps }];
+	if (trace) traceString += g.toString(1);
+	return [traceString, {'matches': matches, 'steps': steps }];
 }
 
 /** Recursive helper function.
@@ -76,7 +77,7 @@ function rcolor(Delta) {
 	if (Delta == 1) {
 		if (trace) traceString += nextColor + ':';
 		for (let e = wg.first(); e; e = wg.first()) {
-			color[e] = nextColor; dropEdge(e);
+			g.color(e, nextColor); dropEdge(e);
 			if (trace) traceString += ' ' + g.e2s(e,0,1);
 			steps++;
 		}
@@ -110,7 +111,8 @@ function rcolor(Delta) {
 		matches++; steps += stats.steps;
 		if (trace) traceString += nextColor + ':';
 		for (let e = match.first(); e; e = match.next(e)) {
-			let ee = emap[e]; color[ee] = nextColor; dropEdge(ee);
+			let ee = emap[e];
+			g.color(ee, nextColor); dropEdge(ee);
 			if (trace) traceString += ` ${g.e2s(ee,0,1)}`;
 			steps++;
 		}

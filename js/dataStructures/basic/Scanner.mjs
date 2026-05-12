@@ -199,32 +199,31 @@ export default class Scanner extends Top {
 	}
 
 	/* Scan for next string, number, array or object.
-	 * @param sc is scanner
 	 * @return the data item identified by the next portion of the scanned
 	 * string; note that this method does not handle nested objects
 	 * or arrays
 	 */
-	nextDatum(sc) {
-		if (sc.verify('"',1,0))  {
-			let s = sc.nextString(1);
+	nextDatum() {
+		if (this.verify('"',1,0))  {
+			let s = this.nextString(1);
 			return s == null ? null : s;
 		}
-		if (sc.verify('{',1,0)) {
-			let s = sc.nextString(1,'{','}',0);
+		if (this.verify('{',1,0)) {
+			let s = this.nextString(1,'{','}',0);
 			if (s == null) return null;
 			try { let k = JSON.parse(s); return k; } catch { return null; }
 		}
-		if (sc.verify('[',1,0))  {
-			let s = sc.nextString(1,'[',']',0);
+		if (this.verify('[',1,0))  {
+			let s = this.nextString(1,'[',']',0);
 			if (s == null) return null;
 			try { let k = JSON.parse(s); return k; } catch { return null; }
 		}
 		let c0 = this.cursor;
-		if (sc.verify('true') && !this.isalpha()) return true;
+		if (this.verify('true') && !this.isalpha()) return true;
 		else this.cursor = c0;
-		if (sc.verify('false') && !this.isalpha()) return false;
+		if (this.verify('false') && !this.isalpha()) return false;
 		else this.cursor = c0;
-		let n = sc.nextNumber(); return (n == NaN ? null : n);
+		let n = this.nextNumber(); return (n == NaN ? null : n);
 	}
 
 	/** Read an index value.

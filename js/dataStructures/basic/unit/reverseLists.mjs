@@ -18,7 +18,8 @@ try {
 	matches(dl.n, 8, 'a1');
 	for (let i = 1; i <= dl.n; i++)
 		matches(dl.singleton(i), true, 'a2_' + i);
-	matches(dl, '{[h]}', 'a3');
+	matches(dl, '{}', 'a3');
+	matches(dl, '{[a] [e]}', 'a3a');
 
 	dl.join(1, 3); dl.join(5, 6); dl.join(2, 7);
 	matches(dl, '{[a c] [b g] [e f] [h]}', 'b1');
@@ -33,7 +34,8 @@ try {
 	dl.clear(); 
 	matches(dl, '{[h]}', 'b8');
 
-	matches(dl.fromString('{[d i h k] [e a c] [g b l] [j f]}'), true, 'c0');
+	dl = ReverseLists.fromString('{[d i h k] [e a c] [g b l] [j f]}');
+	matches(!!dl, true, 'c0');
 	matches(dl, '{[d i h k] [e a c] [g b l] [j f]}', 'c1');
 	matches(dl.n, 12, 'c2');
 	dl.reverse(4); dl.reverse(10);

@@ -13,10 +13,11 @@ import BalancedForest from '../BalancedForest.mjs';
 try {
 	console.log('testing BalancedForest');
 
-	let f = new BalancedForest();
-
-	matches(f.fromString('{[a b c d e] [h i j k l m n o p q r]}'), true, 'a0');
-	let s = f.verify(); matches(s, '', 'a1 ' + s);
+	let f = BalancedForest.fromString(
+		'{[a b c d e] [h i j k l m n o p q r]}');
+	matches(!!f, true, 'a0');
+	let s = f.verify();
+	matches(s, '', 'a1 ' + s);
 	matches(f,'{[a b c d e] [h i j k l m n o p q r]}', 'a2'),
 	matches(f.toString(0xc),
 			'{[a *b:2 (c d e)] [(h i:2 j) *k:3 (l m:2 (n o:2 (p q r)))]}',
@@ -43,7 +44,7 @@ try {
 			'{[(((h i:2 j) k:2 l) m:3 (a b:2 (c d -))) *e:3 ' +
 			  '((o p -) q:2 r)]}', 'a13');
 
-	f.fromString('{[a b c d e] [h i j k] [l m n p q r]}');
+	f = BalancedForest.fromString('{[a b c d e] [h i j k] [l m n p q r]}');
 	matches(f.toString(0xc),
 			'{[a *b:2 (c d e)] [h *i:2 (- j k)] [l *m:2 (n p:2 (- q r))]}',
 			'b1');

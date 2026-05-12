@@ -14,9 +14,9 @@ import OrderedHeaps from '../OrderedHeaps.mjs';
 try {
 	console.log('testing OrderedHeaps');
 
-	let oh = new OrderedHeaps(10);
-	matches(oh.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}'),
-		   true, 'a0');
+	let oh = OrderedHeaps.fromString(
+				'{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}');
+	matches(!!oh, true, 'a0');
 	matches(oh,'{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}', 'a1');
 	matches(oh.findmin(7),6,'a2');
 		oh.insertAfter(5,5.5,10,7);

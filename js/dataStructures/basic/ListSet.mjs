@@ -30,19 +30,6 @@ export default class ListSet extends Top {
 		for (let i = 0; i <= this.n; i++) this.Prev[i] = i;
 	}
 
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-		for (let i = 1; i <= that.n; i++) {
-			this.Next[i] = that.Next[i]; this.Prev[i] = that.Prev[i];
-		}
-	}
-
-	xfer(that) {
-		super.xfer(that);
-		this.Next = that.Next; this.Prev = that.Prev;
-		that.Next = that.Prev = null;
-	}
-	
 	/** Clear the data structure, moving all items into single node lists.
 	*/
 	clear() {
@@ -189,7 +176,8 @@ export default class ListSet extends Top {
 	 *  @return true if the two ListSet objects contain identical lists.
 	 */
 	equals(that) {
-		that = super.equals(that);
+		that = super.equals(...(arguments.length==1 ?
+								[that, this.n] : arguments));
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -211,7 +199,7 @@ export default class ListSet extends Top {
 	 *  @return true if the two ListSet objects define identical sets.
 	 */
 	setEquals(that) {
-		that = super.equals(that);
+		that = super.equals(...(arguments.length==1 ? [that,this.n]:arguments));
 		if (typeof that == 'boolean') return that;
 		let l = new List(this.n);
 		for (let i = 1; i < this.n; i++) {
@@ -267,38 +255,38 @@ export default class ListSet extends Top {
 	 *  first item in the list and a Scanner
 	 *  @return true on success, else false
 	 */
-	fromString(s, prop=0, listLabel=0) {
+	static fromString(s, n=10, prop=0, listLabel=0) {
 		let sc = new Scanner(s);
-		if (!sc.verify('{')) return false;
-		let lists = []; let n = 0; let items = new Set();
+		if (!sc.verify('{')) return null;
+		let lists = []; let items = new Set();
 		while (!sc.verify('}')) {
 			let l;
 			if (sc.verify('[',1,0)) {
 				l = sc.nextIndexList('[',']', prop);
-				if (l == null) return false;
+				if (l == null) return null;
 				if (l.length > 0 && listLabel && !sc.isspace() &&
 					!sc.verify('}',1,0) && !listLabel(l[0],sc)) {
-					return false;
+					return null;
 				}
 			} else {
 				let x = sc.nextIndex(prop);
-				if (x == NaN || x <= 0) return false;
+				if (x == NaN || x <= 0) return null;
 				l = [x];
 			}
 			for (let i of l) {
 				n = Math.max(i, n);
-				if (items.has(i)) return false;
+				if (items.has(i)) return null;
 				items.add(i);
 			}
 			lists.push(l);
 		}
+		let ls = new ListSet(n);
 
-		this.reset(n);
 		for (let l of lists) {
 			for (let i of l) {
-				if (i != l[0]) this.join(l[0], i);
+				if (i != l[0]) ls.join(l[0], i);
 			}
 		}
-		return true;
+		return ls;
 	}
 }

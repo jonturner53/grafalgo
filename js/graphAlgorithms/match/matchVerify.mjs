@@ -19,8 +19,9 @@ let mark;      // mark bits used by nca
 /** Verify a maximum size matching.
  *  @param G is an undirected graph
  *  @param match is a Matching object
- *  @return a string which is empty if match is a maximum matching,
- *  else it describes an error
+ *  @return a string which is empty if match is a maximum size matching,
+ *  else it describes an error; exception: if g is weighted, verify does
+ *  not insist that it have maximum size
  */
 export default function matchVerify(G, match) {
 	g = G;
@@ -64,8 +65,11 @@ export default function matchVerify(G, match) {
 		}
 		// up and vp are both even
 		let a = nca(up,vp);
-		if (a == 0)
-			return `matchVerify: can extend matching thru ${g.edge2string(e)}`;
+		if (a == 0) {
+			return 'matchVerify: ' + g.weight ?
+				'matching is not maximum size, but graph is weighted' :
+				`can extend matching thru ${g.edge2string(e)}`;
+		}
 
 		// up and vp are in same tree - collapse blossom
 		let x = up;

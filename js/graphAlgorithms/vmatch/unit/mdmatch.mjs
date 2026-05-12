@@ -64,8 +64,7 @@ function prettyRegularBigraph(n,d) {
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
-let g = new Graph();
-g.fromString('{a[f g h] b[e g] c[e h] d[e f h]}');
+let g = Graph.fromString('{a[f g h] b[e g] c[e h] d[e f h]}');
 let prio = new Int32Array(g.n+1);
 let md = g.maxDegree();
 for (let u = 1; u <= g.n; u++)

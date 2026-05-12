@@ -45,8 +45,13 @@ let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
 // symmetric test cases
-let g = new Graph(); let seed; let seedLength;
-g.fromString('{ a[h:4 i:1] b[c:3 d:7 f:7 g:5] c[b:3 f:4] d[b:7 f:6 i:7 j:5 k:3] e[h:3 k:6 l:3] f[b:7 c:4 d:6 g:2] g[b:5 f:2 k:1] h[a:4 e:3] i[a:1 d:7 l:4] j[d:5 l:6] k[d:3 e:6 g:1] l[e:3 i:4 j:6] }');
+let seed; let seedLength;
+let g = Graph.fromString('{ a[h:4 i:1] b[c:3 d:7 f:7 g:5] c[b:3 f:4] ' +
+						 'd[b:7 f:6 i:7 j:5 k:3] e[h:3 k:6 l:3] ' +
+						 'f[b:7 c:4 d:6 g:2] g[b:5 f:2 k:1] h[a:4 e:3] ' +
+						 'i[a:1 d:7 l:4] j[d:5 l:6] k[d:3 e:6 g:1] ' +
+						 'l[e:3 i:4 j:6] }', 12, 30, 'length', 0);
+						// includes space for added edges
 tester.addTest('small graph (12,3):48', g, seed);
 
 [g,seed,seedLength] = tspRandom(16,4,1,[randomInteger,1,9]);
@@ -68,8 +73,11 @@ tester.addTest('large random graph (100,10,1):'+seedLength, g, seed);
 tester.addTest('large random graph (100,10,.1):'+seedLength, g, seed);
 
 // asymmetric test cases
-g = new Digraph();
-g.fromString('{a[d:5 g:8 i:3] b[e:4 g:6 j:7 k:6] c[d:1 f:3 h:3 i:9 l:1] d[b:1 h:6 l:7] e[a:3 k:4] f[e:1 g:6 h:5 k:3] g[c:4] h[b:9 j:5 l:4] i[h:2] j[d:5 e:1 f:4 g:5] k[a:1 d:4 f:4 g:4] l[f:5 j:1]}');
+g = Digraph.fromString('{a[d:5 g:8 i:3] b[e:4 g:6 j:7 k:6] ' +
+					   'c[d:1 f:3 h:3 i:9 l:1] d[b:1 h:6 l:7] ' +
+					   'e[a:3 k:4] f[e:1 g:6 h:5 k:3] g[c:4] h[b:9 j:5 l:4] ' +
+					   'i[h:2] j[d:5 e:1 f:4 g:5] k[a:1 d:4 f:4 g:4] ' +
+					   'l[f:5 j:1]}', 12, 50, 'length', 0);
 tester.addTest('small graph (12,4):32', g, null);
 
 [g,seed,seedLength] = tspRandom(16,5,.35,[randomInteger,1,9],1,0);

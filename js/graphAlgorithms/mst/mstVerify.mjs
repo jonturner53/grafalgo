@@ -28,24 +28,27 @@ let t;			// t of g (represented as graph)
 export default function mstVerify(G, elist) {
 	// first initialize shared references to G and graph version of mst
 	g = G;
-	t = new Graph(g.n, g.n-1);
+	let t0 = new Graph(g.n, g.n-1, 'weight', 0);
 	for (let i = 0; i < elist.length; i++) {
 		let e = elist[i];
 		if (e <= 0) continue;
 		if (!g.validEdge(e))
 			return `mstVerify: edge ${e} is not in g`
-		let ee = t.join(g.left(e), g.right(e));
-		t.weight(ee, g.weight(e));
+		let ee = t0.join(g.left(e), g.right(e));
+		t0.weight(ee, g.weight(e));
 	}
 
-	let [tcc, tcomp] = components(t);
+	let [tcc, tcomp] = components(t0);
 	let [gcc, gcomp] = components(g);
 	if (tcc != gcc || !tcomp.equals(gcomp))
 		return 'mstVerify: tree components do not match graph';
-	if (t.m > g.n-gcc) return 'mstVerify: cycle in edge list';
+	if (t0.m > g.n-gcc) return 'mstVerify: cycle in edge list';
 
-	// add extra vertex to t to link components, then check weights
-	t.expand(t.n+1, t.m+tcc);
+	// create expanded version of t with extra vertex to link components
+	// then check weights
+	t = new Graph(t0.n+1, t0.m+tcc, 'weight', 0);
+	for (let e = t0.first(); e; e = t0.next(e))
+		t.join(t0.left(e), t0.right(e), e);
 	for (let u = 1; u < t.n; u++) {
 		if (tcomp.isfirst(u)) t.join(t.n, u);
 	}

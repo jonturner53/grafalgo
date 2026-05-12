@@ -27,7 +27,7 @@ let algomap = {
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
-let g = new Graph(); g.fromString(
+let g = Graph.fromString(
 		'{a[b:3 d:2] b[a:3 c:7] c[b:7 d:1] d[a:2 c:1] ' +
 	 	'e[f:1 g:3] f[e:1 g:2 h:3] g[e:3 f:2 h:1] i[j:5] j[i:5]}');
 tester.addTest('small 3 component graph', g);

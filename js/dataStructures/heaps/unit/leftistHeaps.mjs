@@ -29,9 +29,9 @@ try {
 	let [min,h] = lh.deletemin(5);
 	matches(min, 5, 'a3.1'); matches(h, 6, 'a3.2');
 	matches(lh, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] e:5}', 'a4');
-	let lh2 = new LeftistHeaps();
-	matches(lh2.fromString('{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}'),
-		   true, 'a5');
+	let lh2 = LeftistHeaps.fromString(
+					'{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] [e:5]}');
+	matches(!!lh2, true, 'a5');
 	matches(lh, lh2, 'a6');
 	lh.meld(1, 6);
 	matches(lh, '{[b:2 a:1 d:4 c:3 h:8 g:7 j:10 i:9 f:6] e:5}', 'a7');

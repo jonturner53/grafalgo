@@ -14,19 +14,19 @@ import EdgeGroupColors from '../EdgeGroupColors.mjs';
 try {
 	console.log('testing EdgeGroupColors');
 
-	let eg = new EdgeGroups();
-	matches(eg.fromString('{a[(f i l)A (g k)B (e)C] ' +
-						  'b[(i l)D (h j)E (g k)F] ' +
-						  'c[(f h j)G (e)H (g h)I] ' +
-						  'd[(f i)J (e j)K (k l)L]}'),
-						  true, 'a0');
+	let egg = EdgeGroups.fromString('{a[(f i l)A (g k)B (e)C] ' +
+						  		   'b[(i l)D (h j)E (g k)F] ' +
+						  		   'c[(f h j)G (e)H (g h)I] ' +
+						  		   'd[(f i)J (e j)K (k l)L]}',
+									12, 20, 4);
+	matches(!!egg, true, 'a0');
 
-	let egc = new EdgeGroupColors(eg, 4);
-	matches(egc.fromString('{1[a(f i)A b(h j)E c(e)H d(k l)L] ' +
-     						'2[a(g k)B b(i l)D c(h j)G d(f)J] ' +
-     					 	'3[a(l)A b(g)F c(f)G d(e j)K] ' +
-     						'4[a(e)C b(k)F c(g h)I d(i)J]}'),
-						  	true, 'a1');
+	let egc = EdgeGroupColors.fromString(
+									'{1[a(f i)A b(h j)E c(e)H d(k l)L] ' +
+     								'2[a(g k)B b(i l)D c(h j)G d(f)J] ' +
+     					 			'3[a(l)A b(g)F c(f)G d(e j)K] ' +
+     								'4[a(e)C b(k)F c(g h)I d(i)J]}', egg, 4);
+	matches(!!egc, true, 'a1');
 
 	matches(egc.toString(0),'{\n1[a(f i .) b(h j) c(e) d(k l)]\n' +
      						   '2[a(g k) b(i l) c(. h j) d(f .)]\n' +
@@ -38,7 +38,7 @@ try {
      		     '3[a(l)A b(g)F c(f)G d(e j)K] ' +
      		     '4[a(e)C b(k)F c(g h)I d(i)J]}', 'a3');
 
-	let e = eg.findEdge(9,1); egc.color(e,3);
+	let e = egg.findEdge(9,1); egc.color(e,3);
 	matches(egc,'{1[a(f)A b(h j)E c(e)H d(k l)L] ' +
     		     '2[a(g k)B b(i l)D c(h j)G d(f)J] ' +
      		     '3[a(l i)A b(g)F c(f)G d(e j)K] ' +

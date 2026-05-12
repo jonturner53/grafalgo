@@ -16,17 +16,15 @@ import Blossoms from '../Blossoms.mjs';
 try {
 	console.log('testing Blossoms');
 
-	let g = new Graph(16); g.hasWeights = true;
-	g.fromString(
+	let g = Graph.fromString(
 			'{a[b:6] b[a:6 c:1] c[b:1 d:2 h:7] d[c:2 e:8] ' +
             'e[d:8 f:5 g:9] f[e:5 g:7] g[e:9 f:7 j:1 k:3 i:8] ' +
             'h[c:7 i:4] i[g:8 h:4] j[g:1 k:3] k[g:3 j:3 p:7] ' +
             'l[m:6] m[l:6 n:3] n[m:3 o:9 p:1] o[n:9 p:2] p[k:7 n:1 o:2]}');
 
 	let match = new Matching(g);
-	match.fromString('[bc de fg jk hi mn op]');
-	let bloss = new Blossoms(g,match);
-	bloss.fromString('{{} {[l(m(n(o(p))))]}}');
+	match = Matching.fromString('[bc de fg jk hi mn op]', g);
+	let bloss = Blossoms.fromString('{{} {[l(m(n(o(p))))]}}', g, match);
 	matches(bloss,'{{} {[l(m(n(o(p))))]}}', 'a1');
 	bloss.addBlossom(g.findEdge(14,16), 14);
 	matches(bloss,'{{[A(n p o)]} {[l(m(A{n,m}))]}}', 'a2');
@@ -57,17 +55,15 @@ try {
 				  '{[a(b(D{c,b}))] [l(m(A{n,m}))]}}', 'a8');
 	matches(bloss.verify(), '', 'a9');
 
-	g = new Graph(9);
-	g.fromString('{a[b:6 c:2] b[c:1 e:3] c[d:2] d[e:2 g:8] ' +
-            	  'e[f:5] f[h:5] g[h:9] h[i:4]}');
-	match = new Matching(g);
-	match.fromString('[dg ef hi]');
-	bloss = new Blossoms(g,match);
-	bloss.fromString('{{[A(a b c)]} {}}');
+	g = Graph.fromString('{a[b:6 c:2] b[c:1 e:3] c[d:2] d[e:2 g:8] ' +
+            	  		 'e[f:5] f[h:5] g[h:9] h[i:4]}', 9);
+	match = Matching.fromString('[dg ef hi]', g);
+	bloss = Blossoms.fromString('{{[A(a b c)]} {}}', g, match);
 	matches(bloss,'{{[A(a b c)]} {}}', 'b1');
 	bloss.expand(10);
 	matches(bloss,'{{} {}}', 'b2');
-	bloss.fromString('{{[A(a b c)] [B(h g d e f)]} {[A(B{d,c}(i{i,h}))]}');
+	bloss = Blossoms.fromString(
+			'{{[A(a b c)] [B(h g d e f)]} {[A(B{d,c}(i{i,h}))]}', g, match);
 	bloss.expandOdd(11);
 	matches(bloss.verify(), '', 'b3');
 	matches(bloss,'{{[A(a b c)]} {[A(d{d,c}(g(h(i))))]}', 'b4');

@@ -33,7 +33,10 @@ import { add2graph } from '../../graphAlgorithms/misc/RandomGraph.mjs';
 export default function tspRandom(n, d, scale=1, rand=[randomFraction],
 								  asym=0, tri=!asym) {
 	let m = (asym ? d*n : ~~(d*n/2));
-	let g = (asym ? new Digraph(n,m) : new Graph(n,m));
+	let g = (asym ? new Digraph(n,m+n) : new Graph(n,m+n));
+					// extra edge space so algorithms can add implicit edges
+	g.addEdgeProperty('length', 0);
+	g.weight = g.length; // adding an alias for length method
 
 	// compute random "seed" tour
 	let p = randomPermutation(n);
@@ -41,7 +44,7 @@ export default function tspRandom(n, d, scale=1, rand=[randomFraction],
 	for (let u = 1; u < n; u++) seed[i++] = g.join(p[u],p[u+1]);
 	seed[n-1] = g.join(p[n],p[1]);
 
-	add2graph(g, d); g.randomWeights(...rand);
+	add2graph(g, d, g.n-1, 0); g.randomWeights(...rand);
 
 	// apply scale factor to seed edges.
 	for (let e of seed)
@@ -58,7 +61,7 @@ export default function tspRandom(n, d, scale=1, rand=[randomFraction],
 function enforceTriangleInequality(g) {
 	let dg = g;
 	if (!(dg instanceof Digraph)) {
-		dg = new Digraph(g.n, 2*g.m);
+		dg = new Digraph(g.n, 2*g.m, 'length', 0);
 		for (let e = g.first(); e; e = g.next(e)) {
 			let de = dg.join(g.left(e),g.right(e)); dg.length(de, g.length(e));
 				de = dg.join(g.right(e),g.left(e)); dg.length(de, g.length(e));

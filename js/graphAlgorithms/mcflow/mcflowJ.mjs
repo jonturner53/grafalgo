@@ -70,8 +70,8 @@ function findpath() {
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e); steps++;
-			if (Cost[v] > Cost[u] + g.costFrom(e,u)) {
-				Cost[v] = Cost[u] + g.costFrom(e,u); link[v] = e;
+			if (Cost[v] > Cost[u] + g.c(e,u)) {
+				Cost[v] = Cost[u] + g.c(e,u); link[v] = e;
 				if (!q.contains(v)) q.enq(v);
 			}
 		}
@@ -89,7 +89,7 @@ function pathProps() {
 	for (let e = link[u]; e != 0; e = link[u]) {
 		u = g.mate(u,e);
 		rcap = Math.min(rcap, g.res(e,u));
-		cost += g.costFrom(e,u);
+		cost += g.c(e,u);
 	}
 	return [rcap,cost];
 }

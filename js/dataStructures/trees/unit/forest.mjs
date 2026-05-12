@@ -13,17 +13,16 @@ import Forest from '../Forest.mjs';
 try {
 	console.log('testing Forest');
 
-	let f = new Forest();
-	matches(f.fromString('{a(b(c d) e) f(g h i(j k))}'), true, 'a0');
-	matches(f, '{a(b(c d) e) f(g h i(j k))}', 'a1');
+	let f = Forest.fromString('{a(b(c d) e) f(g h i(j k)) n}');
+	matches(!!f, true, 'a0');
+	matches(f, '{a(b(c d) e) f(g h i(j k)) n}', 'a1');
 	matches(f.firstChild(2), 3, 'a2');
 	matches(f.firstChild(3), 0, 'a3');
 	matches(f.nextSibling(2), 5, 'a4');
 	f.cut(2); f.link(2,8);
-	matches(f, '{a(e) f(g h(b(c d)) i(j k))}', 'a5');
+	matches(f, '{a(e) f(g h(b(c d)) i(j k)) n}', 'a5');
 	f.rotate(7,8);
-	matches(f, '{a(e) f(h(b(c d)) i(j k) g)}', 'a6');
-	f.expand(14);
+	matches(f, '{a(e) f(h(b(c d)) i(j k) g) n}', 'a6');
 	f.link(13,14);
 	matches(f, '{a(e) f(h(b(c d)) i(j k) g) n(m)}', 'a7');
 	f.combineGroves(1,14); f.combineGroves(1,12);
@@ -31,7 +30,7 @@ try {
 
 	f.clear();
 	let prop = new Array(7);
-	f.fromString('{a:1(b:2(c:3 d:4) e:5) f:6}',
+	f = Forest.fromString('{a:1(b:2(c:3 d:4) e:5) f:6}', 10,
 						(u,sc) => {
 							if (!sc.verify(':')) {
 								prop[u] = 0; return true;

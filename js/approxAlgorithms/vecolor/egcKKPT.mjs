@@ -19,7 +19,7 @@ import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import wbimatchH from '../../graphAlgorithms/match/wbimatchH.mjs';
 import EdgeGroupLayers from './EdgeGroupLayers.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
-import { lowerBound, maxOutDegree } from './egcCommon.mjs';
+import { egcLbound, maxOutDegree } from './egcCommon.mjs';
 
 /** Find an edge group coloring using Turner's variant of Kirkpatrick,
  *  Klawe and Pippenger alorithm. If the graph to be colored has lower
@@ -31,7 +31,7 @@ import { lowerBound, maxOutDegree } from './egcCommon.mjs';
  *  @return an EdgeGroupColors object
  */
 export default function egcKKPT(eg, trace=0) {
-	let Cmin = lowerBound(eg);
+	let Cmin = egcLbound(eg);
 	let egc = egcBsearch(coreKKPT, eg, Cmin, 10*Cmin);
 	assert(egc);
 

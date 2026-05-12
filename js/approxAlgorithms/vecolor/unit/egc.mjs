@@ -21,6 +21,7 @@ import egcBsearch from '../egcBsearch.mjs';
 import verify from '../egcVerify.mjs';
 import EdgeGroups from '../EdgeGroups.mjs';
 import egcRandomCase from '../egcRandomCase.mjs';
+import { randomGraph } from '../../../graphAlgorithms/misc/RandomGraph.mjs';
 
 let algomap = {
 	'simple' : ['simple ', simple, verify ],
@@ -37,16 +38,26 @@ let algomap = {
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
-let eg = new EdgeGroups();
+let g1 = randomGraph(10,2.5);
+let g2 = randomGraph(10,2.5);
+g1.floor = g1.weight;
+g1.floor(g1.first(),3);
+console.log(g1.floor, g1.toString());
+console.log(g2.floor, g2.toString());
 
-//eg = egcRandomCase(3,4,21,1,1, 5,4);
-//console.log(eg.toString(1));
-eg = egcRandomCase(40,20,40,15,1, 22,21);
+
+let [eg,lb,ub] = egcRandomCase(4,3,12,3,[2,1], 5,4);
+console.log(eg.toString(1),lb,ub);
+//eg = egcRandomCase(40,20,40,15,1, 22,21);
 
 /*
+
+
+let eg = new EdgeGroups();
 eg.fromString('{a[(e k o p) (f g j m) (l)] b[(e n o p) (h k) (m i l)] c[(f) (h k g j m) (i l n)] d[(e i o p) (f g h) (j n)]}');
 tester.addTest('small example', eg);
 
+// egcRandomCase(ni, gd, no=ni, od=gd, reg=1, Cmax=0, Bmax=0, speedup=1)
 eg = egcRandomCase(4,3,12,3,1,3);
 tester.addTest('small random (4,3,12,3,1,4)', eg);
 
@@ -56,8 +67,8 @@ tester.addTest('smallish random +0 (5,4,15,4,1,4)', eg);
 eg = egcRandomCase(5,4,15,4,1,5);
 tester.addTest('smallish random +1 (5,4,15,4,1,5)', eg);
 
-eg = egcRandomCase(5,4,15,4,3,5);
-tester.addTest('smallish random irregular +1 (5,4,15,4,3,5)', eg);
+eg = egcRandomCase(5,4,15,4,[2,3],5);
+tester.addTest('smallish random irregular +1 (5,4,15,4,[2,3],5)', eg);
 
 eg = egcRandomCase(30,10,150,10,1,10);
 tester.addTest('medium random +0 (30,10,150,10,1,10)', eg);

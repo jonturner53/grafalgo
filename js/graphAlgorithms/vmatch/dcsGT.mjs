@@ -39,8 +39,8 @@ export default function dcsGT(g, hi, lo=0, trace=0) {
 							`${g.x2s(u)}(${hi[u]}${lo ? ','+lo[u] : ''})`);
 	}
 
-	let sub = !lo ? (g.hasWeights ? wudcs(g,hi)   : udcs(g,hi)  ) :
-					(g.hasWeights ? wdcs(g,hi,lo) : dcs(g,hi,lo));
+	let sub = !lo ? (g.weight ? wudcs(g,hi)   : udcs(g,hi)  ) :
+					(g.weight ? wdcs(g,hi,lo) : dcs(g,hi,lo));
 	if (sub == null)
 		return [null, 'infeasible degree bounds', {}];
 
@@ -86,10 +86,11 @@ function udcs(g, hi, isub=0) {
  */
 function match2sub(match, g) {
 	let sub = new Graph(g.n,g.edgeRange);
+	if (g.weight) sub.addEdgeProperty('weight', 0);
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (match.contains(e)) {
 			sub.join(g.left(e), g.right(e), e);
-			if (g.hasWeights) sub.weight(e, g.weight(e));
+			if (g.weight) sub.weight(e, g.weight(e));
 		}
 	}
 	steps += match.size();
@@ -109,6 +110,7 @@ function match2sub(match, g) {
  */
 function wudcs(g, hi, complete=false) {
 	let tg = tutteGraph(g,hi);
+	if (g.weight) tg.addEdgeProperty('weight', 0);
 	let W = maxweight(g);
 	for (let e = tg.first(); e; e = tg.next(e)) {
 		if (!g.validEdge(e)) tg.weight(e, W+1);
@@ -162,10 +164,11 @@ function wdcs(g, hi, lo) {
 
 	// extract g's edges from cdcs
 	let sub = new Graph(g.n, g.edgeRange);
+	if (g.weight) sub.addEdgeProperty('weight', 0);
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (cdcs.validEdge(e)) {
 			sub.join(g.left(e), g.right(e), e);
-			if (g.hasWeights) sub.weight(e, g.weight(e));
+			if (g.weight) sub.weight(e, g.weight(e));
 		}
 	}
 	return sub;
@@ -224,14 +227,14 @@ export function tutteGraph(g,hi) {
  */
 export function gabowGraph(g, hi, lo) {
 	// determine size of Gabow Graph and instantiate it
-	let n = 2*g.n; let m = 2*g.m;
+	let n = 2*g.n; let m = g.edgeRange + g.m;
 	for (let u = 1; u <= g.n; u++) {
 		n += 2 * (hi[u] - lo[u]); m += 3 * (hi[u] - lo[u]);
 	}
 	steps += g.n;
 
-	if (m >= g.edgeRange ? m : g.edgeRange);
 	let gg = new Graph(n,m);
+	if (g.weight) gg.addEdgeProperty('weight', 0);
 
 	// first copy of g uses same edge numbers as g and inherits weights
 	for (let e = g.first(); e; e = g.next(e)) {

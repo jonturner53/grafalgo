@@ -13,31 +13,25 @@ import LazyHeaps from '../LazyHeaps.mjs';
 
 try {
 	console.log('testing LazyHeaps');
-{
-let lazy = new LazyHeaps();
-lazy.fromString('{[a:2 b:4 c:1 d:3] [e:4 f:1 g:5 h:3] ' +
-                '[i:2 j:5 k:1 l:5 m:3]}');
-let h = lazy.lazyMeld (1,6); h = lazy.lazyMeld(h,11);
-console.log(lazy.toString(0x1e));
-}
 
-	let lh = new LazyHeaps();
-	matches(lh.fromString('{[a:1 b:2 c:3 d:4] [h:8 g:7 j:10 i:9 e:5 f:6]}'),
-			true, 'a0');
+	let lh = LazyHeaps.fromString(
+					'{[a:1 b:2 c:3 d:4] [h:8 g:7 j:10 i:9 e:5 f:6]}');
+	matches(!!lh, true, 'a0');
 	matches(lh, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 e:5 f:6]}', 'a1');
 	let [min,h] = lh.deletemin(5);
 	matches(min, 5, 'a2'); matches(h, 6, 'a3');
 	matches(lh, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] e:5}', 'a4');
 
-	let lh2 = new LazyHeaps();
-	matches(lh2.fromString(
-				'{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] e:5}'), true, 'a5');
+	let lh2 = LazyHeaps.fromString(
+				'{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 f:6] e:5}');
+	matches (!!lh2, true, 'a5');
 	matches(lh, lh2, 'a6');
 
 	lh.meld(lh.find(1), lh.find(6));
 	matches(lh, '{[b:2 a:1 d:4 c:3 h:8 g:7 j:10 i:9 f:6] [e:5]}', 'a7');
 	lh.clear();
-	for (let i = 1; i <= lh.n/2; i ++) lh.key(i, i);
+
+	for (let i = 1; i <= lh.n; i ++) lh.key(i, i);
 	let r = lh.lazyMeld(1, 2);
 		r = lh.lazyMeld(r, 3);
 		r = lh.lazyMeld(r, 4);

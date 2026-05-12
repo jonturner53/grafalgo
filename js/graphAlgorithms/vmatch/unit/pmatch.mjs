@@ -72,9 +72,8 @@ if (!ea) {
 }
 
 // general graphs
-g = new Graph();
-g.fromString('{a[b d f] b[a g] c[e h] d[a f] e[c f g] f[a d e] ' +
-			 'g[b e h] h[c g]}');
+g = Graph.fromString('{a[b d f] b[a g] c[e h] d[a f] e[c f g] f[a d e] ' +
+			 		 'g[b e h] h[c g]}');
 prio = [0,1,2,0,3,0,3,0,2,0,2];
 tester.addTest('small graph', g, prio);
 
@@ -83,7 +82,9 @@ prio = new Int32Array(g.n+1);
 randomFill(prio, p => randomInteger(0,2));
 tester.addTest('small random graph (25,4)', g, prio);
 
-let wg = new Graph(); wg.assign(g);
+let wg = new Graph(g.n, g.edgeRange); 
+for (let e = g.first(); e; e = g.next(e))
+	wg.join(g.left(e), g.right(e), e);
 wg.randomWeights(randomInteger,0,3);
 tester.addTest('small random graph with weights (25,4)', wg, prio);
 

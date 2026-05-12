@@ -24,11 +24,14 @@ import Matching from '../match/Matching.mjs';
  *  @exceptions throws an exception if graph is not bipartite
  */
 export default function pmatchO(G, prio, trace=false) {
-	let g = new Graph(G.n, G.edgeRange); g.assign(G);
-	
+	let g = new Graph(G.n, G.edgeRange); // working copy
+	g.addEdgeProperty('weight', 0);
 	let W = 0;
-	for (let e = g.first(); e; e = g.next(e))
-		W = Math.max(W,g.weight(e));
+	for (let e = G.first(); e; e = G.next(e)) {
+		g.join(G.left(e), G.right(e), e);
+		if (G.weight) g.weight(e, G.weight(e));
+		W = Math.max(W, g.weight(e));
+	}
 	if (W == 0) W = 1;
 	for (let e = g.first(); e; e = g.next(e)) {
 		let [u,v] = [g.left(e),g.right(e)];
@@ -53,6 +56,6 @@ export default function pmatchO(G, prio, trace=false) {
 		if (match.at(u)) psum += prio[u];
 	let stats = { 'size': match.size(), 'psum': psum,
 				  'steps': stats0.steps + g.n};
-	if (G.hasWeights) stats.weight = match.weight();
+	if (G.weight) stats.weight = match.weight();
 	return [match, ts, stats];
 }

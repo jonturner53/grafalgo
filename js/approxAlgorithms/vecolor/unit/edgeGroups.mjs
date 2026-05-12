@@ -15,11 +15,11 @@ import egcRandomCase from '../egcRandomCase.mjs';
 try {
 	console.log('testing edgeGroups');
 
-	let gg = new Graph();
-	let eg = new EdgeGroups(gg);
-	matches(eg.fromString('{a[(f i l) (g k) (e)] b[(i l) (h j) (g k)] ' +
-						  'c[(f h j) (e) (g h)] d[(f i) (e j) (k l)]}'),
-						  true, 'a0');
+	let eg = EdgeGroups.fromString(
+						'{a[(f i l) (g k) (e)] b[(i l) (h j) (g k)] ' +
+						'c[(f h j) (e) (g h)] d[(f i) (e j) (k l)]}',
+						12, 12, 4, 12);
+	matches(!!eg, true, 'a0');
 	matches(eg.toString(), '{a[(f i l) (g k) (e)] b[(i l) (h j) (g k)] ' +
                            'c[(f h j) (e) (g h)] d[(f i) (e j) (k l)]}', 'a1');
 	matches(eg,'{a[(f i l)A (g k)B (e)C] b[(i l)D (h j)E (g k)F] ' +
@@ -33,13 +33,23 @@ try {
 				'c[(f h j g) (e)] d[(f i)J (e j)K (k l)L]}', 'a5');
 		// explicit group ids required at d, since old group I is gone
 
-	eg = egcRandomCase(100,50,500);
-	let stats = new Int32Array(21);
+	eg = EdgeGroups.fromString(
+						'{a[2(f i l) (g k) (e)] b[(i l) (h j) (g k)] ' +
+						'c[(f h j) 4(e) (g h)] d[(f i) 3(e j) (k l)]}',
+						12, 12, 4, 12);
+	matches(!!eg, true, 'a6');
+	matches(eg.toString(), '{a[2(f i l) (g k) (e)] b[(i l) (h j) (g k)] ' +
+                           'c[(f h j) 4(e) (g h)] d[(f i) 3(e j) (k l)]}','a7');
+
+/* checking out distribution of random group fanouts
+	[eg] = egcRandomCase(100,50,500);
+	let stats = new Int32Array(31);
 	for (let g = eg.firstGroup(); g; g = eg.nextGroup(g)) {
-		if (eg.fanout(g) < 20) stats[eg.fanout(g)]++;
-		else stats[20]++;
+		if (eg.fanout(g) < 30) stats[eg.fanout(g)]++;
+		else stats[30]++;
 	}
 	console.log('random(100,50,500) fanout stats:', stats);
+*/
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

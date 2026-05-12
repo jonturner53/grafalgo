@@ -28,8 +28,9 @@ let algomap = {
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
-let weight = [0,3,7,4,8]; let g = new Graph();
-g.fromString('{a[e h j m p] b[f g i n o] c[g k l m p] d[f h k l o]}');
+let weight = [0,3,7,4,8];
+let g = Graph.fromString('{a[e h j m p] b[f g i n o] c[g k l m p] ' +
+						 'd[f h k l o]}');
 g.setBipartition(4);
 tester.addTest('small set cover instance (4,12)', g, weight);
 

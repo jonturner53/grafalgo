@@ -24,7 +24,7 @@ import { randomGraph, randomBigraph } from '../../misc/RandomGraph.mjs';
 import ListPair from '../../../dataStructures/basic/ListPair.mjs';
 
 function verify(g, match) {
-	return g.hasWeights ? wmatchVerify(g,match) : matchVerify(g,match);
+	return g.weight ? wmatchVerify(g,match) : matchVerify(g,match);
 }
 
 let algomap = {
@@ -34,25 +34,25 @@ let algomap = {
 			}, verify],
 	'HK' : ['bimatchHK',
 			(g,trace) => {
-				return g.hasBipartition && !g.hasWeights ?
+				return g.hasBipartition && !g.weight ?
 							bimatchHK(g,0,trace) : null;
  			}, matchVerify],
 	'H' : ['wbimatchH',
 			(g,trace) => {
-				return g.hasBipartition && g.hasWeights ?
+				return g.hasBipartition && g.weight ?
 					   wbimatchH(g,trace) : null;
  			}, wmatchVerify],
 	'EG' : ['matchEG',
 			 (g,trace) => {
-				return !g.hasWeights ? matchEG(g,0,trace) : null;
+				return !g.weight ? matchEG(g,0,trace) : null;
 			 }, matchVerify],
 	'E' : ['wmatchE',
 			 (g,trace) => {
-				return g.hasWeights ? wmatchE(g,trace) : null;
+				return g.weight ? wmatchE(g,trace) : null;
 			 }, wmatchVerify],
 	'GMG' : ['wmatchGMG',
 			 (g,trace) => {
-				return g.hasWeights ? wmatchGMG(g,trace) : null;
+				return g.weight ? wmatchGMG(g,trace) : null;
 			 }, wmatchVerify]
 }
 
@@ -60,8 +60,7 @@ let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
 // unweighted bigraphs
-let g = new Graph();
-g.fromString('{a[f g j] b[h g i] c[f i j] d[g h f] e[h i j]}');
+let g = Graph.fromString('{a[f g j] b[h g i] c[f i j] d[g h f] e[h i j]}');
 g.setBipartition();
 tester.addTest('small bigraph', g);
 
@@ -78,9 +77,8 @@ g = randomBigraph(400, 50);
 tester.addTest('large/denser random weighted bigraph (400,50)', g);
 	
 // weighted bigraphs
-g = new Graph();
-g.fromString('{a[f:3 g:2 j:1] b[h:2 g:3 i:6] c[f:1 i:6 j:1] ' +
-			  'd[g:1 h:2 f:1] e[h:2 i:5 j:3]}');
+g = Graph.fromString('{a[f:3 g:2 j:1] b[h:2 g:3 i:6] c[f:1 i:6 j:1] ' +
+				     'd[g:1 h:2 f:1] e[h:2 i:5 j:3]}');
 g.setBipartition();
 tester.addTest('small weighted bigraph', g);
 
@@ -91,9 +89,8 @@ g = randomBigraph(100, 3); g.randomWeights(randomInteger, 1, 99);
 tester.addTest('medium random weighted bigraph (100,3)', g);
 	
 // unweighted general graphs
-g = new Graph();
-g.fromString('{a[b h j k] b[f g j p] c[f m] d[g] e[f g i n] f[l o p] ' +
-			  'g[k o] k[a g] l[o] m[o p]}');
+g = Graph.fromString('{a[b h j k] b[f g j p] c[f m] d[g] e[f g i n] f[l o p] ' +
+	 				 'g[k o] k[a g] l[o] m[o p]}');
 tester.addTest('small graph', g);
 
 g = randomGraph(20,3);
@@ -117,10 +114,9 @@ if (!ea) {
 }
 
 // weighted general graphs
-g = new Graph();
-g.fromString('{a[b:3 h:1 j:3 k:3] b[f:2 g:1 j:3 p:2] c[f:1 m:1] ' +
-			  'd[g:2] e[g:3 i:2 n:1] f[l:2 o:3 p:1] g[k:1 o:1] ' +
-			  'k[p:3] l[o:1] m[o:2 p:1] }');
+g = Graph.fromString('{a[b:3 h:1 j:3 k:3] b[f:2 g:1 j:3 p:2] c[f:1 m:1] ' +
+			  		 'd[g:2] e[g:3 i:2 n:1] f[l:2 o:3 p:1] g[k:1 o:1] ' +
+			  		 'k[p:3] l[o:1] m[o:2 p:1] }');
 tester.addTest('small weighted graph', g);
 
 g = randomGraph(20,3); g.randomWeights(randomInteger,1,9);

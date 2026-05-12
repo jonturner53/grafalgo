@@ -38,28 +38,6 @@ export default class LeftistHeaps extends BinaryForest {
 	    this.clearStats();
 	}
 
-	/** Assign a new value by copying from another heap.
-	 *  @param that is another LeftistHeaps object
-	 */
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-		for (let r = 1; r <= that.n; r++) {
-			if (that.p(r)) continue;
-			let rr = that.first(r);
-			for (let u = that.next(rr); u; u = that.next(u))
-				rr = this.insert(u, rr, that.key(u));
-		}
-	}
-
-	/** Assign a new value by transferring from another heap.
-	 *  @param h is another heap
-	 */
-	xfer(that) {
-		super.xfer(that);
-		this.Key = that.Key; this.Rank = that.Rank;
-		that.Key = that.Rank = null;
-	}
-
 	/** Revert to initial state. */
 	clear() {
 		super.clear();
@@ -160,8 +138,9 @@ export default class LeftistHeaps extends BinaryForest {
 	 *  or a string representing an LeftistHeaps object.
 	 *  @return true, false or an object
 	 */
-	equals(that, consArgs=[this.n]) {
-		that = super.setEquals(that, consArgs);
+	equals(that) {
+		that = super.setEquals(...(arguments.length==1 ?
+									[that,this.n]:arguments));
         if (typeof that == 'boolean') return that;
 		for (let i = 1; i <= this.n; i++) {
 			if (this.key(i) != that.key(i)) return false;
@@ -192,9 +171,9 @@ export default class LeftistHeaps extends BinaryForest {
 	 *  @param s is a string representing a heap.
 	 *  @return true on if success, else false
 	 */
-	fromString(s) {
-		let ls = new ListSet(); let key = [];
-		if (!ls.fromString(s, (u,sc) => {
+	static fromString(s, n=10) {
+		let key = [];
+		let ls = ListSet.fromString(s, n, (u,sc) => {
 							if (!sc.verify(':',0)) {
 								key[u] = 0; return true;
 							}
@@ -202,18 +181,18 @@ export default class LeftistHeaps extends BinaryForest {
 							if (Number.isNaN(p)) return false;
 							key[u] = p;
 							return true;
-						}))
-			return false;
-		this.reset(ls.n);
+						});
+		if (!ls) return null;
+		let lh = new LeftistHeaps(ls.n);
 
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
-			this.key(u, key[u]);
+			lh.key(u, key[u]);
 			let h = u;
 			for (let i = ls.next(u); i; i = ls.next(i))
-				h = this.insert(i, h, key[i]);
+				h = lh.insert(i, h, key[i]);
 		}
-		return true;
+		return lh;
 	}
 
 	getStats() {

@@ -13,9 +13,9 @@ import { matches, Mismatch } from '../../../common/Testing.mjs';
 try {
 	console.log('testing Dynamic Trees');
 
-	let dt = new DynamicTrees();
-
-	dt.fromString('{[c:4(f:2(a:5 b:1))] [e:4(g:3(d:2 i:3(h:2)))]}');
+	let dt = DynamicTrees.fromString(
+				'{[c:4(f:2(a:5 b:1))] [e:4(g:3(d:2 i:3(h:2)))]}', 9);
+	matches(!!dt, true, 'a0');
 	matches(dt, '{[c:4(f:2(a:5 b:1))] [e:4(g:3(d:2 i:3(h:2)))]}', 'a1');
 	matches(dt.toString(0x12),
 				'{[a:5]f [b:1]f c:4 [d:2]g e:4 [f:2]c ' +

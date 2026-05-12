@@ -14,10 +14,9 @@ import {randomFlograph} from '../../../graphAlgorithms/misc/RandomGraph.mjs';
 try {
 	console.log('testing Flograph');
 
-	let g = new Flograph(6, 20);
-	matches(g.fromString('{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ' +
-						 '->f}'),
-		   true,'a00');
+	let g = Flograph.fromString('{a->[b:4 c:3] b[c:3 d:4] c[e:4] ' +
+							 'd[f:4] e[f:3] ' + '->f}', 6);
+	matches(!!g, true, 'a00');
 	matches(g.toString(),
 		   '{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}', 'a0');
 	matches(g, '{a->[b:4 c:3] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}', 'a1');
@@ -30,12 +29,13 @@ try {
 	g.addFlow(e2, 1, 2); g.addFlow(e1, 2, 2);
 	matches(g, '{a->[b:4/1 c:3/2] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}', 'a6');
 	matches(g.totalFlow(), 3, 'a7');
-	g.cost(1, 5);
-	matches(g, '{a->[b:4@5/1 c:3/2] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}',
-			   'a8');
-	matches(g.fromString('{a->[b:4@5/1 c:3/2] b[c:3@7 d:1-4@3/2] c[e:4] ' +
-						'd[f:2-4/2] e[f:3] ->f}'), true, 'a9');
-	matches(g,	'{a->[b:4@5/1 c:3/2] b[c:3@7 d:1-4@3/2] c[e:4] ' +
+	g.addEdgeProperty('cost', 0); g.cost(g.findEdge(1,2), 5);
+	matches(g, '{a->[b:4@5/1 c:3/2] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}','a8');
+	g = Flograph.fromString('{a->[b:4@5/1 c:3/2] b[c:3@7 d:1-4@3/2] c[e:4] ' +
+                        'd[f:2-4/2] e[f:3] ->f}');
+	matches(!!g, true, 'a9');
+	g.floor(g.findEdge(1,3), 1);
+	matches(g,	'{a->[b:4@5/1 c:1-3/2] b[c:3@7 d:1-4@3/2] c[e:4] ' +
 				'd[f:2-4/2] e[f:3] ->f}', 'a10');
 } catch(e) {
     if (e instanceof Mismatch) {

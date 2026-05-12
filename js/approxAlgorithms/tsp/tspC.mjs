@@ -24,9 +24,12 @@ export default function tspC(g, trace=0) {
 	let traceString = '';
 	if (trace) traceString += `graph: ${g.toString(1)}\n`;
 
+	if (!g.weight)
+		g.weight = g.length; // adding an alias for length method
+
 	let [mst] = mstP(g);
 	ea && assert(mst.length == g.n-1);
-	let mstWeight = 0; for (let e of mst) mstWeight += g.length(e);
+	let mstWeight = 0; for (let e of mst) mstWeight += g.weight(e);
 	if (trace)
 		traceString += `mst: ${g.elist2string(mst,0,0,1)} ${mstWeight}\n`;
 
@@ -55,9 +58,7 @@ export default function tspC(g, trace=0) {
 	for (let e = match.first(); e; e = match.next(e)) {
 		h.join(match.left(e),match.right(e));
 	}
-	//if (trace) traceString += `eulerian graph: ${h.toString(1)}\n`;
-	// verify that h is eulerian
-	for (let u = 1; u <= h.n; u++) { ea && assert((h.degree(u)&1)  == 0); }
+	if (trace) traceString += `eulerian graph: ${h.toString(1)}\n`;
 
 	// compute euler tour (List of edges) and then shortcutTour
 	// (List of vertices in tsp tour)
@@ -92,7 +93,7 @@ export default function tspC(g, trace=0) {
  */
 function allpairs(g) {
 	// convert g to equivalent digraph dg and compute shortest paths in dg
-	let dg = new Digraph(g.n, Math.min(2*g.edgeRange+1));
+	let dg = new Digraph(g.n, Math.min(2*g.edgeRange+1), 'length', 0);
 	for (let e = g.first(); e; e = g.next(e)) {
 		let de = dg.join(g.left(e), g.right(e), 2*e);
 					dg.length(de, g.length(e));
@@ -117,7 +118,8 @@ function allpairs(g) {
  *  minimum weight matching on graph mg
  */
 function matchpairs(g, vset, dist) {
-	let mg = new Graph(g.n,g.edgeRange); let maxWt = 0;
+	let mg = new Graph(g.n, vset.length*(vset.length-1)/2, 'weight', 0);
+	let maxWt = 0;
 	for (let u = vset.first(); u; u = vset.next(u)) {
 		for (let v = vset.next(u); v; v = vset.next(v)) {
 			ea && assert(dist[u][v] >= 0 && dist[u][v] != Infinity);
@@ -144,7 +146,9 @@ function matchpairs(g, vset, dist) {
  *  listed contiguously.
  */
 function eulerTour(h0,u) {
-	let h = new Graph(); h.assign(h0); // working copy that can be deconstructed
+	let h = new Graph(h0.n, h0.edgeRange); // working copy 
+	for (let e = h0.first(); e; e = h0.next(e))
+		h.join(h0.left(e), h0.right(e), e);
 	let tour = new List(h.edgeRange);
 	let visited = new List(h.n);
 	let arrivalEdge = new Int32Array(h.n+1);

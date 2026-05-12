@@ -32,13 +32,15 @@ export default function bidcsF(g, hi, lo=0, trace=0) {
 	let steps = 0;
 
 	// create flow graph, taking care to maintain edge numbers
-	let fg = new Flograph(g.n+2, g.n+g.edgeRange); fg.hasFloors = 1;
+	let fg = new Flograph(g.n+2, g.n+g.edgeRange);
+	fg.addEdgeProperty('floor', 0);
+	if (g.weight) fg.addEdgeProperty('cost', 0);
 	fg.source = g.n+1; fg.sink = g.n+2;
 	for (let e = g.first(); e; e = g.next(e)) {
 		steps++;
 		let u = (g.isInput(g.left(e),1) ? g.left(e) : g.right(e));
 		fg.join(u,g.mate(u,e),e); fg.cap(e,1);
-		if (g.hasWeights) fg.cost(e, -g.weight(e));
+		if (g.weight) fg.cost(e, -g.weight(e));
 	}
 	for (let u = g.firstInput(); u; u = g.nextInput(u)) {
 		steps++;
@@ -56,25 +58,27 @@ export default function bidcsF(g, hi, lo=0, trace=0) {
 	if (lo) {
 		let [success,ts,stats] = flowfloor(fg, trace);
 		steps += stats.steps;
-		if (!success) return [null, 'unable to satisfy lower bounds', {}];
+		if (!success) return [null, 'unable to satisfy lower bounds',
+									{'steps': steps}];
 	}
 
-	//if (fg.hasCosts) ncrJEK(fg); // eliminate negative cost cycles
-	let [ts,stats] = fg.hasCosts ?  mcflowJEK(fg,1,trace) :
-									maxflowD(fg,trace);
+	let [ts,stats] = fg.cost ?  mcflowJEK(fg,1,trace) :
+								maxflowD(fg,trace);
 	steps += stats.steps;
 	if (trace)
 		ts = g.toString(1,0,u => `${g.x2s(u)}(${lo?lo[u]:0},${hi[u]})`) +
 			 '\nflow: ' + fg.toString(9);
 
 	// construct dcs from flow
-	let dcs = new Graph(g.n,g.edgeRange); let weight = 0;
+	let dcs = new Graph(g.n,g.edgeRange);
+	if (g.weight) dcs.addEdgeProperty('weight', 0);
+	let weight = 0;
 	dcs.setBipartition(g.getBipartition());
 	for (let e = g.first(); e; e = g.next(e)) {
 		steps++;
 		if (fg.f(e)) {
 			dcs.join(g.left(e),g.right(e),e);
-			if (g.hasWeights) {
+			if (g.weight) {
 				dcs.weight(e, g.weight(e));
 				weight += dcs.weight(e);
 			}

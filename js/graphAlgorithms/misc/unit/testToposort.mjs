@@ -15,12 +15,11 @@ import { randomDag } from '../RandomGraph.mjs';
 try {
 	console.log('testing toposort');
 
-	let g = new Digraph(6);
-	g.fromString('{a[b f] b[c e] c[] d[a c] e[c f] f[]}');
+	let g = Digraph.fromString('{a[b f] b[c e] c[] d[a c] e[c f] f[]}', 6);
 	let vlist = toposort(g);
 	matches(g.ilist2string(vlist), '[d a b e c f]', 'a1');
 
-	g = randomDag(100, 10); g.scramble();
+	g = randomDag(100, 10, 20); g.scramble();
 	vlist = toposort(g);
 	matches(vlist.length, g.n, 'a2');
 	

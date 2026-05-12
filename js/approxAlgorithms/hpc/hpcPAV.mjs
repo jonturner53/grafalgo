@@ -35,7 +35,9 @@ export default function hpcPAV(G, selectMax=1, s=0, t=0, trace=0) {
 					   `with selected edge\n`;
 	}
 
-	let g = new Graph(G.n,G.edgeRange); g.assign(G);
+	let g = new Graph(G.n,G.edgeRange);
+	for (let e = G.first(); e; e = G.next(e))
+		g.join(G.left(e), G.right(e), e);
 	let selectCount = new Int8Array(g.edgeRange+1);
 
 	let u = u0; let rotations = 0;

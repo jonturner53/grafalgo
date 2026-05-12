@@ -14,13 +14,13 @@ import ecolorVerify from '../../graphAlgorithms/ecolor/ecolorVerify.mjs';
  *  @return a string which is empty if the coloring is a proper
  *  edge coloring with the minimum number of colors, otherwise an error string
  */
-export default function becVerify(g,color) {
-	let s = ecolorVerify(g,color);
+export default function becVerify(g) {
+	let s = ecolorVerify(g);
 	if (s) return s;
 	for (let e = g.first(); e; e = g.next(e)) {
-		if (color[e] < g.bound(e)) 
-			return `color ${color[e]} of edge ${g.e2s(e)} ` +
-				   `violates its bound ${g.bound(e)}`;
+		if (g.color(e) < g.floor(e)) 
+			return `color ${g.color(e)} of edge ${g.e2s(e)} ` +
+				   `violates its floor ${g.floor(e)}`;
 	}
 	return '';
 }

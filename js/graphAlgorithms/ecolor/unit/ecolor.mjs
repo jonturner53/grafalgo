@@ -22,8 +22,7 @@ let algomap = {
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
-let g = new Graph();
-g.fromString('{ a[e i i] b[j j] c[f g k] d[e g h]}');
+let g = Graph.fromString('{ a[e i i] b[j j] c[f g k] d[e g h]}');
 g.setBipartition(4);
 tester.addTest('small graph', g);
 

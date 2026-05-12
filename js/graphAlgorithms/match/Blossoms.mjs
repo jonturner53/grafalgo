@@ -88,35 +88,6 @@ export default class Blossoms extends Top {
 		this.steps = 0;
 	}
 
-	/** Assign new value to this from another. 
-	 *  @param that is a Blossoms object
-	 */
-	assign(that) {
-		if (that == this) return;
-		if (that.g != this.g)
-			this.reset(that.g, that.match, that.outerMethod);
-		this.bsf.assign(that.subs);
-		this.ids.assign(that.ids);
-		for (let b = 0; b <= this.n; b++) {
-			this.Base[b] = that.Base[b];
-			this.State[b] = that.State[b];
-			this.Link[b] = that.Link[b];
-		}
-	}
-
-	/** Assign a new value to this, by transferring contents of another list.
-	 *  @param that is another Blossoms object
-	 */
-	xfer(that) {
-		if (that == this) return;
-		this._n = that.n;
-		this.g = that.g; this.match = that.match;
-		this.ids = that.ids;
-		this.State = that.State; this.Link = that.Link;
-		that.g = that.match = null;
-		that.subs = that.ids = that.State = that.Link = null;
-	}
-	
 	/** Restore to initial state. */
 	clear() {
 		this.bsf.clear();
@@ -566,7 +537,8 @@ Say grove?
 	 *  @param that is a Blossoms object to be compared to this
 	 */
 	equals(that) {
-		that = super.equals(that, [this.g, this.match, this.outerMethod]);
+		that = super.equals(...(arguments.length == 1 ?
+					[that, this.g, this.match, this.outerMethod] : arguments));
 		if ((typeof that) == 'boolean') return that;
 
 		if (!this.g.equals(that.g)) return false;
@@ -792,42 +764,42 @@ Say grove?
 	}
 
 	/** Initialize object from string. */
-	fromString(s) {
-		this.clear();
+	static fromString(s, g, match, outerMethod=0) {
+		let bloss = new Blossoms(g, match, outerMethod);
 		let sc = new Scanner(s);
 		if (!sc.verify('{')) return false;
 		// scan blossom structure forest
 		if (!sc.verify('{')) return false;
 		while (!sc.verify('}')) {
 			if (!sc.verify('[')) return false;
-			if (!this.nextBlossom(sc,0)) return false;
+			if (!bloss.nextBlossom(sc,0)) return false;
 			if (!sc.verify(']')) return false;
 		}
 		// set base values, consistent with blossom structure and matching;
 		// also state values
-		for (let b = this.firstOuter(); b; b = this.nextOuter(b)) {
-			if (b <= this.g.n) this.base(b, b);
-			else this.base(b, this.firstIn(b));
-			this.state(b,+1);
+		for (let b = bloss.firstOuter(); b; b = bloss.nextOuter(b)) {
+			if (b <= bloss.g.n) bloss.base(b, b);
+			else bloss.base(b, bloss.firstIn(b));
+			bloss.state(b,+1);
 		}
 		let matched = new Set();
-		for (let e = this.match.first(); e; e = this.match.next(e)) {
-			let [u,v] = [this.g.left(e), this.g.right(e)];
-			let U = this.outer(u); let V = this.outer(v);
+		for (let e = bloss.match.first(); e; e = bloss.match.next(e)) {
+			let [u,v] = [bloss.g.left(e), bloss.g.right(e)];
+			let U = bloss.outer(u); let V = bloss.outer(v);
 			if (U == V) continue;
 			if (matched.has(U) || matched.has(V)) return false;
 			matched.add(U); matched.add(V);
-			this.base(U, u); this.base(V, v);
-			this.state(U, 0); this.state(V, 0);
+			bloss.base(U, u); bloss.base(V, v);
+			bloss.state(U, 0); bloss.state(V, 0);
 		}
 		// scan alternating path forest
 		if (!sc.verify('{')) return false;
 		while (!sc.verify('}')) {
 			if (!sc.verify('[')) return false;
-			if (!this.nextTree(sc,0,true)) return false;
+			if (!bloss.nextTree(sc,0,true)) return false;
 			if (!sc.verify(']')) return false;
 		}
-		return true;
+		return bloss;
 	}
 
 	/** Scan for next blossom (including sub-blossoms).
@@ -854,7 +826,7 @@ Say grove?
 
 		// recursive calls on sub-blossoms of b
 		let cnt = 0;
-		let subs = new List(this.n);
+		let subs = new List(this.n, 'value', 0);
 			// list of sub-blossoms with attachment points
 		while (!sc.verify(')')) {
 			let label = this.nextBlossom(sc, B);
@@ -923,7 +895,6 @@ Say grove?
 		if (b <= this.g.n) x = y = b;
 		return [x,b,y];
 	}
-
 
 	/** Scan for next tree (including sub-trees).
 	 *  @param sc is a scanner

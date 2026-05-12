@@ -33,27 +33,6 @@ export default class Forest extends Top {
 		this.steps = 0;
 	}
 
-	/** Assign one Forest to another.
-	 *  @param that is another Forest that is to replace this one.
-	 */
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-		for (let u = 1; u <= that.n; u++) {
-			for (let c = that.firstChild(u); c; c = that.nextSibling(c)) {
-				this.link(c,u);
-			}
-		}
-	}
-
-	/** Assign one Forest to another by transferring its contents.
-	 *  @param that is another Forest that is to replace this one.
-	 */
-	xfer(that) {
-		super.xfer(that);
-		this.Sibs = that.Sibs; this.P = that.P; this.C = that.C;
-		that.Sibs = that.P = that.C = null;
-	}
-
 	/** Convert all trees to singletons. */
 	clear() {
 		this.Sibs.clear(); this.P.fill(0); this.C.fill(0);
@@ -175,7 +154,7 @@ export default class Forest extends Top {
 		this.P[u] = 0;
 	}
 
-	/** Merte two groves.
+	/** Merge two groves.
 	 *  @param g1 is the identifier of some grove
 	 *  @param g2 is the identifier of another grove
 	 *  @return the identifier of the grove obtained by combining the two
@@ -207,7 +186,8 @@ export default class Forest extends Top {
 	 *  and the order of trees within groves does not affect equality
 	 */
 	equals(that) {
-		that = super.equals(that);
+		that = super.equals(...(arguments.length == 1 ?
+								[that, Math.max(10, this.n)] : arguments));
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -250,7 +230,8 @@ export default class Forest extends Top {
 	 *  otherwise return false
 	 */
 	listEquals(that) {
-		that = super.equals(that);
+		that = super.equals(...(arguments.length==1 ?
+							[that, this.n] : arguments));
 		if (typeof that == 'boolean') return that;
 		// that is now an object that can be compared to this
 		for (let r1 = 1; r1 <= this.n; r1++) {
@@ -338,16 +319,16 @@ export default class Forest extends Top {
 	 *  @param s is a string representing a forest
 	 *  @return true on success, else false
 	 */
-	fromString(s, prop=0) {
+	static fromString(s, n=10, prop=0) {
 		let sc = new Scanner(s);
-		if (!sc.verify('{')) return false;
-		let n = 0; let items = new Set();
+		if (!sc.verify('{')) return null;
+		let items = new Set();
 		let pmap = new Array(); // pairs [u,p] where p is parent of u
 		let smap = new Array(); // pairs [t,g] where g is grove containing t
 		while (!sc.verify('}')) {
 			if (!sc.verify('[')) {
 				let pair = this.nextSubtree(sc, items, pmap, prop);
-				if (pair == null) return false;
+				if (pair == null) return null;
 				let [t,nt] = pair;
 				pmap.push([t,0]);
 				n = Math.max(n, nt);
@@ -358,7 +339,7 @@ export default class Forest extends Top {
 			let firstTree = 0;
 			while (!sc.verify(']')) {
 				let pair = this.nextSubtree(sc, items, pmap, prop);
-				if (pair == null) return false;
+				if (pair == null) return null;
 				let [t,nt] = pair;
 				pmap.push([t,0]);
 				n = Math.max(n, nt);
@@ -366,17 +347,16 @@ export default class Forest extends Top {
 				smap.push([t,firstTree]);
 			}
 		}
-		this.reset(n);
-		
+		let f = new Forest(n);
 		for (let pair of pmap) {
 			let [u,v] = pair;
-			if (v) this.link(u,v);
+			if (v) f.link(u,v);
 		}
 		for (let p of smap) {
 			let [t,g] = p;
-			if (t) this.combineGroves(g,t);
+			if (t) f.combineGroves(g,t);
 		}
-		return true;
+		return f;
 	}
 
 	/** Scan the input for a subtree and compute node to parent map.
@@ -388,14 +368,14 @@ export default class Forest extends Top {
 	 *  in the input and n is the maximum index in t
 	 *  or null if no valid subtree in scanned string.
 	 */
-	nextSubtree(sc, items, pmap, prop=0) {
+	static nextSubtree(sc, items, pmap, prop=0) {
 		let t = sc.nextIndex(prop);
 		if (t < 0 || items.has(t)) return null;
 		items.add(t);
 		if (!sc.verify('(')) return [t,t];
 		let n = t;
 		while (!sc.verify(')')) {
-			let pair = this.nextSubtree(sc, items, pmap, prop);
+			let pair = Forest.nextSubtree(sc, items, pmap, prop);
 			if (pair == null) return null;
 			let [v,nv] = pair;
 			pmap.push([v,t]);

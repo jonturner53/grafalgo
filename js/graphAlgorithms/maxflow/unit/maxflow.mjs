@@ -24,12 +24,12 @@ import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomFlograph } from '../../misc/RandomGraph.mjs';
 
 function run(g, trace, f) {
-	if (g.hasFloors) return null;
+	if (g.floor) return null;
 	g.clearFlow(); return f(g,trace);
 }
 
 function ff(g, trace) {
-	if (!g.hasFloors) return null;
+	if (!g.floor) return null;
 	g.clearFlow();
 	let [success, ts, stats] = flowfloor(g, trace);
 	if (!success) throw new Proceed('cannot satisfy min flow requirements');
@@ -61,7 +61,7 @@ let algomap = {
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
-let g = new Flograph(); g.fromString(
+let g = Flograph.fromString(
 			'{a->[b:5 d:6] b[c:3 d:7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
 			'e[f:1 g:3 h:4] f[e:1 g:2 h:3] g[e:3 f:2 h:1] ' +
 			'h[f:3 i:4 j:5] i[g:5 j:6] ->j[]}');
@@ -84,13 +84,13 @@ g = maxflowHardcase(15, 15);
 g = maxflowHardcase(30, 30);
 !ea && tester.addTest(`hardcase(30,30) n=${g.n} m=${g.m}`, g);
 
-g = new Flograph(); g.fromString(
+g = Flograph.fromString(
 	'{a->[b:3 d:2] b[c:3 d:2-7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
 	'e[f:1 g:3 h:1-4] f[e:1 g:2 h:3] g[e:3 f:2-7 h:1] ' +
 	'h[f:3 i:4 j:2] i[g:2-5 j:6] ->j[]}');
 tester.addTest('small graph with floors', g);
 
-g = new Flograph(); g.fromString(
+g = Flograph.fromString(
 	'{a->[b:3 d:2] b[c:3 d:2-7@2 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
 	'e[f:1 g:3 h:1-4@-1] f[e:1 g:2@-3 h:3] g[e:3 f:2-7@4 h:1] ' +
 	'h[f:3 i:4@1 j:2] i[g:2-5 j:6] ->j[]}');

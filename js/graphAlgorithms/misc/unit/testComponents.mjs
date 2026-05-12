@@ -33,9 +33,8 @@ function basicTests(trace=false) {
 	try {
 		console.log('testing components');
 	
-		let g = new Graph(10);
-		g.fromString('{a[b d e] b[a c f] c[b d f] d[a c e] e[a d] f[b c] ' +
-					 'g[h] h[g i] i[h]}');
+		let g = Graph.fromString('{a[b d e] b[a c f] c[b d f] d[a c e] ' +
+								 'e[a d] f[b c] g[h] h[g i] i[h]}', 9);
 	
 		let [k, ls, ts] = components(g, trace);
 		matches(k, 2, 'a1');

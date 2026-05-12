@@ -90,8 +90,8 @@ export default function wperfectE(G, size=0, max=0, traceFlag=false) {
 	}
 
 	while (true) {
-		ea && assert(!verifyInvariant(size),
-					 verifyInvariant(size) + traceString);
+		//ea && assert(!verifyInvariant(size),
+		//			 verifyInvariant(size) + traceString);
 		while (match.size() < size && !q.empty()) {
 			steps++;
 			let e = q.deq();

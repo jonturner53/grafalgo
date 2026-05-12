@@ -42,35 +42,6 @@ export default class OrderedHeaps extends BalancedForest {
 		this.offset = new Float32Array(this.n+1)
 	}
 
-	/** Assign a new value by copying from another OrderedHeaps object.
-	 *  @param that is another OrderedHeap 
-	 */
-	assign(that) {
-		if (that == this || (!that instanceof OrderedHeaps)) return;
-		if (that.n != this.n) this.reset(that.n);
-		else this.clear();
-
-		for (let h = 1; h <= that.n; h++) {
-			if (that.p(h)) continue;
-			let hh = that.first(h);
-			for (let u = that.next(hh); u; u = that.next(u))
-				hh = this.insertAfter(u, that.key(u,h), that.prev(u), hh);
-		}
-		this.clearStats();
-	}
-
-	/** Assign a new value by transferring from another OrderedHeaps object.
-	 *  @param that is another OrderedHeaps
-	 */
-	xfer(that) {
-		if (that == this) return;
-		super.xfer(that);
-		this.Key = that.Key; this.Minkey = that.Minkey;
-		this.offset = that.offset;
-		that.Key = that.Minkey = that.offset = null;
-		this.clearStats();
-	}
-
 	/** Clear heaps, converting them to singletons.
 	 *  @param h is a heap; if non-zero, the specified heap is cleared,
 	 *  otherwise all are.
@@ -272,7 +243,8 @@ export default class OrderedHeaps extends BalancedForest {
 	 *  @return true, false or an object
 	 */
 	equals(that) {
-		that = super.listEquals(that);
+		that = super.listEquals(...(arguments.length==1 ?
+								[that,this.n]:arguments));
         if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -311,9 +283,9 @@ export default class OrderedHeaps extends BalancedForest {
 	 *  @param s is a string representing a heap.
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
-		let ls = new ListSet(); let key = [];
-		ls.fromString(s, (u,sc) => {
+	static fromString(s, n=10) {
+		let key = [];
+		let ls = ListSet.fromString(s, n, (u,sc) => {
 							if (!sc.verify(':',0)) {
 								key[u] = 0; return true;
 							}
@@ -322,19 +294,20 @@ export default class OrderedHeaps extends BalancedForest {
 							key[u] = p;
 							return true;
 						});
-		this.reset(ls.n);
+		if (!ls) return null;
+		let oh = new OrderedHeaps(ls.n);
 
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
-			this.Key[u] = key[u];
-			this.Minkey[u] = key[u];
+			oh.Key[u] = key[u];
+			oh.Minkey[u] = key[u];
 			let h = u; let pi = u;
 			for (let i = ls.next(u); i; i = ls.next(i)) {
-				h = this.insertAfter(i, key[i], pi, h);
+				h = oh.insertAfter(i, key[i], pi, h);
 				pi = i;
 			}
 		}
-		return true;
+		return oh;
 	}
 
 	verify() {

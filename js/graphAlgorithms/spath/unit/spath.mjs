@@ -23,9 +23,9 @@ import { randomDigraph, randomDag } from '../../misc/RandomGraph.mjs';
 
 function acyclic(g) { return toposort(g) != null; }
 
-function negativeWeights(g) {
+function negativeLengths(g) {
 	for (let e = g.first(); e; e = g.next(e))
-		if (g.weight(e) < 0) return true;
+		if (g.length(e) < 0) return true;
 	return false;
 }
 
@@ -45,12 +45,12 @@ let algomap = {
 						return [link,dist,ts,stats];
 					}, (g,link,dist) => sptVerify(g,1,link,dist)],
 	'D' : ['sptD', (g,trace) => {
-						if (acyclic(g) || negativeWeights(g)) return null;
+						if (acyclic(g) || negativeLengths(g)) return null;
 						let [link,dist,ts,stats] = sptD(g,1,trace);
 						return [link,dist,ts,stats];
 					}, (g,link,dist) => sptVerify(g,1,link,dist)],
 	'Df' : ['sptDf', (g,trace) => {
-						if (acyclic(g) || negativeWeights(g)) return null;
+						if (acyclic(g) || negativeLengths(g)) return null;
 						let [link,dist,ts,stats] = sptDf(g,1,trace);
 						return [link,dist,ts,stats];
 					}, (g,link,dist) => sptVerify(g,1,link,dist)],
@@ -89,8 +89,8 @@ tester.addTest('medium random dag (200,20)', g);
 g = randomDag(2000, 200); g.randomLengths(randomInteger, -99, 99);
 tester.addTest('large random dag (2000,200)', g);
 
-// non-negative weights
-g = new Digraph(); g.fromString(
+// non-negative lengths
+g = Digraph.fromString(
 		'{a[b:3 d:2 j:4] b[c:7 f:4 i:1] c[d:1 f:2 g:3] ' +
 		'd[b:1 e:3] e[a:5 g:1] f[c:3 e:1 i:2]' +
 		'g[b:2 h:2 j:1] h[i:1 e:1] i[c:3 f:1]' +
@@ -108,14 +108,14 @@ if (!ea) {
 	tester.addTest('larger random graph (800,50)', g);
 }
 
-// negative weights
+// negative lengths
 g = randomDigraph(10, 3.5); g.randomLengths(randomInteger, -15, 99);
-tester.addTest('small random graph with negative weights (10,3.5)', g);
+tester.addTest('small random graph with negative lengths (10,3.5)', g);
 
 g = randomDigraph(100, 5); g.randomLengths(randomInteger, -50, 999);
-tester.addTest('medium random graph (with negative weights 100,5)', g);
+tester.addTest('medium random graph (with negative lengths 100,5)', g);
 
 g = randomDigraph(500, 30); g.randomLengths(randomInteger, -70, 5000);
-tester.addTest('large random graph (with negative weights 500,30)', g);
+tester.addTest('large random graph (with negative lengths 500,30)', g);
 
 tester.run();

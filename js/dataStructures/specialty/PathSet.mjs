@@ -34,29 +34,6 @@ export default class PathSet extends SplayForest {
 		this.Dcost[0] = this.Dmin[0] = Infinity;
 	}
 
-	/** Assign new value to PathSet from another. 
-	 *  @paran that is a PathSet whose value is to be assigned to this
-	 */
-	assign(that) {
-		ea && assert(that == this || !(that instanceof PathSet));
-		if (that == this || !(that instanceof PathSet)) return;
-		super.assign(that);
-		for (let u = 1; u <= this.n; u++) {
-			this.Dcost[u] = that.Dcost[u];
-			this.Dmin[u] = that.Dmin[u];
-		}
-	}
-
-	/** Assign a new value to this, by transferring contents of another list.
-	 *  @param that is a PathSet whose contents are to be transferred to this
-	 */
-	xfer(that) {
-		if (that == this || !(that instanceof PathSet)) return;
-		super.xfer(that);
-		this.Dcost = that.Dcost; that.Dcost = null;
-		this.Dmin = that.Dmin; that.Dmin = null;
-	}
-	
 	/** Return to initial state */
 	clear() {
 		super.clear(); this.Dcost.fill(0); this.Dmin.fill(0);
@@ -247,7 +224,8 @@ export default class PathSet extends SplayForest {
 	 *  same contents (in the same order).
 	 */
 	equals(that) {
-		that = super.listEquals(that);
+		that = super.listEquals(...(arguments.length == 1 ?
+                                	[that, this.n] : arguments));
 		if (typeof that == 'boolean') return that;
 
 		let mc1 = this.getMincosts();
@@ -302,43 +280,41 @@ export default class PathSet extends SplayForest {
 	 *  @param s is a string representing a PathSets object.
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
-		let cost = []; let succ = [];
-		let nodeProp = (u,sc) => {
+	static fromString(s='',n=10) {
+		let costVec = []; let succVec = [];
+		let cost = (u,sc) => {
 						if (!sc.verify(':',0)) {
-							cost[u] = 0; return true;
+							costVec[u] = 0; return true;
 						}
 						let p = sc.nextInt(0);
 						if (Number.isNaN(p)) return false;
-						cost[u] = p;
+						costVec[u] = p;
 						return true
 					};
-		let pathProp = (p,sc) => {
+		let succ = (l,sc) => {
 						let q = sc.nextIndex();
-						succ[p] = (q > 0 ? q : 0);
+						succVec[l] = (q > 0 ? q : 0);
 						return true;
 						};
 
-		let ls = new ListSet();
-		if (!ls.fromString(s,nodeProp,pathProp))
-			return false;
-		this.reset(ls.n);
+		let ls = ListSet.fromString(s, n, cost, succ);
+		if (!ls) return false;
 
-		// Initialize dmin, dcost and succ for as if all paths were
-		// a single node
+		let ps = new PathSet(ls.n);
+
 		for (let l = 1; l <= ls.n; l++) {
 			if (!ls.isfirst(l)) continue;
+			// first initialize Dmin and Dcost for each node in list l
 			let p = l;
-			for (let u = p; u; u = ls.next(u)) {
-				this.Dmin[u] = cost[u]; this.Dcost[u] = 0;
-				this.succ(u, ls.next(u) ? ls.next(u) : succ[p]);
+			for (let u = l; u; u = ls.next(u)) {
+				// initialize Dmin, Dcost at u, as if u is a singleton tree
+				ps.Dmin[u] = costVec[u]; ps.Dcost[u] = 0;
+				ps.succ(u, ls.next(u) ? ls.next(u) : succVec[l]);
+				// now add u to the path p right after previous vertex
+				if (u != l) p = ps.insertAfter(u, ls.prev(u), p);
 			}
 		}
 
-		// now build trees representing paths, relying on this.insertAfter
-		// to ensure dmin, dcost and succ are updated properly
-		super.fromListSet(ls);
-
-        return true;
+        return ps;
 	}
 }

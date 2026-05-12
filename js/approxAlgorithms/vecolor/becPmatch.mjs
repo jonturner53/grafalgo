@@ -15,7 +15,7 @@ import pbimatchHKT from '../../graphAlgorithms/vmatch/pbimatchHKT.mjs';
 /** Find a bounded edge coloring using the max degree matching method.
  *  Edges are colored using a succession of matching which give priority
  *  to vertices of max degree in uncolored subgraph of g
- *  @param g is the graph to be colored with bounds; assumed to be bipartite
+ *  @param g is the graph to be colored with floors; assumed to be bipartite
  *  @return a triple [color, ts, stats] where color is an array of edge colors,
  *  ts is a traceString and stats is a statistics object.
  */
@@ -34,17 +34,17 @@ export default function becPmatch(g, trace=0) {
 
 	let color = new Int32Array(g.edgeRange+1);
 	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.getBipartition());
-		// subgraph of uncolored edges with bounds <= c
+		// subgraph of uncolored edges with floors <= c
 	let ts = '';
 	if (trace) {
-		ts += g.toString(1, (e,u)=>`${g.x2s(g.mate(u,e))}:${g.bound(e)}`);
+		ts += g.toString(1, (e,u)=>`${g.x2s(g.mate(u,e))}:${g.floor(e)}`);
 	}
 	let c;
 	let count = 0;  // number of edges colored so far
 	for (c = 1; count < g.m; c++) {
-		// add edges with bound of c to gc
+		// add edges with floor of c to gc
 		for (let e = g.first(); e; e = g.next(e)) {
-			if (c >= g.bound(e) && c < g.bound(e) + 1) {
+			if (c >= g.floor(e) && c < g.floor(e) + 1) {
 				gc.join(g.left(e), g.right(e), e);
 			}
 		}
@@ -64,7 +64,7 @@ export default function becPmatch(g, trace=0) {
 	}
 	if (trace) {
 		ts += g.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
-						   `${g.bound(e)}/${color[e]}`);
+						   `${g.floor(e)}/${color[e]}`);
 	}
 	return [color, ts, {'C': Math.max(...color), 'steps': steps }];
 }

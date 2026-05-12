@@ -16,7 +16,7 @@ import egcBsearch from './egcBsearch.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import setCoverC from '../setCover/setCoverC.mjs';
-import {lowerBound, maxGroupCount, maxOutDegree} from './egcCommon.mjs';
+import {egcLbound, maxGroupCount, maxOutDegree} from './egcCommon.mjs';
 import EdgeGroupLayers from './EdgeGroupLayers.mjs';
 import EdgeGroupColors from './EdgeGroupColors.mjs';
 
@@ -30,7 +30,7 @@ import EdgeGroupColors from './EdgeGroupColors.mjs';
  *  if the graph cannot be colored with C colors, egc will be incomplete
  */
 export default function egcCT(eg, trace) {
-	let Cmin = lowerBound(eg);
+	let Cmin = egcLbound(eg);
 	let egc = coreCT(eg, 10*Cmin); 
 
 	let ts = '';

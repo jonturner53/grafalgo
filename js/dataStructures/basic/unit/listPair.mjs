@@ -30,17 +30,15 @@ try {
 	matches(lp.prev(6), 4, 'b3');
 	matches(lp.prev(5), 3, 'b4');
 
-	matches(lp.fromString('[h g f : d b a c e]'), true, 'c0');
+	lp = ListPair.fromString('[h g f : d b a c e]');
+	matches(!!lp, true, 'c0');
 	matches(lp, '[h g f : d b a c e]', 'c1');
-	lp.expand(10);
-	matches(lp.n, 10, 'c2');
-	matches(lp, '[h g f : d b a c e i j]', 'c3');
 
 	matches(lp.in(1,1), false, 'd4');
 	matches(lp.in(1,2), true,  'd5');
 	matches(lp.in(8,1), true,  'd6');
 	matches(lp.in(8,2), false, 'd7');
-	matches(lp.length(2), 7, 'd8');
+	matches(lp.length(2), 5, 'd8');
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

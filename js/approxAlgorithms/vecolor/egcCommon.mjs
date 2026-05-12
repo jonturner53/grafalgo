@@ -30,22 +30,36 @@ export function maxOutDegree(eg) {
 	return Delta_o;
 }
 
+/** Return the largest lower limit on color */
+// maybe use floor instead of bound; overloads use of floor
+// in flow problem, but that's a different context so may be ok
+// issue: floor is separate field in flow graph, so when we use
+// flow there, we will be overloading and masking underlying floor
+// that seems ok too
+export function maxLimit(eg) {
+	let max = 0;
+	for (let g = eg.firstGroup(); g; g = eg.nextGroup(g))
+		max = Math.max(max, eg.bound(g));
+	return max;
+}
+
 /** Compute lower bound on the number of colors required.
  *  @param eg is an EdgeGroups object
- *  @param speedup is a parameter that defines the allowed
- *  lower bound sets for the group colors; for example,
- *  if speedup=1.5, the allowed lower bounds are 1,2,4,5,7,8.
  */
-export function lowerBound(eg) {
+export function egcLbound(eg) {
 	let egg = eg.graph;
 	let maxOD = maxOutDegree(eg);
-	let lowerBound = Math.max(maxGroupCount(eg), maxOD);
-	if (!eg.hasBounds) return lowerBound;
+	if (!eg.hasBounds) 
+		return Math.max(maxGroupCount(eg), maxOD);
 
-	let maxBound = 0;
-	for (let g = eg.firstGroup(); g; g = eg.nextGroup(g))
-		maxBound = Math.max(maxBound, eg.bound(g));
+/*
+maybe separate input/output bounds
+also for input bounds, could add maxInDegree + ibound(minFloor) - 1
+*/
 
+	let maxBound = eg.maxLimit();
+
+	let lowerBound = 0;
 	let bvec = new Int32Array(maxOD);
 	for (let v = eg.n_i+1; v <= eg.n_i+eg.n_o; v++) {
 		// create ordered vector of bounds at v
@@ -70,24 +84,29 @@ export function lowerBound(eg) {
  *  @param n_o is number of outputs
  *  @return randomized upper bound
  */
-export function randUbound(Gamma_i, Delta_o, n_o) {
+export function egcUboundKKPT(Gamma_i, Delta_o, n_o) {
 	let k = Math.ceil(2*Math.sqrt((Math.log(2*Delta_o*n_o) /
 								   Math.log(Math.log(2*Delta_o*n_o)))));
 	return k * Math.max(Gamma_i, Delta_o);
 }
 
-/** Compute worst-case upper bound on colors.
+export function egcUboundTl(Gamma_i, Delta_o) {
+	return Gamma_i*Delta_o;
+}
+
+export function egcUboundKKP(Gamma_i, Delta_o, n_o) {
+	let kkp = (Gamma_i-1) * Math.floor( Math.log2(2*n_o)) + 2*Delta_o;
+}
+
+/** Compute worst-case upper bounds on colors.
  *  @param Gamma_i is max input group count
  *  @param Delta_o is max output degree
  *  @param n_o is number of outputs
- *  @return worst-case upper bound
+ *  @return vector [rand,kkp,ym] of upper bounds, where rand is the randomized
+ *  upper bound, kkp is Kirkpatrick, Klawe and Pippenger bound, ym is the
+ *  Yang and Masson bound
  */
-export function wcUbound(Gamma_i, Delta_o, n_o) {
-	// Kirkpatrick, Klawe and Pippenger bound
-
-	let kkp = (Gamma_i-1) * Math.floor( Math.log2(2*n_o)) + 2*Delta_o;
-
-	// Yang and Masson bound
+export function egcUboundYM(Gamma_i, Delta_o, n_o) {
 	let k = 2;
 	let b0 = (Gamma_i-1)*k + (Delta_o-1)*(n_o**(1/k)) + 1;
 	let b1 = (Gamma_i-1)*(k+1) + (Delta_o-1)*(n_o**(1/(k+1))) + 1;
@@ -96,7 +115,16 @@ export function wcUbound(Gamma_i, Delta_o, n_o) {
 		b0 = b1;
 		b1 = (Gamma_i-1)*(k+1) + (Delta_o-1)*(n_o**(1/(k+1))) + 1;
 	}
-	let ym = b0;
-	
-	return Math.ceil(Math.min(Gamma_i*Delta_o, kkp, ym));
+	return b0;
+}
+
+/** Return array of upper bounds on the cost of a solution. */
+export function egcUbounds(eg) {
+	let Gamma_i = eg.maxGroupCount();
+	let Delta_o = maxOutDegree(eg);
+	let n_o = eg.n_o;
+	return [egcUboundYM(Gamma_i, Delta_o, n_o),
+			egcUboundKKP(Gamma_i, Delta_o, n_o),
+			egcUboundKKPT(Gamma_i, Delta_o, n_o),
+			egcUboundTl(Gamma_i, Delta_o)];
 }

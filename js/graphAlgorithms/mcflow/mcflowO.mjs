@@ -96,13 +96,13 @@ function newPhase() {
 		steps++;
 		let u = g.tail(e); let v = g.head(e);
 		if (g.res(e,u) >= Delta) {
-			if (g.costFrom(e,u) + (lambda[u] - lambda[v]) < 0) {
+			if (g.c(e,u) + (lambda[u] - lambda[v]) < 0) {
 				g.addFlow(e,u,Delta);
 				excess[u] -= Delta; excess[v] += Delta;
 			}
 		}
 		if (g.res(e,v) >= Delta) {
-			if (g.costFrom(e,v) + (lambda[v] - lambda[u]) < 0) {
+			if (g.c(e,v) + (lambda[v] - lambda[u]) < 0) {
 				g.addFlow(e,v,Delta);
 				excess[v] -= Delta; excess[u] += Delta;
 			}
@@ -144,9 +144,9 @@ function findpath() {
 			steps++;
 			if (g.res(e,u) < Delta) continue;
 			let v = g.mate(u,e);
-			if (Cost[v] > Cost[u] + g.costFrom(e,u) + (lambda[u]-lambda[v])) {
+			if (Cost[v] > Cost[u] + g.c(e,u) + (lambda[u]-lambda[v])) {
 				link[v] = e;
-				Cost[v] = Cost[u] + g.costFrom(e,u) + (lambda[u]-lambda[v]);
+				Cost[v] = Cost[u] + g.c(e,u) + (lambda[u]-lambda[v]);
 				if (!border.contains(v)) border.insert(v,Cost[v]);
 				else border.changekey(v,Cost[v]);
 			}

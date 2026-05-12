@@ -31,21 +31,6 @@ export default class ReverseLists extends Top {
 		this.nabor2[0] = 0;
 	}
 
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-		for (let i = 1; i <= that.n; i++) {
-			this.nabor1[i] = that.nabor1[i]; this.nabor2[i] = that.nabor2[i];
-		}
-	}
-
-	xfer(that) {
-		super.xfer(that);
-		if (that == this) return;
-		this.n = that.n;
-		this.nabor1 = that.nabor1; this.nabor2 = that.nabor2;
-		that.nabor1 = that.nabor2 = null;
-	}
-	
 	/** Clear the data structure, moving all items into singletons.
 	*/
 	clear() {
@@ -162,7 +147,8 @@ export default class ReverseLists extends Top {
 	 *  @return true if the two objects contain identical lists.
 	 */
 	equals(that) {
-		that = super.equals(that);
+		that = super.equals(...(arguments.length==1 ?
+								[that, this.n] : arguments));
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -203,29 +189,29 @@ export default class ReverseLists extends Top {
 	 *  @param s is a string, such as produced by toString().
 	 *  @return true on success, else false
 	 */
-	fromString(s, prop=0) {
+	static fromString(s, n=10, prop=0) {
 		let sc = new Scanner(s);
-		if (!sc.verify('{')) return false;
+		if (!sc.verify('{')) return null;
 
-		let lists = []; let n = 0; let items = new Set();
+		let lists = []; let items = new Set();
 		let l = sc.nextIndexList('[', ']');
 		while (l != null) {
 			for (let i of l) {
 				n = Math.max(i, n);
-				if (items.has(i)) return false;
+				if (items.has(i)) return null;
 				items.add(i);
 			}
 			lists.push(l);
 			l = sc.nextIndexList('[', ']');
 		}
-		if (!sc.verify('}')) return false;
+		if (!sc.verify('}')) return null;
 
-		this.reset(n);
+		let rl = new ReverseLists(n);
 		for (l of lists) {
 			for (let i of l) {
-				if (i != l[0]) this.join(l[0], i);
+				if (i != l[0]) rl.join(l[0], i);
 			}
 		}
-		return true;
+		return rl;
 	}
 }

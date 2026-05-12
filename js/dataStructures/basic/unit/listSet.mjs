@@ -21,21 +21,22 @@ try {
 	matches(ls, '{[h]}', 'a3');
 
 	ls.join(1, 3); ls.join(5, 6); ls.join(2, 7);
-	matches(ls, '{[a c] [b g] [e f] h}', 'b1');
+	matches(ls, '{[a c] [b g] [e f]}', 'b1');
 	let v = ls.join(1, 5);
-	matches(ls, '{[a c e f] [b g] h}', v, 1, 'b2');
+	matches(ls, '{[a c e f] [b g]}', v, 1, 'b2');
 	matches(ls.last(1), 6, 'b4');
 	matches(ls.next(1), 3, 'b5');
 	matches(ls.prev(5), 3, 'b6');
 	ls.delete(5, 1); 
-	matches(ls, '{[a c f] [b g] h}', 'b7');
+	matches(ls, '{[a c f] [b g]}', 'b7');
 	ls.delete(1, 1); ls.delete(7, 2);
 	matches(ls, '{[c f] [h]}', 'b8');
 	matches(ls.singleton(6), false, 'b9');
 	matches(ls.singleton(7), true, 'b10');
 	ls.clear(); 
 	matches(ls, '{[h]}', 'b11');
-	matches(ls.fromString('{[d i h k] [e a  c] [g b l ] [j f]}'), true, 'c0');
+	ls = ListSet.fromString('{[d i h k] [e a  c] [g b l] [j f]}');
+	matches(!!ls, true, 'c0');
 	matches(ls, '{[d i h k] [e a c] [g b l] [j f]}', 'c1');
 	matches(ls.n, 12, 'c2');
 	ls.rotate(4, 8); ls.rotate(7, 12); 
@@ -63,7 +64,8 @@ try {
 						listProp[l] = q;
 						return true;
 					};
-	ls.fromString('{[a:1 c:3]5 [b:2 e:5 d:7]f f:2}', prop, listLabel);
+	ls = ListSet.fromString('{[a:1 c:3]5 [b:2 e:5 d:7]f f:2}',
+							1, prop, listLabel);
 	matches(ls,'{[a c] [b e d] f}', 'd1');
 	matches(property[4], 7, 'd2');
 	matches(listProp[1], 5, 'd3');

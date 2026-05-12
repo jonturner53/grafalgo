@@ -13,13 +13,13 @@ import List from '../../dataStructures/basic/List.mjs';
  *  @return a string which is empty if the coloring is a proper
  *  edge coloring with the minimum number of colors, otherwise an error string
  */
-export default function ecolorVerify(g,color) {
+export default function ecolorVerify(g) {
 	let Delta = g.maxDegree();
 	let colors = new List(g.n); let cmax = 0;
 	for (let u = 1; u <= g.n; u++) {
 		colors.clear();
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
-			let c = color[e]; cmax = Math.max(c,cmax);
+			let c = g.color(e); cmax = Math.max(c,cmax);
 			if (c < 1 || c != ~~c) {
 				return `invalid color ${c}/${~~c} assigned to ${g.e2s(e)}`;
 			}	

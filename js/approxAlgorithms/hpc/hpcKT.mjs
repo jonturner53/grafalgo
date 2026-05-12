@@ -49,11 +49,15 @@ export default function hpcKT(G, s=0, t=0, traceFlag=0) {
 	if (s) {
 		// for hamiltonian paths, reduce to hamiltonian cycle problem
 		if (t) {
-			g = new Graph(G.n+1,G.edgeRange+2); g.assign(G,1);
+			g = new Graph(G.n+1,G.edgeRange+2);
+			for (let e = G.first(); e; e = G.next(e))
+				g.join(G.left(e), G.right(e), e);
 			let x = G.n+1; g.join(x,s); g.join(t,x);
 			// G has an s-t HP if and only if g has a HC
 		} else {
-			g = new Graph(G.n+2,G.edgeRange+G.n+1); g.assign(G,1);
+			g = new Graph(G.n+2,G.edgeRange+G.n+1);
+			for (let e = G.first(); e; e = G.next(e))
+				g.join(G.left(e), G.right(e), e);
 			let x = G.n+1; let y = G.n+2;
 			g.join(x,s); g.join(x,y);
 			for (let u = 1; u <= G.n; u++) {

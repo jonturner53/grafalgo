@@ -44,35 +44,6 @@ export default class Map extends Top {
 		for (let i = 1; i <= this.n; i++) this.free.enq(i);
 	}
 
-	/** Assign a new value by copying from another Map object.
-	 *  @param that is another Map object
-	 */
-	assign(that, relaxed) {
-        ea && assert(that != this &&
-                this.constructor.name == that.constructor.name);
-        if (this.n == that.n || relaxed && this.n > that.n) this.clear();
-        else this.reset(that.n, this.compare, this.eqValue)
-		for (let p = that.first(); p; p = that.next(p))
-			this.put(that.key(p), that.value(p));
-	}
-	
-	/** Assign a new value by transferring from another Map.
-	 *  @param that is another Map object.
-	 */
-	xfer(that) {
-		this.n = that.n;
-		this.keys = that.keys; that.keys = null;
-		this.Value = that.Value; that.Value = null;
-		this.free = that.free; that.free = null;
-		this.top = that.top; this.Size = that.Size;
-
-		this.compare = that.compare;
-		this.eqValue = that.eqValue;
-	}
-
-	/** Expand the max size of this Map. */
-	expand(n, consArgs=[this.compare,this.eqValue]) { super.expand(n, consArgs); }
-
 	/** Remove all key-value pairs */
 	clear() { while (this.top) this.deletePair(this.top); }
 
@@ -133,10 +104,6 @@ export default class Map extends Top {
 		}
 		if (v == undefined) return 0;
 		p = this.free.deq();
-		if (!p) {
-			this.expand(Math.max(this.n+10, ~~(1.5*this.n)));
-			p = this.free.deq();
-		}
 		this.keys.key(p,k); this.value(p,v);
 		this.top = (this.top ? this.keys.insert(p, this.top) : p);
 		this.Size++;
@@ -144,7 +111,8 @@ export default class Map extends Top {
 	}
 
 	/** Delete mapping for a specified key. */
-	delete(k) { let p = this.get(k); if (p) this.deletePair(p); }
+	delete(k) { let p = this.getPair(k);
+				if (p) this.deletePair(p); }
 
 	/** Delete a specified key-value pair.
 	 *  @param p is an integer that identifies a key-value pair.
@@ -162,7 +130,9 @@ export default class Map extends Top {
 	 *  @return true if both contain the same values.
 	 */
 	equals(that) {
-		that = super.equals(that, [this.n, this.compare, this.eqValue]);
+		that = super.equals(
+				...(arguments.length == 1 ?
+					[that, this.n, this.compare, this.eqValue] : arguments));
 		if ((typeof that) == 'boolean') return that;
 		if (this.size != that.size) return false;
 
@@ -199,22 +169,21 @@ export default class Map extends Top {
 	 *  @param s is a string representing a Map.
 	 *  @return on if success, else false
 	 */
-	fromString(s) {
+	static fromString(s, n=10, compare=((a,b)=>a-b), eqValue=((a,b)=>a===b)) {
 		let sc = new Scanner(s);
-		if (!sc.verify('{')) return false;
-
+		if (!sc.verify('{')) return null;
 		let pairs = [];
 		while (!sc.verify('}')) {
 			let k = sc.nextDatum(sc);
-			if (k == null) return false;
-			if (!sc.verify(':')) return false;
+			if (k == null) return null;
+			if (!sc.verify(':')) return null;
 			let v = sc.nextDatum(sc);
-			if (v == null) return false;
+			if (v == null) return null;
 			pairs.push([k,v]);
 		}
-		this.reset(Math.max(this.n, pairs.length), this.compare, this.eqValue) 
+		let map = new Map(Math.max(n, pairs.length), compare, eqValue);
 
-		for (let [k,v] of pairs) this.put(k,v);
-		return true;
+		for (let [k,v] of pairs) map.put(k,v);
+		return map;
 	}
 }

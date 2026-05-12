@@ -25,24 +25,6 @@ export default class BalancedForest extends BinaryForest {
 		this.Rank = new Int8Array(this.n+1).fill(1,1);
 	}
 
-	/** Assign a new value by copying from another BinaryForest.
-	 *  @param that is another BinaryForest
-	 */
-	assign(that, relaxed=false) {
-		super.assign(that,relaxed);
-		for (let u = 1; u <= that.n; u++) this.rank(u, that.rank(u));
-	}
-
-	/** Assign a new value by transferring from another BinaryForest.
-	 *  @param that is another BinaryForest
-	 */
-	xfer(that) {
-		if (that == this) return;
-		if (!(that instanceof BalancedForest)) return;
-		super.xfer(that);
-		this.Rank = that.Rank; that.Rank = null;
-	}
-	
 	/** Clear trees converting them to singletons.
 	 *  @param r is the root of a tree or sub-tree; if specified,
 	 *  only the specified tree is cleared, otherwise all are
@@ -232,7 +214,10 @@ export default class BalancedForest extends BinaryForest {
 	 *  @return true if the trees in both have the same set of vertices
 	 *  and they appear in the same left-to-right order.
 	 */
-	equals(that) { return super.listEquals(that); }
+	equals(that) {
+		return super.listEquals(...(arguments.length==1 ?
+									[that, this.n] : arguments));
+	}
 
 	/** Return a string representation of this object.
 	 *  @param u is a node in a tree
@@ -260,8 +245,18 @@ export default class BalancedForest extends BinaryForest {
 	 *  it's really just the lists that are significant
 	 *  @return true on success
 	 */
-	fromString(s, prop=0, listProp=0) {
-		return super.fromListString(s, prop, listProp);
+	static fromString(s, n=10, prop=0, listProp=0) {
+		let ls = ListSet.fromString(s, prop, listProp, n);
+		if (!ls) return null;
+		let bf = new BalancedForest(ls.n);
+		for (let l = 1; l <= ls.n; l++) {
+			if (!ls.isfirst(l)) continue;
+			let t = l;
+			for (let u = ls.next(t); u; u = ls.next(u)) {
+				t = bf.insertAfter(u,ls.prev(u),t);
+			}
+		}
+		return bf;
 	}
 
 	/** Determine if this object is self-consistent.

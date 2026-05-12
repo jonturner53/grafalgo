@@ -51,33 +51,6 @@ export default class GroupHeap extends Top {
 		this.clearStats();
 	}
 
-	/** Assign new value to this from another. 
-	 *  @param that is a GroupHeap object
-	 */
-	assign(that) {
-		ea && assert(that instanceof GroupHeap);
-		if (that == this) return;
-		if (that.n != this.n || that.gn != this.gn)
-			this.reset(that.n, that.gn);
-		this.groups.assign(that.groups);
-		this.active.assign(that.top);
-		for (let g = 1; g <= this.n; g++) {
-			this.top[g] = that.top[g];
-		}
-	}
-
-	/** Assign a new value to this, by transferring contents of another object.
-	 *  @param that is another GroupHeap object
-	 */
-	xfer(that) {
-		ea && assert(that instanceof GroupHeap);
-		if (that == this) return;
-		this.n = that.n; this.gn = that.gn;
-		this.groups = that.groups; this.top = that.top;
-		this.active = that.active; this.lastOffset = that.lastOffset;
-		that.groups = that.top = that.active = that.lastOffset = null;
-	}
-	
 	/** Restore to initial state. */
 	clear(g=0) {
 		if (g) {
@@ -216,7 +189,8 @@ export default class GroupHeap extends Top {
 	/** Determine if two GroupHeap objects are equal.
 	 */
 	equals(that) {
-		that = super.equals(that, [this.n,this.gn]);
+		that = super.equals(...(arguments.length == 1 ?
+                               	[that, this.n, this.gn] : arguments));
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n || that.gn != this.gn) return false;
 
@@ -293,7 +267,7 @@ export default class GroupHeap extends Top {
 	 *  @param s is a string, such as produced by toString().
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
+	static fromString(s, n=10, gn=5) {
 		let sc = new Scanner(s);
 		let key = [];
 		let getProp = (u,sc) => {
@@ -308,8 +282,7 @@ export default class GroupHeap extends Top {
 								};
 		if (!sc.verify('{')) return false;
 		let lists = [];
-		let n = 0; let items = new Set();
-		let gn = 0; let heapIds = new Set();
+		let items = new Set(); let heapIds = new Set();
 		while (!sc.verify('}')) {
 			let g = sc.nextNumber();
 			if (g == NaN) return false;
@@ -327,17 +300,18 @@ export default class GroupHeap extends Top {
 			heapIds.add(g);
 			lists.push([g,active,l]);
 		}
-		this.reset(n,gn);
+
+		let gh = new GroupHeap(n, gn);
 
 		for (let [g, active, l] of lists) {
 			let previ = 0;
 			for (let i of l) {
-				this.insertAfter(i, key[i], previ, g);
+				gh.insertAfter(i, key[i], previ, g);
 				previ = i;
 			}
-			if (active) this.activate(g);
+			if (active) gh.activate(g);
 		}
-		return true;
+		return gh;
 	}
 
 	getStats() {

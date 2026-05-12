@@ -35,30 +35,6 @@ export default class BinaryForest extends Top {
 		this.clearStats();
 	}
 
-	/** Assign a new value by copying from another BinaryForest.
-	 *  @param that is another BinaryForest
-	 */
-	assign(that, relaxed=false) {
-		super.assign(that,relaxed);
-		for (let u = 1; u <= that.n; u++) {
-			this.left(u, that.left(u)); this.right(u, that.right(u));
-			this.p(u, that.p(u));
-			if (!this.p(u)) this.property(u, that.property(u));
-		}
-		this.clearStats();
-	}
-
-	/** Assign a new value by transferring from another BinaryForest.
-	 *  @param that is another BinaryForest
-	 */
-	xfer(that) {
-		super.xfer(that);
-		this.Left = that.Left; this.Right = that.Right;
-		this.P = that.P;
-		that.Left = that.Right = that.P = null;
-		this.clearStats();
-	}
-	
 	/** Clear trees in forest, leaving singletons.
 	 *  @param r specifies the root of a tree (or subtree) to be cleared;
 	 *  if zero, all trees are cleared.
@@ -493,7 +469,8 @@ export default class BinaryForest extends Top {
 	 *  every node has the same parent in both objects).
 	 */
 	equals(that) {
-		that = super.equals(that);
+		that = super.equals(...(arguments.length == 1 ?
+							[that, this.n] : arguments));
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -510,7 +487,7 @@ export default class BinaryForest extends Top {
 	 *  @return true if both represent the same sets.
 	 */
 	setEquals(that) {
-		that = super.equals(that);
+		that = super.equals(...(arguments.length==1 ? [that,this.n]:arguments));
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -539,7 +516,8 @@ export default class BinaryForest extends Top {
 	 *  in the same order.
 	 */
 	listEquals(that) {
-		that = super.equals(that);
+		that = super.equals(...(arguments.length == 1 ?
+								[that, this.n] : arguments));
 		if (typeof that == 'boolean') return that;
 
 		for (let u = 1; u <= this.n; u++) {
@@ -626,11 +604,11 @@ export default class BinaryForest extends Top {
 	 *  @param treeProp is an optional function used to parse and
 	 *  process tree properties; it is called with two arguments,
 	 *  a tree root and a Scanner
-	 *  @return true on success, else false
+	 *  @return a BinaryForest object on success, null on failure
 	 */
-	fromString(s, prop=0, treeProp=0) {
+	static fromString(s, n=10, prop=0, treeProp=0) {
 		let sc = new Scanner(s);
-        if (!sc.verify('{')) return false;
+        if (!sc.verify('{')) return null;
 		
 		let pmap = [];
 	 		// pmap is an array of pairs [u,p,side] representing a mapping
@@ -638,30 +616,29 @@ export default class BinaryForest extends Top {
 			// the left child (-1) or right child (+1)
 	
 		while (!sc.verify('}')) {
-			let root = this.nextSubtree(sc, pmap, prop);
-			if (!root < 0) return false;
-			if (treeProp && !treeProp(root,sc)) return false;
+			let root = BinaryForest.nextSubtree(sc, pmap, prop);
+			if (!root < 0) return null;
+			if (treeProp && !treeProp(root,sc)) return null;
 			//pmap.push([root,0,0]);
 		}
 
 		// check for repeated nodes
-		let n = 0; let nodes = new Set();
+		let nodes = new Set();
 		for (let [u,p] of pmap) {
 			n = Math.max(n,u,p);
-			if (nodes.has(u)) return false;
+			if (nodes.has(u)) return null;
 			nodes.add(u);
 		}
 		for (let [,p] of pmap) {
-			if (p < 0 || p > n) return false;
+			if (p < 0 || p > n) return null;
 		}
 
-		if (n != this.n) this.reset(n);
-		else this.clear();
+		let bf = new BinaryForest(n);
 
 		for (let [u,p,side] of pmap) {
-			if (p > 0) this.link(u,p,side);
+			if (p > 0) bf.link(u,p,side);
 		}
-		return true;
+		return bf;
 	}
 
 	/** Scan for tree or subtree.
@@ -676,13 +653,13 @@ export default class BinaryForest extends Top {
 	 *  @return the root of the subtree scanned (possibly 0 for empty subtree)
 	 *  or -1 if no valid subtree
 	 */
-	nextSubtree(sc, pmap, prop=0, root=1) {
+	static nextSubtree(sc, pmap, prop=0, root=1) {
 		if (!root && sc.verify('(') || root && sc.verify('[')) {
-			let t1 = this.nextSubtree(sc, pmap, prop, 0);
+			let t1 = BinaryForest.nextSubtree(sc, pmap, prop, 0);
 			if (t1 < 0) return -1;
 			let u = sc.nextIndex(prop);
 			if (u < 0) return -1;
-			let t2 = this.nextSubtree(sc, pmap, prop, 0);
+			let t2 = BinaryForest.nextSubtree(sc, pmap, prop, 0);
 			if (t2 < 0) return -1;
 			if (t1 && u) pmap.push([t1,u,-1]);
 			if (t2 && u) pmap.push([t2,u,+1]);
@@ -699,24 +676,18 @@ export default class BinaryForest extends Top {
 	 *  its arguments are the first item in a list and a Scanner object
 	 *  @return on if success, else false
 	 */
-	fromListString(s, prop=0, listProp=0) {
-		let ls = new ListSet();
-		if (!ls.fromString(s, prop, listProp))
-			return false;
-		this.reset(ls.n);
-
-		this.fromListSet(ls);
-        return true;
-	}
-
-	fromListSet(ls) {
+	static fromListSetString(s, n=10, prop=0, listProp=0) {
+		let ls = ListSet.fromString(s, n, prop, listProp);
+		if (!ls) return null;
+		let bf = new BinaryForest(ls.n);
 		for (let l = 1; l <= ls.n; l++) {
 			if (!ls.isfirst(l)) continue;
 			let t = l;
 			for (let u = ls.next(t); u; u = ls.next(u)) {
-				t = this.insertAfter(u,ls.prev(u),t);
+				t = bf.insertAfter(u,ls.prev(u),t);
 			}
 		}
+		return bf;
 	}
 
 	/** Verify that object is self-consistent.

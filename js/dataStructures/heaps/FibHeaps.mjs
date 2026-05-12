@@ -46,30 +46,6 @@ export default class FibHeaps extends Forest {
 		this.clearStats();
 	}
 
-	/** Assign a new value by copying from another heap.
-	 *  @param that is another FibHeaps object
-	 */
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-		for (let i = 1; i < that.n; i++) {
-			this.Key[i] = that.Key[i];
-			this.Rank[i] = that.Rank[i];
-			this.Mark[i] = that.Mark[i];
-		}
-		this.clearStats();
-	}
-
-	/** Assign a new value by transferring from another heap.
-	 *  @param that is another heap
-	 */
-	xfer(that) {
-		super.xfer(that);
-		this.Key = that.Key; this.Rank = that.Rank; this.Mark = that.Mark;
-		this.rankVec = that.rankVec; this.tmpq = that.tmpq;
-		that.Key = that.Rank = that.Mark = that.rankVec = that.tmpq = null;
-		this.clearStats();
-	}
-	
 	/** Remove all elements from heap. */
 	clear() {
 		super.clear();
@@ -250,7 +226,8 @@ export default class FibHeaps extends Forest {
 	 *  @return if true or false or an object that can be compared further
 	 */
 	equals(that) {
-		that = super.setEquals(that);
+		that = super.setEquals(...(arguments.length==1 ?
+									[that,this.n]:arguments));
         if (typeof that == 'boolean') return that;
 
 		for (let i = 0; i < this.n; i++) {
@@ -282,9 +259,9 @@ export default class FibHeaps extends Forest {
 	 *  @param s is a string representing a heap.
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
-		let ls = new ListSet(); let key = [];
-		if (!ls.fromString(s, (u,sc) => {
+	static fromString(s, n=10) {
+		let key = [];
+		let ls = ListSet.fromString(s, n, (u,sc) => {
 							if (!sc.verify(':',0)) {
 								key[u] = 0; return true;
 							}
@@ -292,17 +269,18 @@ export default class FibHeaps extends Forest {
 							if (Number.isNaN(p)) return false;
 							key[u] = p;
 							return true;
-						}))
-			return false;
-		this.reset(ls.n);
+						});
+
+		if (!ls) return null;
+		let fh = new FibHeaps(ls.n);
 		
 		for (let h = 1; h <= ls.n; h++) {
 			if (!ls.isfirst(h)) continue;
-			this.key(h, key[h]);
+			fh.key(h, key[h]);
 			for (let i = ls.next(h); i; i = ls.next(i))
-				h = this.insert(i, h, key[i]);
+				h = fh.insert(i, h, key[i]);
 		}
-		return true;
+		return fh;
 	}
 
 	getStats() {

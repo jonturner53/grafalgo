@@ -35,8 +35,8 @@ try {
 	matches(stats.upsteps, 6, 'b11');
 	matches(stats.downsteps, 3, 'b12');
 
-	let h3 = new ArrayHeap(25, 2);
-	matches(h3.fromString('[g:1 f:2 c:5 a:5 d:2 h:7 j:8 k:6 m:4]'), true, 'f0');
+	let h3 = ArrayHeap.fromString('[g:1 f:2 c:5 a:5 d:2 h:7 j:8 k:6 m:4]');
+	matches(!!h3, true, 'f0');
 	matches(h3.toString(1),'[g:1(f:2(h:7 j:8 k:6 m:4) c:5 a:5 d:2)]', 'f1');
 
 	h3.delete(1); matches(h3, '[g:1 f:2 c:5 d:2 h:7 j:8 k:6 m:4]', 'f2');

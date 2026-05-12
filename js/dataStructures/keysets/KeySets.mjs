@@ -31,32 +31,6 @@ export default class KeySets extends BalancedForest {
 		this.Key = new Array(this.n+1);
 	}
 
-	/** Expand this object. */
-	expand(n) {
-		ea && assert(n > this.n);
-		let nu = new KeySets(n, this.compare);
-		nu.assign(this,true); this.xfer(nu);
-	}
-
-	/** Assign a new value by copying from another KeySets object.
-	 *  @param that is another KeySets object
-	 */
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-		this.compare = that.compare;
-		for (let u = 1; u <= that.n; u++)
-			this.key(u, that.key(u));
-	}
-	
-	/** Assign a new value by transferring from another KeySets.
-	 *  @param that is another KeySets object.
-	 */
-	xfer(that) {
-		super.xfer(that);
-		this.Key = that.Key; that.Key = null;
-		this.compare = that.compare; that.compare = null;
-	}
-
 	clear() { super.clear(); }
 
 	/** Find the set containing a given item. */
@@ -92,7 +66,7 @@ export default class KeySets extends BalancedForest {
 	 *  @return the id of the set following insertion
 	 */
 	insert(u, t, refresh=0) {
-		if (u > this.n) this.expand(u);
+		//if (u > this.n) this.expand(u);
 		return super.insertByKey(u, t, this.Key,
 								 (a,b) => { 
 											let result = this.compare(a,b);
@@ -105,7 +79,8 @@ export default class KeySets extends BalancedForest {
 	 *  keys match; otherwise return false
 	 */
 	equals(that) {
-		that = super.setEquals(that, [this.n, this.compare]);
+		that = super.setEquals(...(arguments.length == 1 ?
+									[that, this.n, this.compare] : arguments));
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -147,30 +122,31 @@ export default class KeySets extends BalancedForest {
 	 *  @param s is a string representing a heap.
 	 *  @return on if success, else false
 	 */
-	fromString(s) {
-		let ls = new ListSet(); let keyMap = [];
-		if (!ls.fromString(s, (u,sc) => {
+	static fromString(s, n=10, compare=((a,b)=>(a-b))) {
+		let keyMap = [];
+		let ls = ListSet.fromString(s, n, (u,sc) => {
 							if (!sc.verify(':')) return false;
 							let k = this.nextKey(sc);
 							if (k == null) return false;
 							keyMap.push([u,k]);
 							return true;
-						}))
-			return false;
-		this.reset(ls.n, this.compare);
+						});
+		if (!ls) return false;
 
-		for (let [u,k] of keyMap) this.key(u,k);
+		let ks = new KeySets(ls.n, compare);
+
+		for (let [u,k] of keyMap) ks.key(u,k);
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
 			let s = u;
 			for (let i = ls.next(u); i; i = ls.next(i)) {
-				s = this.insert(i,s);
+				s = ks.insert(i,s);
 			}
 		}
-		return true;
+		return ks;
 	}
 
-	nextKey(sc) {
+	static nextKey(sc) {
 		if (sc.verify('"',1,0))  {
 			let s = sc.nextString(0);
 			return s == null ? false : s;

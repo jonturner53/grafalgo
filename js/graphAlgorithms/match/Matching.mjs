@@ -7,6 +7,7 @@
  */
 
 import Top from '../../dataStructures/Top.mjs';
+import { assert } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 
@@ -26,26 +27,6 @@ export default class Matching extends Top {
 		this.elist = new List(this.g.edgeRange);
 		this.elist.hasReverse = true;
 		this.map = new Int32Array(this.g.n+1);
-	}
-
-	/** Assign new value to this from another. 
-	 *  @paran that is another Matching object
-	 */
-	assign(that) {
-		if (that == this) return;
-		that.g = this.g; this._n = that.n
-		this.elist.assign(that.elist);
-		for (let u = 0; u <= this.g.n; u++)
-			this.map[u] = that.map[u];
-	}
-
-	/** Assign a new value to this, by transferring contents of another list.
-	 *  @param l is a list whose contents are to be transferred to this
-	 */
-	xfer(that) {
-		if (that == this) return;
-		this.g = that.g; this._n = that.n;
-		this.elist = that.elist; this.map = that.map;
 	}
 	
 	/** Restore to initial state. */
@@ -111,7 +92,7 @@ export default class Matching extends Top {
 	 *  @return true if they contain the same edges
 	 */
 	equals(that) {
-		that = super.equals(that, [this.g]);
+		that = super.equals(that, this.g);
 		if ((typeof that) == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -138,9 +119,10 @@ export default class Matching extends Top {
 	 *  @param s is a string, such as produced by toString().
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
+	static fromString(s, g=0) {
+		assert(g);
 		let sc = new Scanner(s);
-		this.clear();
+		let match = new Matching(g);
 		if (!sc.verify('[')) return false;
 		let items = new Set();
 		while (!sc.verify(']')) {
@@ -152,7 +134,7 @@ export default class Matching extends Top {
 				v = sc.nextIndex();
 				if (v == NaN) return false;
 				if (!sc.verify('}')) return false;
-			} else if (this.g.n <= 26) {
+			} else if (match.g.n <= 26) {
 				u = sc.nextIndex();
 				if (u == NaN) return false;
 				v = sc.nextIndex();
@@ -160,14 +142,14 @@ export default class Matching extends Top {
 			} else {
 				return false;
 			}
-			if (!this.g.validVertex(u) || !this.g.validVertex(v))
+			if (!match.g.validVertex(u) || !match.g.validVertex(v))
 				return false;
-			let e = this.g.findEdge(u,v);
+			let e = match.g.findEdge(u,v);
 			if (!e || items.has(e)) return false;
 			items.add(e);
 		}
-		for (let e of items) this.add(e);
-		return true;
+		for (let e of items) match.add(e);
+		return match;
 	}
 
 	/** Verify that matching is consistent.

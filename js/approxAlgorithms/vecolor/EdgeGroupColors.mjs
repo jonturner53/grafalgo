@@ -274,7 +274,7 @@ export default class EdgeGroupColors extends Top {
 	 *  Bug: comparison expects group graphs to have matching group numbers.
 	 */
 	equals(that) {
-		that = super.equals(that, [this.eg, this.n]);
+		that = super.equals(that, this.eg, this.n_c);
 		if ((typeof that) == 'boolean') return that;
 
 		if (!this.eg.equals(that.eg)) return false;
@@ -341,10 +341,10 @@ export default class EdgeGroupColors extends Top {
 	 *  @param s is a string representing a coloring
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
+	static fromString(s, eg=0, n_c=10) {
 		let nextVertex = (sc => {
 						let u = sc.nextIndex();
-						return u > 0 && u <= this.eg.graph.n ? u : 0;
+						return u > 0 && u <= eg.graph.n ? u : 0;
 					});
 		// function to parse an edge group
 		let pairs = [];
@@ -353,42 +353,42 @@ export default class EdgeGroupColors extends Top {
 						let i0 = pairs.length;
 						while (!sc.verify(')')) {
 							let v = nextVertex(sc);
-							if (v <= this.eg.n_i) return false;
+							if (v <= eg.n_i) return false;
 							pairs.push([v,c]);
 						}
 						let g = sc.nextIndexExt(0,0);
-						if (g <= 0 || g > this.eg.n_g) return false;
+						if (g <= 0 || g > eg.n_g) return false;
 						// replace vertices just scanned with edge numbers
 						for (let i = i0; i < pairs.length; i++) {
 							let v = pairs[i][0];
-							let e = this.eg.findEdge(v, g)
-							if (!e || this.eg.input(e) != u) return false;
+							let e = eg.findEdge(v, g)
+							if (!e || eg.input(e) != u) return false;
 							pairs[i][0] = e;
 						}
 						return true;
 					});
 
 		let sc = new Scanner(s);
-		if (!sc.verify('{')) return false;
+		if (!sc.verify('{')) return null;
 		let cmax = 0;
 		while (!sc.verify('}')) {
 			let c = sc.nextNumber();
-			if (c == NaN || c != ~~c) return false;
+			if (c == NaN || c != ~~c) return null;
 			cmax = Math.max(cmax,c);
-			if (!sc.verify('[')) return false;
+			if (!sc.verify('[')) return null;
 			while (!sc.verify(']')) {
 				let u = nextVertex(sc);
-				if (u > this.eg.n_i) return false;
-				if (!nextGroup(u,c,sc)) return false;
+				if (u > eg.n_i) return null;
+				if (!nextGroup(u,c,sc)) return null;
 			}
 		}
-
-		this.reset(this.eg, this.n_c);
+	
+		let egc = new EdgeGroupColors(eg, n_c);
 
 		for (let i = 0; i < pairs.length; i++) {
 			let [e,c] = pairs[i];
-			this.color(e,c);
+			egc.color(e,c);
 		}
-		return true;
+		return egc;
 	}
 }

@@ -48,7 +48,7 @@ let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
 
-let g = new Flograph(); g.fromString(
+let g = Flograph.fromString(
 	'{a->[b:5@1 d:6@-3] b[c:3@3 d:7@1 g:3@2] c[d:1@2 e:5@1] ' +
 	'd[b:3@2 e:2@1 f:1@-5 g:3@1] ' +
 	'e[f:1@-1 g:3@1 h:4] f[e:1@1 g:2@-2 h:3@1] g[e:3@3 f:2@-4 h:1@6] ' +

@@ -7,6 +7,7 @@
  */
 
 import List from '../basic/List.mjs';
+import Scanner from '../basic/Scanner.mjs';
 import Digraph from './Digraph.mjs';
 import { shuffle } from '../../common/Random.mjs';
 
@@ -17,11 +18,8 @@ import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
  *  optionally, minimum flow requirements and costs.
  */
 export default class Flograph extends Digraph {
-	F;             // F[e] is flow on edge e
-	Cap;           // Cap[e] is capacity of edge e
 	Source;        // source vertex
 	Sink;          // sink vertex
-	Floor;         // floor[e] is min flow requirement (optional)
 
 	ssCapScale;     // scaling factor used by randomCapacities() method
 					// is set by RandomGraph.randomFlograph() method
@@ -32,49 +30,13 @@ export default class Flograph extends Digraph {
 	 */
 	constructor(n, erange) {
 		super(n, erange); 
-		this.F = new Int32Array(this.edgeRange+1);
-		this.Cap = new Int32Array(this.edgeRange+1);
 		this.Source = 1; this.Sink = this.n;
+
+		this.addEdgeProperty('cap', 1);
+		this.addEdgeProperty('flow', 0);
+
 		this.ssCapScale = 1;
-		this.Floor = null;
 	} 
-
-	get hasFloors() { return (this.Floor ? true : false); }
-	set hasFloors(on) {
-		if (on && !this.Floor)
-			this.Floor = new Int32Array(this.edgeRange+1);
-		else if (!on & this.Floor)
-			this.Floor = null;
-	}
-
-	/** Assign one Flograph to another (but not its flow).
-	 *  @param that is another Flograph that is copied to this one
-	 */
-	assign(that, relaxed=false) {
-		super.assign(that, relaxed);
-		if (that.hasFloors && !this.hasFloors) this.hasFloors = true;
-		if (!that.hasFloors && this.hasFloors) this.hasFloors = null;
-		this.clear();
-		for (let e = that.first(); e; e = that.next(e)) {
-			let ee = this.edges.in(e,2) ?
-					 	this.join(that.left(e), that.right(e), e) :
-						this.join(that.left(e), that.right(e));
-			this.cap(ee, that.cap(e)); this.flow(ee, 0);
-			if (that.hasCosts) this.cost(ee, that.cost(e));
-			if (that.hasFloors) this.floor(ee, that.floor(e));
-		}
-		this.source = that.source; this.sink = that.sink;
-	}
-
-	/** Assign one graph to another by transferring its contents.
-	 *  @param that is another graph whose contents is traferred to this one
-	 */
-	xfer(that) {
-		super.xfer(that);
-		this.F = that.F; this.Cap = that.Cap;
-		that.F = that.Cap = null;
-		this.Floor = that.Floor; that.Floor = null;
-	}
 
 	/** Get/set the source vertex.
 	 *  @param s is the new source vertex.
@@ -90,62 +52,45 @@ export default class Flograph extends Digraph {
 	get sink() { return this.Sink; }
 	set sink(t) { this.Sink = t; }
 
-	/** Get/set the capacity of an edge.
-	 *  @param e is an edge that is incident to u
-	 *  @return the capacity of e
-	 */
-	cap(e,c=-1) { if (c >= 0) this.Cap[e] = c; return this.Cap[e]; }
-
-	/** Get/set the min flow requirement for an edge.
-	 *  @param e is an edge that is incident to u
-	 *  @return the min flow requirement for e
-	 */
-	floor(e,f=-1) {
-		if (f >= 0) {
-			if (!this.hasFloors) this.hasFloors = true;
-			this.Floor[e] = f;
-		}
-		return this.hasFloors ? this.Floor[e] : 0;
-	}
-
-	/** Get the cost of an edge from a specified endpoint.
-	 *  @param e is an edge
-	 *  @param u is an endpoint of e
-	 *  @return the cost of e, with from u to the other endpoint
-	 */
-	costFrom(e, u) {
-		return u == this.tail(e) ? this.cost(e) : -this.cost(e);
-	}
-
 	/** Get the residual capacity of an edge.
 	 *  @param u is a vertex in the flograph
 	 *  @param e is an edge that is incident to u
 	 *  @return the unused capacity of e, going from u to mate(u)
 	 */
 	res(e, u=this.tail(e)) {
-		return (u == this.tail(e) ? this.cap(e) - this.f(e) :
-									this.f(e) - this.floor(e));
+		return (u == this.tail(e) ?
+					this.cap(e) - this.flow(e) :
+					this.flow(e) - (this.floor ? this.floor(e) : 0));
 	}
 
-	/** Get the flow on an edge.
-	 *  @param u is a vertex in the flograph
-	 *  @param e is an edge that is incident to u
+	/** Get the flow on an edge relative to one of its endpoints.
+	 *  @param e is an edge
+	 *  @param u is an endpoint of e
 	 *  @return the flow on e, going from u to mate(u)
 	 */
 	f(e, u=this.tail(e)) {
-		return (u == this.tail(e) ? this.F[e] : -this.F[e]);
+		return (u == this.tail(e) ? this.flow(e) : -this.flow(e));
 	}
 
-	/** Get/set the flow on an edge.
+	/** Get the cost of an edge relative to one of its endpoints.
 	 *  @param e is an edge
-	 *  @param f is the new flow on e from the tail to the head
-	 *  @return the flow from the tail
-	 */ 
-	flow(e, f=-1) {
-		if (f >= 0) this.F[e] = Math.min(f, this.cap(e));
-		return this.f(e);
+	 *  @param u is an endpoint of e
+	 *  @return the cost of the flow on e, going from u to mate(u)
+	 */
+	c(e, u=this.tail(e)) {
+		return (u == this.tail(e) ? this.cost(e) : -this.cost(e));
 	}
-	
+
+	/** Add flow to an edge.
+	 *  @param e is an edge
+	 *  @param u is an endpoint of e
+	 *  @param f is a flow amount to be added to the flow on e leaving u
+	 */
+	addFlow(e, u, f) {
+		ea && assert(f <= this.res(e, u), 'addFlow: edge capacity violation');
+		this.flow(e, this.flow(e) + (u == this.tail(e) ? f : (-f)));
+	}
+
 	/** Set the flow of every edge to zero. */
 	clearFlow() {
 		for (let e = this.first(); e; e = this.next(e))
@@ -205,20 +150,9 @@ export default class Flograph extends Digraph {
 	totalCost() {
 		let cost = 0;
 		for (let e = this.first(); e; e = this.next(e)) {
-			cost += this.f(e) * this.cost(e);
+			cost += this.flow(e) * this.cost(e);
 		}
 		return cost;
-	}
-
-	/** Add flow to an edge.
-	 *  @param e is an edge
-	 *  @param u is an endpoint of e
-	 *  @param f is a flow amount to be added to the flow on e leaving u
-	 */
-	addFlow(e, u, f) {
-		ea && assert(f <= this.res(e, u)); // 'addFlow: edge capacity violation');
-		if (u == this.tail(e)) this.F[e] += f;
-		else 				   this.F[e] -= f;
 	}
 
 	/** Join two vertices with an edge.
@@ -232,7 +166,8 @@ export default class Flograph extends Digraph {
 	join(u, v, e) {
 		let ee = super.join(u, v, e);
 		this.cap(ee, 0); this.flow(ee, 0);
-		if (this.hasFloors) this.floor(ee, 0);
+		if (this.cost) this.cost(ee, 0);
+		if (this.floor) this.floor(ee, 0);
 		return ee;
 	}
 
@@ -241,19 +176,29 @@ export default class Flograph extends Digraph {
 	 *  @param includeFlow (when true) causes the comparison to include
 	 *  flows on edges
 	 *  @return true if that is equal to this; that is, it has the same
-	 *  vertices, edges, capacities and costs (and possibly flows);
+	 *  vertices, edges, capacities, costs, floors (and possibly flows);
 	 *  endpoint lists are sorted as a side effect
 	 */
 	equals(that, includeFlow=false) {
-		that = super.equals(that);
-		if (typeof that == 'boolean') return that;
-
+		// note: not leveraging superclass due to conflicting requirements
+		if (this === that) return true;
+        if (typeof that == 'string') {
+            let s = that;
+			that = Flograph.fromString(s, this.n, this.edgeRange);
+			assert(that != null, 
+				   'Flograph.fromString: called by .equals() cannot parse ' +s);
+        } else if (that.constructor.name != 'Flograph') {
+			return false;
+		}
+		if (!!this.cost  != !!that.cost  || !!this.floor != !!that.floor)
+			return false;
 		let el1 = this.sortedElist(); let el2 = that.sortedElist();
 		for (let i = 0; i < el1.length; i++) {
 			let e1 = el1[i]; let e2 = el2[i];
 			if (this.cap(e1) != that.cap(e2) ||
-				this.floor(e1) != that.floor(e2) ||
-				(includeFlow && this.f(e1) != that.f(e2))) {
+				(includeFlow && this.flow(e1) != that.flow(e2)) ||
+				this.cost  && this.cost(e1)  != that.cost(e2)   ||
+				this.floor && this.floor(e1) != that.floor(e2)    ) {
 				return false;
 			}
 		}
@@ -270,13 +215,16 @@ export default class Flograph extends Digraph {
 										 && this.validEdge(e2));
 			 if (u == this.head(e1) && u == this.tail(e2)) return -1;
 		else if (u == this.tail(e1) && u == this.head(e2)) return 1;
-		else {
-			let v1 = this.mate(u, e1); let v2 = this.mate(u, e2);
-			let cap1 = this.cap(e1); let cap2 = this.cap(e2);
-			return (v1 != v2 ? v1 - v2 :
-					(cap1 != cap2 ? cap1 - cap2 :
-					 this.cost(e1, v1) - this.cost(e2, v2)));
-		}
+
+		let v1 = this.mate(u, e1); let v2 = this.mate(u, e2);
+		let cap1 = this.cap(e1); let cap2 = this.cap(e2);
+
+		return (v1 != v2 ? v1 - v2 :
+				(cap1 != cap2 ? cap1 - cap2 :
+				 (this.cost && this.cost(e1) != this.cost(e2) ?
+							   this.cost(e1)  - this.cost(e2) :
+				  (this.floor && this.floor(e1) != this.floor(e2) ?
+								 this.floor(e1)  - this.floor(e2) : 0))));
 	}
 
 	/** Create a string representation of an edge.
@@ -287,9 +235,9 @@ export default class Flograph extends Digraph {
 		if (e == 0) return '-';
 		return '(' + this.x2s(this.tail(e), label) + ',' 
 				   + this.x2s(this.head(e), label) + ','
-				   + (this.floor(e)>0 ? this.floor(e) + '-' : '')
+				   + (this.floor && this.floor(e)>0 ? this.floor(e) + '-' : '')
 				   + this.cap(e)
-				   + (this.cost(e) ? '@' + this.cost(e) : '') 
+				   + (this.cost && this.cost(e) ? '@' + this.cost(e) : '') 
 				   + (this.f(e)>0 ? '/' + this.f(e) : '') + ')';
 	}
 
@@ -307,10 +255,11 @@ export default class Flograph extends Digraph {
 			elab = (e,u) => 
 					(u == this.head(e) || (fmt&0x8 && this.flow(e) == 0) ? '' :
 					 (this.x2s(this.mate(u,e)) + ':' +
-					  (this.floor(e)>0 ? this.floor(e) + '-' : '') +
+					  (this.floor && this.floor(e)>0 ?
+						this.floor(e) + '-' : '') +
 				   	  this.cap(e) +
-					  (this.cost(e) ? '@' + this.cost(e) : '') +
-					  (this.f(e)>0 ? '/' + this.f(e) : '')
+					  (this.cost && this.cost(e) ? '@' + this.cost(e) : '') +
+					  (this.flow(e)>0 ? '/' + this.flow(e) : '')
 					 ));
 		}
 		if (!vlab) {
@@ -325,8 +274,8 @@ export default class Flograph extends Digraph {
 	 *  @param s is a string representing a graph
 	 *  @return true on success, else false
 	 */
-	fromString(s) {
-		let n = 1; let source = 0; let sink = 0;
+	static fromString(s, n=10, erange=10) {
+		let source = 0; let sink = 0;
 		// function to parse a vertex
 		let vnext = (sc => {
 						let u;
@@ -346,6 +295,7 @@ export default class Flograph extends Digraph {
 					});
 		// function to parse an adjacency list item and save properties
 		let pairs=[]; let floors=[]; let caps=[]; let flows=[]; let costs=[];
+		let hasFloors = 0; let hasCosts = 0;
 		let enext = ((u,sc) => {
 						let v = sc.nextIndex();
 						if (v < 0) return false;
@@ -359,6 +309,7 @@ export default class Flograph extends Digraph {
 							caps[i] = x;
 						} else {
 							floors[i] = x;
+							hasFloors = 1;
 							let cap = sc.nextNumber();
 							if (Number.isNaN(cap)) return false; 
 							caps[i] = cap;
@@ -367,6 +318,7 @@ export default class Flograph extends Digraph {
 							let cost = sc.nextNumber();
 							if (Number.isNaN(cost)) return false;
 							costs[i] = cost;
+							hasCosts = 1;
 						}
 						if (sc.verify('/')) {
 							let flow = sc.nextNumber();
@@ -376,21 +328,33 @@ export default class Flograph extends Digraph {
 						return true;
 					});
 
-		if (!super.parseString(s, vnext, enext)) return false;
+		let sc = new Scanner(s);
+		if (!sc.verify('{')) return null;
+		while (!sc.verify('}')) {
+			let u = vnext(sc);
+			if (!u) return null;
+			if (sc.verify('[')) {
+				while (!sc.verify(']')) {
+					if (!enext(u,sc)) return null;
+				}
+			}
+		}
 
-		this.reset(n, Math.max(1,pairs.length));
+		let g = new Flograph(n, Math.max(erange, pairs.length));
+		if (hasCosts) g.addEdgeProperty('cost', 0);
+		if (hasFloors) g.addEdgeProperty('floor', 0);
 
 		// configure graph
 		for (let i = 0; i < pairs.length; i++) {
 			let [u,v] = pairs[i];
-			let e = this.join(u,v);
-			this.cap(e, caps[i]);
-			if (floors[i]) this.floor(e, floors[i]);
-			if (flows[i]) this.flow(e, flows[i]);
-			if (costs[i]) this.cost(e, costs[i]);
+			let e = g.join(u,v);
+			g.cap(e, caps[i]);
+			if (flows[i]) g.flow(e, flows[i]);
+			if (g.cost && costs[i]) g.cost(e, costs[i]);
+			if (g.floor && floors[i]) g.floor(e, floors[i]);
 		}
-		this.source = source; this.sink = sink;
-		return true;
+		g.source = source; g.sink = sink;
+		return g;
 	}
 
 	/** Randomize the order of the vertices and edges. */
@@ -400,40 +364,44 @@ export default class Flograph extends Digraph {
 	}
 
 	/** Compute random capacities for edges.
-	 *  @param f is a random number generator used to generate the
+	 *  @param rand is a random number generator used to generate the
 	 *  random edge capacities; it is invoked using any extra arguments
 	 *  provided by caller; for example randomCapacities(randomInteger, 1, 10)
 	 *  will assign random integer capacities in 1..10.
 	*/
-	randomCapacities(f) {
-		let fargs = [...arguments].slice(1);
+	randomCapacities(rand, ...args) {
 		let s = this.source; let t = this.sink;
 		for (let e = this.first(); e; e = this.next(e)) {
-			let c = f(...fargs);
+			let c = rand(...args);
 			if (this.tail(e) == s || this.head(e) == t) c *= this.ssCapScale;
-			this.cap(e, Math.max(c, this.floor(e)));
+			this.cap(e, Math.max(c, (this.floor ? this.floor(e) : 0)));
 		}
 	}
 
 	/** Compute random costs for all the edges.
-	 *  @param f is a random number generator used to generate the
+	 *  @param rand is a random number generator used to generate the
 	 *  random edge costs; it is invoked using any extra arguments
 	 *  provided by caller; for example randomCosts(randomInteger, 1, 10)
 	 *  will assign random integer costs in 1..10.
 	 */
-	randomCosts(f) { super.randomLengths(...arguments); }
+	randomCosts(rand, ...args) {
+		if (!this.cost) this.addEdgeProperty('cost', 0);
+		for (let e = this.first(); e; e = this.next(e)) {
+			this.cost(e, rand(...args));
+		}
+	}
 
 	/** Compute random floor values for all the edges.
-	 *  @param f is a random number generator used to generate the
+	 *  @param rand is a random number generator used to generate the
 	 *  random edge costs; it is invoked using any extra arguments
 	 *  provided by caller; for example randomFloors(randomInteger, 1, 10)
 	 *  will assign random integer costs in 1..10.
 	 */
-	randomFloors(f) {
-		if (!this.hasFloors) this.hasFloors = true;
-		let fargs = [... arguments].slice(1);
+	randomFloors(rand, ...args) {
+		if (!this.floor) this.addEdgeProperty('floor', 0);
 		for (let e = this.first(); e; e = this.next(e)) {
-			let w = f(...fargs); this.floor(e, Math.min(w, this.cap(e)));
+			let f = rand(...args);
+			this.floor(e, Math.min(f, this.cap(e)));
 		}
 	}
 }

@@ -14,8 +14,8 @@ import SplayForest from '../SplayForest.mjs';
 try {
 	console.log('testing SplayForest');
 
-	let sf = new SplayForest();
-	matches(sf.fromString('{[b a d c] [h g j i f]}'), true, 'a0');
+	let sf = SplayForest.fromString('{[b a d c] [h g j i f]}');
+	matches(!!sf, true, 'a0');
 	matches(sf, '{[b a d c] [h g j i f]}', 'a1');
 	sf.delete(7,sf.find(7));
 	matches(sf, '{[b a d c] [h j i f]}', 'a2');
@@ -36,7 +36,8 @@ try {
 	sf.delete(10,10);
 	matches(sf.toString(), '{[b a d c e h i f]}', 'b2');
 
-	sf.fromListString('{[a b c d] [e f g] [h i j k l m n] [p q r]}');
+	//sf.fromListString('{[a b c d] [e f g] [h i j k l m n] [p q r]}');
+	sf = SplayForest.fromString('{[a b c d] [e f g] [h i j k l m n] [p q r]}');
 	matches(sf.toString(),
 			'{[a b c d] [e f g] [h i j k l m n] ' +
 			'[p q r]}', 'f1');

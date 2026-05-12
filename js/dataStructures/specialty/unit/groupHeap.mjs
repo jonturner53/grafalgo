@@ -14,9 +14,9 @@ import GroupHeap from '../GroupHeap.mjs';
 try {
 	console.log('testing GroupHeap');
 
-	let gh = new GroupHeap();
-	matches(gh.fromString('{1[a:3 b:2] 2@![c:2 d:5 e:1 j:7] ' +
-					   '6[f:6 g:3] 4@[i:10]}'), true, 'a0');
+	let gh = GroupHeap.fromString('{1[a:3 b:2] 2@![c:2 d:5 e:1 j:7] ' +
+					   			  '6[f:6 g:3] 4@[i:10]}');
+	matches(!!gh, true, 'a0');
 	matches(gh,'{1[a:3 b:2] 2@![c:2 d:5 e:1 j:7] 6[f:6 g:3] 4@[i:10]}','a1');
 	gh.delete(9,4);
 	matches(gh,'{1[a:3 b:2] 2@![c:2 d:5 e:1 j:7] 6[f:6 g:3]}', 'a2');

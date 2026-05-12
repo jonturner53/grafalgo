@@ -6,6 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import findSplit from '../misc/findSplit.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
@@ -13,7 +14,6 @@ import maxflowD from '../maxflow/maxflowD.mjs';
 let g;         // shared reference to graph
 let avail;     // avail[u] is a List of available colors at u
 let emap;      // emap[u][c] is the edge that is colored c at u
-let color;     // color[e] is collar assigned to e
 
 let trace;
 let traceString;
@@ -31,9 +31,10 @@ let steps;     // total number of steps
  *  the coloring is returned as integer edge colors in g
  */
 export default function ecolorR(G, traceFlag=false) {
+	ea && assert(G.hasBipartition);
+	if (!G.color) G.addEdgeProperty('color', 0);
 	g = G; trace = traceFlag;
-	color = new Int32Array(g.edgeRange+1);
-	let Delta = g.maxDegree();
+	let Delta = Math.max(...g.maxDegree());
 
 	traceString = '';
 	recolors = rsteps = steps = 0;
@@ -55,7 +56,7 @@ export default function ecolorR(G, traceFlag=false) {
 		let c = avail[u].common2(avail[v]);
 			// returns first color in avail[u] that's also in avail[v];
 		if (c) {
-			color[e] = c;
+			g.color(e, c);
 			if (trace) traceString += `${g.e2s(e,0,1)}:${c} `;
 			avail[u].delete(c); avail[v].delete(c);
 			emap[u][c] = emap[v][c] = e;
@@ -68,11 +69,8 @@ export default function ecolorR(G, traceFlag=false) {
 		recolor(e);
 	}
 
-	if (trace) {
-		traceString += '\n' +
-					g.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:${color[e]}`);
-	}
-	return [color, traceString,
+	if (trace) traceString += '\n' + g.toString(1);
+	return [traceString,
 			{ 'recolors': recolors, 'avg path length': ~~(rsteps/recolors),
 	 	      'steps': steps }];
 }
@@ -92,12 +90,12 @@ function recolor(e) {
 		// c is the color to use for f
 		steps++; rsteps++;
 		let ff = emap[w][c];	// next edge in the path
-		color[f] = c; emap[g.left(f)][c] = emap[g.right(f)][c] = f;
+		g.color(f, c); emap[g.left(f)][c] = emap[g.right(f)][c] = f;
 		if (trace) traceString += `${g.e2s(f,0,1)}:${c} `;
 		f = ff; w = g.mate(w,ff); c = (c == cu ? cv : cu);
 	}
 	// color the last edge and update the avail sets at endpoints
-	color[f] = c; emap[g.left(f)][c] = emap[g.right(f)][c] = f;
+	g.color(f, c); emap[g.left(f)][c] = emap[g.right(f)][c] = f;
 	avail[u].delete(cu); avail[v].delete(cv);
 	if (trace) traceString += `${g.e2s(f,0,1)}:${c}]\n`;
 

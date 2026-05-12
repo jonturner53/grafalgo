@@ -47,7 +47,7 @@ export default function ncrJEK(fg, traceFlag=false) {
 	for (let u = 1; u <= g.n; u++) {
 		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 			steps++;
-			if (g.costFrom(e,u) < 0 && g.res(e,u) > 0) {
+			if (g.c(e,u) < 0 && g.res(e,u) > 0) {
 				let r = g.res(e,u); g.addFlow(e,u,r);
 				excess[u] -= r; excess[g.mate(u,e)] += r;
 			}
@@ -98,9 +98,9 @@ function findpath() {
 			steps++;
 			if (g.res(e,u) == 0) continue;
 			let v = g.mate(u,e);
-			if (Cost[v] > Cost[u] + g.costFrom(e,u) + (lambda[u]-lambda[v])) {
+			if (Cost[v] > Cost[u] + g.c(e,u) + (lambda[u]-lambda[v])) {
 				link[v] = e;
-				Cost[v] = Cost[u] + g.costFrom(e,u) + (lambda[u]-lambda[v]);
+				Cost[v] = Cost[u] + g.c(e,u) + (lambda[u]-lambda[v]);
 				if (!border.contains(v)) border.insert(v,Cost[v]);
 				else border.changekey(v,Cost[v]);
 			}

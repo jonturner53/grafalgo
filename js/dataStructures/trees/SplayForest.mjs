@@ -67,7 +67,10 @@ export default class SplayForest extends BinaryForest {
 
 	split(u) { this.splay(u); return super.split(u); }
 
-	equals(that) { return super.listEquals(that); }
+	equals(that) {
+		return super.listEquals(...(arguments.length == 1 ?	
+									[that, this.n] : arguments));
+	}
 
 	/** Return a string representation of this object.
 	 *  @param u is a node in a tree
@@ -92,7 +95,17 @@ export default class SplayForest extends BinaryForest {
 	 *  it's really just the lists that are significant
 	 *  @return true on success
 	 */
-	fromString(s, prop=0, listProp=0) {
-		return super.fromListString(s, prop, listProp);
+	static fromString(s, n=10, prop=0, listProp=0) {
+		let ls = ListSet.fromString(s, n, prop, listProp);
+		if (!ls) return null;
+		let sf = new SplayForest(ls.n);
+		for (let l = 1; l <= ls.n; l++) {
+			if (!ls.isfirst(l)) continue;
+			let t = l;
+			for (let u = ls.next(t); u; u = ls.next(u)) {
+				t = sf.insertAfter(u,ls.prev(u),t);
+			}
+		}
+		return sf;
 	}
 }

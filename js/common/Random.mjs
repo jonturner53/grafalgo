@@ -161,7 +161,7 @@ export function randomSample(n,k) {
  *  @return a scrambled version of a in which the values in positions
  *  1..n are randomly permuted
  */
-export function scramble(a, fp) {
+export function scramble(a, fp=0) {
 	for (let i = 1; i < a.length; i++) {
 		if (fp && fp.has(a[i])) continue;
 		let j = randomInteger(i, a.length-1);
