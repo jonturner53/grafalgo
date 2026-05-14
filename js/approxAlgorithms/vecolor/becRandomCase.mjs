@@ -19,8 +19,8 @@ import { lowerBounds, upperBounds } from './becCommon.mjs';
  *  @param id is the max degree of any input vertex
  *  @param no is the number outputs
  *  @param regularity
- *  @param Cmax is an upper bound on the number of colors needed
  *  @param Fmax is the largest floor (must be >= d)
+ *  @param Cmax is an upper bound on the number of colors needed
  *  @param speedup specifies speedup factor for use in switching
  *  applications; color floors are selected to emulate packet arrival
  *  times separated by intervals larger than 1
@@ -102,5 +102,5 @@ export default function becRandomCase(ni, id, no=ni, reg=1,
 	}
 	g.resetColor();  // finally, erase colors used when selecting floors
 
-	return [g, lowerBounds(g), upperBounds(g)];
+	return [g, lowerBounds(g), [Cmax,...upperBounds(g)]];
 }
