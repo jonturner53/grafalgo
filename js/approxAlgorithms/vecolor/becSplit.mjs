@@ -76,7 +76,7 @@ export default function becSplit(g, trace=0) {
 		g.color(e, (Math.max(2*h,fmax)-1) + J.color(e));
 	steps += g.n + g.m;
 	if (trace) {
-		ts += g.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
+		ts += g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
                               `${g.floor(e)}/${g.color(e)}` +
 							  (H.validEdge(e) ? '.' : ''));
 		ts = ts.slice(0,-1);
