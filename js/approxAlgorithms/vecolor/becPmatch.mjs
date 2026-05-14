@@ -16,12 +16,13 @@ import pbimatchHKT from '../../graphAlgorithms/vmatch/pbimatchHKT.mjs';
  *  Edges are colored using a succession of matching which give priority
  *  to vertices of max degree in uncolored subgraph of g
  *  @param g is the graph to be colored with floors; assumed to be bipartite
- *  @return a triple [color, ts, stats] where color is an array of edge colors,
- *  ts is a traceString and stats is a statistics object.
+ *  @return a pair [ts, stats] where ts is a traceString and stats is
+ *  a statistics object; the coloring is returned as an edge property of g.
  */
 export default function becPmatch(g, trace=0) {
 	let steps = 0;
 	ea && assert(g.hasBipartition, g);
+	if (!g.color) g.addEdgeProperty('color',0);
 
 	// compute degrees in g and assign initial priorities
 	let d = new Int32Array(g.n+1);
@@ -32,14 +33,13 @@ export default function becPmatch(g, trace=0) {
 		prio[u] = (d[u] == maxd ? 2 : 1);
 	steps += g.n;
 
-	let color = new Int32Array(g.edgeRange+1);
 	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.getBipartition());
 		// subgraph of uncolored edges with floors <= c
 	let ts = '';
 	if (trace) {
-		ts += g.toString(1, (e,u)=>`${g.x2s(g.mate(u,e))}:${g.floor(e)}`);
+		ts += 'graph with floors\n' + g.toString(5) + '\nmatchings\n';
 	}
-	let c;
+	let c; let cmax = c;
 	let count = 0;  // number of edges colored so far
 	for (c = 1; count < g.m; c++) {
 		// add edges with floor of c to gc
@@ -52,19 +52,21 @@ export default function becPmatch(g, trace=0) {
 		// degree in uncolored subgraph; extend to max size matching
 		let [match,,mstats] = pbimatchHKT(gc,prio);
 		steps += mstats.steps;
-		if (trace) ts += `${c}: ${match.toString()}\n`;
+		if (trace && match.size()>0) ts += `${c}: ${match.toString()}\n`;
 		for (let e = match.first(); e; e = match.next(e)) {
-			color[e] = c; gc.delete(e); count++;
+			g.color(e,c); gc.delete(e); count++;
 			d[g.left(e)]--; d[g.right(e)]--;
 		}
 		// update priorities
 		maxd = Math.max(...d);
 		for (let u = 1; u <= g.n; u++) prio[u] = (d[u] == maxd ? 2 : 1);
+		cmax = c;
 		steps += g.n + g.m;
 	}
 	if (trace) {
-		ts += g.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
-						   `${g.floor(e)}/${color[e]}`);
+		ts += '\ngraph with floors and colors\n' +
+				g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
+						   `${g.floor(e)}/${g.color(e)}`);
 	}
-	return [color, ts, {'C': Math.max(...color), 'steps': steps }];
+	return [ts, {'C': cmax, 'steps': steps }];
 }

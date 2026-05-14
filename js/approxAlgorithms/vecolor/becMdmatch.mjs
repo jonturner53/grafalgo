@@ -21,16 +21,16 @@ import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
  */
 export default function becMdmatch(g, trace=0) {
 	let steps = 0;
-	let color = new Int32Array(g.edgeRange+1);
+	if (!g.color) g.addEdgeProperty('color',0);
 	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.getBipartition());
 		// subgraph of uncolored edges with floors <= c
 	let ts = '';
 	if (trace) {
 		ts += 'graph with floors ';
-		ts += g.toString(1, (e,u)=>`${g.x2s(g.mate(u,e))}:${g.floor(e)}`);
+		ts += g.toString(5, (e,u)=>`${g.x2s(g.mate(u,e))}:${g.floor(e)}`);
 		ts += '\nmatchings\n';
 	}
-	let c;
+	let c; let cmax = 0;
 	let count = 0;  // number of edges colored so far
 	for (c = 1; count < g.m; c++) {
 		// add edges with floor of c to gc
@@ -43,15 +43,17 @@ export default function becMdmatch(g, trace=0) {
 		steps += mstats.steps;
 		[match,,mstats] = bimatchHK(gc,match)
 		steps += mstats.steps;
-		if (trace) ts += `${c}: ${match.toString()}\n`;
+		if (trace && match.size()>0) ts += `${c}: ${match.toString()}\n`;
 		for (let e = match.first(); e; e = match.next(e)) {
-			color[e] = c; gc.delete(e); count++;
+			g.color(e,c); gc.delete(e); count++;
 		}
+		cmax = c;
 		steps += g.n + g.m;
 	}
 	if (trace) {
-		ts += '\n' + g.toString(1,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
-						   		  `${g.floor(e)}/${color[e]}`) + '\n';
+		ts += '\ngraph with colors\n' +
+						g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
+						`${g.floor(e)}/${g.color(e)}`) + '\n';
 	}
-	return [color, ts, {'C': Math.max(...color), 'steps': steps }];
+	return [ts, {'C': cmax, 'steps': steps }];
 }

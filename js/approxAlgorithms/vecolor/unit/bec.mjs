@@ -32,11 +32,11 @@ g.setBipartition(5);
 tester.addTest('small graph', g);
 
 //ni, id, no, reg, Bmax, Cmax, speedup
-[g,lb,ub] = randomCase(6,4,12,[1,1],7,8,1);
-tester.addTest(`small random (8,4,12,[1,1],7,8,1): [${lb}], [${ub}]`, g);
+[g,lb,ub] = randomCase(6,5,15,[2,1.1],7,8,1);
+tester.addTest(`small random (6,5,30,[1,1],7,8,1): [${lb}], [${ub}]`, g);
 
-[g,lb,ub] = randomCase(6,4,12,[2,2],7,8,1.5);
-tester.addTest(`small random 2 (8,4,12,[2,2],7,8,1.5): [${lb}], [${ub}]`, g);
+[g,lb,ub] = randomCase(6,5,15,[1,1],7,8,1.5);
+tester.addTest(`small random 2 (6,5,30,[2,2],7,8,1.5): [${lb}], [${ub}]`, g);
 
 [g,lb,ub] = randomCase(100,20,100,[1,1],24);
 tester.addTest(`medium random (100,20,100,[1,1],24): [${lb}], [${ub}]`, g);
