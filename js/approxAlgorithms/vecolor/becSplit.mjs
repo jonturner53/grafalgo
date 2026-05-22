@@ -13,14 +13,14 @@ import findSplit from '../../graphAlgorithms/misc/findSplit.mjs';
 import bidcsF from '../../graphAlgorithms/vmatch/bidcsF.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 import ecolorG from '../../graphAlgorithms/ecolor/ecolorG.mjs';
-import { degreeBound } from './becCommon.mjs';
+import { degreeBound, floorIndex } from './becCommon.mjs';
 
 /** Find a bounded edge coloring using the max degree matching method.
  *  @param g is the graph to be colored with floors; assumed to be bipartite
  *  @return a triple [color, ts, stats] where color is an array of edge colors,
  *  ts is a trace string and stats is a statistics object.
  */
-export default function becSplit(g, trace=0) {
+export default function becSplit(g, gap=1, trace=0) {
 	let ts = ''; let steps = 0;
 	ea && assert(g.hasBipartition);
 	if (!g.color) g.addEdgeProperty('color', 0);
@@ -81,5 +81,6 @@ export default function becSplit(g, trace=0) {
 							  (H.validEdge(e) ? '.' : ''));
 		ts = ts.slice(0,-1);
 	}
-	return [ts, { 'C': h2 + Math.max(...J.maxDegree()) - 1, 'steps': steps }];
+	let cmax = h2 + Math.max(...J.maxDegree()) - 1;
+	return [ts, { 'C': floorIndex(cmax, gap), 'steps': steps }];
 }

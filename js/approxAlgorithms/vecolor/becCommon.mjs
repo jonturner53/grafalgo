@@ -16,20 +16,74 @@ import findSplit from '../../graphAlgorithms/misc/findSplit.mjs';
 import flowfloor from '../../graphAlgorithms/maxflow/flowfloor.mjs';
 import becSplit from './becSplit.mjs';
 
-/** Return the largest color floor */
-export function maxFloor(eg) {
+// 
+// For applications to crossbar scheduling, speedups are modeled as
+// the nominal spacing between consecutive floor values (and are
+// referred to here as the "gap"). Actual floor values are rounded
+// up to next integer.
+//
+
+/** Determine the floor value for a specified index and gap.
+ *  @param i is a positive integer
+ *  @param gap is the nominal inter-floor spacing
+ *  @return the i-th floor value
+ */
+export function ifloor(i,gap) {
+	return 1 + Math.ceil((i-1)*gap);
+}
+
+/** Determine the number of floors upper-bounded by a given color
+ *  @param c is a color
+ *  @param gap is the floor spacing
+ *  @return the number of floor values <=c.
+ */
+export function floorCount(c,gap) {
+	return 1 + Math.floor((c-1)/gap);
+}
+
+/** Determine the index of next floor lower-bounded by a given color
+ *  @param c is a color
+ *  @param gap is the floor spacing
+ *  @return the index of the smallest floor value >=c
+ */
+export function floorIndex(c, gap) {
+	return floorCount(isFloor(c,gap) ? c : c+1, gap);
+}
+
+/** Determine if a color is a floor.
+ *  @param c is a color
+ *  @param gap is the floor spacing
+ *  @return the index of the smallest floor value >=c
+ */
+export function isFloor(c, gap) {
+	return floorCount(c, gap) != floorCount(c-1, gap);
+}
+
+/** Determine the largest color floor for a graph */
+export function maxFloor(g) {
 	let max = 0;
-	for (let e = g.first(); e; e = next(e))
+	for (let e = g.first(); e; e = g.next(e))
 		max = Math.max(max, g.floor(e));
 	return max;
 }
 
-/** Compute lower bound on the bounded chromatic index using
- *  the degree bound method.
+/** Determine the largest color used to color a graph. */
+export function maxColor(g) {
+	let cmax = 0;
+	for (let e = g.first(); e; e = g.next(e)) {
+		cmax = Math.max(cmax, g.color(e));
+	}
+	return cmax;
+}
+
+/** Compute lower bound on the number of distinct floors covered
+ *  by a coloring using the degree bound method.
  *  @param g is a Graph with color floors.
- *  @return the lower bound.
+ *  @param gap is the inter-floor spacing
+ *  @return the lower bound, expressed as the number of floors that
+ *  must be used.
  */
-export function degreeBound(g) {
+export function degreeBound(g, gap=1) {
 	let lb = 0;
     for (let u = 1; u <= g.n; u++) {
 		let d = g.degree(u); let evec = []; let i = 0;
@@ -41,13 +95,19 @@ export function degreeBound(g) {
             lb = Math.max(lb, Math.ceil(g.floor(e)) + (d-i++));
 		}
     }
-	return lb;
+	return floorIndex(lb, gap);
 }
 
-/** Return the lower bound based on matchings. */
-export function matchBound(g) {
+/** Compute lower bound on the number of distinct floors covered
+ *  by a coloring using the matching bound method.
+ *  @param g is a Graph with color floors
+ *  @param gap is the inter-floor spacing
+ *  @return the lower bound, expressed as the number of floors that
+ *  must be used.
+ */
+export function matchBound(g, gap=1) {
 	let gc = new Graph(g.n, g.edgeRange); gc.setBipartition(g.getBipartition());
-	let total = 0; let c;
+	let total = 0; let c; let cmax=0;
 	for (c = 1; total < g.m; c++) {
 		// construct G_c (by adding edges to previous G_c)
 		for (let e = g.first(); e; e = g.next(e)) {
@@ -57,16 +117,19 @@ export function matchBound(g) {
 		// find max matching in gc and add its size to total
 		let [match] = bimatchHK(gc);
 		total += match.size();
-		if (total > gc.m) total = gc.m;
+		cmax = c;
 	}
-	return c-1;
+	return floorIndex(cmax, gap);
 }
 
-/** Compute the flow lower bound on the bounded chromatic index.
- *  @param g is a graph with edge floors
- *  @return the lower bound
+/** Compute lower bound on the number of distinct floors covered
+ *  by a coloring using the split bound method.
+ *  @param g is a Graph with color floors
+ *  @param gap is the inter-floor spacing
+ *  @return the lower bound, expressed as the number of floors that
+ *  must be used.
  */
-export function splitBound(g) {
+export function splitBound(g, gap=1) {
 	let subsets = findSplit(g);
 	if (!subsets) return 0;
 	
@@ -77,7 +140,7 @@ export function splitBound(g) {
 	// binary search to find largest C for which graph is not C-colorable
 	// start by finding upper bound.
 	let k0 = Math.ceil(fmax/2);
-	let lo = Math.max(degreeBound(g), matchBound(g)) - 1;
+	let lo = Math.max(degreeBound(g,gap), matchBound(g,gap)) - 1;
 	let hiMax = fmax + Math.max(...g.maxDegree());
 	let increment = 3; let hi = lo+increment;
 	let phase = 1;
@@ -114,7 +177,7 @@ export function splitBound(g) {
 		}
 		if (k == 0) { hi = C-1; phase = 2; }
 	}
-	return lo+1;
+	return floorIndex(lo+1, gap);
 }
 
 /** Construct flow graph for determining lower bound.
@@ -163,20 +226,16 @@ function buildFlograph(g, subsets, k, C) {
 }
 
 /** Return array of lower bounds on the number of colors required. */
-export function lowerBounds(g) {
-	let [idmax, odmax] = g.maxDegree();
-	return [degreeBound(g), matchBound(g), splitBound(g)];
+export function lowerBounds(g, gap=1) {
+	return [degreeBound(g, gap), matchBound(g, gap), splitBound(g, gap)];
 }
 
 /** Return array of upper bounds on the number of colors required. */
-export function upperBounds(g) {
+export function upperBounds(g, gap=1) {
 	let clone = Graph.clone(g);
 	if (g.color) clone.resetColor();
 	clone.setBipartition(g.getBipartition());
-	becSplit(clone); let fmax = 1; let cmax = 0;
-	for (let e = g.first(); e; e = g.next(e)) {
-		cmax = Math.max(cmax, clone.color(e));
-		fmax = Math.max(fmax, clone.floor(e));
-	}
-	return [cmax, fmax + Math.max(...g.maxDegree()) - 1];
+	becSplit(clone);
+	let fd = maxFloor(clone) + Math.max(...g.maxDegree()) - 1;
+	return [floorIndex(maxColor(clone), gap), floorIndex(fd, gap)];
 }

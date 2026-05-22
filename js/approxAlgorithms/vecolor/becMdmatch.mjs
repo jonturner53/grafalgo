@@ -11,6 +11,7 @@ import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
+import { floorIndex } from './becCommon.mjs';
 
 /** Find a bounded edge coloring using the max degree matching method.
  *  Edges are colored using a succession of matchings which give priority
@@ -19,7 +20,7 @@ import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
  *  @return a triple [color, ts, stats] where color is an array of edge colors,
  *  ts is a traceString and stats is a statistics object.
  */
-export default function becMdmatch(g, trace=0) {
+export default function becMdmatch(g, gap=1, trace=0) {
 	let steps = 0;
 	if (!g.color) g.addEdgeProperty('color',0);
 	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.getBipartition());
@@ -55,5 +56,5 @@ export default function becMdmatch(g, trace=0) {
 						g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
 						`${g.floor(e)}/${g.color(e)}`) + '\n';
 	}
-	return [ts, {'C': cmax, 'steps': steps }];
+	return [ts, {'C': floorIndex(cmax, gap), 'steps': steps }];
 }

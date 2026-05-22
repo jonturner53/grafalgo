@@ -102,5 +102,5 @@ export default function becRandomCase(ni, id, no=ni, reg=1,
 	}
 	g.resetColor();  // finally, erase colors used when selecting floors
 
-	return [g, lowerBounds(g), [Cmax,...upperBounds(g)]];
+	return [g, lowerBounds(g,speedup), [Cmax,...upperBounds(g,speedup)]];
 }
