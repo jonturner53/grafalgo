@@ -12,7 +12,7 @@ import { randomInteger, randomPermutation } from '../../common/Random.mjs';
 import { randomRegularBigraph }
 		from '../../graphAlgorithms/misc/RandomGraph.mjs';
 import ecolorG from '../../graphAlgorithms/ecolor/ecolorG.mjs';
-import { lowerBounds, upperBounds } from './becCommon.mjs';
+import { lowerBounds, upperBounds, maxColor, maxFloor} from './becCommon.mjs';
 
 /** Generate a random bipartite test case for bounded edge coloring.
  *  @param ni is the number of inputs to the graph
@@ -100,7 +100,8 @@ export default function becRandomCase(ni, id, no=ni, reg=1,
 			ea && assert(g.floor(e));
 		}
 	}
+	let cmax = maxColor(g); let fmax = maxFloor(g);
 	g.resetColor();  // finally, erase colors used when selecting floors
 
-	return [g, lowerBounds(g,speedup), [Cmax,...upperBounds(g,speedup)]];
+	return [g, lowerBounds(g,speedup), [cmax,...upperBounds(g,speedup)]];
 }

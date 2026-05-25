@@ -80,8 +80,7 @@ export function maxColor(g) {
  *  by a coloring using the degree bound method.
  *  @param g is a Graph with color floors.
  *  @param gap is the inter-floor spacing
- *  @return the lower bound, expressed as the number of floors that
- *  must be used.
+ *  @return the lower bound
  */
 export function degreeBound(g, gap=1) {
 	let lb = 0;
@@ -92,18 +91,17 @@ export function degreeBound(g, gap=1) {
 		evec.sort((e1,e2)=>g.floor(e1)-g.floor(e2));
 		i = 1;
 		for (let e of evec) {
-            lb = Math.max(lb, Math.ceil(g.floor(e)) + (d-i++));
+            lb = Math.max(lb, g.floor(e) + (d-i++));
 		}
     }
-	return floorIndex(lb, gap);
+	return lb;
 }
 
 /** Compute lower bound on the number of distinct floors covered
  *  by a coloring using the matching bound method.
  *  @param g is a Graph with color floors
  *  @param gap is the inter-floor spacing
- *  @return the lower bound, expressed as the number of floors that
- *  must be used.
+ *  @return the lower bound
  */
 export function matchBound(g, gap=1) {
 	let gc = new Graph(g.n, g.edgeRange); gc.setBipartition(g.getBipartition());
@@ -117,72 +115,56 @@ export function matchBound(g, gap=1) {
 		// find max matching in gc and add its size to total
 		let [match] = bimatchHK(gc);
 		total += match.size();
-		cmax = c;
 	}
-	return floorIndex(cmax, gap);
+	return Math.max(c-1, maxFloor(g));
 }
 
 /** Compute lower bound on the number of distinct floors covered
  *  by a coloring using the split bound method.
  *  @param g is a Graph with color floors
  *  @param gap is the inter-floor spacing
- *  @return the lower bound, expressed as the number of floors that
- *  must be used.
+ *  @return the lower bound
  */
 export function splitBound(g, gap=1) {
-	let subsets = findSplit(g);
-	if (!subsets) return 0;
-	
-	let fmax = 1;
-	for (let e = g.first(); e; e = g.next(e)) 
-		fmax = Math.max(fmax, g.floor(e));
+let t = Date.now();
+	let fmax = maxFloor(g); let dmax = Math.max(...g.maxDegree());
 
 	// binary search to find largest C for which graph is not C-colorable
-	// start by finding upper bound.
-	let k0 = Math.ceil(fmax/2);
+	// start by finding good limits for binary search
 	let lo = Math.max(degreeBound(g,gap), matchBound(g,gap)) - 1;
-	let hiMax = fmax + Math.max(...g.maxDegree());
-	let increment = 3; let hi = lo+increment;
-	let phase = 1;
+	let hiMax = fmax + dmax;
+	let increment = 3; let hi = fmax + dmax;
+	let decrement = Math.max(1, Math.floor(fmax/4));
 
-	while (lo < hi) {
-		let C = ~~((lo + hi + 1)/2);  // so, lo < C
-
-		// speed things up by trying k0 case first
-		let k = k0;
-		let fg = buildFlograph(g, subsets, k, C);
-		let [success] = flowfloor(fg);
+	while (1) {
+		let success = false; let C = Math.min(lo + increment, hi-1);
+		let decrement = Math.max(1, Math.floor(fmax/4));
+		for (let k = fmax; k >= 1; k -= decrement) {
+			[success] = flowfloor(buildFlograph(g, k, C));
+			if (!success) break;
+		}
 		if (!success) {
-			lo = C;
-			if (phase == 1) {
-				increment *= 2; hi = Math.min(lo + increment, hiMax);
-			}
-			continue;
+			lo = C; increment *= 2;
 		} else {
-			hi = C-1; phase = 2; continue;
+			hi = C; break;
 		}
-		if (lo >= hi) break;
-
-		for (k = fmax; k >= 1; k--) {
-			let fg = buildFlograph(g, subsets, k, C);
-			let [success] = flowfloor(fg);
-			if (!success) {
-				lo = C;
-				if (phase == 1) {
-					increment *= 2; hi = Math.min(lo + increment, hiMax);
-				}
-				break;
-			}
-			if (k == k0+1) k--; // avoid repeat of k0 case
-		}
-		if (k == 0) { hi = C-1; phase = 2; }
 	}
-	return floorIndex(lo+1, gap);
+	// now proceed to binary search
+	while (lo < hi-1) {
+		let success = false; let C = ~~((lo + hi)/2);
+		for (let k = fmax; k >= 1; k -= decrement) {
+			[success] = flowfloor(buildFlograph(g, k, C));
+			if (!success) break;
+		}
+		if (!success) lo = C;
+		else hi = C;
+	}
+
+	return hi;
 }
 
 /** Construct flow graph for determining lower bound.
  *  @param g is a bipartite graph with edge color floors
- *  @param subsets is a ListPair that defines bipartition on g
  *  @param k is the largest floor to consider when constructing fg;
  *  that is, only incorporate edges from g that have floors <= k
  *  @param C is the target maximum color for floor computation
@@ -190,14 +172,14 @@ export function splitBound(g, gap=1) {
  *  that satisfies the min flow requirements in which the
  *  result is returned
  */
-function buildFlograph(g, subsets, k, C) {
+function buildFlograph(g, k, C) {
 	let fg = new Flograph(g.n*k+2, g.edgeRange+g.n*k);
 	if (!fg.floor) fg.addEdgeProperty('floor', 0);
 	fg.source = g.n*k+1; fg.sink = g.n*k+2;
 	// first, build core edges, preserving edge numbers from g
 	for (let e = g.first(); e; e = g.next(e)) {
 		let [u,v] = [g.left(e),g.right(e)]
-		if (!subsets.in(u,1)) [u,v] = [v,u];
+		if (!g.isInput(u)) [u,v] = [v,u];
 		let c = Math.ceil(g.floor(e));
 		if (c <= k) {
 			fg.join((u-1)*k + c, (v-1)*k + c, e); fg.cap(e, 1);
@@ -206,7 +188,7 @@ function buildFlograph(g, subsets, k, C) {
 	// now, build remaining edges
 	for (let u = 1; u <= g.n; u++) {
 		let du = g.degree(u);
-		if (subsets.in(u,1)) {  // u is an input
+		if (g.isInput(u)) {  // u is an input
 			let e = fg.join(fg.source, (u-1)*k+1);
 			fg.cap(e, k); fg.floor(e, Math.max(0, du - (C - k)));
 			let x = (u-1)*k+1; let ecap = k-1;
@@ -236,6 +218,6 @@ export function upperBounds(g, gap=1) {
 	if (g.color) clone.resetColor();
 	clone.setBipartition(g.getBipartition());
 	becSplit(clone);
-	let fd = maxFloor(clone) + Math.max(...g.maxDegree()) - 1;
-	return [floorIndex(maxColor(clone), gap), floorIndex(fd, gap)];
+	let fmax = maxFloor(clone); let cmax = maxColor(clone);
+	return [cmax, fmax + Math.max(...g.maxDegree())-1];
 }

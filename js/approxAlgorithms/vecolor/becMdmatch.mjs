@@ -11,7 +11,7 @@ import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
-import { floorIndex } from './becCommon.mjs';
+import { maxFloor } from './becCommon.mjs';
 
 /** Find a bounded edge coloring using the max degree matching method.
  *  Edges are colored using a succession of matchings which give priority
@@ -20,7 +20,7 @@ import { floorIndex } from './becCommon.mjs';
  *  @return a triple [color, ts, stats] where color is an array of edge colors,
  *  ts is a traceString and stats is a statistics object.
  */
-export default function becMdmatch(g, gap=1, trace=0) {
+export default function becMdmatch(g, trace=0) {
 	let steps = 0;
 	if (!g.color) g.addEdgeProperty('color',0);
 	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.getBipartition());
@@ -36,8 +36,9 @@ export default function becMdmatch(g, gap=1, trace=0) {
 	for (c = 1; count < g.m; c++) {
 		// add edges with floor of c to gc
 		for (let e = g.first(); e; e = g.next(e)) {
-			if (c >= g.floor(e) && c < g.floor(e) + 1)
+			if (c >= g.floor(e) && c < g.floor(e) + 1) {
 				gc.join(g.left(e), g.right(e), e);
+			}
 		}
 		// find max degree matching in gc, extended to max size
 		let [match,,mstats] = mdmatchG(gc);
@@ -51,10 +52,12 @@ export default function becMdmatch(g, gap=1, trace=0) {
 		cmax = c;
 		steps += g.n + g.m;
 	}
+	let fmax = maxFloor(g);
 	if (trace) {
 		ts += '\ngraph with colors\n' +
 						g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
-						`${g.floor(e)}/${g.color(e)}`) + '\n';
+						`${g.floor(e)}/${g.color(e)}`) + '\n' +
+					    `colors: ${[cmax,fmax,cmax-fmax]}\n\n`;
 	}
-	return [ts, {'C': floorIndex(cmax, gap), 'steps': steps }];
+	return [ts, { 'C': [cmax,fmax,cmax-fmax], 'steps': steps }];
 }

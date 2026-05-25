@@ -8,7 +8,7 @@
 
 import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
-import { ifloor, isFloor, floorIndex, lowerBounds, upperBounds }
+import { ifloor, isFloor, maxFloor, lowerBounds, upperBounds }
 		from './becCommon.mjs';
 
 /** Generate a hard test case.
@@ -32,7 +32,7 @@ export default function becHardCase(n, gap=1) {
 	}
 
 	return [g, lowerBounds(g,gap),
-			   [hardCaseUpperBound(n,gap), ...upperBounds(g,gap)]];
+			   [maxFloor(g)+hardCaseUpperBound(n,gap), ...upperBounds(g,gap)]];
 }
 
 /** Determine next smaller "bonus" color.
@@ -82,5 +82,5 @@ function hardCaseUpperBound(n, gap) {
 		else
 			lo = mid+1;
 	}
-	return floorIndex(ifloor(n, gap) + hi, gap);
+	return  hi;
 }

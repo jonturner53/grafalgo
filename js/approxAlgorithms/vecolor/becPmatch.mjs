@@ -11,7 +11,7 @@ import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import pbimatchHKT from '../../graphAlgorithms/vmatch/pbimatchHKT.mjs';
-import { floorIndex } from './becCommon.mjs';
+import { maxFloor } from './becCommon.mjs';
 
 /** Find a bounded edge coloring using the max degree matching method.
  *  Edges are colored using a succession of matching which give priority
@@ -20,7 +20,7 @@ import { floorIndex } from './becCommon.mjs';
  *  @return a pair [ts, stats] where ts is a traceString and stats is
  *  a statistics object; the coloring is returned as an edge property of g.
  */
-export default function becPmatch(g, gap=1, trace=0) {
+export default function becPmatch(g, trace=0) {
 	let steps = 0;
 	ea && assert(g.hasBipartition, g);
 	if (!g.color) g.addEdgeProperty('color',0);
@@ -45,7 +45,8 @@ export default function becPmatch(g, gap=1, trace=0) {
 	for (c = 1; count < g.m; c++) {
 		// add edges with floor of c to gc
 		for (let e = g.first(); e; e = g.next(e)) {
-			if (c >= g.floor(e) && c < g.floor(e) + 1) {
+			let fe = g.floor(e);
+			if (c >= fe && c < fe + 1) {
 				gc.join(g.left(e), g.right(e), e);
 			}
 		}
@@ -64,10 +65,12 @@ export default function becPmatch(g, gap=1, trace=0) {
 		cmax = c;
 		steps += g.n + g.m;
 	}
+	let fmax = maxFloor(g);
 	if (trace) {
 		ts += '\ngraph with floors and colors\n' +
 				g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
-						   `${g.floor(e)}/${g.color(e)}`);
+						 	 `${g.floor(e)}/${g.color(e)}`) +
+						 	 `\ncolors: [${[cmax,fmax,cmax-fmax]}]\n`;
 	}
-	return [ts, {'C': floorIndex(cmax,gap), 'steps': steps }];
+	return [ts, { 'C': [cmax,fmax,cmax-fmax], 'steps': steps }];
 }

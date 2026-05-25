@@ -13,21 +13,19 @@ import findSplit from '../../graphAlgorithms/misc/findSplit.mjs';
 import bidcsF from '../../graphAlgorithms/vmatch/bidcsF.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 import ecolorG from '../../graphAlgorithms/ecolor/ecolorG.mjs';
-import { degreeBound, floorIndex } from './becCommon.mjs';
+import { degreeBound, maxFloor } from './becCommon.mjs';
 
 /** Find a bounded edge coloring using the max degree matching method.
  *  @param g is the graph to be colored with floors; assumed to be bipartite
  *  @return a triple [color, ts, stats] where color is an array of edge colors,
  *  ts is a trace string and stats is a statistics object.
  */
-export default function becSplit(g, gap=1, trace=0) {
+export default function becSplit(g, trace=0) {
 	let ts = ''; let steps = 0;
 	ea && assert(g.hasBipartition);
 	if (!g.color) g.addEdgeProperty('color', 0);
 
-	let fmax = 0;
-	for (let e = g.first(); e; e = g.next(e))
-		fmax = Math.max(fmax, g.floor(e));
+	let fmax = maxFloor(g);
 	let h = Math.ceil(fmax/2);		// first color for H
 	let h2 = Math.max(2*h, fmax);	// first color for J
 	let gh = new Graph(g.n,g.edgeRange); gh.setBipartition(g.getBipartition());
@@ -41,7 +39,7 @@ export default function becSplit(g, gap=1, trace=0) {
 	let maxDegree = Math.max(...d);
 	let dmin = new Int32Array(g.n+1);
 	let dmax = new Int32Array(g.n+1).fill(h);
-	let [lo,hi] = [degreeBound(g), fmax+maxDegree-1];
+	let [lo,hi] = [fmax+degreeBound(g), fmax+maxDegree-1];
 	steps += g.n + g.m * Math.ceil(Math.log(g.m));
 
 	if (hi <= lo) hi = lo+1;
@@ -75,12 +73,13 @@ export default function becSplit(g, gap=1, trace=0) {
 	for (let e = J.first(); e; e = J.next(e)) 
 		g.color(e, (Math.max(2*h,fmax)-1) + J.color(e));
 	steps += g.n + g.m;
+	let cmax = h2 + Math.max(...J.maxDegree()) - 1;
 	if (trace) {
 		ts += g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
                               `${g.floor(e)}/${g.color(e)}` +
-							  (H.validEdge(e) ? '.' : ''));
+							  (H.validEdge(e) ? '.' : '')) +
+							  `colors: ${[cmax,fmax,cmax-fmax]}`;
 		ts = ts.slice(0,-1);
 	}
-	let cmax = h2 + Math.max(...J.maxDegree()) - 1;
-	return [ts, { 'C': floorIndex(cmax, gap), 'steps': steps }];
+	return [ts, { 'C': [cmax,fmax,cmax-fmax], 'steps': steps }];
 }
