@@ -163,8 +163,9 @@ export default class Flograph extends Digraph {
 	 *  the edge capacity and flow are both initialized to zero,
 	 *  as is the min flow requirement, if enabled
 	 */
-	join(u, v, e) {
+	join(u, v, e=this.edges.first(2)) {
 		let ee = super.join(u, v, e);
+//console.log('fgjoin', e, ee, this.edgeRange, this.validEdge(ee), this.edges.in(ee,1));
 		this.cap(ee, 0); this.flow(ee, 0);
 		if (this.cost) this.cost(ee, 0);
 		if (this.floor) this.floor(ee, 0);

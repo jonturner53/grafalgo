@@ -13,7 +13,11 @@ import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 import findSplit from '../../graphAlgorithms/misc/findSplit.mjs';
-import flowfloor from '../../graphAlgorithms/maxflow/flowfloor.mjs';
+import maxflowD from '../../graphAlgorithms/maxflow/maxflowD.mjs';
+import maxflowPPf from '../../graphAlgorithms/maxflow/maxflowPPf.mjs';
+import maxflowPPhl from '../../graphAlgorithms/maxflow/maxflowPPhl.mjs';
+import maxflowFFsp from '../../graphAlgorithms/maxflow/maxflowFFsp.mjs';
+import maxflowDst from '../../graphAlgorithms/maxflow/maxflowDst.mjs';
 import becSplit from './becSplit.mjs';
 
 // 
@@ -102,6 +106,9 @@ export function degreeBound(g, gap=1) {
  *  @param g is a Graph with color floors
  *  @param gap is the inter-floor spacing
  *  @return the lower bound
+
+could speed up by extending previous matching rather
+than computing from scratch each time
  */
 export function matchBound(g, gap=1) {
 	let gc = new Graph(g.n, g.edgeRange); gc.setBipartition(g.getBipartition());
@@ -126,85 +133,139 @@ export function matchBound(g, gap=1) {
  *  @return the lower bound
  */
 export function splitBound(g, gap=1) {
-let t = Date.now();
-	let fmax = maxFloor(g); let dmax = Math.max(...g.maxDegree());
+	let d = new Int32Array(g.n+1);
+	for (let u = 1; u <= g.n; u++) d[u] = g.degree(u);
+	let fmax = maxFloor(g);
 
-	// binary search to find largest C for which graph is not C-colorable
-	// start by finding good limits for binary search
-	let lo = Math.max(degreeBound(g,gap), matchBound(g,gap)) - 1;
-	let hiMax = fmax + dmax;
-	let increment = 3; let hi = fmax + dmax;
-	let decrement = Math.max(1, Math.floor(fmax/4));
+	let fg = buildFlograph(g,fmax);
 
-	while (1) {
-		let success = false; let C = Math.min(lo + increment, hi-1);
-		let decrement = Math.max(1, Math.floor(fmax/4));
-		for (let k = fmax; k >= 1; k -= decrement) {
-			[success] = flowfloor(buildFlograph(g, k, C));
-			if (!success) break;
-		}
-		if (!success) {
-			lo = C; increment *= 2;
+	// find good bounds for binary search
+	let lo = Math.max(degreeBound(g,gap), matchBound(g,gap));
+	let delta = 2; let hi = lo+delta;
+	while(1) {
+		if (check4split(g,d,fmax,fg,hi)) break;
+		lo = hi+1; delta *= 2; hi = lo+delta;
+	}
+
+	// perform binary search to find smallest C for which graph
+	// can be split
+	while (lo < hi) {
+		let mid = Math.floor((lo+hi)/2);
+		if (check4split(g,d,fmax,fg,mid)) {
+			hi = mid;
 		} else {
-			hi = C; break;
+			lo = mid+1;
 		}
 	}
-	// now proceed to binary search
-	while (lo < hi-1) {
-		let success = false; let C = ~~((lo + hi)/2);
-		for (let k = fmax; k >= 1; k -= decrement) {
-			[success] = flowfloor(buildFlograph(g, k, C));
-			if (!success) break;
-		}
-		if (!success) lo = C;
-		else hi = C;
-	}
-
 	return hi;
 }
 
-/** Construct flow graph for determining lower bound.
+/** Construct flow graph for determining split lower bound.
  *  @param g is a bipartite graph with edge color floors
- *  @param k is the largest floor to consider when constructing fg;
- *  that is, only incorporate edges from g that have floors <= k
- *  @param C is the target maximum color for floor computation
+ *  @param fmax is the largest floor value in g
  *  @return a flow graph with min flow requirements; if there is a flow
  *  that satisfies the min flow requirements in which the
  *  result is returned
  */
-function buildFlograph(g, k, C) {
-	let fg = new Flograph(g.n*k+2, g.edgeRange+g.n*k);
-	if (!fg.floor) fg.addEdgeProperty('floor', 0);
-	fg.source = g.n*k+1; fg.sink = g.n*k+2;
-	// first, build core edges, preserving edge numbers from g
+function buildFlograph(g, fmax) {
+	// create and configure flow graph
+	let fg = new Flograph(g.n*fmax+4, g.edgeRange+g.n*(fmax+1)+3);
+	fg.addEdgeProperty('floor', 0);
+		// note: fg.floor is min flow requirement,
+		// g.floor is minimum color
+	let s = fg.n-3; let t = fg.n-2;
+	fg.source = fg.n-1;  fg.sink = fg.n;
+
+	// now, build core edges, preserving edge numbers from g
 	for (let e = g.first(); e; e = g.next(e)) {
 		let [u,v] = [g.left(e),g.right(e)]
 		if (!g.isInput(u)) [u,v] = [v,u];
-		let c = Math.ceil(g.floor(e));
-		if (c <= k) {
-			fg.join((u-1)*k + c, (v-1)*k + c, e); fg.cap(e, 1);
+		let f = g.floor(e);
+		fg.join((u-1)*fmax + f, (v-1)*fmax + f, e);
+		fg.cap(e, 1);
+	}
+	// now, build s/t, source/sink and chain edges
+	fg.join(fg.source,t);
+	for (let u = 1; u <= g.n; u++) {
+		let u1 = (u-1)*fmax+1; // where source/sink edges attach
+		if (g.isInput(u)) {  // u is an input
+			for (let i = u1; i < u1+fmax-1; i++) fg.join(i, i+1);
+			fg.join(fg.source, u1); fg.join(s, u1);
+				// in Flograph incoming edges inserted at front of
+				// endpoint lists
+		} else { // u is an output
+			fg.join(u1,t); fg.join(u1,fg.sink);
+			for (let i = u1; i < u1+fmax-1; i++) fg.join(i+1, i);
 		}
 	}
-	// now, build remaining edges
+	fg.join(s,fg.sink); // this edge is first into fg.sink
+
+	// and last edge
+	let e = fg.join(t,s); fg.cap(e,fmax*g.n);
+
+	return fg;
+}
+
+/** Determine if a split is possible on a specified color.
+ *  @param g is original graph
+ *  @param d is array of vertex degrees in g
+ *  @param fmax is largest floor
+ *  @param fg is the flow graph used to determine if g can be split
+ *  @param C is a color
+ *  @return true if g can be split into subgraphs H and J for all h
+ *  in [1,fmax] or false if not; H is a subgraph of G_h which has
+ *  a degree bound of h and J is the remaining edges of G and has
+ *  maximum degree <=C-h
+ */
+function check4split(g, d, fmax, fg, C) {
+	fg.clearFlow();
+	for (let h = 1; h <= fmax ; h++) {
+		adjustCapacities(g, d, fmax, fg, C, h);
+		maxflowD(fg); // flow added for each successive value of h;
+					  // works since capacities increase with h
+		for (let e = fg.firstOutof(fg.source); e;
+				 e = fg.nextOutof(fg.source,e)) {
+			if (fg.flow(e) != fg.cap(e)) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+/** Adjust edge capacities in flow graph for new value of h.
+ *  @param g is original graph
+ *  @param d is array of vertex degrees in g
+ *  @param fmax is largest floor
+ *  @param fg is the flow graph used to determine if g can be split
+ *  @param C is a color
+ *  @param h is a second color
+ *  @param on return the edge capacities have been adjusted so that
+ *  the part of fg that is reachable from the source corresponds to G_h
+ */
+function adjustCapacities(g, d, fmax, fg, C, h) {
+	let sourceCap = 0; // total capacity of source edges to core
+	let sinkCap = 0;   // total capacity of sink edges from core
 	for (let u = 1; u <= g.n; u++) {
-		let du = g.degree(u);
-		if (g.isInput(u)) {  // u is an input
-			let e = fg.join(fg.source, (u-1)*k+1);
-			fg.cap(e, k); fg.floor(e, Math.max(0, du - (C - k)));
-			let x = (u-1)*k+1; let ecap = k-1;
-			while (x < u*k) {
-				e = fg.join(x,x+1); fg.cap(e,ecap--); x++;
+		let u1 = (u-1)*fmax+1; // where source/sink edges attach
+		if (g.isInput(u)) {
+			let e = fg.firstInto(u1);   fg.cap(e,  Math.min(h,C-d[u]));
+			let ee = fg.nextInto(u1,e); fg.cap(ee, Math.max(0,d[u]-(C-h)));
+			sourceCap += fg.cap(ee); let ecap = h;
+			for (let i = u1; ecap; i++) { // chain capacities
+				fg.cap(fg.firstInto(i+1), --ecap);
 			}
 		} else {
-			let e = fg.join((u-1)*k+1, fg.sink);
-			fg.cap(e, k); fg.floor(e, Math.max(0, du - (C - k)));
-			let x = (u-1)*k+1; let ecap = k-1;
-			while (x < u*k) {
-				e = fg.join(x+1,x); fg.cap(e,ecap--); x++;
+			let e = fg.firstOutof(u1);   fg.cap(e,  Math.min(h,C-d[u]));
+			let ee = fg.nextOutof(u1,e); fg.cap(ee, Math.max(0,d[u]-(C-h)));
+			sinkCap += fg.cap(ee); let ecap = h;
+			for (let i = u1; ecap; i++) {
+				fg.cap(fg.firstOutof(i+1), --ecap);
 			}
 		}
 	}
-	return fg;
+	fg.cap(fg.firstInto(fg.sink), sourceCap);
+	fg.cap(fg.firstOutof(fg.source), sinkCap);
 }
 
 /** Return array of lower bounds on the number of colors required. */

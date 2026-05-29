@@ -140,13 +140,9 @@ export default class Digraph extends Graph {
 	join(u, v, e=this.edges.first(2)) {
 		ea && assert(this.validVertex(u) && this.validVertex(v) &&
 					 (e > 0 || this.edges.first(2) == 0));
-/*
-		if (u > this.n || v > this.n || this.edges.length(2) == 0) {
-			this.expand(Math.max(this.n, u, v), Math.max(e, this.edges.n+1));
-		}
-*/
 		if (e == 0) e = this.edges.first(2);
 		this.edges.swap(e);
+//console.log('dgjoin', e, this.edges.in(e,1));
 
 		// initialize edge information
 		this.Left[e] = u; this.Right[e] = v;
