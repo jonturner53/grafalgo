@@ -70,7 +70,7 @@ export default function becPmatch(g, trace=0) {
 		ts += '\ngraph with floors and colors\n' +
 				g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
 						 	 `${g.floor(e)}/${g.color(e)}`) +
-						 	 `\ncolors: [${[cmax,cmax-fmax]}]\n`;
+						 	 `\ncolors: [${cmax},${cmax-fmax}]\n`;
 	}
 	return [ts, { 'C': [cmax,cmax-fmax], 'steps': steps }];
 }

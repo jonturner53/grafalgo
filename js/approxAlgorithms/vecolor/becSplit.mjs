@@ -80,7 +80,7 @@ export default function becSplit(g, trace=0) {
 		ts += g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
                               `${g.floor(e)}/${g.color(e)}` +
 							  (H.validEdge(e) ? '.' : '')) +
-							  `colors: ${[cmax,cmax-fmax]}`;
+							  `colors: [${cmax},${cmax-fmax}]`;
 		ts = ts.slice(0,-1);
 	}
 	return [ts, { 'C': [cmax,cmax-fmax], 'steps': steps }];

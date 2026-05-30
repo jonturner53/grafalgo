@@ -12,7 +12,6 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
-import findSplit from '../../graphAlgorithms/misc/findSplit.mjs';
 import maxflowPPf from '../../graphAlgorithms/maxflow/maxflowPPf.mjs';
 import becSplit from './becSplit.mjs';
 

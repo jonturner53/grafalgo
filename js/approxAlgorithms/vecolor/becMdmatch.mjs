@@ -57,7 +57,7 @@ export default function becMdmatch(g, trace=0) {
 		ts += '\ngraph with colors\n' +
 						g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
 						`${g.floor(e)}/${g.color(e)}`) + '\n' +
-					    `colors: ${[cmax,cmax-fmax]}\n\n`;
+					    `colors: [${cmax},${cmax-fmax}]\n\n`;
 	}
 	return [ts, { 'C': [cmax,cmax-fmax], 'steps': steps }];
 }
