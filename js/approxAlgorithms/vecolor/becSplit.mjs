@@ -27,7 +27,6 @@ export default function becSplit(g, trace=0) {
 
 	let fmax = maxFloor(g);
 	let h = Math.ceil(fmax/2);		// first color for H
-	let h2 = Math.max(2*h, fmax);	// first color for J
 	let gh = new Graph(g.n,g.edgeRange); gh.setBipartition(g.getBipartition());
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (g.floor(e) <= h) gh.join(g.left(e),g.right(e),e);
@@ -39,47 +38,50 @@ export default function becSplit(g, trace=0) {
 	let maxDegree = Math.max(...d);
 	let dmin = new Int32Array(g.n+1);
 	let dmax = new Int32Array(g.n+1).fill(h);
-	let [lo,hi] = [fmax+degreeBound(g), fmax+maxDegree-1];
-	steps += g.n + g.m * Math.ceil(Math.log(g.m));
+	steps += g.n;
 
-	if (hi <= lo) hi = lo+1;
+	let C = fmax + maxDegree-1; let bestC = C;
 	for (let u = 1; u <= gh.n; u++)
-		dmin[u] = Math.max(0, d[u] - (hi+1-h2));
+		dmin[u] = Math.max(0, d[u] - (C-h));
 	let [bestH,,stats] = bidcsF(gh, dmax, dmin); steps += stats.steps;
-	let bestC = hi; let H; let C;
+	let [lo,hi] = [fmax,C];
 	while (lo < hi) {
 		// search for smallest C for which G can be split into H and J
-		// so J's edges can be colored with colors <= (h2-1)+(maxDegree-h)
+		// so that H has max degree <=h and J has max degree<=C-h
 		C = ~~((lo + hi)/2);
 		for (let u = 1; u <= gh.n; u++)
-			dmin[u] = Math.max(0, d[u] - (C+1-h2));
-		[H,,stats] = bidcsF(gh, dmax, dmin); steps += stats.steps;
+			dmin[u] = Math.max(0, d[u] - (C-h));
+		let [H,,stats] = bidcsF(gh, dmax, dmin); steps += stats.steps;
 			// H is a Graph object with edges defining subset of g
-		if (!H) { lo = C+1; continue; }
-		if (C < bestC) { bestC = C; bestH = H; }
-		hi = C;
+		if (H) {
+			hi = C; bestC = C; bestH = H;
+		} else {
+			lo = C+1;
+		}
 	}
-	H = bestH;
+	let H = bestH;
 	let J = new Graph(g.n, g.edgeRange); J.setBipartition(g.getBipartition());
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (!H.validEdge(e)) J.join(g.left(e),g.right(e),e);
 	}
-
 	// color H and J and use results to color g
 	[,stats] = ecolorG(H); steps += stats.steps;
 	for (let e = H.first(); e; e = H.next(e)) 
 		g.color(e, (h-1) + H.color(e));
+
 	[,stats] = ecolorG(J); steps += stats.steps;
+	let h2 = Math.max(2*h,fmax);	// first color for J
 	for (let e = J.first(); e; e = J.next(e)) 
-		g.color(e, (Math.max(2*h,fmax)-1) + J.color(e));
+		g.color(e, (h2-1) + J.color(e));
 	steps += g.n + g.m;
+
 	let cmax = h2 + Math.max(...J.maxDegree()) - 1;
 	if (trace) {
 		ts += g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
                               `${g.floor(e)}/${g.color(e)}` +
 							  (H.validEdge(e) ? '.' : '')) +
-							  `colors: ${[cmax,fmax,cmax-fmax]}`;
+							  `colors: ${[cmax,cmax-fmax]}`;
 		ts = ts.slice(0,-1);
 	}
-	return [ts, { 'C': [cmax,fmax,cmax-fmax], 'steps': steps }];
+	return [ts, { 'C': [cmax,cmax-fmax], 'steps': steps }];
 }

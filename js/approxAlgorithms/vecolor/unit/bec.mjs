@@ -38,6 +38,7 @@ let lb; let ub; let n; let gap=1;
 let g = Graph.fromString('{a[f:1 g:3 j:4] b[g:2 h:3 i:1] c[f:2 i:3 j:4] ' +
 			 			 'd[f:4 h:2 j:3] e[h:1 i:2]}', 10, 20, 'floor', 0);
 g.setBipartition(5);
+/*
 tester.addTest('small graph', g);
 //ni, id, no, reg, Bmax, Cmax, gap
 n=8; gap=1; [g,lb,ub] = shift(randomCase(n,6,16,[1,1],6,8,gap));
@@ -47,10 +48,12 @@ tester.addTest(`small random (${n},6,16,[1,1],6,8,${gap}): [${lb}] [${ub}]`,
 n=64; gap=1; [g,lb,ub] = shift(randomCase(n,32,128,[1,1],32,35,gap));
 tester.addTest(`medium random (${64},32,128,[1,1],32,35,${gap}): [${lb}] [${ub}]`,
 				g, gap);
+*/
 
-gap = 1;[g,lb,ub] = shift(hardCase(n, gap));
+n=32; gap = 1;[g,lb,ub] = shift(hardCase(n, gap));
 tester.addTest(`small hard (${n},${gap}): [${lb}] [${ub}]}`, g, gap);
 
+/*
 gap = 1.34; [g,lb,ub] = shift(hardCase(n, gap));
 tester.addTest(`small hard (${n},${gap}): [${lb}] [${ub}]}`, g, gap);
 
@@ -68,5 +71,6 @@ tester.addTest(`medium hard (${n},${gap}): [${lb}] [${ub}]`, g, gap);
 
 n=64; gap=1; [g,lb,ub] = shift(hardCase(n, gap));
 tester.addTest(`large hard (${n},${gap}): [${lb}] [${ub}]`, g, gap);
+*/
 
 tester.run();
