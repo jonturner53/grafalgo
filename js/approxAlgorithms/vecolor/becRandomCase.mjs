@@ -62,7 +62,6 @@ export default function becRandomCase(ni, id, no=ni, reg=1,
 	palette[0] = 0; palette[dmax+1] = Cmax+1;
 	selectColors(0,dmax+1);
 
-
 	// now compute initial coloring and then map initial colors to those
 	// in the palette
 	let hues = Graph.clone(g,0); hues.addEdgeProperty('color', 0);
@@ -102,6 +101,7 @@ export default function becRandomCase(ni, id, no=ni, reg=1,
 	}
 	let cmax = maxColor(g); let fmax = maxFloor(g);
 	g.resetColor();  // finally, erase colors used when selecting floors
+	g.sortAllEplists((e1,e2,u)=>g.floor(e1)-g.floor(e2));
 
 	return [g, lowerBounds(g,speedup), [cmax,...upperBounds(g,speedup)]];
 }
