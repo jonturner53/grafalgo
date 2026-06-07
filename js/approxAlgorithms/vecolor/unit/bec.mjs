@@ -7,7 +7,6 @@
  */
 
 import { Tester } from '../../../common/Testing.mjs';
-import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
 import { maxColor, floorIndex } from '../becCommon.mjs';
 import randomCase from '../becRandomCase.mjs';
 import hardCase from '../becHardCase.mjs';
@@ -70,3 +69,4 @@ n=64; gap=1; [g,lb,ub] = shift(hardCase(n, gap));
 tester.addTest(`large hard (${n},${gap}): [${lb}] [${ub}]`, g, gap);
 
 tester.run();
+

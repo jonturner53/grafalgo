@@ -12,7 +12,8 @@ import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import ArrayHeap from '../heaps/ArrayHeap.mjs';
 import OrderedHeaps from '../heaps/OrderedHeaps.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** Data structure representing a group heap.
  *  The collection of items is divided into "groups", where each
@@ -41,6 +42,7 @@ export default class GroupHeap extends Top {
 	/** Constructor for GroupHeap object.
 	 */
 	constructor(n=10, gn=5) {
+	ae = assertEnabled();
 		super(n); this.gn = gn;
 
 		this.groups = new OrderedHeaps(n);
@@ -108,7 +110,7 @@ export default class GroupHeap extends Top {
 	/** Activate a group */
 	activate(g) {
 		let h = this.top[g];
-		ea && assert(h, 'GroupHeap.activate requires a non-empty heap');
+		ae && assert(h, 'GroupHeap.activate requires a non-empty heap');
 		this.active.insert(g, this.key(this.groups.findmin(h),g));
 		this.lastOffset[g] = this.active.offset;
 	}

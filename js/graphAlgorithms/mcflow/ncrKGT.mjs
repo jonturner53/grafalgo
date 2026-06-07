@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
@@ -22,6 +22,7 @@ let mark;     // used to identify cycle
 let cycles;   // number of negative cycles found
 let steps;    // steps involved in searching for cycles
 
+let ae;
 let trace;
 let traceString;
 
@@ -33,6 +34,7 @@ let traceString;
  *  as the initial flow
  */
 export default function ncrKGT(fg, traceflag=false) {
+	ae = assertEnabled();
 	g = fg;
 	Cost = new Array(); Link = new Array();
 	for (let i = 0; i <= g.n; i++) {
@@ -112,7 +114,7 @@ function findCycle() {
 		}
 		mark[v] = i-1; u = v; i--;
 	}
-	ea && assert(false, 'findpath: program error');
+	ae && assert(false, 'findpath: program error');
 }
 
 /** Add flow to a negative-cost cycle.

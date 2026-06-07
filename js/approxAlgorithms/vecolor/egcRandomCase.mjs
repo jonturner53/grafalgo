@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, AssertEnabled as ae } from '../../common/Assert.mjs';
 import { range, scramble, randomInteger } from '../../common/Random.mjs';
 import EdgeGroups from './EdgeGroups.mjs';
 import { maxOutDegree } from './egcCommon.mjs';
@@ -43,7 +43,7 @@ export default function egcRandomCase(ni, gd, no=ni, od=gd, reg=1,
 		// bfloor(c) is the largest bound <= c
 
 	let id = no*od/ni;
-	ea && assert(gd <= id && od <= ni && id <= no);
+	ae && assert(gd <= id && od <= ni && id <= no);
 
 	let egg = randomRegularBigraph(ni, id, no,reg);
 	let [idmax,odmax] = egg.maxDegree(); let dmax = Math.max(gd, odmax);
@@ -51,7 +51,7 @@ export default function egcRandomCase(ni, gd, no=ni, od=gd, reg=1,
 	let	eg = new EdgeGroups(egg, Cmax*ni);
 
 
-	ea && assert(Cmax >= Bmax && Cmax >= odmax && speedup >= 1 &&
+	ae && assert(Cmax >= Bmax && Cmax >= odmax && speedup >= 1 &&
 		   		 (!Bmax || bcount(Bmax) >= gd));
 
 	// assign random colors to all edges; no color repeats at an output

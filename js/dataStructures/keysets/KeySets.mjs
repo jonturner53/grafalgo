@@ -10,7 +10,8 @@ import ListSet from '../basic/ListSet.mjs';
 import Top from '../Top.mjs';
 import BalancedForest from '../trees/BalancedForest.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** This class implements a key set: a collection of disjoint sets with
  *  each set element having an associated key. It supports an efficient
@@ -27,6 +28,7 @@ export default class KeySets extends BalancedForest {
 	 *  @param compare is a function for comparing string values
 	 */
 	constructor(n=10, compare=((a,b)=>(a-b))) {
+	ae = assertEnabled();
 		super(n); this.compare = compare;
 		this.Key = new Array(this.n+1);
 	}

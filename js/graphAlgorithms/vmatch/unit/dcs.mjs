@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 import bidcsF from '../bidcsF.mjs';
 import dcsGT from '../dcsGT.mjs';
@@ -15,6 +15,7 @@ import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomBigraph } from '../../misc/RandomGraph.mjs';
 import ListPair from '../../../dataStructures/basic/ListPair.mjs';
+const ae = assertEnabled();
 
 let algomap = {
 	'F' : ['bidcsF',
@@ -57,7 +58,7 @@ tester.addTest('small random bigraph (10,3)', g, hi, lo);
 g = randomBigraph(100, 5); [hi,lo] = bounds(g);
 tester.addTest('medium random bigraph (100,5)', g, hi, lo);
 
-if (!ea) {
+if (!ae) {
 	g = randomBigraph(400, 8); [hi,lo] = bounds(g);
 	tester.addTest('large random bigraph (400,8)',g,hi,lo);
 
@@ -113,7 +114,7 @@ g = randomGraph(50, 6); [hi,lo] = bounds(g);
 g.randomWeights(randomInteger,1,19);
 tester.addTest('medium weighted random (50,6) hi', g, hi, 0);
 
-if (!ea) {
+if (!ae) {
 	g = randomGraph(100, 10); [hi,lo] = bounds(g);
 	g.randomWeights(randomInteger,1,50);
 	tester.addTest('large random weighted graph (100, 10) hi', g, hi, 0);

@@ -12,7 +12,8 @@ import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import LeftistHeaps from './LeftistHeaps.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** This class implements a data structure consisting of a disjoint
  *  set of leftist heaps.
@@ -33,6 +34,7 @@ export default class LazyHeaps extends LeftistHeaps {
 	 *  to determine which nodes are retired.
 	 */
 	constructor(n=10, retired=null) {
+	ae = assertEnabled();
 		super(2*n); this.N = n; this.nodeRange = 2*n;
 
 		for (let i = this.n+1; i <= this.nodeRange; i++) this.rank(i,-1);
@@ -126,7 +128,7 @@ export default class LazyHeaps extends LeftistHeaps {
 	purge(h) {
 		if (h == 0) return;
 		this.purgesteps++;
-		ea && assert(this.valid(h));
+		ae && assert(this.valid(h));
 		if (this.isactive(h)) {
 			this.plist.enq(h);
 		} else {
@@ -143,7 +145,7 @@ export default class LazyHeaps extends LeftistHeaps {
 	lazyMeld(h1, h2) {
 		if (h1 == 0) return h2;
 		if (h2 == 0) return h1;
-		ea && assert(this.valid(h1) && this.valid(h2) && this.dummy);
+		ae && assert(this.valid(h1) && this.valid(h2) && this.dummy);
 		if (this.rank(h1) < this.rank(h2)) {
 			let h = h1; h1 = h2; h2 = h;
 		}

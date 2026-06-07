@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import findSplit from '../misc/findSplit.mjs';
 import maxflowD from '../maxflow/maxflowD.mjs';
@@ -31,7 +31,7 @@ let steps;     // total number of steps
  *  the coloring is returned as integer edge colors in g
  */
 export default function ecolorR(G, traceFlag=false) {
-	ea && assert(G.hasBipartition);
+	assert(G.hasBipartition);
 	if (!G.color) G.addEdgeProperty('color', 0);
 	g = G; trace = traceFlag;
 	let Delta = Math.max(...g.maxDegree());

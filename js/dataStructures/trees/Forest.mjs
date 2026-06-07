@@ -11,7 +11,8 @@ import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** Data structure for collection of undirected trees.
  */
@@ -26,6 +27,7 @@ export default class Forest extends Top {
 	 *  @param n is the number of nodes in the forest
 	 */
 	constructor(n=10) {
+	ae = assertEnabled();
 		super(n);
 		this.Sibs= new ListSet(this.n);
 		this.P = new Int32Array(this.n+1);
@@ -135,7 +137,7 @@ export default class Forest extends Top {
 	 *  @param v is a node in some other tree
 	 */
 	link(u, v) {
-		ea && assert(u > 0 && this.P[u] == 0 && v > 0,
+		ae && assert(u > 0 && this.P[u] == 0 && v > 0,
 					 `Forest.link: bad arguments ${u} ${v}`);
 		if (u > this.n || v > this.n) {
 			this.expand(Math.max(u, v));

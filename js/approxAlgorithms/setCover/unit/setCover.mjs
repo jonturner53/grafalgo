@@ -7,7 +7,6 @@
  */
 
 import { Tester } from '../../../common/Testing.mjs';
-import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import setCoverVerify from '../setCoverVerify.mjs';
 import setCoverRandom from '../setCoverRandom.mjs';

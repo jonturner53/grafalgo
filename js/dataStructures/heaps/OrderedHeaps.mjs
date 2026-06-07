@@ -12,7 +12,8 @@ import ListSet from '../basic/ListSet.mjs';
 import BalancedForest from '../trees/BalancedForest.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** This class implements a data structure consisting of a disjoint
  *  set of heaps, with an efficient add2keys operation and an efficient
@@ -36,6 +37,7 @@ export default class OrderedHeaps extends BalancedForest {
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) {
+	ae = assertEnabled();
 		super(n);
 		this.Key = new Float32Array(this.n+1)
 		this.Minkey = new Float32Array(this.n+1)
@@ -120,7 +122,7 @@ export default class OrderedHeaps extends BalancedForest {
 	 *  @return the id of the modified heap
 	 */
 	insertAfter(i, k, j, h=this.find(j)) {
-		ea && assert(this.valid(i) && this.valid(j) && this.valid(h));
+		ae && assert(this.valid(i) && this.valid(j) && this.valid(h));
 		if (h == 0) {
 			this.Key[i] = this.Minkey[i] = k; return i;
 		}
@@ -209,7 +211,7 @@ export default class OrderedHeaps extends BalancedForest {
 			i = (l && this.Minkey[l] == k ? l : r);
 			this.steps++;
 		}
-		ea && assert(false,
+		ae && assert(false,
 					 `program error in OrderedHeaps.findmin(${this.x2s(h)})`);
 	}
 

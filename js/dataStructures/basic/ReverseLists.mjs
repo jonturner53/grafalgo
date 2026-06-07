@@ -10,7 +10,8 @@ import Top from '../Top.mjs';
 import ListSet from './ListSet.mjs';
 import Scanner from './Scanner.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** The ReverseLists class maintains a collection of disjoint lists defined
  *  over a set of integers 1..n. It supports constant time list-reversal,
@@ -21,6 +22,7 @@ export default class ReverseLists extends Top {
 	nabor2;		// nabor2[i] is the other neighbor of i in its list
 
 	constructor(n=10) {
+	ae = assertEnabled();
 		super(n);
 		this.nabor1 = new Int32Array(this.n+1);
 		this.nabor2 = new Int32Array(this.n+1);
@@ -48,7 +50,7 @@ export default class ReverseLists extends Top {
 	 *  @return the last item in the list
 	 */
 	last(f) {
-		ea && assert(this.valid(f) && this.isFirst(f));
+		ae && assert(this.valid(f) && this.isFirst(f));
 		return this.nabor1[f] < 0 ? -this.nabor1[f] : -this.nabor2[f];
 	}
 
@@ -58,7 +60,7 @@ export default class ReverseLists extends Top {
 	 *  @return the pair [next(i), i] where next(i) is next list item or 0.
 	 */
 	next(i, j) {
-		ea && assert(this.valid(i) && i != 0 && this.valid(j));
+		ae && assert(this.valid(i) && i != 0 && this.valid(j));
 		let n1 = this.nabor1[i]; let n2 = this.nabor2[i];
 		return [j == 0 ? (n1 >= 0 ? n1 : n2) :
 			   			 (j == n1 ? n2 : n1), i];
@@ -71,7 +73,7 @@ export default class ReverseLists extends Top {
 	 *  item.
 	 */
 	prev(i, j) {
-		ea && assert(this.valid(i));
+		ae && assert(this.valid(i));
 		if (this.isFirst(i)) return [0, i];
 		let n1 = this.nabor1[i]; let n2 = this.nabor2[i];
 		return [j == 0 ? (n1 != 0 ? n1 : n2) :
@@ -83,7 +85,7 @@ export default class ReverseLists extends Top {
 	 *  @return true if it is the only item in its list, else false
 	 */
 	singleton(i) {
-		ea && assert(this.valid(i));
+		ae && assert(this.valid(i));
 		return this.nabor1[i] == -i || this.nabor2[i] == -i;
 	}
 	
@@ -92,7 +94,7 @@ export default class ReverseLists extends Top {
 	 *  @return the first item of the modified list, or 0 if it was a singleton
 	 */
 	pop(f) {
-		ea && assert(this.valid(f) && this.isFirst(f));
+		ae && assert(this.valid(f) && this.isFirst(f));
 		if (this.singleton(f)) return 0;
 		let s;
 		if (this.nabor1[f] < 0) {
@@ -117,7 +119,7 @@ export default class ReverseLists extends Top {
 	join(f1, f2) {
 		if (f2 == 0 || f1 == f2) return f1;
 		if (f1 == 0) return f2;
-		ea && assert(this.isFirst(f1) && this.isFirst(f2));
+		ae && assert(this.isFirst(f1) && this.isFirst(f2));
 		let l1 = this.last(f1); let l2 = this.last(f2);
 		if (this.nabor1[f1] < 0)  this.nabor1[f1] = -l2;
 		else 					  this.nabor2[f1] = -l2;

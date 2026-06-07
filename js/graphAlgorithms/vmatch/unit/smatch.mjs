@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 import ListPair from '../../../dataStructures/basic/ListPair.mjs';
 import smatchGS from '../smatchGS.mjs';
@@ -16,6 +16,7 @@ import { scramble } from '../../../common/Random.mjs';
 import { randomBigraph } from '../../misc/RandomGraph.mjs';
 
 import findSplit from '../../misc/findSplit.mjs';
+const ae = assertEnabled();
 
 function randomInstance(n,d) {
 	let g = randomBigraph(n,d);
@@ -47,7 +48,7 @@ tester.addTest('smallish random bigraph', g, pref, subsets);
 [g,pref,subsets] = new randomInstance(5000,5);
 tester.addTest('medium random bigraph', g, pref, subsets);
 
-if (!ea) {
+if (!ae) {
 	[g,pref,subsets] = new randomInstance(50000,20);
 	tester.addTest('large random bigraph', g, pref, subsets);
 }

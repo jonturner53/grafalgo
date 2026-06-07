@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import MergeSets from '../../dataStructures/basic/MergeSets.mjs';
@@ -40,7 +40,7 @@ let traceString;
  */
 export default function hpcKT(G, s=0, t=0, traceFlag=0) {
 	g = G; 
-	ea && assert(s >= 0 && s <= g.n && t >= 0 && t <= g.n);
+	assert(s >= 0 && s <= g.n && t >= 0 && t <= g.n);
 	if (s == 0) t = 0;
 
 	trace = traceFlag; traceString = '';

@@ -6,13 +6,15 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import mstP from '../../graphAlgorithms/mst/mstP.mjs';
 import allpairsF from '../../graphAlgorithms/spath/allpairsF.mjs';
 import wmatchE from '../../graphAlgorithms/match/wmatchE.mjs';
+
+let ae;
 
 /** Find a traveling salesman tour, using Christofides algorithm.
  *  @param g is a weighted graph.
@@ -21,6 +23,7 @@ import wmatchE from '../../graphAlgorithms/match/wmatchE.mjs';
  *  explicitly represented in g; such edges are added to g where necessary
  */
 export default function tspC(g, trace=0) {
+	ae = assertEnabled();
 	let traceString = '';
 	if (trace) traceString += `graph: ${g.toString(1)}\n`;
 
@@ -28,7 +31,7 @@ export default function tspC(g, trace=0) {
 		g.weight = g.length; // adding an alias for length method
 
 	let [mst] = mstP(g);
-	ea && assert(mst.length == g.n-1);
+	ae && assert(mst.length == g.n-1);
 	let mstWeight = 0; for (let e of mst) mstWeight += g.weight(e);
 	if (trace)
 		traceString += `mst: ${g.elist2string(mst,0,0,1)} ${mstWeight}\n`;
@@ -42,7 +45,7 @@ export default function tspC(g, trace=0) {
 	for (let u = 1; u <= g.n; u++)
 		if (deg[u]&1) odds.enq(u);
 	let [link,dist] = allpairs(g);
-	ea && assert(link);
+	ae && assert(link);
 
 	let match = matchpairs(g, odds, dist);
 
@@ -122,7 +125,7 @@ function matchpairs(g, vset, dist) {
 	let maxWt = 0;
 	for (let u = vset.first(); u; u = vset.next(u)) {
 		for (let v = vset.next(u); v; v = vset.next(v)) {
-			ea && assert(dist[u][v] >= 0 && dist[u][v] != Infinity);
+			ae && assert(dist[u][v] >= 0 && dist[u][v] != Infinity);
 			let e = mg.join(u,v); mg.weight(e, dist[u][v]);
 			maxWt = Math.max(mg.weight(e), maxWt);
 		}

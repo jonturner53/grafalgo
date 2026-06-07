@@ -6,8 +6,6 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert} from '../../common/Assert.mjs';
-
 /** Verify a tsp tour.
  *  @param g is a Graph object
  *  @param tour is an array of edges that defines a tsp tour.

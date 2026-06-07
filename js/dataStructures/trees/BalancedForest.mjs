@@ -11,7 +11,8 @@ import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import BinaryForest from './BinaryForest.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** This class implements a balanced version of the binary tree class. */
 export default class BalancedForest extends BinaryForest {
@@ -21,6 +22,7 @@ export default class BalancedForest extends BinaryForest {
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) {
+	ae = assertEnabled();
 		super(n);
 		this.Rank = new Int8Array(this.n+1).fill(1,1);
 	}

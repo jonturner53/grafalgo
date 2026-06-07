@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 import Matching from './Matching.mjs';
 import Blossoms from './Blossoms.mjs';
 import List from '../../dataStructures/basic/List.mjs';
@@ -33,6 +33,7 @@ let exh;          // GroupHeap object containing a group of edges incident
 				  // to each odd or unbound blossom, key(e) = slack(e)
 let firstVertex;  // firstVertex[b] is first vertex in blossom b
 
+let ae;
 let trace;
 let traceString;
 
@@ -55,6 +56,7 @@ let steps;      // total number of steps
  *  the correctness of the solution is verified before returning
  */
 export default function wmatchGMG(G, traceFlag=false) {
+	ae = assertEnabled();
 	g = G;
 	match = new Matching(g);
 	bloss = new Blossoms(g, match, 2);
@@ -77,7 +79,7 @@ export default function wmatchGMG(G, traceFlag=false) {
 
 	let maxwt = 0;
 	for (let e = g.first(); e; e = g.next(e)) {
-		ea && assert(g.weight(e) >= 0);
+		ae && assert(g.weight(e) >= 0);
 		maxwt = Math.max(g.weight(e),maxwt);
 	}
 	if (maxwt == 0)
@@ -97,7 +99,7 @@ export default function wmatchGMG(G, traceFlag=false) {
 
 	let finished = false;
 	while (!finished) {
-		ea && assert(!verifyInvariant(), verifyInvariant());
+		ae && assert(!verifyInvariant(), verifyInvariant());
 
 		// process eligible edges with an even endpoint
 		while (true) {
@@ -197,7 +199,7 @@ export default function wmatchGMG(G, traceFlag=false) {
 	bloss.rematchAll(); // make matching consistent
 
 	// verify solution when assertion checking is enabled
-	if (ea) {
+	if (ae) {
 		let s = verifyInvariant(true);
 		assert(!s, `${s}\n${traceString}${match.toString()}\n` +
 				   `${bloss.toString()}\n${statusString()}`);

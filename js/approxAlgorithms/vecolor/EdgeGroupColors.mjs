@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, AssertEnabled as ae } from '../../common/Assert.mjs';
 import Top from '../../dataStructures/Top.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
@@ -166,7 +166,7 @@ export default class EdgeGroupColors extends Top {
 	 */
 	bind(c,g) {
 		let u = this.eg.hub(g);
-		ea && assert(g && c && u && !this.owner(c,u) && !this.usage(c,u),
+		ae && assert(g && c && u && !this.owner(c,u) && !this.usage(c,u),
 					 g+' '+c+' '+u+' '+this.owner(c,u)+' '+this.usage(c,u));
 		this.Owner[u][c] = g;
 		this.Unused[u] = this.Palettes[u].delete(c, this.Unused[u]);
@@ -181,7 +181,7 @@ export default class EdgeGroupColors extends Top {
 	 */
 	release(c,g) {
 		let u = this.eg.hub(g);
-		ea && assert(g && c && u && this.owner(c,u) == g);
+		ae && assert(g && c && u && this.owner(c,u) == g);
 		this.Owner[u][c] = 0;
 		this.FirstColor[g] = this.Palettes[u].delete(c,this.FirstColor[g]);
 		this.Unused[u] = this.Palettes[u].join(this.Unused[u], c);
@@ -196,12 +196,12 @@ export default class EdgeGroupColors extends Top {
 	 *  @return the color of e
 	 */
 	color(e, c=-1) {
-		ea && assert(this.eg.graph.validEdge(e) && c <= this.n_c);
+		ae && assert(this.eg.graph.validEdge(e) && c <= this.n_c);
 		if (c < 0) return this.Color[e];
 
 		let [u,v] = [this.eg.input(e),this.eg.output(e)];
 		let g = this.eg.group(e);
-		ea && assert(g);
+		ae && assert(g);
 
 		// free current color assigned to e
 		let cc = this.Color[e];  // old color (possibly 0)
@@ -214,7 +214,7 @@ export default class EdgeGroupColors extends Top {
 		}
 
 		// set the new color (possibly 0)
-		ea && assert(this.avail(c,e),g+' '+
+		ae && assert(this.avail(c,e),g+' '+
 				this.avail(c,e)+' '+ this.owner(c,u)+' '+ this.usage(c,u));
 		this.Color[e] = c;
 		this.FirstEdge[c] = this.EdgesByColor.join(this.FirstEdge[c], e);

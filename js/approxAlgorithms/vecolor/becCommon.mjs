@@ -6,13 +6,15 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import {assert, AssertEnabled as ae } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 import maxflowPPf from '../../graphAlgorithms/maxflow/maxflowPPf.mjs';
+import maxflowPPhl from '../../graphAlgorithms/maxflow/maxflowPPhl.mjs';
+import maxflowD from '../../graphAlgorithms/maxflow/maxflowD.mjs';
 import becSplit from './becSplit.mjs';
 
 // 
@@ -218,6 +220,7 @@ function check4split(g, d, fmax, fg, C) {
 		adjustCapacities(g, d, fmax, fg, C, h);
 		maxflowPPf(fg); // flow added for each successive value of h;
 					    // works since capacities increase with h
+
 		for (let e = fg.firstOutof(fg.source); e;
 				 e = fg.nextOutof(fg.source,e)) {
 			if (fg.flow(e) != fg.cap(e)) {

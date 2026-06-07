@@ -6,8 +6,6 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert} from '../../common/Assert.mjs';
-
 /** Verify a set cover.
  *  @param g is a bipartite Graph object representing set cover instance
  *  @param weight is an array that defines the weights of the sets

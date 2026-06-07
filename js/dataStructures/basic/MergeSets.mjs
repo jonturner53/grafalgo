@@ -11,7 +11,8 @@ import ListSet from './ListSet.mjs';
 import Scanner from './Scanner.mjs';
 import Forest from '../trees/Forest.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** Sets data structure maintains a collection of disjoint
  *  sets over the integers 1..N for some positive integer N. Allows
@@ -27,6 +28,7 @@ export default class MergeSets extends Top {
 	steps;
 	
 	constructor(n=10) {
+	ae = assertEnabled();
 		super(n);
 		this.P = new Int32Array(this.n+1); 
 		for (let i = 1; i <= this.n; i++) this.P[i] = i;
@@ -39,7 +41,7 @@ export default class MergeSets extends Top {
 	 *  @param ls is a ListSets object.
 	 */
 	static fromListSet(ls) {
-		ea && assert(ls.constructor.name == 'ListSet');
+		ae && assert(ls.constructor.name == 'ListSet');
 		
 		let ms = new MergeSets(ls.n);
 		for (let i = 0; i <= ls.n; i++) {
@@ -80,7 +82,7 @@ export default class MergeSets extends Top {
 	 */
 	find(i) {
 		this.finds++;
-		ea && assert(this.valid(i));
+		ae && assert(this.valid(i));
 		let root;
 		for (root = i; this.p(root) != root; root = this.p(root)) {
 			this.steps++;
@@ -97,7 +99,7 @@ export default class MergeSets extends Top {
 	 */
 	merge(i, j) {
 		this.merges++;
-		ea && assert(this.valid(i) && this.valid(j) &&
+		ae && assert(this.valid(i) && this.valid(j) &&
 			   this.p(i) == i && this.p(j) == j && i != j);
 		if (this.rank(i) < this.rank(j)) {
 			let t = i; i = j; j = t;
@@ -113,7 +115,7 @@ export default class MergeSets extends Top {
 	 *  @return the canonical element of the set containing i
 	 */
 	findroot(i) {
-		ea && assert(this.valid(i),'xx'+i);
+		ae && assert(this.valid(i),'xx'+i);
 		if (i == this.p(i)) return(i);
 		else return this.findroot(this.p(i));
 	}

@@ -7,7 +7,6 @@
  */
 
 import { Tester } from '../../../common/Testing.mjs';
-import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../../dataStructures/graphs/Digraph.mjs';
 import { randomRegularGraph } from

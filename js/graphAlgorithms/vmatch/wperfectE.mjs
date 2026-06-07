@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 import Matching from '../match/Matching.mjs';
 import Blossoms from '../match/Blossoms.mjs';
 import List from '../../dataStructures/basic/List.mjs';
@@ -22,6 +22,7 @@ let q;            // list of tight edges with an even endpoint
 let blist;        // temporary list of blossoms
 let mark;         // temporary array of flags
 
+let ae;
 let trace;
 let traceString;
 
@@ -55,6 +56,7 @@ Why not use max weight matching but complement weights?
 
  */
 export default function wperfectE(G, size=0, max=0, traceFlag=false) {
+	ae = assertEnabled();
 	g = G;
 	if (!size) size = g.n/2;
 	assert(size == Math.trunc(size));
@@ -90,7 +92,7 @@ export default function wperfectE(G, size=0, max=0, traceFlag=false) {
 	}
 
 	while (true) {
-		//ea && assert(!verifyInvariant(size),
+		//ae && assert(!verifyInvariant(size),
 		//			 verifyInvariant(size) + traceString);
 		while (match.size() < size && !q.empty()) {
 			steps++;
@@ -153,7 +155,7 @@ export default function wperfectE(G, size=0, max=0, traceFlag=false) {
 	bloss.rematchAll(); // extend matching to blossoms and sub-blossoms
 
 	// verify solution when assertion checking is enabled
-	if (ea) {
+	if (ae) {
 		let s = verifyInvariant(size, true);
 		assert(!s, `${s}\n${traceString}${match.toString()}\n` +
 				   `${bloss.toString()}\n${statusString()}`);

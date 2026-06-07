@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { EnableAssert as ea } from '../../../common/Assert.mjs';
+import { assertEnabled } from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 
 import toposort from '../../misc/toposort.mjs';
@@ -20,6 +20,7 @@ import sptVerify from '../sptVerify.mjs';
 import Digraph from '../../../dataStructures/graphs/Digraph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomDigraph, randomDag } from '../../misc/RandomGraph.mjs';
+const ae = assertEnabled();
 
 function acyclic(g) { return toposort(g) != null; }
 
@@ -100,7 +101,7 @@ tester.addTest('small graph', g);
 g = randomDigraph(10, 3.5); g.randomLengths(randomInteger, 1, 99);
 tester.addTest('small random graph (10,3.5)', g);
 
-if (!ea) {
+if (!ae) {
 	g = randomDigraph(400, 20); g.randomLengths(randomFraction);
 	tester.addTest('large random graph (400,20)', g);
 

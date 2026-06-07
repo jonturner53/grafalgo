@@ -9,7 +9,8 @@
 import Top from '../Top.mjs';
 import Scanner from './Scanner.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** Data structure that represents a pair of complementary index lists.
  *  The index values have a limited range 1..n and each index is
@@ -31,6 +32,7 @@ export default class ListPair extends Top {
 	 *  @param n specifies the range of integer values
 	 */
 	constructor(n=10) {
+	ae = assertEnabled();
 		super(n);
 		this.Length = new Int32Array(2);
 		this.First = new Int32Array(2);
@@ -53,7 +55,7 @@ export default class ListPair extends Top {
 	 *  @param return true if i is a member of list k, else false.
 	 */
 	in(i,k) {
-		ea && assert(1 <= k && k <= 2);
+		ae && assert(1 <= k && k <= 2);
 		return this.valid(i) && (i == this.first(k) ||
 				(k == 1 && this.Prev[i] > 0) || (k == 2 && this.Prev[i] < 0));
 	}
@@ -93,11 +95,11 @@ export default class ListPair extends Top {
 	 *  into the other list, following item j, or at the start if j=0.
 	 */
 	swap(i, j=-1) {
-		ea && assert(i > 0 && i <= this.n, i + ' ' + this.n);
+		ae && assert(i > 0 && i <= this.n, i + ' ' + this.n);
 		if (j < 0) j = this.in(i,1) ? this.last(2) : this.last(1);
 
-		ea && assert(this.valid(i) && i && this.valid(j));
-		ea && assert((this.in(i,1) && (!j || this.in(j,2))) ||
+		ae && assert(this.valid(i) && i && this.valid(j));
+		ae && assert((this.in(i,1) && (!j || this.in(j,2))) ||
 			    (this.in(i,2) && (!j || this.in(j,1))));
 
 		if (this.in(i,1)) {

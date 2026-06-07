@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { EnableAssert as ea } from '../../../common/Assert.mjs';
+import { assertEnabled } from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 import ncrK from '../ncrK.mjs';
 import ncrKGT from '../ncrKGT.mjs';
@@ -20,6 +20,7 @@ import List from '../../../dataStructures/basic/List.mjs';
 import Flograph from '../../../dataStructures/graphs/Flograph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomFlograph } from '../../misc/RandomGraph.mjs';
+const ae = assertEnabled();
 
 let algomap = {
 	'K' :   ['ncrK',      (g,trace) => run_ncr(g,trace,ncrK), mcflowVerify],
@@ -68,11 +69,11 @@ tester.addTest(`medium random (${g.n},${g.m})`, g);
 g = randomFlograph(62, 15);
 g.randomCapacities(randomInteger, 1, 999);
 g.randomCosts(randomInteger, -99, 999); 
-!ea && tester.addTest(`large random (${g.n},${g.m})`, g);
+!ae && tester.addTest(`large random (${g.n},${g.m})`, g);
 
 g = randomFlograph(122, 20);
 g.randomCapacities(randomInteger, 1, 999);
 g.randomCosts(randomInteger, -99, 999); 
-!ea && tester.addTest(`large random (${g.n},${g.m})`, g);
+!ae && tester.addTest(`large random (${g.n},${g.m})`, g);
 
 tester.run();

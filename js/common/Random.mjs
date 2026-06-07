@@ -6,8 +6,6 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from './Assert.mjs';
-
 /** Create range array.
  *  @param n is a positive integer
  *  @param hi >= lo is a second integer

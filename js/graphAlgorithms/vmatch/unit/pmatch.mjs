@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 import pmatchO from '../pmatchO.mjs';
 import pmatchEGT from '../pmatchEGT.mjs';
@@ -19,6 +19,7 @@ import { randomGraph, randomBigraph, randomRegularGraph }
 	from '../../misc/RandomGraph.mjs';
 
 import findSplit from '../../misc/findSplit.mjs';
+const ae = assertEnabled();
 
 let algomap = {
 	'HKT' : ['pbimatchHKT',
@@ -52,7 +53,7 @@ prio = new Int32Array(g.n+1);
 randomFill(prio, p => randomInteger(0,~~(g.n**.5)));
 tester.addTest(`medium random bigraph (${g.n},${g.m},3)`, g, prio);
 
-if (!ea) {
+if (!ae) {
 	g = randomBigraph(500,15,2500);
 	prio = new Int32Array(g.n+1);
 	randomFill(prio, p => randomInteger(0,~~(g.n**.5)));
@@ -93,17 +94,17 @@ prio = new Int32Array(g.n+1);
 randomFill(prio, p => randomInteger(0,~~(g.n**.5)));
 tester.addTest(`medium random graph (${g.n},${g.m})`, g, prio);
 
-if (!ea) {
+if (!ae) {
 	g = randomGraph(500,3);
 	prio = new Int32Array(g.n+1);
 	randomFill(prio, p => randomInteger(0,~~(g.n**.5)));
-	!ea && tester.addTest(`large sparse random graph` +
+	tester.addTest(`large sparse random graph` +
 						  ` (${g.n},${g.m})`, g, prio);
 
 	g = randomGraph(500,200);
 	prio = new Int32Array(g.n+1);
 	randomFill(prio, p => randomInteger(0,~~(g.n**.5)));
-	!ea && tester.addTest(`large dense random graph` +
+	tester.addTest(`large dense random graph` +
 				   		  ` (${g.n},${g.m})`, g, prio);
 }
 

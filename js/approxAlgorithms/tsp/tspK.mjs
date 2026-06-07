@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import MergeSets from '../../dataStructures/basic/MergeSets.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
@@ -47,7 +47,7 @@ export default function tspK(G, traceFlag=0) {
 	if (clist.length > 0) cyclesLength = merge1(cyclesLength);
 	if (clist.length > 0) cyclesLength = merge2(cyclesLength);
 	if (clist.length > 0) cyclesLength = merge3(cyclesLength);
-	ea && assert(clist.length == 0);
+	assert(clist.length == 0);
 
 	// create vector of edges in tour
 	let tour = new Int32Array(g.n); let i = 0; let u = C;

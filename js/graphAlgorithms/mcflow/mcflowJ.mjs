@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
@@ -17,6 +17,7 @@ let link;     // link[u] is parent edge of u
 let Cost;     // Cost[u] is pathcost to u, used by findpath
 let q;        // queue of vertices, used by findpath
 
+let ae;
 let trace;
 let traceString;
 
@@ -33,6 +34,7 @@ let steps;      // number of steps in findpath method
  *  @exception throws exception if negative cycle detected
  */
 export default function mcflowJ(fg, leastCost=false, traceFlag=false) {
+	ae = assertEnabled();
 	g = fg;
 	link = new Int32Array(g.n+1);
 	Cost = new Float32Array(g.n+1);
@@ -76,7 +78,7 @@ function findpath() {
 			}
 		}
 		if (u == last) {
-			ea && assert(pass < g.n, 'mcflowJ: negative cost cycle detected');
+			ae && assert(pass < g.n, 'mcflowJ: negative cost cycle detected');
 			pass++; last = q.last();
 		}
 	}

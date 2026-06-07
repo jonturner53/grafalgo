@@ -7,7 +7,6 @@
  */
 
 import { Tester } from '../../../common/Testing.mjs';
-import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
 import egcRandomCase from '../egcRandomCase.mjs';
 import { lowerBound } from '../egcCommon.mjs';
 import egcCT from '../egcCT.mjs';

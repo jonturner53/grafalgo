@@ -10,7 +10,8 @@ import Top from '../Top.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import KeySets from './KeySets.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** This class implements a key set with two integer keys.
  *  The primary key is the usual one. The data structure supports
@@ -26,6 +27,7 @@ export default class DualKeySets extends KeySets {
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) {
+	ae = assertEnabled();
 		super(n);
 		this.Key2 = new Array(this.n+1);
 		this.Min2 = new Array(this.n+1);

@@ -11,7 +11,8 @@ import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import BinaryForest from './BinaryForest.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** This class adds a splay operation to the BinaryForest class
  *  and uses it to implicitly balance the trees in the forest.
@@ -23,6 +24,7 @@ export default class SplayForest extends BinaryForest {
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) { super(n); }
+	ae = assertEnabled();
 
 	/** Splay a search tree.
 	 *  @param x is a tree node; the operation performs a series of rotations,

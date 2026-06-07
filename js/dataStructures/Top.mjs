@@ -6,7 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../common/Assert.mjs';
+import { assert, assertEnabled } from '../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** The Top class is the super-class from which other classes
  *  in grafalgo are derived.
@@ -28,7 +29,7 @@ import { assert, EnableAssert as ea } from '../common/Assert.mjs';
 export default class Top {
 	N;		// index values in 1..N
 
-	constructor(n=1) { this.N = Math.max(1,n); }
+	constructor(n=1) { ae = assertEnabled(); this.N = Math.max(1,n); }
 
 	/** Reset the object, discarding value.  */
 
@@ -63,7 +64,7 @@ export default class Top {
 	 *  else false
 	 */
 	valid(i) {
-		ea && assert(i == ~~i);
+		ae && assert(i == ~~i);
 		return 0 <= i && i <= this.N;
 	}
 

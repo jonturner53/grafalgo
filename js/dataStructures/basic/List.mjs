@@ -9,7 +9,8 @@
 import Top from '../Top.mjs';
 import Scanner from './Scanner.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** Data structure representing a list of unique integers.
  *
@@ -39,6 +40,8 @@ export default class List extends Top {
 	 *  @param n is the range for the list
 	 */
 	constructor(n=10, propName, defVal) {
+	ae = assertEnabled();
+		ae = assertEnabled();
 		super(n);
 		this.Next = new Int32Array(this.n+1).fill(-1);
 		this.Next[0] = this.First = this.Last = this.Length = 0;
@@ -59,8 +62,8 @@ export default class List extends Top {
 		this.propValues = new Array(this.n+1).fill(defVal);
 		Object.defineProperty(this, propName,
 			{ value: 	function(i) {
-							ea && assert(this.valid(i),
-                     			`Graph.${propName}: invalid item number: ${i}`);
+							ae && assert(this.valid(i),
+                     			`List.${propName}: invalid item number: ${i}`);
 							if (arguments.length > 1) {
 								this.propValues[i] = arguments[1];
 							}
@@ -155,7 +158,7 @@ export default class List extends Top {
 	 *  if zero, i is inserted at the front of the list
 	 */
 	insert(i, j) {
-		ea && assert(i && this.valid(i) && !this.contains(i) &&
+		ae && assert(i && this.valid(i) && !this.contains(i) &&
 					 (j == 0 || this.contains(j)),
 					 `List.insert: ${this.x2s(i)} ${this.x2s(j)} ${''+this}`);
 		if (j == 0) {
@@ -178,7 +181,7 @@ export default class List extends Top {
 	 *  @return the item that follows the deleted item
 	 */
 	deleteNext(i) {
-		ea && assert(i == 0 || this.contains(i));
+		ae && assert(i == 0 || this.contains(i));
 		if (i == this.last()) return 0;
 		let j;
 		if (i == 0) { j = this.First;   this.First = this.Next[j]; }
@@ -200,7 +203,7 @@ export default class List extends Top {
 	 *  @return item that follows i
 	 */
 	delete(i) {
-		ea && assert(this.valid(i), `invalid list item ${i}`);
+		ae && assert(this.valid(i), `invalid list item ${i}`);
 		if (!this.contains(i)) return;
 		return (i == this.first() ? this.deleteNext(0) :
 									this.deleteNext(this.prev(i)));
@@ -237,7 +240,7 @@ export default class List extends Top {
 	 *  @param hi >= lo defines range [lo,hi]
 	 */
 	range(lo, hi) {
-		ea && assert(1 <= lo && lo <= hi && hi <= this.n);
+		ae && assert(1 <= lo && lo <= hi && hi <= this.n);
 		this.clear(); for (let i = lo; i <= hi; i++) this.enq(i);
 	}
 
@@ -337,7 +340,6 @@ export default class List extends Top {
 						if (!sc.verify(':',0)) return true;
 						let p = sc.nextDatum();
 						if (p == null) return false;
-						//if (Number.isNaN(p)) return false;
 						propVals[u] = p; hasProps = 1;
 						return true;
 					};

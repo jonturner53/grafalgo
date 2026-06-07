@@ -7,12 +7,13 @@
  */
 
 import { Tester } from '../../../common/Testing.mjs';
-import { EnableAssert as ea } from '../../../common/Assert.mjs';
+import { assertEnabled } from '../../../common/Assert.mjs';
 import ecolorR from '../ecolorR.mjs';
 import ecolorG from '../ecolorG.mjs';
 import ecolorVerify from '../ecolorVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomBigraph,randomRegularBigraph } from '../../misc/RandomGraph.mjs';
+const ae = assertEnabled();
 
 let algomap = {
 	'R' : ['ecolorR', ecolorR, ecolorVerify],
@@ -32,7 +33,7 @@ g = randomRegularBigraph(100, 31);
 	tester.addTest('medium random (100,31)', g);
 g = randomRegularBigraph(100, 32);
 	tester.addTest('medium random even (100,32)', g);
-if (!ea) {
+if (!ae) {
 	g = randomRegularBigraph(200, 63);
 		tester.addTest('large random (200,63)', g);
 	g = randomRegularBigraph(200, 64);

@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import {assert, AssertEnabled as ae } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import findSplit from '../../graphAlgorithms/misc/findSplit.mjs';
@@ -22,7 +22,7 @@ import { degreeBound, maxFloor } from './becCommon.mjs';
  */
 export default function becSplit(g, trace=0) {
 	let ts = ''; let steps = 0;
-	ea && assert(g.hasBipartition);
+	ae && assert(g.hasBipartition);
 	if (!g.color) g.addEdgeProperty('color', 0);
 
 	let fmax = maxFloor(g);

@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 import Matching from './Matching.mjs';
 import Blossoms from './Blossoms.mjs';
 import List from '../../dataStructures/basic/List.mjs';
@@ -22,6 +22,7 @@ let q;            // list of tight edges with an even endpoint
 let blist;        // temporary list of blossoms
 let mark;         // temporary array of flags
 
+let ae;
 let trace;
 let traceString;
 
@@ -43,6 +44,7 @@ let steps;      // total number of steps
  *  the correctness of the solution is verified before returning
  */
 export default function wmatchE(G, traceFlag=false) {
+	ae = assertEnabled();
 	g = G;
 	match = new Matching(g);
 	bloss = new Blossoms(g, match, 1);
@@ -75,7 +77,7 @@ export default function wmatchE(G, traceFlag=false) {
 	}
 
 	while (true) {
-		ea && assert(!verifyInvariant(), verifyInvariant() + traceString);
+		ae && assert(!verifyInvariant(), verifyInvariant() + traceString);
 		while (!q.empty()) {
 			steps++;
 			let e = q.deq();
@@ -138,7 +140,7 @@ export default function wmatchE(G, traceFlag=false) {
 		// before returning
 
 	// verify solution when assertion checking is enabled
-	if (ea) {
+	if (ae) {
 		let s = verifyInvariant(true);
 		assert(!s, `${s}\n${traceString}${match.toString()}\n` +
 				   `${bloss.toString()}\n${statusString()}`);

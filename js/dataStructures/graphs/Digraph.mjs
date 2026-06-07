@@ -11,7 +11,8 @@ import Scanner from '../basic/Scanner.mjs';
 import Graph from './Graph.mjs';
 import { randomPermutation } from '../../common/Random.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** Data structure for directed graph.
  *  Extends Graph class and places incoming edges before outgoing edges
@@ -26,6 +27,7 @@ export default class Digraph extends Graph {
 	 *  @param erange is the max number of edges to provide space for
 	 */
 	constructor(n, erange=n) {
+	ae = assertEnabled();
 		super(...arguments);
 		this.firstEpOut = new Int32Array(this.n+1);
 	} 
@@ -83,7 +85,7 @@ export default class Digraph extends Graph {
 	 *  @return the number of edges incident to u
 	 */
 	inDegree(u) {
-		ea && assert(this.validVertex(u));
+		ae && assert(this.validVertex(u));
 		let d = 0;
 		for (let e = this.firstInto(u); e; e = this.nextInto(u,e)) {
 			 d++;
@@ -96,7 +98,7 @@ export default class Digraph extends Graph {
 	 *  @return the number of edges incident to u
 	 */
 	outDegree(u) {
-		ea && assert(this.validVertex(u));
+		ae && assert(this.validVertex(u));
 		let d = 0;
 		for (let e = this.firstOutof(u); e; e = this.nextOutof(u,e)) d++;
 		return d;
@@ -108,7 +110,7 @@ export default class Digraph extends Graph {
 	 *  @return an edge from u to v, or 0 if no such edge
 	 */
 	findEdge(u, v, edges) {
-		ea && assert(this.validVertex(u) && this.validVertex(v));
+		ae && assert(this.validVertex(u) && this.validVertex(v));
 		if (!edges) {
 			for (let e = this.firstOutof(u); e; e = this.nextOutof(u, e)) {
 				if (v == this.mate(u, e)) return e;
@@ -138,7 +140,7 @@ export default class Digraph extends Graph {
 	 *  on failure
 	 */
 	join(u, v, e=this.edges.first(2)) {
-		ea && assert(this.validVertex(u) && this.validVertex(v) &&
+		ae && assert(this.validVertex(u) && this.validVertex(v) &&
 					 (e > 0 || this.edges.first(2) == 0));
 		if (e == 0) e = this.edges.first(2);
 		this.edges.swap(e);
@@ -162,7 +164,7 @@ export default class Digraph extends Graph {
 	 *  @param e is the edge to be deleted.
 	 */
 	delete(e) {
-		ea && assert(this.validEdge(e));
+		ae && assert(this.validEdge(e));
 		let u = this.left(e);
 		if (e == this.firstOutof(u))
 			this.firstEpOut[u] = 2 * this.nextOutof(u,e);
@@ -175,7 +177,7 @@ export default class Digraph extends Graph {
 	 *  return  0 if u's mate in e1 is equal to its mate in e2.
 	 */
 	ecmp(e1, e2, u) {
-		ea && assert(this.validVertex(u) && this.validEdge(e1)
+		ae && assert(this.validVertex(u) && this.validEdge(e1)
 									&& this.validEdge(e2));
 			 if (u == this.head(e1) && u == this.tail(e2)) return -1;
 		else if (u == this.tail(e1) && u == this.head(e2)) return 1;

@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { EnableAssert as ea } from '../../../common/Assert.mjs';
+import { assertEnabled } from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 import maxflowHardcase from '../maxflowHardcase.mjs';
 import maxflowFFsp from '../maxflowFFsp.mjs';
@@ -22,6 +22,7 @@ import List from '../../../dataStructures/basic/List.mjs';
 import Flograph from '../../../dataStructures/graphs/Flograph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomFlograph } from '../../misc/RandomGraph.mjs';
+const ae = assertEnabled();
 
 function run(g, trace, f) {
 	if (g.floor) return null;
@@ -77,12 +78,12 @@ tester.addTest('medium random', g);
 
 g = randomFlograph(502, 100, 100, 2, 2);
 g.randomCapacities(randomInteger, 1, 99);
-!ea && tester.addTest('large random', g);
+!ae && tester.addTest('large random', g);
 
 g = maxflowHardcase(15, 15);
-!ea && tester.addTest(`hardcase(15,15) n=${g.n} m=${g.m}`, g);
+!ae && tester.addTest(`hardcase(15,15) n=${g.n} m=${g.m}`, g);
 g = maxflowHardcase(30, 30);
-!ea && tester.addTest(`hardcase(30,30) n=${g.n} m=${g.m}`, g);
+!ae && tester.addTest(`hardcase(30,30) n=${g.n} m=${g.m}`, g);
 
 g = Flograph.fromString(
 	'{a->[b:3 d:2] b[c:3 d:2-7 g:3] c[d:1 e:5] d[e:2 f:1 g:3] ' +
@@ -104,7 +105,7 @@ g = randomFlograph(202, 20, 20, 2, 2);
 g.randomCapacities(randomInteger, 1, 99); g.randomFloors(randomInteger, 0, 2);
 tester.addTest('medium random with floors', g);
 
-if (!ea) {
+if (!ae) {
 	g = randomFlograph(1002, 100, 100, 2, 2);
 	g.randomCapacities(randomInteger, 1, 99);
 	g.randomFloors(randomInteger, 0, 7);

@@ -8,7 +8,7 @@
 
 import List from '../../dataStructures/basic/List.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 
 /** Common code shared by various instances of the preflow-push
  *  algorithm of Goldman and Tarjan.
@@ -27,6 +27,7 @@ let relabelSteps;	// number of steps spent on relabeling
 let balanceCount;	// number of balance operations
 let balanceSteps;	// number of steps in balance operations
 
+let ae;
 let traceString;
 
 /** Compute maximum flow push-relabel algorithm of Goldman & Tarjan.
@@ -39,6 +40,7 @@ let traceString;
  */
 export default function maxflowPP(fg, getUbal, putUbal, incrRelabThresh=fg.m,
 								  trace=false) {
+	ae = assertEnabled();
 	g = fg;
 	excess = new Int32Array(g.n+1); 
 	nextedge = new Int32Array(g.n+1);
@@ -164,7 +166,7 @@ export function relabelAll() {
 		}
 	}
 
-	ea && assert(d[g.source] >= g.n, 'relabelAll: source-to-sink path present');
+	ae && assert(d[g.source] >= g.n, 'relabelAll: source-to-sink path present');
 
 	// compute distance labels for remaining vertices
 	q.enq(g.source); d[g.source] = g.n;

@@ -6,8 +6,6 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert} from '../../common/Assert.mjs';
-
 /** Verify a hamiltonian path or cycle.
  *  @param g is a Graph object
  *  @param path is a hamiltonian path or cycle in the form of an array of edges

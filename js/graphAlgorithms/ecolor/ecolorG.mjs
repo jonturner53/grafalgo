@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
@@ -31,7 +31,6 @@ let traceString;
 let steps;		// number of steps (inner loops)
 let matches;	// number of matchings found
 
-
 /** Compute a coloring of a bipartite graph using Gabow's algorithm.
  *  @param G is an undirected bipartite graph to be colored
  *  @param trace causes a trace string to be returned when true
@@ -41,7 +40,7 @@ let matches;	// number of matchings found
 export default function ecolorG(G, traceFlag=false) {
 	if (G.m == 0) return ['no edges in graph', {'steps':1}];
 	// initialize data structures
-	ea && assert(G.hasBipartition);
+	assert(G.hasBipartition);
 	if (!G.color) G.addEdgeProperty('color', 0);
 	g = G; trace = traceFlag; trace = 1;
 

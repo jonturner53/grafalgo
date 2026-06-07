@@ -14,7 +14,8 @@ import ListPair from '../basic/ListPair.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** Data structure for undirected graph.
  *
@@ -56,7 +57,8 @@ export default class Graph extends Top {
 	 *  @param erange is the initial range for edge values (defaults to n)
 	 */
 	constructor(n=10, erange=n, propName=0, defVal=0) {
-		ea && assert(n > 0 && erange > 0, n, erange);
+	ae = assertEnabled();
+		ae && assert(n > 0 && erange > 0, n, erange);
 		super(n);
 		this.firstEp = new Int32Array(this.n+1);
 		this.Left = new Int32Array(erange+1);
@@ -116,7 +118,7 @@ export default class Graph extends Top {
 
 		Object.defineProperty(this, propName,
 			{ value: 	function(e) {
-							ea && assert(this.validEdge(e),
+							ae && assert(this.validEdge(e),
                      			`Graph.${propName}: invalid edge number: ${e}`);
 							if (arguments.length > 1) {
 								this.edgeProperties[i][e] = arguments[1];
@@ -156,7 +158,7 @@ export default class Graph extends Top {
 	 *  @return the left endpoint of e, or 0 if e is not a valid edge.
 	 */
 	left(e) {
-		ea && assert(this.validEdge(e),
+		ae && assert(this.validEdge(e),
 					 `Graph.left: invalid edge number: ${e}`);
 		return this.Left[e];
 	}
@@ -166,7 +168,7 @@ export default class Graph extends Top {
 	 *  @return the right endpoint of e, or 0 if e is not a valid edge.
 	 */
 	right(e) {
-		ea && assert(this.validEdge(e),
+		ae && assert(this.validEdge(e),
 					 `Graph.right: invalid edge number: ${e}`);
 		return this.Right[e];
 	}
@@ -177,7 +179,7 @@ export default class Graph extends Top {
 	 *  @return the other vertex incident to e
 	 */
 	mate(v, e) {
-		ea && assert(this.validVertex(v) && this.validEdge(e) &&
+		ae && assert(this.validVertex(v) && this.validEdge(e) &&
 			   (v == this.left(e) || v == this.right(e)));
 		return v == this.left(e) ? this.right(e) : this.left(e);
 	}
@@ -199,7 +201,7 @@ export default class Graph extends Top {
 	 *  @return the first edge incident to v
 	 */
 	firstAt(v) { 
-		ea && assert(this.validVertex(v));
+		ae && assert(this.validVertex(v));
 		return Math.trunc(this.firstEp[v]/2);
 	}
 	
@@ -210,7 +212,7 @@ export default class Graph extends Top {
 	 *  or 0 if e is not incident to v or is the last edge on the list
 	 */
 	nextAt(v, e) {
-		ea && assert(this.validVertex(v) && this.validEdge(e));
+		ae && assert(this.validVertex(v) && this.validEdge(e));
 		if (v != this.left(e) && v != this.right(e)) return 0;
 		let ep = (v == this.left(e) ? 2*e : 2*e+1);
 		return Math.trunc(this.epLists.next(ep)/2);
@@ -312,7 +314,7 @@ export default class Graph extends Top {
 	 *  on failure
 	 */
 	join(u, v, e=this.edges.first(2)) {
-		ea && assert(u != v && this.validVertex(u) && this.validVertex(v) &&
+		ae && assert(u != v && this.validVertex(u) && this.validVertex(v) &&
 					(!this.hasBipartition ||
 						(this.isInput(u) != this.isInput(v))) &&
 			   		(e > 0 || !this.edges.first(2)) && !this.edges.in(e,1),
@@ -340,7 +342,7 @@ export default class Graph extends Top {
 	 *  @return true on success, false on failure
 	 */
 	delete(e) {
-		ea && assert(this.validEdge(e));
+		ae && assert(this.validEdge(e));
 		let u = this.left(e); let v = this.right(e);
 		this.edges.swap(e);
 		this.firstEp[u] = this.epLists.delete(2*e,   this.firstEp[u]);
@@ -354,7 +356,7 @@ export default class Graph extends Top {
 	 *  Return  0 if u's mate in e1 is equal to its mate in e2.
 	 */
 	ecmp(e1, e2, u) {
-		ea && assert(this.validVertex(u) &&
+		ae && assert(this.validVertex(u) &&
 					   this.validEdge(e1) && this.validEdge(e2));
 		let v1 = this.mate(u, e1); let v2 = this.mate(u, e2);
 		return (v1 != v2 ? v1 - v2 : this.compareProps(e1, e2));
@@ -384,7 +386,7 @@ export default class Graph extends Top {
 	 *  compare edges e1 and e2 both incident to u.
 	 */
 	sortEplist(u, ecmp=((e1,e2,u) => this.ecmp(e1,e2,u))) {
-		ea && assert(u != 0 && this.validVertex(u));
+		ae && assert(u != 0 && this.validVertex(u));
 		if (this.firstEp[u] == 0) return; // empty list
 
 		// if already sorted, skip sorting step
@@ -454,7 +456,7 @@ export default class Graph extends Top {
 	 *  is no such edge; if edges is present, restrict search to edges
 	 */
 	findEdge(u, v, edges) {
-		ea && assert(this.validVertex(u) && this.validVertex(v), `${u} ${v}`);
+		ae && assert(this.validVertex(u) && this.validVertex(v), `${u} ${v}`);
 		if (!edges) {
 			for (let e = this.firstAt(u); e; e = this.nextAt(u, e))
 				if (v == this.mate(u, e)) return e;
@@ -701,7 +703,7 @@ no reason for it to be troublesome, but could catch the unwary
 	 *  @return the number of edges incident to u
 	 */
 	degree(u) {
-		ea && assert(this.validVertex(u));
+		ae && assert(this.validVertex(u));
 		let d = 0;
 		for (let e = this.firstAt(u); e; e = this.nextAt(u,e)) d++;
 		return d;
@@ -838,6 +840,6 @@ no reason for it to be troublesome, but could catch the unwary
 	}
 
 	randomWeights(rand, ...args) {
-		return randomPropertyValues('weight', rand, ...args);
+		return this.randomPropertyValues('weight', rand, ...args);
 	}
 }

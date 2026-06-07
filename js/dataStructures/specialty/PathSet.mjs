@@ -12,7 +12,8 @@ import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import SplayForest from '../trees/SplayForest.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** Data structure representing a collection of paths.
  *
@@ -28,6 +29,7 @@ export default class PathSet extends SplayForest {
 	 *  @param n is the range for the list
 	 */
 	constructor(n=10) {
+	ae = assertEnabled();
 		super(n);
 		this.Dcost = new Float32Array(this.n+1).fill(0);
 		this.Dmin = new Float32Array(this.n+1).fill(0);

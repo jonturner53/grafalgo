@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import {assert, AssertEnabled as ae } from '../../common/Assert.mjs';
 
 /** Compute largest group count at an input.
  *  @param eg is an EdgeGroups object

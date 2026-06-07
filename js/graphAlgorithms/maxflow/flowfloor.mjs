@@ -11,7 +11,7 @@ import Flograph from '../../dataStructures/graphs/Flograph.mjs';
 import maxflowPPf from './maxflowPPf.mjs';
 import mcflowJEK from '../mcflow/mcflowJEK.mjs';
 import ncrJEK from '../mcflow/ncrJEK.mjs';
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 
 /** Compute a feasible flow in a graph with specified flow floors.
  *  @param fg is Flograph with floors.

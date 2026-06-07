@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 
@@ -74,7 +74,7 @@ export default function setCoverBYE(g, weight, trace=0) {
 			let j = g.mate(vi,e); slack[j] -= minSlack;
 			if (!newSubset && slack[j] == 0) newSubset = j;
 		}
-		ea && assert(newSubset);
+		assert(newSubset);
 		// add newSubset to cover and remove its items from uncovered
 		cover.enq(newSubset); coverWt += weight[newSubset];
 		for (let ee = g.firstAt(newSubset); ee; ee = g.nextAt(newSubset,ee)) {

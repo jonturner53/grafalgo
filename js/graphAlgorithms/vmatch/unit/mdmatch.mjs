@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 import pmatchO from '../pmatchO.mjs';
 import pmatchEGT from '../pmatchEGT.mjs';
@@ -19,6 +19,7 @@ import { randomInteger, randomFill, randomGeometric }
 import { randomRegularBigraph } from '../../misc/RandomGraph.mjs';
 
 import findSplit from '../../misc/findSplit.mjs';
+const ae = assertEnabled();
 
 let algomap = {
 	'G' : ['mdmatchG',
@@ -85,7 +86,7 @@ for (let u = 1; u <= g.n; u++)
 	if (g.degree(u) == md) prio[u] = 1;
 tester.addTest(`medium random bigraph (${g.n},${g.m})`, g, prio);
 
-if (!ea) {
+if (!ae) {
 	g = prettyRegularBigraph(5000,3);
 	prio = new Int32Array(g.n+1);
 	md = g.maxDegree(); 

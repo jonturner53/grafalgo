@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, AssertEnabled as ae } from '../../common/Assert.mjs';
 import Top from '../../dataStructures/Top.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
@@ -200,11 +200,11 @@ export default class EdgeGroups extends Top {
 	 *  @return the group id that e is assigned to
 	 */
 	add(e, g=0) {
-		ea && assert(this.Group[e] == 0);
+		ae && assert(this.Group[e] == 0);
 		if (g == 0 || this.GroupIds.in(g,2)) {
 			// allocate group and add edge to it
 			if (g == 0) g = this.GroupIds.first(2);
-			ea && assert(this.Group[e] == 0 && this.FirstInGroup[g] == 0);
+			ae && assert(this.Group[e] == 0 && this.FirstInGroup[g] == 0);
 			this.GroupIds.swap(g);
 			this.Group[e] = g; this.Fanout[g] = 1; this.FirstInGroup[g] = e;
 			let u = this.input(e);
@@ -212,9 +212,9 @@ export default class EdgeGroups extends Top {
 				this.GroupsAtInputs.join(this.FirstGroup[u],g);
 		} else {
 			// add edge to an existing group
-			ea && assert(this.firstInGroup(g));
+			ae && assert(this.firstInGroup(g));
 			let u = this.hub(g);
-			ea && assert(u == this.input(e),
+			ae && assert(u == this.input(e),
 				this.graph.x2s(u) + ' ' + this.graph.e2s(e) + ' ' +
 				this.graph.e2s(this.FirstInGroup[g]) + ' ' + this.n_i);
 			this.Group[e] = g;
@@ -251,7 +251,7 @@ export default class EdgeGroups extends Top {
 		if (g1 == g2 || g2 == 0) return g1;
 		if (g1 == 0) return g2;
 		let u = this.hub(g1);
-		ea && assert(u == this.hub(g2));
+		ae && assert(u == this.hub(g2));
 	
 		// update Group of edges in g2, while checking for and removing
 		// potential parallel edges

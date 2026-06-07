@@ -11,7 +11,8 @@ import List from '../basic/List.mjs'
 import Scanner from '../basic/Scanner.mjs'
 import KeySets from './KeySets.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** Map class implements a set of key-value pairs, each identified by
  *  an integer index. Keys and values may be either number or strings.
@@ -32,6 +33,7 @@ export default class Map extends Top {
 	 *  @param stringKey is true if the keys are strings
 	 */
 	constructor(n=10, compare=((a,b)=>a-b), eqValue=((a,b)=>a===b)) {
+	ae = assertEnabled();
 		super(n);
 
 		this.compare = compare;

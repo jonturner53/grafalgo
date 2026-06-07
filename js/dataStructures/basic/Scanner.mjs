@@ -8,7 +8,8 @@
 
 import Top from '../Top.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** The Scanner class provides methods to parse a string incrementally.
  */
@@ -20,6 +21,7 @@ export default class Scanner extends Top {
 	 *  @param s is a pointer to the string to be scanned.
 	 */
 	constructor(s) { super(); this.buffer = s; this.cursor = 0; }
+	ae = assertEnabled();
 
 	/** Reset the Scanner object.
 	 *  With no arguments, simply sets the cursor to zero.

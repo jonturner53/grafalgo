@@ -10,7 +10,8 @@ import Top from '../Top.mjs';
 import List from './List.mjs';
 import Scanner from './Scanner.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** The ListSet class maintains a collection of disjoint lists defined
  *  over a set of integers 1..n. Each list in the collection is identified
@@ -22,6 +23,7 @@ export default class ListSet extends Top {
 				// where last is the last item on the list
 
 	constructor(n=10) {
+	ae = assertEnabled();
 		super(n);
 		this.Next = new Int32Array(this.n+1);
 		this.Prev = new Int32Array(this.n+1);
@@ -39,7 +41,7 @@ export default class ListSet extends Top {
 	}
 
 	isfirst(i) {
-		ea && assert(this.valid(i));
+		ae && assert(this.valid(i));
 		return this.Next[this.Prev[i]] == 0;
 	}
 	
@@ -48,7 +50,7 @@ export default class ListSet extends Top {
 	 *  @return the last item in the list
 	 */
 	last(f) {
-		ea && assert(this.isfirst(f));
+		ae && assert(this.isfirst(f));
 		return this.Prev[f];
 	}
 
@@ -57,7 +59,7 @@ export default class ListSet extends Top {
 	 *  @return the item that follows i in its list
 	 */
 	next(i) {
-		ea && assert(this.valid(i));
+		ae && assert(this.valid(i));
 		return this.Next[i];
 	}
 	
@@ -80,7 +82,7 @@ export default class ListSet extends Top {
 	 *  @return true if it is the only item in its list, else false
 	 */
 	singleton(i) {
-		ea && assert(this.valid(i));
+		ae && assert(this.valid(i));
 		return this.Prev[i] == i;
 	}
 	
@@ -104,7 +106,7 @@ export default class ListSet extends Top {
 	 *  @return the first item of the modified list, or 0 if f was a singleton
 	 */
 	delete(i, f) {
-		ea && assert(this.valid(i) && this.valid(f) && this.isfirst(f));
+		ae && assert(this.valid(i) && this.valid(f) && this.isfirst(f));
 		if (this.singleton(f)) return 0;
 		let l = this.last(f); let nf = this.next(f);
 		let pi = this.prev(i); let ni = this.next(i);
@@ -126,7 +128,7 @@ export default class ListSet extends Top {
 	 *  defined to be f1, for non-zero f1
 	 */
 	join(f1, f2) {
-		ea && assert(this.valid(f1) && this.valid(f2));
+		ae && assert(this.valid(f1) && this.valid(f2));
 		if (f2 == 0 || f1 == f2) return f1;
 		if (f1 == 0) return f2;
 		let l1 = this.last(f1); let l2 = this.last(f2);

@@ -11,7 +11,8 @@ import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Forest from '../trees/Forest.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** This class implements a data structure consisting of a disjoint
  *  set of Fibonacci heaps.
@@ -36,6 +37,7 @@ export default class FibHeaps extends Forest {
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) {
+	ae = assertEnabled();
 		super(n);
 		this.Key = new Float32Array(this.n+1);
 		this.Rank = new Int32Array(this.n+1);

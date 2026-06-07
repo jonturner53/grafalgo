@@ -11,7 +11,8 @@ import Scanner from '../basic/Scanner.mjs';
 import Digraph from './Digraph.mjs';
 import { shuffle } from '../../common/Random.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** Data structure for Flograph, used by max flow algorithms.
  *  Extends Digraph class and adds edge capacities, flows and
@@ -29,6 +30,7 @@ export default class Flograph extends Digraph {
 	 *  @param erange is the max number of edges to provide space for
 	 */
 	constructor(n, erange) {
+	ae = assertEnabled();
 		super(n, erange); 
 		this.Source = 1; this.Sink = this.n;
 
@@ -87,7 +89,7 @@ export default class Flograph extends Digraph {
 	 *  @param f is a flow amount to be added to the flow on e leaving u
 	 */
 	addFlow(e, u, f) {
-		ea && assert(f <= this.res(e, u), 'addFlow: edge capacity violation');
+		ae && assert(f <= this.res(e, u), 'addFlow: edge capacity violation');
 		this.flow(e, this.flow(e) + (u == this.tail(e) ? f : (-f)));
 	}
 
@@ -212,7 +214,7 @@ export default class Flograph extends Digraph {
 	 *  return  0 if u's mate in e1 is equal to its mate in e2.
 	 */
 	ecmp(e1, e2, u) {
-		ea && assert(this.validVertex(u) && this.validEdge(e1)
+		ae && assert(this.validVertex(u) && this.validEdge(e1)
 										 && this.validEdge(e2));
 			 if (u == this.head(e1) && u == this.tail(e2)) return -1;
 		else if (u == this.tail(e1) && u == this.head(e2)) return 1;

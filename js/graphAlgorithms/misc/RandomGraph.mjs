@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, EnableAssert as ea} from '../../common/Assert.mjs';
+import {assert, assertEnabled} from '../../common/Assert.mjs';
 import {randomInteger, randomDiscrete, range, scramble,
 		toCumulative, randomSample} from
 		'../../common/Random.mjs';
@@ -74,7 +74,7 @@ export function randomDag(n, d, dmax=n-1) {
  */
 export function randomBigraph(ni, id, no=ni, dmax=0) {
 	ni = Math.max(1,ni); no = Math.max(1,no); let od = ni*id/no;
-	ea && assert((no <= 20 || id <= no/2) && (ni <= 20 || od <= ni/2));
+	assert((no <= 20 || id <= no/2) && (ni <= 20 || od <= ni/2));
 	if (!dmax) dmax = [no,ni];
 	else if (Number.isInteger(dmax)) dmax = [dmax,dmax];
 	let m = Math.round(id*ni);
@@ -149,7 +149,7 @@ export function add2graph(g, d, dmax=0, rising=1, U=0, U2=0) {
 	reduce(g, pairs);			 // removes duplicates from within pairs
 	removeDuplicates(g, pairs);  // removes pairs that are in g
 
-	ea && assert(pairs.length >= mm,
+	assertEnabled() && assert(pairs.length >= mm,
 				 'add2graph: program error, too few candidate edges');
 
 	let success = samplePairs(g, mm, pairs, dmax);
@@ -187,7 +187,7 @@ function createPairs(g, d, rising=1, U=0, U2=0) {
 		}
 	}
 
-	ea && assert(d <= U2.length);
+	assert(d <= U2.length);
 
 	// create discrete distribution on U for generating vertex pairs
 	let [mU, sv, sv2] = samplingVectors(g, U, U2);
@@ -195,7 +195,7 @@ function createPairs(g, d, rising=1, U=0, U2=0) {
 
 	// determine number of edges required to get desired avg degree
 	let mn = Math.round((digraph || U2 != U ) ? d*U.length : d*U.length/2);
-	ea && assert(mU <= mn);
+	assert(mU <= mn);
 
 	// and number of pairs to be confident that sampling will yield mn edges
 	let mp = mn-mU; mp += Math.max(mp, 100);
@@ -500,8 +500,9 @@ export function regularize(g, d, W, r=1) {
 		else if (du > d) over.enq(u);	// those in over can give up one
 	}
 
+	const ae = assertEnabled();
 	while (!lo.empty() || !hi.empty()) {
-		ea && assert((!lo.empty() || !under.empty()) &&
+		ae && assert((!lo.empty() || !under.empty()) &&
 					 (!hi.empty() || !over.empty()),
 					 `RandomGraph.regularize: graph cannot be regularized ` +
 					 `${lo.length} ${under.length} ` +

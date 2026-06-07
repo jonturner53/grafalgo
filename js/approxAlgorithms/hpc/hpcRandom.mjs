@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, EnableAssert as ea} from '../../common/Assert.mjs';
+import { assert } from '../../common/Assert.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { range,randomPermutation, randomInteger} from '../../common/Random.mjs';
 
@@ -20,10 +20,10 @@ import { range,randomPermutation, randomInteger} from '../../common/Random.mjs';
  *  unless t == 0 in which case the endpoint is selected randomly
  */
 export default function hpcRandom(n, d, s=0, t=0) {
-	ea && assert(s >= 0 && s <= n && t >= 0 && t <= n &&
+	assert(s >= 0 && s <= n && t >= 0 && t <= n &&
 				 (s || !t) && (s != t || !t));
-	ea && assert(s && n >= 2 || !s && n >= 3);
-	ea && assert(d >= 2 && d <= 5*Math.log(n) && d <= n-1);
+	assert(s && n >= 2 || !s && n >= 3);
+	assert(d >= 2 && d <= 5*Math.log(n) && d <= n-1);
 
 	let m = ~~(d*n/2); let g = new Graph(n,m);
 

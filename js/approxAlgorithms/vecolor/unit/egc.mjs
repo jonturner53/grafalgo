@@ -7,7 +7,6 @@
  */
 
 import { Tester } from '../../../common/Testing.mjs';
-import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
 import simple from '../egcSimple.mjs';
 import egcTl from '../egcTl.mjs';
 import egcCT from '../egcCT.mjs';

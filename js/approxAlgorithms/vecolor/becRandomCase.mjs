@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, AssertEnabled as ae } from '../../common/Assert.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { randomInteger, randomPermutation } from '../../common/Random.mjs';
 import { randomRegularBigraph }
@@ -40,7 +40,7 @@ export default function becRandomCase(ni, id, no=ni, reg=1,
 	let g = randomRegularBigraph(ni, id, no, reg);
 	g.addEdgeProperty('floor', 0); g.addEdgeProperty('color', 0);
 	let [idmax,odmax] = g.maxDegree(); let dmax = Math.max(idmax, odmax);
-	ea && assert(idmax <= fcount(Fmax) && Fmax <= Cmax && odmax <= Cmax);
+	ae && assert(idmax <= fcount(Fmax) && Fmax <= Cmax && odmax <= Cmax);
 
 	// select a random subset of dmax colors in 1..Cmax
 	let palette = new Int32Array(dmax+2);
@@ -96,12 +96,12 @@ export default function becRandomCase(ni, id, no=ni, reg=1,
 					g.floor(e,ifloor(i)); free[i] = 0; freeCount--; break;
 				}
 			}
-			ea && assert(g.floor(e));
+			ae && assert(g.floor(e));
 		}
 	}
 	let cmax = maxColor(g); let fmax = maxFloor(g);
-	g.resetColor();  // finally, erase colors used when selecting floors
 	g.sortAllEplists((e1,e2,u)=>g.floor(e1)-g.floor(e2));
+	g.resetColor();  // finally, erase colors used when selecting floors
 
 	return [g, lowerBounds(g,speedup), [cmax,...upperBounds(g,speedup)]];
 }

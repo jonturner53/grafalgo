@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { AssertFail, EnableAssert as ea } from '../../../common/Assert.mjs';
+import { AssertFail, AssertEnabled as ae } from '../../../common/Assert.mjs';
 import { matches, Mismatch } from '../../../common/Testing.mjs';
 import Flograph from '../Flograph.mjs';
 import {randomFlograph} from '../../../graphAlgorithms/misc/RandomGraph.mjs';

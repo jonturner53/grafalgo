@@ -10,7 +10,8 @@ import Top from '../Top.mjs';
 import List from '../basic/List.mjs';
 import Forest from '../trees/Forest.mjs';
 
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 
 /** This class implements a heap data structure.
  *  The heap elements are identified by indexes in 1..n where n
@@ -34,6 +35,7 @@ export default class ArrayHeap extends Top {
 	 *  @parm d is the base of the heap (defaults to 4)
 	 */
 	constructor(n=10, d=4) {
+	ae = assertEnabled();
 		super(n);
 		this.Item = new Int32Array(n+1);
 		this.pos = new Int32Array(n+1);
@@ -125,7 +127,7 @@ export default class ArrayHeap extends Top {
 	 *  @param key is the key value under which i is to be inserted
 	 */
 	insert(i, key) {
-		ea && assert(i > 0 && this.valid(i),
+		ae && assert(i > 0 && this.valid(i),
 					 `ArrayHeap.insert: invalid item ${i}`);
 		if (this.contains(i)) { this.changekey(i,key); return; }
 		if (i > this.n) this.expand(i);
@@ -136,7 +138,7 @@ export default class ArrayHeap extends Top {
 	 *  @param i is an index in the heap
 	 */
 	delete(i) {
-		ea && assert(i > 0);
+		ae && assert(i > 0);
 		if (!this.contains(i)) return;
 		let j = this.itemAt(this.Size--);
 		if (i != j) {
@@ -258,21 +260,13 @@ export default class ArrayHeap extends Top {
 	 */
 	static fromString(s, n=10, d=4) {
 		let key = [];
-		let l = List.fromString(s, n, (u,sc) => {
-										if (!sc.verify(':',0)) {
-											key[u] = 0; return true;
-										}
-										let p = sc.nextNumber();
-										if (p == NaN) return false;
-										key[u] = p;
-										return true;
-									});
+		let l = List.fromString(s, n);
 		if (!l) return null;
 
 		let ah = new ArrayHeap(l.n, d);
 
 		for (let i = l.first(); i; i = l.next(i)) {
-			ah.insert(i, key[i]);
+			ah.insert(i, l.value(i));
 		}
 		return ah;
 	}

@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, EnableAssert as ea } from '../../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 import findSplit from '../../misc/findSplit.mjs';
 import Matching from '../Matching.mjs';
@@ -22,6 +22,7 @@ import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomBigraph } from '../../misc/RandomGraph.mjs';
 import ListPair from '../../../dataStructures/basic/ListPair.mjs';
+const ae = assertEnabled();
 
 function verify(g, match) {
 	return g.weight ? wmatchVerify(g,match) : matchVerify(g,match);
@@ -102,7 +103,7 @@ tester.addTest('medium random (100,10)', g);
 g = randomGraph(100, 30);
 tester.addTest('medium random dense (100,30)', g);
 
-if (!ea) {
+if (!ae) {
 	g = randomGraph(400, 5);
 	tester.addTest('large random sparse (400,5)', g);
 	
@@ -124,7 +125,7 @@ tester.addTest('small random weighted (20,3)', g);
 
 g = randomGraph(100,20); g.randomWeights(randomInteger,1,99);
 tester.addTest('medium random weighted(100,20)', g);
-if (!ea) {
+if (!ae) {
 	g = randomGraph(400, 5); g.randomWeights(randomInteger,1,99);
 	tester.addTest('large random weighted sparse (400,5)', g);
 	

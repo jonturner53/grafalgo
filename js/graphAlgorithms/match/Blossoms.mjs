@@ -7,7 +7,8 @@
  */
 
 import Top from '../../dataStructures/Top.mjs';
-import { assert, EnableAssert as ea } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
+let ae; // initialized in constructor
 import List from '../../dataStructures/basic/List.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
@@ -51,6 +52,7 @@ export default class Blossoms extends Top {
 	 *  @param match is the client's matching object
 	 */
 	constructor(g, match, outerMethod=0) {
+	ae = assertEnabled();
 		super(g.n + ~~(g.n/2));
 		this.g = g;
 		this.match = match;
@@ -361,7 +363,7 @@ Say grove?
 	 *  calls on this object, so it should be used with care
 	 */
 	expandOdd(B) {
-		ea && assert(B > this.g.n && this.state(B) == '-1');
+		ae && assert(B > this.g.n && this.state(B) == '-1');
 		let [subs,bBsub] = this.deconstruct(B);
 			// bBsub is sub-blossom in subs that contained base(B) before B
 			// B was deconstructed
