@@ -6,7 +6,6 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, AssertEnabled as ae } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';

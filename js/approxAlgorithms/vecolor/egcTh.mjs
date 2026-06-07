@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, AssertEnabled as ae } from '../../common/Assert.mjs';
+import { assert } from '../../common/Assert.mjs';
 import {randomPermutation, scramble} from '../../common/Random.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';

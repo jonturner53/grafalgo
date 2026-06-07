@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, AssertEnabled as ae } from '../../common/Assert.mjs';
+import { assert } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
@@ -14,6 +14,7 @@ import EdgeGroupColors from './EdgeGroupColors.mjs';
 import {maxGroupCount, maxOutDegree} from './egcCommon.mjs';
 
 let eg;		// shared reference to EdgeGroups object
+let ae;
 
 /** Find an edge group coloring using simple method.
  *  @param g is a group graph to be colored.
@@ -21,6 +22,7 @@ let eg;		// shared reference to EdgeGroups object
  *  object, ts is a traceString and stats is a statistics object.
  */
 export default function egcSimple(eg0, trace=0) {
+	ae = assertEnabled();
 	eg = eg0;
 
 	let ts = '';

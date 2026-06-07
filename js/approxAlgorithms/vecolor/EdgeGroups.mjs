@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertEnabled as ae } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 import Top from '../../dataStructures/Top.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
@@ -14,6 +14,8 @@ import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { scramble } from '../../common/Random.mjs';
+
+let ae;
 
 /** This class maintains a set of edge groups on, an underlying  bipartite
  *  graph. Groups are centered on inputs, and each output has at most one
@@ -25,6 +27,7 @@ import { scramble } from '../../common/Random.mjs';
  *  than outputs; with vertices 1..n_i, pre-defined as inputs.
  */
 export default class EdgeGroups extends Top {
+	ae = assertEnabled();
 	Graph;          // underlying bipartite graph
 	N_i;            // number of inputs
 
@@ -73,7 +76,7 @@ export default class EdgeGroups extends Top {
 	 *  @param that is another graph whose contents is copied to this one
 	assign(that, relaxed=false) {
 		super.assign(that);
-        ea && assert(that != this &&
+        ae && assert(that != this &&
                 	 this.constructor.name == that.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
 
@@ -96,7 +99,7 @@ export default class EdgeGroups extends Top {
 	/** Assign one graph to another by transferring its contents.
 	 *  @param that is another graph whose contents is transferred to this one
 	xfer(that) {
-        ea && assert(that != this &&
+        ae && assert(that != this &&
                 	 this.constructor.name == that.constructor.name,
 					 'Top:xfer: self-assignment or mismatched types');
 		this.Graph = that.graph; this.n = that.n; this.N_i = that.n_i;

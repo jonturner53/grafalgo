@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import {assert, AssertEnabled as ae } from '../../common/Assert.mjs';
+import { assert } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
@@ -22,7 +22,7 @@ import { maxFloor } from './becCommon.mjs';
  */
 export default function becPmatch(g, trace=0) {
 	let steps = 0;
-	ae && assert(g.hasBipartition, g);
+	assert(g.hasBipartition, g);
 	if (!g.color) g.addEdgeProperty('color',0);
 
 	// compute degrees in g and assign initial priorities

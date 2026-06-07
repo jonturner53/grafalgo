@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertEnabled as ae } from '../../common/Assert.mjs';
+import { assert } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
@@ -37,7 +37,7 @@ export default class EdgeGroupLayers extends Top {
 	 *  @param that is another object whose contents is copied to this one
 	 */
 	assign(that) {
-        ea && assert(that != this &&
+        assert(that != this &&
                 	 this.constructor.name == that.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
 		if (this.eg == that.eg && this.n_l == that.n_l)

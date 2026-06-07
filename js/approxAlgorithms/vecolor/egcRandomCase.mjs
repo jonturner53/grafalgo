@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertEnabled as ae } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 import { range, scramble, randomInteger } from '../../common/Random.mjs';
 import EdgeGroups from './EdgeGroups.mjs';
 import { maxOutDegree } from './egcCommon.mjs';
@@ -14,6 +14,8 @@ import { randomFraction } from '../../common/Random.mjs';
 import { randomBigraph, randomRegularBigraph }
 		from '../../graphAlgorithms/misc/RandomGraph.mjs';
 import { egcLbound, egcUbounds } from './egcCommon.mjs';
+
+let ae;
 
 /** Generate a random test case.
  *  @param ni is the number of input vertices in the graph
@@ -34,6 +36,7 @@ import { egcLbound, egcUbounds } from './egcCommon.mjs';
  */
 export default function egcRandomCase(ni, gd, no=ni, od=gd, reg=1,
 									  Cmax=0, Bmax=0, speedup=1) {
+	ae = assertEnabled();
 	// define some functions on bounds
 	let ibound = (i => 1 + Math.ceil((i-1)*speedup));
 		// ibound(i) is the i-th permissible lower bound
@@ -76,7 +79,7 @@ export default function egcRandomCase(ni, gd, no=ni, od=gd, reg=1,
 	function randomColors(lo, hi, cvec) {
 		if (hi-lo < 2) return;
 		let mid = ~~((lo+hi)/2);
-		// ea && assert(cvec[lo]+(ibound(mid)-ibound(lo)) <=
+		// ae && assert(cvec[lo]+(ibound(mid)-ibound(lo)) <=
 		//				cvec[hi]-(hi-mid),
 		//				`${lo} ${hi} ${mid} [${cvec.slice(1,dmax+1)}]`);
 		cvec[mid] = randomInteger(cvec[lo]+(ibound(mid)-ibound(lo)), 

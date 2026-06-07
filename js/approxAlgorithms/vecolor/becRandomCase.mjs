@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertEnabled as ae } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { randomInteger, randomPermutation } from '../../common/Random.mjs';
 import { randomRegularBigraph }
@@ -30,6 +30,7 @@ import { lowerBounds, upperBounds, maxColor, maxFloor} from './becCommon.mjs';
 export default function becRandomCase(ni, id, no=ni, reg=1,
 									  Fmax=Math.floor(id+reg[0]-.0001),
 									  Cmax=Fmax, speedup=1) {
+	let ae = assertEnabled();
 	// first, define functions on bounds
 	let ifloor = (i => 1 + Math.ceil((i-1)*speedup));
 		// ifloor(i) is the i-th permissible floor
@@ -51,7 +52,7 @@ export default function becRandomCase(ni, id, no=ni, reg=1,
 		// select colors in palette[lo+1..hi-1]
 		if (hi-lo < 2) return;
 		let mid = ~~((lo+hi)/2);
-		// ea && assert(palette[lo]+(ifloor(mid)-ifloor(lo)) <=
+		// ae && assert(palette[lo]+(ifloor(mid)-ifloor(lo)) <=
 		//				palette[hi]-(hi-mid),
 		//				`${lo} ${hi} ${mid} [${palette.slice(1,dmax+1)}]`);
 		palette[mid] = randomInteger(palette[lo]+(ifloor(mid)-ifloor(lo)), 

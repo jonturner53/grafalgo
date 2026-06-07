@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertEnabled as ae } from '../../common/Assert.mjs';
+import { assert, AssertEnabled } from '../../common/Assert.mjs';
 import Top from '../../dataStructures/Top.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
@@ -15,6 +15,8 @@ import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import {maxGroupCount, maxOutDegree} from './egcCommon.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
+
+let ae;
 
 /** This class implements a data structure used by edge-group coloring
  *  algorithms.
@@ -36,6 +38,7 @@ export default class EdgeGroupColors extends Top {
 	PaletteSize;   // PaletteSize[g] is number of colors in g's palette
 
 	constructor(eg, n_c=1) {
+		ae = assertEnabled();
 		super(n_c);	// n_c is number of colors in palette
 		this.eg = eg;
 
