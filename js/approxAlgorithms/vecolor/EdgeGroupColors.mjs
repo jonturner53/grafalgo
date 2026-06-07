@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, AssertEnabled } from '../../common/Assert.mjs';
+import { assert, assertEnabled } from '../../common/Assert.mjs';
 import Top from '../../dataStructures/Top.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
@@ -90,7 +90,7 @@ export default class EdgeGroupColors extends Top {
 	 *  @param that is another object whose contents is copied to this one
 	 */
 	assign(that) {
-        ea && assert(that != this &&
+        ae && assert(that != this &&
                 	 this.constructor.name == that.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
 		if (this.eg == that.eg && this.n_c == that.n_c)
@@ -107,7 +107,7 @@ export default class EdgeGroupColors extends Top {
 	 *  @param that is another graph whose contents is transferred to this one
 	 */
 	xfer(that) {
-        ea && assert(that != this &&
+        ae && assert(that != this &&
                 	 this.constructor.name == that.constructor.name,
 					 'Top:assign: self-assignment or mismatched types');
 		this._n = that.n_c;
