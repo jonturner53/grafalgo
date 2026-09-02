@@ -1,4 +1,4 @@
-/** @file hpcRandom.mjs
+/** @file randomHpc.mjs
  *
  *  @author Jon Turner
  *  @date 2024
@@ -19,7 +19,7 @@ import { range,randomPermutation, randomInteger} from '../../common/Random.mjs';
  *  otherwise it contains a hamiltonian path starting at s and ending at t,
  *  unless t == 0 in which case the endpoint is selected randomly
  */
-export default function hpcRandom(n, d, s=0, t=0) {
+export default function randomHpc(n, d, s=0, t=0) {
 	assert(s >= 0 && s <= n && t >= 0 && t <= n &&
 				 (s || !t) && (s != t || !t));
 	assert(s && n >= 2 || !s && n >= 3);

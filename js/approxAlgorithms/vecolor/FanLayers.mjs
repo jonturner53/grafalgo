@@ -33,34 +33,6 @@ export default class EdgeGroupLayers extends Top {
 
 	clear() { layers.clear(); fgl.fill(0); }
 
-	/** Assign one object to another by copying its contents.
-	 *  @param that is another object whose contents is copied to this one
-	 */
-	assign(that) {
-        assert(that != this &&
-                	 this.constructor.name == that.constructor.name,
-					 'Top:assign: self-assignment or mismatched types');
-		if (this.eg == that.eg && this.n_l == that.n_l)
-			this.clear();
-		else
-			this.reset(that.eg, that.n_l);
-
-		for (let l = 1; l <= this.n_l; l++) {
-			for (let g = that.firstInLayer(l); g; g = that.nextInLayer(l))
-				this.add(g,l);
-		}
-	}
-	
-	/** Assign one graph to another by transferring its contents.
-	 *  @param that is another graph whose contents is transferred to this one
-	 */
-	xfer(that) {
-		super.xfer(that);
-		this.eg = that.eg; this.layers = that.layers; this.fgl = that.fgl;
-		this.gmap = that.gmap;
-		that.eg = that.layers = that.fgl = that.gmap = null;
-	}
-
 	/** Get the layer that a specified group belongs to. */
 	layer(g) { return this.gmap[g]; }
 

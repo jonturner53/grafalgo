@@ -27,16 +27,16 @@ let ae; // initialized in constructor
  *  for index lists and similar data structures.
  */
 export default class Top {
-	N;		// index values in 1..N
+	n_;		// index values in 1..n_
 
-	constructor(n=1) { ae = assertEnabled(); this.N = Math.max(1,n); }
+	constructor(n=1) { ae = assertEnabled(); this.n_ = Math.max(1,n); }
 
 	/** Reset the object, discarding value.  */
 
 	/** Get the index range for the object.
 	 *  @return the largest index value
 	 */
-	get n() { return this.N; }
+	get n() { return this.n_; }
 
 	clear() {
 		throw `Top: sub-class ${this.constructor.name} failed to ` +
@@ -65,7 +65,7 @@ export default class Top {
 	 */
 	valid(i) {
 		ae && assert(i == ~~i);
-		return 0 <= i && i <= this.N;
+		return 0 <= i && i <= this.n;
 	}
 
 	/** Determine if two objects are equal.
@@ -97,15 +97,17 @@ export default class Top {
 	/** Convert an index to a string.
 	 *  @param x is a valid index for the data structure
 	 *	@param label is an optional function used to produce string from value
+	 *  @param upper is a flag which enables use of upper-case letters
 	 *  @return a string that represents the value of x; if this.n>26, this is
-	 *  just the string representing the number x, otherwise, it is a lower-case
-	 *  letter.
+	 *  just the string representing the number x, otherwise, it is a letter.
 	 */
-	index2string(x, label=0) {
+	index2string(x, label=0, upper=0) {
 		if (label) return label(x);
-		return (this.n <= 26 ? '-abcdefghijklmnopqrstuvwxyz'[x] : ''+x);
+		let s = upper ? '-ABCDEFGHIJKLMNOPQRSTUVWXYZ' :
+					    '-abcdefghijklmnopqrstuvwxyz';
+		return (this.n <= 26 ? s[x] : ''+x);
 	}
-	x2s(x,label) { return this.index2string(x,label); }
+	x2s(x,label,upper) { return this.index2string(x,label,upper); }
 
 	/** Convert a list of index values to a string.
 	 *  @param ilist is an array of valid index values
@@ -133,4 +135,16 @@ export default class Top {
 		}
 		return '[' + s + ']';
 	}
+
+	/** Return a string representation of a value.
+	 *  @param v is a string, number or object
+	 *  @return a string representing the value
+	 */
+	datum2string(v) {
+		if (typeof v == 'string') return '"' + v + '"';
+		if (typeof v == 'object') return JSON.stringify(v);
+		return ''+v;
+	}
+	
+
 }

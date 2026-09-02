@@ -1,4 +1,4 @@
-/** @file hpcVerify.mjs
+/** @file verifyHpc.mjs
  *
  *  @author Jon Turner
  *  @date 2024
@@ -14,7 +14,7 @@
  *  @return a string which is empty if the path/cycle is correct,
  *  otherwise an error string
  */
-export default function hpcVerify(g, s=0, t=0, path) {
+export default function verifyHpc(g, s=0, t=0, path) {
 	if (s < 0 || s > g.n) return('invalid source');
 	if (t < 0 || t > g.n) return('invalid destination');
 	if (s == 0) t = 0;

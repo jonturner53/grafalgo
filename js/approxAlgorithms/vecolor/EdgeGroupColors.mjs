@@ -86,46 +86,6 @@ export default class EdgeGroupColors extends Top {
 		this.complete(0);
 	}
 
-	/** Assign one GroupColors object to another by copying its contents.
-	 *  @param that is another object whose contents is copied to this one
-	 */
-	assign(that) {
-        ae && assert(that != this &&
-                	 this.constructor.name == that.constructor.name,
-					 'Top:assign: self-assignment or mismatched types');
-		if (this.eg == that.eg && this.n_c == that.n_c)
-			this.clear();
-		else
-			this.reset(that.eg, that.n_c);
-
-		for (let e = this.eg.graph.first(); e; e = this.eg.graph.next(e))
-			if (that.color(e)) this.color(e, that.color(e));
-		this.numC = that.numC; this.maxC = that.maxC;
-	}
-	
-	/** Assign one graph to another by transferring its contents.
-	 *  @param that is another graph whose contents is transferred to this one
-	 */
-	xfer(that) {
-        ae && assert(that != this &&
-                	 this.constructor.name == that.constructor.name,
-					 'Top:assign: self-assignment or mismatched types');
-		this._n = that.n_c;
-		this.eg = that.eg;
-		this.Color = that.Color;
-		this.EdgesByColor = that.EdgesByColor;
-		this.FirstEdge = that.FirstEdge;
-		this.Usage = that.Usage;
-		this.Palettes = that.Palettes;
-		this.FirstColor = that.FirstColor;
-		this.Owner = that.Owner;
-		this.PaletteSize = that.PaletteSize;
-		this.numC = that.numC; this.maxC = that.maxC;
-
-		that.eg = that.Color = that.edgesByColor = that.FirstEdge = null;
-		that.Usage = that.Palettes = that.FirstColor = null;
-		that.Owner = that.paletteSize = null;
-	}
 
 	/** Determine if a color is available for use with a specified edge. */
 	avail(c,e) {

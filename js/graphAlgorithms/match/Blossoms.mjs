@@ -26,12 +26,7 @@ export default class Blossoms extends Top {
 	bsf;            // blossom structure forest defines hierarchy of
 					// blossoms and sub-blossoms
 
-	State;          // State[b] is state of outer blossom b; for inner
-					// blossoms, State[b] is undefined
-	Base;		    // if b is an outer blossom, Base[b] identifies the unique
-					// vertex in b that has no matching edge with both
-					// endpoints in b's vertex set
-	Link;           // Link[b] is pair [v,e] where e is an edge incident to
+	link_;           // link_[b] is pair [v,e] where e is an edge incident to
 					// b and v is the endpoint of e in b; if undefined: [0,0];
 					// for an external blossom b, e is the edge to b's
 					// tree parent; for an internal blossom, e is an edge to
@@ -40,7 +35,7 @@ export default class Blossoms extends Top {
 	outerMethod;    // method used to compute outer: 0 for find root of bsf,
 					// 1 for static map method, 2 find root of balanced forest
 					// where each tree enumerates vertices in an outer blossom
-	Outer;          // reference to data structure used to compute outer
+	outer_;          // reference to data structure used to compute outer
 
     ids;            // list of available blossom ids (reduced by n)
 	blist;          // temporary list used when forming new blossom
@@ -52,7 +47,7 @@ export default class Blossoms extends Top {
 	 *  @param match is the client's matching object
 	 */
 	constructor(g, match, outerMethod=0) {
-	ae = assertEnabled();
+		ae = assertEnabled();
 		super(g.n + ~~(g.n/2));
 		this.g = g;
 		this.match = match;
@@ -60,31 +55,32 @@ export default class Blossoms extends Top {
 
 		this.bsf = new Forest(this.n);
 
-		this.Base = new Int32Array(this.n+1);
-		for (let i = 0; i <= this.g.n; i++) this.Base[i] = i;
-		this.State = new Int32Array(this.n+1).fill(1);
-		for (let e = match.first(); e != 0; e = match.next(e)) {
-			this.State[this.g.left(e)] = 0;
-			this.State[this.g.right(e)] = 0;
+		this.bsf.addProperty('base', 0); // base(b) is blossom base of b
+		for (let i = 0; i <= this.g.n; i++) this.bsf.base(i,i);
+		this.bsf.addProperty('state', 1); // base(u) is odd,even or unreached
+		for (let e = match.first(); e; e = match.next(e)) {
+			this.bsf.state(this.g.left(e), 0);
+			this.bsf.state(this.g.right(e),0);
 		}
-		this.Link = new Array(this.n+1);
-		for (let b = 1; b <= this.n; b++) this.Link[b] = [0,0];
+
+		this.link_ = new Array(this.n+1);
+		for (let b = 1; b <= this.n; b++) this.link_[b] = [0,0];
 
 		this.ids = new List(this.n - this.g.n);
 		for (let b = g.n+1; b <= this.n; b++) this.ids.enq(b-this.g.n);
 		this.blist = new List(this.n);
 
 		if (this.outerMethod == 1) {
-			this.Outer = new Int32Array(this.n+1);
-			for (let b = 1; b <= this.n; b++) this.Outer[b] = b;
+			this.outer_ = new Int32Array(this.n+1);
+			for (let b = 1; b <= this.n; b++) this.outer_[b] = b;
 		} else if (this.outerMethod == 2) {
-			this.Outer = {
+			this.outer_ = {
 				bf : new BalancedForest(this.n),
 				bid : new Int32Array(this.n+1),
 				root : new Int32Array(this.n+1)
 			}
 			for (let b = 1; b <= this.n; b++)
-				this.Outer.bid[b] = this.Outer.root[b] = b;
+				this.outer_.bid[b] = this.outer_.root[b] = b;
 		}
 
 		this.steps = 0;
@@ -95,34 +91,38 @@ export default class Blossoms extends Top {
 		this.bsf.clear();
 		this.ids.clear();
 		for (let b = this.g.n+1; b <= this.n; b++) this.ids.enq(b-this.g.n);
-		this.Base.fill(0);
-		for (let u = 0; u <= this.g.n; u++) this.Base[u] = u;
-		this.State.fill(1);
-		for (let e = this.match.first(); e != 0; e = this.match.next(e)) {
-			this.State[this.g.left(e)] = 0;
-			this.State[this.g.right(e)] = 0;
+
+		for (let u = 0; u <= this.n; u++) {
+			this.base(u, u <= this.g.n ? u : 0);
+			this.state(u,1);
 		}
-		this.Link;
-		for (let u = 0; u <= this.n; u++) this.Link[u] = [0,0];
+		for (let e = this.match.first(); e; e = this.match.next(e)) {
+			this.state(this.g.left(e), 0);
+			this.state(this.g.right(e),0);
+		}
+		this.link_;
+		for (let u = 0; u <= this.n; u++) this.link_[u] = [0,0];
 	}
 
 	validBid(b) { return 0 <= b && b <= this.n &&
 				  !this.ids.contains(b-this.g.n); }
 
 	/** Get/set the base of a blossom.
-	 *  @param b is the id of a blossom or sub-blossom
+	 *  @param b is the id of a blossom or sub-blossom; if b is an outer
+	 *  blossom, base(b) is the unique vertex in b thas no matching edge
+	 *  with both endpoints in b's vertex set
 	 *  @param u is an optional vertex; if present the base of b is set to u.
 	 *  @return the base of b
 	 */
-	base(b,u=-1) { if (u!=-1) this.Base[b] = u; return this.Base[b]; }
+	base() { return this.bsf.base(...arguments); }
 
 	/** Get/set the state of a blossom.
 	 *  @param b is the id of a blossom or sub-blossom
 	 *  @param s is an optional state (-1 for odd, +1 for even, 0 for unbound);
-	 *  if present the base of b is set to s.
+	 *  states are defined for outer blossoms only
 	 *  @return the state state of b
 	 */
-	state(b,s=-3) { if (s!=-3) this.State[b] = s; return this.State[b]; }
+	state() { return this.bsf.state(...arguments); }
 
 	/** Get/set the link of a blossom.
 	 *  @param b is the id of a blossom or sub-blossom
@@ -131,14 +131,9 @@ export default class Blossoms extends Top {
 	 *  is set to p
 	 *  @return the link of b
 	 */
-	link(b,p=-1) { if (p!=-1) this.Link[b] = p; return this.Link[b]; }
+	link(b,p=-1) { if (p!=-1) this.link_[b] = p; return this.link_[b]; }
 
-	/** Get the first outer blossom
-Think about extending Forest to support firstTree, nextTree operations.
-This would simplify interation through outer blossoms. Note, must account
-for tree groups as well. Would it make sense to use a different name?
-Say grove?
-	 */
+	/** Get the first outer blossom */
 	firstOuter() {
 		for (let b = 1; b <= this.n; b++) {
 			if (this.parent(b)) continue;
@@ -169,19 +164,19 @@ Say grove?
 		if (this.outerMethod == 0)
 			return this.bsf.root(b);
 		else if (this.outerMethod == 1)
-			return this.Outer[b];
+			return this.outer_[b];
 		else
-			return this.Outer.bid[this.Outer.bf.root(b)];
+			return this.outer_.bid[this.outer_.bf.root(b)];
 	}
 
-	/** Refresh the Outer array for the sub-blossoms of a
+	/** Refresh the outer_ array for the sub-blossoms of a
 	 *  specified blossom (helper method).
-	 *  @param b is an outer blossom; on return Outer[sb]=b for
+	 *  @param b is an outer blossom; on return outer_[sb]=b for
 	 *  all sub-blossoms sb of b
 	 */
 	refreshOuter(b) {
 		for (let sb = this.bsf.first(b); sb; sb = this.bsf.next(sb)) {
-			this.Outer[sb] = b; this.steps++;
+			this.outer_[sb] = b; this.steps++;
 		}
 	}
 
@@ -321,9 +316,9 @@ Say grove?
 		if (this.outerMethod == 1) {
 			this.refreshOuter(B);
 		} else if (this.outerMethod == 2) {
-			let bf = this.Outer.bf;
-			let bid = this.Outer.bid;
-			let root = this.Outer.root;
+			let bf = this.outer_.bf;
+			let bid = this.outer_.bid;
+			let root = this.outer_.root;
 
 			bid[B] = root[B] = B;
 			for (let b = subs.first(); b; b = subs.next(b)) {
@@ -431,9 +426,9 @@ Say grove?
 				this.refreshOuter(b); this.steps++;
 			}
 		} else if (this.outerMethod == 2) {
-			let bf = this.Outer.bf;
-			let bid = this.Outer.bid;
-			let root = this.Outer.root;
+			let bf = this.outer_.bf;
+			let bid = this.outer_.bid;
+			let root = this.outer_.root;
 
 			let next;
 			for (let b = subs.first(); b; b = next) {
@@ -648,34 +643,6 @@ Say grove?
 		return og.toString(0,
 					(e,u) => this.x2s(og.mate(u,e)),
 					u => this.x2s(u));
-	}
-	
-	/** Return a string representation of the outer trees.
-	 *  @param if terse is true, don't show the links joining
-	 *  non-trivial blossoms to their tree neighbors.
-	 */
-	trees2string(terse=0) {
-		let tt = new Forest(this.n);
-		for (let B = this.firstOuter(); B; B = this.nextOuter(B)) {
-			if (!this.state(B)) continue;
-			let [v,e] = this.link(B);
-			if (v) {
-				let w = this.g.mate(v,e); let W = this.outer(w);
-				tt.link(B,W);
-			}
-		}
-		return tt.toString(4,
-					b => {
-						let s = this.x2s(b);
-						if (!terse) {
-							let pb = tt.p(b);
-							let [v,e] = this.link(b);
-							if (v && (b > this.g.n || pb > this.g.n))
-								s += `{${this.x2s(v)},` +
-									 `${this.x2s(this.g.mate(v,e))}}`;
-						}
-						return s;
-					});
 	}
 
 	/** Return a string representation of a link. */
@@ -912,7 +879,7 @@ Say grove?
 		if (b > this.g.n) {
 			if (this.ids.contains(b-this.g.n)) return 0;
 		}
-		this.state(b,even ? +1 : -1);
+		this.state(b, even ? +1 : -1);
 		let lnk = this.nextLink(sc);
 		if (lnk == null) return 0;
 		let [v,e] = lnk;
@@ -933,7 +900,7 @@ Say grove?
 			}
 		}
 		if (!sc.verify('(')) return b;
-		// recursive calls on childrent of b
+		// recursive calls on children of b
 		while (!sc.verify(')')) {
 			if (!this.nextTree(sc, b, !even)) return 0;
 		}

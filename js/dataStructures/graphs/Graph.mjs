@@ -27,62 +27,66 @@ let ae; // initialized in constructor
  *  or all edges incident to a specific vertex.
  */
 export default class Graph extends Top {
-	firstEp;	// firstEp[v] is first edge endpoint at v
-	edges;		// sets of in-use and free edges
-	epLists;	// lists of the edge endpoints at each vertex
-	io;			// optional ListPair defining bipartition
+	edges_;		     // sets of in-use and free edges
+	vertex_endpoints; // ListSet that partitions edge endpoints among vertices
+	io;			     // optional ListPair defining bipartition
 
-	Left;		// Left[e] is left endpoint of edge e
-	Right;		// Right[e] is right endpoint of edge e
-
-	propNames;      // array of property names
-	defValues;		// array of default values
-	edgeProperties; // 2d array of property values
-
-/*
-	think about adding a provision for vertex properties, maybe just 1;
-	can use it for priority matching and setCover
-
-	maybe even properties in trees like key and rank, but that
-	only makes sense if we want to use the general graph structure
-	for trees, rather than the specialized data structures we're using now;
-	or make node properties in trees into things we can add in a similar way
-	to graph properties
-
-	Hold off on this for now, since current approach is working ok
-*/
+	left_;		     // left_[e] is left endpoint of edge e
+	right_;		     // right_[e] is right endpoint of edge e
 
 	/** Construct Graph with space for a specified # of vertices and edges.
 	 *  @param n is the number of vertices in the graph
 	 *  @param erange is the initial range for edge values (defaults to n)
 	 */
 	constructor(n=10, erange=n, propName=0, defVal=0) {
-	ae = assertEnabled();
+		ae = assertEnabled();
 		ae && assert(n > 0 && erange > 0, n, erange);
 		super(n);
-		this.firstEp = new Int32Array(this.n+1);
-		this.Left = new Int32Array(erange+1);
-		this.Right = new Int32Array(erange+1);
-		this.edges = new ListPair(erange);
-		this.epLists = new ListSet(2*(erange+1));
+		this.left_ = new Int32Array(erange+1);
+		this.right_ = new Int32Array(erange+1);
+		this.edges_ = new ListPair(erange);
+		this.vertex_endpoints = new ListSet(2*(erange+1), n);
 
-		this.propNames = []; this.defValues = []; this.edgeProperties = [];
-		if (arguments.length == 4) {
+		if (arguments.length > 2) {
 			this.addEdgeProperty(propName, defVal);
 		}
 	}
 
-	get edgeRange() { return this.Left.length-1; }
+	get edgeRange() { return this.left_.length-1; }
 
 	/** Get the number of edges.
 	 *  @return the number of edges in the graph.
 	 */
-	get m() { return this.edges.length(1); }
+	get m() { return this.edges_.length(1); }
 
 	/** Remove all the edges from a graph.  */
 	clear() {
 		let e = this.first();
 		while (e != 0) { this.delete(e); e = this.first(); }
+	}
+
+	/* Add a new edge property
+	 * @param propName is name of new edge property
+	 * @param defVal is default value for new property
+	 */
+	addEdgeProperty(propName, defVal) {
+		let xpropName = (this.edges_[propName] ? '_' : '') + propName;
+			// to avoid conflicts with existing properties in edges_
+
+		this.edges_.addProperty(xpropName, defVal);
+
+		Object.defineProperty(this, propName,
+			{ value: function(e,v) {
+				return this[xpropName](e,v); } });
+		Object.defineProperty(this, 'reset_' + propName,
+			{ value: function() { this.edges_['reset_' + propName](); } });
+	}
+
+	property(i) {
+		let p = this.edges_.property(i);
+		if (p == null) return null;
+		let [name, def] = p;
+		return [(name[0] == '_' ? name.slice(1) : name), def];
 	}
 
 	/** Return a clone of a graph object, including its property values.
@@ -93,56 +97,15 @@ export default class Graph extends Top {
 			clone.join(g.left(e), g.right(e), e);
 		}
 		if (!withProperties) return clone;
-		for (let i = 0; i < g.propNames.length; i++) {
-			clone.addEdgeProperty(g.propNames[i], g.defValues[i]);
-			clone.edgeProperties[i] = g.edgeProperties[i].slice();
+		for (let i = 0; ; i++) {
+			let pi = g.property(i);
+			if (!pi) break;
+			let [name, def] = pi;
+			clone.addEdgeProperty(name, def);
+			for (let e = g.first(); e; e = g.next(e))
+				clone[name](e, g[name](e));
 		}
 		return clone;
-	}
-
-	/* Add a new edge property
-	 * @param propName is name of new edge property
-	 * @param defVal is default value for new property
-	 */
-	addEdgeProperty(propName, defVal) {
-		// check for name clash
-		for (let i = 0; i < this.propNames.length; i++) {
-			assert(propName != this.propNames[i],
-				   'Graph:addEdgeProperty: name clash ' + propName);
-		}
-		let newProp = new Array(this.edgeRange+1).fill(defVal);
-		this.propNames.push(propName);
-		this.defValues.push(defVal);
-		this.edgeProperties.push(newProp);
-		let i = this.propNames.length-1;
-
-		Object.defineProperty(this, propName,
-			{ value: 	function(e) {
-							ae && assert(this.validEdge(e),
-                     			`Graph.${propName}: invalid edge number: ${e}`);
-							if (arguments.length > 1) {
-								this.edgeProperties[i][e] = arguments[1];
-							}
-							return this.edgeProperties[i][e];
-						}
-			});
-		Object.defineProperty(this, 'reset' + propName.slice(0,1).toUpperCase()
-											+ propName.slice(1),
-			{ value: function() { this.edgeProperties[i].fill(defVal); } });
-	}
-
-	/** Reset a specific edge property to its default value.
-	 *  @param propName is the name of the property to be cleared
-	 */
-	clearProperty(propName) {
-		for (let i = 0; i <= this.propNames.length; i++) {
-			if (propName == this.propNames[i]) {
-				for (let e = this.first(); e; e = this.next(e)) {
-					this.edgeProperties[i][e] = this.defValues[i];
-				}
-				return;
-			}
-		}
 	}
 
 	validVertex(u) { return 1 <= u && u <= this.n; }
@@ -151,7 +114,7 @@ export default class Graph extends Top {
 	 *  @param e is the edge number to be verified
 	 *  @return true if e is a valid edge number, else false.
 	 */
-	validEdge(e) { return this.edges.in(e,1); }
+	validEdge(e) { return this.edges_.in(e,1); }
 	
 	/** Get the left endpoint of an edge.
 	 *  @param e is the edge of interest
@@ -160,7 +123,7 @@ export default class Graph extends Top {
 	left(e) {
 		ae && assert(this.validEdge(e),
 					 `Graph.left: invalid edge number: ${e}`);
-		return this.Left[e];
+		return this.left_[e];
 	}
 	
 	/** Get the right endpoint of an edge.
@@ -170,7 +133,7 @@ export default class Graph extends Top {
 	right(e) {
 		ae && assert(this.validEdge(e),
 					 `Graph.right: invalid edge number: ${e}`);
-		return this.Right[e];
+		return this.right_[e];
 	}
 
 	/** Get the other endpoint of an edge.
@@ -187,14 +150,14 @@ export default class Graph extends Top {
 	/** Get the first edge in the overall list of edges.
 	 *  @return the first edge in the list
 	 */
-	first() { return this.edges.first(1); }
+	first() { return this.edges_.first(1); }
 	
 	/** Get the next edge in the overall list of edges.
 	 *  @param e is the edge whose successor is requested
 	 *  @return the next edge in the list, or 0 if e is not in the list
 	 *  or it has no successor
 	 */
-	next(e) { return this.edges.next(e); }
+	next(e) { return this.edges_.next(e); }
 	
 	/** Get the first edge incident to a vertex.
 	 *  @param v is the vertex of interest
@@ -202,7 +165,7 @@ export default class Graph extends Top {
 	 */
 	firstAt(v) { 
 		ae && assert(this.validVertex(v));
-		return Math.trunc(this.firstEp[v]/2);
+		return Math.trunc(this.vertex_endpoints.first(v)/2);
 	}
 	
 	/** Get the next edge in the adjacency list for a specific vertex.
@@ -215,7 +178,7 @@ export default class Graph extends Top {
 		ae && assert(this.validVertex(v) && this.validEdge(e));
 		if (v != this.left(e) && v != this.right(e)) return 0;
 		let ep = (v == this.left(e) ? 2*e : 2*e+1);
-		return Math.trunc(this.epLists.next(ep)/2);
+		return Math.trunc(this.vertex_endpoints.next(ep)/2);
 	}
 
 	/** Get a reference to the bipartition for this graph.
@@ -313,26 +276,30 @@ export default class Graph extends Top {
 	 *  @return the edge number for the new edge or 0
 	 *  on failure
 	 */
-	join(u, v, e=this.edges.first(2)) {
+	join(u, v, e=this.edges_.first(2)) {
 		ae && assert(u != v && this.validVertex(u) && this.validVertex(v) &&
 					(!this.hasBipartition ||
 						(this.isInput(u) != this.isInput(v))) &&
-			   		(e > 0 || !this.edges.first(2)) && !this.edges.in(e,1),
+			   		(e > 0 || !this.edges_.first(2)) && !this.edges_.in(e,1),
 			   		`graph.join(${this.x2s(u)},${this.x2s(v)},` +
-			   		`${this.edges.in(e,2)})`);
-		if (e == 0) e = this.edges.first(2);
-		this.edges.swap(e);
+			   		`${this.edges_.in(e,2)})`);
+		if (e == 0) e = this.edges_.first(2);
+		this.edges_.swap(e);
 
 		// initialize edge information
-		this.Left[e] = u; this.Right[e] = v;
+		this.left_[e] = u; this.right_[e] = v;
 	
 		// add edge to the endpoint lists
-		this.firstEp[u] = this.epLists.join(this.firstEp[u], 2*e);
-		this.firstEp[v] = this.epLists.join(this.firstEp[v], 2*e+1);
+		this.vertex_endpoints.append(2*e, u);
+		this.vertex_endpoints.append(2*e+1, v);
 
-		// initiaize edge properties
-		for (let i = 0; i < this.propNames.length; i++)
-			this.edgeProperties[i][e] = this.defValues[i];
+		// initialize edge properties
+		for (let i = 0; ;i++) {
+			let pi = this.property(i);
+			if (!pi) break;
+			let [name,def] = pi;
+			this[name](def);
+		}
 	
 		return e;
 	}
@@ -344,9 +311,9 @@ export default class Graph extends Top {
 	delete(e) {
 		ae && assert(this.validEdge(e));
 		let u = this.left(e); let v = this.right(e);
-		this.edges.swap(e);
-		this.firstEp[u] = this.epLists.delete(2*e,   this.firstEp[u]);
-		this.firstEp[v] = this.epLists.delete(2*e+1, this.firstEp[v]);
+		this.edges_.swap(e);
+		this.vertex_endpoints.remove(2*e, u);
+		this.vertex_endpoints.remove(2*e+1, v);
 		return true;
 	}
 	
@@ -359,25 +326,20 @@ export default class Graph extends Top {
 		ae && assert(this.validVertex(u) &&
 					   this.validEdge(e1) && this.validEdge(e2));
 		let v1 = this.mate(u, e1); let v2 = this.mate(u, e2);
-		return (v1 != v2 ? v1 - v2 : this.compareProps(e1, e2));
+		return (v1 != v2 ? v1 - v2 : compareProp0(e1,e2));
 	}
 
-	/** Comparison function for properties of two edges
-	 *  Properties that are numeric or strings are compared in order.
+	/** Comparison function for first property values of two edges
 	 *  @return a number for which the sign indicates which is "larger".
 	 */
-	compareProps(e1, e2) {
-		for (let i = 0; i < this.propNames.length; i++) {
-			let ep1 = this.edgeProperties[i][e1];
-			let ep2 = this.edgeProperties[i][e2];
-			if ((typeof ep1 != 'number' && typeof ep1 != 'string') ||
-				typeof ep1 != typeof ep2)
-				continue;
-			if (typeof ep1 == 'number' && ep1 != ep2) return ep1 - ep2;
-			if (typeof ep1 == 'string' && ep1.localeCompare(ep2))
-				return ep1.localeCompare(ep2);
-		}
-		return 0;
+	compareProp0(e1, e2) {
+		let p0 = this.property(0); let pname;
+		if (p0) [pname] = p0;
+		let ep1 = this[pname](e1); let ep2 = this[pname](e2);
+		if ((typeof ep1 != 'number' && typeof ep1 != 'string') ||
+			typeof ep1 != typeof ep2)
+			return 0;
+		return (typeof ep1 == 'number' ? ep1-ep2 : ep1.localeCompare(ep2));
 	}
 	
 	/** Sort an endpoint list for a specified vertex using ecmp().
@@ -387,32 +349,30 @@ export default class Graph extends Top {
 	 */
 	sortEplist(u, ecmp=((e1,e2,u) => this.ecmp(e1,e2,u))) {
 		ae && assert(u != 0 && this.validVertex(u));
-		if (this.firstEp[u] == 0) return; // empty list
+		if (this.vertex_endpoints.first(u) == 0) return; // empty list
 
 		// if already sorted, skip sorting step
-		if (!ecmp) {
-			for (let e = this.firstAt(u); e; e = this.nextAt(u, e)) {
-				if (this.nextAt(u, e) == 0) return; // already sorted
-				if (this.ecmp(e, this.nextAt(u,e), u) > 0) 
-					break; // edge out of order
-			}
+		for (let e = this.firstAt(u); e; e = this.nextAt(u, e)) {
+			if (this.nextAt(u, e) == 0) return; // already sorted
+			if (ecmp(e, this.nextAt(u,e), u) > 0) 
+				break; // edge out of order
 		}
 
 		// copy endpoints in endpoint list for u into an array
 		// and remove them from endpoint list
 		let epl = [];
-		for (let first = this.firstEp[u]; first; first = this.firstEp[u]) {
-			epl.push(first);
-			this.firstEp[u] = this.epLists.delete(first, first);
+		while (this.vertex_endpoints.first(u)) {
+			let f = this.vertex_endpoints.first(u);
+			epl.push(f);
+			this.vertex_endpoints.remove(f, u);
 		}
 
 		epl.sort((ep1, ep2) => ecmp(~~(ep1/2), ~~(ep2/2), u));
 	
 		// now rebuild endpoint list at u
-		for (let j = 1; j < epl.length; j++) {
-			this.epLists.join(epl[0], epl[j]);
+		for (let j = 0; j < epl.length; j++) {
+			this.vertex_endpoints.append(epl[j], u);
 		}
-		this.firstEp[u] = epl[0];
 	}
 	
 	/** Sort adjacency lists for all vertices */
@@ -439,9 +399,9 @@ export default class Graph extends Top {
 							   let M1 = this.mate(m1,e1);
 							   let m2 = Math.min(this.left(e2),this.right(e2));
 							   let M2 = this.mate(m2,e2);
-							   return (m1 != m2 ? m1 - m2 : 
-									   (M1 != M2 ? M1 - M2 :
-										this.compareProps(e1,e2)));
+							   return (m1 != m2 ? m1 - m2 : M1 - M2);
+									   //(M1 != M2 ? M1 - M2 :
+										//this.compareProps(e1,e2)));
 							 });
 		return evec;
 	}
@@ -479,19 +439,22 @@ export default class Graph extends Top {
 
 	/** Compare another graph to this one.
 	 *  @param that is a Graph object or a string representation of a Graph
-	 *  @return true if that is equal to this
+	 *  @return true if that is equal to this (same vertices and edges,
+	 *  but edge numbers may differ) and that the first property (if any)
+	 *  matches
 	 */
 	equals(that) {
 		that = super.equals(...(arguments.length==1 ?
 							[that, this.n, Math.max(10,this.m)] : arguments));
 		if ((typeof that) == "boolean") return that;
 		if (this.n != that.n || that.m != this.m) return false;
+
+		// check that both have same first property name
+		let p1 = this.property(0); let p2 = that.property(0);
+		if ((p1 == null) != (p2 == null)) return false;
+		if (p1 && p1[0] != p2[0]) return false;
+		let pname = p1 ? p1[0] : '';
 	
-		// check that both have same number of properties and that names match
-		if (this.propNames.length != that.propNames.length) return false;
-		for (let i = 0; i < this.propNames.length; i++) {
-			if (this.propNames[i] != that.propNames[i]) return false;
-		}
 		// now compare the edges using sorted edge lists
 		let el1 = this.sortedElist(); let el2 = that.sortedElist();
 		for (let i = 0; i < el1.length; i++) {
@@ -501,16 +464,9 @@ export default class Graph extends Top {
 			let m2 = Math.min(that.left(e2), that.right(e2));
 			let M2 = that.mate(m2,e2);
 			if (m1 != m2 || M1 != M2) return false;
-			for (let j = 0; j < this.propNames.length; j++) {
-				let ep1 = this.edgeProperties[j][e1];
-				let ep2 = that.edgeProperties[j][e2];
-				if ((typeof ep1 != 'number' && typeof ep1 != 'string') ||
-					typeof ep1 != typeof ep2)
-					continue;
-				if ((typeof ep1 == 'number' && ep1 != ep2) ||
-					(typeof ep1 == 'string' && ep1.localeCompare(ep2)))
-					return false;
-			}
+
+			// check that the first property values match
+			if (pname && this[pname](e1) != that[pname](e2)) return false;
 		}
 		return that;
 	}
@@ -523,14 +479,16 @@ export default class Graph extends Top {
 	 *  @return a string representing the edge
 	 */
 	edge2string(e, label=null, terse=false) {
+		let p0 = this.property(0);
+		let name; if (p0) [name] = p0;
 		return e == 0 ? '-' :
 				(terse ?
 					(this.x2s(this.left(e), label) + 
 					 this.x2s(this.right(e), label)) : 
 					('{' + this.x2s(this.left(e), label) + ','  +
 					  this.x2s(this.right(e), label) +
-					  (this.propNames.length ?
-						',' + this.edgeProperties[0][e] : '') + '}'));
+					  (p0 ? ',' + this.datum2string(this[name](e)) : '') +
+					'}'));
 	}
 	e2s(e,label,terse) { return this.edge2string(e,label,terse); }
 	
@@ -588,10 +546,12 @@ export default class Graph extends Top {
 	 */
 	toString(fmt=0, elab=0, vlab=0) {
 		if (!elab) {
+			let p0 = this.property(0); let name; let def;
+			if (p0) [name,def] = p0;
 			elab = (e,u) => this.x2s(this.mate(u,e)) + 
-							(this.edgeProperties.length > 0 &&
-							 this.edgeProperties[0][e] != this.defValues[0] ?
-								(':' + this.edgeProperties[0][e]) : '');
+							(p0 && this[name](e) != undefined &&
+								   this[name](e) != def ?
+								':' + this.datum2string(this[name](e)) : '');
 		}
 		if (!vlab) vlab = ((u) => this.x2s(u));
 		let s = '';
@@ -611,7 +571,7 @@ export default class Graph extends Top {
 	 *  @param skip is a flag that omits edges from list of larger endpoint
 	 *  @return a string representing the list
 	 */
-	alist2string(u, elab=0, skip) {
+	alist2string(u, elab='', skip) {
 		let s = '';
 		for (let e = this.firstAt(u); e; e = this.nextAt(u, e)) {
 			if (skip && this.mate(u,e) < u) continue;
@@ -648,6 +608,7 @@ export default class Graph extends Top {
 						n = Math.max(n,u);
 						return u > 0 ? u : 0;
 					});
+
 		// function for parsing an item in an adjacency list
 		let pairs = []; let pvals = []; let hasProps = 0;
 		let enext = ((u,sc) => {
@@ -656,13 +617,6 @@ export default class Graph extends Top {
 						n = Math.max(n,v);
 						let i = pairs.length;
 						if (u < v) pairs.push([u,v]);
-/*
-note: in undirected graphs, each edge may appear twice in string;
-we allow user to omit the second appearance of an edge, or more
-precisely, the appearance in the adjacency list of the larger endpoint;
-important for user to be aware of this if they want to use this feature;
-no reason for it to be troublesome, but could catch the unwary
-*/
 						if (sc.verify(':',0)) {
 							let w = sc.nextNumber();
 							if (Number.isNaN(w)) return false;
@@ -691,14 +645,13 @@ no reason for it to be troublesome, but could catch the unwary
 		for (let i = 0; i < pairs.length; i++) {
 			let [u,v] = pairs[i];
 			let e = g.join(u, v);
-			if (pvals[i] != undefined) {
-				g.edgeProperties[0][e] = pvals[i];
-			}
+			if (pvals[i] != undefined)
+				g[propName](e, pvals[i]);
 		}
 		return g;
 	}
 
-	/* Compute the degree of a vertex.
+	/** Compute the degree of a vertex.
 	 *  @param u is a vertex
 	 *  @return the number of edges incident to u
 	 */
@@ -735,7 +688,7 @@ no reason for it to be troublesome, but could catch the unwary
 	 *  and sample the n array
 	 */
 	randomEdge() {
-		let edges = this.edges;
+		let edges = this.edges_;
 		if (edges.nIn == 0) return 0;
 		if (edges.length(1) < this.edgeRange / 20) {
 			let i = randomInteger(1, edges.length(1));
@@ -756,15 +709,14 @@ no reason for it to be troublesome, but could catch the unwary
 	 *  @param fixedPoints is an optional Set of vertices that are
 	 *  not to be randomized
 	 *  @return the pair [vp,ep] where v is the vertex permutation used and
-	 *  ep is the edge permutation
+	 *  ep is the edge permutation; note edge properties are not randomized;
+	 *  these should be added to a random graph last
 	 */
 	scramble(fixedPoints=null) {
 		let vp = randomPermutation(this.n,fixedPoints);
 		let ep = randomPermutation(this.edgeRange);
+
 		this.shuffle(vp, ep);
-		for (let i = 0; i < this.propNames.length; i++) {
-			shuffle(this.edgeProperties[i], ep);
-		}
 		this.scrambleEplists();
 		return [vp,ep];
 	}
@@ -779,7 +731,7 @@ no reason for it to be troublesome, but could catch the unwary
 		for (let e = this.first(); e; e = this.next(e)) el[i++] = e;
 		scramble(el);
 		for (i = 1; i <= this.m; i++) {
-			this.edges.swap(el[i]); this.edges.swap(el[i]);
+			this.edges_.swap(el[i]); this.edges_.swap(el[i]);
 		}
 	}
 
@@ -788,15 +740,16 @@ no reason for it to be troublesome, but could catch the unwary
 	 */
 	scrambleEplists() {
 		for (let u = 1; u <= this.n; u++) {
-			if (this.firstEp[u] == 0) continue;
-			let epl = [0]; let ee = this.firstEp[u];
-			while (ee != 0) {
-				epl.push(ee); ee = this.epLists.delete(ee, ee);
+			if (!this.vertex_endpoints.first(u)) continue;
+			let epl = [0];
+			while (this.vertex_endpoints.first(u)) {
+				let f = this.vertex_endpoints.first(u);
+				epl.push(f); this.vertex_endpoints.remove(f,u);
 			}
 			scramble(epl);
-			for (let i = 2; i < epl.length; i++)
-				this.epLists.join(epl[1], epl[i]);
-			this.firstEp[u] = epl[1];
+			for (let i = 0; i < epl.length; i++) {
+				this.vertex_endpoints.append(epl[i], u);
+			}
 		}
 	}
 
@@ -806,8 +759,8 @@ no reason for it to be troublesome, but could catch the unwary
 	 *  mapping edge e to ep[e-1]
 	 */
 	shuffle(vp, ep) {
-		let left = new Array(this.edgeRange).fill(0);
-		let right = new Array(this.edgeRange);
+		let left  = new Int32Array(this.edgeRange+1);
+		let right = new Int32Array(this.edgeRange+1);
 		for (let e = this.first(); e; e = this.next(e)) {
 			left[ep[e]] = this.left(e); right[ep[e]] = this.right(e);
 		}
@@ -818,7 +771,9 @@ no reason for it to be troublesome, but could catch the unwary
 		}
 	}
 
-	/** Compute random edge properties values for all the edges.
+	/** Compute random values for a specified edge property.
+	 *  @param propName is the name of an edge property; if not
+	 *  already present, it is added with a default value of 0
 	 *  @param rand is a random number generator used to generate the
 	 *  random edge weights
 	 *  @param args collects any remaining arguments to randomWeights
@@ -827,15 +782,10 @@ no reason for it to be troublesome, but could catch the unwary
 	 *  will assign random integer weights in 1..10.
 	 */
 	randomPropertyValues(propName, rand, ...args) {
-		let i;
-		for (i = 0; i < this.propNames.length; i++) {
-			if (propName == this.propNames[i]) break;
-		}
-		if (i == this.propNames.length) {
-			this.addEdgeProperty(propName, 0);
-		}
+		if (!this[propName])
+			this.addEdgeProperty(propName,0);
 		for (let e = this.first(); e; e = this.next(e)) {
-			this.edgeProperties[i][e] = rand(...args);
+			this[propName](e, rand(...args));
 		}
 	}
 

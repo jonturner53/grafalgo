@@ -6,11 +6,9 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { AssertFail, AssertEnabled as ae } from '../../../common/Assert.mjs';
+import { AssertFail, assertEnabled as ae } from '../../../common/Assert.mjs';
 import { matches, Mismatch } from '../../../common/Testing.mjs';
 import Graph from '../Graph.mjs';
-
-
 import {randomBigraph} from '../../../graphAlgorithms/misc/RandomGraph.mjs';
 
 try {

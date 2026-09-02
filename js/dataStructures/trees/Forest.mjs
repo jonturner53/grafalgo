@@ -17,9 +17,9 @@ let ae; // initialized in constructor
 /** Data structure for collection of undirected trees.
  */
 export default class Forest extends Top {
-	Sibs;		// lists of siblings (and tree roots)
-	P;			// P[u] is parent of u or 0
-	C;			// C[u] is first child of u or 0
+	sibs_;		// lists of siblings (and tree roots)
+	p_;			// p_[u] is parent of node u
+	first_child;		// first_child[u] is first child of node u
 
 	steps;		// number of steps
 
@@ -27,55 +27,76 @@ export default class Forest extends Top {
 	 *  @param n is the number of nodes in the forest
 	 */
 	constructor(n=10) {
-	ae = assertEnabled();
+		ae = assertEnabled();
 		super(n);
-		this.Sibs= new ListSet(this.n);
-		this.P = new Int32Array(this.n+1);
-		this.C = new Int32Array(this.n+1);
+		this.sibs_= new ListSet(this.n);
+		this.p_ = new Int32Array(this.n+1);
+		this.first_child = new Int32Array(this.n+1);
 		this.steps = 0;
 	}
 
-	/** Convert all trees to singletons. */
-	clear() {
-		this.Sibs.clear(); this.P.fill(0); this.C.fill(0);
+	/* Add a new node property
+	 * @param propName is name of new property
+	 * @param defVal is default value for new property
+	 */
+	addProperty(propName, defVal) {
+		let xpropName = (this.sibs_[propName] ? '_' : '') + propName;
+			// to avoid conflicts with existing properties in sibs_
+
+		this.sibs_.addProperty(xpropName, defVal);
+
+		Object.defineProperty(this, propName,
+			{ value: function() { return this.sibs_[xpropName](...arguments); } });
+		Object.defineProperty(this, 'reset_' + propName,
+			{ value: function() { this.sibs_['reset_' + propName](); } });
 	}
 
-	/** Get the parent of a node.
-	 *  @param u is a node in the forest
-	 *  @return the u's parent or 0.
-	 */
-	p(u) { return this.P[u]; }
+	property(i) {
+		let p = this.sibs_.property(i);
+		if (p == null) return null;
+		let [name, def] = p;
+		return [(name[0] == '_' ? name.slice(1) : name), def];
+	}
 
-	/** Get the first child of a node.
-	 *  @param u is a node in the forest
-	 *  @return the u's first child or 0.
-	 */
-	firstChild(u) { return this.C[u]; }
+	/** Convert all trees to singletons. */
+	clear() { this.sibs_.clear(); }
+
+	/** Get/set the parent of a node. */
+	p(u, v=-1) {
+		if (v >= 0) this.p_[u] = v;
+		return this.p_[u];
+	}
+
+	/** Get/set the first child of a node.  */
+	firstChild(u, v=-1) {
+		if (v >= 0) this.first_child[u] = v;
+		return this.first_child[u];
+	}
 
 	/** Get the last child of a node.
 	 *  @param u is a node in the forest
 	 *  @return the u's last child or 0.
 	 */
-	lastChild(u) { return this.Sibs.last(this.C[u]); }
+	lastChild(u) { return this.sibs_.last(this.firstChild(u)); }
 	
 	/** Get the next sibling of a node.
 	 *  @param u is a node in a tree
 	 *  @return the next sibling of u, or 0
 	 */
-	nextSibling(u) { return this.Sibs.next(u); }
+	nextSibling(u) { return this.sibs_.next(u); }
 	
 	/** Get the previous sibling of a node.
 	 *  @param u is a node in a tree
 	 *  @return the previous sibling of u, or 0
 	 */
-	prevSibling(u) { return this.Sibs.prev(u); }
+	prevSibling(u) { return this.sibs_.prev(u); }
 
 	/** Get the root of a tree containing a node.
 	 *  @param u is a node in some tree
 	 *  @return the tree root
 	 */
 	root(u) {
-		while (this.P[u])  { u = this.P[u]; this.steps++; }
+		while (this.p(u))  { u = this.p(u); this.steps++; }
 		return u;
 	}
 
@@ -102,7 +123,7 @@ export default class Forest extends Top {
 		do {
 			this.steps++;
 			if (this.nextSibling(u)) return this.nextSibling(u);
-			u = this.P[u];
+			u = this.p(u);
 		} while (u != root);
 		return 0;
 	}
@@ -118,7 +139,7 @@ export default class Forest extends Top {
 			this.steps++;
 			if (this.nextSibling(u))
 				return this.firstLeaf(this.nextSibling(u));
-			u = this.P[u];
+			u = this.p(u);
 		}
 		return 0;
 	}
@@ -137,23 +158,23 @@ export default class Forest extends Top {
 	 *  @param v is a node in some other tree
 	 */
 	link(u, v) {
-		ae && assert(u > 0 && this.P[u] == 0 && v > 0,
+		ae && assert(u > 0 && this.p(u) == 0 && v > 0,
 					 `Forest.link: bad arguments ${u} ${v}`);
 		if (u > this.n || v > this.n) {
 			this.expand(Math.max(u, v));
 		}
-		this.C[v] = this.Sibs.join(this.firstChild(v), u);
-		this.P[u] = v;
+		this.firstChild(v, this.sibs_.join(this.firstChild(v), u));
+		this.p(u,v);
 	}
 
 	/** Cut out a subtree.
 	 *  @param u is a node in a tree; on return it is a tree root
 	 */
 	cut(u) {
-		if (this.P[u] == 0) return;
-		let p = this.P[u]; let firstSib = this.firstChild(p);
-		this.C[p] = this.Sibs.delete(u, firstSib);
-		this.P[u] = 0;
+		if (!this.p(u)) return;
+		let p = this.p(u); let firstSib = this.firstChild(p);
+		this.firstChild(p, this.sibs_.delete(u, firstSib));
+		this.p(u, 0);
 	}
 
 	/** Merge two groves.
@@ -161,14 +182,14 @@ export default class Forest extends Top {
 	 *  @param g2 is the identifier of another grove
 	 *  @return the identifier of the grove obtained by combining the two
 	 */
-	combineGroves(g1,g2) { return this.Sibs.join(g1,g2); }
+	combineGroves(g1,g2) { return this.sibs_.join(g1,g2); }
 
 	/** Remove a tree from a grove.
 	 *  @param t is a tree
 	 *  @param g is the grove containing t
 	 *  @return the identifier of the modified grove (its first tree)
 	 */
-	remove(t,g) { return this.Sibs.delete(t,g); }
+	remove(t,g) { return this.sibs_.delete(t,g); }
 
 	/** Rotate the siblings within a tree or trees within a grove.
 	 *  @param f is the first child of its parent
@@ -177,8 +198,8 @@ export default class Forest extends Top {
 	 *  @return the new first sibling
 	 */
 	rotate(f, c) {
-		this.Sibs.rotate(f, c); 
-		if (this.P[c]) this.C[this.P[c]] = c;
+		this.sibs_.rotate(f, c); 
+		if (this.p(c)) this.firstChild(this.p(c), c);
 		return c;
 	}
 	
@@ -193,10 +214,10 @@ export default class Forest extends Top {
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
-		if (!this.Sibs.setEquals(that.Sibs)) return false;
+		if (!this.sibs_.setEquals(that.sibs_)) return false;
 
 		for (let u = 1; u <= this.n; u++) {
-			if (this.P[u] != that.P[u]) return false;
+			if (this.p(u) != that.p(u)) return false;
 		}
 		return that;
 	}
@@ -211,7 +232,7 @@ export default class Forest extends Top {
 		// that is an object that can be compared to this
 		let l = new List(this.n);
 		for (let r = 1; r <= this.n; r++) {
-			if (this.P[r]) continue;
+			if (this.p(r)) continue;
 			l.clear();
 			for (let u = this.first(r); u; u = this.next(u)) l.enq(u);
 			let len = 0;
@@ -237,7 +258,7 @@ export default class Forest extends Top {
 		if (typeof that == 'boolean') return that;
 		// that is now an object that can be compared to this
 		for (let r1 = 1; r1 <= this.n; r1++) {
-			if (this.P[r1]) continue;
+			if (this.p(r1)) continue;
 			let r2 = that.root(r1);
 			let v1 = this.first(r1); let v2 = that.first(r2);
 			while (v1 == v2 && v1 != 0) {
@@ -255,7 +276,7 @@ export default class Forest extends Top {
 	toListSet() {
 		let ls = new ListSet(this.n);
 		for (let t = 1; t <= this.n; t++) {
-			if (this.P[t] || !this.Sibs.isfirst(t)) continue;
+			if (this.p(t) || !this.sibs_.isfirst(t)) continue;
 			for (let u = this.first(t); u; u = this.next(u))
 				ls.join(t,u);
 		}
@@ -281,7 +302,7 @@ export default class Forest extends Top {
 
 		let s = ''; let first = true;
 		for (let u = 1; u <= this.n; u++) {
-			if (this.P[u] || !this.Sibs.isfirst(u)) continue;
+			if (this.p(u) || !this.sibs_.isfirst(u)) continue;
 			if (!singletons && !this.firstChild(u) && !this.nextSibling(u))
 				continue;
 			if (selectGrove && u != selectGrove) continue;
@@ -393,11 +414,11 @@ export default class Forest extends Top {
 	verify() {
 		for (let u = 1; u <= this.n; u++) {
 			let sib = this.nextSibling(u);
-			if (sib && this.P[sib] != this.P[u])
+			if (sib && this.p(sib) != this.p(u))
 				return `siblings ${this.x2s(u)} and ${this.x2s(sib)} ` +
 					   `have different parents`;
 			if (this.firstChild(u)) {
-				if (this.P[this.firstChild(u)] != u)
+				if (this.p(this.firstChild(u)) != u)
 					return `first child ${this.x2s(this.firstChild(u))} of ` +
 						   `${this.x2s(u)} has different parent`;
 			}

@@ -19,10 +19,10 @@ let ae; // initialized in constructor
  *  optionally, minimum flow requirements and costs.
  */
 export default class Flograph extends Digraph {
-	Source;        // source vertex
-	Sink;          // sink vertex
+	source_;        // source vertex
+	sink_;          // sink vertex
 
-	ssCapScale;     // scaling factor used by randomCapacities() method
+	ss_cap_scale;   // scaling factor used by randomCapacities() method
 					// is set by RandomGraph.randomFlograph() method
 
 	/** Constructor for flow graph
@@ -30,29 +30,29 @@ export default class Flograph extends Digraph {
 	 *  @param erange is the max number of edges to provide space for
 	 */
 	constructor(n, erange) {
-	ae = assertEnabled();
+		ae = assertEnabled();
 		super(n, erange); 
-		this.Source = 1; this.Sink = this.n;
+		this.source_ = 1; this.sink_ = this.n;
 
 		this.addEdgeProperty('cap', 1);
 		this.addEdgeProperty('flow', 0);
 
-		this.ssCapScale = 1;
+		this.ss_cap_scale = 1;
 	} 
 
 	/** Get/set the source vertex.
 	 *  @param s is the new source vertex.
 	 *  @return the source
 	 */
-	get source() { return this.Source; }
-	set source(s) { this.Source = s; }
+	get source() { return this.source_; }
+	set source(s) { this.source_ = s; }
 
 	/** Get/set the sink vertex.
 	 *  @param t is the new sink vertex
 	 *  @return the sink
 	 */
-	get sink() { return this.Sink; }
-	set sink(t) { this.Sink = t; }
+	get sink() { return this.sink_; }
+	set sink(t) { this.sink_ = t; }
 
 	/** Get the residual capacity of an edge.
 	 *  @param u is a vertex in the flograph
@@ -165,9 +165,8 @@ export default class Flograph extends Digraph {
 	 *  the edge capacity and flow are both initialized to zero,
 	 *  as is the min flow requirement, if enabled
 	 */
-	join(u, v, e=this.edges.first(2)) {
+	join(u, v, e=this.edges_.first(2)) {
 		let ee = super.join(u, v, e);
-//console.log('fgjoin', e, ee, this.edgeRange, this.validEdge(ee), this.edges.in(ee,1));
 		this.cap(ee, 0); this.flow(ee, 0);
 		if (this.cost) this.cost(ee, 0);
 		if (this.floor) this.floor(ee, 0);
@@ -376,7 +375,7 @@ export default class Flograph extends Digraph {
 		let s = this.source; let t = this.sink;
 		for (let e = this.first(); e; e = this.next(e)) {
 			let c = rand(...args);
-			if (this.tail(e) == s || this.head(e) == t) c *= this.ssCapScale;
+			if (this.tail(e) == s || this.head(e) == t) c *= this.ss_cap_scale;
 			this.cap(e, Math.max(c, (this.floor ? this.floor(e) : 0)));
 		}
 	}

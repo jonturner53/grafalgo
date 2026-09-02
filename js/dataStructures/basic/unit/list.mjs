@@ -45,21 +45,22 @@ try {
 	let l2 = List.fromString('[a e i b c h d j f]', 10, 'value', 0);
 	matches(!!l.equals(l2), false, 'c4');
 	l2.value(3, 22); l2.value(8, 5);
-	matches(!!l.equals(l2), true, 'c5');
-	l2.clear();
-	matches(!!l.equals('[]'), false, 'c6');
+	matches(!!l.equals(l2), true, 'c4');
+	l2.addProperty('flavor', 'bland');
+	l2.flavor(5, 'sweet');
+	matches(l2.flavor(5), 'sweet', 'c7');
+	l2.reset_flavor();
+	matches(l2.flavor(4), 'bland', 'c8');
 
 	l = List.fromString('[a:1 b e:5 d:4]');
 	matches(!!l, true, 'd0');
 	matches(l,'[a:1 b:0 e:5 d:4]', 'd1');
 
-	l.value(5, 'ee e');
-	l.value(2, [1, true, false, 'abc']);
-	l.value(4, {a:1, b:'two'});
-	matches(l,'[a:1 b:[1, true, false,"abc"] e:"ee e" d:{"a":1, "b":"two"}]',
-			'd2');
-	matches(l,'[a:1 b:{} e:"ee e" d:[]]', 'd3');
-
+	l.value(5, 'ee e'); l.value(2, 'abc');
+	matches(l,'[a:1 b:"abc" e:"ee e" d:4]', 'd2');
+	l.value(4, {x:1, y:4});
+	matches(l.toString(),'[a:1 b:"abc" e:"ee e" d:{"x":1,"y":4}]', 'd3');
+		// string comparison needed for complex values
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

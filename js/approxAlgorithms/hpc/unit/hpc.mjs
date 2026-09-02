@@ -11,15 +11,15 @@ import { assert } from '../../../common/Assert.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomRegularGraph } from
 		'../../../graphAlgorithms/misc/RandomGraph.mjs';
-import hpcVerify from '../hpcVerify.mjs';
-import hpcRandom from '../hpcRandom.mjs';
+import {default as verify} from '../verifyHpc.mjs';
+import {default as random} from '../randomHpc.mjs';
 import hpcPAV from '../hpcPAV.mjs';
 import hpcKT from '../hpcKT.mjs';
 
 let algomap = {
-	'pav' : ['pav ', (g,s,t,trace)=>run(hpcPAV,g,1,s,t,trace), hpcVerify],
-	'pav10' : ['pav10 ', (g,s,t,trace)=>run(hpcPAV,g,10,s,t,trace), hpcVerify],
-	'kt' : ['kt ', (g,s,t,trace)=>run(hpcKT,g,0,s,t,trace), hpcVerify]
+	'pav' : ['pav ', (g,s,t,trace)=>run(hpcPAV,g,1,s,t,trace), verify],
+	'pav10' : ['pav10 ', (g,s,t,trace)=>run(hpcPAV,g,10,s,t,trace), verify],
+	'kt' : ['kt ', (g,s,t,trace)=>run(hpcKT,g,0,s,t,trace), verify]
 }
 
 function run(algo,g,maxSelect,s,t,trace) {
@@ -43,16 +43,16 @@ tester.addTest('small graph - pinned path', g, 7, 3);
 g = randomRegularGraph(10,4);
 tester.addTest('small cubic graph (10,4)', g, 0, 0);
 
-g = hpcRandom(10,5);
+g = random(10,5);
 tester.addTest('small random graph (10,5)', g, 0, 0);
 
-g = hpcRandom(10,5,2,6);
+g = random(10,5,2,6);
 tester.addTest('small random graph (10,5) - pinned path', g, 2, 6);
 
-g = hpcRandom(50,10);
+g = random(50,10);
 tester.addTest('medium random graph (50,10)', g, 0, 0);
 
-g = hpcRandom(100,15);
+g = random(100,15);
 tester.addTest('large random graph (100,15)', g, 0, 0);
 
 tester.run();

@@ -31,11 +31,14 @@ export default class LeftistHeaps extends BinaryForest {
 	 *  to determine which nodes are retired.
 	 */
 	constructor(n=10) {
-	ae = assertEnabled();
+		ae = assertEnabled();
 		super(n);
 
-		this.Key = new Float32Array(this.n+1)
-		this.Rank = new Int32Array(this.n+1).fill(1,1);
+		this.addProperty('key', 0);
+		this.addProperty('rank', 1);
+		this.rank(0,0);
+		//this.Key = new Float32Array(this.n+1)
+		//this.Rank = new Int32Array(this.n+1).fill(1,1);
 
 	    this.clearStats();
 	}
@@ -43,23 +46,11 @@ export default class LeftistHeaps extends BinaryForest {
 	/** Revert to initial state. */
 	clear() {
 		super.clear();
-		this.Key.fill(0); this.Rank.fill(1,1);
+		this.reset_key(); this.reset_rank(); this.rank(0,0);
 	}
 
 	clearStats() {
 		super.clearStats(); this.meldsteps = 0;
-	}
-
-	/** Return key of a heap item. */
-	key(i, k=false) {
-		if (k !== false) this.Key[i] = k;
-		return this.Key[i];
-	}
-
-	/** Return rank of a heap item. */
-	rank(i, r=false) {
-		if (r !== false) this.Rank[i] = r;
-		return this.Rank[i];
 	}
 
 	/** Meld two heaps.
@@ -116,7 +107,7 @@ export default class LeftistHeaps extends BinaryForest {
 		let lh = this.left(h); let rh = this.right(h);
 		if (lh) this.cut(lh); if (rh) this.cut(rh);
 		let hnew = this.meld(lh, rh);
-		this.Rank[h] = 1;
+		this.rank(h,1);
 		return [h,hnew];
 	}
 
@@ -175,7 +166,8 @@ export default class LeftistHeaps extends BinaryForest {
 	 */
 	static fromString(s, n=10) {
 		let key = [];
-		let ls = ListSet.fromString(s, n, (u,sc) => {
+		let ls = ListSet.fromString(s, n, 0, 0, 0,
+						(u,sc) => {
 							if (!sc.verify(':',0)) {
 								key[u] = 0; return true;
 							}

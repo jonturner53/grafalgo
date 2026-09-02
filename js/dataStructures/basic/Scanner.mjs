@@ -232,13 +232,15 @@ export default class Scanner extends Top {
 	 *  An index typically represents some component of a data structure,
 	 *  such as an element of a set or vertex in a graph.
 	 *  By convention, data structures with an index range <=26
-	 *  have a string representation that substitutes lower-case
-	 *  letters for the index values used internally (so 1 becomes 'a',
-	 *  2 becomes 'b' and so forth; also 0 becomes '-'). On input, if the
-	 *  next non-space character is a lower-case letter or a dash,
-	 *  the corresponding integer is returned.
-	 *  If the next non-space character is a digit, we read an integer
-	 *  and interpret it as an index.
+	 *  have a string representation that substitutes
+	 *  letters for the index values used internally (so 1 becomes 'a' or 'A',
+	 *  2 becomes 'b' or 'B'  and so forth; also 0 becomes '-'). On input, if
+	 *  the next non-space character is a letter or a dash, the corresponding
+	 *  integer is returned.
+	 *  If the next non-space character is a digit, an integer is read
+	 *  and interpreted it as the expected index value.
+	 *  @param offset is an increment that is added to an index value
+	 *  represented by an upper-case letter
 	 *  @param prop(u,sc) is an optional function that is called just before
 	 *  nextIndex returns if u!=0; u is the index value just read and sc is
 	 *  this scanner; prop should return true on success, false on failure;
@@ -247,7 +249,7 @@ export default class Scanner extends Top {
 	 *  @return the index value on success, -1 if no index is found in input
 	 *  or -2 if an index is found but the prop function returns false
 	 */
-	nextIndex(prop=0) {
+	nextIndex(prop=0, offset=0) {
 		let u = 0;
 		this.skipspace();
 		this.verify('*'); // ignore optional asterisk
@@ -255,6 +257,10 @@ export default class Scanner extends Top {
 			u = 0; this.cursor++; 
 		} else if (this.islower(this.buffer[this.cursor])) {
 			u = this.buffer.charCodeAt(this.cursor) - (this.#a - 1);
+			this.cursor++;
+		} else if (this.isupper(this.buffer[this.cursor])) {
+			u = this.buffer.charCodeAt(this.cursor) - (this.#A - 1);
+			u += offset;
 			this.cursor++;
 		} else {
 			u = this.nextInt(0);
@@ -268,7 +274,6 @@ export default class Scanner extends Top {
 	 *  27 is returned for 'A', 28 for 'B' and so forth
 	 *  @param is an offset to be added to the returned index value when
 	 *  an upper case letter is scanned
-	 */
 	nextIndexExt(prop=0, offset=26) {
 		let u = 0;
 		this.skipspace();
@@ -287,6 +292,7 @@ export default class Scanner extends Top {
 		}
 		return (u && prop && !prop(u, this) ? -2 : u);
 	}
+	 */
 
 	/** Get the next list of index values from the scanned string.
 	 *  @param ld is the left delimiter for the index list (for example '[')

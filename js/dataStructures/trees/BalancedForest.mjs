@@ -16,7 +16,6 @@ let ae; // initialized in constructor
 
 /** This class implements a balanced version of the binary tree class. */
 export default class BalancedForest extends BinaryForest {
-	Rank;		// Rank[u] is an optional field used to maintain tree balance
 
 	/** Constructor for BinaryForest object.
 	 *  @param n is index range for object
@@ -24,7 +23,7 @@ export default class BalancedForest extends BinaryForest {
 	constructor(n=10) {
 	ae = assertEnabled();
 		super(n);
-		this.Rank = new Int8Array(this.n+1).fill(1,1);
+		this.addProperty('rank',1); this.rank(0,0);
 	}
 
 	/** Clear trees converting them to singletons.
@@ -34,9 +33,10 @@ export default class BalancedForest extends BinaryForest {
 	clear(r=0) {
 		if (r) {
 			for (let u = this.first(r); u; u = this.next(u))
-				this.rank(r,1);
+				this.rank(u,1);
 		} else {
-			this.Rank.fill(1,1);
+			for (let u = 1; u <= this.n; u++)
+				this.rank(u,1);
 		}
 		super.clear(r);
 	}
@@ -45,11 +45,11 @@ export default class BalancedForest extends BinaryForest {
 	 * @param u is a node
 	 * @param r is an optional new rank for u
 	 * @return the rank of u
-	 */
 	rank(u, r=-1) {
 		if (r >= 0) this.Rank[u] = r;
 		return this.Rank[u];
 	}
+	 */
 	
 	/** Insert a singleton immediately after a node in a tree.
 	 *  @param u is a singleton

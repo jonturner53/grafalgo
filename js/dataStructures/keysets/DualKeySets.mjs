@@ -20,8 +20,8 @@ let ae; // initialized in constructor
  *  value less than or equal to a specified bound.
  */
 export default class DualKeySets extends KeySets {
-	Key2;		 // Key2[u] is second key value
-	Min2;		 // Min2[u] is the smallest key2 value in the subtree at u
+	key_2;		 // key_2[u] is second key value
+	min_2;		 // min_2[u] is the smallest key2 value in the subtree at u
 
 	/** Constructor for DualKeySets object.
 	 *  @param n is index range for object
@@ -29,8 +29,8 @@ export default class DualKeySets extends KeySets {
 	constructor(n=10) {
 	ae = assertEnabled();
 		super(n);
-		this.Key2 = new Array(this.n+1);
-		this.Min2 = new Array(this.n+1);
+		this.key_2 = new Array(this.n+1);
+		this.min_2 = new Array(this.n+1);
 	}
 	
 	clearStats() {
@@ -41,15 +41,15 @@ export default class DualKeySets extends KeySets {
 	key2(u, k=false) {
 		if (k !== false) {
 			// assumes u is a singleton
-			this.Key2[u] = k; this.Min2[u] = k;
+			this.key_2[u] = k; this.min_2[u] = k;
 		}
-		return this.Key2[u];
+		return this.key_2[u];
 	}
 
 	/* Get/set min2 value */
 	min2(u, k=false) {
-		if (k !== false) this.Min2[u] = k;
-		return this.Min2[u];
+		if (k !== false) this.min_2[u] = k;
+		return this.min_2[u];
 	}
 
 	/** Find node with smallest key2 value among those with bounded primary key.
@@ -183,7 +183,8 @@ export default class DualKeySets extends KeySets {
 	 */
 	static fromString(s, n=10) {
 		let key = []; let key2 = [];
-		let ls = ListSet.fromString(s, n, (u,sc) => {
+		let ls = ListSet.fromString(s, n, 0, 0, 0,
+						(u,sc) => {
 							if (!sc.verify(':',0)) return false;
 							let p = sc.nextNumber();
 							if (Number.isNaN(p)) return false;

@@ -88,20 +88,33 @@ try {
 			   '[- *h (- i (- j (- k (- l (- m n)))))] [- *p (- q r)]}', 'f1');
 	matches(f.toString(0),'{[a b c d] [e f g] [h i j k l m n] [p q r]}', 'f2');
 
-	let key = new Float32Array(18);
-	for (let i = 0; i <= 18; i++) key[i] = i;
-	matches(f.search(9,8,key), 9, 'f3');
+	let key = new Float32Array(19); f.addProperty('key', 0);
+	for (let i = 1; i <= 18; i++) { key[i] = i; f.key(i,i); }
+	matches(f.search(9,8,key), 9, 'f3'); // search using external keys
 
-	key[15] = 10.5;
-	f.insertByKey(15, 13, key);
-	matches(f,'{[- *a (- b (- c d))] [- *e (- f g)] ' +
-			   '[- *h (- i (- j (- k (- l (o m n)))))] [- *p (- q r)]}', 'f4');
+	key[15] = 10.5; f.key(15,10.5);
+	f.insertByKey(15, 8, key); // inserting using external key values
+	matches(f,'{[- *a (- b (- c d))] [- *e (- f g)]' +
+			  '[- *h (- i (- j (o k (- l (- m n)))))]' +
+			  '[- *p (- q r)]}' , 'f4');
+
+	matches(f.search(10.5, 8), 15, 'f4a'); // search using internal keys
+	f.delete(17); key[17] = 3.5; f.key(17, 3.5);
+	f.insertByKey(17, 1);  // inserting using internal key values
+	matches(f,'{[- *a (- b (- c (q d -)))] [- *e (- f g)] ' +
+			  '[- *h (- i (- j (o k (- l (- m n)))))] [- *p r]}', 'f4b');
 
 	f.insertAfter(10, 11, f.delete(10));
-	matches(f,'{[- *a (- b (- c d))] [- *e (- f g)] ' +
-			   '[- *h (- i (- k (j l (o m n))))] [- *p (- q r)]}', 'f5');
+	matches(f,'{[- *a (- b (- c (q d -)))] [- *e (- f g)] ' +
+			   '[- *h (- i (o k (j l (- m n))))] [- *p r]}', 'f5');
 
-	f.property(f.root(4),3); f.property(f.root(14),13);
+	// note keys no longer in order
+	matches(f.toString(4, (u)=>f.x2s(u)+':'+f.key(u)),
+			'{[- *a:1 (- b:2 (- c:3 (q:3.5 d:4 -)))] [- *e:5 (- f:6 g:7)] ' +
+			 '[- *h:8 (- i:9 (o:10.5 k:11 (j:10 l:12 (- m:13 n:14))))] ' +
+			 '[- *p:16 r:18]}', 'f5b');
+
+	f.treeProperty(f.root(4),3); f.treeProperty(f.root(14),13);
 	let prop = [];
 	let treeProp = ((t,sc) => {
 						let p = sc.nextInt();
@@ -109,11 +122,12 @@ try {
 						prop.push([t,p]);
 						return true;
 					});
-	let f2 = BinaryForest.fromString('{[- *a (- b (- c d))]3 [- *e (- f g)] ' +
-				   		  '[- *h (- i (- k (j l (o m n))))]13 [- *p (- q r)]}',
+	let f2 = BinaryForest.fromString(
+						'{[- *a (- b (- c (q d -)))]3 [- *e (- f g)] ' +
+               			 '[- *h (- i (o k (j l (- m n))))]13 [- *p r]}',
 				   		  10, 0, treeProp);
 	matches(!!f2, true, 'f6');
-	for (let [t,p] of prop) f2.property(t,p);
+	for (let [t,p] of prop) f2.treeProperty(t,p);
 	matches(f, f2, 'f7');
 
 	let compare = (a,b) => a.localeCompare(b);
@@ -123,7 +137,8 @@ try {
 	f.insertByKey(2, f.root(1), key, compare);
 	f.insertByKey(3, f.root(1), key, compare);
 	f.insertByKey(4, f.root(1), key, compare);
-	matches(f.toString(4),'{[- *a (- b (- c d))]}','f8');
+	matches(f.toString(4,(u)=>`${f.x2s(u)}:"${key[u]}"`),
+				'{[- *a:"abc" (- b:"bcd" (- c:"cde" d:"def"))]}','f8');
 
 } catch(e) {
     if (e instanceof Mismatch) {

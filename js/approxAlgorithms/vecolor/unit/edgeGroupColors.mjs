@@ -38,7 +38,7 @@ try {
      		     '3[a(l)A b(g)F c(f)G d(e j)K] ' +
      		     '4[a(e)C b(k)F c(g h)I d(i)J]}', 'a3');
 
-	let e = egg.findEdge(9,1); egc.color(e,3);
+	let e = egg.findGroupEdge(9,1); egc.color(e,3);
 	matches(egc,'{1[a(f)A b(h j)E c(e)H d(k l)L] ' +
     		     '2[a(g k)B b(i l)D c(h j)G d(f)J] ' +
      		     '3[a(l i)A b(g)F c(f)G d(e j)K] ' +

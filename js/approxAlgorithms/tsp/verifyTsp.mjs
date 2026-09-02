@@ -1,4 +1,4 @@
-/** @file tspVerify.mjs
+/** @file verifyTsp.mjs
  *
  *  @author Jon Turner
  *  @date 2024
@@ -12,7 +12,7 @@
  *  @return a string which is empty if the edges define a valid tour,
  *  otherwise an error string
  */
-export default function tspVerify(g, seed, [u0,tour]) {
+export default function verifyTsp(g, seed, [u0,tour]) {
 	if (tour.length < g.n)
 		return `tour length ${tour.length} smaller than graph size ${g.n}`;
 	for (let i = 0; i < tour.length; i++) {

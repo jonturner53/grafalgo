@@ -1,4 +1,4 @@
-/** @file tspRandom.mjs
+/** @file randomTsp.mjs
  *
  *  @author Jon Turner
  *  @date 2024
@@ -29,7 +29,7 @@ import { add2graph } from '../../graphAlgorithms/misc/RandomGraph.mjs';
  *  @return pair [g,tourLength] where random graph that contains a tsp tour
  *  and tourLength is the length of that tour
  */
-export default function tspRandom(n, d, scale=1, rand=[randomFraction],
+export default function randomTsp(n, d, scale=1, rand=[randomFraction],
 								  asym=0, tri=!asym) {
 	let m = (asym ? d*n : ~~(d*n/2));
 	let g = (asym ? new Digraph(n,m+n) : new Graph(n,m+n));

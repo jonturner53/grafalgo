@@ -17,7 +17,8 @@ try {
 
 	let fh = new FibHeaps(10);
 	for (let i = 1; i <= fh.n; i += 2) {
-		fh.key(i, i); fh.key(i+1, i+1); fh.meld(i, i+1);
+		fh.key(i, i); fh.key(i+1, i+1);
+		fh.meld(i, i+1);
 	}
 	fh.meld(1,3);
 	fh.deletemin(1);

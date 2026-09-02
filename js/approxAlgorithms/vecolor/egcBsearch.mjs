@@ -13,29 +13,35 @@ import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
-import EdgeGroupLayers from './EdgeGroupLayers.mjs';
-import EdgeGroupColors from './EdgeGroupColors.mjs';
+import EGGraph from './EGGraph.mjs';
 
 
-/** Find an edge group coloring using bounded greedy method of Yang & Masson.
- *  @param method(eg,C,trace) that computes and returns a triple
- *  [egc,ts,stats] where egc is an EdgeGroupColors object, ts is a trace
- *  string and stats is a statistics object.
- *  @param eg is an EdgeGroups object.
+/** Use binary search to find the best coloring possible with a given method.
+ *  @param method(egg,C,trace) that computes and returns a triple
+ *  [ts,stats] where ts is a trace string and stats is a statistics object.
+ *  @param egg is an EGGraph object.
  *  @param lo is lower end of the search range
  *  @param hi is upper end of the search range
 
- *  @return a triple [color, ts, stats] where color is an EdgeGroupColors
- *  object, ts is a trace string and stats is a statistics object.
+ *  @return a triple [ts, stats] ts is a trace string and stats is a
+ *  statistics object.
  */
-export default function egcBsearch(method, eg, lo=1, hi=10*lo) {
-	let mid; let best = null;
+export default function egcBsearch(method, egg, lo=1, hi=egg.crange) {
+	let mid; let best = new Int32Array(egg.m);
 	while (lo <= hi) {
 		mid = ~~((lo + hi)/2);
-		let egc = method(eg,mid);
-		if (egc.complete()) { best = egc; hi = mid-1; }
+		egg.uncolor(); method(egg,mid);
+		if (egg.complete()) {
+			let i = 0;
+			for (let e = egg.first(); e; e = egg.next(e))
+				best[i++] = egg.color(e);
+			hi = mid-1;
+		}
 		else lo = mid+1;
 	}
-	return best;
+	egg.uncolor();
+	let i = 0;
+	for (let e = egg.first(); e; e = egg.next(e))
+		egg.color(e, best[i++]);
 }
 

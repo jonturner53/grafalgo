@@ -25,6 +25,38 @@ let ae;
  *
  *  To simplify representation, inputs are assigned smaller index values
  *  than outputs; with vertices 1..n_i, pre-defined as inputs.
+
+Is there a more elegant way to accomplish this?
+
+We could define an edge property for group; just assign the same
+group number to edges in a group.
+
+But we also want a way to iterate through all the groups and
+all the groups at a vertex. What if we had two graphs, A and B.
+A contains all the edges and B has a single edge per group, with
+each edge number being the group number in A. Iterating through
+edges of B provides iteration through groups and iterating through
+edges at vertices in B provides second iteration. Also need to 
+iterate through A-edges in group. If edges in A are sorted by
+group number, iteration is straightforward, if we equip B with
+a property defining first edge in a group.
+
+Adding an edge to a group involves assigning it a group number
+and resorting the endpoint list in A graph. Also updating the
+firstEdge property in B graph.
+
+Merging two requires renumber group property of one of the original
+groups and re-sorting.
+
+Floors can be assigned in group graph. 
+
+Can color palettes be assigned in group graphs?
+
+May just want to define a ListSet at each input for color palettes.
+Should we have an extended version of ListSet that includes a vector for
+the first item in each list?
+
+
  */
 export default class EdgeGroups extends Top {
 	ae = assertEnabled();
@@ -71,54 +103,6 @@ export default class EdgeGroups extends Top {
 
 		this.vlist = new List(this.Graph.n);
 	}
-
-	/** Assign one GroupGraph to another by copying its contents.
-	 *  @param that is another graph whose contents is copied to this one
-	assign(that, relaxed=false) {
-		super.assign(that);
-        ae && assert(that != this &&
-                	 this.constructor.name == that.constructor.name,
-					 'Top:assign: self-assignment or mismatched types');
-
-		if (this.n == that.n && this.graph == that.graph)
-			this.clear();
-		else
-			this.reset(that.graph, that.n);
-
-		for (let e = that.graph.first(); e; e = that.graph.next(e)) {
-			this.add(e, that.group(e));
-		}
-
-		if (!that.Bound) return;
-		this.Bound = new Int32Array(that.n_g+1);
-		for (let g = this.firstGroup(); g; g = this.nextGroup(g))
-			this.bound(g, that.bound(g));
-	}
-	 */
-
-	/** Assign one graph to another by transferring its contents.
-	 *  @param that is another graph whose contents is transferred to this one
-	xfer(that) {
-        ae && assert(that != this &&
-                	 this.constructor.name == that.constructor.name,
-					 'Top:xfer: self-assignment or mismatched types');
-		this.Graph = that.graph; this.n = that.n; this.N_i = that.n_i;
-
-		this.Fanout = that.Fanout;
-		this.Group = that.Group;
-		this.GroupIds = that.GroupIds;
-		this.EdgesInGroups = that.EdgesInGroups;
-		this.FirstInGroup = that.FirstInGroup;
-		this.GroupsAtInputs = that.GroupsAtInputs;
-		this.FirstGroup = that.FirstGroup;
-		this.Bound = that.Bound;
-		this.vlist = that.vlist;
-
-		that.Fanout = null; that.Group = null;
-		that.GroupIds = that.EdgesInGroups = that.GroupsAtInputs = null;
-		that.FirstInGroup = that.FirstGroup = that.vlist = null;
-	}
-	 */
 
 	clear() {
 		this.Group.fill(0);

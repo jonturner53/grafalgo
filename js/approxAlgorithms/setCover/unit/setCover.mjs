@@ -8,20 +8,20 @@
 
 import { Tester } from '../../../common/Testing.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
-import setCoverVerify from '../setCoverVerify.mjs';
-import setCoverRandom from '../setCoverRandom.mjs';
+import { default as verify } from '../verifySetCover.mjs';
+import randomSetCover from '../randomSetCover.mjs';
 import setCoverBYE from '../setCoverBYE.mjs';
 import setCoverC from '../setCoverC.mjs';
 import {randomInteger, randomFraction} from '../../../common/Random.mjs';
 
 let algomap = {
-	'bye' : ['setCoverBYE', setCoverBYE, setCoverVerify],
+	'bye' : ['setCoverBYE', setCoverBYE, verify],
 	'c' : ['setCoverC',
-		   (g,weight,trace) => setCoverC(g,weight,0,0,trace),setCoverVerify],
+		   (g,weight,trace) => setCoverC(g,weight,0,0,trace),verify],
 	'cr' : ['setCoverCr',
 		    (g,weight,trace) => setCoverC(g, weight, 0,
 				(s,covered,uncovered,width) => (1+covered[s])/uncovered[s],
-				 trace), setCoverVerify]
+				 trace), verify]
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
@@ -36,32 +36,32 @@ tester.addTest('small set cover instance (4,12)', g, weight);
 let lowerBounds, upperBound;
 
 [g,weight, lowerBounds,upperBound] =
-				setCoverRandom(6, 18, 2, [3,2], randomInteger, 2, 15);
+				randomSetCover(6, 18, 2, [3,2], randomInteger, 2, 15);
 tester.addTest(`small random (6,18,2,[3,2]): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g,weight, lowerBounds,upperBound] =
-				setCoverRandom(6, 18, 2, 1, randomInteger, 2, 15);
+				randomSetCover(6, 18, 2, 1, randomInteger, 2, 15);
 tester.addTest(`small random (6,18,2,[1,1]): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g,weight, lowerBounds,upperBound] =
-				setCoverRandom(6, 18, 2, [3,2]);
+				randomSetCover(6, 18, 2, [3,2]);
 tester.addTest(`small unit weight random (6,18,2,[3,2]): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g, weight, lowerBounds,upperBound] =
-				setCoverRandom(50,200,5, [5,3], randomInteger, 5, 99);
+				randomSetCover(50,200,5, [5,3], randomInteger, 5, 99);
 tester.addTest(`medium random (50,200,5,[5,3]): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g, weight, lowerBounds,upperBound] =
-				setCoverRandom(50,200,5, [5,3]);
+				randomSetCover(50,200,5, [5,3]);
 tester.addTest(`medium unit weight random (50,200,5,[5,3]): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 
 [g, weight, lowerBounds, upperBound] =
-				setCoverRandom(100,2000,5, [10,3], randomInteger, 10, 999);
+				randomSetCover(100,2000,5, [10,3], randomInteger, 10, 999);
 tester.addTest(`large random (100,2000,5,[10,3]): ` +
 				`[${lowerBounds}], ${upperBound}`, g, weight);
 

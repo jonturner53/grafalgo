@@ -25,23 +25,22 @@ let ae; // initialized in constructor
  *  insert items relative to one another.
  *  
  *  This data structure was originally devised to support
- *  Galil, Micali and Gabow's variation of Edmonds algorithm
+ *  Galil, Micali and Gabow's variant of Edmonds algorithm
  *  for weighted matching in general graphs.
  */
 export default class OrderedHeaps extends BalancedForest {
-	Key;           // Key[i] is key of item i
-	Minkey;        // Minkey[i] is smallest key within subtree at i 
-	offset;	       // offset[h] is a key offset for heap h
-
 	/** Constructor for OrderedHeaps object.
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) {
-	ae = assertEnabled();
+		ae = assertEnabled();
 		super(n);
-		this.Key = new Float32Array(this.n+1)
-		this.Minkey = new Float32Array(this.n+1)
-		this.offset = new Float32Array(this.n+1)
+		// the kee and minkee properties are uncorrected (no offset)
+		// alternate spelling allows names key and minkey to be
+		// used for methods that return corrected values
+		this.addProperty('kee', 0);
+		this.addProperty('minkee', 0);
+		this.addProperty('offset', 0);
 	}
 
 	/** Clear heaps, converting them to singletons.
@@ -50,14 +49,14 @@ export default class OrderedHeaps extends BalancedForest {
 	 */
 	clear(h=0) {
 		if (h) {
-			let offset = this.offset[h];
+			let offset = this.offset(h);
 			for (let u = super.first(h); u; u = super.next(u)) {
-				this.Key[u] += offset;
-				this.Minkey[u] = this.Key[u];
-				this.offset[u] = 0;
+				this.kee(u, this.kee(u) + offset);
+				this.minkee(u, this.kee(u));
+				this.offset(u, 0);
 			}
 		} else {
-			this.Key.fill(0); this.Minkey.fill(0); this.offset.fill(0);
+			this.reset_kee(); this.reset_minkee(); this.reset_offset();
 		}
 		super.clear(h);
 	}
@@ -75,21 +74,21 @@ export default class OrderedHeaps extends BalancedForest {
 	 */
 	contains(i, h) { return this.find(i) == h }
 
-	/** Get key of a heap item. */
-	key(i, h=super.root(i)) {
-		return this.Key[i] + this.offset[h];
+	/** Get (corrected) key of a heap item. */
+	key(i, h=this.find(i)) {
+		return this.kee(i) + this.offset(h);
 	}
 
-	/** Get minkey of a heap item. */
-	minkey(i, h=super.root(i)) {
-		return this.Minkey[i] + this.offset[h];
+	/** Get (corrected) minkey of a heap item. */
+	minkey(i, h=this.find(i)) {
+		return this.minkee(i) + this.offset(h);
 	}
 
 	/** Add increment to all the keys in a heap
 	 *  @param delta is an increment to be added to the keys in a heap
 	 *  @param h is the heap to be modeified.
 	 */
-	add2keys(delta, h) { if (h) this.offset[h] += delta; }
+	add2keys(delta, h) { if (h) this.offset(h, this.offset(h)+delta); }
 
 	/** Change the key of a heap item.
 	 *  @param i is an item in a heap.
@@ -97,7 +96,7 @@ export default class OrderedHeaps extends BalancedForest {
 	 *  @param k is the new key value for i
 	 */
 	changekey(i, k, h) {
-		this.Key[i] = k - this.offset[h];
+		this.kee(i,k-this.offset(h));
 		this.refresh(i);
 	}
 
@@ -111,12 +110,12 @@ export default class OrderedHeaps extends BalancedForest {
 		return this.insertAfter(i, k, this.last(h), h);
 	}
 
-	/** Insert item into a heap. 
-	 *  @param i is a singleton
-	 *  linear ordering of the heap items; if j=0, i is inserted before the
-	 *  first item in the heap.
+	/** Insert item into a heap at a specified point in the linear
+	 *  ordering of the heap items.
+	 *  @param i is a singleton to be added to a heap
 	 *  @param k is the key under which i is inserted
-	 *  @param j is an item in h; item i is inserted immediately after j
+	 *  @param j is an item in h; item i is inserted immediately after j;
+	 *  if j=0, i is inserted before the first item in the heap
 	 *  @param h is a heap into which i is to be inserted; if h=0, the
 	 *  the singleton heap i is returned
 	 *  @return the id of the modified heap
@@ -124,12 +123,12 @@ export default class OrderedHeaps extends BalancedForest {
 	insertAfter(i, k, j, h=this.find(j)) {
 		ae && assert(this.valid(i) && this.valid(j) && this.valid(h));
 		if (h == 0) {
-			this.Key[i] = this.Minkey[i] = k; return i;
+			this.kee(i,k); this.minkee(i,k); return i;
 		}
-		let offset = this.offset[h];
-		this.Key[i] = k - offset; this.Minkey[i] = this.Key[i];
+		let offset = this.offset(h);
+		this.kee(i, k-offset); this.minkee(i, this.kee(i));
 		h = super.insertAfter(i, j, h, x => this.refresh(x));
-		this.offset[h] = offset;
+		this.offset(h, offset);
 		return h;
 	}
 
@@ -140,32 +139,32 @@ export default class OrderedHeaps extends BalancedForest {
 	*/
 	delete(i, h=this.find(i)) {
 		if (this.singleton(i)) return;
-		let offset = this.offset[h];
+		let offset = this.offset(h);
 		// identify an item near the root that is not i
 		let hh = (i != h ? h : (this.left(h) ? this.left(h) : this.right(h)));
 		super.delete(i, h, pi => this.refresh(pi));
 		hh = this.find(hh);
-		this.offset[hh] = offset;
-		this.Key[i] += offset; this.Minkey[i] = this.Key[i];
-		this.offset[i] = 0;
+		this.offset(hh, offset);
+		this.kee(i, this.key(i)+offset); this.minkee(i,this.kee(i));
+		this.offset(i,0);
 		return hh;
 	}
 
 	/** Divide a heap before a specified item.
 	 *  @param i is an item
 	 *  @param h is the heap containing i
-	 *  @returns [h1,h2] where h1 is the heap consisting of the items
+	 *  @returns [h1,h2) where h1 is the heap consisting of the items
 	 *  that come before i in h and h2 is the heap consisting
 	 *  of i and the items that come after it
 	 */
 	divide(i, h=this.find(i)) {
-		let offset = this.offset[h];
+		let offset = this.offset(h);
 		let [h1,h2] = super.split(i);
-		if (h1) this.offset[h1] = offset;
-		if (h2) this.offset[h2] = offset;
-		this.Minkey[i] = this.Key[i]; this.offset[i] = offset;
+		if (h1) this.offset(h1,offset);
+		if (h2) this.offset(h2,offset);
+		this.minkee(i, this.kee(i)); this.offset(i, offset);
 		h2 = this.join(0,i,h2);
-		this.offset[h2] = offset;
+		this.offset(h2,offset);
 		return [h1,h2];
 	}
 
@@ -177,11 +176,11 @@ export default class OrderedHeaps extends BalancedForest {
 	/** Update minkey fields, following a change to an item. */
 	refresh(i) {
 		while (i) {
-			let min = this.Key[i];
+			let min = this.kee(i);
 			let l = this.left(i); let r = this.right(i);
-			if (l) min = Math.min(min, this.Minkey[l]);
-			if (r) min = Math.min(min, this.Minkey[r]);
-			this.Minkey[i] = min;
+			if (l) min = Math.min(min, this.minkee(l));
+			if (r) min = Math.min(min, this.minkee(r));
+			this.minkee(i,min);
 			i = this.p(i);
 			this.steps++;
 		}
@@ -197,18 +196,18 @@ export default class OrderedHeaps extends BalancedForest {
 	 */
 	findmin(h, which=0) {
 		if (!h) return 0;
-		let k = this.Minkey[h];
+		let k = this.minkee(h);
 		let i = h;
 		while (i) {
 			let l = this.left(i); let r = this.right(i);
-			if (this.Key[i] == k) {
+			if (this.kee(i) == k) {
 				if (which == 0 ||
-					which == -1 && (!l || this.Minkey[l] != k) ||
-					which == +1 && (!r || this.Minkey[r] != k)) {
+					which == -1 && (!l || this.minkee(l) != k) ||
+					which == +1 && (!r || this.minkee(r) != k)) {
 					return i;
 				}
 			}
-			i = (l && this.Minkey[l] == k ? l : r);
+			i = (l && this.minkee(l) == k ? l : r);
 			this.steps++;
 		}
 		ae && assert(false,
@@ -225,18 +224,18 @@ export default class OrderedHeaps extends BalancedForest {
 		return [u,h];
 	}
 
-	/** Extend rotation operation to maintain minkey field. */
+	/** Extend rotation operation to maintain minkee field. */
 	rotate(x) {
 		let y = this.p(x);
 		if (y == 0) return;
 		super.rotate(x);
-		this.Minkey[x] = this.Minkey[y]; 
-		let min = this.Key[y];
+		this.minkee(x, this.minkee(y)); 
+		let min = this.kee(y);
 		let l = this.left(y); let r = this.right(y);
-		if (l)  min = Math.min(min, this.Minkey[l]);
-		if (r) min = Math.min(min, this.Minkey[r]);
-		this.Minkey[y] = min;
-		if (!this.p(x)) this.offset[x] = this.offset[y];
+		if (l) min = Math.min(min, this.minkee(l));
+		if (r) min = Math.min(min, this.minkee(r));
+		this.minkee(y,min);
+		if (!this.p(x)) this.offset(x,this.offset(y));
 	}
 
 	/** Determine if two OrderedHeaps objects are equal.
@@ -246,12 +245,12 @@ export default class OrderedHeaps extends BalancedForest {
 	 */
 	equals(that) {
 		that = super.listEquals(...(arguments.length==1 ?
-								[that,this.n]:arguments));
+								[that,this.n] : arguments));
         if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
 		for (let i = 1; i <= this.n; i++) {
-			if (this.key(i,this.find(i)) != that.key(i,this.find(i)))
+			if (this.key(i,this.find(i)) != that.key(i,that.find(i)))
 				return false;
 		}
 		return that;
@@ -287,7 +286,8 @@ export default class OrderedHeaps extends BalancedForest {
 	 */
 	static fromString(s, n=10) {
 		let key = [];
-		let ls = ListSet.fromString(s, n, (u,sc) => {
+		let ls = ListSet.fromString(s, n, 0, 0, 0,
+						(u,sc) => {
 							if (!sc.verify(':',0)) {
 								key[u] = 0; return true;
 							}
@@ -301,8 +301,8 @@ export default class OrderedHeaps extends BalancedForest {
 
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
-			oh.Key[u] = key[u];
-			oh.Minkey[u] = key[u];
+			oh.kee(u, key[u]);
+			oh.minkee(u, key[u]);
 			let h = u; let pi = u;
 			for (let i = ls.next(u); i; i = ls.next(i)) {
 				h = oh.insertAfter(i, key[i], pi, h);
@@ -314,17 +314,17 @@ export default class OrderedHeaps extends BalancedForest {
 
 	verify() {
 		for (let u = 1; u <= this.n; u++) {
-			let mk = this.Key[u];
+			let mk = this.key(u);
 			let l = this.left(u); let r = this.right(u);
-			if (l) mk = Math.min(mk, this.Minkey[l]);
-			if (r) mk = Math.min(mk, this.Minkey[r]);
-			if (this.Minkey[u] != mk)
+			if (l) mk = Math.min(mk, this.minkey(l));
+			if (r) mk = Math.min(mk, this.minkey(r));
+			if (this.minkey(u) != mk) {
 				return `minkey mismatch at ${this.x2s(u)} ` +
-					   `${this.Minkey[u]}!=${mk}=min(` +
-					   (l ? ''+this.Minkey[l] : '-') +
-					   `,${this.Key[u]},` +
-					   (r ? ''+this.Minkey[r] : '-') +
-					   ')'
+					   `${this.minkey(u)}!=${mk}=min(` +
+					   (l ? ''+this.minkey(l) : '-') +
+					   `,${this.key(u)},` +
+					   (r ? ''+this.minkey(r) : '-') + ')';
+			}
 		}
 		return '';
 	}

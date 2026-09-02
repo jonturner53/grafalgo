@@ -19,17 +19,17 @@ let ae; // initialized in constructor
  *  in adjuacency lists.
  */
 export default class Digraph extends Graph {
-	firstEpOut		// firstEpOut[u] is endpoint of first outgoing edge
-					// in u's adjacency list
+	first_out_endpoint;	// first_out_endpoint[u] is endpoint of first
+						// outgoing edge in u's endpoint list
 
 	/** Constructor for directed graph
 	 *  @param n is the number of vertices
 	 *  @param erange is the max number of edges to provide space for
 	 */
-	constructor(n, erange=n) {
-	ae = assertEnabled();
+	constructor() {
+		ae = assertEnabled();
 		super(...arguments);
-		this.firstEpOut = new Int32Array(this.n+1);
+		this.first_out_endpoint = new Int32Array(this.n+1);
 	} 
 
 	/** Get the tail of a directed edge.
@@ -70,7 +70,7 @@ export default class Digraph extends Graph {
 	 *  @return the first edge in the list of edges leaving u, or 0 if
 	 *  no such edge
 	 */ 
-	firstOutof(u) { return Math.trunc(this.firstEpOut[u]/2); }
+	firstOutof(u) { return Math.trunc(this.first_out_endpoint[u]/2); }
 
 	/** Get the next edge leaving u.
 	 *  @param u is a vertex
@@ -139,23 +139,22 @@ export default class Digraph extends Graph {
 	 *  @return the edge number for the new edge or 0
 	 *  on failure
 	 */
-	join(u, v, e=this.edges.first(2)) {
+	join(u, v, e=this.edges_.first(2)) {
 		ae && assert(this.validVertex(u) && this.validVertex(v) &&
-					 (e > 0 || this.edges.first(2) == 0));
-		if (e == 0) e = this.edges.first(2);
-		this.edges.swap(e);
-//console.log('dgjoin', e, this.edges.in(e,1));
+					 (e > 0 || this.edges_.first(2) == 0));
+		if (e == 0) e = this.edges_.first(2);
+		this.edges_.swap(e);
 
 		// initialize edge information
-		this.Left[e] = u; this.Right[e] = v;
+		this.left_[e] = u; this.right_[e] = v;
 	
 		// add edge to the endpoint lists
-		if (this.firstEpOut[u] == 0) this.firstEpOut[u] = 2*e;
-			// this.firstEpOut[u] changes only with first outgoing edge
-		this.firstEp[u] = this.epLists.join(this.firstEp[u], 2*e);
-		this.firstEp[v] = this.epLists.join(2*e+1, this.firstEp[v]);
+		this.vertex_endpoints.append(2*e, u);
+		this.vertex_endpoints.prepend(2*e+1, v);
 			// incoming edges inserted at the front of the list,
 			// to keep them separate from outputs
+		if (!this.first_out_endpoint[u]) this.first_out_endpoint[u] = 2*e;
+			// only need to set this for first outgoing edge
 	
 		return e;
 	}
@@ -167,7 +166,7 @@ export default class Digraph extends Graph {
 		ae && assert(this.validEdge(e));
 		let u = this.left(e);
 		if (e == this.firstOutof(u))
-			this.firstEpOut[u] = 2 * this.nextOutof(u,e);
+			this.first_out_endpoint[u] = 2 * this.nextOutof(u,e);
 		super.delete(e);
 	}
 
@@ -187,10 +186,10 @@ export default class Digraph extends Graph {
 
 	sortEplist(u) {
 		super.sortEplist(u);
-		// now determine the firstEpOut value for re-ordered list
+		// now determine the first_out_endpoint value for re-ordered list
 		for (let e = this.firstAt(u); e; e = this.nextAt(u,e)) {
 				if (u == this.tail(e)) {
-				this.firstEpOut[u] = 2*e; break;
+				this.first_out_endpoint[u] = 2*e; break;
 			}
 		}
 	}
@@ -231,24 +230,20 @@ export default class Digraph extends Graph {
 		if ((typeof that) == 'boolean') return that;
 
 		// now compare the edges using sorted edge lists
-		// note: cannot rely on super.equals since directed graphs
-		// separate inputs from ouputs in sorted adjacency lists
+		// note: cannot rely on comparison in super.equals since it does
+		// not consider direction of edges.
+
+		let p1 = this.property(0); let pname = p1 ? p1[0] : '';
+
 		let el1 = this.sortedElist(); let el2 = that.sortedElist();
 		for (let i = 0; i < el1.length; i++) {
 			let e1 = el1[i]; let e2 = el2[i];
 			let t1 = this.tail(e1); let t2 = that.tail(e2);
 			let h1 = this.head(e1); let h2 = that.head(e2);
 			if (t1 != t2 || h1 != h2) return false;
-			for (let j = 0; j < this.propNames.length; j++) {
-				let ep1 = this.edgeProperties[j][e1];
-				let ep2 = that.edgeProperties[j][e2];
-				if ((typeof ep1 != 'number' && typeof ep1 != 'string') ||
-					typeof ep1 != typeof ep2)
-					continue;
-				if ((typeof ep1 == 'number' && ep1 != ep2) ||
-					(typeof ep1 == 'string' && ep1.localeCompare(ep2)))
-					return false;
-			}
+
+			// check that the first property values match
+			if (pname && this[pname](e1) != that[pname](e2)) return false;
 		}
 		return that;
 	}
@@ -272,12 +267,14 @@ export default class Digraph extends Graph {
 	 */
 	toString(fmt=0, elab=0, vlab=0) {
 		if (!elab) {
-			elab = (e,u) =>
+			let p0 = this.property(0); let name; let def;
+			if (p0) [name,def] = p0;
+			elab = (e,u) => 
 					(u == this.head(e) ? '' :
-					 (this.x2s(this.mate(u,e)) +
-						(this.edgeProperties.length > 0 &&
-						 this.edgeProperties[0][e] ?
-							(':' + this.edgeProperties[0][e]) : '')));
+						this.x2s(this.mate(u,e)) +
+						(p0 && this[name](e) != undefined &&
+							   this[name](e) != def ?
+							':' + this.datum2string(this[name](e)) : ''));
 		}
 		return super.toString(fmt, elab, vlab);
 	}
@@ -323,6 +320,7 @@ export default class Digraph extends Graph {
 			}
 		}
 
+
 		let g = new Digraph(n, Math.max(erange, pairs.length));
 		if (hasProps) g.addEdgeProperty(propName, defVal);
 
@@ -331,7 +329,7 @@ export default class Digraph extends Graph {
 			let [u,v] = pairs[i];
 			let e = g.join(u,v);
 			if (pvals[i] != undefined) {
-				g.edgeProperties[0][e] = pvals[i];
+				g[propName](e, pvals[i]);
 			}
 		}
 		return g;
@@ -342,24 +340,22 @@ export default class Digraph extends Graph {
 	 */
 	scramble() {
 		let ep = super.scramble();
-		// separate inputs/outputs in epLists
+		// separate inputs/outputs in vertex_endpoints;
 		for (let u = 1; u <= this.n; u++) {
-			this.firstEpOut[u] = 0;
-			let ep = this.firstEp[u];
+			this.first_out_endpoint[u] = 0;
+			let ep = this.vertex_endpoints.first(u);
 			if (ep == 0) continue;
-			let epl = ep;
-			while (ep != 0 && ep != this.firstEpOut[u]) {
-				// if ep is an output, move it to end of eplist
-				let epNext = this.epLists.next(ep);
-				if (ep%2 == 0) {
-					epl = this.epLists.delete(ep, epl);
-					epl = this.epLists.join(epl, ep);
-					if (this.firstEpOut[u] == 0)
-						this.firstEpOut[u] = ep;
+			while (ep != this.first_out_endpoint[u]) {
+				// if ep is an output, move it to end of list for u
+				let epNext = this.vertex_endpoints.next(ep);
+				if (ep%2 == 0) { // outgoing edge
+					this.vertex_endpoints.remove(ep, u);
+					this.vertex_endpoints.append(ep, u);
+					if (!this.first_out_endpoint[u])
+						this.first_out_endpoint[u] = ep;
 				}
 				ep = epNext;
 			}
-			this.firstEp[u] = epl;
 		}
 		return ep;
 	}

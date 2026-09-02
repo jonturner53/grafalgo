@@ -18,9 +18,13 @@ let ae; // initialized in constructor
  *  It partitions the index set into multiple trees.
  */
 export default class BinaryForest extends Top {
-	Left;		// Left[u] is left child of u
-	Right;		// Right[u] is right child of u
-	P;			// P[u] is parent of u
+	left_;		// left_[u] is left child of u
+	right_;		// right_[u] is right child of u
+	p_;			// p_[u] is parent of u
+
+	prop_names;	     // prop_names[i] is name of the i-th property added
+	prop_defaults;	 // prop_defaults[i] is default value of the i-th property
+	prop_values;     // prop_values[i] is array of values for i-th property
 
 	steps;      // total steps
 	rotations;	// number of rotation operations
@@ -31,10 +35,51 @@ export default class BinaryForest extends Top {
 	constructor(n=10) {
 	ae = assertEnabled();
 		super(n);
-		this.Left = new Int32Array(this.n+1);
-		this.Right = new Int32Array(this.n+1);
-		this.P = new Int32Array(this.n+1);
+		this.left_ = new Int32Array(this.n+1);
+		this.right_ = new Int32Array(this.n+1);
+		this.p_ = new Int32Array(this.n+1);
 		this.clearStats();
+
+		this.prop_names = []; this.prop_defaults = []; this.prop_values = [];
+		if (arguments.length > 1)
+			this.addProperty(propName, propDefault);
+	}
+
+	/** Add a node property.
+	 *  @param propName is the name of the new property
+	 *  @param propDefault is the default value of the new property
+	 */
+	addProperty(propName, propDefault) {
+		assert(this[propName] == undefined,
+			   'BinaryForest:addProperty: name clash for ' + propName);
+
+		let newProp = new Float64Array(this.n+1).fill(propDefault);
+		this.prop_names.push(propName);
+		this.prop_defaults.push(propDefault);
+		this.prop_values.push(newProp);
+		let i = this.prop_names.length-1;
+
+		Object.defineProperty(this, propName,
+			{ value: 	function(x,v) {
+							ae && assert(x >= 0 && x <= this.n,
+                     			`BinaryForest.${propName}: invalid argument: ${x} ${this.n}`);
+							if (v != undefined) this.prop_values[i][x] = v;
+							return this.prop_values[i][x];
+						}
+			});
+		Object.defineProperty(this, 'reset_' + propName,
+			{ value: function() { this.prop_values[i].fill(propDefault); } });
+	}
+
+	/** Retrieve a node property name and default value using index.
+	 *  @param i is a non-negative integer identifying a property, in the
+	 *  order the properties were added; so 0 is the first property added
+	 *  @return pair [name,default] giving the name and default value of
+	 *  the property, or null if there is no property i.
+	 */
+	property(i) {
+		if (i >= this.prop_names.length) return null;
+		return [this.prop_names[i], this.prop_defaults[i]];
 	}
 
 	/** Clear trees in forest, leaving singletons.
@@ -45,7 +90,7 @@ export default class BinaryForest extends Top {
 		if (r) {
 			this.clearHelper(r);
 		} else {
-			this.Left.fill(0); this.Right.fill(0); this.P.fill(0);
+			this.left_.fill(0); this.right_.fill(0); this.p_.fill(0);
 			this.steps += this.n;
 		}
 	}
@@ -59,44 +104,46 @@ export default class BinaryForest extends Top {
 
 	clearStats() { this.steps = this.rotations = 0; }
 
+//	valid(i) { return i >= 0 && i <= this.nodeRange; }
+
 	/* Get or set the left child of a node.
 	 * @param u is a node
 	 * @param v is an optional new left child for u
 	 * @return the left child of u
 	 */
 	left(u, v=-1) {
-		if (v >= 0) this.Left[u] = v;
-		return this.Left[u];
+		if (v >= 0) this.left_[u] = v;
+		return this.left_[u];
 	}
 
 	/* Get or set the right child of a node. */
 	right(u, v=-1) {
-		if (v >= 0) this.Right[u] = v;
-		return this.Right[u];
+		if (v >= 0) this.right_[u] = v;
+		return this.right_[u];
 	}
 
 	/* Get or set the parent of a node. */
 	p(u, v=-1) {
-		if (v >= 0) this.P[u] = v;
-		return this.isroot(u) ? 0 : this.P[u];
+		if (v >= 0) this.p_[u] = v;
+		return this.isroot(u) ? 0 : this.p_[u];
 	}
 
 	/* Get or set a property of a tree.
 	 * @param t is a tree root
 	 * @param p is an optional property to be assigned to the root;
 	 * properties must be non-negative integers (Int32).
-	 * @return the property of t
+	 * @return the treeProperty of t
 	 */
-	property(t, p=-1) {
+	treeProperty(t, p=-1) {
 		ae && assert(this.isroot(t),
-					 `BinaryForest.property: ${this.x2s(t)} ${p}`);
-		if (p >= 0) this.P[t] = -p;
-		return -this.P[t]
+					 `BinaryForest.treeProperty: ${this.x2s(t)} ${p}`);
+		if (p >= 0) this.p_[t] = -p;
+		return -this.p_[t]
 	}
 
 	/* Determine if a node is a tree root, */
 	isroot(r) {
-		return this.valid(r) && (this.P[r] === undefined || this.P[r] <= 0);
+		return this.valid(r) && (this.p_[r] === undefined || this.p_[r] <= 0);
 	}
 
 	/* Get the sibling of a node. */
@@ -298,7 +345,7 @@ export default class BinaryForest extends Top {
 		// save pointer fields for nodes u and v
 		let lu = this.left(u); let ru = this.right(u);
 		let lv = this.left(v); let rv = this.right(v);
-		let pu = this.P[u]; let pv = this.P[v];
+		let pu = this.p_[u]; let pv = this.p_[v];
 			// special handling of parent field to deal with tree property
 	
 		// fixup fields in u's neighbors
@@ -317,8 +364,8 @@ export default class BinaryForest extends Top {
 		}
 	
 		// update fields in nodes u and v
-		this.left(u, lv); this.right(u, rv); this.P[u] = pv;
-		this.left(v, lu); this.right(v, ru); this.P[v] = pu;
+		this.left(u, lv); this.right(u, rv); this.p_[u] = pv;
+		this.left(v, lu); this.right(v, ru); this.p_[v] = pu;
 	
 		// final fixup for the case that u was originally the parent of v
 			 if (v == lu) { this.left(v, u); this.p(u, v); }
@@ -373,24 +420,28 @@ export default class BinaryForest extends Top {
 	 *  @param u is a singleton node
 	 *  @param t is the root of some tree.
 	 *  @param key is an array mapping nodes to key values;
-	 *  the trees are assumed to be ordered by the keys
+	 *  the trees are assumed to be ordered by these keys;
+	 *  if key is null, but this.key is defined, it is used as
+	 *  the key value
      *  @compare is an optional key comparison function
 	 *  @param refresh(u) is an optional function that can be used to adjust
 	 *  client data that is affected by the tree structure; it is called
 	 *  just after u is inserted
 	 *  @return the root of the modified tree
 	 */
-	insertByKey(u, t, key, compare=((a,b)=>a-b), refresh=0) {
+	insertByKey(u, t, key=null, compare=((a,b)=>a-b), refresh=0) {
 		if (!t || t == u) return u;
+		ae && assert(key || this.key);
+		let kee = u=>(key != null ? key[u] : this.key(u));
 		let v = t; let pv = 0;
 		while (v != 0) {
 			pv = v; this.steps++;
-			if (compare(key[u],key[v]) <= 0)
+			if (compare(kee(u),kee(v)) <= 0)
 				v = this.left(v);
 			else
 				v = this.right(v);
 		}
-		this.link(u, pv, compare(key[u],key[pv]) <= 0 ? -1 : +1);
+		this.link(u, pv, compare(kee(u), kee(pv)) <= 0 ? -1 : +1);
 		if (refresh) refresh(u);
 		return this.root(t);
 	}
@@ -399,14 +450,18 @@ export default class BinaryForest extends Top {
 	 *  @param k is a specific key value to be located
 	 *  @param t is the root of the tree (or subtree) to be searched
 	 *  @param key is an array mapping each node to a key value;
-	 *  the tree nodes are assumed to be ordered according to key
+	 *  the tree nodes are assumed to be ordered according to key;
+	 *  if key is null, but this.key is defined, it is used as
+	 *  the key value
 	 *  @return node u where key[u]==k or 0 if there is no such node
 	 */
-	search(k, t, key, compare=((a,b)=>a-b)) {
+	search(k, t, key=null, compare=((a,b)=>a-b)) {
+		ae && assert(key || this.key);
+		let kee = u=>(key != null ? key[u] : this.key(u));
 		let u = t;
-		while (u != 0 && compare(k,key[u]) != 0) {
+		while (u != 0 && compare(k,kee(u)) != 0) {
 			this.steps++;
-			if (compare(k,key[u]) < 0)
+			if (compare(k,kee(u)) < 0)
 				u = this.left(u);
 			else
 				u = this.right(u);
@@ -435,7 +490,7 @@ export default class BinaryForest extends Top {
 	 */
 	rotate(x) {
 		this.steps++; this.rotations++;
-		let p = this.P; let left = this.Left; let right = this.Right;
+		let p = this.p_; let left = this.left_; let right = this.right_;
 		let y = p[x]; if (!y) return;
 		p[x] = p[y];
 		     if (y == left[p[y]])  left[p[x]] = x;
@@ -562,7 +617,7 @@ export default class BinaryForest extends Top {
 	toString(fmt=0x4, label=0, treeProp=0) {
 		if (!label) label = (u => this.x2s(u));
 		if (!treeProp)
-			treeProp = (t => (this.property(t) ? this.property(t) : ''));
+			treeProp = (t => (this.treeProperty(t) ? this.treeProperty(t) : ''));
 
 		if (!(fmt&4))
 			return this.toListSet().toString(
@@ -608,7 +663,7 @@ export default class BinaryForest extends Top {
 	 *  a tree root and a Scanner
 	 *  @return a BinaryForest object on success, null on failure
 	 */
-	static fromString(s, n=10, prop=0, treeProp=0) {
+	static fromString(s, n=8, scanProp=0, treeProp) {
 		let sc = new Scanner(s);
         if (!sc.verify('{')) return null;
 		
@@ -618,10 +673,9 @@ export default class BinaryForest extends Top {
 			// the left child (-1) or right child (+1)
 	
 		while (!sc.verify('}')) {
-			let root = BinaryForest.nextSubtree(sc, pmap, prop);
+			let root = BinaryForest.nextSubtree(sc, pmap, scanProp);
 			if (!root < 0) return null;
 			if (treeProp && !treeProp(root,sc)) return null;
-			//pmap.push([root,0,0]);
 		}
 
 		// check for repeated nodes
@@ -635,6 +689,7 @@ export default class BinaryForest extends Top {
 			if (p < 0 || p > n) return null;
 		}
 
+		// initialize this
 		let bf = new BinaryForest(n);
 
 		for (let [u,p,side] of pmap) {
@@ -650,30 +705,30 @@ export default class BinaryForest extends Top {
 	 *  child (-1) or right child (+1); if u is a tree root, p may be either
 	 *  0 or negative, in which case its inverse is the tree's property;
 	 *  nextSubtree adds new mappings to pmap
-	 *  @param prop is an optional function used to scan for an item property
+	 *  @param scanProp is an optional function used to scan for an item property
 	 *  @param root is 1 if the tree being scanned is at the top level, else 0
 	 *  @return the root of the subtree scanned (possibly 0 for empty subtree)
 	 *  or -1 if no valid subtree
 	 */
-	static nextSubtree(sc, pmap, prop=0, root=1) {
+	static nextSubtree(sc, pmap, scanProp=0, root=1) {
 		if (!root && sc.verify('(') || root && sc.verify('[')) {
-			let t1 = BinaryForest.nextSubtree(sc, pmap, prop, 0);
+			let t1 = BinaryForest.nextSubtree(sc, pmap, scanProp, 0);
 			if (t1 < 0) return -1;
-			let u = sc.nextIndex(prop);
+			let u = sc.nextIndex(scanProp);
 			if (u < 0) return -1;
-			let t2 = BinaryForest.nextSubtree(sc, pmap, prop, 0);
+			let t2 = BinaryForest.nextSubtree(sc, pmap, scanProp, 0);
 			if (t2 < 0) return -1;
 			if (t1 && u) pmap.push([t1,u,-1]);
 			if (t2 && u) pmap.push([t2,u,+1]);
 			return ((!root && sc.verify(')') || root && sc.verify(']')) ? u:-1);
 		}
-		let u = sc.nextIndex(prop);
+		let u = sc.nextIndex(scanProp);
 		return (u >= 0 ? u : -1);
 	}
 
 	/** Initialize this object from a string that represents a set of lists.
 	 *  @param s is a string representing a heap.
-	 *  @param prop is an optional function used to parse a list item property
+	 *  @param scanProp is an optional function used to parse a list item property
 	 *  @param listProp is an optional function used to parse a list property;
 	 *  its arguments are the first item in a list and a Scanner object
 	 *  @return on if success, else false

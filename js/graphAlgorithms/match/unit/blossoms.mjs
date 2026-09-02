@@ -25,6 +25,7 @@ try {
 	let match = new Matching(g);
 	match = Matching.fromString('[bc de fg jk hi mn op]', g);
 	let bloss = Blossoms.fromString('{{} {[l(m(n(o(p))))]}}', g, match);
+	matches(!!bloss, true, 'a0');
 	matches(bloss,'{{} {[l(m(n(o(p))))]}}', 'a1');
 	bloss.addBlossom(g.findEdge(14,16), 14);
 	matches(bloss,'{{[A(n p o)]} {[l(m(A{n,m}))]}}', 'a2');

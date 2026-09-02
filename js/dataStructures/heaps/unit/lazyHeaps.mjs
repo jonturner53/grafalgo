@@ -31,7 +31,7 @@ try {
 	matches(lh, '{[b:2 a:1 d:4 c:3 h:8 g:7 j:10 i:9 f:6] [e:5]}', 'a7');
 	lh.clear();
 
-	for (let i = 1; i <= lh.n; i ++) lh.key(i, i);
+	for (let i = 1; i <= lh.nn; i ++) lh.key(i, i);
 	let r = lh.lazyMeld(1, 2);
 		r = lh.lazyMeld(r, 3);
 		r = lh.lazyMeld(r, 4);
@@ -44,6 +44,7 @@ try {
 	matches(lh, '{[d:4 c:3 f:6 e:5 a:1 b:2] [g:7] [h:8] [i:9] [j:10]}', 'a10');
 	matches(lh.toString(0x1e),
 		'{[(d:4 c:3:2 (f:6 e:5 -)) *a:1:2 b:2] g:7 h:8 i:9 j:10}', 'a11');
+
 
 } catch(e) {
     if (e instanceof Mismatch) {

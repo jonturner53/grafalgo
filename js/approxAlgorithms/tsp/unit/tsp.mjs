@@ -11,8 +11,8 @@ import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../../dataStructures/graphs/Digraph.mjs';
 import { randomRegularGraph } from
 		'../../../graphAlgorithms/misc/RandomGraph.mjs';
-import tspVerify from '../tspVerify.mjs';
-import tspRandom from '../tspRandom.mjs';
+import { default as verify } from '../verifyTsp.mjs';
+import { default as random } from '../randomTsp.mjs';
 import tspC from '../tspC.mjs';
 import tspK from '../tspK.mjs';
 import {randomInteger, randomFraction} from '../../../common/Random.mjs';
@@ -21,11 +21,11 @@ let algomap = {
 	'c' : ['tspC', (g,seed,trace) => {
                         if (g instanceof Digraph) return null;
 						return run(tspC, g ,seed, trace);
-                        }, tspVerify],
+                        }, verify],
 	'k' : ['tspK', (g,seed,trace) => {
                         if (!(g instanceof Digraph)) return null;
 						return run(tspK, g, seed, trace);
-                        }, tspVerify]
+                        }, verify]
 }
 
 function run(algo,g,seed,trace) {
@@ -53,22 +53,22 @@ let g = Graph.fromString('{ a[h:4 i:1] b[c:3 d:7 f:7 g:5] c[b:3 f:4] ' +
 						// includes space for added edges
 tester.addTest('small graph (12,3):48', g, seed);
 
-[g,seed,seedLength] = tspRandom(16,4,1,[randomInteger,1,9]);
+[g,seed,seedLength] = random(16,4,1,[randomInteger,1,9]);
 tester.addTest('small random graph (16,4,1):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(16,4,.5,[randomInteger,1,9]);
+[g,seed,seedLength] = random(16,4,.5,[randomInteger,1,9]);
 tester.addTest('small random graph (16,4,.5):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(50,8,1,[randomInteger,1,50]);
+[g,seed,seedLength] = random(50,8,1,[randomInteger,1,50]);
 tester.addTest('medium random graph (50,8,1):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(50,8,.2,[randomInteger,1,50]);
+[g,seed,seedLength] = random(50,8,.2,[randomInteger,1,50]);
 tester.addTest('medium random graph (50,8,.2):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(100,10,1,[randomInteger,1,100]);
+[g,seed,seedLength] = random(100,10,1,[randomInteger,1,100]);
 tester.addTest('large random graph (100,10,1):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(100,10,.1,[randomInteger,1,100]);
+[g,seed,seedLength] = random(100,10,.1,[randomInteger,1,100]);
 tester.addTest('large random graph (100,10,.1):'+seedLength, g, seed);
 
 // asymmetric test cases
@@ -79,19 +79,19 @@ g = Digraph.fromString('{a[d:5 g:8 i:3] b[e:4 g:6 j:7 k:6] ' +
 					   'l[f:5 j:1]}', 12, 50, 'length', 0);
 tester.addTest('small graph (12,4):32', g, null);
 
-[g,seed,seedLength] = tspRandom(16,5,.35,[randomInteger,1,9],1,0);
+[g,seed,seedLength] = random(16,5,.35,[randomInteger,1,9],1,0);
 tester.addTest('small random graph (16,5,.35):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(50,15,1,[randomInteger,1,50],1,0);
+[g,seed,seedLength] = random(50,15,1,[randomInteger,1,50],1,0);
 tester.addTest('medium random graph (50,15,1):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(50,15,.2,[randomInteger,1,50],1,0);
+[g,seed,seedLength] = random(50,15,.2,[randomInteger,1,50],1,0);
 tester.addTest('medium random graph (50,15,.2):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(100,30,1,[randomInteger,1,100],1,0);
+[g,seed,seedLength] = random(100,30,1,[randomInteger,1,100],1,0);
 tester.addTest('large random graph (100,30,1):'+seedLength, g, seed);
 
-[g,seed,seedLength] = tspRandom(100,30,.05,[randomInteger,1,100],1,0);
+[g,seed,seedLength] = random(100,30,.05,[randomInteger,1,100],1,0);
 tester.addTest('large random graph (100,30,.05):'+seedLength, g, seed);
 
 tester.run();

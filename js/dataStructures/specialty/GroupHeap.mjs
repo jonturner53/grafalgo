@@ -42,7 +42,7 @@ export default class GroupHeap extends Top {
 	/** Constructor for GroupHeap object.
 	 */
 	constructor(n=10, gn=5) {
-	ae = assertEnabled();
+		ae = assertEnabled();
 		super(n); this.gn = gn;
 
 		this.groups = new OrderedHeaps(n);

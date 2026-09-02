@@ -13,10 +13,10 @@ import findSplit from '../../graphAlgorithms/misc/findSplit.mjs';
 import bidcsF from '../../graphAlgorithms/vmatch/bidcsF.mjs';
 import mdmatchG from '../../graphAlgorithms/vmatch/mdmatchG.mjs';
 import ecolorG from '../../graphAlgorithms/ecolor/ecolorG.mjs';
-import { degreeBound, maxFloor } from './becCommon.mjs';
+import { degreeBound, maxTint } from './common.mjs';
 
 /** Find a bounded edge coloring using the max degree matching method.
- *  @param g is the graph to be colored with floors; assumed to be bipartite
+ *  @param g is the graph to be colored, with tints; assumed to be bipartite
  *  @return a triple [color, ts, stats] where color is an array of edge colors,
  *  ts is a trace string and stats is a statistics object.
  */
@@ -25,11 +25,11 @@ export default function becSplit(g, trace=0) {
 	assert(g.hasBipartition);
 	if (!g.color) g.addEdgeProperty('color', 0);
 
-	let fmax = maxFloor(g);
+	let fmax = maxTint(g);
 	let h = Math.ceil(fmax/2);		// first color for H
 	let gh = new Graph(g.n,g.edgeRange); gh.setBipartition(g.getBipartition());
 	for (let e = g.first(); e; e = g.next(e)) {
-		if (g.floor(e) <= h) gh.join(g.left(e),g.right(e),e);
+		if (g.tint(e) <= h) gh.join(g.left(e),g.right(e),e);
 	}
 	steps += g.n + g.m;
 
@@ -78,7 +78,7 @@ export default function becSplit(g, trace=0) {
 	let cmax = h2 + Math.max(...J.maxDegree()) - 1;
 	if (trace) {
 		ts += g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
-                              `${g.floor(e)}/${g.color(e)}` +
+                              `${g.tint(e)}/${g.color(e)}` +
 							  (H.validEdge(e) ? '.' : '')) +
 							  `colors: [${cmax},${cmax-fmax}]\n`;
 	}

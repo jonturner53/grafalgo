@@ -1,4 +1,4 @@
-/** @file setCoverVerify.mjs
+/** @file verifySetCover.mjs
  *
  *  @author Jon Turner
  *  @date 2024
@@ -13,7 +13,7 @@
  *  @return a string which is empty if the edges define a valid tour,
  *  otherwise an error string
  */
-export default function setCoverVerify(g, weight, cover) {
+export default function verifySetCover(g, weight, cover) {
 	let k = g.inputCount(); let n = g.outputCount();
 
 	let mark = new Int32Array(k+n+1); let covered = 0;

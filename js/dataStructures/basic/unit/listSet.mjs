@@ -47,16 +47,6 @@ try {
 	matches(ls, '{[e c a] [k i h d] [j f] [l g b]}', 'c5');
 	matches(!!ls.setEquals('{[a c e] [d h i k] [f j] [b g l]}'), true, 'c6');
 
-	let property = new Array(10).fill(0);
-	let prop = (u,sc) => {
-					if (!sc.verify(':')) {
-						pvec[u] = 0; return true;
-					}
-					let p = sc.nextNumber();
-					if (Number.isNaN(p)) return false;
-					property[u] = p;
-					return true;
-				};
 	let listProp = new Array(10).fill(0);
 	let listLabel = (l, sc) => {
 						let q = sc.nextIndex(false);
@@ -65,11 +55,18 @@ try {
 						return true;
 					};
 	ls = ListSet.fromString('{[a:1 c:3]5 [b:2 e:5 d:7]f f:2}',
-							1, prop, listLabel);
-	matches(ls,'{[a c] [b e d] f}', 'd1');
-	matches(property[4], 7, 'd2');
+							6, 0, 'value', 0, 0, listLabel);
+	matches(!!ls, true, 'd0');
+	matches(ls,'{[a:1 c:3] [b:2 e:5 d:7] f:2}', 'd1');
 	matches(listProp[1], 5, 'd3');
-	matches(listProp[2], 6, 'd3');
+	matches(listProp[2], 6, 'd4');
+
+	ls = new ListSet(10,3);
+	ls.append(1,1); ls.append(2,1); ls.append(3,1);
+	ls.append(4,2); ls.append(5,2); ls.append(6,3);
+	matches(ls.toString(), '{1[a b c] 2[d e] 3[f]}', 'e1');
+	ls.remove(4,2); ls.remove(6,3);
+	matches(ls.toString(), '{1[a b c] 2[e]}', 'e2');
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

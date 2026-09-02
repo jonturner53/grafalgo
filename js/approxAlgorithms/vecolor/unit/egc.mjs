@@ -1,4 +1,4 @@
-/** \file egc.mjs
+/** \file fcolor.mjs
  *
  *  @author Jon Turner
  *  @date 2023
@@ -7,88 +7,77 @@
  */
 
 import { Tester } from '../../../common/Testing.mjs';
-import simple from '../egcSimple.mjs';
-import egcTl from '../egcTl.mjs';
-import egcCT from '../egcCT.mjs';
-import egcKKP from '../egcKKP.mjs';
-import egcKKPT from '../egcKKPT.mjs';
-import egcYM from '../egcYM.mjs';
-import egcTh from '../egcTh.mjs';
-import { coreCT } from '../egcCT.mjs';
-import { coreYM } from '../egcYM.mjs';
-import egcBsearch from '../egcBsearch.mjs';
-import verify from '../egcVerify.mjs';
-import EdgeGroups from '../EdgeGroups.mjs';
-import egcRandomCase from '../egcRandomCase.mjs';
+import simple from '../fcolorSimple.mjs';
+import fcolorTl from '../fcolorTl.mjs';
+import fcolorCT from '../fcolorCT.mjs';
+import fcolorKKP from '../fcolorKKP.mjs';
+import fcolorKKPT from '../fcolorKKPT.mjs';
+import fcolorYM from '../fcolorYM.mjs';
+import fcolorTh from '../fcolorTh.mjs';
+import { coreCT } from '../fcolorCT.mjs';
+import { coreYM } from '../fcolorYM.mjs';
+import fcolorBsearch from '../fcolorBsearch.mjs';
+import EGGraph from '../EGGraph.mjs';
 import { randomGraph } from '../../../graphAlgorithms/misc/RandomGraph.mjs';
+import { default as random } from '../randomEgc.mjs';
+import { default as verify } from '../verifyEgc.mjs';
 
 let algomap = {
 	'simple' : ['simple ', simple, verify ],
-	'tl' : ['Tl ', egcTl, verify],
-	'ct' : ['CT ', (eg,trace) => egcCT(eg,0,trace), verify],
-	'ctor' : ['CTor ', (eg,trace) => egcCT(eg,1,trace), verify],
-	'kkp' : ['KKP ', egcKKP, verify],
-	'kkpt' : ['KKPT ', egcKKPT, verify],
-	'ym' : ['YM ', egcYM, verify],
-	'thct' : ['egcThCT ', (eg, trace) => egcTh(eg, coreCT, trace), verify],
-	'thym' : ['egcThYM ', (eg, trace) => egcTh(eg, coreYM, trace), verify],
+	'tl' : ['Tl ', fcolorTl, verify],
+	'ct' : ['CT ', (eg,trace) => fcolorCT(eg,trace), verify],
+	'kkp' : ['KKP ', fcolorKKP, verify],
+	'kkpt' : ['KKPT ', fcolorKKPT, verify],
+	'ym' : ['YM ', fcolorYM, verify],
+	'thct' : ['fcolorThCT ', (eg, trace) => fcolorTh(eg, coreCT, trace), verify],
+	'thym' : ['fcolorThYM ', (eg, trace) => fcolorTh(eg, coreYM, trace), verify],
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
+let floors = (args.indexOf('floors') >= 0)
 let tester = new Tester(args, algomap);
 
-let g1 = randomGraph(10,2.5);
-let g2 = randomGraph(10,2.5);
-g1.floor = g1.weight;
-g1.floor(g1.first(),3);
-console.log(g1.floor, g1.toString());
-console.log(g2.floor, g2.toString());
+let egg = EGGraph.fromString('{a[(e k o p) (f g j m) (l)] ' +
+							 'b[(e n o p) (h k) (m i l)] ' +
+							 'c[(f) (h k g j m) (i l n)] ' +
+							 'd[(e i o p) (f g h) (j n)]}');
+tester.addTest('small example', egg);
 
+[egg] = random(4,3,12,3,1, 0,4);
+tester.addTest('small random (4,3,12,3,1, 0,4)', egg);
 
-let [eg,lb,ub] = egcRandomCase(4,3,12,3,[2,1], 5,4);
-console.log(eg.toString(1),lb,ub);
-//eg = egcRandomCase(40,20,40,15,1, 22,21);
+[egg] = random(5,4,15,4,1, 0,5);
+tester.addTest('smallish random +0 (5,4,15,4,1,0,5)', eg);
 
 /*
+[egg] = random(5,4,15,4,1,5);
+tester.addTest('smallish random +1 (5,4,15,4,1,5)', egg);
 
+[egg] = random(5,4,15,4,[2,3],5);
+tester.addTest('smallish random irregular +1 (5,4,15,4,[2,3],5)', egg);
 
-let eg = new EdgeGroups();
-eg.fromString('{a[(e k o p) (f g j m) (l)] b[(e n o p) (h k) (m i l)] c[(f) (h k g j m) (i l n)] d[(e i o p) (f g h) (j n)]}');
-tester.addTest('small example', eg);
+[egg] = random(30,10,150,10,1,10);
+tester.addTest('medium random +0 (30,10,150,10,1,10)', egg);
 
-// egcRandomCase(ni, gd, no=ni, od=gd, reg=1, Cmax=0, Bmax=0, speedup=1)
-eg = egcRandomCase(4,3,12,3,1,3);
-tester.addTest('small random (4,3,12,3,1,4)', eg);
+[egg] = random(30,10,150,10,1,12);
+tester.addTest('medium random +2 (30,10,150,10,1,12)', egg);
 
-eg = egcRandomCase(5,4,15,4,1,4);
-tester.addTest('smallish random +0 (5,4,15,4,1,4)', eg);
+[egg] = random(30,10,150,10,3,12);
+tester.addTest('medium random irregular +2,+3 (30,10,150,10,3,12)', egg);
 
-eg = egcRandomCase(5,4,15,4,1,5);
-tester.addTest('smallish random +1 (5,4,15,4,1,5)', eg);
-
-eg = egcRandomCase(5,4,15,4,[2,3],5);
-tester.addTest('smallish random irregular +1 (5,4,15,4,[2,3],5)', eg);
-
-eg = egcRandomCase(30,10,150,10,1,10);
-tester.addTest('medium random +0 (30,10,150,10,1,10)', eg);
-
-eg = egcRandomCase(30,10,150,10,1,12);
-tester.addTest('medium random +2 (30,10,150,10,1,12)', eg);
-
-eg = egcRandomCase(30,10,150,10,3,12);
-tester.addTest('medium random irregular +2,+3 (30,10,150,10,3,12)', eg);
-
-eg = egcRandomCase(60,20,300,20,1,22);
-tester.addTest('medium large random (60,20,300,20,1,22)', eg);
+[egg] = random(60,20,300,20,1,22);
+tester.addTest('medium large random (60,20,300,20,1,22)', egg);
 
 if (!ea) {
 	
-	eg = egcRandomCase(80,30,400,30,1,33);
-	tester.addTest('large random (80,30,400,30,1,33)', eg);
+	[egg] = random(80,30,400,30,1,33);
+	tester.addTest('large random (80,30,400,30,1,33)', egg);
 
-	eg = egcRandomCase(100,50,1000,50,1,55);
-	tester.addTest('larger random (100,50,1000,50,1,55)', eg);
+	[egg] = random(100,50,1000,50,1,55);
+	tester.addTest('larger random (100,50,1000,50,1,55)', egg);
+}
+if (floors) {
 }
 
-tester.run();
 */
+tester.run();

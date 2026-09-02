@@ -1,4 +1,4 @@
-/** @file setCoverRandom.mjs
+/** @file randomSetCover.mjs
  *
  *  @author Jon Turner
  *  @date 2024
@@ -12,9 +12,7 @@ import { shuffle } from '../../common/Random.mjs';
 import { randomRegularBigraph }
 		from '../../graphAlgorithms/misc/RandomGraph.mjs';
 import { randomFraction } from '../../common/Random.mjs';
-import setCoverSizeBound from './setCoverSizeBound.mjs';
-import setCoverSplitBound from './setCoverSplitBound.mjs';
-import setCoverLabelBound from './setCoverLabelBound.mjs';
+import {sizeBound, labelBound, splitBound} from './setCoverCommon.mjs';
 
 /** Generate a random set cover instance.
  *  @param k is the number of sets
@@ -33,26 +31,25 @@ import setCoverLabelBound from './setCoverLabelBound.mjs';
  *  is an upperBound on the weight, specifically it is the weight of
  *  a secret cover that is embedded in the constructed instance.
  */
-export default function setCoverRandom(k, h, coverage, uni=1,
+export default function randomSetCover(k, h, coverage, uni=1,
 									   randomWeight=(()=>1), ...args) {
 	let subSize = coverage*h/k; // average subset size
 
 	// determine number of subsets in secret and camouflage
-	let secWidth = Math.ceil(h/subSize);
+	let secWidth = Math.round(h/subSize);
 	let camoWidth = k - secWidth
 
 	// average coverage for secret and camouflage
 	let secCoverage = secWidth*subSize/h;
 	let camoCoverage = coverage - secCoverage;
 
-	// create graphs for  secret and comouflage
-	if (Number.isFinite(uni)) uni = [uni,uni];
+	// create graphs for secret and comouflage
+	if (!Array.isArray(uni)) uni = [uni,uni];
 	let [su,cu] = uni;
 	let secret = randomRegularBigraph(
 					secWidth, h*secCoverage/secWidth, h, [su,1]);
 	let camo = randomRegularBigraph(
 					camoWidth, h*camoCoverage/camoWidth, h, [su,cu]);
-
 	// combine the graphs
 	let g = new Graph(k+h, subSize*k); g.setBipartition(k);
 	for (let e = secret.first(); e; e = secret.next(e))
@@ -84,9 +81,9 @@ export default function setCoverRandom(k, h, coverage, uni=1,
 
 	g.sortAllEplists()
 
-	let lowerBounds = [ setCoverSizeBound(g,weight),
-						setCoverSplitBound(g,weight),
-						setCoverLabelBound(g,weight) ];
+	let lowerBounds = [ sizeBound(g,weight),
+						splitBound(g,weight),
+						labelBound(g,weight) ];
 
 	return [g, weight, lowerBounds, upperBound];
 }

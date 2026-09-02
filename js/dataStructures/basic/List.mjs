@@ -25,66 +25,84 @@ let ae; // initialized in constructor
  *  popLast(), at(i) where i<0)
  */
 export default class List extends Top {
-	First;      // first item in list
-	Last;       // last item in list
-	Length;     // number of items in list
-	Next;       // Next[i] is successor of i in list
-	Prev;       // Prev[i] is predecessor of i in list
-                // allocated dynamically as required
+	first_;      // first item in list
+	last_;       // last item in list
+	length_;     // number of items in list
+	next_;       // next_[i] is successor of i in list
+	prev_;       // prev_[i] is predecessor of i in list
+                 // allocated dynamically as required
 
-	propName;	// name of optional item property
-	defProp;	// default property value
-	propValues; // array of property values
+	prop_names;	     // prop_names[i] is name of the i-th property added
+	prop_defaults;	 // prop_defaults[i] is default value of the i-th property
+	prop_values;     // prop_values[i] is array of values for i-th property
 	
 	/** Constructor for List object.
 	 *  @param n is the range for the list
 	 */
-	constructor(n=10, propName, defVal) {
-	ae = assertEnabled();
+	constructor(n=10, propName='', propDefault=0) {
 		ae = assertEnabled();
 		super(n);
-		this.Next = new Int32Array(this.n+1).fill(-1);
-		this.Next[0] = this.First = this.Last = this.Length = 0;
-		this.Prev = null;
+		this.next_ = new Int32Array(this.n+1).fill(-1);
+		this.next_[0] = this.first_ = this.last_ = this.length_ = 0;
+		this.prev_ = null;
 
-		this.propName = ''; this.propValues == null;
-		if (arguments.length == 3)
-			this.addProperty(propName, defVal);
+		this.prop_names = []; this.prop_defaults = []; this.prop_values = [];
+		if (arguments.length > 1)
+			this.addProperty(propName, propDefault);
 	}
 
 	/** Add an item property.
 	 *  @param propName is the name of the new property
-	 *  @param defVal is the default value of the new property
+	 *  @param propDefault is the default value of the new property
 	 */
-	addProperty(propName='value', defVal=0) {
-		this.propName = propName;
-		this.defProp = defVal;
-		this.propValues = new Array(this.n+1).fill(defVal);
+	addProperty(propName, propDefault) {
+		assert(this[propName] == undefined,
+			   'List:addProperty: name clash for ' + propName);
+
+		let newProp = new Array(this.n+1).fill(propDefault);
+		this.prop_names.push(propName);
+		this.prop_defaults.push(propDefault);
+		this.prop_values.push(newProp);
+		let i = this.prop_names.length-1;
+
 		Object.defineProperty(this, propName,
-			{ value: 	function(i) {
-							ae && assert(this.valid(i),
-                     			`List.${propName}: invalid item number: ${i}`);
+			{ value: 	function(x) {
+							ae && assert(0 <= x && x <= this.n,
+                     			`List.${propName}: invalid argument: ${x}`);
 							if (arguments.length > 1) {
-								this.propValues[i] = arguments[1];
+								this.prop_values[i][x] = arguments[1];
 							}
-							return this.propValues[i];
+							return this.prop_values[i][x];
 						}
 			});
+		Object.defineProperty(this, 'reset_' + propName,
+			{ value: function() { this.prop_values[i].fill(propDefault); } });
 	}
-		
+
+	/** Retrieve a property name and default value using index.
+	 *  @param i is a non-negative integer identifying a property, in the
+	 *  order the properties were added; so 0 is the first property added
+	 *  @return pair [name,default] giving the name and default value of
+	 *  the property, or null if there is no property i.
+	 */
+	property(i) {
+		if (i >= this.prop_names.length) return null;
+		return [this.prop_names[i], this.prop_defaults[i]];
+	}
+
 	/** Determine if this object has both forward and reverse links. */
-	get hasReverse() { return this.Prev ? true : false; }
+	get hasReverse() { return this.prev_ ? true : false; }
 
 	/** Turn reverse links on or off.
 	 *  @param on is a boolean used to enable or disable the reverse feature
 	 */
 	set hasReverse(on) {
-		if (on && !this.Prev) {
-			this.Prev = new Array(this.Next.length).fill(undefined);
+		if (on && !this.prev_) {
+			this.prev_ = new Array(this.next_.length).fill(undefined);
 			for (let i = this.first(); i; i = this.next(i))
-				if (this.next(i)) this.Prev[this.next(i)] = i;
-		} else if (!on && this.Prev) {
-			this.Prev = null;
+				if (this.next(i)) this.prev_[this.next(i)] = i;
+		} else if (!on && this.prev_) {
+			this.prev_ = null;
 		}
 	}
 	
@@ -94,33 +112,33 @@ export default class List extends Top {
 	clear() { while (!this.empty()) this.pop(); }
 
 	/** Get the number of items in the list. */
-	get length() { return this.Length; }
+	get length() { return this.length_; }
 
 	/** Get the next item in a list.
 	 *  @param i is an item on the list
 	 *  @return the item that follows i, or 0 if there is no next item
 	 */
-	next(i) { return this.Next[i]; }
+	next(i) { return this.next_[i]; }
 	
 	/** Get the previous item in a list.
 	 *  @param i is an item on the list
 	 *  @return the item that follows i, or 0 if there is no next item
 	 */
 	prev(i) {
-		if (!this.Prev) this.hasReverse = true;
-		return this.Prev[i];
+		if (!this.prev_) this.hasReverse = true;
+		return this.prev_[i];
 	}
 
 	/** Get first item on list.
 	 *  @return the first item on the list or 0 if the list is empty
 	 */
-	first() { return this.First; }
-	top() { return this.First; }
+	first() { return this.first_; }
+	top() { return this.first_; }
 	
 	/** Get the last item on list.
 	 *  @return the last item on the list or 0 if the list is empty
 	 */
-	last() { return this.Last; }
+	last() { return this.last_; }
 
 	/** Get an item based on its position in the list.
 	 *  @param i is position of index to be returned; negative
@@ -133,7 +151,7 @@ export default class List extends Top {
 				if (--i == 0) return j;
 			}
 		} else if (i < 0) {
-			if (!this.Prev) this.hasReverse = true;
+			if (!this.prev_) this.hasReverse = true;
         	for (let j = this.last(); j != 0; j = this.prev(j)) {
 				if (++i == 0) return j;
 			}
@@ -150,7 +168,7 @@ export default class List extends Top {
 	 *  @param i is an item
 	 *  @return true if i is in the list, else false
 	 */
-	contains(i) { return this.valid(i) && i != 0 && this.Next[i] != -1; } 
+	contains(i) { return this.valid(i) && i != 0 && this.next_[i] != -1; } 
 
 	/** Insert an item into the list, relative to another. 
 	 *  @param i is item to insert
@@ -162,15 +180,15 @@ export default class List extends Top {
 					 (j == 0 || this.contains(j)),
 					 `List.insert: ${this.x2s(i)} ${this.x2s(j)} ${''+this}`);
 		if (j == 0) {
-			if (this.empty()) this.Last = i;
-			this.Next[i] = this.First; this.First = i; this.Length++;
+			if (this.empty()) this.last_ = i;
+			this.next_[i] = this.first_; this.first_ = i; this.length_++;
 		} else {
-			this.Next[i] = this.Next[j]; this.Next[j] = i; this.Length++;
-			if (this.Last == j) this.Last = i;
+			this.next_[i] = this.next_[j]; this.next_[j] = i; this.length_++;
+			if (this.last_ == j) this.last_ = i;
 		}
-		if (this.Prev) {
-			this.Prev[i] = j;
-			if (i != this.last()) this.Prev[this.next(i)] = i;
+		if (this.prev_) {
+			this.prev_[i] = j;
+			if (i != this.last()) this.prev_[this.next(i)] = i;
 		}
 		return;
 	}
@@ -184,16 +202,16 @@ export default class List extends Top {
 		ae && assert(i == 0 || this.contains(i));
 		if (i == this.last()) return 0;
 		let j;
-		if (i == 0) { j = this.First;   this.First = this.Next[j]; }
-		else	    { j = this.Next[i]; this.Next[i] = this.Next[j]; }
-		if (this.Last == j) this.Last = i;
-		this.Next[j] = -1; this.Length--;
-		if (this.Prev) {
+		if (i == 0) { j = this.first_;   this.first_ = this.next_[j]; }
+		else	    { j = this.next_[i]; this.next_[i] = this.next_[j]; }
+		if (this.last_ == j) this.last_ = i;
+		this.next_[j] = -1; this.length_--;
+		if (this.prev_) {
 			if (i == 0)
-				this.Prev[this.first()] = 0;
+				this.prev_[this.first()] = 0;
 			else if (this.next(i) != 0)
-				this.Prev[this.next(i)] = i;
-			this.Prev[j] = 0;
+				this.prev_[this.next(i)] = i;
+			this.prev_[j] = 0;
 		}
 		return (i == 0 ? this.first() : this.next(i));
 	}
@@ -267,20 +285,16 @@ export default class List extends Top {
 		if (typeof that == 'boolean') return that;
 		if (this.length != that.length) return false;
 
-		if (this.propName != that.propName) return false;
+		// check that both have same first property name
+		let p1 = this.property(0); let p2 = that.property(0);
+		if ((p1 == null) != (p2 == null)) return false;
+		if (p1 && p1[0] != p2[0]) return false;
+		let pname = p1 ? p1[0] : '';
 
 		let j = that.first();
 		for (let i = this.first(); i; i = this.next(i)) {
 			if (i != j) return false;
-			if (this.propName) {
-				if (typeof this.propValues[i] != typeof that.propValues[i]) {
-					return false;
-				}
-				if (typeof this.propValues[i] != 'object' &&
-				    this.propValues[i] != that.propValues[i]) {
-					return false;
-				}
-			}
+			if (pname && this[pname](i) != that[pname](j)) return false;
 			j = that.next(j);
 		}
 		return j == 0 ? that : false;
@@ -301,7 +315,7 @@ export default class List extends Top {
 	}
 
 	prop2string(i) {
-		let p = this.propValues[i];
+		let p = this.prop_values[i];
 		if (typeof p == 'string') return '"' + p + '"';
 		if (typeof p == 'object') return JSON.stringify(p);
 		return ''+p;
@@ -314,9 +328,11 @@ export default class List extends Top {
 	 */
 	toString(label=0) {
 		if (!label) {
+			let p0 = this.property(0);
+			let name; let def; if (p0) [name, def] = p0;
 			label = (j => this.x2s(j) +
-					 (this.propValues && this.propValues[j] != this.defProp ?
-					  ':' + this.prop2string(j) : ''));
+					 (p0 && this[name](j) != def ?
+					  ':' + this.datum2string(this[name](j)) : ''));
 		}
 		let s = '';
 		for (let i = this.first(); i != 0; i = this.next(i)) {
@@ -332,7 +348,7 @@ export default class List extends Top {
 	 *  @param prop is an optional function used to parse an item property
 	 *  @return true on success, else false
 	 */
-	static fromString(s, n=10, propName='value', defVal=0, scanProp=0) {
+	static fromString(s, n=10, propName='value', propDefault=0, scanProp=0) {
 		let sc = new Scanner(s);
 		let propVals = []; let hasProps = 0;
 		if (!scanProp) {
@@ -354,13 +370,15 @@ export default class List extends Top {
 		}
 
 		let list = new List(n);
-		if (arguments.length >= 4 || hasProps) {
-			list.addProperty(propName, defVal);
+		if (arguments.length > 2 || hasProps) {
+			list.addProperty(propName, propDefault);
 		}
+		let name;
+		if (list.property(0)) [name] = list.property(0);
 		for (let i of l) {
 			list.enq(i);
-			if (hasProps && propVals[i])
-				list.propValues[i] = propVals[i];
+			if (propVals[i] != undefined)
+				list[name](i,propVals[i]);
 		}
 		return list;
 	}

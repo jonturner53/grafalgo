@@ -11,12 +11,12 @@ import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import pbimatchHKT from '../../graphAlgorithms/vmatch/pbimatchHKT.mjs';
-import { maxFloor } from './becCommon.mjs';
+import { maxTint } from './common.mjs';
 
 /** Find a bounded edge coloring using the max degree matching method.
  *  Edges are colored using a succession of matching which give priority
  *  to vertices of max degree in uncolored subgraph of g
- *  @param g is the graph to be colored with floors; assumed to be bipartite
+ *  @param g is the graph to be colored, with tints; assumed to be bipartite
  *  @return a pair [ts, stats] where ts is a traceString and stats is
  *  a statistics object; the coloring is returned as an edge property of g.
  */
@@ -35,17 +35,17 @@ export default function becPmatch(g, trace=0) {
 	steps += g.n;
 
 	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.getBipartition());
-		// subgraph of uncolored edges with floors <= c
+		// subgraph of uncolored edges with tints <= c
 	let ts = '';
 	if (trace) {
-		ts += 'graph with floors\n' + g.toString(5) + '\nmatchings\n';
+		ts += 'graph with tints\n' + g.toString(5) + '\nmatchings\n';
 	}
 	let c; let cmax = c;
 	let count = 0;  // number of edges colored so far
 	for (c = 1; count < g.m; c++) {
-		// add edges with floor of c to gc
+		// add edges with tint of c to gc
 		for (let e = g.first(); e; e = g.next(e)) {
-			let fe = g.floor(e);
+			let fe = g.tint(e);
 			if (c >= fe && c < fe + 1) {
 				gc.join(g.left(e), g.right(e), e);
 			}
@@ -65,11 +65,11 @@ export default function becPmatch(g, trace=0) {
 		cmax = c;
 		steps += g.n + g.m;
 	}
-	let fmax = maxFloor(g);
+	let fmax = maxTint(g);
 	if (trace) {
-		ts += '\ngraph with floors and colors\n' +
+		ts += '\ngraph with tints and colors\n' +
 				g.toString(5,(e,u)=>`${g.x2s(g.mate(u,e))}:` +
-						 	 `${g.floor(e)}/${g.color(e)}`) +
+						 	 `${g.tint(e)}/${g.color(e)}`) +
 						 	 `colors: [${cmax},${cmax-fmax}]\n`;
 	}
 	return [ts, { 'C': [cmax,cmax-fmax], 'steps': steps }];
