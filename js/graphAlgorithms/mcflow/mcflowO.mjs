@@ -76,7 +76,7 @@ export default function mcflowO(fg, traceFlag=false) {
 		Delta /= 2;
 		if (trace) traceString += '\n';
 	}
-	if (trace) traceString += g.toString(1);
+	if (trace) traceString += g.toString(9);
 	steps += border.getStats().steps;
 	g = link = lambda = border = Cost = sources = sinks = null;
 	return [traceString, {  'phases': phases, 'paths': paths,

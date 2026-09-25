@@ -69,7 +69,7 @@ export default class FanGraph extends Graph {
 			Object.defineProperty(this, 'tint',
 				{ value: function(e,v) { return this.fans_['tint'](e,v); }});
 			Object.defineProperty(this, 'reset_tint',
-				{ value: function() { this.edges_['reset_tint'](); }});
+				{ value: function() { this.fans_['reset_tint'](); }});
 		}
 		this.fan_edges = new ListSet(this.edgeRange, nf);
 		this.input_fans = new ListSet(nf, ni);
@@ -156,11 +156,13 @@ export default class FanGraph extends Graph {
 		return cnt;
 	}
 
-	maxFloor() {
+	maxTint() {
 		if (!this.tint) return 0;
 		let tmax = 0;
-		for (let e = this.first(); e; e = this.next(e))
-			tmax = Math.max(tmax, this.tint(e));
+		for (let u = 1; u <= this.ni; u++) {
+			for (let f = this.firstFanAt(u); f; f = this.nextFanAt(u,f))
+				tmax = Math.max(tmax, this.tint(f));
+		}
 		return tmax;
 	}
 
@@ -324,8 +326,8 @@ export default class FanGraph extends Graph {
 
 	/** Bind a color to a fan.
 	 *  @param c is a color
-	 *  @param f is a fan at input u, with c in its palette
-	 *  c is a color in f's palette
+	 *  @param f is a fan at some input u; c is assumed to be unbound
+	 *  at u; on return it is bound to f
 	 */
 	bind(c,f) {
 		let u = this.hub(f);
@@ -478,10 +480,9 @@ export default class FanGraph extends Graph {
 	 *    fmt&4 causes fan identifiers to be shown
 	 *    fmt&8 causes colors to be shown
 	 *    fmt&0x10 causes edges at outputs to be shown
-	 *  @param gxs is an optional function; gxs(g) is expected to
-	 *  return a string that extends the representation of fan g 
+	 *    fmt&0x20 causes palettes to be shown
 	 */
-	toString(fmt=0, gxs=0) {
+	toString(fmt=0, fxs=0) {
 		let s = '';
 		for (let u = 1; u <= this.ni; u++) {
 			if (!(fmt&2) && !this.firstAt(u)) continue;
@@ -491,8 +492,8 @@ export default class FanGraph extends Graph {
 				if (f != this.firstFanAt(u)) s += ' ';
 				if (this.tint && this.tint(f)) s += this.tint(f);
 				s += this.fan2string(f,fmt&8);
-				if (fmt&4) s += this.g2s(f);
-				if (gxs) s += gxs(f);
+				if (fmt&4) s += this.f2s(f);
+				if (fmt&0x20) s += this.palette2string(f); 
 			}
 			s += ']';
 			if (fmt&1) s += '\n';
@@ -524,6 +525,14 @@ export default class FanGraph extends Graph {
 		}
 		s += ')';
 		return s;
+	}
+
+	/** Compute a string representing a palette */
+	palette2string(f) {
+		let s=''
+		for (let c = this.firstColor(f); c; c = this.nextColor(f,c))
+			s += (s ? ' ' : '') + c;
+		return '[' + s + ']';
 	}
 
 	/** Return index value for a fan or an upper case letter. */

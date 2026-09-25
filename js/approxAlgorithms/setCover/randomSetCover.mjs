@@ -9,7 +9,7 @@
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { shuffle } from '../../common/Random.mjs';
-import { randomRegularBigraph }
+import { randomRegularBigraph, randomizeGraph }
 		from '../../graphAlgorithms/misc/RandomGraph.mjs';
 import { randomFraction } from '../../common/Random.mjs';
 import {sizeBound, labelBound, splitBound} from './setCoverCommon.mjs';
@@ -73,11 +73,11 @@ export default function randomSetCover(k, h, coverage, uni=1,
 	}
 	// upperBound is now the total weight of the secret cover
 
-	// now, scramble graph, while keeping outputs fixed
+	// now, randomize graph, while keeping outputs fixed,
+	// to mix subsets in the secret cover with all the others
 	let outputs = new Set();
 	for (let i = k+1; i <= k+h; i++) outputs.add(i);
-	let [vp] = g.scramble(outputs);
-	shuffle(weight, vp.slice(0,k+1)); 
+	randomizeGraph(g,outputs);
 
 	g.sortAllEplists()
 

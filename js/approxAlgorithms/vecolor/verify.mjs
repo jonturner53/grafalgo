@@ -16,7 +16,7 @@ import ecolorVerify from '../../graphAlgorithms/ecolor/ecolorVerify.mjs';
  *  edge coloring with the minimum number of colors, otherwise an error string
  */
 export default function verify(g) {
-	if (!(g instanceof FanGraph)) {
+	if (g.constructor.name != 'FanGraph') {
 		let s = ecolorVerify(g);
 		if (s) return s;
 		for (let e = g.first(); e; e = g.next(e)) {
@@ -35,19 +35,19 @@ export default function verify(g) {
 	for (let u = 1; u <= g.n; u++) {
 		ucolors.clear();
 		if (u <= g.ni) {
-			for (let f = g.firstGroupAt(u); f; f = g.nextGroupAt(u,f)) {
+			for (let f = g.firstFanAt(u); f; f = g.nextFanAt(u,f)) {
 				for (let e = g.firstEdgeIn(f); e; e = g.nextEdgeIn(f,e)) {
 					let c = g.color(e);
 					if (g.owner(c,u) != f)
 						return `color ${c} of edge ${g.e2s(e)} in group ` +
-							   `${g.g2s(f)} does not belong to ${g.g2s(f)}`;
+							   `${g.f2s(f)} does not belong to ${g.f2s(f)}`;
 					if (ucolors.contains(c))
 						return `color ${c} of edge ${g.e2s(e)} in group ` +
-							   `${g.g2s(f)} conflicts with another edge ` +
+							   `${g.f2s(f)} conflicts with another edge ` +
 							   `at input ${g.x2s(u)}`;
 					if (g.tint && c < g.tint(f))
 						return `color ${c} of edge ${g.e2s(e)} in group ` +
-							   `${g.g2s(f)} conflicts with tint ` +
+							   `${g.f2s(f)} conflicts with tint ` +
 							   `${g.tint(f)} at input ${g.x2s(u)}`;
 				}
 				for (let e = g.firstEdgeIn(f); e; e = g.nextEdgeIn(f,e)) {

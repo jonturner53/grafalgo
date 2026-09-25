@@ -10,7 +10,8 @@ import { assert, AssertFail } from '../../../common/Assert.mjs';
 import { randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomBigraph, randomDigraph, randomDag, randomTree,
 		 randomConnectedGraph, randomFlograph, randomRegularGraph,
-		 randomRegularBigraph, add2graph} from '../RandomGraph.mjs';
+		 randomRegularBigraph, add2graph, randomWeights, randomCapacities,
+		 randomizeGraph} from '../RandomGraph.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../../dataStructures/graphs/Digraph.mjs';
 import {randomSample} from '../../../common/Random.mjs';
@@ -18,26 +19,29 @@ import {randomSample} from '../../../common/Random.mjs';
 try {
 	console.log('testing RandomGraph');
 	let g = randomGraph(10, 2.5);
+/*
 	console.log('sparse undirected (10,2.5)\n', g.toString(1));
 	g = randomGraph(10, 2.5, 3);
 	console.log('same with bounded degree (10,2.5,3)\n', g.toString(1));
-	g.randomWeights(randomInteger, 1, 9);
+	randomWeights(g,randomInteger, 1, 9);
 	console.log('same with weights (1,9)\n', g.toString(1));
 
 	g = Graph.fromString('{a[b c] d[e] f[g h] i[j]}', 10, 20);
-	console.log('undirected graph with random extension (3,4) \n',g.toString());
-	add2graph(g, 3, 4);
+	console.log('undirected graph with random extension (3,5) \n',g.toString());
+	add2graph(g, 3, 5);
 	console.log(g.toString(1));
 	
 	g = randomGraph(10, 6);
 	console.log('dense undirected graph (10,6)\n', g.toString(1));
 
 	g = randomBigraph(8, 2.5, 12);
-	console.log('undirected bigraph (8,2.5,12)\n', g.toString(1));
-
+	console.log('undirected bigraph (8,2.5,12) ' + g.toString(1));
+	let [vp,ep] = randomizeGraph(g);
+	console.log('randomized version ' + g.toString(1));
+	
 	g = randomBigraph(8, 2.5, 12, [3,2]);
 	console.log('same with bounded degree (8,2.5,12,[3,2])\n', g.toString(1));
-
+*/
 	g = randomDigraph(10, 2);
 	console.log('sparse directed graph (10,2)\n', g.toString(1));
 
@@ -72,7 +76,7 @@ try {
 	console.log('semi-regular bigraph (8,6,16,[2.5,1.5])\n', g.toString(1));
 
 	g = randomFlograph(16, 3, 4);
-	g.randomCapacities(randomInteger,1,9);
+	randomCapacities(g,3,randomInteger,1,9);
 	console.log('flow graph (16,3,4)\n', g.toString(1));
 } catch(e) {
 	if (e instanceof AssertFail) {

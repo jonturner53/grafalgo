@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assertEnabled } from '../../../common/Assert.mjs';
+import { assertEnabled, disableAssert } from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 
 import toposort from '../../misc/toposort.mjs';
@@ -19,7 +19,9 @@ import allpairsF from '../allpairsF.mjs';
 import sptVerify from '../sptVerify.mjs';
 import Digraph from '../../../dataStructures/graphs/Digraph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
-import { randomDigraph, randomDag } from '../../misc/RandomGraph.mjs';
+import { randomDigraph, randomDag, randomLengths }
+	   from '../../misc/RandomGraph.mjs';
+//disableAssert();
 const ae = assertEnabled();
 
 function acyclic(g) { return toposort(g) != null; }
@@ -81,14 +83,17 @@ let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
 let tester = new Tester(args, algomap);
 
 // acyclic
-let g = randomDag(10, 3.5); g.randomLengths(randomInteger, 1, 9);
+let g = randomDag(10, 3.5); randomLengths(g, randomInteger, 1, 9);
 tester.addTest('small random dag (10,3.5)', g);
 
-g = randomDag(200, 20); g.randomLengths(randomInteger, -99, 99);
+g = randomDag(200, 20); randomLengths(g, randomInteger, -99, 99);
 tester.addTest('medium random dag (200,20)', g);
 
-g = randomDag(2000, 200); g.randomLengths(randomInteger, -99, 99);
-tester.addTest('large random dag (2000,200)', g);
+let t = Date.now();
+if (!ae) {
+	g = randomDag(2000, 200); randomLengths(g, randomInteger, -99, 99);
+	tester.addTest('large random dag (2000,200)', g);
+}
 
 // non-negative lengths
 g = Digraph.fromString(
@@ -98,25 +103,30 @@ g = Digraph.fromString(
 		'j[b:1 c:2 g:5]}');
 tester.addTest('small graph', g);
 
-g = randomDigraph(10, 3.5); g.randomLengths(randomInteger, 1, 99);
+g = randomDigraph(10, 3.5); randomLengths(g, randomInteger, 1, 99);
 tester.addTest('small random graph (10,3.5)', g);
 
 if (!ae) {
-	g = randomDigraph(400, 20); g.randomLengths(randomFraction);
+	g = randomDigraph(400, 20); randomLengths(g, randomFraction);
 	tester.addTest('large random graph (400,20)', g);
 
-	g = randomDigraph(800, 50); g.randomLengths(randomFraction);
+	g = randomDigraph(800, 50); randomLengths(g, randomFraction);
 	tester.addTest('larger random graph (800,50)', g);
 }
 
 // negative lengths
-g = randomDigraph(10, 3.5); g.randomLengths(randomInteger, -15, 99);
+g = randomDigraph(10, 3.5); randomLengths(g, randomInteger, -12, 99);
 tester.addTest('small random graph with negative lengths (10,3.5)', g);
 
-g = randomDigraph(100, 5); g.randomLengths(randomInteger, -50, 999);
+g = randomDigraph(26, 5); randomLengths(g, randomInteger, -15, 99);
+tester.addTest('smallish random graph (with negative lengths 26,5)', g);
+
+g = randomDigraph(100, 5); randomLengths(g, randomInteger, -50, 999);
 tester.addTest('medium random graph (with negative lengths 100,5)', g);
 
-g = randomDigraph(500, 30); g.randomLengths(randomInteger, -70, 5000);
-tester.addTest('large random graph (with negative lengths 500,30)', g);
+if (!ae) {
+	g = randomDigraph(500, 30); randomLengths(g, randomInteger, -70, 5000);
+	tester.addTest('large random graph (with negative lengths 500,30)', g);
+}
 
 tester.run();

@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assertEnabled } from '../../../common/Assert.mjs';
+import { assertEnabled, disableAssert } from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 import ncrK from '../ncrK.mjs';
 import ncrKGT from '../ncrKGT.mjs';
@@ -19,7 +19,9 @@ import mcflowVerify from '..//mcflowVerify.mjs';
 import List from '../../../dataStructures/basic/List.mjs';
 import Flograph from '../../../dataStructures/graphs/Flograph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
-import { randomGraph, randomFlograph } from '../../misc/RandomGraph.mjs';
+import { randomGraph, randomFlograph, randomCapacities, randomCosts }
+	   from '../../misc/RandomGraph.mjs';
+//disableAssert();
 const ae = assertEnabled();
 
 let algomap = {
@@ -56,24 +58,24 @@ let g = Flograph.fromString(
 	'h[f:3@1 i:4@-2 j:5@2] i[h:4@-3 g:5@1 j:6@1] ->j[]}');
 tester.addTest('small graph', g);
 
-g = randomFlograph(14, 4, 3);
-g.randomCapacities(randomInteger, 1, 9);
-g.randomCosts(randomInteger, -9, 9); 
+g = randomFlograph(16, 6, 8);
+randomCapacities(g,6,randomInteger, 1, 9);
+randomCosts(g,randomInteger, -9, 9); 
 tester.addTest(`small random (${g.n},${g.m})`, g);
 
 g = randomFlograph(32, 10);
-g.randomCapacities(randomInteger, 1, 99);
-g.randomCosts(randomInteger, -9, 99); 
+randomCapacities(g,10,randomInteger, 1, 99);
+randomCosts(g,randomInteger, -9, 99); 
 tester.addTest(`medium random (${g.n},${g.m})`, g);
 
 g = randomFlograph(62, 15);
-g.randomCapacities(randomInteger, 1, 999);
-g.randomCosts(randomInteger, -99, 999); 
+randomCapacities(g,15,randomInteger, 1, 999);
+randomCosts(g,randomInteger, -99, 999); 
 !ae && tester.addTest(`large random (${g.n},${g.m})`, g);
 
 g = randomFlograph(122, 20);
-g.randomCapacities(randomInteger, 1, 999);
-g.randomCosts(randomInteger, -99, 999); 
+randomCapacities(g,20,randomInteger, 1, 999);
+randomCosts(g,randomInteger, -99, 999); 
 !ae && tester.addTest(`large random (${g.n},${g.m})`, g);
 
 tester.run();

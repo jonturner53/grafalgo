@@ -10,7 +10,7 @@ import { assert, AssertFail } from '../../../common/Assert.mjs';
 import { matches, Mismatch } from '../../../common/Testing.mjs';
 import Digraph from '../../../dataStructures/graphs/Digraph.mjs';
 import toposort from '../toposort.mjs';
-import { randomDag } from '../RandomGraph.mjs';
+import { randomDag, randomizeGraph } from '../RandomGraph.mjs';
 
 try {
 	console.log('testing toposort');
@@ -19,8 +19,7 @@ try {
 	let vlist = toposort(g);
 	matches(g.ilist2string(vlist), '[d a b e c f]', 'a1');
 
-	//g = randomDag(100, 10, 20); g.scramble();
-	g = randomDag(8, 2, 4); g.scramble();
+	g = randomDag(100, 10, 20); randomizeGraph(g);
 	vlist = toposort(g);
 	matches(vlist.length, g.n, 'a2');
 	

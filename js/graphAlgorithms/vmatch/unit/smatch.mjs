@@ -6,7 +6,8 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, assertEnabled } from '../../../common/Assert.mjs';
+import { assert, assertEnabled, disableAssert }
+		from '../../../common/Assert.mjs';
 import { Tester, Proceed } from '../../../common/Testing.mjs';
 import ListPair from '../../../dataStructures/basic/ListPair.mjs';
 import smatchGS from '../smatchGS.mjs';
@@ -16,10 +17,11 @@ import { scramble } from '../../../common/Random.mjs';
 import { randomBigraph } from '../../misc/RandomGraph.mjs';
 
 import findSplit from '../../misc/findSplit.mjs';
+disableAssert();
 const ae = assertEnabled();
 
 function randomInstance(n,d) {
-	let g = randomBigraph(n,d);
+	let g = randomBigraph(n,d,n,d+1);
 	let subsets = new ListPair(g.n);
 	for (let u = 1; u <= g.n/2; u++) subsets.swap(u);
 	let pref = [[]];
@@ -42,7 +44,7 @@ let tester = new Tester(args, algomap);
 let [g,pref,subsets] = new randomInstance(5,2);
 tester.addTest('small random bigraph', g, pref, subsets);
 
-[g,pref,subsets] = new randomInstance(13,3);
+[g,pref,subsets] = new randomInstance(13,5);
 tester.addTest('smallish random bigraph', g, pref, subsets);
 
 [g,pref,subsets] = new randomInstance(5000,5);

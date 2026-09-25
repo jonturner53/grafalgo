@@ -22,9 +22,6 @@ export default class Flograph extends Digraph {
 	source_;        // source vertex
 	sink_;          // sink vertex
 
-	ss_cap_scale;   // scaling factor used by randomCapacities() method
-					// is set by RandomGraph.randomFlograph() method
-
 	/** Constructor for flow graph
 	 *  @param n is the number of vertices
 	 *  @param erange is the max number of edges to provide space for
@@ -36,8 +33,6 @@ export default class Flograph extends Digraph {
 
 		this.addEdgeProperty('cap', 1);
 		this.addEdgeProperty('flow', 0);
-
-		this.ss_cap_scale = 1;
 	} 
 
 	/** Get/set the source vertex.
@@ -199,7 +194,7 @@ export default class Flograph extends Digraph {
 			let e1 = el1[i]; let e2 = el2[i];
 			if (this.cap(e1) != that.cap(e2) ||
 				(includeFlow && this.flow(e1) != that.flow(e2)) ||
-				this.cost  && this.cost(e1)  != that.cost(e2)   ||
+				this.cost && this.cost(e1)  != that.cost(e2)   ||
 				this.floor && this.floor(e1) != that.floor(e2)    ) {
 				return false;
 			}
@@ -359,46 +354,53 @@ export default class Flograph extends Digraph {
 		return g;
 	}
 
-	/** Randomize the order of the vertices and edges. */
+	/** Randomize the order of the vertices and edges.
 	scramble() {
 		let ep = super.scramble();
 		shuffle(this.F, ep); shuffle(this.Cap, ep);
 	}
+	*/
 
 	/** Compute random capacities for edges.
+	 *  @param scale is a scaling factor applied to the capacities of
+	 *  source and sink edges to keep them from becoming bottleneck points
 	 *  @param rand is a random number generator used to generate the
 	 *  random edge capacities; it is invoked using any extra arguments
 	 *  provided by caller; for example randomCapacities(randomInteger, 1, 10)
 	 *  will assign random integer capacities in 1..10.
-	*/
-	randomCapacities(rand, ...args) {
+	randomCapacities(scale, rand, ...args) {
+        this.randomPropertyValues('cap', rand, ...args);
 		let s = this.source; let t = this.sink;
 		for (let e = this.first(); e; e = this.next(e)) {
-			let c = rand(...args);
-			if (this.tail(e) == s || this.head(e) == t) c *= this.ss_cap_scale;
-			this.cap(e, Math.max(c, (this.floor ? this.floor(e) : 0)));
+			if (this.tail(e) == s || this.head(e) == t)
+				this.cap(e, this.cap(e)*scale;
+			if (this.floor && this.cap(e) < this.floor(e))
+				this.cap(e, this.floor(e));
 		}
 	}
+	*/
 
 	/** Compute random costs for all the edges.
 	 *  @param rand is a random number generator used to generate the
 	 *  random edge costs; it is invoked using any extra arguments
 	 *  provided by caller; for example randomCosts(randomInteger, 1, 10)
 	 *  will assign random integer costs in 1..10.
-	 */
 	randomCosts(rand, ...args) {
 		if (!this.cost) this.addEdgeProperty('cost', 0);
 		for (let e = this.first(); e; e = this.next(e)) {
 			this.cost(e, rand(...args));
 		}
 	}
+	randomCosts(rand, ...args) {
+        this.randomPropertyValues('cost', rand, ...args);
+    }
+	 */
 
 	/** Compute random floor values for all the edges.
 	 *  @param rand is a random number generator used to generate the
 	 *  random edge costs; it is invoked using any extra arguments
 	 *  provided by caller; for example randomFloors(randomInteger, 1, 10)
 	 *  will assign random integer costs in 1..10.
-	 */
 	randomFloors(rand, ...args) {
 		if (!this.floor) this.addEdgeProperty('floor', 0);
 		for (let e = this.first(); e; e = this.next(e)) {
@@ -406,4 +408,5 @@ export default class Flograph extends Digraph {
 			this.floor(e, Math.min(f, this.cap(e)));
 		}
 	}
+	 */
 }

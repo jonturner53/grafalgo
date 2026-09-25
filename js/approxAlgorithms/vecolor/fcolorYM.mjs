@@ -12,7 +12,7 @@ import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
-import { lowerBounds } from './commonEgc.mjs';
+import { lowerBounds } from './common.mjs';
 import fcolorBsearch from './fcolorBsearch.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
@@ -25,13 +25,13 @@ import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 export default function fcolorYM(g, trace) {
 	g.sortAllFans();
 	let cmin = Math.max(... lowerBounds(g));
-	fcolorBsearch(coreYM, eg, cmin, g.crange);
+	fcolorBsearch(coreYM, g, cmin, g.crange);
 
 	let ts = '';
 	if (trace) ts += g.toString(0x9);
 
-	let cmax = g.cmax();
-	return [ts, {'cmax': cmax, 'cmin':cmin, 'max2min': (cmax/cmin).toFixed(2)}];
+	let cmax = g.cmax;
+	return [ts, {'cmax': cmax, 'cmin':cmin, 'max/min': (cmax/cmin).toFixed(2)}];
 }
 
 export function coreYM(g, C) {

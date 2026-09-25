@@ -57,7 +57,7 @@ export default function ncrKGT(fg, traceflag=false) {
 	while (u != 0) {
 		augment(u,i); [u,i] = findCycle(); cycles++;
 	}
-	if (trace) traceString += '\n' + g.toString(1);
+	if (trace) traceString += '\n' + g.toString(0x9);
 	g = Link = Cost = meanCost = mark = null;
 	return [ traceString, { 'cycles': cycles, 'steps': steps} ];
 }

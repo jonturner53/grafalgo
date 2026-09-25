@@ -9,6 +9,7 @@
 import { assert } from '../../common/Assert.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { range,randomPermutation, randomInteger} from '../../common/Random.mjs';
+import { randomizeGraph } from '../../graphAlgorithms/misc/RandomGraph.mjs';
 
 /** Generate a sparse random graph with a hamiltonian cycle/path.
  *  @param n is the number of vertices in the graph
@@ -42,6 +43,6 @@ export default function randomHpc(n, d, s=0, t=0) {
 		if (!g.findEdge(u,v)) g.join(u,v);
 	}
 	let fp = new Set(s && t ? [s,t] : (s ? [s] : []));
-	g.scramble(new Set(fp));
+	randomizeGraph(g, new Set(fp));
 	return g;
 }

@@ -20,8 +20,8 @@ let ae; // initialized in constructor
  *  supports constant-time union of two sets.
  */
 export default class MergeSets extends Top {
-	P;			// P[i] is parent of i
-	Rank;	 	// Rank[i] is rank of i
+	p_;			// p_[i] is parent of i
+	rank_;	 	// rank_[i] is rank of i
 
 	merges;
 	finds;
@@ -30,9 +30,9 @@ export default class MergeSets extends Top {
 	constructor(n=10) {
 	ae = assertEnabled();
 		super(n);
-		this.P = new Int32Array(this.n+1); 
-		for (let i = 1; i <= this.n; i++) this.P[i] = i;
-		this.Rank = new Int32Array(this.n+1);
+		this.p_ = new Int32Array(this.n+1); 
+		for (let i = 1; i <= this.n; i++) this.p_[i] = i;
+		this.rank_ = new Int32Array(this.n+1);
 	
 		this.merges = this.finds = this.steps = 0;
 	}
@@ -57,20 +57,20 @@ export default class MergeSets extends Top {
 	 *  @param hi is the high end of the range; all items <hi are cleared
 	 */
 	clear(lo=0, hi=this.n+1) {
-		for (let i = lo; i < hi; i++) { this.P[i] = i; this.Rank[i] = 0; }
+		for (let i = lo; i < hi; i++) { this.p_[i] = i; this.rank_[i] = 0; }
 	}
 
 	/** Return parent of a set element in the tree representation of the set.
 	 *  @param i index of a set element
 	 *  @return the parent of i
 	 */
-	p(i) { return this.P[i]; }
+	p(i) { return this.p_[i]; }
 
 	/** Return rank of a set element in the tree representation of the set.
 	 *  @param i index of a set element
 	 *  @return the parent of i
 	 */
-	rank(i) { return this.Rank[i]; }
+	rank(i) { return this.rank_[i]; }
 
 	/** Determine if an item is in a singleton set. */
 	singleton(i) { return this.p(i) == i && this.rank(i) == 0; }
@@ -87,7 +87,7 @@ export default class MergeSets extends Top {
 		for (root = i; this.p(root) != root; root = this.p(root)) {
 			this.steps++;
 		}
-		while (i != root) { let pi = this.p(i); this.P[i] = root; i = pi; }
+		while (i != root) { let pi = this.p(i); this.p_[i] = root; i = pi; }
 		return root;
 	}
 	
@@ -104,9 +104,9 @@ export default class MergeSets extends Top {
 		if (this.rank(i) < this.rank(j)) {
 			let t = i; i = j; j = t;
 		} else if (this.rank(i) == this.rank(j)) {
-			this.Rank[i]++;
+			this.rank_[i]++;
 		}
-		this.P[j] = i;
+		this.p_[j] = i;
 		return i;
 	}
 	

@@ -6,19 +6,23 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import { assert, assertEnabled as ae, disableAssert }
+		from '../../../common/Assert.mjs';
 import { Tester } from '../../../common/Testing.mjs';
 import randomBecolor from '../randomBecolor.mjs';
-import hardcaseBecolor from '../hardcaseBecolor.mjs';
+import hardcase from '../hardcase.mjs';
 import becolorMdmatch from '../becolorMdmatch.mjs';
 import becolorPmatch from '../becolorPmatch.mjs';
 import becolorSplit from '../becolorSplit.mjs';
-import verifyBecolor from '../verifyBecolor.mjs';
+import verify from '../verify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 
+//disableAssert();
+
 let algomap = {
-	'mdmatch' : ['becolorMdmatch', becolorMdmatch, verifyBecolor ],
-	'pmatch' : ['becolorPmatch', becolorPmatch, verifyBecolor ],
-	'split' : ['becolorSplit', becolorSplit, verifyBecolor ]
+	'mdmatch' : ['mdmatch', becolorMdmatch, verify],
+	'pmatch' : ['pmatch', becolorPmatch, verify],
+	'split' : ['split', becolorSplit, verify]
 }
 
 let args = (typeof window==='undefined' ? process.argv.slice(2): argv.slice(0));
@@ -37,12 +41,15 @@ tester.addTest(`small random (8,5,8,1, 5): [${lb}], [${ub}]`, g);
 [g,lb,ub] = randomBecolor(100,20,100,3, 25);
 tester.addTest(`medium random (100,20,100,3, 25): [${lb}], [${ub}]`, g);
 
-[g,lb,ub] = hardcaseBecolor(8);
+[g,lb,ub] = hardcase(8);
 tester.addTest(`small hard (8): [${lb}], [${ub}]`, g);
 
-[g,lb,ub] = hardcaseBecolor(16);
+[g,lb,ub] = hardcase(16);
 tester.addTest(`medium hard (16): [${lb}], [${ub}]`, g);
 
-[g,lb,ub] = hardcaseBecolor(64);
-tester.addTest(`large hard (64): [${lb}], [${ub}]`, g);
+if (!ae) {
+	[g,lb,ub] = hardcase(64);
+	tester.addTest(`large hard (64): [${lb}], [${ub}]`, g);
+}
+
 tester.run();

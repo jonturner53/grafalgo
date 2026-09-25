@@ -6,7 +6,6 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
 import ArrayHeap from '../../dataStructures/heaps/ArrayHeap.mjs';
 
 /** Compute shortest path tree of a graph using Dijkstra's algorithm.

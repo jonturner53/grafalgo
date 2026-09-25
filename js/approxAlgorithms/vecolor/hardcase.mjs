@@ -1,4 +1,4 @@
-/** \file hardcaseBec.mjs
+/** \file hardcase.mjs
  *
  *  @author Jon Turner
  *  @date 2023
@@ -14,10 +14,11 @@ import { itint, isTint, maxTint, lowerBounds, upperBounds }
  *  @param n is the number of inputs
  *  @param gap is the nominal inter-tint spacing (used to model speedup in
  *  crossbar scheduling applications)
+ *  @param fanGraph is a flag; if on, the returned graph is a FanGraph
  *  @return a graph with tints, together with an array of lower bounds
  *  on the optimal solution value and a second array of upper bounds
  */
-export default function hardcaseBec(n, gap=1) {
+export default function hardcase(n, gap=1, fanGraph=0) {
 	let g = new Graph(3*n-1, n*n, 'tint', 0);
 	g.setBipartition(n);
 	for (let u = 1; u <= n; u++) {
@@ -30,8 +31,15 @@ export default function hardcaseBec(n, gap=1) {
 		}
 	}
 
-	return [g, lowerBounds(g,gap),
-			   [maxTint(g)+hardcaseUpperBound(n,gap), ...upperBounds(g,gap)]];
+	let lb = lowerBounds(g,gap);
+	let ub = [maxTint(g)+hardcaseUpperBound(n,gap), ...upperBounds(g,gap)]
+	if (!fanGraph) return [g,lb,ub];
+
+	fg = new FanGraph(3*n-1, n*n, 'tint', 0); fg.setBipartition(n);
+	for (let e = g.first(); e; e = g.next(e)) {
+		fg.join(g.left(e), g.right(e), e); fg.tint(e, g.tint(e));
+	}
+	return [fg,lb,ub];
 }
 
 /** Determine next smaller "bonus" color.

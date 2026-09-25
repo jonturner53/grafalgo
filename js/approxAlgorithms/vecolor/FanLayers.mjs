@@ -1,4 +1,4 @@
-/** @file EdgeGroupLayers.mjs
+/** @file FanLayers.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -12,69 +12,69 @@ import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import Top from '../../dataStructures/Top.mjs';
 
-/** This class implements a data structure used by some edge-group
+/** This class implements a data structure used by some fan
  *  coloring algorithms.
  */
-export default class EdgeGroupLayers extends Top {
-	eg;            // EdgeGroups object that layers are defined on
-	layers;        // ListSet that partitions groups into layers
-	fgl;           // fgl[l] is the first group in layer l
-	gmap;          // gmap[g] is the layer containing g
+export default class FanLayers extends Top {
+	g;            // FanGraph object that layers are defined on
+	layers;        // ListSet that partitions fans into layers
+	ffl;           // ffl[l] is the first fan in layer l
+	fmap;          // fmap[f] is the layer containing f
 
-	constructor(eg, n_l) {
-		super(n_l);
-		this.eg = eg;
-		this.layers = new ListSet(eg.n_g);
-		this.fgl = new Int32Array(n_l+1);
-		this.gmap = new Int32Array(eg.n_g+1);
+	constructor(g, nl) {
+		super(nl);
+		this.g = g;
+		this.layers = new ListSet(g.nf);
+		this.ffl = new Int32Array(nl+1);
+		this.fmap = new Int32Array(g.nf+1);
 	}
 
-	get n_l() { return this.n; }
+	get nl() { return this.n; }
 
-	clear() { layers.clear(); fgl.fill(0); }
+	clear() { layers.clear(); ffl.fill(0); }
 
-	/** Get the layer that a specified group belongs to. */
-	layer(g) { return this.gmap[g]; }
+	/** Get the layer that a specified fan belongs to. */
+	layer(f) { return this.fmap[f]; }
 
-	/** Get the first group in a layer.
+	/** Get the first fan in a layer.
 	 *  @param l is a layer number
-	 *  @return the first group in layer l
+	 *  @return the first fan in layer l
 	 */
-	firstInLayer(l) { return this.fgl[l]; }
+	firstInLayer(l) { return this.ffl[l]; }
 
-	/** Get the next group in a layer l.
+	/** Get the next fan in a layer l.
 	 *  @param l is a layer number
-	 *  @return the first group in layer l
+	 *  @return the first fan in layer l
 	 */
-	nextInLayer(l,g) { return this.layers.next(g); }
+	nextInLayer(l,f) { return this.layers.next(f); }
 
-	/** Add a group to a layer.
-	 *  @param g is a group that does not belong to any layer
+	/** Add a fan to a layer.
+	 *  @param f is a fan that does not belong to any layer
 	 *  @param l is a layer number
 	 */
-	add(g,l) {
-		this.fgl[l] = this.layers.join(this.fgl[l],g);
-		this.gmap[g] = l;
+	add(f,l) {
+		this.ffl[l] = this.layers.join(this.ffl[l],f);
+		this.fmap[f] = l;
 	}
 
-	/** Remove a group from a layer.
-	 *  @param g is a group
+	/** Remove a fan from a layer.
+	 *  @param f is a fan
 	 */
-	delete(g) {
-		let l = this.layer(g);
-		this.fgl[l] = this.layers.delete(g,this.fgl[l])
-		this.gmap[g] = 0;
+	delete(f) {
+		let l = this.layer(f);
+		this.ffl[l] = this.layers.delete(f,this.ffl[l])
+		this.fmap[f] = 0;
 	}
 
 	/** Combine two layers segments.
 	 *  @param l1 is a layer
-	 *  @param l2 is another layer that is assumed to contain groups
+	 *  @param l2 is another layer that is assumed to contain fans
 	 *  with hubs that are distinct from those in l1
 	 */
 	join(l1,l2) {
-		for (let g = this.firstInLayer(l2); g; g = this.nextInLayer(l2,g))
-			this.gmap[g] = l1;
-		this.fgl[l1] = this.layers.join(this.fgl[l1], this.fgl[l2]);
+		for (let f = this.firstInLayer(l2); f; f = this.nextInLayer(l2,f))
+			this.fmap[f] = l1;
+		this.ffl[l1] = this.layers.join(this.ffl[l1], this.ffl[l2]);
 	}
 
 	/** Compute the thickness of a layer.
@@ -82,59 +82,59 @@ export default class EdgeGroupLayers extends Top {
 	 *  @return the layer thickness
 	 */
 	layerThickness(l) {
-		let t = 0; let counts = new Int32Array(this.eg.graph.n+1);
-		for (let g = this.firstInLayer(l); g; g = this.nextInLayer(l,g)) {
-			for (let e = this.eg.firstInGroup(g); e;
-					 e = this.eg.nextInGroup(g,e)) {
-				let v = this.eg.output(e); counts[v]++;
+		let t = 0; let counts = new Int32Array(this.g.n+1);
+		for (let f = this.firstInLayer(l); f; f = this.nextInLayer(l,f)) {
+			for (let e = this.g.firstEdgeIn(f); e;
+					 e = this.g.nextEdgeIn(f,e)) {
+				let v = this.g.output(e); counts[v]++;
 				t = Math.max(t, counts[v]);
 			}
 		}
 		return t;
 	}
 
-	/** Sort groups in layers.
-	 *  Rebuilds the layers so that groups are listed in a specific order.
-	 *  @param compare is a comparison function used to compare two groups
-	 *  in the same layer; it returns -1 if the first group should precede
-	 *  the second, +1 if the second group should precede the first and 0
-	 *  if either order is acceptable; if compare is omitted, groups are
+	/** Sort fans in layers.
+	 *  Rebuilds the layers so that fans are listed in a specific order.
+	 *  @param compare is a comparison function used to compare two fans
+	 *  in the same layer; it returns -1 if the first fan should precede
+	 *  the second, +1 if the second fan should precede the first and 0
+	 *  if either order is acceptable; if compare is omitted, fans are
 	 *  sorted in decreasing order of their fanouts
 	 */
 	sortLayers(compare=null) {
 		if (!compare)
-			compare = (g1,g2) => this.eg.fanout(g2) - this.eg.fanout(g1);
-		for (let l = 1; l <= this.n_l; l++) {
+			compare = (f1,f2) => this.g.fanout(f2) - this.g.fanout(f1);
+		for (let l = 1; l <= this.nl; l++) {
 			let layerSize = 0;
-			for (let g = this.firstInLayer(l); g; g = this.nextInLayer(l,g))
+			for (let f = this.firstInLayer(l); f; f = this.nextInLayer(l,f))
 				layerSize++;
-			let gvec = new Int32Array(layerSize);
+			let fvec = new Int32Array(layerSize);
 			let i = 0;
-			for (let g = this.firstInLayer(l); g; g = this.firstInLayer(l,g)) {
-				gvec[i++] = g; this.delete(g,l);
+			for (let f = this.firstInLayer(l); f; f = this.firstInLayer(l,f)) {
+				fvec[i++] = f; this.delete(f,l);
 			}
-			gvec.sort(compare);
+			fvec.sort(compare);
 			for (i = 0; i < layerSize; i++) {
-				this.add(gvec[i],l);
+				this.add(fvec[i],l);
 			}
 		}
 	}
 
-	/** Construct a string representation of the EdgeGroupLayers object.
+	/** Construct a string representation of the FanLayers object.
 	 */
 	toString(details=false) {
-		let s = '{'; let cgroups = new List(this.eg.n_g);
-		for (let l = 1; l <= this.n_l; l++) {
+		let s = '{'; let cfans = new List(this.g.n_g);
+		for (let l = 1; l <= this.nl; l++) {
 			if (details) s += '\n';
 			else if (l > 1) s += ' ';
 			s += '[';
-			for (let g = this.firstInLayer(l); g; g = this.nextInLayer(l,g)) {
-				if (g != this.firstInLayer(l)) s += ' ';
+			for (let f = this.firstInLayer(l); f; f = this.nextInLayer(l,f)) {
+				if (f != this.firstInLayer(l)) s += ' ';
 				if (details)
-					s += this.eg.graph.x2s(this.eg.hub(g)) +
-						 this.eg.group2string(g);
+					s += this.g.x2s(this.g.hub(f)) +
+						 this.g.fan2string(f);
 				else
-					s += this.eg.g2s(g);
+					s += this.g.f2s(f);
 			}
 			s += ']';
 		}

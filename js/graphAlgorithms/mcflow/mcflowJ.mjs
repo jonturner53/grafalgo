@@ -52,7 +52,7 @@ export default function mcflowJ(fg, leastCost=false, traceFlag=false) {
 		if (leastCost && pathCost >= 0) break;
 		augment(rcap); paths++;
 	}
-	if (trace) traceString += '\n' + g.toString(1);
+	if (trace) traceString += '\n' + g.toString(0x9);
 	let stats = { 'flow': g.totalFlow(), 'cost': g.totalCost(),
                   'paths': paths, 'steps': steps };
 	g = link = Cost = q = null;

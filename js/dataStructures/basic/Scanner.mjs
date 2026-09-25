@@ -266,33 +266,8 @@ export default class Scanner extends Top {
 			u = this.nextInt(0);
 			if (Number.isNaN(u)) return -1;
 		}
-		return (u && prop && !prop(u, this) ? -2 : u);
+		return (u==0 || !prop || prop(u,this) ? u : -2);
 	}
-
-	/** Variant of nextIndex using lower and upper case letters.
-	 *  This version accepts either lower or upper case letters; by default
-	 *  27 is returned for 'A', 28 for 'B' and so forth
-	 *  @param is an offset to be added to the returned index value when
-	 *  an upper case letter is scanned
-	nextIndexExt(prop=0, offset=26) {
-		let u = 0;
-		this.skipspace();
-		this.verify('*'); // ignore optional asterisk
-		if (this.buffer[this.cursor] == '-') {
-			u = 0; this.cursor++; 
-		} else if (this.islower(this.buffer[this.cursor])) {
-			u = this.buffer.charCodeAt(this.cursor) - (this.#a - 1);
-			this.cursor++;
-		} else if (this.isupper(this.buffer[this.cursor])) {
-			u = this.buffer.charCodeAt(this.cursor) - (this.#A - 1);
-			this.cursor++;
-		} else {
-			u = this.nextInt(0);
-			if (Number.isNaN(u)) return -1;
-		}
-		return (u && prop && !prop(u, this) ? -2 : u);
-	}
-	 */
 
 	/** Get the next list of index values from the scanned string.
 	 *  @param ld is the left delimiter for the index list (for example '[')

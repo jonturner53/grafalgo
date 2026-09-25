@@ -38,7 +38,7 @@ try {
 	matches(sc.length, 19, 'b7');
 
 	let pvec = new Array(10);
-	let prop = (u,sc) => {
+	let prop = (u) => {
 					if (!sc.verify(':')) {
 						pvec[u] = 0; return true;
 					}
@@ -56,8 +56,9 @@ try {
 	matches(sc, '[a b]', 'd1');
 	sc = new Scanner("[a:1 b c:3]");
 	let l = sc.nextIndexList('[',']',prop);
-	matches(l[0],1,'d2'); matches(l[1],2,'d3'); matches(l[2], 3,'d4');
-	matches(pvec[1],1,'d5'); matches(pvec[2],0,'d6'); matches(pvec[3],3,'d7');
+	matches(l[0],1,'d2'); matches(pvec[1],1,'d5');
+	matches(l[1],2,'d3'); matches(pvec[2],0,'d6');
+	matches(l[2],3,'d4'); matches(pvec[3],3,'d7');
 
 } catch(e) {
     if (e instanceof Mismatch) {

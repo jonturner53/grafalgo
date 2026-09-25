@@ -6,7 +6,6 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
 import Matching from './Matching.mjs';
 import initialMatch from './initialMatch.mjs';
 import List from '../../dataStructures/basic/List.mjs';

@@ -16,7 +16,8 @@ import hardcaseP from '../hardcaseP.mjs';
 import mstVerify from '../mstVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
-import { randomGraph, randomConnectedGraph } from '../../misc/RandomGraph.mjs';
+import { randomGraph, randomConnectedGraph, randomWeights }
+	   from '../../misc/RandomGraph.mjs';
 const ae = assertEnabled();
 
 let algomap = {
@@ -33,13 +34,13 @@ let g = Graph.fromString(
 	 	'e[f:1 g:3] f[e:1 g:2 h:3] g[e:3 f:2 h:1] i[j:5] j[i:5]}');
 tester.addTest('small 3 component graph', g);
 
-g = randomConnectedGraph(10, 3); g.randomWeights(randomInteger, 0, 9);
+g = randomConnectedGraph(10, 3); randomWeights(g, randomInteger, 0, 9);
 tester.addTest('small random graph (10,15)', g);
 
-g = randomGraph(100, 10); g.randomWeights(randomInteger, 0, 99);
+g = randomGraph(100, 10); randomWeights(g, randomInteger, 0, 99);
 tester.addTest('medium random graph (100,10)', g);
 
-g = randomGraph(1000, 20); g.randomWeights(randomInteger, 0, 99);
+g = randomGraph(1000, 20); randomWeights(g, randomInteger, 0, 99);
 !ae && tester.addTest('large random graph (1000,20)', g);
 g = hardcaseP(1000);
 !ae && tester.addTest('large hard case (100, 4950)', g);

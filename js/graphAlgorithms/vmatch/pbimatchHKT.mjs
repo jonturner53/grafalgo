@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
+import { assert, assertEnabled as ae } from '../../common/Assert.mjs';
 import Matching from '../match/Matching.mjs';
 import bimatchHK from '../match/bimatchHK.mjs';
 import List from '../../dataStructures/basic/List.mjs';
@@ -46,7 +46,7 @@ let steps;       // total number of steps
  *  @exceptions throws an exception if graph is not bipartite
  */
 export default function pbimatchHKT(G, Prio, strict=false, traceFlag=false) {
-	g = G; prio = Prio; assert(g.hasBipartition);
+	g = G; prio = Prio; ae() && assert(g.hasBipartition);
 
 	match = new Matching(g);
 	link = new Int32Array(g.n+1);

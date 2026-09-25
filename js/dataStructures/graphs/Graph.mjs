@@ -27,9 +27,10 @@ let ae; // initialized in constructor
  *  or all edges incident to a specific vertex.
  */
 export default class Graph extends Top {
-	edges_;		     // sets of in-use and free edges
+	edges_;		      // sets of in-use and free edges
 	vertex_endpoints; // ListSet that partitions edge endpoints among vertices
-	io;			     // optional ListPair defining bipartition
+					  // includes numbered lists, one per vertex
+	io;			      // optional ListPair defining bipartition
 
 	left_;		     // left_[e] is left endpoint of edge e
 	right_;		     // right_[e] is right endpoint of edge e
@@ -69,15 +70,14 @@ export default class Graph extends Top {
 	 * @param propName is name of new edge property
 	 * @param defVal is default value for new property
 	 */
-	addEdgeProperty(propName, defVal) {
+	addEdgeProperty(propName, defVal=0) {
 		let xpropName = (this.edges_[propName] ? '_' : '') + propName;
 			// to avoid conflicts with existing properties in edges_
 
 		this.edges_.addProperty(xpropName, defVal);
 
 		Object.defineProperty(this, propName,
-			{ value: function(e,v) {
-				return this[xpropName](e,v); } });
+			{ value: function(e,v) { return this.edges_[xpropName](e,v); } });
 		Object.defineProperty(this, 'reset_' + propName,
 			{ value: function() { this.edges_['reset_' + propName](); } });
 	}
@@ -326,7 +326,8 @@ export default class Graph extends Top {
 		ae && assert(this.validVertex(u) &&
 					   this.validEdge(e1) && this.validEdge(e2));
 		let v1 = this.mate(u, e1); let v2 = this.mate(u, e2);
-		return (v1 != v2 ? v1 - v2 : compareProp0(e1,e2));
+		return (v1 - v2);
+		//return (v1 != v2 ? v1 - v2 : compareProp0(e1,e2));
 	}
 
 	/** Comparison function for first property values of two edges
@@ -348,6 +349,7 @@ export default class Graph extends Top {
 	 *  compare edges e1 and e2 both incident to u.
 	 */
 	sortEplist(u, ecmp=((e1,e2,u) => this.ecmp(e1,e2,u))) {
+let t = Date.now(); let d;
 		ae && assert(u != 0 && this.validVertex(u));
 		if (this.vertex_endpoints.first(u) == 0) return; // empty list
 
@@ -380,7 +382,7 @@ export default class Graph extends Top {
 		for (let u = 1; u <= this.n; u++) this.sortEplist(u,ecmp);
 	}
 
-	/** Compute a list of edge numbers sorted by endpoints and properties.
+	/** Compute a list of edge numbers sorted by endpoints.
 	 *  @param evec is an optional array of edge numbers; if present,
 	 *  the edges in the list are sorted; if omitted, all edges in the
 	 *  graph are sorted
@@ -400,8 +402,6 @@ export default class Graph extends Top {
 							   let m2 = Math.min(this.left(e2),this.right(e2));
 							   let M2 = this.mate(m2,e2);
 							   return (m1 != m2 ? m1 - m2 : M1 - M2);
-									   //(M1 != M2 ? M1 - M2 :
-										//this.compareProps(e1,e2)));
 							 });
 		return evec;
 	}
@@ -535,14 +535,14 @@ export default class Graph extends Top {
 	 *		0b100 omits edges from the list of the "larger" endpoint
 	 *  @param elab is an optional labeling function used to produce the
 	 *  string that represents an edge in an adjacency list; by default,
-	 *  this is just the 'other endpoint' of the edge, but it can be
-	 *  used to produce other strings, or show properties of the edge;
-	 *  it has two arguments, an edge e and the 'near' endpoint of e
+	 *  this is the 'other endpoint' of the edge and its first edge property
+	 *  (if there is one), but it can be used to produce other strings, or
+	 *  show multiple edge properties; it has two arguments, an edge e and
+	 *  the 'near' endpoint of e
 	 *  @param vlab is a similar labeling function used to produce the
 	 *  string that represents the vertex that 'owns' an adjacency list;
 	 *  it has a single argument
-	 *  adjacency list is shown explicitly
-	 *  @return a reference to the string
+	 *  @return the string
 	 */
 	toString(fmt=0, elab=0, vlab=0) {
 		if (!elab) {
@@ -689,21 +689,26 @@ export default class Graph extends Top {
 	 */
 	randomEdge() {
 		let edges = this.edges_;
-		if (edges.nIn == 0) return 0;
-		if (edges.length(1) < this.edgeRange / 20) {
+		if (edges.length(1) == 0) return 0;
+		let e = randomInteger(1, this.edgeRange);
+		if (edges.in(e,1)) return e;
+		if (g.m > g.edgeRange/20) {
+			do {
+				e = randomInteger(1, this.edgeRange);
+				// expect no more than 20 attempts
+			} while (edges.in(e,2));
+			return e;
+		}
+		// do it the hard way
+		if (edges.length(1) < this.edgeRange/20) {
 			let i = randomInteger(1, edges.length(1));
 			for (let e = edges.first(1); e; e = edges.next(e,1)) 
 				if (--i == 0) return e;
 			return 0; // should never get here
 		}
-		let e = randomInteger(1, this.edgeRange);
-		while (edges.in(e,2)) {
-			// avg number of tries should never exeed 20
-			// if used to sample from "almost full" graph, then fast
-			e = randomInteger(1, this.edgeRange);
-		}
 		return e;
 	}
+
 
 	/** Randomize the order of the vertices, edges and adjacency lists.
 	 *  @param fixedPoints is an optional Set of vertices that are
@@ -711,7 +716,6 @@ export default class Graph extends Top {
 	 *  @return the pair [vp,ep] where v is the vertex permutation used and
 	 *  ep is the edge permutation; note edge properties are not randomized;
 	 *  these should be added to a random graph last
-	 */
 	scramble(fixedPoints=null) {
 		let vp = randomPermutation(this.n,fixedPoints);
 		let ep = randomPermutation(this.edgeRange);
@@ -720,10 +724,10 @@ export default class Graph extends Top {
 		this.scrambleEplists();
 		return [vp,ep];
 	}
+	 */
 
 	/** Randomize order of edges.
 	 *  Does not renumber vertices or edges.
-	 */
 	scrambleEdges() {
 		// first re-order the edges object
 		let el = new Int32Array(this.m+1);
@@ -734,10 +738,10 @@ export default class Graph extends Top {
 			this.edges_.swap(el[i]); this.edges_.swap(el[i]);
 		}
 	}
+	 */
 
 	/** Randomize order of endpoint lists.
 	 *  Does not renumber vertices or edges.
-	 */
 	scrambleEplists() {
 		for (let u = 1; u <= this.n; u++) {
 			if (!this.vertex_endpoints.first(u)) continue;
@@ -752,12 +756,12 @@ export default class Graph extends Top {
 			}
 		}
 	}
+	 */
 
 	/** Shuffle the vertices and edges according to the given permutations.
 	 *  @param vp is a permutation on the vertices, mapping vertex u to vp[u-1]
 	 *  @param ep is a permutation on the edge numbers (including unused ones)
 	 *  mapping edge e to ep[e-1]
-	 */
 	shuffle(vp, ep) {
 		let left  = new Int32Array(this.edgeRange+1);
 		let right = new Int32Array(this.edgeRange+1);
@@ -770,26 +774,5 @@ export default class Graph extends Top {
 				this.join(vp[left[e]], vp[right[e]], e);
 		}
 	}
-
-	/** Compute random values for a specified edge property.
-	 *  @param propName is the name of an edge property; if not
-	 *  already present, it is added with a default value of 0
-	 *  @param rand is a random number generator used to generate the
-	 *  random edge weights
-	 *  @param args collects any remaining arguments to randomWeights
-	 *  into an array; its elements are the arguments to rand.
-	 *  provided by caller; for example arguments (randomInteger, 1, 10)
-	 *  will assign random integer weights in 1..10.
 	 */
-	randomPropertyValues(propName, rand, ...args) {
-		if (!this[propName])
-			this.addEdgeProperty(propName,0);
-		for (let e = this.first(); e; e = this.next(e)) {
-			this[propName](e, rand(...args));
-		}
-	}
-
-	randomWeights(rand, ...args) {
-		return this.randomPropertyValues('weight', rand, ...args);
-	}
 }

@@ -61,7 +61,8 @@ export function isTint(c, gap) {
 
 /** Determine the largest tint for a graph */
 export function maxTint(g) {
-	if (!g.tint) return 0;
+	if (g.constructor.name == 'FanGraph')
+		return g.maxTint();
 	let max = 0;
 	for (let e = g.first(); e; e = g.next(e))
 		max = Math.max(max, g.tint(e));
@@ -84,9 +85,9 @@ export function maxColor(g) {
  *  @return the lower bound
  */
 export function degreeBound(g, gap=1) {
-	ae && assert(g.tint);
+	ae() && assert(g.tint);
 	let lb = 0;
-	if (g instanceof FanGraph) {
+	if (g.constructor.name == 'FanGraph') {
 		for (let v = g.ni+1; v <= g.n; v++) {
 			let d = g.degree(v);
 			let evec = []; let i = 0;
@@ -122,7 +123,7 @@ export function degreeBound(g, gap=1) {
  *  @return the lower bound
  */
 export function matchBound(g, gap=1) {
-	ae && assert(g.tint);
+	ae() && assert(g.tint);
 	let fc = new Graph(g.n, g.edgeRange);
 	let total = 0; let c; let cmax=0;
 	for (c = 1; total < g.m; c++) {
@@ -145,9 +146,9 @@ export function matchBound(g, gap=1) {
  *  @return the lower bound
  */
 export function iocntBound(g, gap=1) {
-	ae && assert(g.tint);
+	ae() && assert(g.tint);
 	let minTint = new Int32Array(g.n+1).fill(g.m);
-	if (g instanceof FanGraph) {
+	if (g.constructor.name == 'FanGraph') {
 		// when coloring fans, bound uses only output counts
 		for (let e = g.first(); e; e = g.next(e)) {
 			let v = g.output(e);
@@ -187,7 +188,7 @@ export function iocntBound(g, gap=1) {
  *  @return the lower bound
  */
 export function splitBound(g, gap=1) {
-	ae && assert(g.tint);
+	ae() && assert(g.tint);
 	let d = new Int32Array(g.n+1);
 	for (let u = 1; u <= g.n; u++) d[u] = g.degree(u);
 	let tmax = maxTint(g);
@@ -331,7 +332,7 @@ function adjustCapacities(g, d, tmax, fg, C, h) {
 export function layerBound(g) {
 	let f = new Int32Array(g.ni+1);
 	for (let u = 1; u <= g.ni; u++) f[u] = g.firstFanAt(u);
-	let ocnt = newInt32Array(g.n+1); let totalWidth = 0;
+	let ocnt = new Int32Array(g.n+1); let totalWidth = 0;
 	let done = 0;
 	while (!done) {
 		// count the number of times each output is used by fans in f
@@ -339,7 +340,7 @@ export function layerBound(g) {
 		for (let u = 1; u <= g.ni; u++) {
 			if (!f[u]) continue;
 			for (let e = g.firstEdgeIn(f[u]); e; e = g.nextEdgeIn(f[u],e)) {
-				let v = g.ouput(e);
+				let v = g.output(e);
 				width = Math.max(width, ++ocnt[v]);
 			}
 		}
@@ -402,12 +403,12 @@ export function ymBound(fcmax, odmax, no) {
 		b0 = b1;
 		b1 = (fcmax-1)*(k+1) + (odmax-1)*(no**(1/(k+1))) + 1;
 	}
-	return b0;
+	return Math.ceil(b0);
 }
 
 /** Return array of lower bounds on the number of colors required. */
 export function lowerBounds(g, gap=1) {
-	return g instanceof FanGraph ?
+	return g.constructor.name == 'FanGraph' ?
 				(g.tint ? [degreeBound(g,gap), iocntBound(g,gap)] :
 						  [Math.max(g.maxFanCount(), g.maxDegree()[1])]) :
 				(g.m > 500 ?
@@ -418,13 +419,13 @@ export function lowerBounds(g, gap=1) {
 /** Return array of upper bounds on the number of colors required. */
 export function upperBounds(g, gap=1) {
 	let tmax = (g.tint ? maxTint(g) : 1);
-	if (g instanceof FanGraph) {
+	if (g.constructor.name == 'FanGraph') {
 		let fcmax = g.maxFanCount();
 		let [,odmax] = g.maxDegree();
 		let no = g.no;
-		return [(tmax-1) + ymBound(fcmax,odmax,no),
-				(tmax-1) + kkpBound(fcmax,odmax,no),
-				(tmax-1) + layerBound(g)];
+		return [(tmax-1) + layerBound(g),
+				(tmax-1) + ymBound(fcmax,odmax,no),
+				(tmax-1) + kkpBound(fcmax,odmax,no)];
 	} else {
 		let clone = Graph.clone(g);
 		if (g.color) clone.reset_color();

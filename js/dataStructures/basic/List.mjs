@@ -335,7 +335,7 @@ export default class List extends Top {
 					  ':' + this.datum2string(this[name](j)) : ''));
 		}
 		let s = '';
-		for (let i = this.first(); i != 0; i = this.next(i)) {
+		for (let i = this.first(); i; i = this.next(i)) {
 			if (i != this.first()) s += ' ';
 			s += label(i);
 		}
@@ -373,12 +373,10 @@ export default class List extends Top {
 		if (arguments.length > 2 || hasProps) {
 			list.addProperty(propName, propDefault);
 		}
-		let name;
-		if (list.property(0)) [name] = list.property(0);
 		for (let i of l) {
 			list.enq(i);
 			if (propVals[i] != undefined)
-				list[name](i,propVals[i]);
+				list[propName](i,propVals[i]);
 		}
 		return list;
 	}

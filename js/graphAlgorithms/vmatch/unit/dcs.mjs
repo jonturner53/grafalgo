@@ -13,7 +13,8 @@ import dcsGT from '../dcsGT.mjs';
 import dcsVerify from '../dcsVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomInteger } from '../../../common/Random.mjs';
-import { randomGraph, randomBigraph } from '../../misc/RandomGraph.mjs';
+import { randomGraph, randomBigraph, randomWeights }
+		from '../../misc/RandomGraph.mjs';
 import ListPair from '../../../dataStructures/basic/ListPair.mjs';
 const ae = assertEnabled();
 
@@ -73,11 +74,11 @@ g.setBipartition(); [hi,lo] = bounds(g);
 tester.addTest('small weighted bigraph', g, hi, lo);
 
 g = new randomBigraph(10,3); [hi,lo] = bounds(g);
-g.randomWeights(randomInteger,0,9);
+randomWeights(g,randomInteger,0,9);
 tester.addTest('small random weighted bigraph (10,3)', g, hi, lo);
 
 g = new randomBigraph(100,6); [hi,lo] = bounds(g);
-g.randomWeights(randomInteger, 1, 99);
+randomWeights(g,randomInteger, 1, 99);
 tester.addTest('medium random weighted bigraph (100,6)', g, hi, lo);
 
 // general graphs
@@ -103,20 +104,20 @@ lo = [0,1,0,1,1,1,2,1,0,0,1,0,0,1,0,1,2];
 tester.addTest('small weighted graph hi/lo', g, hi, lo);
 
 g = randomGraph(20, 4); [hi,lo] = bounds(g);
-g.randomWeights(randomInteger,1,9);
+randomWeights(g,randomInteger,1,9);
 tester.addTest('small weighted random (20,4) hi', g, hi, 0);
 
 g = randomGraph(20, 4); [hi,lo] = bounds(g);
-g.randomWeights(randomInteger,1,9);
+randomWeights(g,randomInteger,1,9);
 tester.addTest('small weighted random (20,4) hi/lo', g, hi, lo);
 
 g = randomGraph(50, 6); [hi,lo] = bounds(g);
-g.randomWeights(randomInteger,1,19);
+randomWeights(g,randomInteger,1,19);
 tester.addTest('medium weighted random (50,6) hi', g, hi, 0);
 
 if (!ae) {
 	g = randomGraph(100, 10); [hi,lo] = bounds(g);
-	g.randomWeights(randomInteger,1,50);
+	randomWeights(g,randomInteger,1,50);
 	tester.addTest('large random weighted graph (100, 10) hi', g, hi, 0);
 }
 

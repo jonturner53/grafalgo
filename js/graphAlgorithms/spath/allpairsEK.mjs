@@ -50,7 +50,8 @@ export default function allpairsEK(g, trace) {
 	stats.stepsD = 0;
     for (let u = 1; u <= g.n; u++) {
         let [ulink,udist,,statsD] = sptD(g, u);
-		assert(ulink, 'program error: negative edges in transformed graph\n' + ts);
+		ae() && assert(ulink, 'program error: negative edges in ' +
+							  'transformed graph\n' + ts);
 		link.push(ulink); dist.push(udist);
 		stats.stepsD += statsD.steps;
         for (let v = 1; v <= g.n; v++) dist[u][v] -= (d[u]-d[v]);

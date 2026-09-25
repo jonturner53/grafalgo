@@ -15,7 +15,7 @@ import pmatchVerify from '../pmatchVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomInteger, randomFill, randomGeometric }
 	from '../../../common/Random.mjs';
-import { randomGraph, randomBigraph, randomRegularGraph }
+import { randomGraph, randomBigraph, randomRegularGraph,randomWeights }
 	from '../../misc/RandomGraph.mjs';
 
 import findSplit from '../../misc/findSplit.mjs';
@@ -86,7 +86,7 @@ tester.addTest('small random graph (25,4)', g, prio);
 let wg = new Graph(g.n, g.edgeRange); 
 for (let e = g.first(); e; e = g.next(e))
 	wg.join(g.left(e), g.right(e), e);
-wg.randomWeights(randomInteger,0,3);
+randomWeights(wg,randomInteger,0,3);
 tester.addTest('small random graph with weights (25,4)', wg, prio);
 
 g = randomGraph(100,10);

@@ -1,4 +1,4 @@
-/** \file testComponents.java
+/** \file testComponents.mjs
  *
  *  @author Jon Turner
  *  @date 2021
@@ -32,13 +32,12 @@ function getArgs() {
 function basicTests(trace=false) {
 	try {
 		console.log('testing components');
-	
-		let g = Graph.fromString('{a[b d e] b[a c f] c[b d f] d[a c e] ' +
-								 'e[a d] f[b c] g[h] h[g i] i[h]}', 9);
-	
+		let g = Graph.fromString(
+            '{a[b d g] b[a c h] c[b d h] d[a c g] ' +
+            'e[f] f[e i j] g[a d] h[b c] i[f j] j[f i]}');
 		let [k, ls, ts] = components(g, trace);
 		matches(k, 2, 'a1');
-		matches(ls, '{[a b c d e f] [g h i]}', 'a2');
+		matches(!!ls.setEquals(ls, '{[a b c d h g] [e f i j]}'), true, 'a2');
 		if (trace) console.log(ts);
 	} catch (e) {
 	    if (e instanceof Mismatch) {
@@ -50,4 +49,5 @@ function basicTests(trace=false) {
 		}
 	}
 }
+
 main();

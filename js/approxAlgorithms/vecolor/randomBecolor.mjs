@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
+import { assert, assertEnabled as ae } from '../../common/Assert.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { range, scramble } from '../../common/Random.mjs';
 import { randomRegularBigraph }
@@ -30,16 +30,15 @@ import { lowerBounds, upperBounds, maxColor, tintCount, itint, maxTint}
  *  that can be colored with cmax or fewer colors
  */
 export default function randomBecolor(ni, id, no=ni, reg=1, tmax=0, gap=1) {
-	let ae = assertEnabled();
-
-    // generate a random bipartite graph and color it
+    // generate a random bipartite graph
 	let g = randomRegularBigraph(ni, id, no, reg);
 	g.addEdgeProperty('tint', 0); g.addEdgeProperty('color', 0);
 	let [idmax,odmax] = g.maxDegree(); let dmax = Math.max(idmax, odmax);
 	if (!tmax) tmax = itint(idmax,gap);
 	let tcm = tintCount(tmax,gap);
-	ae && assert(tcm >= idmax);
+	ae() && assert(tcm >= idmax);
 
+	// assign random tints to edges at each input
 	let x = range(tcm);
 	for (let u = 1; u <= ni; u++) {
 		scramble(x); let i = 1;

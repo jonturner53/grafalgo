@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Assert.mjs';
+import { assert, assertEnabled as ae } from '../../common/Assert.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import Matching from '../match/Matching.mjs';
 import bimatchHK from '../match/bimatchHK.mjs';
@@ -25,7 +25,7 @@ let steps;		// number of steps (inner loops)
  *  the coloring is returned as integer edge weights in g
  */
 export default function mdmatchG(g, trace=0) {
-	assert(g.hasBipartition);
+	ae() && assert(g.hasBipartition);
 
 	// initialize supporting data structures
 	let degree = new Int32Array(g.n+1);

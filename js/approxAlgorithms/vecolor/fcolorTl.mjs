@@ -14,13 +14,13 @@ import FanLayers from './FanLayers.mjs';
 
 let g;	// shared reference to EGGraph object
 let egl;	// shared reference to FanLayers object
-let fcMax;  // largest group count
+let fcMax;  // largest fan count
 
 let trace;
 let traceString;
 
-/** Find an edge group coloring using Turner's layering method.
- *  @param g0 is a group graph to be colored.
+/** Find an edge fan coloring using Turner's layering method.
+ *  @param g0 is a fan graph to be colored.
  *  @param strict is a flag; when true, edges in each layer are assigned
  *  disjoint sets of colors
  *  @return pair [ts, stats]; the coloring is returned in g
@@ -49,27 +49,29 @@ export default function fcolorTl(g0, strict=false, traceFlag=0) {
 	}
 
 	color(thickness, strict);
-	let cmax = g.cmax();
+	let cmax = g.cmax;
 
 	if (trace) {
-		g.toString(0x9,(g) => g<=26 ? '-ABCDEFGHIJKLMNOPQRSTUVWXYZ'[g] : g)
+		traceString += '\ngraph with coloring: ' + g.toString(0x9);
 	}
-	return [traceString, {'cmax': cmax, 'max2min': (cmax/cmin).toFixed(2),
+	return [traceString, {'cmax': cmax, 'max/min': (cmax/cmin).toFixed(2),
 					  'thickness': totalThickness }];
 }
 
-/** Assign groups to layers, using maximum weight matchings to form layers.
+/** Assign fans to layers, using maximum weight matchings to form layers.
  */
 function buildLayers() {
-	// create vector of graph inputs in decreasing order of group counts
+	// create vector of graph inputs in decreasing order of fan counts
 	let invec = new Array(g.ni);
-	for (let u = 1; u <= g.ni; u++) invec[u-1] = [u,g.groupCount(u)];
+	for (let u = 1; u <= g.ni; u++) invec[u-1] = [u,g.fanCount(u)];
 	invec.sort((a,b) => b-a);
 
-	// initialize each layer with a group at the first input of invec;
+	// initialize each layer with a fan at the first input of invec;
 	// initialize olist, so olist[l]=outputs covered by layer i
 	let olist = new Array(fcMax+1);
-	for (let j = 1; j <= fcMax; j++) olist[j] = new List(g.n);
+	for (let j = 1; j <= fcMax; j++) {
+		olist[j] = new List(g.n); olist[j].addProperty('value',0);
+	}
 	let [u] = invec[0]; let l = 1;
 	for (let f = g.firstFanAt(u); f; f = g.nextFanAt(u,f)) {
 		egl.add(f,l);
@@ -80,16 +82,18 @@ function buildLayers() {
 	}
 
 	// create matching graph for expanding layers
-	let mg = new Graph(fcMax+g.ng, fcMax*g.ng);
-	mg.setBipartition(fcMax);
+	let mg = new Graph(fcMax+g.nf, fcMax*g.nf);
+	mg.addEdgeProperty('weight',0); mg.setBipartition(fcMax);
 
-	// for each input u, use matching to assign groups at u to layers
+	if (trace) traceString += 'matchings:\n'
+
+	// for each input u, use matching to assign fans at u to layers
 	for (let j = 1; j < invec.length; j++) { 
 		let [u] = invec[j];
 
-		// construct matching graph with edges (l,g) where l is a layer and
-		// g a group at u; set weight to number of outputs in olist[l] plus
-		// number of outputs in g, all the resulting layer thickness
+		// construct matching graph with edges (l,f) where l is a layer and
+		// f a fan at u; set weight to number of outputs already covered
+		// by l, divided by the resulting thickness if f is added to l
 		mg.clear();
 		for (let l = 1; l <= fcMax; l++) {
 			for (let f = g.firstFanAt(u); f; f = g.nextFanAt(u,f)) {
@@ -107,17 +111,17 @@ function buildLayers() {
 			}
 		}
 
-		// match groups in u to layers
+		// match fans in u to layers
 		let [match] = wbimatchH(mg);
 		if (trace) {
 			traceString += matching2string(match) + '\n';
 		}
 
-		// add each matched group to it's paired layer and
+		// add each matched fan to it's paired layer and
 		// add its outputs to the olist for that layer
 		for (let e = match.first(); e; e = match.next(e)) {
 			let l = mg.left(e); let f = mg.right(e)-fcMax;
-			egl.add(g,l); let ol = olist[l];
+			egl.add(f,l); let ol = olist[l];
 			for (let e = g.firstEdgeIn(f); e; e = g.nextEdgeIn(f,e)) {
 				let v = g.right(e);
 				if (ol.contains(v)) {

@@ -19,7 +19,7 @@ import FanGraph from './FanGraph.mjs';
 export default function fcolorSimple(g, trace=0) {
 	let ae = assertEnabled();
 
-	g.sortAllFans();
+	g.uncolor(); g.sortAllFans();
 	for (let f = g.firstFan(); f; f = g.nextFan(f)) {
 		let nc = 0;
 		for (let c = g.tint ? g.tint(f) : 1; nc < g.fanout(f); c++) {
@@ -34,7 +34,7 @@ export default function fcolorSimple(g, trace=0) {
 
 	let ts = '';
 	if (trace) ts += g.toString(0x9);
-	let cmax = g.cmax;
-	let lb = Math.max(maxFanCount(g), maxOutDegree(g));
-	return [ts, {'cmax': cmax, 'cmax2lb': (cmax/lb).toFixed(2)}];
+	let cmax = g.cmax; let [,odMax] = g.maxDegree();
+	let lb = Math.max(g.maxFanCount(), odMax);
+	return [ts, {'cmax': cmax, 'max/min': (cmax/lb).toFixed(2)}];
 }

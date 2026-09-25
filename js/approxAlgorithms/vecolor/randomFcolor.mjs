@@ -1,199 +1,142 @@
-/** \file randomEgc.mjs
+/** \file randomFcolor.mjs
  *
  *  @author Jon Turner
  *  @date 2025
  *  This is open source software licensed under the Apache 2.0 license.
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
-
-import { assert, assertEnabled } from '../../common/Assert.mjs';
+import { assert, assertEnabled as ae } from '../../common/Assert.mjs';
+import List from '../../dataStructures/basic/List.mjs';
 import { range, scramble, randomInteger } from '../../common/Random.mjs';
 import { randomFraction } from '../../common/Random.mjs';
 import { randomBigraph, randomRegularBigraph }
 		from '../../graphAlgorithms/misc/RandomGraph.mjs';
 import FanGraph from './FanGraph.mjs';
-import { itint, tcount, lowerBounds, upperBounds }
+import { itint, tintCount, lowerBounds, upperBounds }
 		 from './common.mjs';
 
-let ae;
-
-/** Generate a random test case.
+/** Generate a random test for the fan graph coloring problem.
  *  @param ni is the number of input vertices in the graph
- *  @param fc is the fan count at each input
+ *  @param fc is the average fan count at each input
  *  @param no is the number of outputs
- *  @param od is the avrage degree of the outputs
- *  @param reg determines how regular the underlying graph is;
- *  in particular, it allows the degrees to deviate from the
- *  target value by less than reg.
+ *  @param od is the average degree of the outputs
+ *  @param reg is a triple [ir,or,fr] that determines how regular
+ *  the graph is; [ir,or] controls the regularity of the input and output
+ *  degrees, fr controls the regularity of the fan count
  *  @param tmax is the largest tint, or 0 if no tints
  *  @param cmax is an upper limit on the number of colors needed to
  *  color the graph; must be at least as big as fc and od
  *  @param gap is a number >= 1 used in the crossbar scheduling application
  *  to model crossbars that can process packets at a faster rate than they
  *  arrive; this is done by increasing the assigned bounds in proportion
- *  to the speedup
-
-Alternate approach
-1. Assign a tint to the edges at each output.
-   Let F be set of tint values
-   for each edge e at output v
-		select a random tint f from F
-		if the number of previously selected tints >=f is <= Cmax-f,
-		let tint(e)=f and proceed to next edge
-		otherwise, remove f from F and try again
-2. Color the edges at each output.
-   Let C be the set of colors
-   for each edge e at output v in decreasing order of tint value
-	    select a color c>=tint(e) at random and assign it to e
-3. At each input u, partition the colors among the palettes of
-   the fans at u; assign the edges at u to fans based on their color
-   define the tint of each fan to be its smallest color
-
-   not good enough; smallest color may not be a tint
-
-Summary of current approach
-1. Select random colors for all edges.
-2. Assign a "primary color" to each fan at each input.
-3. Assign remaining colors to fans, where new colors are >= primary
-	each remaining color is assigned to a fan with a compatible tint;
-    could select any fan from among those with compatible tint,
-    or we could give preference to fans with tints that are close
-	to the color. Uniform assignment gives more colors to fans with
-	small tints, while geometric assignment assigns more evenly; could
-    also go evenly among sets of three, or could explicitly match colors
-	to fans; perhaps select series of random matchings
-    
-	Could just let each fan select a compatible color at random,
-	assigning these in top-down order, or assign a random palette
-	size for each fan and again select colors randomly from top
-	down. This allows for variation in the palette sizes and hence
-    the fan sizes; may want to enforce a regularity restriction
-	on palette sizes and fan count; given how small the number of
-	colors typically is, may just want to let it be random; note
-	there is a limit on the number of colors we can give a fan
-	with a large tint
-
-
-4. Place edges in fans based on their colors and the fan palettes.
-
-  
-
+ *  to the gap
  */
-export default function randomEgc(ni, fc, no=ni, od=fc, reg=1, fmax=0,
-								  cmax=Math.ceil(Math.max(fmax,fc,od)),
-								  speedup=1) {
-	ae = assertEnabled();
+export default function randomFcolor(ni, fc, no=ni, od=fc, reg=[1,1,1], tmax=0,
+								     cmax=0, gap=1) {
 	let id = no*od/ni;
-	ae && assert(fc <= id && od <= ni && id <= no && fmax <= cmax &&
-				 (!fmax || fc <= fcount(fmax)) && speedup >= 1);
-	
-	let erange = Math.ceil(od*no);
-	let nf = Math.ceil(ni*cmax);
-	let crange = 4*cmax;
-	let gap = speedup;
+	ae() && assert(od <= ni && id <= no && fc <= id && gap >= 1);
 
-	let g0 = randomRegularBigraph(ni, id, no, reg);
-	let	egg = new FanGraph(ni, no, nf, erange, crange, fmax>0)
-	for (let e = g0.first(); e; e = g0.next(e))
-		egg.join(g0.left(e), g0.right(e));
+	if (Number.isFinite(reg)) reg = [reg,reg,reg];
+	let g0 = randomRegularBigraph(ni, id, no, [reg[0],reg[1]]);
+	let [idmax,odmax] = g0.maxDegree();
+	g0.addEdgeProperty('color',0);
 
-	let [idmax,odmax] = egg.maxDegree();
-	ae && assert(cmax >= odmax);
-	let dmax = Math.max(fc, odmax);
-
-	// assign random colors to all edges; no color repeats at an output
-	// these are used to generate lower bounds later
-	let palette = range(cmax);
-	let color = new Int32Array(egg.edgeRange+1);
-	for (let v = ni+1; v <= egg.n; v++) {
-		scramble(palette); let c = 1;
-		for (let e = egg.firstAt(v); e; e = egg.nextAt(v,e)) {
-			color[e] = palette[c++];
+	// assign random colors to all edges in g0
+	// these will be used to assign edges to fans
+	let colorSet = range(cmax);
+	for (let v = ni+1; v <= g0.n; v++) {
+		scramble(colorSet); let i = 1;
+		for (let e = g0.firstAt(v); e; e = g0.nextAt(v,e)) {
+			g0.color(e,colorSet[i++]);
 		}
 	}
 
-	// at each input, assign colors to fans in a way that ensures
-	// that tints can be generated
-
-	// Recursive function used to select a random subset of colors in 1..cmax
-	// ensuring that the i-th selected color is >= itint(i);
-	// randomColors(lo, hi, cvec) fills in cvec[lo+1..hi-1]
-	function randomColors(lo, hi, cvec) {
-		if (hi-lo < 2) return;
-		let mid = ~~((lo+hi)/2);
-		// ae && assert(cvec[lo]+(itint(mid)-itint(lo),gap) <=
-		//				cvec[hi]-(hi-mid),
-		//				`${lo} ${hi} ${mid} [${cvec.slice(1,dmax+1)}]`);
-		cvec[mid] = randomInteger(cvec[lo]+(itint(mid,gap)-itint(lo,gap)), 
-							  	  cvec[hi]-(hi-mid));
-		randomColors(lo,mid,cvec); randomColors(mid,hi,cvec);
-	}
-
-	// at each input, partition the colors among the fans;
-	// first assign a primary to each fan, where the i-th fan's
-	// primary is >=itint(i)
-	// then distribute each remaining color to a fan with a smaller primary
-
-not accounting for fmax=0 case??
-in the absence of tints, we just assign colors randomly to fans and
-add edges to fans based on their color?
-
-	let free = new Int8Array(1+fcount(fmax,gap)); // identifies unused tints
-	let owner = new Array(ni+1); // owner[u][c] is fan that owns color c at u
-	let pri = new Int32Array(fc+2); // pri is vector of primary colors
-	let rem = new Int32Array((cmax-fc)+1); // rem is vector of remaining colors
-	pri[1] = 1; pri[fc+1] = cmax+1; // pri[fc+1] is dummy entry
+	// generate fan counts at inputs
+	ae() && assert(fc <= id)
+	let fanCount = new Int32Array(ni+1); let delta = reg[2]-.00001;
+	let nf = 0; let fcmax = 0;
 	for (let u = 1; u <= ni; u++) {
-		randomColors(1, fc+1, pri);
-		owner[u] = new Int32Array(cmax+1);
-		let i = 1;
-		for (let g = (u-1)*fc+1; g <= u*fc; g++) {
-			owner[u][pri[i++]] = g;
-		}
-		// next make vector of remaining colors
-		i = 1; let j = 1; let c = 1;
-		while (j < rem.length) {
-			if (c == pri[i]) i++;
-			else rem[j++] = c;
-			c++;
-		}
-		// now assign each remaining color to a fan with a smaller primary
-		let p = pri.length-1;
-		let r = rem.length-1;
-		while (r >= 1) {
-			while (pri[p] > rem[r]) p--;
-			for (let i = p; i; i--) {
-				if (i == 1 || randomFraction() < 0.5) {
-					owner[u][rem[r]] = owner[u][pri[i]];
-					break;
-				}
+		fanCount[u] = randomInteger(Math.ceil(fc-delta), Math.floor(fc+delta));
+		fanCount[u] = Math.min(fanCount[u], g0.degree(u));
+		fcmax = Math.max(fanCount[u], fcmax);
+		nf += fanCount[u];
+	}
+	if (!cmax) cmax = Math.max(tmax,fcmax,odmax);
+	ae() && assert(cmax >= Math.max(tmax,fcmax,odmax));
+	// construct FanGraph with same edges as g0
+	let	g = new FanGraph(ni, no, nf, g0.edgeRange, 4*cmax, tmax>0);
+	for (let e = g0.first(); e; e = g0.next(e)) {
+		g.join(g0.left(e), g0.right(e), e);
+	}
+
+	let ucolors;
+	let owner = new Int32Array(cmax+1);
+		// owner[c] is fan that owns c at current input, or 0
+
+	if (tmax == 0) {
+		ucolors = new List(cmax);
+	} else {
+		ae() && assert(tmax >= itint(fcmax,gap) && cmax >= Math.max(tmax),
+					 cmax, tmax, fcmax, gap);
+		// assign random tints to fans at each input
+		let tx = range(tintCount(tmax,gap)-1); // vector of tint indexes
+		let firstFan = 1;
+		for (let u = 1; u <= ni; u++) {
+			scramble(tx); owner.fill(0);
+			g.tint(firstFan, 1); // make sure tint 1 is assigned to some fan
+			let i = 1;
+			for (let f = firstFan+1; f < firstFan+fanCount[u]; f++) {
+				g.tint(f, itint(1+tx[i++],gap));
 			}
-			r--;
-		}
-		// now assign edges at u to fans based on their color
-		for (let e = egg.firstAt(u); e; e = egg.nextAt(u,e)) {
-			egg.add(e, owner[u][color[e]]);
-		}
-
-		if (fmax == 0) continue;
-
-		free.fill(1); // all tints available at u
-		let lo = 1; let hi = 1;  // sample from free tints in itint(lo..hi)
-		let freeCount = 1; // number of free tints in itint(lo..hi)
-		for (let g = (u-1)*fc+1; g <= u*fc; g++) {
-			while (!free[lo]) lo++; // skip past previously selected tints
-			let gpri = pri[1+(g-1)%fc];  // primary assigned to g
-			let delta = fcount(Math.min(gpri,fmax),gap) - hi;
-				// number of new tints that can be used for g
-			hi += delta; freeCount += delta;
-
-			let j = randomInteger(1,freeCount);
-			for (let i = lo; i <= hi; i++) {
-				if (free[i] && !(--j)) {
-					egg.tint(g,itint(i,gap)); free[i] = 0; freeCount--; break;
-				}
-			}
+			firstFan += fanCount[u];
 		}
 	}
-	return [egg, lowerBounds(egg), upperBounds(egg)];
+
+	// assign edges to fans at each input
+	let firstFan = 1;
+	for (let u = 1; u <= ni; u++) {
+		if (tmax == 0) { // fans have no tints
+			// assign each color at u to some fan at u
+			ucolors.clear();
+			for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
+				let c = g0.color(e);
+				if (!ucolors.contains(c)) ucolors.enq(c);
+			}
+			let i = 0;
+			for (let c = ucolors.first(); c; c = ucolors.next(c)) {
+				owner[c] = firstFan+i;
+				i = (i+1 < fanCount[u] ?  i+1 : 0);
+			}
+		} else {
+			// assign colors to fans, using tints to guide assignment
+			// first step, create vector of fans, sorted by tint
+			let fanVec = new Int32Array(fanCount[u]);
+			owner.fill(0); owner[1] = firstFan;
+			fanVec[0] = firstFan; let i = 1;
+			for (let f = firstFan+1; f < firstFan+fanCount[u]; f++) {
+				owner[g.tint(f)] = f; fanVec[i++] = f;
+			}
+			fanVec.sort((f1,f2)=>g.tint(f1)-g.tint(f2));
+	
+			// now assign each color to some a fan with a compatible tint
+			let k = fanCount[u]-1;
+			for (let c = cmax; c > 0; c--) {
+				if (owner[c]) continue;
+				// let k be largest integer with tint(fanVec[k]) <= c
+				while (g.tint(fanVec[k]) > c) k--;
+				// assign c to one of the fans close to fanVec[k]
+				let j = randomInteger(Math.max(0,k-4), k);
+				owner[c] = fanVec[j];
+			}
+		}
+
+		// finally, use colors to add edges to fans
+		for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
+			g.add(e, owner[g0.color(e)]);
+		}
+
+		firstFan += fanCount[u];
+	}
+
+	return [g, lowerBounds(g), upperBounds(g)];
 }

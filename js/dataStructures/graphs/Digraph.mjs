@@ -171,7 +171,7 @@ export default class Digraph extends Graph {
 	}
 
 	/** Compare two edges incident to the same endpoint u.
-	 *  @return -1 if u's mate in e1 is less than u's mate in e2,
+	*  @return -1 if u's mate in e1 is less than u's mate in e2,
 	 *  return +1 if u's mate in e1 is greater than than u's mate in e2,
 	 *  return  0 if u's mate in e1 is equal to its mate in e2.
 	 */
@@ -320,7 +320,6 @@ export default class Digraph extends Graph {
 			}
 		}
 
-
 		let g = new Digraph(n, Math.max(erange, pairs.length));
 		if (hasProps) g.addEdgeProperty(propName, defVal);
 
@@ -365,11 +364,11 @@ export default class Digraph extends Graph {
 	 *  random edge lengths; it is invoked using any extra arguments
 	 *  provided by caller; for example randomLengths(randomInteger, 1, 10)
      *  will assign random integer lengths in 1..10.
-	 */
 	randomLengths(rand, ...args) {
 		if (!this.length) this.addEdgeProperty('length', 0);
 		for (let e = this.first(); e; e = this.next(e)) {
 			this.length(e, rand(...args));
 		}
 	}
+	 */
 }

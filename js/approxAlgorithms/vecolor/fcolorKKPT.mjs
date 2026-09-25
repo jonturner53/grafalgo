@@ -17,7 +17,7 @@ import fcolorBsearch from './fcolorBsearch.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import wbimatchH from '../../graphAlgorithms/match/wbimatchH.mjs';
-import { lowerBounds } from './commonEgc.mjs';
+import { lowerBounds } from './common.mjs';
 
 /** Find a fan coloring using Turner's variant of Kirkpatrick,
  *  Klawe and Pippenger alorithm. If the graph to be colored has lower
@@ -29,19 +29,19 @@ import { lowerBounds } from './commonEgc.mjs';
  *  @return an EdgeGroupColors object
  */
 export default function fcolorKKPT(g, trace=0) {
-	let cmin = Math.max(lowerBounds(g));
+	let cmin = Math.max(...lowerBounds(g));
 	fcolorBsearch(coreKKPT, g, cmin, g.crange);
 
 	let ts = '';
 	if (trace) ts += g.toString(0x9);
 
 	let cmax = g.cmax;
-	return [ts, {'cmax': cmax, 'cmin':cmin, 'max2min': (cmax/cmin).toFixed(2)}];
+	return [ts, {'cmax': cmax, 'cmin':cmin, 'max/min': (cmax/cmin).toFixed(2)}];
 }
 
 export function coreKKPT(g, C) {
 	// define a palette graph
-	let Delta_o = maxOutDegree(g);
+	let [,Delta_o] = g.maxDegree();
 	let pg = new Graph(g.nf+C, Delta_o*C);
 	pg.setBipartition(g.nf);
 
@@ -84,7 +84,7 @@ export function coreKKPT(g, C) {
 		[match] = wbimatchH(xg);
 		for (let e = match.first(); e; e = match.next(e)) {
 			let f = xg.left(e); let c = xg.right(e) - g.nf;
-			if (!g.owner(c,g.hub(f))) g.bind(c,g);
+			if (!g.owner(c,g.hub(f))) g.bind(c,f);
 		}
 	}
 	g.colorFromPalettes();

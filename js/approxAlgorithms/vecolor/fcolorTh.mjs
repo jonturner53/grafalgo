@@ -13,7 +13,7 @@ import ListPair from '../../dataStructures/basic/ListPair.mjs';
 import ListSet from '../../dataStructures/basic/ListSet.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { coreKKPT } from './fcolorKKPT.mjs';
-import { lowerBounds } from './commonEgc.mjs';
+import { lowerBounds } from './common.mjs';
 import fcolorBsearch from './fcolorBsearch.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
@@ -28,27 +28,24 @@ import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 export default function fcolorTh(g, imethod, trace) {
 	let deficit;  // initial deficit from last successful call to core
 	let core = function(g, C) {
-		let fcolor = imethod(g, C);
-		let def = g.graph.m - fcolor.numberColored();
-		if (fcolor.complete()) {
-			deficit = def; return fcolor;
-		}
-		fcolor = coreKKPT(g, C, fcolor);
-		if (fcolor.complete()) deficit = def;
-		return fcolor;
+		imethod(g, C);
+		let def = g.m - g.num_colored;
+		if (g.complete()) { deficit = 0; return; }
+		coreKKPT(g, C);
+		if (g.complete()) deficit = def;
 	}
 
 	let cmin = Math.max(... lowerBounds(g));
 	g.sortAllFans();
-	let fcolor = fcolorBsearch(core, g, cmin, g.crange);
+	fcolorBsearch(core, g, cmin, g.crange);
 
 	let ts = '';
 	if (trace) {
 		ts += 'initial deficit: ' + deficit + '\n';
-		ts += g.toString(0x9,g=>fcolor.palette2string(g)) + '\n';
+		ts += g.toString(0x9) + '\n';
 	}
 
-	let cmax = fcolor.maxColor();
-	return [ts, {'cmax': cmax, 'cmin':cmin, 'max2min': (cmax/cmin).toFixed(2),
+	let cmax = g.cmax;
+	return [ts, {'cmax': cmax, 'cmin':cmin, 'max/min': (cmax/cmin).toFixed(2),
 			'deficit': deficit}];
 }

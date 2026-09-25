@@ -20,7 +20,8 @@ import matchVerify from '../matchVerify.mjs';
 import wmatchVerify from '../wmatchVerify.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomInteger } from '../../../common/Random.mjs';
-import { randomGraph, randomBigraph } from '../../misc/RandomGraph.mjs';
+import { randomGraph, randomBigraph, randomWeights }
+		from '../../misc/RandomGraph.mjs';
 import ListPair from '../../../dataStructures/basic/ListPair.mjs';
 const ae = assertEnabled();
 
@@ -83,10 +84,10 @@ g = Graph.fromString('{a[f:3 g:2 j:1] b[h:2 g:3 i:6] c[f:1 i:6 j:1] ' +
 g.setBipartition();
 tester.addTest('small weighted bigraph', g);
 
-g = randomBigraph(8,3); g.randomWeights(randomInteger,1,9);
+g = randomBigraph(8,3); randomWeights(g, randomInteger,1,9);
 tester.addTest('small random weighted bigraph (8,3)', g);
 
-g = randomBigraph(100, 3); g.randomWeights(randomInteger, 1, 99);
+g = randomBigraph(100, 3); randomWeights(g, randomInteger, 1, 99);
 tester.addTest('medium random weighted bigraph (100,3)', g);
 	
 // unweighted general graphs
@@ -120,19 +121,19 @@ g = Graph.fromString('{a[b:3 h:1 j:3 k:3] b[f:2 g:1 j:3 p:2] c[f:1 m:1] ' +
 			  		 'k[p:3] l[o:1] m[o:2 p:1] }');
 tester.addTest('small weighted graph', g);
 
-g = randomGraph(20,3); g.randomWeights(randomInteger,1,9);
+g = randomGraph(20,3); randomWeights(g, randomInteger,1,9);
 tester.addTest('small random weighted (20,3)', g);
 
-g = randomGraph(100,20); g.randomWeights(randomInteger,1,99);
+g = randomGraph(100,20); randomWeights(g, randomInteger,1,99);
 tester.addTest('medium random weighted(100,20)', g);
 if (!ae) {
-	g = randomGraph(400, 5); g.randomWeights(randomInteger,1,99);
+	g = randomGraph(400, 5); randomWeights(g, randomInteger,1,99);
 	tester.addTest('large random weighted sparse (400,5)', g);
 	
-	g = randomGraph(400, 20); g.randomWeights(randomInteger,1,99);
+	g = randomGraph(400, 20); randomWeights(g, randomInteger,1,99);
 	tester.addTest('large random weighted (400,20)', g);
 	
-	g = randomGraph(400, 80); g.randomWeights(randomInteger,1,99);
+	g = randomGraph(400, 80); randomWeights(g, randomInteger,1,99);
 	tester.addTest('large random dense (weighted 400,80)', g);
 }
 

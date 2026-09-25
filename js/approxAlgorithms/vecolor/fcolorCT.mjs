@@ -15,6 +15,7 @@ import fcolorBsearch from './fcolorBsearch.mjs';
 import mcflowJEK from '../../graphAlgorithms/mcflow/mcflowJEK.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 import setCoverC from '../setCover/setCoverC.mjs';
+import {lowerBounds} from './common.mjs';
 
 /** Find an edge fan coloring using repeated applications of Chvatal's
  *  greedy set covering algorithm.
@@ -30,10 +31,11 @@ export default function fcolorCT(g, trace) {
 	if (trace) ts += g.toString(0x9);
 
 	let cmax = g.cmax;
-	return [ts, {'C':cmax, 'cmin':cmin, 'R': (cmax/cmin).toFixed(2)}];
+	return [ts, {'cmax':cmax, 'cmin':cmin, 'max/min': (cmax/cmin).toFixed(2)}];
 }
 
 export function coreCT(g, cmax) {
+//console.log('ct0', cmax, g.toString(0x9));
 	// build set cover graph with edges (f,v) where f is a fan and v an output
 	let scg = new Graph(g.nf + g.no, g.m);
 	scg.setBipartition(g.nf);

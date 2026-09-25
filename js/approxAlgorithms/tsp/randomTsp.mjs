@@ -6,12 +6,14 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
+import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
 import allpairsF from '../../graphAlgorithms/spath/allpairsF.mjs';
 import { randomPermutation, randomInteger, randomFraction}
 		from '../../common/Random.mjs';
-import { add2graph } from '../../graphAlgorithms/misc/RandomGraph.mjs';
+import { add2graph, randomLengths }
+		from '../../graphAlgorithms/misc/RandomGraph.mjs';
 
 /** Generate a random TSP instance.
  *  @param n is the number of cities in the tsp instance
@@ -32,7 +34,7 @@ import { add2graph } from '../../graphAlgorithms/misc/RandomGraph.mjs';
 export default function randomTsp(n, d, scale=1, rand=[randomFraction],
 								  asym=0, tri=!asym) {
 	let m = (asym ? d*n : ~~(d*n/2));
-	let g = (asym ? new Digraph(n,m+n) : new Graph(n,m+n));
+	let g = (asym ? new Digraph(n,m) : new Graph(n,m));
 					// extra edge space so algorithms can add implicit edges
 	g.addEdgeProperty('length', 0);
 	g.weight = g.length; // adding an alias for length method
@@ -43,7 +45,9 @@ export default function randomTsp(n, d, scale=1, rand=[randomFraction],
 	for (let u = 1; u < n; u++) seed[i++] = g.join(p[u],p[u+1]);
 	seed[n-1] = g.join(p[n],p[1]);
 
-	add2graph(g, d, g.n-1, 0); g.randomWeights(...rand);
+	let vertices = new List(g.n); vertices.range(1,g.n);
+	add2graph(g, asym ? d-1 : d-2, g.n, vertices, vertices, 0);
+	randomLengths(g, ...rand);
 
 	// apply scale factor to seed edges.
 	for (let e of seed)

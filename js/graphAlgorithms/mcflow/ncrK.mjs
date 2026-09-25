@@ -49,7 +49,7 @@ export default function ncrK(fg, traceFlag=false) {
 	while (u != 0) {
 		augment(u, trace); u = findCycle(); cycles++;
 	}
-	if (trace) traceString += '\n' + g.toString(1);
+	if (trace) traceString += '\n' + g.toString(0x9);
 	g = Cost = link = q = cycleIds = null;
 	return [ traceString, { 'cycles':cycles, 'passes':passes, 'steps':steps} ];
 }

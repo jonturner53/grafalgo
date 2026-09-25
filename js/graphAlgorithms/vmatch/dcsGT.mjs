@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
+import { assert, assertEnabled as ae } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Matching from '../match/Matching.mjs';
@@ -188,7 +188,7 @@ export function tutteGraph(g,hi) {
 	let b = 1;
 	for (let u = 1; u <= g.n; u++) {
 		d[u] = g.degree(u); base[u] = b;
-		assert(0 <= hi[u] && hi[u] <= d[u]);
+		ae() && assert(0 <= hi[u] && hi[u] <= d[u]);
 		let nu = 2*d[u] - hi[u];
 		b += nu; n += nu; m += d[u]*(d[u]-hi[u]);
 		steps++;

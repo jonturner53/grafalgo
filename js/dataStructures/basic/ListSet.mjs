@@ -97,10 +97,14 @@ export default class ListSet extends Top {
 		for (let i = 1; i <= this.n; i++) {
 			this.next_[i] = 0; this.prev_[i] = i;
 		}
+		if (!this.first_) return;
+		for (let i = 0; i < this.first_.length; i++)
+			this.first_[i] = 0;
 	}
 
 	first(l) {
-		ae && assert(this.first_ && l < this.first_.length);
+		ae && assert(this.first_ && l < this.first_.length,
+					 `${l} [${this.first_}] ${this.first_.length}`);
 		return this.first_[l];
 	}
 
@@ -129,7 +133,8 @@ export default class ListSet extends Top {
 	 *  @param l is a numbered list
 	 */
 	remove(i, l) {
-		ae && assert(this.first_ && l < this.first_.length);
+		ae && assert(this.first_ && l < this.first_.length,
+				     `${i} ${l} ${this.first_}`);
 		this.first_[l] = this.delete(i, this.first_[l]);
 	}
 
@@ -143,8 +148,9 @@ export default class ListSet extends Top {
 	 *  @return the last item in the list
 	 */
 	last(f) {
-		ae && assert(this.isfirst(f), this.x2s(f) + ' ' + this.isfirst(f) + ' ' + this.prev_[f] + ' ' +
-		this.next_[this.prev_[f]]);
+		ae && assert(this.isfirst(f),
+						`${this.x2s(f)} ${this.isfirst(f)} ` +
+						`${this.prev_[f]} ${this.next_[this.prev_[f]]}`);
 		return this.prev_[f];
 	}
 
