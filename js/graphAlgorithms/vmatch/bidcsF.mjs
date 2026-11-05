@@ -32,8 +32,8 @@ export default function bidcsF(g, hi, lo=0, trace=0) {
 
 	// create flow graph, taking care to maintain edge numbers
 	let fg = new Flograph(g.n+2, g.n+g.edgeRange);
-	fg.addEdgeProperty('floor', 0);
-	if (g.weight) fg.addEdgeProperty('cost', 0);
+	fg.addEdgeProperty(['floor',0]);
+	if (g.weight) fg.addEdgeProperty(['cost',0]);
 	fg.source = g.n+1; fg.sink = g.n+2;
 	for (let e = g.first(); e; e = g.next(e)) {
 		steps++;
@@ -70,7 +70,7 @@ export default function bidcsF(g, hi, lo=0, trace=0) {
 
 	// construct dcs from flow
 	let dcs = new Graph(g.n,g.edgeRange);
-	if (g.weight) dcs.addEdgeProperty('weight', 0);
+	if (g.weight) dcs.addEdgeProperty(['weight',0]);
 	let weight = 0;
 	dcs.setBipartition(g.getBipartition());
 	for (let e = g.first(); e; e = g.next(e)) {

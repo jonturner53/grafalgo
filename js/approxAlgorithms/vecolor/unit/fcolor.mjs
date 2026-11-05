@@ -25,7 +25,7 @@ import { randomGraph } from '../../../graphAlgorithms/misc/RandomGraph.mjs';
 import { default as random } from '../randomFcolor.mjs';
 import verify from '../verify.mjs';
 
-disableAssert();
+//disableAssert();
 
 let algomap = {
 	'simple' : ['simple ', simple, verify ],

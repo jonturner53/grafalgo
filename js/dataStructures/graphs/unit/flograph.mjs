@@ -29,7 +29,7 @@ try {
 	g.addFlow(e2, 1, 2); g.addFlow(e1, 2, 2);
 	matches(g, '{a->[b:4/1 c:3/2] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}', 'a6');
 	matches(g.totalFlow(), 3, 'a7');
-	g.addEdgeProperty('cost', 0); g.cost(g.findEdge(1,2), 5);
+	g.addEdgeProperty(['cost',0]); g.cost(g.findEdge(1,2), 5);
 	matches(g, '{a->[b:4@5/1 c:3/2] b[c:3 d:4] c[e:4] d[f:4] e[f:3] ->f}','a8');
 	g = Flograph.fromString('{a->[b:4@5/1 c:3/2] b[c:3@7 d:1-4@3/2] c[e:4] ' +
                         'd[f:2-4/2] e[f:3] ->f}');

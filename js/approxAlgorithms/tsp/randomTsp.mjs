@@ -36,8 +36,7 @@ export default function randomTsp(n, d, scale=1, rand=[randomFraction],
 	let m = (asym ? d*n : ~~(d*n/2));
 	let g = (asym ? new Digraph(n,m) : new Graph(n,m));
 					// extra edge space so algorithms can add implicit edges
-	g.addEdgeProperty('length', 0);
-	g.weight = g.length; // adding an alias for length method
+	g.addEdgeProperty(['length',0]);
 
 	// compute random "seed" tour
 	let p = randomPermutation(n);
@@ -64,7 +63,7 @@ export default function randomTsp(n, d, scale=1, rand=[randomFraction],
 function enforceTriangleInequality(g) {
 	let dg = g;
 	if (!(dg instanceof Digraph)) {
-		dg = new Digraph(g.n, 2*g.m, 'length', 0);
+		dg = new Digraph(g.n, 2*g.m, ['length',0]);
 		for (let e = g.first(); e; e = g.next(e)) {
 			let de = dg.join(g.left(e),g.right(e)); dg.length(de, g.length(e));
 				de = dg.join(g.right(e),g.left(e)); dg.length(de, g.length(e));

@@ -13,8 +13,7 @@ import BalancedForest from '../BalancedForest.mjs';
 try {
 	console.log('testing BalancedForest');
 
-	let f = BalancedForest.fromString(
-		'{[a b c d e] [h i j k l m n o p q r]}');
+	let f = BalancedForest.fromString('{[a b c d e] [h i j k l m n o p q r]}');
 	matches(!!f, true, 'a0');
 	let s = f.verify();
 	matches(s, '', 'a1 ' + s);
@@ -23,6 +22,7 @@ try {
 			'{[a *b:2 (c d e)] [(h i:2 j) *k:3 (l m:2 (n o:2 (p q r)))]}',
 			'a3');
 	f.split(14); s = f.verify(); matches(s, '', 'a4 ' + s);
+			 //{[a b c d e] f g [h i j k l m] n [o p q r]}
 	matches(f,'{[a b c d e] [h i j k l m] [o p q r]}','a5');
 	matches(f.toString(0xc),
 			'{[a *b:2 (c d e)] [h *i:2 (j k:2 (- l m))] [(o p -) *q:2 r]}',
@@ -46,31 +46,32 @@ try {
 
 	f = BalancedForest.fromString('{[a b c d e] [h i j k] [l m n p q r]}');
 	matches(f.toString(0xc),
-			'{[a *b:2 (c d e)] [h *i:2 (- j k)] [l *m:2 (n p:2 (- q r))]}',
-			'b1');
-	let key = new Float32Array(18);
-	for (let i = 0; i <= 18; i++) key[i] = i;
-	matches(f.search(11,9,key), 11, 'b2');
+			'{[a *b:2 (c d e)] [h *i:2 (- j k)] [l *m:2 (n p:2 (- q r))]}', 'b1');
 
-	key[15] = 10.5;
-	f.insertByKey(15, 13, key);
-	matches(f.toString(0xc),
-			'{[a *b:2 (c d e)] [h *i:2 (- j k)] ' +
-			'[(o l -) *m:2 (n p:2 (- q r))]}', 'b3');
+	f.addProperty(['key',0]);
+	for (let i = 0; i <= 18; i++) f.key(i,i);
+	matches(f.search(11,9), 11, 'b2');
 
-	f.insertAfter(6, 14, 13);
+	f.key(15,10.5);
+	f.insertByKey(15, 13);
 	matches(f.toString(0xc),
-			'{[a *b:2 (c d e)] [h *i:2 (- j k)] ' +
-			 '[(o l -) *m:2 ((- n f) p:2 (- q r))]}', 'b4');
+			'{[a:1 *b:2:2 (c:3 d:4 e:5)] [h:8 *i:9:2 (- j:10 k:11)] ' +
+			'[(o:10.5 l:12 -) *m:13:2 (n:14 p:16:2 (- q:17 r:18))]}', 'b3');
+
+	f.key(6, 15)
+	f.insertByKey(6, 13);
+	matches(f.toString(0xc),
+			'{[a:1 *b:2:2 (c:3 d:4 e:5)] [h:8 *i:9:2 (- j:10 k:11)] ' +
+			'[(o:10.5 l:12 -) *m:13:2 ((- n:14 f:15) p:16:2 (- q:17 r:18))]}', 'b4');
 
 	let compare = (a,b) => a.localeCompare(b);
-	f = new BalancedForest();
-	key = [ '', 'abc', 'bcd', 'cde', 'def' ];
-	f.insertByKey(1, 0, key, compare);
-	f.insertByKey(2, 1, key, compare);
-	f.insertByKey(3, 2, key, compare);
-	f.insertByKey(4, 2, key, compare);
-	matches(f.toString(4,u => `${f.x2s(u)}:"${key[u]}"`),
+	f = new BalancedForest(6,['key',0]);
+	f.key(1,'abc'); f.key(2,'bcd'); f.key(3,'cde'); f.key(4,'def');
+	f.insertByKey(1, 0, compare);
+	f.insertByKey(2, 1, compare);
+	f.insertByKey(3, 2, compare);
+	f.insertByKey(4, 2, compare);
+	matches(f.toString(4), //,u => `${f.x2s(u)}:"${key[u]}"`),
 		   '{[a:"abc" *b:"bcd" (- c:"cde" d:"def")]}','f5');
 
 } catch(e) {

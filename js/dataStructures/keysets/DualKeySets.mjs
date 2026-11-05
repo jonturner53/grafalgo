@@ -10,14 +10,14 @@ import Top from '../Top.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import KeySets from './KeySets.mjs';
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 
 /** This class implements a key set with two integer keys.
  *  The primary key is the usual one. The data structure supports
  *  an efficient findmin operation on the secondary key, where
  *  the search is limited to those items with a primary key
  *  value less than or equal to a specified bound.
+ *  Note: only numeric keys are supported
  */
 export default class DualKeySets extends KeySets {
 	key_2;		 // key_2[u] is second key value
@@ -27,7 +27,6 @@ export default class DualKeySets extends KeySets {
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) {
-	ae = assertEnabled();
 		super(n);
 		this.key_2 = new Array(this.n+1);
 		this.min_2 = new Array(this.n+1);
@@ -87,7 +86,7 @@ export default class DualKeySets extends KeySets {
 		
 	/** Extend rotation operation to maintain min2 field. */
 	rotate(x) {
-		let y = this.p(x);
+		let y = this.parent(x);
 		if (y == 0) return;
 		super.rotate(x);
 		this.min2(x, this.min2(y));
@@ -110,7 +109,7 @@ export default class DualKeySets extends KeySets {
 	refresh(u) {
 		while (u != 0) {
 			this.update2(u);
-			u = this.p(u);
+			u = this.parent(u);
 			this.steps++;
 		}
 	}
@@ -147,9 +146,8 @@ export default class DualKeySets extends KeySets {
 	 *  @return true if both represent the same sets and the
 	 *  keys match; otherwise return false
 	 */
-	equals(that) {
-		that = super.listEquals(...(arguments.length == 1 ?
-										[that, this.n] : arguments));
+	equals(that, ...args) {
+		that = super.listEquals(that, ...(args.length ? args : [this.n]));
 		if (typeof that == 'boolean') return that;
 		for (let u = 1; u <= this.n; u++) {
 			if (this.key2(u) != that.key2(u)) return false;
@@ -168,7 +166,8 @@ export default class DualKeySets extends KeySets {
 	toString(fmt=0x00, label=0) {
 		if (!label) {
 			label = (u => {
-						let s = `${this.x2s(u)}:${this.key(u)}:${this.key2(u)}`;
+						let s = `${this.x2s(u,0)}:${this.key(u)}` +
+								 `:${this.key2(u)}`;
 						if ((fmt&8) && (fmt&4) && (this.min2(u)!=this.key2(u)))
 							s += `:${this.min2(u)}`;
 						return s;
@@ -183,7 +182,7 @@ export default class DualKeySets extends KeySets {
 	 */
 	static fromString(s, n=10) {
 		let key = []; let key2 = [];
-		let ls = ListSet.fromString(s, n, 0, 0, 0,
+		let ls = ListSet.fromString(s, n, 0, [], 
 						(u,sc) => {
 							if (!sc.verify(':',0)) return false;
 							let p = sc.nextNumber();

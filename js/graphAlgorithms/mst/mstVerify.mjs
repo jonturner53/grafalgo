@@ -28,7 +28,7 @@ let t;			// t of g (represented as graph)
 export default function mstVerify(G, elist) {
 	// first initialize shared references to G and graph version of mst
 	g = G;
-	let t0 = new Graph(g.n, g.n-1, 'weight', 0);
+	let t0 = new Graph(g.n, g.n-1, ['weight',0]);
 	for (let i = 0; i < elist.length; i++) {
 		let e = elist[i];
 		if (e <= 0) continue;
@@ -46,7 +46,7 @@ export default function mstVerify(G, elist) {
 
 	// create expanded version of t with extra vertex to link components
 	// then check weights
-	t = new Graph(t0.n+1, t0.m+tcc, 'weight', 0);
+	t = new Graph(t0.n+1, t0.m+tcc, ['weight',0]);
 	for (let e = t0.first(); e; e = t0.next(e))
 		t.join(t0.left(e), t0.right(e), e);
 	for (let u = 1; u < t.n; u++) {
@@ -82,7 +82,7 @@ function checkWeight(u=1, pu=u) {
 			let x = q.deq();
 			for (let e = t.firstAt(x); e; e = t.nextAt(x,e)) {
 				let y = t.mate(x,e);
-				if (!f.p(y)) { f.link(y,x); q.enq(y); }
+				if (!f.parent(y)) { f.link(y,x); q.enq(y); }
 			}
 		}
 		let ncav = nca(f, g);

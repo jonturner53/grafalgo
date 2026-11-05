@@ -12,14 +12,13 @@ import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import LeftistHeaps from './LeftistHeaps.mjs';
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 
 /** This class implements a data structure consisting of a disjoint
  *  set of leftist heaps.
  */
 export default class LazyHeaps extends LeftistHeaps {
-	nn;			 // number of items in heap from client perspective
+	nn;			 // number of items in heaps from client perspective
 	node_range;	 // total number of items, including dummy nodes
 	dummy_;      // first node in list of free dummy nodes
 	retired_;    // retired_ is either a user-supplied function
@@ -34,10 +33,10 @@ export default class LazyHeaps extends LeftistHeaps {
 	 *  to determine which nodes are retired.
 	 */
 	constructor(n=10, retired=null) {
-		ae = assertEnabled();
 		super(2*n); this.nn = n; this.node_range = 2*n;
 
-		for (let i = this.nn+1; i <= this.node_range; i++) this.rank(i,this.nn+1);
+		for (let i = this.nn+1; i <= this.node_range; i++)
+			this.rank(i,this.nn+1);
 		this.plist = new List(this.nn);
 		if (retired != null) this.retired_ = retired;
 		else this.retired_ = new Int8Array(this.nn+1).fill(false);
@@ -49,13 +48,14 @@ export default class LazyHeaps extends LeftistHeaps {
 		this.clearStats();
 	}
 
-	//get n() { return this.nn; }
 
 	/** Revert to initial state. */
 	clear() {
 		super.clear();
-		for (let i = this.nn+1; i <= this.node_range; i++) this.rank(i,this.nn+1);
-		for (let i = this.nn+1; i < this.node_range; i++) this.link(i+1,i,1);
+		for (let i = this.nn+1; i <= this.node_range; i++)
+			this.rank(i,this.nn+1);
+		for (let i = this.nn+1; i < this.node_range; i++)
+			this.link(i+1,i,1);
 		this.dummy_ = this.nn+1;
 	}
 
@@ -128,7 +128,7 @@ export default class LazyHeaps extends LeftistHeaps {
 	purge(h) {
 		if (h == 0) return;
 		this.purgesteps++;
-		ae && assert(this.valid(h));
+		ae() && assert(this.valid(h));
 		if (this.isactive(h)) {
 			this.plist.enq(h);
 		} else {
@@ -138,14 +138,14 @@ export default class LazyHeaps extends LeftistHeaps {
 			}
 			this.rank(h,this.nn+1);
 		}
-		if (this.p(h)) this.cut(h); 
+		if (this.parent(h)) this.cut(h); 
 	}
 
 	/** Lazy meld a pair of heaps */
 	lazyMeld(h1, h2) {
 		if (h1 == 0) return h2;
 		if (h2 == 0) return h1;
-		ae && assert(this.valid(h1) && this.valid(h2) && this.dummy_);
+		ae() && assert(this.valid(h1) && this.valid(h2) && this.dummy_);
 		if (this.rank(h1) < this.rank(h2)) {
 			let h = h1; h1 = h2; h2 = h;
 		}
@@ -161,21 +161,10 @@ export default class LazyHeaps extends LeftistHeaps {
 	 *  @param that is a LazyHeaps object to be compared to this
 	 *  @return true if both represent the same sets.
 	 */
-	equals(that) {
-		// implementation note: not using super classes to assist
-		// with implementation due to the presence of dummy nodes
-		if (this === that) return true;
-        if (typeof that == 'string') {
-            let s = that;
-			that = LazyHeaps.fromString(s, this.n, this.retired_);
-			assert(typeof that === 'object', 
-				   'LazyHeaps.fromString: ' +
-			             'called by .equals() cannot parse ' + s);
-        } else if (that.constructor.name != 'LazyHeaps') {
-			return false;
-        } else if (this.nn != that.nn) {
-			return false;
-		}
+	equals(that, ...args) {
+		that = Top.equals(this, that, ...(args.length ? args :
+											[this.n, this.retired_]));
+		if (typeof(that) == 'boolean') return that;
 
 		let ls1 = this.toListSet(); let ls2 = that.toListSet();
 		if (!ls1.setEquals(ls2)) return false;
@@ -193,7 +182,7 @@ export default class LazyHeaps extends LeftistHeaps {
 	toListSet() {
 		let ls = new ListSet(this.nn);
 		for (let h = 1; h <= this.node_range; h++) {
-			if (this.p(h) || h == this.dummy_) continue;
+			if (this.parent(h) || h == this.dummy_) continue;
 			let f = this.first(h);
 			for (let u = this.next(f); u; u = this.next(u)) {
 				if (this.isactive(u)) ls.join(f,u);
@@ -215,7 +204,7 @@ export default class LazyHeaps extends LeftistHeaps {
 	 *  heap is included in the string.
 	 */
 	toString(fmt=0x2, label=0, selectHeap=0) {
-		if (!label) label = x => `${this.x2s(x)}:${this.key(x)}`;
+		if (!label) label = x => `${this.x2s(x)}`;
 		if (!(fmt&4)) return this.toListSet().toString(fmt&3,label);
 
 		let xlabel = x => this.isdummy(x) ? 'D' : 
@@ -224,7 +213,7 @@ export default class LazyHeaps extends LeftistHeaps {
 											`:${this.rank(x)}` : ''));
 		let s = '';
 		for (let h = 1; h <= this.node_range; h++) {
-			if (this.p(h) || h == this.dummy_) continue;
+			if (this.parent(h) || h == this.dummy_) continue;
 			if (this.singleton(h) && !(fmt&0x2)) continue;
 			if (selectHeap && h != selectHeap) continue;
 			if (!(fmt&0x01) && s) s += ' ';
@@ -243,26 +232,17 @@ export default class LazyHeaps extends LeftistHeaps {
 	 *  @return true on if success, else false
 	 */
 	static fromString(s, n=10, retired=null) {
-		let key = [];
-		let ls = ListSet.fromString(s, n, 0, 0, 0,
-						(u,sc) => {
-							if (!sc.verify(':',0)) {
-								key[u] = 0; return true;
-							}
-							let p = sc.nextNumber();
-							if (Number.isNaN(p)) return false;
-							key[u] = p;
-							return true;
-						});
+		let ls = ListSet.fromString(s, n/2, 0, ['key',0]);
 
 		if (!ls) return null;
 		let lh = new LazyHeaps(ls.n, retired);
+
+		for (let u = 1; u <= ls.n; u++) lh.key(u,ls.key(u));
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
-			lh.key(u, key[u]);
 			let h = u;
 			for (let i = ls.next(u); i; i = ls.next(i))
-				h = lh.insert(i, h, key[i]);
+				h = lh.insert(i,h);
 		}
 		return lh;
 	}

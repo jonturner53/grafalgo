@@ -17,7 +17,7 @@ import sptBM from '../spath/sptBM.mjs';
  */
 export default function mcflowVerify(g) {
 	// create residual graph of g
-	let rg = new Digraph(g.n, 2*g.m, 'length', 0);
+	let rg = new Digraph(g.n, 2*g.m, ['length',0]);
 	for (let e = g.first(); e != 0; e = g.next(e)) {
 		let u = g.tail(e); let v = g.head(e);
 		if (g.res(e,u) > 0) {

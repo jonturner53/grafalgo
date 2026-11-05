@@ -23,7 +23,7 @@ import { degreeBound, maxTint } from './common.mjs';
 export default function becSplit(g, trace=0) {
 	let ts = ''; let steps = 0;
 	assert(g.hasBipartition);
-	if (!g.color) g.addEdgeProperty('color', 0);
+	if (!g.color) g.addEdgeProperty(['color',0]);
 
 	let fmax = maxTint(g);
 	let h = Math.ceil(fmax/2);		// first color for H

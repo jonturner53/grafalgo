@@ -66,7 +66,7 @@ export default function tspK(G, traceFlag=0) {
  */
 function initialCycles() {
 	// determine edges that define cycles
-	let mg = new Graph(2*g.n, g.edgeRange, 'weight', 0);
+	let mg = new Graph(2*g.n, g.edgeRange, ['weight',0]);
 	for (let e = g.first(); e; e = g.next(e)) {
 		mg.join(g.tail(e), g.n+g.head(e), e); mg.weight(e, g.weight(e));
 	}
@@ -104,7 +104,7 @@ function initialCycles() {
  */
 function merge1(cyclesLength) {
 	// use matching to identify best patching operations to perform
-	let mg = new Graph(2*g.n, g.edgeRange, 'weight', 0);
+	let mg = new Graph(2*g.n, g.edgeRange, ['weight',0]);
 	if (trace) traceString += '\npotential patching edge sets\n';
 	for (let c = clist.first(); c; c = clist.next(c)) {
 		// find all ways to merge c with C

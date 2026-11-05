@@ -25,7 +25,7 @@ import Matching from '../match/Matching.mjs';
  */
 export default function pmatchO(G, prio, trace=false) {
 	let g = new Graph(G.n, G.edgeRange); // working copy
-	g.addEdgeProperty('weight', 0);
+	g.addEdgeProperty(['weight',0]);
 	let W = 0;
 	for (let e = G.first(); e; e = G.next(e)) {
 		g.join(G.left(e), G.right(e), e);

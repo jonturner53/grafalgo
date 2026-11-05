@@ -225,7 +225,7 @@ export function splitBound(g, gap=1) {
 function buildFlograph(g, tmax) {
 	// create and configure flow graph
 	let fg = new Flograph(g.n*tmax+4, g.edgeRange+g.n*(tmax+1)+3);
-	fg.addEdgeProperty('tint', 0);
+	fg.addEdgeProperty(['tint',0]);
 		// note: fg.tint is min flow requirement,
 		// g.tint is minimum color
 	let s = fg.n-3; let t = fg.n-2;

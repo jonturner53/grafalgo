@@ -39,7 +39,7 @@ export default function randomFcolor(ni, fc, no=ni, od=fc, reg=[1,1,1], tmax=0,
 	if (Number.isFinite(reg)) reg = [reg,reg,reg];
 	let g0 = randomRegularBigraph(ni, id, no, [reg[0],reg[1]]);
 	let [idmax,odmax] = g0.maxDegree();
-	g0.addEdgeProperty('color',0);
+	g0.addEdgeProperty(['color',0]);
 
 	// assign random colors to all edges in g0
 	// these will be used to assign edges to fans

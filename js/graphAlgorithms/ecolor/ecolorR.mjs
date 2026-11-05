@@ -32,7 +32,7 @@ let steps;     // total number of steps
  */
 export default function ecolorR(G, traceFlag=false) {
 	ae() && assert(G.hasBipartition);
-	if (!G.color) G.addEdgeProperty('color', 0);
+	if (!G.color) G.addEdgeProperty(['color',0]);
 	g = G; trace = traceFlag;
 	let Delta = Math.max(...g.maxDegree());
 

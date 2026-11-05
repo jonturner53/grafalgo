@@ -11,8 +11,7 @@ import List from '../basic/List.mjs'
 import Scanner from '../basic/Scanner.mjs'
 import KeySets from './KeySets.mjs';
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 
 /** Map class implements a set of key-value pairs, each identified by
  *  an integer index. Keys and values may be either number or strings.
@@ -34,13 +33,12 @@ export default class Map extends Top {
 	 *  @param stringKey is true if the keys are strings
 	 */
 	constructor(n=10, compare=((a,b)=>a-b), eqValue=((a,b)=>a===b)) {
-	ae = assertEnabled();
 		super(n);
 
 		this.compare = compare;
 		this.eqValue = eqValue;
 
-		this.keys_ = new KeySets(n, (a,b)=>this.compare(a,b));
+		this.keys_ = new KeySets(n, compare);
 		this.top_ = 0; this.size_ = 0;
 		this.value_ = new Array(this.n+1);
 		this.free_ = new List(this.n+1);
@@ -132,10 +130,9 @@ export default class Map extends Top {
 	 *  @param that is a Map object to be compared to this
 	 *  @return true if both contain the same values.
 	 */
-	equals(that) {
-		that = super.equals(
-				...(arguments.length == 1 ?
-					[that, this.n, this.compare, this.eqValue] : arguments));
+	equals(that,...args) {
+		that = super.equals(that, ...(args.length ? args :
+									  [this.n,this.compare,this.eqValue]));
 		if ((typeof that) == 'boolean') return that;
 		if (this.size != that.size) return false;
 
@@ -162,8 +159,8 @@ export default class Map extends Top {
 		for (let p = this.first(); p; p = this.next(p)) {
 			if (s) s += ' ';
 			if (fmt&1) s += label(p) + ':';
-			s += this.datum2string(this.key(p)) + ':' +
-				 this.datum2string(this.value(p));
+			s += Top.datum2string(this.key(p)) + ':' +
+				 Top.datum2string(this.value(p));
 		}
 		return '{' + s + '}\n';
 	}

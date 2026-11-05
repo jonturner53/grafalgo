@@ -12,8 +12,7 @@ import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import SplayForest from '../trees/SplayForest.mjs';
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 
 /** Data structure representing a collection of paths.
  *
@@ -27,10 +26,9 @@ export default class PathSet extends SplayForest {
 	 *  @param n is the range for the list
 	 */
 	constructor(n=10) {
-	ae = assertEnabled();
 		super(n);
-		this.addProperty('dcost', 0); this.dcost(0,Infinity);
-		this.addProperty('dmin', 0); this.dmin(0,Infinity);
+		this.addProperty(['dcost',0]); this.dcost(0,Infinity);
+		this.addProperty(['dmin',0]); this.dmin(0,Infinity);
 	}
 
 	/** Return to initial state */
@@ -40,24 +38,6 @@ export default class PathSet extends SplayForest {
 		this.reset_dmin(); this.dmin(0,Infinity);
 	}
 
-	/** Get/set the deltaCost of a node.
-	 *  @param u is a node in a path.
-	 *  @return the deltaCost of u in the tree representing the path
-	dcost(u, c=-1) {
-		if (c != -1) this.Dcost[u] = c;
-		return this.Dcost[u];
-	}
-	 */
-	
-	/** Get/set the deltaMin of a node.
-	 *  @param u is a node in a path.
-	 *  @return the deltaMin of u in the tree representing the path
-	dmin(u, c=-1) {
-		if (c != -1) this.Dmin[u] = c;
-		return this.Dmin[u];
-	}
-	 */
-	
 	/** Get/set the successor of a path.
 	 *  @param p is the id of a path.
 	 *  @param s is an optional new value for the successor.
@@ -73,19 +53,25 @@ export default class PathSet extends SplayForest {
 	 */
 	mincost(u) {
 		let mc = 0;
-		for (let v = u; v > 0; v = this.p(v)) {
+		for (let v = u; v > 0; v = this.parent(v)) {
 			mc += this.dmin(v); this.steps++;
 		}
 		return mc;
 	}
 	
-	/** Get the cost of a node.
+	/** Get or set the cost of a node.
 	 *  @param u is a node in a path.
+	 *  @param c is an optional value for the cost; if supplied,
+	 *  the cost of u is set to c; in this case, it is assumed that
+	 *  u is a singleton
 	 *  @param mc is an optional vector with mc(u) == mincost(u);
 	 *  the utility method getMincosts returns such a vector
 	 *  @return the cost of u.
 	 */
-	cost(u,mc=null) {
+	cost(u, c=false, mc=null) {
+		if (typeof c == 'number') {
+			this.dmin(u,c); this.dcost(u,0);
+		}
 		return this.dcost(u) + (mc ? mc[u] : this.mincost(u));
 	}
 
@@ -94,8 +80,8 @@ export default class PathSet extends SplayForest {
 	 *  at the parent of x, moving x up into its parent's position.
 	 */
 	rotate(x) {
-		let y = this.p(x); if (y <= 0) return;
-		let z = this.p(y);
+		let y = this.parent(x); if (y <= 0) return;
+		let z = this.parent(y);
 		let a, b, c;
 		if (x == this.left(y)) {
 			a = this.left(x);  b = this.right(x); c = this.right(y);
@@ -203,7 +189,7 @@ export default class PathSet extends SplayForest {
 		let [p,q] = super.split(u);
 		let su = this.succ(u);
 		if (p != 0) {
-			this.dmin(p, this.dmin(p) + this.dmin(u)); this.p(p,0);
+			this.dmin(p, this.dmin(p) + this.dmin(u)); this.parent(p,0);
 		}
 		if (q != 0) {
 			this.dmin(q, this.dmin(q) + this.dmin(u)); this.treeProperty(q,su);
@@ -226,15 +212,14 @@ export default class PathSet extends SplayForest {
 	 *  @return true if they are the same list or have the
 	 *  same contents (in the same order).
 	 */
-	equals(that) {
-		that = super.listEquals(...(arguments.length == 1 ?
-                                	[that, this.n] : arguments));
+	equals(that, ...args) {
+		that = super.listEquals(that, ...(args.length ? args : [this.n]));
 		if (typeof that == 'boolean') return that;
 
 		let mc1 = this.getMincosts();
 		let mc2 = that.getMincosts();
 		for (let u = 1; u <= this.n; u++) {
-			if (this.cost(u,mc1) != that.cost(u,mc2)) return false;
+			if (this.cost(u,false,mc1) != that.cost(u,false,mc2)) return false;
 		}
 		return that;
 	}
@@ -246,11 +231,11 @@ export default class PathSet extends SplayForest {
 		let mincost = new Float32Array(this.n+1);
 		let q = new List(this.n);
 		for (let r = 1; r <= this.n; r++) {
-			if (this.p(r)) continue;
+			if (this.parent(r)) continue;
 			q.enq(r);
 			while (!q.empty()) {
 				let u = q.deq();
-				mincost[u] = (this.p(u) ? mincost[this.p(u)] : 0)
+				mincost[u] = (this.parent(u) ? mincost[this.parent(u)] : 0)
 							 + this.dmin(u);
 				if (this.left(u))  q.enq(this.left(u));
 				if (this.right(u)) q.enq(this.right(u));
@@ -269,8 +254,8 @@ export default class PathSet extends SplayForest {
 	 */
 	toString(fmt=0x2) {
 		let mc = this.getMincosts();
-		let label = (u => `${this.x2s(u)}:${mc[u]+this.dcost(u)}`);
-		let pathLabel = (t => this.succ(t) ? this.x2s(this.succ(t)) : '');
+		let label = (u => `${this.x2c(u)}:${mc[u]+this.dcost(u)}`);
+		let pathLabel = (t => this.succ(t) ? this.x2c(this.succ(t)) : '');
 
 		if (!(fmt&4)) return super.toString(fmt&3, label, pathLabel);
 
@@ -283,35 +268,26 @@ export default class PathSet extends SplayForest {
 	 *  @param s is a string representing a PathSets object.
 	 *  @return true on success, else false
 	 */
-	static fromString(s='',n=10) {
-		let costVec = []; let succVec = [];
-		let cost = (u,sc) => {
-						if (!sc.verify(':',0)) {
-							costVec[u] = 0; return true;
-						}
-						let p = sc.nextInt(0);
-						if (Number.isNaN(p)) return false;
-						costVec[u] = p;
-						return true
-					};
-		let succ = (l,sc) => {
-						let q = sc.nextIndex();
-						succVec[l] = (q > 0 ? q : 0);
-						return true;
-						};
+	static fromString(s='', n=10) {
+		let succVec = [];
+		let ls = ListSet.fromString(s, n,0,['cost',0], 0,0,
+									(l,sc) => {
+										let q = sc.nextIndex();
+										succVec[l] = (q > 0 ? q : 0);
+										return true;
+										});
 
-		let ls = ListSet.fromString(s, n, 0, 0, 0, cost, succ);
 		if (!ls) return false;
 
 		let ps = new PathSet(ls.n);
 
+		for (let u = 1; u <= ls.n; u++) ps.cost(u,ls.cost(u));
+
 		for (let l = 1; l <= ls.n; l++) {
 			if (!ls.isfirst(l)) continue;
-			// first initialize Dmin and Dcost for each node in list l
 			let p = l;
 			for (let u = l; u; u = ls.next(u)) {
-				// initialize Dmin, Dcost at u, as if u is a singleton tree
-				ps.dmin(u, costVec[u]); ps.dcost(u, 0);
+				// initialize succ at u, as if u is a singleton tree
 				ps.succ(u, ls.next(u) ? ls.next(u) : succVec[l]);
 				// now add u to the path p right after previous vertex
 				if (u != l) p = ps.insertAfter(u, ls.prev(u), p);

@@ -28,16 +28,12 @@ export default class ListPair extends Top {
                // items in list 1 use positive prev_ values
                // items in list 2 use negative prev_ values
 
-	prop_names;	     // prop_names[i] is name of the i-th property added
-	prop_defaults;	 // prop_defaults[i] is default value of the i-th property
-	prop_values;     // prop_values[i] is array of values for i-th property
-	
 	/** Constructor for list pair.
 	 *  @param n specifies the range of integer values
 	 */
-	constructor(n=10, propName='', propDefault=0) {
+	constructor(n=10, property=['',0]) {
 		ae = assertEnabled();
-		super(n);
+		super(n,property);
 		this.length_ = new Int32Array(2);
 		this.first_ = new Int32Array(2);
 		this.last_ = new Int32Array(2);
@@ -51,47 +47,6 @@ export default class ListPair extends Top {
 			this.next_[i] = i+1; this.prev_[i] = -(i-1);
 		}
 		this.next_[this.n] = this.prev_[1] = 0;
-
-		this.prop_names = []; this.prop_defaults = []; this.prop_values = [];
-		if (arguments.length > 1)
-			this.addProperty(propName, propDefault);
-	}
-
-	/** Add an item property.
-	 *  @param propName is the name of the new property
-	 *  @param propDefault is the default value of the new property
-	 */
-	addProperty(propName, propDefault) {
-		assert(this[propName] == undefined,
-			   'ListPair:addProperty: name clash for ' + propName);
-
-		let newProp = new Float64Array(this.n+1).fill(propDefault);
-		this.prop_names.push(propName);
-		this.prop_defaults.push(propDefault);
-		this.prop_values.push(newProp);
-		let i = this.prop_names.length-1;
-
-		Object.defineProperty(this, propName,
-			{ value: 	function(x,v) {
-							ae && assert(0 <= x && x <= this.n,
-                     			`ListPair.${propName}: invalid argument: ${x}`);
-							if (v != undefined) this.prop_values[i][x] = v;
-							return this.prop_values[i][x];
-						}
-			});
-		Object.defineProperty(this, 'reset_' + propName,
-			{ value: function() { this.prop_values[i].fill(propDefault); } });
-	}
-
-	/** Retrieve a property name and default value using index.
-	 *  @param i is a non-negative integer identifying a property, in the
-	 *  order the properties were added; so 0 is the first property added
-	 *  @return pair [name,default] giving the name and default value of
-	 *  the property, or null if there is no property i.
-	 */
-	property(i) {
-		if (i >= this.prop_names.length) return null;
-		return [this.prop_names[i], this.prop_defaults[i]];
 	}
 
 	/** Determine if an item belongs in a specified list.
@@ -131,7 +86,10 @@ export default class ListPair extends Top {
 	prev(i) { return (this.prev_[i] >= 0 ? this.prev_[i] : -this.prev_[i]); }
 	
 	/** Remove all elements from list 1. */
-	clear() { while (this.first(1) != 0) this.swap(this.first(1)); }
+	clear() {
+		super.clear();
+		while (this.first(1) != 0) this.swap(this.first(1));
+	}
 	
 	/** Move an item from one list to the other.
 	 *  Inserts swapped item at end of the other list
@@ -199,8 +157,9 @@ export default class ListPair extends Top {
 	 *  @param that is another list pair or a string
 	 *  @return true if the two lists are identical
 	 */
-	equals(that) {
-		that = super.equals(...(arguments.length==1 ? [that,this.n]:arguments));
+	equals(that, ...args) {
+		that = super.equals(that, ...(args.length ? args :
+                                      [this.n, this.property(0)]));
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -211,14 +170,6 @@ export default class ListPair extends Top {
 		while (i && i == j) { i = this.next(i); j = that.next(j); }
 		if (i != j) return false;
 
-		// check that first properties match
-		let p1 = this.property(0); let p2 = that.property(0);
-		if ((p1 == null) != (p2 == null)) return false;
-		if (p1 && p1[0] != p2[0]) return false;
-		let pname = p1 ? p1[0] : '';
-		for (let i = 1; i < this.n; i++)
-			if (pname && this[pname](i) != that[pname](i)) return false;
-
 		return that;
 	}
 
@@ -227,13 +178,7 @@ export default class ListPair extends Top {
 	 *  @return the string
 	 */
 	toString(label=0) {
-		if (!label) {
-			let p0 = this.property(0);
-			let name; let def; if (p0) [name, def] = p0;
-			label = (j => this.x2s(j) +
-					 (p0 && this[name](j) != def ?
-					  ':' + this.datum2string(this[name](j)) : ''));
-		}
+		if (!label) label = (j => this.x2s(j));
 		let s = '';
 		for (let i = this.first(1); i; i = this.next(i)) {
 			s += label(i);
@@ -255,7 +200,7 @@ export default class ListPair extends Top {
 	 *  @param prop is an optional function used to parse an item property
 	 *  @return true on success, else false
 	 */
-	static fromString(s, n=8, propName='value', propDefault=0, scanProp=0) {
+	static fromString(s, n=8, property=['',0], scanProp=0) {
 		let sc = new Scanner(s);
 		let propVals = []; let hasProps = 0;
 		if (!scanProp) {
@@ -288,15 +233,13 @@ export default class ListPair extends Top {
         }
 		
 		// initialize this
-		let lp = new ListPair(n);
-		if (arguments.length > 2 || hasProps) {
-			lp.addProperty(propName, propDefault);
-		}
-		let name;
-		if (lp.property(0)) [name] = lp.property(0);
+		if (!property[0] && hasProps) property = ['values',0];
+		let lp = new ListPair(n, property);
+
+		let [pname] = property;
 		for (let i = 1; i <= lp.n; i++) {
 			if (propVals[i] != undefined)
-				lp[name](i,propVals[i]);
+				lp[pname](i,propVals[i]);
 		}
         for (let i of l1) lp.swap(i);
         for (let i of l2) { lp.swap(i); lp.swap(i); }

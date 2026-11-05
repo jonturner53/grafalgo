@@ -27,7 +27,7 @@ let steps;         // total number of steps
 export default function maxflowFFmc(fg, trace=false) {
 	g = fg;
 	link = new Int32Array(g.n+1);
-	border = new ArrayHeap(g.n, 2+g.m/g.n);
+	border = new ArrayHeap(g.n, Math.floor(2+g.m/g.n));
 	cap = new Int32Array(g.n+1);
 
 	let ts = '';
@@ -53,7 +53,13 @@ function findpath(s) {
 	cap[s] = 0x7fffffff; // largest 32 bit value
 	border.insert(s, -cap[s]); // so deletemin gives max cap
 	while (!border.empty()) {
-		let u = border.deletemin();
+let u;
+try {
+		u = border.deletemin();
+} catch {
+console.log('fp',border.d, border.toString(),border);
+
+}
 		for (let e = g.firstAt(u); e != 0; e = g.nextAt(u,e)) {
 			steps++;
 			let v = g.mate(u,e);

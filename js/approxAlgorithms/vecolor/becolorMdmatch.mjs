@@ -21,7 +21,7 @@ import { maxTint } from './common.mjs';
  */
 export default function becMdmatch(g, trace=0) {
 	let steps = 0;
-	if (!g.color) g.addEdgeProperty('color',0);
+	if (!g.color) g.addEdgeProperty(['color',0]);
 	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.getBipartition());
 		// subgraph of uncolored edges with tints <= c
 	let ts = '';

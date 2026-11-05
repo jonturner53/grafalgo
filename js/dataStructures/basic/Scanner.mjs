@@ -102,17 +102,29 @@ export default class Scanner extends Top {
 							(this.#A <= i && i <= this.#Z);
 	}
 
-	/** Verify that the next bit of text matches a string.
-	 *  @param s is text to be matched
+	/** Verify that the next bit of text matches a string or regex.
+	 *  String or pattern is compared to next 20 characters in the buffer.
+	 *  @param s is a string or regular expression to be matched;
+	 *  if s is a regular expression, it should begin with ^ so that
+	 *  pattern search starts at the beginning of the buffer
 	 *  @param skip determines whether leading white space should be skipped.
 	 *  @param advance determines whether cursor is advanced when s is matched.
 	 *  @return true if s is a prefix of buffer[cursor].
 	 */
 	verify(s, skip=true, advance=true) {
 		if (skip) this.skipspace();
-		if (!this.buffer.startsWith(s,this.cursor))
-			return false;
-		if (advance) this.cursor += s.length;
+
+		if (typeof s == 'string') {
+			if (!this.buffer.startsWith(s,this.cursor))
+            	return false;
+			if (advance) this.cursor += s.length;
+		} else {
+			let chunk = this.buffer.slice(this.cursor, this.cursor+20);
+			let x = chunk.match(s);
+			if (x == null || x.index != 0) return false;
+			if (advance) this.cursor += x[0].length;
+		}
+
 		return true;
 	}
 
@@ -156,7 +168,7 @@ export default class Scanner extends Top {
 
 	/** Scan next word.
 	 *  A word is defined as an alphanumeric string (including underscores)
-	 *  that starts with a non-digit.
+	 *  that starts wth a non-digit.
 	 *  @return the next word encountered, after skipping space characters;
 	 *  if the next chunk of non-space text is not a word, return the empty
 	 *  string and do not update the scanner state.
@@ -206,26 +218,32 @@ export default class Scanner extends Top {
 	 * or arrays
 	 */
 	nextDatum() {
+		let n = this.nextNumber();
+		if (typeof n == 'number' && !Number.isNaN(n)) return n;
+
 		if (this.verify('"',1,0))  {
 			let s = this.nextString(1);
 			return s == null ? null : s;
 		}
-		if (this.verify('{',1,0)) {
-			let s = this.nextString(1,'{','}',0);
-			if (s == null) return null;
-			try { let k = JSON.parse(s); return k; } catch { return null; }
-		}
+
 		if (this.verify('[',1,0))  {
 			let s = this.nextString(1,'[',']',0);
 			if (s == null) return null;
 			try { let k = JSON.parse(s); return k; } catch { return null; }
 		}
+
+		if (this.verify('{',1,0)) {
+			let s = this.nextString(1,'{','}',0);
+			if (s == null) return null;
+			try { let k = JSON.parse(s); return k; } catch { return null; }
+		}
+
 		let c0 = this.cursor;
 		if (this.verify('true') && !this.isalpha()) return true;
 		else this.cursor = c0;
 		if (this.verify('false') && !this.isalpha()) return false;
 		else this.cursor = c0;
-		let n = this.nextNumber(); return (n == NaN ? null : n);
+		return null;
 	}
 
 	/** Read an index value.
@@ -241,15 +259,15 @@ export default class Scanner extends Top {
 	 *  and interpreted it as the expected index value.
 	 *  @param offset is an increment that is added to an index value
 	 *  represented by an upper-case letter
-	 *  @param prop(u,sc) is an optional function that is called just before
+	 *  @param scan4prop(u,sc) is an optional function called just before
 	 *  nextIndex returns if u!=0; u is the index value just read and sc is
-	 *  this scanner; prop should return true on success, false on failure;
-	 *  prop is typically used to extract additional information from
+	 *  this scanner; scan4prop should return true on success, false on failure;
+	 *  scan4prop is typically used to extract additional information from
 	 *  the scanned string and save it in the caller's context
 	 *  @return the index value on success, -1 if no index is found in input
-	 *  or -2 if an index is found but the prop function returns false
+	 *  or -2 if an index is found but the scan4prop function returns false
 	 */
-	nextIndex(prop=0, offset=0) {
+	nextIndex(scan4prop=0, offset=0) {
 		let u = 0;
 		this.skipspace();
 		this.verify('*'); // ignore optional asterisk
@@ -266,22 +284,23 @@ export default class Scanner extends Top {
 			u = this.nextInt(0);
 			if (Number.isNaN(u)) return -1;
 		}
-		return (u==0 || !prop || prop(u,this) ? u : -2);
+		return (u==0 || !scan4prop || scan4prop(u,this) ? u : -2);
 	}
 
 	/** Get the next list of index values from the scanned string.
 	 *  @param ld is the left delimiter for the index list (for example '[')
 	 *  @param rd is the right delimiter for the index list (for example '[')
-	 *  @param prop is an optional function used to scan for a property;
+	 *  @param scan4prop is an optional function used to scan for a property;
 	 *  it is called immediately after an index is successfully scanned
 	 *  and the value of the index is passed to it.
 	 *  @return list of index values or null on failure
 	 */
-	nextIndexList(ld, rd, prop=0) {
+	nextIndexList(ld, rd, scan4prop=0) {
 		this.skipspace();
 		let l = []; let c0 = this.cursor;
 		if (!this.verify(ld)) return null;
-		for (let i = this.nextIndex(prop); i !=- 1; i = this.nextIndex(prop)) {
+		for (let i = this.nextIndex(scan4prop); i !=- 1;
+				 i = this.nextIndex(scan4prop)) {
 			if (i == -2) return null;
 			l.push(i);
 		}

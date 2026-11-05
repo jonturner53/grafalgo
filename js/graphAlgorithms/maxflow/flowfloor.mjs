@@ -37,7 +37,7 @@ export default function flowfloor(g, trace=false) {
 	// edge numbers. Adjust capacities of edges with non-zero min flows.
 	// Also, add new source/sink edges.
 	let g1 = new Flograph(g.n+2, 1+Math.max(g.m+2*floorCount, g.edgeRange));
-	if (g.cost) g1.addEdgeProperty('cost', 0);
+	if (g.cost) g1.addEdgeProperty(['cost',0]);
 	steps += g1.n + g1.edgeRange;
 	g1.source = g.n+1; g1.sink = g.n+2;
 	for (let e = g.first(); e; e = g.next(e)) {

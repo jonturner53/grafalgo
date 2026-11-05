@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert } from '../../common/Assert.mjs';
+import { assert, assertEnabled as ae } from '../../common/Assert.mjs';
 import sptBM from './sptBM.mjs';
 import sptD from './sptD.mjs';
 

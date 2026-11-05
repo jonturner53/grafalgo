@@ -30,7 +30,7 @@ let tester = new Tester(args, algomap);
 
 
 let g = Graph.fromString('{a[f:1 g:3 j:4] b[g:2 h:3 i:1] c[f:2 i:3 j:4] ' +
-			 			 'd[f:4 h:2 j:3] e[h:1 i:2]}', 10, 20, 'tint', 0);
+			 			 'd[f:4 h:2 j:3] e[h:1 i:2]}', 10, 20, ['tint',0]);
 g.setBipartition(5);
 tester.addTest('small graph', g);
 

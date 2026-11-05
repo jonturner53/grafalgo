@@ -12,8 +12,7 @@ import ListSet from '../basic/ListSet.mjs';
 import BalancedForest from '../trees/BalancedForest.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 
 /** This class implements a data structure consisting of a disjoint
  *  set of heaps, with an efficient add2keys operation and an efficient
@@ -33,14 +32,13 @@ export default class OrderedHeaps extends BalancedForest {
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) {
-		ae = assertEnabled();
 		super(n);
 		// the kee and minkee properties are uncorrected (no offset)
 		// alternate spelling allows names key and minkey to be
 		// used for methods that return corrected values
-		this.addProperty('kee', 0);
-		this.addProperty('minkee', 0);
-		this.addProperty('offset', 0);
+		this.addProperty(['kee',0]);
+		this.addProperty(['minkee',0]);
+		this.addProperty(['offset',0]);
 	}
 
 	/** Clear heaps, converting them to singletons.
@@ -74,8 +72,18 @@ export default class OrderedHeaps extends BalancedForest {
 	 */
 	contains(i, h) { return this.find(i) == h }
 
-	/** Get (corrected) key of a heap item. */
-	key(i, h=this.find(i)) {
+	/** Get/set key of a heap item.
+	 *  @param i is a heap item
+	 *  @param h is the heap containing i
+	 *  @param k is used to set the value of the key if k is defined;
+	 *  in this case, i is assumed to be a singleton
+	 *  @return the value of key(i)
+	 */
+	key(i, h=this.find(i), k=undefined) {
+		if (k !== undefined) {
+			ae() && assert(h == i && this.singleton(i));
+			this.kee(i,k); this.minkee(i,k); this.offset(i,0);
+		}
 		return this.kee(i) + this.offset(h);
 	}
 
@@ -102,31 +110,26 @@ export default class OrderedHeaps extends BalancedForest {
 
 	/** Insert an item in a heap.
 	 *  @param i is a heap item
-	 *  @param k is the key with which i is inserted
 	 *  @param h is the heap into which i is inserted
 	 *  @return id of modified heap.
 	 */
-	insert(i, k, h) {
-		return this.insertAfter(i, k, this.last(h), h);
+	insert(i, h) {
+		return this.insertAfter(i, this.last(h), h);
 	}
 
 	/** Insert item into a heap at a specified point in the linear
 	 *  ordering of the heap items.
 	 *  @param i is a singleton to be added to a heap
-	 *  @param k is the key under which i is inserted
 	 *  @param j is an item in h; item i is inserted immediately after j;
 	 *  if j=0, i is inserted before the first item in the heap
 	 *  @param h is a heap into which i is to be inserted; if h=0, the
 	 *  the singleton heap i is returned
 	 *  @return the id of the modified heap
 	 */
-	insertAfter(i, k, j, h=this.find(j)) {
+	insertAfter(i, j, h=this.find(j)) {
 		ae && assert(this.valid(i) && this.valid(j) && this.valid(h));
-		if (h == 0) {
-			this.kee(i,k); this.minkee(i,k); return i;
-		}
 		let offset = this.offset(h);
-		this.kee(i, k-offset); this.minkee(i, this.kee(i));
+		this.kee(i, this.kee(i)-offset); this.minkee(i, this.kee(i));
 		h = super.insertAfter(i, j, h, x => this.refresh(x));
 		this.offset(h, offset);
 		return h;
@@ -181,7 +184,7 @@ export default class OrderedHeaps extends BalancedForest {
 			if (l) min = Math.min(min, this.minkee(l));
 			if (r) min = Math.min(min, this.minkee(r));
 			this.minkee(i,min);
-			i = this.p(i);
+			i = this.parent(i);
 			this.steps++;
 		}
 	}
@@ -226,7 +229,7 @@ export default class OrderedHeaps extends BalancedForest {
 
 	/** Extend rotation operation to maintain minkee field. */
 	rotate(x) {
-		let y = this.p(x);
+		let y = this.parent(x);
 		if (y == 0) return;
 		super.rotate(x);
 		this.minkee(x, this.minkee(y)); 
@@ -235,7 +238,7 @@ export default class OrderedHeaps extends BalancedForest {
 		if (l) min = Math.min(min, this.minkee(l));
 		if (r) min = Math.min(min, this.minkee(r));
 		this.minkee(y,min);
-		if (!this.p(x)) this.offset(x,this.offset(y));
+		if (!this.parent(x)) this.offset(x,this.offset(y));
 	}
 
 	/** Determine if two OrderedHeaps objects are equal.
@@ -243,11 +246,9 @@ export default class OrderedHeaps extends BalancedForest {
 	 *  or a string representing an OrderedHeaps object.
 	 *  @return true, false or an object
 	 */
-	equals(that) {
-		that = super.listEquals(...(arguments.length==1 ?
-								[that,this.n] : arguments));
+	equals(that,...args) {
+		that = super.listEquals(that, ...(args.length ? args : [this.n]));
         if (typeof that == 'boolean') return that;
-		if (this.n != that.n) return false;
 
 		for (let i = 1; i <= this.n; i++) {
 			if (this.key(i,this.find(i)) != that.key(i,that.find(i)))
@@ -273,7 +274,7 @@ export default class OrderedHeaps extends BalancedForest {
 								 'I' : '' + this.key(x));
 						let ms = (this.minkey(x) == Infinity ?
 								 'I' : '' + this.minkey(x));
-						return this.x2s(x) + ':' + ks +
+						return this.x2s(x,0) + ':' + ks +
 						  		((fmt&0x8) ? ':' + ms : '');
 						});
 		}
@@ -285,27 +286,16 @@ export default class OrderedHeaps extends BalancedForest {
 	 *  @return true on success, else false
 	 */
 	static fromString(s, n=10) {
-		let key = [];
-		let ls = ListSet.fromString(s, n, 0, 0, 0,
-						(u,sc) => {
-							if (!sc.verify(':',0)) {
-								key[u] = 0; return true;
-							}
-							let p = sc.nextNumber();
-							if (Number.isNaN(p)) return false;
-							key[u] = p;
-							return true;
-						});
+		let ls = ListSet.fromString(s, n, 0, ['key',0]);
 		if (!ls) return null;
 		let oh = new OrderedHeaps(ls.n);
 
+		for (let u = 1; u <= ls.n; u++) oh.key(u,u, ls.key(u));
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
-			oh.kee(u, key[u]);
-			oh.minkee(u, key[u]);
 			let h = u; let pi = u;
 			for (let i = ls.next(u); i; i = ls.next(i)) {
-				h = oh.insertAfter(i, key[i], pi, h);
+				h = oh.insertAfter(i, pi, h);
 				pi = i;
 			}
 		}

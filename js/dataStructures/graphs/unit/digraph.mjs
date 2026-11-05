@@ -53,13 +53,12 @@ try {
 	g = Digraph.fromString('{a[d b] b[c] c[d] d[b a] e[d b a]}');
 	matches(!!g, true, 'c0');
 	matches(g, '{a[b d] b[c] c[d] d[a b] e[a b d]}', 'c1');
-	g.addEdgeProperty('length', 0);
+	g.addEdgeProperty(['length',0]);
 	g.length(g.findEdge(1,4), 5);
 	matches(g, '{a[b:0 d:5] b[c:0] c[d:0] d[a:0 b:0] e[a:0 b:0 d:0]}', 'c2');
 	g = Digraph.fromString('{a[d:1 b:2] b[c:3] c[d:4] ' +
 							'd[b:5 a:6] e[d:7 b:8 a:9]}');
 	matches(g, '{a[b:2 d:1] b[c:3] c[d:4] d[b:5 a:6] e[d:7 b:8 a:9]}', 'c3');
-
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

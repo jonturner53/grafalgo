@@ -18,8 +18,9 @@ try {
 	matches(f, '{a(b(c d) e) f(g h i(j k)) n}', 'a1');
 	matches(f.firstChild(2), 3, 'a2');
 	matches(f.firstChild(3), 0, 'a3');
-	matches(f.nextSibling(2), 5, 'a4');
-	f.cut(2); f.link(2,8);
+	matches(f.nextChild(2), 5, 'a4');
+	f.cut(2);
+	f.link(2,8);
 	matches(f, '{a(e) f(g h(b(c d)) i(j k)) n}', 'a5');
 	f.rotate(7,8);
 	matches(f, '{a(e) f(h(b(c d)) i(j k) g) n}', 'a6');
@@ -30,7 +31,7 @@ try {
 
 	f.clear();
 	let prop = new Array(7);
-	f = Forest.fromString('{a:1(b:2(c:3 d:4) e:5) f:6}', 10,
+	f = Forest.fromString('{a:1(b:2(c:3 d:4) e:5) f:6}', 10, ['',0],
 						(u,sc) => {
 							if (!sc.verify(':')) {
 								prop[u] = 0; return true;

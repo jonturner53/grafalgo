@@ -10,8 +10,7 @@ import Top from '../Top.mjs';
 import Forest from '../trees/Forest.mjs';
 import PathSet from './PathSet.mjs';
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 
 
 /** Data structure representing a collection of paths.
@@ -27,7 +26,6 @@ export default class DynamicTrees extends PathSet {
 	 *  @param n is the range for the list
 	 */
 	constructor(n=10) {
-	ae = assertEnabled();
 		super(n); this.exposes = this.splices = 0;
 	}
 
@@ -38,7 +36,7 @@ export default class DynamicTrees extends PathSet {
 	 *  a single path.
 	 */
 	expose(u) {
-		ae && assert(this.valid(u));
+		ae() && assert(this.valid(u));
 		this.exposes++;
 		let [p,s] = [0,u];
 		while (s) {
@@ -70,7 +68,7 @@ export default class DynamicTrees extends PathSet {
 	 *  @return the root of the tree containing u
 	 */
 	findroot(u) {
-		ae && assert(this.valid(u));
+		ae() && assert(this.valid(u));
 		let p = this.expose(u);
 		let x = this.findtail(p);
 		this.succ(x, 0); // works because x is now both tail and path id
@@ -95,7 +93,7 @@ export default class DynamicTrees extends PathSet {
 	 *  path from u to the tree root
 	 */
 	addcost(u, c) {
-		ae && assert(this.valid(u));
+		ae() && assert(this.valid(u));
 		this.addpathcost(this.expose(u), c);
 	}
 	
@@ -106,7 +104,7 @@ export default class DynamicTrees extends PathSet {
 	 *  a subtree of u
 	 */
 	graft(t, u) {
-		ae && assert(this.valid(t) && this.valid(u));
+		ae() && assert(this.valid(t) && this.valid(u));
 		let p = this.expose(u); // id of path from u to tree root
 		let sp = this.succ(p);
 		this.succ(this.join(0, this.expose(t), p), sp);
@@ -117,7 +115,7 @@ export default class DynamicTrees extends PathSet {
 	 *  The operation removes the edge from u to its parent.
 	 */
 	prune(u) {
-		ae && assert(this.valid(u));
+		ae() && assert(this.valid(u));
 		let v = this.succ(this.findpath(u));
 		let [p,q] = this.split(u);
 		if (p != 0) this.succ(p, u);
@@ -131,21 +129,16 @@ export default class DynamicTrees extends PathSet {
 	 *  @return true if they are the same list or have the
 	 *  same contents (in the same order)
 	 */
-	equals(that) {
-		if (this == that) return true;
-		if (typeof that == 'string') {
-			let s = that;
-			that = DynamicTrees.fromString(s, this.n);
-			if (!that) return s == this.toString();
-		} else if (!(that instanceof DynamicTrees) || this.n != that.n) {
-			return false;
-		}
+	equals(that, ...args) {
+		that = Top.equals(this,that, ...(args.length ? args : [this.n]));
+		if (typeof that == 'boolean') return that;
+
 		let f1 = this.explicitForest(); let f2 = that.explicitForest();
-		if (!f1.equals(f2)) return;
+		if (!f1.equals(f2)) return false;
 
 		let mc1 = this.getMincosts(); let mc2 = that.getMincosts();
 		for (let u = 1; u <= this.n; u++) {
-			if (this.cost(u,mc1) != that.cost(u,mc2)) return false;
+			if (this.cost(u,false,mc1) != that.cost(u,false,mc2)) return false;
 		}
 		return that;
 	}
@@ -158,7 +151,7 @@ export default class DynamicTrees extends PathSet {
 	explicitForest() {
 		let f = new Forest(this.n)
 		for (let t = 1; t <= this.n; t++) {
-			if (this.p(t)) continue;
+			if (this.parent(t)) continue;
 			let succ = this.succ(t);
 			for (let u = this.first(t); u; u = this.next(u)) {
 				if (this.next(u)) f.link(u, this.next(u));
@@ -186,7 +179,7 @@ export default class DynamicTrees extends PathSet {
 			let f = this.explicitForest();
 			let mc = this.getMincosts();
 			return f.toString(0x6|(fmt&1),
-						u => (label ? label(u) : this.x2s(u)) +
+						u => (label ? label(u) : this.x2c(u)) +
 							 ':' + (mc[u]+this.dcost(u)));
 		}
 	}
@@ -209,22 +202,22 @@ export default class DynamicTrees extends PathSet {
 	static fromString(s='', n=10) {
 		let f = new Forest();
 		let cost = new Float32Array(f.n+1);
-		f = Forest.fromString(s, n, (u,sc) => {
-							cost[u] = 0;
-							if (!sc.verify(':',0)) {
-								return true;
-							}
-							cost[u] = sc.nextNumber();
-							if (Number.isNaN(cost[u])) return false;
-							return true
-						});
+		f = Forest.fromString(s, n, ['cost',0],
+							(u,sc) => {
+									cost[u] = 0;
+									if (!sc.verify(':',0)) return true;
+									cost[u] = sc.nextNumber();
+									if (Number.isNaN(cost[u])) return false;
+									return true
+								});
 		if (!f) return false;
 
 		let dt = new DynamicTrees(f.n);
+		for (let u = 1; u <= dt.n; u++)
+			dt.cost(u,cost[u] != undefined ? cost[u] : 0);
 
 		for (let u = 1; u <= dt.n; u++) {
-			if (f.p(u)) dt.succ(u,f.p(u));
-			dt.dmin(u, cost[u]);
+			if (f.parent(u)) dt.succ(u,f.parent(u));
 		}
 		return dt;
 	}

@@ -70,7 +70,7 @@ function buildLayers() {
 	// initialize olist, so olist[l]=outputs covered by layer i
 	let olist = new Array(fcMax+1);
 	for (let j = 1; j <= fcMax; j++) {
-		olist[j] = new List(g.n); olist[j].addProperty('value',0);
+		olist[j] = new List(g.n); olist[j].addProperty(['value',0]);
 	}
 	let [u] = invec[0]; let l = 1;
 	for (let f = g.firstFanAt(u); f; f = g.nextFanAt(u,f)) {
@@ -83,7 +83,7 @@ function buildLayers() {
 
 	// create matching graph for expanding layers
 	let mg = new Graph(fcMax+g.nf, fcMax*g.nf);
-	mg.addEdgeProperty('weight',0); mg.setBipartition(fcMax);
+	mg.addEdgeProperty(['weight',0]); mg.setBipartition(fcMax);
 
 	if (trace) traceString += 'matchings:\n'
 

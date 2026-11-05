@@ -15,8 +15,7 @@ try {
 
 	let g = FanGraph.fromString(
 						'{a[(f i l) (g k) (e)] b[(i l) (h j) (g k)] ' +
-						'c[(f h j) (e) (g h)] d[(f i) (e j) (k l)]}',
-						4, 8, 12, 24, 5);
+						'c[(f h j) (e) (g h)] d[(f i) (e j) (k l)]}');
 	matches(!!g, true, 'a0');
 	matches(g.toString(), '{a[(f i l) (g k) (e)] b[(i l) (h j) (g k)] ' +
                            'c[(f h j) (e) (g h)] d[(f i) (e j) (k l)]}', 'a1');
@@ -36,7 +35,7 @@ try {
 	g.bind(1,7); g.bind(2,8); 
 	g.bind(2,10); g.bind(1,11); g.bind(3,12);
 	g.colorFromPalettes();
-	matches(g.toString(0x8), '{a[(f:1 i:1 l:1) (g:2 k:2) (e:3)] ' +
+	matches(g.toString(0x8),   '{a[(f:1 i:1 l:1) (g:2 k:2) (e:3)] ' +
 								'b[(i:3 l:3) (h:2 j:2) (g:1 k:1)] ' +
 								'c[(f:0 h:1 j:1 g:0) (e:2)] ' +
 								'd[(f:2 i:2) (e:1 j:0) (k:3 l:0)]}', 'b1');

@@ -40,6 +40,7 @@ try {
 							(a,b) => a.localeCompare(b)); // for string keys
 	matches(!!ks, true, 'b0');
 	matches(ks, '{[b:"aa" a:"bb" d:"c c" c:""] e:"ee"}', 'b1');
+						  // {[a:"bb" *b:"aa" (- c:"" d:"c c")] e:"ee" }
 	matches(ks.toString(6), '{[c:"" *b:"aa" (- a:"bb" d:"c c")] e:"ee"}', 'b2');
 	matches(ks.lookup('c c',1), 4, 'b3');
 

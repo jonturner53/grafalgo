@@ -6,12 +6,15 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { AssertFail } from '../../../common/Assert.mjs';
+import { assert, assertEnabled as ae, disableAssert } from
+		'../../../common/Assert.mjs';
 import { matches, Mismatch } from '../../../common/Testing.mjs';
 import Scanner from '../../../dataStructures/basic/Scanner.mjs';
 import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import Matching from '../Matching.mjs';
 import Blossoms from '../Blossoms.mjs';
+
+disableAssert();
 
 try {
 	console.log('testing Blossoms');
@@ -35,8 +38,6 @@ try {
 	matches(bloss,'{{[A(n p o)]} {[a(b(c(d(e(f(g))))))] [l(m(A{n,m}))]}}',
 				 'a3');
 	bloss.addBlossom(g.findEdge(5,7), 5);
-				//	{{[A(n p o)] [B(e g f)]}
-				//	{[a(b(c(d(B{e,d}))))] [l(m(A{n,m}))]}}
 	matches(bloss, '{{[B(e g f)] [A(n p o)]} ' +
 				  ' {[a(b(c(d(B{e,d}))))] [l(m(A{n,m}))]}', 'a4');
 	bloss.addBranch(g.findEdge(3,8),8);

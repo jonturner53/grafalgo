@@ -94,7 +94,6 @@ export default class Matching extends Top {
 	equals(that) {
 		that = super.equals(that, this.g);
 		if ((typeof that) == 'boolean') return that;
-		if (this.n != that.n) return false;
 
 		if (!this.elist.setEquals(that.elist)) return false;
 		return that;
@@ -117,6 +116,9 @@ export default class Matching extends Top {
 
 	/** Initialize this from a string representation.
 	 *  @param s is a string, such as produced by toString().
+	 *  @param n is a dummy property, included to satisfy Top
+	 *  @param property is another dummy argument
+	 *  @param g is the graph for which this is a matching
 	 *  @return true on success, else false
 	 */
 	static fromString(s, g=0) {

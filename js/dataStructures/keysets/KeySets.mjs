@@ -20,7 +20,6 @@ let ae; // initialized in constructor
  *  It can support either numeric keys or strings.
  */
 export default class KeySets extends BalancedForest {
-	key_;        // key_[u] is the key of item u
 	compare;    // function used to compare two keys
 
 	/** Constructor for KeySets object.
@@ -30,6 +29,7 @@ export default class KeySets extends BalancedForest {
 	constructor(n=10, compare=((a,b)=>(a-b))) {
 	ae = assertEnabled();
 		super(n); this.compare = compare;
+		this.addProperty(['key',0]);
 		this.key_ = new Array(this.n+1);
 	}
 
@@ -38,11 +38,12 @@ export default class KeySets extends BalancedForest {
 	/** Find the set containing a given item. */
 	find(u) { return super.root(u); }
 	
-	/** Get or set the key value of an item. */
+	/** Get or set the key value of an item.
 	key(u, k=null) {
 		if (k != null) this.key_[u] = k;
 		return this.key_[u];
 	}
+	*/
 	
 	/** Determine if a specified item is in a set.
 	 *  @param u is a set item
@@ -57,7 +58,7 @@ export default class KeySets extends BalancedForest {
 	 *  @return an item with the key k or 0.
 	 */
 	lookup(k, s) {
-		return this.search(k, s, this.key_, (a,b) => this.compare(a,b));
+		return this.search(k, s, (a,b)=>this.compare(a,b));
 	}
 	
 	/** Insert an item into a set.
@@ -68,9 +69,7 @@ export default class KeySets extends BalancedForest {
 	 *  @return the id of the set following insertion
 	 */
 	insert(u, t, refresh=0) {
-		//if (u > this.n) this.expand(u);
-		return super.insertByKey(u, t, this.key_,
-								 (a,b) => { 
+		return super.insertByKey(u, t, (a,b) => { 
 											let result = this.compare(a,b);
 											return result;}, refresh);
 	}
@@ -80,9 +79,9 @@ export default class KeySets extends BalancedForest {
 	 *  @return true if both represent the same sets and the
 	 *  keys match; otherwise return false
 	 */
-	equals(that) {
-		that = super.setEquals(...(arguments.length == 1 ?
-									[that, this.n, this.compare] : arguments));
+	equals(that, ...args) {
+		that = super.setEquals(that, ...(args.length ? args :
+											[this.n, this.compare]));
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -107,38 +106,24 @@ export default class KeySets extends BalancedForest {
 		if (!label) {
 			label =
 				(x => {
-					return this.x2s(x) + ':' + this.key2string(this.key(x)) +
+					return this.x2s(x,0) + ':' + Top.datum2string(this.key(x)) +
 					 	 ((fmt&0x8) && this.rank(x)>1 ? ':'+this.rank(x) : '');
 				});
 		}
 		return super.toString(fmt,label);
 	}
 
-	key2string(k) {
-		if ((typeof k) == 'string') return '"' + k + '"';
-		if ((typeof k) == 'number' || (typeof k) == 'boolean') return k;
-		if ((typeof k) == 'object') return JSON.stringify(k);
-	}
-	
 	/** Initialize this KeySets object from a string.
 	 *  @param s is a string representing a heap.
 	 *  @return on if success, else false
 	 */
 	static fromString(s, n=10, compare=((a,b)=>(a-b))) {
-		let keyMap = [];
-		let ls = ListSet.fromString(s, n, 0, 0, 0,
-						(u,sc) => {
-							if (!sc.verify(':')) return false;
-							let k = this.nextKey(sc);
-							if (k == null) return false;
-							keyMap.push([u,k]);
-							return true;
-						});
+		let ls = ListSet.fromString(s, n, 0, ['key',0]);
 		if (!ls) return false;
 
 		let ks = new KeySets(ls.n, compare);
 
-		for (let [u,k] of keyMap) ks.key(u,k);
+		for (let u = 1; u <= ls.n; u++) ks.key(u, ls.key(u));
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
 			let s = u;
@@ -149,6 +134,7 @@ export default class KeySets extends BalancedForest {
 		return ks;
 	}
 
+/*
 	static nextKey(sc) {
 		if (sc.verify('"',1,0))  {
 			let s = sc.nextString(0);
@@ -166,4 +152,5 @@ export default class KeySets extends BalancedForest {
 		}
 		let n = sc.nextNumber(); return (n == NaN ? null : n);
 	}
+*/
 }

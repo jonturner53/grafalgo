@@ -41,14 +41,14 @@ export default function ecolorG(G, traceFlag=false) {
 	if (G.m == 0) return ['no edges in graph', {'steps':1}];
 	// initialize data structures
 	assert(G.hasBipartition);
-	if (!G.color) G.addEdgeProperty('color', 0);
+	if (!G.color) G.addEdgeProperty(['color',0]);
 	g = G; trace = traceFlag; trace = 1;
 
 	wg = new Graph(g.n, g.edgeRange);
 	wg.setBipartition(g.getBipartition());
 
 	degree = new Int32Array(g.n+1);
-	active = new List(g.n, 'value', 0);
+	active = new List(g.n, ['value',0]);
 	emap = new Int32Array(g.m+1);
 
 	for (let e = g.first(); e; e = g.next(e)) addEdge(e);

@@ -32,7 +32,7 @@ import { lowerBounds, upperBounds, maxColor, tintCount, itint, maxTint}
 export default function randomBecolor(ni, id, no=ni, reg=1, tmax=0, gap=1) {
     // generate a random bipartite graph
 	let g = randomRegularBigraph(ni, id, no, reg);
-	g.addEdgeProperty('tint', 0); g.addEdgeProperty('color', 0);
+	g.addEdgeProperty(['tint',0]); g.addEdgeProperty(['color',0]);
 	let [idmax,odmax] = g.maxDegree(); let dmax = Math.max(idmax, odmax);
 	if (!tmax) tmax = itint(idmax,gap);
 	let tcm = tintCount(tmax,gap);

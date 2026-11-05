@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assertEnabled } from '../../../common/Assert.mjs';
+import { assertEnabled as ae} from '../../../common/Assert.mjs';
 import { Tester } from '../../../common/Testing.mjs';
 import mstP from '../mstP.mjs';
 import mstPf from '../mstPf.mjs';
@@ -18,7 +18,6 @@ import Graph from '../../../dataStructures/graphs/Graph.mjs';
 import { randomFraction, randomInteger } from '../../../common/Random.mjs';
 import { randomGraph, randomConnectedGraph, randomWeights }
 	   from '../../misc/RandomGraph.mjs';
-const ae = assertEnabled();
 
 let algomap = {
 	'P' : ['mstP',(g,trace) => mstP(g,4,trace), mstVerify],
@@ -41,11 +40,11 @@ g = randomGraph(100, 10); randomWeights(g, randomInteger, 0, 99);
 tester.addTest('medium random graph (100,10)', g);
 
 g = randomGraph(1000, 20); randomWeights(g, randomInteger, 0, 99);
-!ae && tester.addTest('large random graph (1000,20)', g);
+!ae() && tester.addTest('large random graph (1000,20)', g);
 g = hardcaseP(1000);
-!ae && tester.addTest('large hard case (100, 4950)', g);
+!ae() && tester.addTest('large hard case (100, 4950)', g);
 
 g = hardcaseP(2000);
-!ae && tester.addTest('larger hard case (200,19800)', g);
+!ae() && tester.addTest('larger hard case (200,19800)', g);
 
 tester.run();

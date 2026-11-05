@@ -38,7 +38,7 @@ try {
 	matches(g.degree(6), 0, 'a81');
 	matches(g.degree(7), 3, 'a82');
 	matches(g.maxDegree(), 3, 'a83');
-	g.addEdgeProperty('weight',0);
+	g.addEdgeProperty(['weight',0]);
 	g.weight(g.findEdge(1, 4), 4);
 	matches(g, '{a[d:4 e:0] b[g] c[e g] d[a:4 i] e[c a i] ' +
 			  'f[] g[b c h] h[g] i[e d] j}', 'a9');

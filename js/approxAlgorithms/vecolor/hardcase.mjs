@@ -19,7 +19,7 @@ import { itint, isTint, maxTint, lowerBounds, upperBounds }
  *  on the optimal solution value and a second array of upper bounds
  */
 export default function hardcase(n, gap=1, fanGraph=0) {
-	let g = new Graph(3*n-1, n*n, 'tint', 0);
+	let g = new Graph(3*n-1, n*n, ['tint',0]);
 	g.setBipartition(n);
 	for (let u = 1; u <= n; u++) {
 		for (let i = 1; i <= u; i++) {

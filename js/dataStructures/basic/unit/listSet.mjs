@@ -35,7 +35,7 @@ try {
 	matches(ls.singleton(7), true, 'b10');
 	ls.clear(); 
 	matches(ls, '{[h]}', 'b11');
-	ls = ListSet.fromString('{[d i h k] [e a  c] [g b l] [j f]}');
+	ls = ListSet.fromString('{[d i h k] [e a c] [g b l] [j f]}');
 	matches(!!ls, true, 'c0');
 	matches(ls, '{[d i h k] [e a c] [g b l] [j f]}', 'c1');
 	matches(ls.n, 12, 'c2');
@@ -48,25 +48,28 @@ try {
 	matches(!!ls.setEquals('{[a c e] [d h i k] [f j] [b g l]}'), true, 'c6');
 
 	let listProp = new Array(10).fill(0);
-	let listLabel = (l, sc) => {
+	let sfx = (l, sc) => { // parse list suffix
 						let q = sc.nextIndex(false);
 						if (q <= 0) return false;
 						listProp[l] = q;
 						return true;
 					};
-	ls = ListSet.fromString('{[a:1 c:3]5 [b:2 e:5 d:7]f f:2}',
-							6, 0, 'value', 0, 0, listLabel);
+	ls = ListSet.fromString('{[a:1 c:3]5 [b:2 e:5 d:7]f f:2}', 6,0,[], 0,0,sfx);
 	matches(!!ls, true, 'd0');
 	matches(ls,'{[a:1 c:3] [b:2 e:5 d:7] f:2}', 'd1');
 	matches(listProp[1], 5, 'd3');
 	matches(listProp[2], 6, 'd4');
 
-	ls = new ListSet(10,3);
-	ls.append(1,1); ls.append(2,1); ls.append(3,1);
-	ls.append(4,2); ls.append(5,2); ls.append(6,3);
-	matches(ls.toString(), '{1[a b c] 2[d e] 3[f]}', 'e1');
-	ls.remove(4,2); ls.remove(6,3);
-	matches(ls.toString(), '{1[a b c] 2[e]}', 'e2');
+	ls = ListSet.fromString('{2[a b c] 1[d e] 3[f] [i g]}');
+
+	matches(ls, '{2[a b c] 1[d e] 3[f] [i g]}', 'e1');
+	ls.remove(4,1); ls.remove(5,1);
+	matches(ls, '{2[a b c] 3[f] [i g]}', 'e2');
+
+	ls = ListSet.fromString(
+			'{[a:1 c:"three"] [b:[2,3] e:{"x":2, "y":3} d:7] f:2}');
+	matches(!!ls, true, 'd0', 'e3');
+	matches(ls,'{[a:1 c:"three"] [b:[2,3] e:{"x":2, "y":3} d:7] f:2}', 'e4');
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

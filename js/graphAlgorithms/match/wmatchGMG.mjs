@@ -106,7 +106,7 @@ export default function wmatchGMG(G, traceFlag=false) {
 			steps++;
 
 			let ee = eeh.findmin();
-			let eu = exh.findmin();
+			let [eu] = exh.findmin();
 			if (ee && eeh.key(ee) == 0) {
 				eeh.delete(ee)
 				let [u,v] = [g.left(ee),g.right(ee)];
@@ -369,11 +369,13 @@ function newPhase() {
 			for (let u = bloss.firstIn(b); u; u = bloss.nextIn(b,u)) {
 				// insert dummy edge for u in b's subheap within exh
 				let e0 = u + g.edgeRange;
-				exh.insertAfter(e0, Infinity, laste, b); laste = e0;
+				exh.setKey(e0,Infinity);
+				exh.insertAfter(e0, laste, b); laste = e0;
 				for (let e = g.firstAt(u); e; e = g.nextAt(u,e)) {
 					let v = g.mate(u,e); let V = bloss.outer(v);
 					if (bloss.state(V) == +1) {
-						exh.insertAfter(e, slack(e), laste, b); laste = e;
+						exh.setKey(e,slack(e));
+						exh.insertAfter(e, laste, b); laste = e;
 					}
 				}
 				steps++;
@@ -394,7 +396,7 @@ function newPhase() {
 function relabel() {
 	let d1 = evh.empty() ? 0 : evh.key(evh.findmin());
 
-	let d2 = exh.empty() ? Infinity : exh.key(exh.findmin());
+	let d2 = exh.empty() ? Infinity : exh.key(...exh.findmin());
 
 	let e = eeh.findmin();
 	while (e && bloss.outer(g.left(e)) == bloss.outer(g.right(e))) {
@@ -433,7 +435,8 @@ function relabel() {
 					exh.activate(sb);
 				} else {
 					if (sb > g.n) ebh.insert(sb,Z[sb]/2);
-					exh.clear(sb); addEXedges(sb);
+					exh.clear(sb);
+					addEXedges(sb);
 				}
 			}
 			steps++;
@@ -472,8 +475,8 @@ function eligibleEdgeString() {
 }
 
 /** Add ex edges incident to an even blossom or sub-blossom.
- *  @param b is an even blossom or sub-blossom; edges
- *  incident to b in a different outer blossom are added
+ *  @param b is an even blossom or sub-blossom; edges that join
+ *  b to a vertex that is in a different outer blossom are added
  *  to either eeh or exh as appropriate 
  */
 function addEXedges(b) {
@@ -483,10 +486,12 @@ function addEXedges(b) {
 			steps++;
 			let v = g.mate(u,e); let V = bloss.outer(v);
 			if (V == bb) continue;
-			if (bloss.state(V) == +1)
-				eeh.insert(e,slack(e)/2);
-			else {// V is odd or unbound
-				exh.insertAfter(e, slack(e), v+g.edgeRange, V);
+			if (bloss.state(V) == +1) {
+				if (!eeh.contains(e))
+					eeh.insert(e,slack(e)/2);
+			} else {// V is odd or unbound
+				exh.setKey(e,slack(e));
+				exh.insertAfter(e, v+g.edgeRange, V);
 			}
 		}
 	}
@@ -716,7 +721,7 @@ function heaps2string() {
 				g.n > 26 ? g.e2s(e) : g.x2s(g.left(e)) + g.x2s(g.right(e)) +
 							':' + eeh.key(e)) + '\n';
 	}
-	if (!exh.empty() && exh.key(exh.findmin()) != Infinity) {
+	if (!exh.empty() && exh.key(...exh.findmin()) != Infinity) {
 		s += 'exh: ' + exh.toString(2,
 						(e,B) => (e <= g.edgeRange) ? g.e2s(e,0,1) : g.x2s(e-g.edgeRange));
 		s += '\n';

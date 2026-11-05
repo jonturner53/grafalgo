@@ -7,8 +7,7 @@
  */
 
 import Top from '../../dataStructures/Top.mjs';
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
@@ -35,7 +34,7 @@ export default class Blossoms extends Top {
 	outerMethod;    // method used to compute outer: 0 for find root of bsf,
 					// 1 for static map method, 2 find root of balanced forest
 					// where each tree enumerates vertices in an outer blossom
-	outer_;          // reference to data structure used to compute outer
+	outer_;         // reference to data structure used to compute outer
 
     ids;            // list of available blossom ids (reduced by n)
 	blist;          // temporary list used when forming new blossom
@@ -47,7 +46,6 @@ export default class Blossoms extends Top {
 	 *  @param match is the client's matching object
 	 */
 	constructor(g, match, outerMethod=0) {
-		ae = assertEnabled();
 		super(g.n + ~~(g.n/2));
 		this.g = g;
 		this.match = match;
@@ -55,9 +53,9 @@ export default class Blossoms extends Top {
 
 		this.bsf = new Forest(this.n);
 
-		this.bsf.addProperty('base', 0); // base(b) is blossom base of b
+		this.bsf.addProperty(['base',0]); // base(b) is blossom base of b
 		for (let i = 0; i <= this.g.n; i++) this.bsf.base(i,i);
-		this.bsf.addProperty('state', 1); // base(u) is odd,even or unreached
+		this.bsf.addProperty(['state',1]); // base(u) is odd,even or unreached
 		for (let e = match.first(); e; e = match.next(e)) {
 			this.bsf.state(this.g.left(e), 0);
 			this.bsf.state(this.g.right(e),0);
@@ -204,7 +202,7 @@ export default class Blossoms extends Top {
 	 *  @return the parent blossom of b in the blossom hierarchy, or 0
 	 *  if b is an outer blossom
 	 */
-	parent(b) { return this.bsf.p(b); }
+	parent(b) { return this.bsf.parent(b); }
 
 	/** Get the first sub-blossom of a given blossom.
 	 *  @param b is a (possibly trivial) blossom
@@ -219,7 +217,7 @@ export default class Blossoms extends Top {
 	 *  @param s is a sub-blossom
 	 *  @return the next sub-blossom of the parent blossom
 	 */
-	nextSub(s) { return this.bsf.nextSibling(s); }
+	nextSub(s) { return this.bsf.nextChild(s); }
 
 	/** Get the size of a blossom.
 	 *  @param B is a blossom
@@ -358,7 +356,7 @@ export default class Blossoms extends Top {
 	 *  calls on this object, so it should be used with care
 	 */
 	expandOdd(B) {
-		ae && assert(B > this.g.n && this.state(B) == '-1');
+		ae() && assert(B > this.g.n && this.state(B) == '-1');
 		let [subs,bBsub] = this.deconstruct(B);
 			// bBsub is sub-blossom in subs that contained base(B) before B
 			// B was deconstructed
@@ -534,8 +532,7 @@ export default class Blossoms extends Top {
 	 *  @param that is a Blossoms object to be compared to this
 	 */
 	equals(that) {
-		that = super.equals(...(arguments.length == 1 ?
-					[that, this.g, this.match, this.outerMethod] : arguments));
+		that = super.equals(that, this.g, this.match, this.outerMethod);
 		if ((typeof that) == 'boolean') return that;
 
 		if (!this.g.equals(that.g)) return false;
@@ -687,7 +684,7 @@ export default class Blossoms extends Top {
 					b => {
 						let s = this.x2s(b);
 						if (!terse) {
-							let pb = tt.p(b);
+							let pb = tt.parent(b);
 							let [v,e] = this.link(b);
 							if (v && (b > this.g.n || pb > this.g.n))
 								s += `{${this.x2s(v)},` +
@@ -709,7 +706,7 @@ export default class Blossoms extends Top {
 						if (!pb) return this.x2s(b);
 						let pred = (b == this.firstSub(pb) ?
 										this.bsf.lastChild(pb) :
-										this.bsf.prevSibling(b));
+										this.bsf.prevChild(b));
 						let [v,e] = this.link(pred);
 						let x = this.g.mate(v,e);
 						let [y] = this.link(b);
@@ -795,7 +792,7 @@ export default class Blossoms extends Top {
 
 		// recursive calls on sub-blossoms of b
 		let cnt = 0;
-		let subs = new List(this.n, 'value', 0);
+		let subs = new List(this.n, ['value',0]);
 			// list of sub-blossoms with attachment points
 		while (!sc.verify(')')) {
 			let label = this.nextBlossom(sc, B);

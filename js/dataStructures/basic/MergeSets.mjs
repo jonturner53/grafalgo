@@ -11,8 +11,7 @@ import ListSet from './ListSet.mjs';
 import Scanner from './Scanner.mjs';
 import Forest from '../trees/Forest.mjs';
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 
 /** Sets data structure maintains a collection of disjoint
  *  sets over the integers 1..N for some positive integer N. Allows
@@ -28,28 +27,12 @@ export default class MergeSets extends Top {
 	steps;
 	
 	constructor(n=10) {
-	ae = assertEnabled();
 		super(n);
 		this.p_ = new Int32Array(this.n+1); 
 		for (let i = 1; i <= this.n; i++) this.p_[i] = i;
 		this.rank_ = new Int32Array(this.n+1);
 	
 		this.merges = this.finds = this.steps = 0;
-	}
-	
-	/** Import a ListSets object into to this MergeSets object.
-	 *  @param ls is a ListSets object.
-	 */
-	static fromListSet(ls) {
-		ae && assert(ls.constructor.name == 'ListSet');
-		
-		let ms = new MergeSets(ls.n);
-		for (let i = 0; i <= ls.n; i++) {
-			if (!ls.isfirst(i)) continue;
-			for (let j = ls.next(i); j; j = ls.next(j))
-				ms.merge(ms.find(i), j);
-		}
-		return ms;
 	}
 
 	/** Clear all items in a given range.
@@ -82,7 +65,7 @@ export default class MergeSets extends Top {
 	 */
 	find(i) {
 		this.finds++;
-		ae && assert(this.valid(i));
+		ae() && assert(this.valid(i));
 		let root;
 		for (root = i; this.p(root) != root; root = this.p(root)) {
 			this.steps++;
@@ -99,7 +82,7 @@ export default class MergeSets extends Top {
 	 */
 	merge(i, j) {
 		this.merges++;
-		ae && assert(this.valid(i) && this.valid(j) &&
+		ae() && assert(this.valid(i) && this.valid(j) &&
 			   this.p(i) == i && this.p(j) == j && i != j);
 		if (this.rank(i) < this.rank(j)) {
 			let t = i; i = j; j = t;
@@ -115,7 +98,7 @@ export default class MergeSets extends Top {
 	 *  @return the canonical element of the set containing i
 	 */
 	findroot(i) {
-		ae && assert(this.valid(i),'xx'+i);
+		ae() && assert(this.valid(i),'xx'+i);
 		if (i == this.p(i)) return(i);
 		else return this.findroot(this.p(i));
 	}
@@ -124,8 +107,8 @@ export default class MergeSets extends Top {
 	 *  @param that is another MergeSets object or a string
 	 *  @return true if they represent the same collection of sets.
 	 */
-	equals(that) {
-		that = super.equals(...(arguments.length==1 ? [that,this.n]:arguments));
+	equals(that, ...args) {
+		that = super.equals(that, ...(args.length ? args : [this.n]));
 		if (typeof that == 'boolean') return that;
 		if (this.n != that.n) return false;
 
@@ -170,10 +153,28 @@ export default class MergeSets extends Top {
 	 *  @param s is a string, such as produced by toString().
 	 *  @return true on success, else false
 	 */
-	static fromString(s, prop=0, n=0) {
-		let ls = ListSet.fromString(s, prop, n);
+	static fromString(s, n=10) {
+		let ls = ListSet.fromString(s, n);
 		if (!ls) return null;
+		if (ls.hasNumberedLists || ls.property(0)[0])
+			return null;
+
 		let ms = MergeSets.fromListSet(ls);
+		return ms;
+	}
+	
+	/** Import a ListSets object into to this MergeSets object.
+	 *  @param ls is a ListSets object.
+	 */
+	static fromListSet(ls) {
+		ae() && assert(ls.constructor.name == 'ListSet');
+		
+		let ms = new MergeSets(ls.n);
+		for (let i = 0; i <= ls.n; i++) {
+			if (!ls.isfirst(i)) continue;
+			for (let j = ls.next(i); j; j = ls.next(j))
+				ms.merge(ms.find(i), j);
+		}
 		return ms;
 	}
 

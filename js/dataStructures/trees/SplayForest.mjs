@@ -11,8 +11,7 @@ import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import BinaryForest from './BinaryForest.mjs';
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 
 /** This class adds a splay operation to the BinaryForest class
  *  and uses it to implicitly balance the trees in the forest.
@@ -23,8 +22,7 @@ export default class SplayForest extends BinaryForest {
 	/** Constructor for BinaryForest object.
 	 *  @param n is index range for object
 	 */
-	constructor(n=10) { super(n); }
-	ae = assertEnabled();
+	constructor(n=10,property=[]) { super(n,property); }
 
 	/** Splay a search tree.
 	 *  @param x is a tree node; the operation performs a series of rotations,
@@ -33,8 +31,8 @@ export default class SplayForest extends BinaryForest {
 	 *  @return the root of the tree following the restructuring
 	 */
 	splay(x) {
-		for (let y = this.p(x); y; y = this.p(x)) {
-			let z = this.p(y);
+		for (let y = this.parent(x); y; y = this.parent(x)) {
+			let z = this.parent(y);
 			if (z) this.rotate(this.outerGrandchild(x) ? y : x)
 			this.rotate(x);
 		}
@@ -51,16 +49,16 @@ export default class SplayForest extends BinaryForest {
         return nosplay ? super.root(u) : this.splay(u);
     }
 
-	search(k, t, key) {
-		return this.splay(super.search(k, t, key));
+	search(k, t) {
+		return this.splay(super.search(k, t));
 	}
 
 	insertAfter(u, v, t) {
 		super.insertAfter(u, v, t); this.splay(u);
 	}
 
-	insertByKey(u, t, key, compare=((a,b)=>a-b)) {
-		return super.insertByKey(u, t, key, compare, u => this.splay(u));
+	insertByKey(u, t, compare=((a,b)=>a-b)) {
+		return super.insertByKey(u, t, compare, u => this.splay(u));
 	}
 
 	delete(u,t=0) {
@@ -69,9 +67,9 @@ export default class SplayForest extends BinaryForest {
 
 	split(u) { this.splay(u); return super.split(u); }
 
-	equals(that) {
-		return super.listEquals(...(arguments.length == 1 ?	
-									[that, this.n] : arguments));
+	equals(that, ...args) {
+		return super.listEquals(that, ...(args.length ? args :
+										[this.n,this.property(0)]));
 	}
 
 	/** Return a string representation of this object.
@@ -88,6 +86,11 @@ export default class SplayForest extends BinaryForest {
 	 *  format argument of 0 distinguishes it from the inherited version.
 	 */
 	toString(fmt=0, nodeLabel=0, treeLabel=0) {
+		let [pname,pdefault] = this.property(0);
+		if (!nodeLabel) {
+			nodeLabel = (u => this.x2c(u) +
+							  (pname ? ':' + Top.datum2string(this[pname](u)) : ''));
+		}
 		return super.toString(fmt, nodeLabel, treeLabel);
 	}
 
@@ -97,15 +100,22 @@ export default class SplayForest extends BinaryForest {
 	 *  it's really just the lists that are significant
 	 *  @return true on success
 	 */
-	static fromString(s, n=10, prop=0, listProp=0) {
-		let ls = ListSet.fromString(s, n, prop, listProp);
+	static fromString(s, n=10, property=[], listProp=0) {
+		let ls = ListSet.fromString(s, n,0,property,  0,0,listProp);
 		if (!ls) return null;
-		let sf = new SplayForest(ls.n);
+		let sf = new SplayForest(ls.n,property);
+		let [pname,pdefault] = property;
+		if (pname && pname != 'rank') {
+			for (let l = 1; l <= ls.n; l++) {
+				if (pname) sf[pname](l,ls[pname](l));
+			}
+		}
 		for (let l = 1; l <= ls.n; l++) {
 			if (!ls.isfirst(l)) continue;
 			let t = l;
 			for (let u = ls.next(t); u; u = ls.next(u)) {
-				t = sf.insertAfter(u,ls.prev(u),t);
+				if (sf.key) t = sf.insertByKey(u,t);
+				else t = sf.insertAfter(u,ls.prev(u),t);
 			}
 		}
 		return sf;

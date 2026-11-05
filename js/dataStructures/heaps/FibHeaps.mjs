@@ -11,8 +11,7 @@ import List from '../basic/List.mjs';
 import ListSet from '../basic/ListSet.mjs';
 import Forest from '../trees/Forest.mjs';
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
+import { assert, assertEnabled as ae } from '../../common/Assert.mjs';
 
 /** This class implements a data structure consisting of a disjoint
  *  set of Fibonacci heaps.
@@ -20,10 +19,6 @@ let ae; // initialized in constructor
  *  is specified when an FibHeaps object is constructed.
  */
 export default class FibHeaps extends Forest {
-	key_;        // key_[i] is key of node/item i
-	rank_;       // rank_[i] gives rank of node/item i
-	mark_;       // mark_[i] is true if node/item i is considered marked
-
 	rank_vec;    // rank_vec is an auxiliary array used during restructuring
 	tmpq_;       // tmpq_ is a List object used as a temporary queue 
 
@@ -37,11 +32,10 @@ export default class FibHeaps extends Forest {
 	 *  @param n is index range for object
 	 */
 	constructor(n=10) {
-		ae = assertEnabled();
 		super(n);
-		this.addProperty('key', 0);
-		this.addProperty('rank', 0);
-		this.addProperty('mark', 0);
+		this.addProperty(['key',0]); // this default ensures key always shown
+		this.addProperty(['rank',0]);
+		this.addProperty(['mark',0]);
 
 		this.rank_vec = new Int32Array(this.MAXRANK+1);
 		this.tmpq_ = new List(this.n);
@@ -95,8 +89,7 @@ export default class FibHeaps extends Forest {
 	 *  @param h is a heap to which i is inserted.
 	 *  @param k is the key under which i is inserted
 	 */
-	insert(i, h, k) {
-		if (i > this.n) this.expand(i);
+	insert(i, h, k=this.key(i)) {
 		this.key(i,k); return this.meld(i, h);
 	}
 	
@@ -114,20 +107,20 @@ export default class FibHeaps extends Forest {
 		}
 		// decreasing key
 		this.key(i,k);
-		if (!this.p(i)) {
+		if (!this.parent(i)) {
 			if (this.key(h) > this.key(i)) {
 				this.rotate(h,i); h = i;
 			}
 			return h;
 		}
-		let pi = this.p(i);
+		let pi = this.parent(i);
 		if (this.key(i) >= this.key(pi)) return h;
 		do {
 			this.decreasesteps++;
 			this.cut(i); this.rank(pi,this.rank(pi)-1);
 			this.mark(i,false);
 			h = this.meld(h, i);
-			i = pi; pi = this.p(i);
+			i = pi; pi = this.parent(i);
 		} while (this.mark(i)); // note: if i is marked, it's not a root
 		if (pi != 0) this.mark(i,true);
 		return h;
@@ -135,7 +128,7 @@ export default class FibHeaps extends Forest {
 
 	/** Merge the tree roots in heap, to eliminate repeated ranks.
 	 *  @param r0 is the first tree root in the grove defining a heap;
-	 *  it is called after the node with the smallest key is removed from heap
+	 *  it is called after the node with the smallest key is deleted from heap
 	 *  @return the root of the the tree root with the smallest key,
 	 *  following the merging
 	 */
@@ -144,7 +137,7 @@ export default class FibHeaps extends Forest {
 
 		// Build queue of roots and find root with smallest key
 		let minRoot = r0;
-		for (let sr = r0; sr; sr = this.nextSibling(sr)) {
+		for (let sr = r0; sr; sr = this.nextChild(sr)) {
 			this.mergesteps++;
 			if (this.key(sr) < this.key(minRoot)) minRoot = sr;
 			tmpq_.enq(sr); this.mark(sr,false);
@@ -164,11 +157,11 @@ export default class FibHeaps extends Forest {
 				rvec[rank1] = r1;
 			} else if (this.key(r1) < this.key(r2) ||
 					   (this.key(r1) == this.key(r2) && r1 == r0)) {
-				this.remove(r2,r0);
+				this.separate(r2,r0);
 				this.link(r2,r1); tmpq_.enq(r1);
 				rvec[rank1] = 0; this.rank(r1, this.rank(r1)+1);
 			} else {
-				this.remove(r1,r0);
+				this.separate(r1,r0);
 				this.link(r1,r2); tmpq_.enq(r2);
 				rvec[rank1] = 0; this.rank(r2, this.rank(r2)+1);
 			}
@@ -187,8 +180,8 @@ export default class FibHeaps extends Forest {
 			this.cut(i); this.combineGroves(h,i);
 		}
 		this.rank(h,0);
-		if (!this.nextSibling(h)) return [h,0];
-		let r = this.remove(h,h); // r is first root remaining in tree group
+		if (!this.nextChild(h)) return [h,0];
+		let r = this.separate(h,h); // r is first root remaining in tree group
 		return [h, (r ? this.mergeRoots(r) : 0)];
 	}
 	
@@ -210,15 +203,8 @@ export default class FibHeaps extends Forest {
 	 *  representing an FibHeaps object.
 	 *  @return if true or false or an object that can be compared further
 	 */
-	equals(that) {
-		that = super.setEquals(...(arguments.length==1 ?
-									[that,this.n]:arguments));
-        if (typeof that == 'boolean') return that;
-
-		for (let i = 1; i <= this.n; i++) {
-			if (this.key(i) != that.key(i)) return false;
-		}
-		return that;
+	equals(that,...args) {
+		return super.setEquals(that,...(args.length ? args : [this.n]));
 	}
 	
 	/** Construct a string representation of this object.
@@ -233,38 +219,28 @@ export default class FibHeaps extends Forest {
 	 */
 	toString(fmt=0x2, label=0, selectHeap=0) {
 		if (!label) {
-			label = (u => `${this.x2s(u)}:${this.key(u)}` +
+			label = (u => this.x2s(u) + // this includes key in string
 						  (fmt&0x10 && this.rank(u) ? `:${this.rank(u)}` : '') +
-						  ((fmt&0x08 && this.mark(u)) ? '!' : ''));
+						  (fmt&0x08 && this.mark(u) ? '!' : ''));
 		}
 		return super.toString(fmt&0x7, label, selectHeap);
 	}
 
-	/** Initialize this FibHeaps object from a string.
+	/** Construct a FibHeaps object from a string.
 	 *  @param s is a string representing a heap.
 	 *  @return true on success, else false
 	 */
 	static fromString(s, n=10) {
-		let key = [];
-		let ls = ListSet.fromString(s, n, 0, 'key', 0, 
-						(u,sc) => {
-							if (!sc.verify(':',0)) {
-								key[u] = 0; return true;
-							}
-							let p = sc.nextNumber();
-							if (Number.isNaN(p)) return false;
-							key[u] = p;
-							return true;
-						});
+		let ls = ListSet.fromString(s, n, 0, ['key',0]);
 
 		if (!ls) return null;
 		let fh = new FibHeaps(ls.n);
 		
+		for (let h = 1; h <= ls.n; h++) fh.key(h, ls.key(h));
 		for (let h = 1; h <= ls.n; h++) {
 			if (!ls.isfirst(h)) continue;
-			fh.key(h, key[h]);
 			for (let i = ls.next(h); i; i = ls.next(i))
-				h = fh.insert(i, h, key[i]);
+				h = fh.insert(i, h);
 		}
 		return fh;
 	}
@@ -279,19 +255,19 @@ export default class FibHeaps extends Forest {
 
 	verify() {
 		for (let u = 1; u <= this.n; u++) {
-			if (this.p(u) && this.key(u) < this.key(this.p(u)))
+			if (this.parent(u) && this.key(u) < this.key(this.parent(u)))
 				return `heap-order violation at ${this.x2s(u)} ` +
-						`(${this.key(u)} this.key(this.p(u))})`;
+						`(${this.key(u)} this.key(this.parent(u))})`;
 			let ru = 0;
-			for (let c = this.firstChild(u); c; c = this.nextSibling(c))
+			for (let c = this.firstChild(u); c; c = this.nextChild(c))
 				ru++;
 			if (this.rank(u) != ru)
 				return `rank violation at ${this.x2s(u)} ` +
 						`(${this.rank(u)} ${ru})`;
 
-			if (this.p(u) || this.prevSibling(u)) continue;
+			if (this.parent(u) || this.prevChild(u)) continue;
 			let minkey = this.key(u);
-			for (let r = this.nextSibling(u); r; r = this.nextSibling(r))
+			for (let r = this.nextChild(u); r; r = this.nextChild(r))
 				minkey = Math.min(minkey,this.key(r));
 			if (this.key(u) != minkey)
 				return `first tree in heap ${this.x2s(u)} does not have ` +

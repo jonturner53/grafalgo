@@ -15,7 +15,7 @@ try {
 	console.log('testing LazyHeaps');
 
 	let lh = LazyHeaps.fromString(
-					'{[a:1 b:2 c:3 d:4] [h:8 g:7 j:10 i:9 e:5 f:6]}');
+					'{[a:1 b:2 c:3 d:4] [h:8 g:7 j:10 i:9 e:5 f:6]}',10,['key',0]);
 	matches(!!lh, true, 'a0');
 	matches(lh, '{[b:2 a:1 d:4 c:3] [h:8 g:7 j:10 i:9 e:5 f:6]}', 'a1');
 	let [min,h] = lh.deletemin(5);
@@ -44,8 +44,6 @@ try {
 	matches(lh, '{[d:4 c:3 f:6 e:5 a:1 b:2] [g:7] [h:8] [i:9] [j:10]}', 'a10');
 	matches(lh.toString(0x1e),
 		'{[(d:4 c:3:2 (f:6 e:5 -)) *a:1:2 b:2] g:7 h:8 i:9 j:10}', 'a11');
-
-
 } catch(e) {
     if (e instanceof Mismatch) {
         console.log(e.name + ': ' + e.message);

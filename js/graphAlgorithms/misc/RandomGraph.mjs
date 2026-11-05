@@ -92,15 +92,18 @@ export function randomDag(n, d, dmax=n-1) {
 	return g;
 }
 
-/** Generate a random flograph with a small cut (V1,V2) of roughly
- *  equal size.
- *  @param n is requested number of vertices
- *  @param d is average out-degree of non-source vertices
- *  @param dmax is maximum out-degree of non-source vertices
- *  @return a random flograph with a cut between the first n/2
- *  and the last n/2 vertices that is likely to define a minimum
- *  cut when flow capacities are assigned randomly with a scaling
- *  factor of d for the source and sink edges
+/** Generate a random flograph with a small cut.
+ *  The non-source/sink vertices are divided into a left subset and
+ *  a right subset of equal size.
+ *  @param n is specified number of vertices
+ *  @param d is average out-degree (and in-degree) of the subgraph on
+ *  the left/right vertices.
+ *  @param dmax is the maximum out-degree of the left/right subgraph
+ *  or a pair where the second value specifies the maximum in-degree.
+ *  @return a random flograph with a relatively small cut between
+ *  the left and right subsets. When flow capacities are assigned
+ *  randomly with a scaling factor of d (see randomCapacities method),
+ *  the minimum cut is likely to be close to this built-in cut.
  */
 export function randomFlograph(n, d, dmax=n-2) {
 	if (typeof dmax == 'number') dmax = [dmax,dmax];
@@ -541,6 +544,9 @@ export function regularize(g, d, W, r=1) {
 	}
 }
 
+export function scrambleVertices(g, fp) {
+}
+
 /** Randomize a graph.
  *  Randomly permute the vertex numbers, edge numbers and edge list
  *  and adjacency list orders, while preserving structure of the graph.
@@ -582,7 +588,7 @@ export function randomizeGraph(g, fp) {
 
 /** Compute random values for a specified edge property of a graph.
  *  @param g is a Graph object
- *  @param propName is the name of an edge property; if not
+ *  @param pname is the name of an edge property; if not
  *  already present, it is added with a default value of 0
  *  @param rand is a random number generator used to generate the
  *  random edge weights
@@ -591,10 +597,10 @@ export function randomizeGraph(g, fp) {
  *  provided by caller; for example arguments (randomInteger, 1, 10)
  *  will assign random integer weights in 1..10.
  */
-export function randomPropertyValues(g, propName, rand, ...args) {
-	if (!g[propName]) g.addEdgeProperty(propName,0);
+export function randomPropertyValues(g, pname, rand, ...args) {
+	if (!g[pname]) g.addEdgeProperty([pname,0]);
 	for (let e = g.first(); e; e = g.next(e)) {
-		g[propName](e, rand(...args));
+		g[pname](e, rand(...args));
 	}
 }
 

@@ -11,19 +11,17 @@ import ListSet from '../basic/ListSet.mjs';
 import Scanner from '../basic/Scanner.mjs';
 import BinaryForest from './BinaryForest.mjs';
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
-
 /** This class implements a balanced version of the binary tree class. */
 export default class BalancedForest extends BinaryForest {
 
-	/** Constructor for BinaryForest object.
+	/** Constructor for BalancedForest object.
 	 *  @param n is index range for object
+	 *  @param property is an optional node property
 	 */
-	constructor(n=10) {
-	ae = assertEnabled();
+	constructor(n=10, property=[]) {
 		super(n);
-		this.addProperty('rank',1); this.rank(0,0);
+		if (property[0]) this.addProperty(property);
+		this.addProperty(['rank',1]); this.rank(0,0);
 	}
 
 	/** Clear trees converting them to singletons.
@@ -41,16 +39,6 @@ export default class BalancedForest extends BinaryForest {
 		super.clear(r);
 	}
 
-	/* Get or set the rank child of a node.
-	 * @param u is a node
-	 * @param r is an optional new rank for u
-	 * @return the rank of u
-	rank(u, r=-1) {
-		if (r >= 0) this.Rank[u] = r;
-		return this.Rank[u];
-	}
-	 */
-	
 	/** Insert a singleton immediately after a node in a tree.
 	 *  @param u is a singleton
 	 *  @param v is a node in t which defines the point where u is
@@ -75,8 +63,8 @@ export default class BalancedForest extends BinaryForest {
 	 *  with argument u after u is inserted but before rebalancing.
 	 *  @return the root of the modified tree
 	 */
-	insertByKey(u, t, key, compare, refresh=0) {
-		return super.insertByKey(u, t, key, compare,
+	insertByKey(u, t, compare, refresh=0) {
+		return super.insertByKey(u, t, compare,
 											u => { if (refresh) refresh(u);
 												 this.rerankUp(u);
 												 });
@@ -131,7 +119,7 @@ export default class BalancedForest extends BinaryForest {
 			// now, rank(v) == rank(t2)
 			super.join(v, u, t2);
 			this.link(u,pv,+1); this.rank(u, r2+1);
-			this.p(t1,0);
+			this.parent(t1,0);
 			if (refresh) refresh(u);
 			this.rerankUp(u);
 			let t =  this.root(t1);
@@ -143,7 +131,7 @@ export default class BalancedForest extends BinaryForest {
 			}
 			super.join(t1, u, v);
 			this.link(u,pv,-1); this.rank(u,r1+1)
-			this.p(t2,0);
+			this.parent(t2,0);
 			if (refresh) refresh(u);
 			this.rerankUp(u);
 			let t = this.root(t2);
@@ -163,13 +151,13 @@ export default class BalancedForest extends BinaryForest {
 	 */ 
 	rerankUp(x) {
 		let rx = this.rank(x);
-		while (this.gp(x) != 0 && this.rank(this.gp(x)) == rx &&
+		while (this.gparent(x) != 0 && this.rank(this.gparent(x)) == rx &&
 								  this.rank(this.aunt(x)) == rx) {
-			x = this.gp(x); rx = this.rank(x,rx+1); this.steps++;
+			x = this.gparent(x); rx = this.rank(x,rx+1); this.steps++;
 		}
-		if (this.gp(x) == 0 || rx != this.rank(this.gp(x)))
+		if (this.gparent(x) == 0 || rx != this.rank(this.gparent(x)))
 			return;
-		if (this.outerGrandchild(x)) this.rotate(this.p(x));
+		if (this.outerGrandchild(x)) this.rotate(this.parent(x));
 		else this.rotate2(x);
 	}
 
@@ -196,14 +184,14 @@ export default class BalancedForest extends BinaryForest {
 				this.rotate(sx);
 				// rank(sibling(x)) is now r+1, so on next iteration,
 				// next case applies;
-				// also, rank(p(x)) == rank(gp(x)) == r+2
+				// also, rank(p(x)) == rank(gparent(x)) == r+2
 			} else { // rank(sx) == r+1
 				if (this.rank(nefu) == r && this.rank(nece) == r) {
-					x = px; px = this.p(x); r = this.rank(x,r+1);
+					x = px; px = this.parent(x); r = this.rank(x,r+1);
 				} else { // rank(nefu) = r+1 or rank(nece) = r+1
 					if (this.rank(nefu) == r+1) this.rotate(sx);
 					else			  			this.rotate2(nece);
-					this.rank(px, r+1); this.rank(this.p(px), r+2);
+					this.rank(px, r+1); this.rank(this.parent(px), r+2);
 					return;
 				}
 			}
@@ -216,9 +204,21 @@ export default class BalancedForest extends BinaryForest {
 	 *  @return true if the trees in both have the same set of vertices
 	 *  and they appear in the same left-to-right order.
 	 */
-	equals(that) {
-		return super.listEquals(...(arguments.length==1 ?
-									[that, this.n] : arguments));
+	equals(that,...args) {
+		that = super.listEquals(that, ...(args.length ? args :
+										[this.n,this.property(0)]));;
+		if (typeof that == 'boolean') return that;
+
+		for (let u = 1; u <= this.n; u++) {
+			if (this.parent(u)) continue;
+			let r1 = u; let r2 = that.root(u);
+			let v1 = this.first(r1); let v2 = that.first(r2);
+			while (v1 && v1 == v2) {
+				v1 = this.next(v1,r1); v2 = that.next(v2,r2);
+			}
+			if (v1 != v2) return false;
+		}
+		return that;
 	}
 
 	/** Return a string representation of this object.
@@ -234,9 +234,10 @@ export default class BalancedForest extends BinaryForest {
 	 */
 	toString(fmt=0x0, nodeLabel=0, treeLabel=0) {
 		if (!nodeLabel) {
-			nodeLabel =
-				(u => this.x2s(u) + ((fmt&0x8 && this.rank(u) > 1) ?
-										':' + this.rank(u) : ''));
+			nodeLabel = (u => this.x2c(u) + 
+					  		(this.key ? ':'+Top.d2s(this.key(u)) : '') +
+					  		((fmt&0x8 && this.rank(u) > 1) ?
+								':' + this.rank(u) : ''));
 		}
 		return super.toString(fmt, nodeLabel, treeLabel);
 	}
@@ -247,10 +248,14 @@ export default class BalancedForest extends BinaryForest {
 	 *  it's really just the lists that are significant
 	 *  @return true on success
 	 */
-	static fromString(s, n=10, prop=0, listProp=0) {
-		let ls = ListSet.fromString(s, prop, listProp, n);
+	static fromString(s, n=10, property=[], scan4prop=0, treeProp=0) {
+		let ls = ListSet.fromString(s, n,0,property, scan4prop,0,treeProp);
 		if (!ls) return null;
-		let bf = new BalancedForest(ls.n);
+		let bf = new BalancedForest(ls.n, ls.property(0));
+		let [pname] = ls.property(0);
+		if (pname) {
+			for (let l = 1; l <= ls.n; l++) bf[pname](l,ls[pname](l));
+		}
 		for (let l = 1; l <= ls.n; l++) {
 			if (!ls.isfirst(l)) continue;
 			let t = l;
@@ -269,7 +274,7 @@ export default class BalancedForest extends BinaryForest {
 		let s = super.verify();
 		if (s) return s;
 		for (let u = 1; u <= this.n; u++) {
-			let pu = this.p(u); let gpu = this.p(pu);
+			let pu = this.parent(u); let gpu = this.parent(pu);
 			if (pu && (this.rank(pu) < this.rank(u) ||
 					   this.rank(pu) > this.rank(u)+1)) {
 				return `node ${this.x2s(u)} has rank ${this.rank(u)} and ` +

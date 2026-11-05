@@ -44,7 +44,7 @@ export default function nca(F, G) {
 		noa[w] = 0;  // changes once w is closed
 	}
 	for (let u = 1; u <= f.n; u++) {
-    	if (!f.p(u)) {
+    	if (!f.parent(u)) {
 			helper(u); noa[noaSets.find(u)] = 0;
 		}
 	}
@@ -54,7 +54,7 @@ export default function nca(F, G) {
 /** Recursive helper function. */
 function helper(u) {
 	noa[u] = u;
-	for (let c = f.firstChild(u); c; c = f.nextSibling(c)) {
+	for (let c = f.firstChild(u); c; c = f.nextChild(c)) {
 		helper(c);
 		noa[noaSets.merge(noaSets.find(u), noaSets.find(c))] = u;
 		noa[noaSets.find(u)] = u;

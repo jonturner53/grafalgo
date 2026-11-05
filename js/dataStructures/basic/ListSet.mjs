@@ -23,103 +23,61 @@ export default class ListSet extends Top {
 				// where last is the last item on the list
 	first_;		// first_[l] is the first item in the list numbered l
 
-	prop_names;	     // prop_names[i] is name of the i-th property added
-	prop_defaults;	 // prop_defaults[i] is default value of the i-th property
-	prop_values;     // prop_values[i] is array of values for i-th property
-
 	/** constructor
 	 *  @param n is index range for the items that appear on the lists
 	 *  @param nl is the number of "numbered lists" that are hosted
 	 *  by the list set; if nl=0, all lists are "anonymous" and can only
 	 *  be identified by their first item; when numbered lists are present
-	 *  the method first(l) returns the first item in list l, allowing the
+	 *  the method firstInList(l) returns the first item in list l, allowing the
 	 *  lists to be identified based on some client-specific handle
-	 *  @param propName is an optional property name
-	 *  @param propDefault is a default value for the new property
 	 */
-	constructor(n=10, nl=0, propName='', propDefault=0) {
+	constructor(n=10, nl=0, property=[]) {
 		ae = assertEnabled();
-		super(n);
+		super(n,property);
 		this.next_ = new Int32Array(this.n+1);
 		this.prev_ = new Int32Array(this.n+1);
-		this.first_ = (nl ? new Int32Array(nl+1) : null);
+		this.first_ = new Int32Array(nl+1);
 		// initialize to singleton lists
 		this.next_.fill(0);
 		for (let i = 0; i <= this.n; i++) this.prev_[i] = i;
-
-		this.prop_names = []; this.prop_defaults = []; this.prop_values = [];
-		if (arguments.length > 2)
-			this.addProperty(propName, propDefault);
 	}
 
-	/** Add an item property.
-	 *  @param propName is the name of the new property
-	 *  @param propDefault is the default value of the new property
-	 */
-	addProperty(propName, propDefault) {
-		assert(this[propName] == undefined,
-			   'ListSet:addProperty: name clash for ' + propName);
-
-		let newProp = new Float64Array(this.n+1).fill(propDefault);
-		this.prop_names.push(propName);
-		this.prop_defaults.push(propDefault);
-		this.prop_values.push(newProp);
-		let i = this.prop_names.length-1;
-
-		Object.defineProperty(this, propName,
-			{ value: 	function(x) {
-							ae && assert(0 <= x && x <= this.n,
-                     			`ListSet.${propName}: invalid argument: ${x}`);
-							if (arguments.length > 1) {
-								this.prop_values[i][x] = arguments[1];
-							}
-							return this.prop_values[i][x];
-						}
-			});
-		Object.defineProperty(this, 'reset_' + propName,
-			{ value: function() { this.prop_values[i].fill(propDefault); } });
-	}
-
-	/** Retrieve a property name and default value using index.
-	 *  @param i is a non-negative integer identifying a property, in the
-	 *  order the properties were added; so 0 is the first property added
-	 *  @return pair [name,default] giving the name and default value of
-	 *  the property, or null if there is no property i.
-	 */
-	property(i) {
-		if (i >= this.prop_names.length) return null;
-		return [this.prop_names[i], this.prop_defaults[i]];
-	}
+	get nl() { return this.first_.length - 1; }
 
 	/** Clear the data structure, moving all items into single node lists.
 	*/
 	clear() {
+		super.clear();
 		for (let i = 1; i <= this.n; i++) {
 			this.next_[i] = 0; this.prev_[i] = i;
 		}
-		if (!this.first_) return;
-		for (let i = 0; i < this.first_.length; i++)
-			this.first_[i] = 0;
+		if (this.first_) this.first_.fill(0);
 	}
 
-	first(l) {
+	get hasNumberedLists() { return this.first_.length > 1; }
+
+	/** Get the first item in a numbered list.
+	 *  @param l identifies a numbered list
+	 *  @return the first item in list l
+	 */
+	firstInList(l) {
 		ae && assert(this.first_ && l < this.first_.length,
 					 `${l} [${this.first_}] ${this.first_.length}`);
 		return this.first_[l];
 	}
 
 	/** Add an item to the end of a numbered list.
-	 *  @param i is a list item
+	 *  @param i is the first item of a list
 	 *  @param l is a numbered list
 	 */
 	append(i,l) {
 		ae && assert(this.first_ && l < this.first_.length &&
-					 this.singleton(i));
+					 this.isfirst(i));
 		this.first_[l] = this.join(this.first_[l], i);
 	}
 
 	/** Add an item to the front of a numbered list.
-	 *  @param i is a list item
+	 *  @param i is the first item of a list
 	 *  @param l is a numbered list
 	 */
 	prepend(i,l) {
@@ -135,9 +93,14 @@ export default class ListSet extends Top {
 	remove(i, l) {
 		ae && assert(this.first_ && l < this.first_.length,
 				     `${i} ${l} ${this.first_}`);
-		this.first_[l] = this.delete(i, this.first_[l]);
+		this.first_[l] = this.singleton(i) ? 0 :
+						 this.delete(i, this.firstInList(l));
 	}
 
+	/** Determine if an item is the first in its list.
+	 *  @param is a list item
+	 *  @return true if i is the first item in its list
+	 */
 	isfirst(i) {
 		ae && assert(this.valid(i));
 		return this.next_[this.prev_[i]] == 0;
@@ -189,13 +152,16 @@ export default class ListSet extends Top {
 	/** Rotate list to make i it's first item.
 	 *  @param f is the first item on a list.
 	 *  @param i is another item on the same list
+	 *  @param ln is the number of the list containing f and c
+	 *  (if there is one)
 	 *  @return the modified list
 	 */
-	rotate(f, i) {
+	rotate(f, i, ln=0) {
 		if (i == f) return i;
 		this.next_[this.last(f)] = f;
 		this.prev_[f] = this.prev_[f];
 		this.next_[this.prev_[i]] = 0;
+		if (ln) this.first_[ln] = i;
 		return i;
 	}
 	
@@ -276,12 +242,12 @@ export default class ListSet extends Top {
 	 *  @param that is a second ListSet or a string representing a
 	 *  ListSet object
 	 *  @return true if the two ListSet objects contain identical lists.
+	 *  note: property values are not considered
 	 */
-	equals(that) {
-		that = super.equals(...(arguments.length==1 ?
-								[that, this.n] : arguments));
+	equals(that, ...args) {
+		that = super.equals(that, ...(args.length ? args :
+								[this.n, this.nl, this.property(0)]));
 		if (typeof that == 'boolean') return that;
-		if (this.n != that.n) return false;
 
 		for (let i = 1; i < this.n; i++) {
 			if (this.isfirst(i) != that.isfirst(i)) return false;
@@ -293,32 +259,29 @@ export default class ListSet extends Top {
 			} while (j1 != 0);
 		}
 
-		// check that the first properties match
-		let p1 = this.property(0); let p2 = that.property(0);
-		if ((p1 == null) != (p2 == null)) return false;
-		if (p1 && p1[0] != p2[0]) return false;
-		let pname = p1 ? p1[0] : '';
-		for (let i = 1; i <= this.n; i++) {
-			if (pname && this[pname](i) != that[pname](i)) {
+		if (this.first_) {
+			if (this.first_.length != that.first_.length)
 				return false;
+			for (let i = 1; i < this.first_.length; i++) {
+				if (this.firstInList(i) != that.firstInList(i)) return false;
 			}
 		}
-
-
 		return that;
 	}
 
 	/** Determine if two ListSets define the same sets.
 	 *  @param that is a second ListSet or a string representing a
 	 *  ListSet object
-	 *  @return true if the two ListSet objects define identical sets.
+	 *  @return true if the two ListSet objects define identical sets;
 	 */
-	setEquals(that) {
-		that = super.equals(...(arguments.length==1 ? [that,this.n]:arguments));
+	setEquals(that, ...args) {
+		that = super.equals(that, ...(args.length ? args :
+								[this.n, this.nl, this.property(0)]));
 		if (typeof that == 'boolean') return that;
+
 		let l = new List(this.n);
 		for (let i = 1; i < this.n; i++) {
-			if (!this.isfirst(i)) continue;
+			if (!this.isfirst(i)) continue
 			l.clear();
 			for (let j = i; j; j = this.next(j)) l.enq(j);
 			let lng = 0;
@@ -346,35 +309,29 @@ export default class ListSet extends Top {
 	 *  @param listLabel is a function used to append a label to a list
 	 *  @return a string such as "{[a c] [d b g]}".
 	 */
-	toString(fmt=0, label=0, listLabel=0) {
-		if (!label) {
-			let pi = this.property(0);
-			let name; let def; if (pi) [name, def] = pi;
-			label = (j => this.x2s(j) +
-					 (pi && this[name](j) != def ?
-					  ':' + this[name](j) : ''));
-		}
+	toString(fmt=0, label, listLabel=0) {
 		if (!listLabel) listLabel = (l=>'');
+		let anon = new Int8Array(this.n+1).fill(1);
 		let s = '';
 		if (this.first_) {
-			// show only numbered lists
+			// show numbered lists first
 			for (let l = 1; l < this.first_.length; l++) {
-				if (!this.first(l)) continue;
+				if (!this.firstInList(l)) continue;
+				anon[this.firstInList(l)] = 0;
 				if (!(fmt&1) && s.length) s += ' ';
 				s += l + '[';
-				for (let i = this.first(l); i; i = this.next(i)) {
-					if (i != this.first(l)) s += ' ';
-					s += label(i);
+				for (let i = this.firstInList(l); i; i = this.next(i)) {
+					if (i != this.firstInList(l)) s += ' ';
+					s += this.x2s(i,label);
 				}
 				s += ']' + listLabel(l);
 				s += (fmt&0x1 ? '\n' : '');
 			}
-			return (fmt&0x1 ? `{\n${s}}\n` : `{${s}}`);
 		}
 		// show anonymous lists
-		let hasProps = (this.property(0) != null);
+		let hasProps = (this.property(0)[0]);
 		for (let l = 1; l <= this.n; l++) {
-			if (!this.isfirst(l)) continue;
+			if (!this.isfirst(l) || !anon[l]) continue;
 			if (this.singleton(l) && !(fmt&0x2) && !hasProps)
 				continue;
 			if (!(fmt&1) && s.length) s += ' ';
@@ -382,7 +339,7 @@ export default class ListSet extends Top {
 			if (showBrackets) s += '[';
 			for (let i = l; i; i = this.next(i)) {
 				if (i != l) s += ' ';
-				s += label(i);
+				s += this.x2s(i,label);
 			}
 			if (showBrackets) s += ']' + listLabel(l);
 			s += (fmt&0x1 ? '\n' : '');
@@ -390,41 +347,47 @@ export default class ListSet extends Top {
 		return (fmt&0x1 ? `{\n${s}}\n` : `{${s}}`);
 	}
 
-	/** Initialize this from a string representation.
-	 *  Handles only anonymous lists.
+	/** Construct a new ListSet from a string representation.
 	 *  @param s is a string, such as produced by toString().
-	 *  @param itemLabel is an optional function that is used to scan
+	 *  @param src is a source object used to provide parameters needed
+	 *  to construct new ListSet object
+	 *  @param scan4prop is an optional function that is used to scan
 	 *  for a property value; it is called after each list item is
 	 *  successfully scanned; its arguments are the list item and a
-	 *  Scanner object; it returns true on success
-	 *  @param listLabel is an optional function used to scan for a
-	 *  list label; it is called immediately after the list's
+	 *  Scanner object; it returns true on success; note if user
+	 *  supplies scan4prop, must also process its results; default
+	 *  behavior stores scanned information as the object's property(0) values
+	 *  @param scan4prefix is an optional function to scan for a string
+	 *  preceding each list; called with a scanner argument; it returns true
+	 *  on success; if not supplied, a default function scans for a list
+	 *  number; if it is supplied, client must process scanned info
+	 *  @param scan4suffix is an optional function used to scan for a
+	 *  list suffix; it is called immediately after the list's
 	 *  closing bracket; it's arguments are the index of the
 	 *  first item in the list and a Scanner; it returns true on success
-	 *  @param propName is a name for an optional item property
-	 *  @param propDefault is default value of new item property
-note, we're not scanning for list numbers (yet);
-so when numbered lists are in use, the unit tests must compare
-strings to strings, not objects to strings;
-
-this is muddled; if client supplies parsing functions, he must
-also handle the processing of the datum, which is different
-than when we provide the function locally; ok if client just
-wants to decorate the lists with info that is pertinent to it
-but has no internal significance; that's consistent applications
-of anonymous lists, but maybe not when we have numbered lists
-as well
 	 *  @return a new ListSet object on success, else null
 	 */
-	static fromString(s, n=10, nl=0, propName='value', propDefault=0,
-					     itemLabel=0, listLabel=0) {
-		let propVals = []; let hasProps = 0;
-		if (!itemLabel) {
-			itemLabel = (u,sc) => {
+	static fromString(s, n=10, nl=0, property=[],
+						 scan4prop=0, scan4prefix=0, scan4suffix=0) {
+		let propVals = []; let hasProps = 0; 
+		let listNumber = 0; let firstInList = [];
+		if (!scan4prop) {
+			// by default, a ':' indicates a numerical property value is next
+			scan4prop = (u,sc) => {
 						if (!sc.verify(':',0)) return true;
-						let p = sc.nextNumber();
-						if (Number.isNaN(p)) return false;
+						let p = sc.nextDatum();
 						propVals[u] = p; hasProps = 1;
+						return true;
+					};
+		}
+		if (!scan4prefix) {
+			scan4prefix = (sc) => {
+						sc.skipspace();
+						if (sc.verify(/\d+\[/,0,0)) {
+							// we have a list number
+							listNumber = sc.nextInt();
+							nl = Math.max(nl,listNumber);
+						}
 						return true;
 					};
 		}
@@ -433,16 +396,23 @@ as well
 		let lists = []; let items = new Set();
 		while (!sc.verify('}')) {
 			let l;
+			listNumber = 0;   // default version of scan4prefix sets listNumber
+			scan4prefix(sc);  // when a number appears before left bracket
 			if (sc.verify('[',1,0)) {
-				l = sc.nextIndexList('[',']', itemLabel);
+				l = sc.nextIndexList('[',']', scan4prop);
 				if (l == null) return null;
-				if (l.length > 0 && listLabel && !sc.isspace() &&
-					!sc.verify('}',1,0) && !listLabel(l[0],sc)) {
-					return null;
+				if (listNumber) {
+					// only get here when default scan4prefix is being used
+					firstInList[listNumber] = (l.length>0 ? l[0] : 0);
+				//	nl = Math.max(nl,listNumber);
+				}
+				if (l.length>0 && scan4suffix) {
+					if (sc.verify(/\s*[\}\s]/,0,0) || scan4suffix(l[0],sc)) {}
+					else return null;
 				}
 			} else {
-				let x = sc.nextIndex(itemLabel);
-				if (x == NaN || x <= 0) return null;
+				let x = sc.nextIndex(scan4prop);
+				if (Number.isNaN(x) || x <= 0) return null;
 				l = [x];
 			}
 			for (let i of l) {
@@ -452,15 +422,19 @@ as well
 			}
 			lists.push(l);
 		}
-		let ls = new ListSet(n, nl);
-		if (arguments.length > 3 || hasProps) {
-			ls.addProperty(propName, propDefault);
-		}
-		let name;
-		if (ls.property(0)) [name] = ls.property(0);
+
+		if (!property[0] && hasProps) property = ['value',0];
+		let ls = new ListSet(n,nl,hasProps ? property : []);
+
+		let [pname] = property;
 		for (let i = 1; i <= ls.n; i++) {
 			if (propVals[i] != undefined)
-				ls[name](i,propVals[i]);
+				ls[pname](i,propVals[i]);
+		}
+
+		for (let i = 1; i <= nl; i++) {
+			if (firstInList[i] != undefined)
+				ls.append(firstInList[i],i);
 		}
 
 		for (let l of lists) {

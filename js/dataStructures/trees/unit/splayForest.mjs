@@ -36,26 +36,29 @@ try {
 	sf.delete(10,10);
 	matches(sf.toString(), '{[b a d c e h i f]}', 'b2');
 
-	//sf.fromListString('{[a b c d] [e f g] [h i j k l m n] [p q r]}');
-	sf = SplayForest.fromString('{[a b c d] [e f g] [h i j k l m n] [p q r]}');
+	sf = SplayForest.fromString(
+			'{[a:1 b:2 c:3 d:4] [e:5 f:6 g:7] [i:9 h:8 j:10 k:11 l:12 m:13 n:14] ' +
+			'[p:16 q:17 r:18] o:15}', 18, ['key',0]);
 	matches(sf.toString(),
-			'{[a b c d] [e f g] [h i j k l m n] ' +
-			'[p q r]}', 'f1');
-	let key = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14, 10.5, 16,17,18];
-	matches(sf.search(9,13,key), 9, 'f3');
-	sf.insertByKey(15, 9, key);
+			'{[a:1 b:2 c:3 d:4] [e:5 f:6 g:7] [h:8 i:9 j:10 k:11 l:12 m:13 n:14] ' +
+			'o:15 [p:16 q:17 r:18]}', 'f1');
+	sf.key(15, 10.5);
+	sf.insertByKey(15, sf.root(10));
+	matches(sf.search(10.5,sf.root(10)), 15, 'f3');
 	matches(sf.toString(),
-			'{[a b c d] [e f g] ' +
-			'[h i j o k l m n] [p q r]}', 'f4');
+			'{[a:1 b:2 c:3 d:4] [e:5 f:6 g:7] ' +
+			'[h:8 i:9 j:10 o:10.5 k:11 l:12 m:13 n:14] ' +
+            '[p:16 q:17 r:18]}', 'f4');
 
 	let compare = (a,b) => a.localeCompare(b);
-	sf = new SplayForest();
-	key = [ '', 'abc', 'bcd', 'cde', 'def' ];
-	sf.insertByKey(1, 0, key, compare);
-	sf.insertByKey(2, 1, key, compare);
-	sf.insertByKey(3, 2, key, compare);
-	sf.insertByKey(4, 3, key, compare);
-	matches(sf.toString(),'{[a b c d]}','f5');
+	let f = new SplayForest(6,['key',0]);
+	f.key(1,'abc'); f.key(2,'bcd'); f.key(3,'cde'); f.key(4,'def');
+	f.insertByKey(1, 0, compare);
+	f.insertByKey(2, 1, compare);
+	f.insertByKey(3, 2, compare);
+	f.insertByKey(4, 2, compare);
+	matches(f.toString(4),
+		   '{[(a:"abc" b:"bcd" -) *d:"def" c:"cde"]}', 'f5');
 
 } catch(e) {
     if (e instanceof Mismatch) {

@@ -27,7 +27,7 @@ export default function bimatchF(g, trace=0) {
 
 	// create flow graph, taking care to maintain edge numbers
 	let fg = new Flograph(g.n+2, g.n+g.edgeRange);
-	if (g.weight) fg.addEdgeProperty('cost', 0);
+	if (g.weight) fg.addEdgeProperty(['cost',0]);
 	fg.source = g.n+1; fg.sink = g.n+2;
 	for (let e = g.first(); e; e = g.next(e)) {
 		let u = g.isInput(g.left(e)) ? g.left(e) : g.right(e);

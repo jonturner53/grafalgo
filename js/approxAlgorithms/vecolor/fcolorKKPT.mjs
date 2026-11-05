@@ -46,7 +46,7 @@ export function coreKKPT(g, C) {
 	pg.setBipartition(g.nf);
 
 	// define a palette expansion graph
-	let xg = new Graph(g.nf+C, Delta_o*C, 'weight', 0);
+	let xg = new Graph(g.nf+C, Delta_o*C, ['weight',0]);
 	xg.setBipartition(g.nf);
 
 	let clist = new List(C);

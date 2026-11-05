@@ -32,62 +32,15 @@ export default class List extends Top {
 	prev_;       // prev_[i] is predecessor of i in list
                  // allocated dynamically as required
 
-	prop_names;	     // prop_names[i] is name of the i-th property added
-	prop_defaults;	 // prop_defaults[i] is default value of the i-th property
-	prop_values;     // prop_values[i] is array of values for i-th property
-	
 	/** Constructor for List object.
 	 *  @param n is the range for the list
 	 */
-	constructor(n=10, propName='', propDefault=0) {
+	constructor(n=10, property=[]) {
 		ae = assertEnabled();
-		super(n);
+		super(n,property);
 		this.next_ = new Int32Array(this.n+1).fill(-1);
 		this.next_[0] = this.first_ = this.last_ = this.length_ = 0;
 		this.prev_ = null;
-
-		this.prop_names = []; this.prop_defaults = []; this.prop_values = [];
-		if (arguments.length > 1)
-			this.addProperty(propName, propDefault);
-	}
-
-	/** Add an item property.
-	 *  @param propName is the name of the new property
-	 *  @param propDefault is the default value of the new property
-	 */
-	addProperty(propName, propDefault) {
-		assert(this[propName] == undefined,
-			   'List:addProperty: name clash for ' + propName);
-
-		let newProp = new Array(this.n+1).fill(propDefault);
-		this.prop_names.push(propName);
-		this.prop_defaults.push(propDefault);
-		this.prop_values.push(newProp);
-		let i = this.prop_names.length-1;
-
-		Object.defineProperty(this, propName,
-			{ value: 	function(x) {
-							ae && assert(0 <= x && x <= this.n,
-                     			`List.${propName}: invalid argument: ${x}`);
-							if (arguments.length > 1) {
-								this.prop_values[i][x] = arguments[1];
-							}
-							return this.prop_values[i][x];
-						}
-			});
-		Object.defineProperty(this, 'reset_' + propName,
-			{ value: function() { this.prop_values[i].fill(propDefault); } });
-	}
-
-	/** Retrieve a property name and default value using index.
-	 *  @param i is a non-negative integer identifying a property, in the
-	 *  order the properties were added; so 0 is the first property added
-	 *  @return pair [name,default] giving the name and default value of
-	 *  the property, or null if there is no property i.
-	 */
-	property(i) {
-		if (i >= this.prop_names.length) return null;
-		return [this.prop_names[i], this.prop_defaults[i]];
 	}
 
 	/** Determine if this object has both forward and reverse links. */
@@ -109,7 +62,7 @@ export default class List extends Top {
 	/** Remove all elements from list.
 	 *  Note: property values are retained when items leave list
 	 */
-	clear() { while (!this.empty()) this.pop(); }
+	clear() { super.clear(); while (!this.empty()) this.pop(); }
 
 	/** Get the number of items in the list. */
 	get length() { return this.length_; }
@@ -259,6 +212,7 @@ export default class List extends Top {
 	 */
 	range(lo, hi) {
 		ae && assert(1 <= lo && lo <= hi && hi <= this.n);
+		super.clear(); // clears property values
 		this.clear(); for (let i = lo; i <= hi; i++) this.enq(i);
 	}
 
@@ -277,27 +231,20 @@ export default class List extends Top {
 	 *  @return true if they are the same list or have the
 	 *  same contents (in the same order)
 	 */
-	equals(that) {
-		that = super.equals(...(arguments.length == 1 ?
-							[that, this.n] : arguments));
-			// when that is a string, Top constructs and returns a List;
-			// passing it this.n ensures that index range of List matches this
+	equals(that, ...args) {
+		that = super.equals(that, ...(args.length ? args :
+										[this.n,this.property(0)]));
 		if (typeof that == 'boolean') return that;
 		if (this.length != that.length) return false;
-
-		// check that both have same first property name
-		let p1 = this.property(0); let p2 = that.property(0);
-		if ((p1 == null) != (p2 == null)) return false;
-		if (p1 && p1[0] != p2[0]) return false;
-		let pname = p1 ? p1[0] : '';
-
-		let j = that.first();
-		for (let i = this.first(); i; i = this.next(i)) {
+		
+		let i = this.first(); let j = that.first();
+		while (i && j) {
 			if (i != j) return false;
-			if (pname && this[pname](i) != that[pname](j)) return false;
-			j = that.next(j);
+			i = this.next(i); j = that.next(j);
 		}
-		return j == 0 ? that : false;
+		if (i != j) return false;
+		
+		return that;
 	}
 
 	/** Compare two lists for set equality.
@@ -327,13 +274,7 @@ export default class List extends Top {
 	 *  @return the string representation of the list
 	 */
 	toString(label=0) {
-		if (!label) {
-			let p0 = this.property(0);
-			let name; let def; if (p0) [name, def] = p0;
-			label = (j => this.x2s(j) +
-					 (p0 && this[name](j) != def ?
-					  ':' + this.datum2string(this[name](j)) : ''));
-		}
+		if (!label) label = (j => this.x2s(j));
 		let s = '';
 		for (let i = this.first(); i; i = this.next(i)) {
 			if (i != this.first()) s += ' ';
@@ -342,17 +283,21 @@ export default class List extends Top {
 		return '[' + s + ']';
 	}
 	
-	/** Initialize this from a string representation.
+	/** Construct a List object from a string representation.
 	 *  @param s is a string, such as produced by toString().
+	 *  @param n is the default index range for the constructed object
+	 *  @param property is the default property
+	 *  to construct the new List; typically used when comparing another
+	 *  object to the string representation
 	 *  @param n is an optional minimum value for the index range
-	 *  @param prop is an optional function used to parse an item property
+	 *  @param scan4prop is an optional function used to parse an item property
 	 *  @return true on success, else false
 	 */
-	static fromString(s, n=10, propName='value', propDefault=0, scanProp=0) {
+	static fromString(s, n=10, property=[], scan4prop=0) {
 		let sc = new Scanner(s);
 		let propVals = []; let hasProps = 0;
-		if (!scanProp) {
-			scanProp = (u,sc) => {
+		if (!scan4prop) {
+			scan4prop = (u,sc) => {
 						if (!sc.verify(':',0)) return true;
 						let p = sc.nextDatum();
 						if (p == null) return false;
@@ -360,7 +305,7 @@ export default class List extends Top {
 						return true;
 					};
 		}
-		let l = sc.nextIndexList('[', ']', scanProp);
+		let l = sc.nextIndexList('[', ']', scan4prop);
 		if (l == null) return null;
 		let items = new Set();
 		for (let i of l) {
@@ -369,14 +314,15 @@ export default class List extends Top {
             items.add(i);
 		}
 
-		let list = new List(n);
-		if (arguments.length > 2 || hasProps) {
-			list.addProperty(propName, propDefault);
-		}
+		if (!property[0] && hasProps)
+			property = ['value',0];
+		let list = new List(n,property);
+
+		let [pname,pdefault] = property;
 		for (let i of l) {
 			list.enq(i);
 			if (propVals[i] != undefined)
-				list[propName](i,propVals[i]);
+				list[pname](i,propVals[i]);
 		}
 		return list;
 	}

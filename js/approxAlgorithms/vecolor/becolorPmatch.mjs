@@ -23,7 +23,7 @@ import { maxTint } from './common.mjs';
 export default function becPmatch(g, trace=0) {
 	let steps = 0;
 	assert(g.hasBipartition, g);
-	if (!g.color) g.addEdgeProperty('color',0);
+	if (!g.color) g.addEdgeProperty(['color',0]);
 
 	// compute degrees in g and assign initial priorities
 	let d = new Int32Array(g.n+1);

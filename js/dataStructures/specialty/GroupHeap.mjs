@@ -12,8 +12,7 @@ import Scanner from '../../dataStructures/basic/Scanner.mjs';
 import ArrayHeap from '../heaps/ArrayHeap.mjs';
 import OrderedHeaps from '../heaps/OrderedHeaps.mjs';
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 
 /** Data structure representing a group heap.
  *  The collection of items is divided into "groups", where each
@@ -42,7 +41,6 @@ export default class GroupHeap extends Top {
 	/** Constructor for GroupHeap object.
 	 */
 	constructor(n=10, gn=5) {
-		ae = assertEnabled();
 		super(n); this.gn = gn;
 
 		this.groups = new OrderedHeaps(n);
@@ -53,7 +51,7 @@ export default class GroupHeap extends Top {
 		this.clearStats();
 	}
 
-	/** Restore to initial state. */
+	/** Restore to initial state or clear a single group. */
 	clear(g=0) {
 		if (g) {
 			this.groups.clear(this.top[g]);
@@ -89,12 +87,13 @@ export default class GroupHeap extends Top {
 	/** Get the key of an item.
 	 *  @param i is an item in some group
 	 *  @param g is the group that i belongs to
-	 *  @return the key of i
 	 */
-	key(i, g) {
+	key(i, g)  {
 		if (this.isactive(g)) this.updateKeys(g);
 		return this.groups.key(i, this.top[g]);
 	}
+
+	setKey(i,k) { this.groups.key(i,i,k); }
 
 	/** Update the keys of an active group.
 	 *  @param g is an active group
@@ -110,7 +109,7 @@ export default class GroupHeap extends Top {
 	/** Activate a group */
 	activate(g) {
 		let h = this.top[g];
-		ae && assert(h, 'GroupHeap.activate requires a non-empty heap');
+		ae() && assert(h, 'GroupHeap.activate requires a non-empty heap');
 		this.active.insert(g, this.key(this.groups.findmin(h),g));
 		this.lastOffset[g] = this.active.offset;
 	}
@@ -118,12 +117,15 @@ export default class GroupHeap extends Top {
 	/** Deactivate a group */
 	deactivate(g) { this.updateKeys(g); this.active.delete(g); }
 
-	/** Find the active item with the smallest key.  */
+	/** Find the active item with the smallest key.
+	 *  @return a pair [i,g] where i is the item with the smallest key and
+	 *  g is the group containing i
+	 */
 	findmin() {
 		let g = this.active.findmin();
-		if (!g) return 0;
+		if (!g) return [0,0];
 		this.updateKeys(g);
-		return this.groups.findmin(this.top[g]);
+		return [this.groups.findmin(this.top[g]),g];
 	}
 
 	/** Modify the key values of all active items.
@@ -132,17 +134,16 @@ export default class GroupHeap extends Top {
 	add2keys(delta) { this.active.add2keys(delta); }
 
 	/** Insert an item into a group.
-	 *  @param i is an item to be inserted into a group
-	 *  @param k is the required key value for i
-	 *  @param j is an item in the heap; i is inserted immediately after j
-	 *  @param g is the id of group in which i is to be inserted
+	 *  @param i is a singleton item to be inserted into a group
+	 *  @param j is an item in the group; i is inserted immediately after j
+	 *  @param g is the id of the group into which i is to be inserted
 	 */
-	insertAfter(i, k, j, g) {
+	insertAfter(i, j, g) {
 		if (this.isactive(g)) this.updateKeys(g);
-		let h = this.top[g];
-		this.top[g] = this.groups.insertAfter(i, k, j, h);
-		if (this.isactive(g) && k < this.active.key(g)) {
-			this.active.changekey(g, k);
+		let h = this.top[g] ? this.top[g] : i;
+		this.top[g] = this.groups.insertAfter(i, j, h);
+		if (this.isactive(g) && this.key(i,g) < this.active.key(g)) {
+			this.active.changekey(g, this.key(i,g));
 		}
 	}
 
@@ -190,11 +191,10 @@ export default class GroupHeap extends Top {
 
 	/** Determine if two GroupHeap objects are equal.
 	 */
-	equals(that) {
-		that = super.equals(...(arguments.length == 1 ?
-                               	[that, this.n, this.gn] : arguments));
+	equals(that,...args) {
+		that = super.equals(that, ...(args.length ? args : [this.n,this.gn]));
 		if (typeof that == 'boolean') return that;
-		if (this.n != that.n || that.gn != this.gn) return false;
+		if (that.gn != this.gn) return false;
 
 		if (!this.active.equals(that.active)) return false;
 
@@ -223,7 +223,7 @@ export default class GroupHeap extends Top {
 	 */
 	toString(fmt=0, itemLabel=0, heapLabel=0) {
 		if (!itemLabel) {
-			itemLabel = ((i,g) => this.x2s(i) + ':' + this.key(i,g));
+			itemLabel = ((i,g) => this.x2c(i) + ':' + this.key(i,g));
 		}
 		if (!heapLabel) {
 			heapLabel = (g => '' + g +
@@ -256,7 +256,7 @@ export default class GroupHeap extends Top {
 			} else {
 				for (let i = this.groups.first(h); i; i = this.groups.next(i)) {
 					if (s[s.length-1] != '[') s += ' ';
-					let lab = itemLabel(i); if (!lab) continue;
+					let lab = itemLabel(i,g); if (!lab) continue;
 					s += lab;
 				}
 			}
@@ -305,10 +305,11 @@ export default class GroupHeap extends Top {
 
 		let gh = new GroupHeap(n, gn);
 
+		for (let i = 0; i <= gh.n; i++) gh.setKey(i,key[i]);
 		for (let [g, active, l] of lists) {
 			let previ = 0;
 			for (let i of l) {
-				gh.insertAfter(i, key[i], previ, g);
+				gh.insertAfter(i, previ, g);
 				previ = i;
 			}
 			if (active) gh.activate(g);

@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Digraph from '../../dataStructures/graphs/Digraph.mjs';
@@ -14,24 +14,24 @@ import mstP from '../../graphAlgorithms/mst/mstP.mjs';
 import allpairsF from '../../graphAlgorithms/spath/allpairsF.mjs';
 import wmatchE from '../../graphAlgorithms/match/wmatchE.mjs';
 
-let ae;
-
 /** Find a traveling salesman tour, using Christofides algorithm.
- *  @param g is a weighted graph.
+ *  @param g is an undirected graph.
  *  @return a triple [[u0,tour], ts, stats] where u0 is the first vertex
  *  of the tour and tour is an array of n edges; tour may require edges not
  *  explicitly represented in g; such edges are added to g where necessary
  */
 export default function tspC(g, trace=0) {
-	ae = assertEnabled();
 	let traceString = '';
 	if (trace) traceString += `graph: ${g.toString(1)}\n`;
 
-	if (!g.weight)
-		g.weight = g.length; // adding an alias for length method
+	// since mst algorithm uses edge 'weights' add redundant edge weights
+	if (!g.weight) {
+		g.addEdgeProperty(['weight',0]);
+		for (let e = g.first(); e; e = g.next(e)) g.weight(e, g.length(e));
+	}
 
 	let [mst] = mstP(g);
-	ae && assert(mst.length == g.n-1);
+	ae() && assert(mst.length == g.n-1);
 	let mstWeight = 0; for (let e of mst) mstWeight += g.weight(e);
 	if (trace)
 		traceString += `mst: ${g.elist2string(mst,0,0,1)} ${mstWeight}\n`;
@@ -45,7 +45,7 @@ export default function tspC(g, trace=0) {
 	for (let u = 1; u <= g.n; u++)
 		if (deg[u]&1) odds.enq(u);
 	let [link,dist] = allpairs(g);
-	ae && assert(link);
+	ae() && assert(link);
 
 	let match = matchpairs(g, odds, dist);
 
@@ -76,8 +76,8 @@ export default function tspC(g, trace=0) {
 	for (let u = sctour.first(); u; u = sctour.next(u)) {
 		let v = (u == sctour.last() ? sctour.first() : sctour.next(u));
 		let e = g.findEdge(u,v);
-		if (!e) { e = g.join(u,v); g.length(e, dist[u][v]); }
-		tour[i++] = e; tourLength += g.length(e);
+		if (!e) { e = g.join(u,v); g.weight(e, dist[u][v]); }
+		tour[i++] = e; tourLength += g.weight(e);
 	}
 	g.sortAllEplists();
 
@@ -96,12 +96,12 @@ export default function tspC(g, trace=0) {
  */
 function allpairs(g) {
 	// convert g to equivalent digraph dg and compute shortest paths in dg
-	let dg = new Digraph(g.n, Math.min(2*g.edgeRange+1), 'length', 0);
+	let dg = new Digraph(g.n, Math.min(2*g.edgeRange+1), ['length',0]);
 	for (let e = g.first(); e; e = g.next(e)) {
 		let de = dg.join(g.left(e), g.right(e), 2*e);
-					dg.length(de, g.length(e));
+					dg.length(de, g.weight(e));
 			de = dg.join(g.right(e), g.left(e), 2*e+1);
-					dg.length(de, g.length(e));
+					dg.length(de, g.weight(e));
 	}
 	let [link,dist] = allpairsF(dg);
 	// now convert edge numbers in link to match edge numbers in g
@@ -121,11 +121,11 @@ function allpairs(g) {
  *  minimum weight matching on graph mg
  */
 function matchpairs(g, vset, dist) {
-	let mg = new Graph(g.n, vset.length*(vset.length-1)/2, 'weight', 0);
+	let mg = new Graph(g.n,vset.length*(vset.length-1)/2, ['weight',0]);
 	let maxWt = 0;
 	for (let u = vset.first(); u; u = vset.next(u)) {
 		for (let v = vset.next(u); v; v = vset.next(v)) {
-			ae && assert(dist[u][v] >= 0 && dist[u][v] != Infinity);
+			ae() && assert(dist[u][v] >= 0 && dist[u][v] != Infinity);
 			let e = mg.join(u,v); mg.weight(e, dist[u][v]);
 			maxWt = Math.max(mg.weight(e), maxWt);
 		}

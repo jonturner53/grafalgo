@@ -86,7 +86,7 @@ function udcs(g, hi, isub=0) {
  */
 function match2sub(match, g) {
 	let sub = new Graph(g.n,g.edgeRange);
-	if (g.weight) sub.addEdgeProperty('weight', 0);
+	if (g.weight) sub.addEdgeProperty(['weight',0]);
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (match.contains(e)) {
 			sub.join(g.left(e), g.right(e), e);
@@ -110,7 +110,7 @@ function match2sub(match, g) {
  */
 function wudcs(g, hi, complete=false) {
 	let tg = tutteGraph(g,hi);
-	if (g.weight) tg.addEdgeProperty('weight', 0);
+	if (g.weight) tg.addEdgeProperty(['weight',0]);
 	let W = maxweight(g);
 	for (let e = tg.first(); e; e = tg.next(e)) {
 		if (!g.validEdge(e)) tg.weight(e, W+1);
@@ -164,7 +164,7 @@ function wdcs(g, hi, lo) {
 
 	// extract g's edges from cdcs
 	let sub = new Graph(g.n, g.edgeRange);
-	if (g.weight) sub.addEdgeProperty('weight', 0);
+	if (g.weight) sub.addEdgeProperty(['weight',0]);
 	for (let e = g.first(); e; e = g.next(e)) {
 		if (cdcs.validEdge(e)) {
 			sub.join(g.left(e), g.right(e), e);
@@ -234,7 +234,7 @@ export function gabowGraph(g, hi, lo) {
 	steps += g.n;
 
 	let gg = new Graph(n,m);
-	if (g.weight) gg.addEdgeProperty('weight', 0);
+	if (g.weight) gg.addEdgeProperty(['weight',0]);
 
 	// first copy of g uses same edge numbers as g and inherits weights
 	for (let e = g.first(); e; e = g.next(e)) {

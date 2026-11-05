@@ -6,7 +6,7 @@
  *  See http://www.apache.org/licenses/LICENSE-2.0 for details.
  */
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 import Top from '../../dataStructures/Top.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import ListPair from '../../dataStructures/basic/ListPair.mjs';
@@ -16,7 +16,6 @@ import Graph from '../../dataStructures/graphs/Graph.mjs';
 import { scramble } from '../../common/Random.mjs';
 import bimatchHK from '../../graphAlgorithms/match/bimatchHK.mjs';
 
-let ae;
 
 /** This class extends the Graph class by adding edge groups called "fans"
  *  and color palettes. FanGraphs are bipartite and each fan has an input
@@ -28,8 +27,6 @@ let ae;
  *  than outputs; with vertices 1..ni, pre-defined as inputs.
  */
 export default class FanGraph extends Graph {
-	ae = assertEnabled();
-
 	fans_;        // ListPair identifying active fan numbers
     fan_edges;    // ListSet that partitions edges into their fans
 	input_fans;   // ListSet partitioning fans among inputs
@@ -53,19 +50,19 @@ export default class FanGraph extends Graph {
 	 *  @param ni is the number of inputs
 	 *  @param no is the number of outputs
 	 *  @param nf is the max number of fans
-	 *  @param crange is largest color number available for coloring the graph
 	 *  @param erange is the maximum number of edges in the graph
+	 *  @param crange is largest color number available for coloring the graph
 	 *  @param tints is a flag that enables fan tints
 	 */
 	constructor(ni, no, nf, erange, crange, tints=0) {
 		super(ni+no, erange); this.setBipartition(ni);
-		this.addEdgeProperty('color_', 0);
-		this.addEdgeProperty('fan', 0);
+		this.addEdgeProperty(['color_',0]);
+		this.addEdgeProperty(['fan',0]);
 
 		this.fans_ = new ListPair(nf);
-		this.fans_.addProperty('fanout',0);
+		this.fans_.addProperty(['fanout',0]);
 		if (tints) {
-			this.fans_.addProperty('tint',0);
+			this.fans_.addProperty(['tint',0]);
 			Object.defineProperty(this, 'tint',
 				{ value: function(e,v) { return this.fans_['tint'](e,v); }});
 			Object.defineProperty(this, 'reset_tint',
@@ -87,7 +84,7 @@ export default class FanGraph extends Graph {
 		}
 		this.usage_ = new Array(crange+1);
 		this.owner_ = new Array(crange+1);
-		for (let c = 1; c <= crange; c++) {
+		for (let c = 0; c <= crange; c++) {
 			this.usage_[c] = new Int32Array(this.n+1);
 			this.owner_[c] = new Int32Array(ni+1);
 		}
@@ -109,11 +106,13 @@ export default class FanGraph extends Graph {
 	firstFan() { return this.fans_.first(1); }
 	nextFan(f) { return this.fans_.next(f,1); }
 
-	firstFanAt(u) { return this.input_fans.first(u); }
+	firstFanAt(u) { return this.input_fans.firstInList(u); }
 	nextFanAt(u,f) { return this.input_fans.next(f); }
 
-	firstEdgeIn(f) { return this.fan_edges.first(f); }
+	firstEdgeIn(f) { return this.fan_edges.firstInList(f); }
 	nextEdgeIn(f,e) { return this.fan_edges.next(e); }
+
+	firstEdgeColored(c) { return this.color_edges.firstInList(c); }
 
 	/** Get the first color in a fan's palette.
 	 *  @param f is a valid fan defined by this
@@ -137,7 +136,7 @@ export default class FanGraph extends Graph {
 
 	/** Get the input common to all of the edges in a fan */
 	hub(f) {
-		let e = this.fan_edges.first(f);
+		let e = this.firstEdgeIn(f);
 		return e ? this.input(e) : 0;
 	}
 
@@ -173,23 +172,24 @@ export default class FanGraph extends Graph {
 	 *  @return the fan id that e is assigned to
 	 */
 	add(e, f=0) {
-		ae && assert(this.fan(e) == 0);
+		ae() && assert(this.fan(e) == 0);
 		if (f == 0 || this.fans_.in(f,2)) {
 			// allocate fan and add edge to it
 			if (f == 0) f = this.fans_.first(2);
-			ae && assert(this.fan(e) == 0 && this.fan_edges.first(f) == 0 &&
-												this.fan_edges.singleton(e));
+			ae() && assert(this.fan(e) == 0 &&
+						   this.firstEdgeIn(f) == 0 &&
+						   this.fan_edges.singleton(e));
 			this.fans_.swap(f);
 			this.fan(e,f); this.fanout(f,1);
 			this.fan_edges.append(e,f);
 			this.input_fans.append(f,this.input(e));
 		} else {
 			// add edge to an existing fan
-			ae && assert(this.fan_edges.first(f));
+			ae() && assert(this.firstEdgeIn(f));
 			let u = this.hub(f);
-			ae && assert(u == this.input(e),
-				this.x2s(u) + ' ' + this.e2s(e) + ' ' +
-				this.e2s(this.fan_edges.first(f)) + ' ' + this.ni);
+			ae() && assert(u == this.input(e),
+				this.x2c(u) + ' ' + this.e2s(e) + ' ' +
+				this.e2s(this.firstEdgeIn(f)) + ' ' + this.ni);
 			this.fan(e,f);
 			this.fan_edges.append(e,f);
 			this.fanout(f,this.fanout(f)+1);
@@ -222,17 +222,17 @@ export default class FanGraph extends Graph {
 		if (f1 == f2 || f2 == 0) return f1;
 		if (f1 == 0) return f2;
 		let u = this.hub(f1);
-		ae && assert(u == this.hub(f2));
+		ae() && assert(u == this.hub(f2));
 	
 		// update fan of edges in f2, while checking for and removing
 		// potential parallel edges
 		this.vlist_.clear();
-		for (let e = this.fan_edges.first(f1); e;
+		for (let e = this.firstEdgeIn(f1); e;
 				 e = this.fan_edges.next(e))
 			this.vlist_.enq(this.output(e));
 
-		while (this.fan_edges.first(f2)) {
-			let e = this.fan_edges.first(f2);
+		while (this.firstEdgeIn(f2)) {
+			let e = this.firstEdgeIn(f2);
 			this.remove(e);  // removes e from f2's list in fan_edges, etc
 			if (this.vlist_.contains(this.output(e))) {
 				this.delete(e);  // deletes e from graph
@@ -250,8 +250,8 @@ export default class FanGraph extends Graph {
 	sortFans(u) {
 		let vec = new Int32Array(this.fanCount(u));
 		let i = 0;
-		while (this.input_fans.first(u)) {
-			vec[i] = this.input_fans.first(u);
+		while (this.firstFanAt(u)) {
+			vec[i] = this.firstFanAt(u);
 			this.input_fans.remove(vec[i++], u);
 		}
 		vec.sort((f1,f2) => this.fanout(f2) - this.fanout(f1));
@@ -267,8 +267,8 @@ export default class FanGraph extends Graph {
 	scrambleFans(u) {
 		let vec = new Int32Array(1+this.fanCount(u));
 		let i = 1;
-		while (this.input_fans.first(u)) {
-			vec[i] = this.input_fans.first(u);
+		while (this.firstFanAt(u)) {
+			vec[i] = this.firstFanAt(u);
 			this.input_fans.remove(vec[i++], u);
 		}
 		scramble(vec);
@@ -331,7 +331,7 @@ export default class FanGraph extends Graph {
 	 */
 	bind(c,f) {
 		let u = this.hub(f);
-		ae && assert(f && c && u && !this.owner(c,u) && !this.usage(c,u),
+		ae() && assert(f && c && u && !this.owner(c,u) && !this.usage(c,u),
 					 `${f} ${c} ${u} ${this.owner(c,u)} ${this.usage(c,u)}`);
 		this.owner_[c][u] = f;
 		this.unused_[u] = this.palettes_[u].delete(c, this.unused_[u]);
@@ -345,7 +345,7 @@ export default class FanGraph extends Graph {
 	 */
 	release(c,f) {
 		let u = this.hub(f);
-		ae && assert(f && c && u && this.owner(c,u) == f);
+		ae() && assert(f && c && u && this.owner(c,u) == f);
 		this.owner_[c][u] = 0;
 		this.first_color[f] = this.palettes_[u].delete(c, this.first_color[f]);
 		this.unused_[u] = this.palettes_[u].join(this.unused_[u], c);
@@ -360,29 +360,31 @@ export default class FanGraph extends Graph {
 	 *  @return the color of e
 	 */
 	color(e,c=-1) {
-		ae && assert(this.eg.validEdge(e) && c <= this.n_c);
+		ae() && assert(this.validEdge(e) && c <= this.crange);
 		if (c < 0) return this.color_(e);
 
 		let [u,v] = [this.input(e),this.output(e)];
 		let f = this.fan(e);
-		ae && assert(f);
+		ae() && assert(f);
 
 		// free current color assigned to e
 		let cc = this.color_(e);  // old color (possibly 0)
-		this.color_edges.remove(e, cc);
+		if (cc != 0) this.color_edges.remove(e, cc);
 		if (cc) { this.usage_[cc][u]--; this.usage_[cc][v]--; }
 
 		// note: cc remains bound to fan, even if usage now 0
 		if (cc) this.num_colored--;
 		if (cc && (cc == this.top_color)) {
-			while (!this.color_edges.first(this.top_color)) this.top_color--;
+			while (this.top_color && !this.firstEdgeColored(this.top_color)) {
+				this.top_color--;
+			}
 		}
 
 		// set the new color (possibly 0)
-		ae && assert(this.avail(c,e),`${f} ${this.avail(c,e)} ` +
+		ae() && assert(this.avail(c,e),`${f} ${this.avail(c,e)} ` +
 					 				 `${this.owner(c,u)} ${this.usage(c,u)}`);
 		this.color_(e,c);
-		this.color_edges.append(e,c);
+		if (c > 0) this.color_edges.append(e,c);
 
 		if (c && !this.owner(c,u)) this.bind(c,f);
 		if (c) { this.usage_[c][u]++; this.usage_[c][v]++; }
@@ -412,8 +414,9 @@ export default class FanGraph extends Graph {
 	 *  @return true if successful, else false
 	 */
 	colorFromPalettes(out=0) {
-		for (let e = this.first(); e; e = this.next(e))
+		for (let e = this.first(); e; e = this.next(e)) {
 			this.color(e,0);
+		}
 
 		// create palette graph
 		let [,Delta_o] = this.maxDegree();
@@ -449,10 +452,10 @@ export default class FanGraph extends Graph {
 	 *  @return true if that is equal to this; meaning the vertices,
 	 *  edges and fans all match; colors and color palettes may differ
 	 */
-	equals(that) {
-		that = super.equals(...(arguments.length==1 ?
-                     [that, this.ni, this.no, this.nf, Math.max(10,this.m)] :
-					 arguments));
+	equals(that, ...args) {
+		that = super.equals(that, ...(args.length ? args :
+                     [this.ni, this.no, this.nf,
+					  this.edgeRange, this.crange, !!this.tints]));
         if (typeof that == 'boolean') return that;
 
 		if (this.fans_.length(1) != that.fans_.length(1))
@@ -487,7 +490,7 @@ export default class FanGraph extends Graph {
 		for (let u = 1; u <= this.ni; u++) {
 			if (!(fmt&2) && !this.firstAt(u)) continue;
 			if (!(fmt&1) && s) s += ' ';
-			s += this.x2s(u) + '[';
+			s += this.x2c(u) + '[';
 			for (let f = this.firstFanAt(u); f; f = this.nextFanAt(u,f)) {
 				if (f != this.firstFanAt(u)) s += ' ';
 				if (this.tint && this.tint(f)) s += this.tint(f);
@@ -502,10 +505,10 @@ export default class FanGraph extends Graph {
 		let s2 = '';
 		for (let v = this.ni+1; v <= this.n; v++) {
 			if (!(fmt&1) && s) s2 += ' ';
-			s2 += this.x2s(v) + '[';
+			s2 += this.x2c(v) + '[';
 			for (let e = this.firstAt(v); e; e = this.nextAt(v,e)) {
 				if (e != this.firstAt(v)) s2 += ' ';
-				s2 += this.x2s(this.mate(v,e));
+				s2 += this.x2c(this.mate(v,e));
 				if (fmt&8 && this.color(e))
 					s2 += ':' + this.color(e);
 			}
@@ -520,7 +523,7 @@ export default class FanGraph extends Graph {
 		let s = '('; 
 		for (let e = this.firstEdgeIn(f); e; e = this.nextEdgeIn(f,e)) {
 			if (e != this.firstEdgeIn(f)) s += ' ';
-			s += this.x2s(this.output(e));
+			s += this.x2c(this.output(e));
 			if (showColors) s += ':' + this.color(e);
 		}
 		s += ')';

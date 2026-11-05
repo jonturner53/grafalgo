@@ -12,16 +12,12 @@ import ListSet from '../basic/ListSet.mjs';
 import BinaryForest from '../trees/BinaryForest.mjs';
 import Scanner from '../basic/Scanner.mjs';
 
-import { assert, assertEnabled } from '../../common/Assert.mjs';
-let ae; // initialized in constructor
+import { assert, assertEnabled as ae} from '../../common/Assert.mjs';
 
 /** This class implements a data structure consisting of a disjoint
  *  set of leftist heaps.
  */
 export default class LeftistHeaps extends BinaryForest {
-	Key;    	// Key[i] is key of item i
-	Rank;	    // Rank[i] gives rank of item i
-
     meldsteps;         // steps in meld operations
 
 	/** Constructor for LeftistHeaps object.
@@ -31,14 +27,11 @@ export default class LeftistHeaps extends BinaryForest {
 	 *  to determine which nodes are retired.
 	 */
 	constructor(n=10) {
-		ae = assertEnabled();
 		super(n);
 
-		this.addProperty('key', 0);
-		this.addProperty('rank', 1);
+		this.addProperty(['key',0]);
+		this.addProperty(['rank',1]);
 		this.rank(0,0);
-		//this.Key = new Float32Array(this.n+1)
-		//this.Rank = new Int32Array(this.n+1).fill(1,1);
 
 	    this.clearStats();
 	}
@@ -83,10 +76,10 @@ export default class LeftistHeaps extends BinaryForest {
 	 *  @param k is the key under which i is inserted
 	 *  @return the id of the modified heap
 	 */
-	insert(i, h, k) {
+	insert(i,h,k=this.key(i)) {
 		this.insertCount++;
-		ae && assert(this.valid(i) && this.valid(h));
-		ae && assert(this.left(i) == 0 && this.right(i) == 0 && this.rank(i) == 1);
+		ae() && assert(this.valid(i) && this.valid(h)) &&
+				assert(this.left(i) == 0 && this.right(i) == 0 && this.rank(i) == 1);
 		this.key(i, k);
 		return this.meld(i, h);
 	}
@@ -128,12 +121,11 @@ export default class LeftistHeaps extends BinaryForest {
 
 	/** Determine if two LeftistHeaps objects are equal.
 	 *  @param that is another LeftistHeaps to be compared to this,
-	 *  or a string representing an LeftistHeaps object.
+	 *  or a string representing a LeftistHeaps object.
 	 *  @return true, false or an object
 	 */
-	equals(that) {
-		that = super.setEquals(...(arguments.length==1 ?
-									[that,this.n]:arguments));
+	equals(that, ...args) {
+		that = super.setEquals(that, ...(args.length ? args : [this.n]));
         if (typeof that == 'boolean') return that;
 		for (let i = 1; i <= this.n; i++) {
 			if (this.key(i) != that.key(i)) return false;
@@ -153,7 +145,7 @@ export default class LeftistHeaps extends BinaryForest {
 	 */
 	toString(fmt=0b010,label=0) {
 		if (!label) {
-			label = (x => this.x2s(x) + (':' + this.key(x)) +
+			label = (x => this.x2s(x) +
 						  ((fmt&0x8 && this.rank(x) > 1) ?
 								':' + this.rank(x) : ''));
 		}
@@ -165,26 +157,16 @@ export default class LeftistHeaps extends BinaryForest {
 	 *  @return true on if success, else false
 	 */
 	static fromString(s, n=10) {
-		let key = [];
-		let ls = ListSet.fromString(s, n, 0, 0, 0,
-						(u,sc) => {
-							if (!sc.verify(':',0)) {
-								key[u] = 0; return true;
-							}
-							let p = sc.nextNumber();
-							if (Number.isNaN(p)) return false;
-							key[u] = p;
-							return true;
-						});
+		let ls = ListSet.fromString(s, n, 0, ['key',0])
 		if (!ls) return null;
 		let lh = new LeftistHeaps(ls.n);
 
+		for (let u = 1; u <= ls.n; u++) lh.key(u,ls.key(u));
 		for (let u = 1; u <= ls.n; u++) {
 			if (!ls.isfirst(u)) continue;
-			lh.key(u, key[u]);
 			let h = u;
 			for (let i = ls.next(u); i; i = ls.next(i))
-				h = lh.insert(i, h, key[i]);
+				h = lh.insert(i,h);
 		}
 		return lh;
 	}
