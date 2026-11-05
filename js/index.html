@@ -305,30 +305,6 @@ import ecolorG from './graphAlgorithms/ecolor/ecolorG.mjs';
 import ecolorR from './graphAlgorithms/ecolor/ecolorR.mjs';
 import ecolorVerify from './graphAlgorithms/ecolor/ecolorVerify.mjs';
 
-import { maxFloor, maxColor } from './approxAlgorithms/vecolor/commonBec.mjs';
-import becSplit from './approxAlgorithms/vecolor/becSplit.mjs';
-import becMdmatch from './approxAlgorithms/vecolor/becMdmatch.mjs';
-import becPmatch from './approxAlgorithms/vecolor/becPmatch.mjs';
-import verifyBec from './approxAlgorithms/vecolor/verifyBec.mjs';
-import hardcaseBec from './approxAlgorithms/vecolor/hardcaseBec.mjs';
-import randomBec from './approxAlgorithms/vecolor/randomBec.mjs';
-
-import EdgeGroups from './approxAlgorithms/vecolor/EdgeGroups.mjs';
-import EdgeGroupColors from './approxAlgorithms/vecolor/EdgeGroupColors.mjs';
-import EdgeGroupLayers from './approxAlgorithms/vecolor/EdgeGroupLayers.mjs';
-import {maxGroupCount, maxOutDegree, egcLbound}
-			from './approxAlgorithms/vecolor/commonEgc.mjs'; 
-import randomEgc from './approxAlgorithms/vecolor/randomEgc.mjs';
-import verifyEgc from './approxAlgorithms/vecolor/verifyEgc.mjs';
-import egcTl from './approxAlgorithms/vecolor/egcTl.mjs';
-import egcTh from './approxAlgorithms/vecolor/egcTh.mjs';
-import egcCT from './approxAlgorithms/vecolor/egcCT.mjs';
-import { coreCT } from './approxAlgorithms/vecolor/egcCT.mjs';
-import egcKKP from './approxAlgorithms/vecolor/egcKKP.mjs';
-import egcKKPT from './approxAlgorithms/vecolor/egcKKPT.mjs';
-import egcYM from './approxAlgorithms/vecolor/egcYM.mjs';
-import { coreYM } from './approxAlgorithms/vecolor/egcYM.mjs';
-
 import randomHpc from './approxAlgorithms/hpc/randomHpc.mjs';
 import verifyHpc from './approxAlgorithms/hpc/verifyHpc.mjs';
 import hpcPAV from './approxAlgorithms/hpc/hpcPAV.mjs';
@@ -343,6 +319,28 @@ import randomSetCover from './approxAlgorithms/setCover/randomSetCover.mjs';
 import verifySetCover from './approxAlgorithms/setCover/verifySetCover.mjs';
 import setCoverBYE from './approxAlgorithms/setCover/setCoverBYE.mjs';
 import setCoverC from './approxAlgorithms/setCover/setCoverC.mjs';
+
+import { maxColor } from './approxAlgorithms/vecolor/common.mjs';
+import becolorSplit from './approxAlgorithms/vecolor/becolorSplit.mjs';
+import becolorMdmatch from './approxAlgorithms/vecolor/becolorMdmatch.mjs';
+import becolorPmatch from './approxAlgorithms/vecolor/becolorPmatch.mjs';
+import verify from './approxAlgorithms/vecolor/verify.mjs';
+import hardcase from './approxAlgorithms/vecolor/hardcase.mjs';
+import randomBecolor from './approxAlgorithms/vecolor/randomBecolor.mjs';
+
+import FanGraph from './approxAlgorithms/vecolor/FanGraph.mjs';
+import FanLayers from './approxAlgorithms/vecolor/FanLayers.mjs';
+import {degreeBound,matchBound, iocntBound, splitBound, 
+		lowerBounds, upperBounds} from './approxAlgorithms/vecolor/common.mjs'; 
+import randomFcolor from './approxAlgorithms/vecolor/randomFcolor.mjs';
+import fcolorTl from './approxAlgorithms/vecolor/fcolorTl.mjs';
+import fcolorTh from './approxAlgorithms/vecolor/fcolorTh.mjs';
+import fcolorCT from './approxAlgorithms/vecolor/fcolorCT.mjs';
+import { coreCT } from './approxAlgorithms/vecolor/fcolorCT.mjs';
+import fcolorKKP from './approxAlgorithms/vecolor/fcolorKKP.mjs';
+import fcolorKKPT from './approxAlgorithms/vecolor/fcolorKKPT.mjs';
+import fcolorYM from './approxAlgorithms/vecolor/fcolorYM.mjs';
+import { coreYM } from './approxAlgorithms/vecolor/fcolorYM.mjs';
 
 let codeArea = document.getElementById("codeArea");
 let outputArea = document.getElementById("outputArea");
