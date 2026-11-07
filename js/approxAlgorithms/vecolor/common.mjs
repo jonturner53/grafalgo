@@ -10,7 +10,7 @@ import { assert, assertEnabled as ae } from '../../common/Assert.mjs';
 import List from '../../dataStructures/basic/List.mjs';
 import Graph from '../../dataStructures/graphs/Graph.mjs';
 import Flograph from '../../dataStructures/graphs/Flograph.mjs';
-import FanGraph from './fanGraph.mjs';
+import FanGraph from './FanGraph.mjs';
 import matchEG from '../../graphAlgorithms/match/matchEG.mjs';
 import maxflowPPf from '../../graphAlgorithms/maxflow/maxflowPPf.mjs';
 import becolorSplit from './becolorSplit.mjs';
