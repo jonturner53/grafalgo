@@ -1,4 +1,4 @@
-/** @file becPmatch.mjs
+/** @file becolorPmatch.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -20,7 +20,7 @@ import { maxTint } from './common.mjs';
  *  @return a pair [ts, stats] where ts is a traceString and stats is
  *  a statistics object; the coloring is returned as an edge property of g.
  */
-export default function becPmatch(g, trace=0) {
+export default function becolorPmatch(g, trace=0) {
 	let steps = 0;
 	assert(g.hasBipartition, g);
 	if (!g.color) g.addEdgeProperty(['color',0]);

@@ -1,4 +1,4 @@
-/** @file becSplit.mjs
+/** @file becolorSplit.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -20,7 +20,7 @@ import { degreeBound, maxTint } from './common.mjs';
  *  @return a triple [color, ts, stats] where color is an array of edge colors,
  *  ts is a trace string and stats is a statistics object.
  */
-export default function becSplit(g, trace=0) {
+export default function becolorSplit(g, trace=0) {
 	let ts = ''; let steps = 0;
 	assert(g.hasBipartition);
 	if (!g.color) g.addEdgeProperty(['color',0]);

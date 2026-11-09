@@ -1,4 +1,4 @@
-/** @file becMdmatch.mjs
+/** @file becolorMdmatch.mjs
  * 
  *  @author Jon Turner
  *  @date 2023
@@ -19,7 +19,7 @@ import { maxTint } from './common.mjs';
  *  @return a triple [color, ts, stats] where color is an array of edge colors,
  *  ts is a traceString and stats is a statistics object.
  */
-export default function becMdmatch(g, trace=0) {
+export default function becolorMdmatch(g, trace=0) {
 	let steps = 0;
 	if (!g.color) g.addEdgeProperty(['color',0]);
 	let gc = new Graph(g.n,g.edgeRange); gc.setBipartition(g.getBipartition());
